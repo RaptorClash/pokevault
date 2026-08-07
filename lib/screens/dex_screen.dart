@@ -66,7 +66,7 @@ class _DexScreenState extends State<DexScreen> {
     return 9;
   }
 
-  List<DexDisplayEntry> _buildDisplayEntries(
+List<DexDisplayEntry> _buildDisplayEntries(
     UserDex liveDex,
     DexProvider provider,
   ) {
@@ -76,6 +76,13 @@ class _DexScreenState extends State<DexScreen> {
       bool isNationalDex = liveDex.region == 'national_overall';
       bool isMegaDex = liveDex.region == 'mega_dex';
       bool isIcognitoDex = liveDex.region == 'icognito_dex';
+
+      List<int> useHomeSpritesIds = [
+        201, 412, 413, 414, 421, 422, 423, 493, 585, 586, 592, 593, 649, 664, 
+        665, 666, 669, 670, 671, 676, 710, 711, 718, 741, 773, 774, 854, 855, 
+        869, 875, 876, 877, 888, 889, 890, 892, 893, 898, 901, 902, 905, 924, 
+        925, 931, 964, 977, 978, 999, 1011, 1012, 1017, 1024
+      ];
 
       bool isNativeRegionalForm(PokemonForm f, String region) {
         if (f.formType != 'regional') return false;
@@ -89,144 +96,105 @@ class _DexScreenState extends State<DexScreen> {
       for (var p in widget.pokemonList) {
         if (p.forms.isNotEmpty) {
           var sortedForms = List.of(p.forms);
+          
           sortedForms.sort((a, b) {
+            if (p.id == 718) {
+              int wA = a.name.contains('10') ? 0 : (a.name.contains('50') || a.name == 'normal' ? 1 : 2);
+              int wB = b.name.contains('10') ? 0 : (b.name.contains('50') || b.name == 'normal' ? 1 : 2);
+              if (wA != wB) return wA.compareTo(wB);
+            }
             int getWeight(String type) {
               if (type == 'normal') return 0;
               if (type == 'regional') return 1;
-              if (type == 'mega') return 2;
-              if (type == 'gmax') return 3;
-              return 4;
+              if (type == 'other') return 2;
+              if (type == 'mega') return 3;
+              if (type == 'gmax') return 4;
+              return 5;
             }
             return getWeight(a.formType).compareTo(getWeight(b.formType));
           });
 
+          bool hasExplicitGenderForms = p.forms.any((f) => f.name == 'male' || f.name == 'female');
+
           for (var form in sortedForms) {
             bool isBaseForm = form.name == 'normal' || p.forms.first.name == form.name;
 
-            if (isMegaDex && form.formType != 'mega') {
+            if ((p.id == 1007 || p.id == 1008 || p.id == 664 || p.id == 665) && !isBaseForm) {
               continue;
             }
+
+            if (isMegaDex && form.formType != 'mega') continue;
 
             bool isNativeRegional = isNativeRegionalForm(form, liveDex.region);
 
             if (form.formType == 'normal' && !liveDex.includeRegional && !isMegaDex) {
-              bool hasNativeRegional = p.forms.any(
-                (f) => isNativeRegionalForm(f, liveDex.region),
-              );
+              bool hasNativeRegional = p.forms.any((f) => isNativeRegionalForm(f, liveDex.region));
               if (hasNativeRegional) continue;
             }
 
-            if (form.formType == 'regional' && !liveDex.includeRegional && !isNativeRegional) {
-              continue;
-            }
-
-            if (form.formType == 'mega' && !liveDex.includeMega && !isMegaDex) {
-              continue;
-            }
-
-            if (form.formType == 'gmax' && !liveDex.includeGMax) {
-              continue;
-            }
+            if (form.formType == 'regional' && !liveDex.includeRegional && !isNativeRegional) continue;
+            if (form.formType == 'mega' && !liveDex.includeMega && !isMegaDex) continue;
+            if (form.formType == 'gmax' && !liveDex.includeGMax) continue;
 
             if (form.formType == 'other' && !liveDex.includeOther && !isIcognitoDex) {
               if (!isBaseForm) continue;
             }
 
             bool isWhitelistedForThisDex = form.exclusiveRegions.contains(liveDex.region);
-
             if (form.exclusiveRegions.isNotEmpty) {
               if (!isNationalDex && !isWhitelistedForThisDex) continue;
             }
-
-            if (!isNationalDex &&
-                !isWhitelistedForThisDex &&
-                form.minGen > dexGen &&
-                !isMegaDex &&
-                !isIcognitoDex) {
+            if (!isNationalDex && !isWhitelistedForThisDex && form.minGen > dexGen && !isMegaDex && !isIcognitoDex) {
               continue;
             }
 
             bool hideSuffix = form.name == 'normal' || (isBaseForm && !liveDex.includeOther && !isIcognitoDex && form.formType == 'other');
+            
+            // Wenn die Form "male" oder "female" in der API heißt, generieren wir daraus die sauberen Symbole ♂ / ♀
             String suffix = hideSuffix ? '' : ' (${_getFormDisplayName(form.name, provider)})';
+            if (form.name == 'male' || form.name == 'female') {
+               suffix = form.name == 'male' ? ' ♂' : ' ♀';
+            }
 
             String specificImageUrl;
-            if (p.id == 201 && !hideSuffix) {
-               String formSuffix = form.name == 'a' ? '' : '-${form.name}';
-               specificImageUrl = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/home/201$formSuffix.png';
+            if (useHomeSpritesIds.contains(p.id) && !hideSuffix && form.name != 'normal') {
+               String formSuffix = '';
+               if (!isBaseForm || isIcognitoDex) {
+                 formSuffix = '-${form.name}';
+                 // Besonderheiten der HOME-Dateinamen abfangen
+                 if (p.id == 774 && form.name.contains('meteor')) formSuffix = '-meteor';
+                 if (p.id == 718 && form.name.contains('10')) formSuffix = '-10';
+                 if (p.id == 718 && form.name.contains('complete')) formSuffix = '-complete';
+                 if (p.id == 201 && form.name == 'a') formSuffix = '';
+               }
+               specificImageUrl = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/home/${p.id}$formSuffix.png';
             } else {
                specificImageUrl = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${form.imageId}.png';
             }
 
-            if (form.formType == 'normal' && liveDex.includeGenders && p.hasGenderDifferences) {
-              entries.add(
-                DexDisplayEntry(
-                  pokemon: p,
-                  uniqueId: '${p.id}_m',
-                  displaySuffix: ' ♂',
-                  imageUrl: p.imageUrl,
-                ),
-              );
-              entries.add(
-                DexDisplayEntry(
-                  pokemon: p,
-                  uniqueId: '${p.id}_f',
-                  displaySuffix: ' ♀',
-                  imageUrl:
-                      'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/home/female/${p.id}.png', // <-- HOME Sprites für weibliche Pokémon
-                ),
-              );
+            if (form.formType == 'normal' && liveDex.includeGenders && p.hasGenderDifferences && !hasExplicitGenderForms) {
+              entries.add(DexDisplayEntry(pokemon: p, uniqueId: '${p.id}_m', displaySuffix: ' ♂', imageUrl: p.imageUrl));
+              entries.add(DexDisplayEntry(pokemon: p, uniqueId: '${p.id}_f', displaySuffix: ' ♀', imageUrl: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/home/female/${p.id}.png'));
             } else {
-              entries.add(
-                DexDisplayEntry(
-                  pokemon: p,
-                  uniqueId: '${p.id}_${form.name}',
-                  displaySuffix: suffix,
-                  imageUrl: specificImageUrl,
-                ),
-              );
+              entries.add(DexDisplayEntry(pokemon: p, uniqueId: '${p.id}_${form.name}', displaySuffix: suffix, imageUrl: specificImageUrl));
             }
           }
         } else {
           if (!isMegaDex) {
             if (liveDex.includeGenders && p.hasGenderDifferences) {
-              entries.add(
-                DexDisplayEntry(
-                  pokemon: p,
-                  uniqueId: '${p.id}_m',
-                  displaySuffix: ' ♂',
-                  imageUrl: p.imageUrl,
-                ),
-              );
-              entries.add(
-                DexDisplayEntry(
-                  pokemon: p,
-                  uniqueId: '${p.id}_f',
-                  displaySuffix: ' ♀',
-                  imageUrl:
-                      'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/home/female/${p.id}.png', // <-- HOME Sprites für weibliche Pokémon
-                ),
-              );
+              entries.add(DexDisplayEntry(pokemon: p, uniqueId: '${p.id}_m', displaySuffix: ' ♂', imageUrl: p.imageUrl));
+              entries.add(DexDisplayEntry(pokemon: p, uniqueId: '${p.id}_f', displaySuffix: ' ♀', imageUrl: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/home/female/${p.id}.png'));
             } else {
-              entries.add(
-                DexDisplayEntry(
-                  pokemon: p,
-                  uniqueId: '${p.id}_normal',
-                  displaySuffix: '',
-                  imageUrl: p.imageUrl,
-                ),
-              );
+              entries.add(DexDisplayEntry(pokemon: p, uniqueId: '${p.id}_normal', displaySuffix: '', imageUrl: p.imageUrl));
             }
           }
         }
       }
     } catch (e) {
-      NotificationHelper.showError(
-        "${Translator.get('error_build_display_entries')} $e",
-      );
+      NotificationHelper.showError("${Translator.get('error_build_display_entries')} $e");
     }
     return entries;
   }
-
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<DexProvider>();

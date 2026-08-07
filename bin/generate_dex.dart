@@ -166,6 +166,7 @@ Future<String> generateMasterDex(int startId, int endId) async {
               'kalos_coastal_regional',
               'kalos_mountain_regional',
               'lumiose_regional',
+              'lumiose_dimensions_regional',
               'updated_hoenn_regional',
               'letsgo_kanto_regional',
               'mega_dex',
