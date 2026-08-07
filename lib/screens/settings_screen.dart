@@ -6,6 +6,7 @@ import '../providers/dex_provider.dart';
 import '../services/dex_storage_service.dart';
 import '../l10n/app_translations.dart';
 import '../utils/notification_helper.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -159,9 +160,87 @@ class SettingsScreen extends StatelessWidget {
               ],
             ),
           ),
+          // ... (hier ist deine bestehende Datenverwaltungs-Card) ...
+          const SizedBox(height: 24),
+
+          // --- CREDITS SEKTION ---
+          _buildSectionHeader(
+            context,
+            Translator.get('credits'),
+            Icons.favorite_rounded,
+          ),
+          Card(
+            child: Column(
+              children: [
+                ListTile(
+                  leading: const Icon(Icons.api_rounded),
+                  title: Text(Translator.get('credit_api_title')),
+                  subtitle: Text(Translator.get('credit_api_sub')),
+                  trailing: const Icon(Icons.open_in_new, size: 16),
+                  onTap: () => _launchURL('https://pokeapi.co/'),
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  leading: const Icon(Icons.lightbulb_outline_rounded),
+                  title: Text(Translator.get('credit_inspi_title')),
+                  subtitle: Text(Translator.get('credit_inspi_sub')),
+                  trailing: const Icon(Icons.open_in_new, size: 16),
+                  onTap: () => _launchURL(
+                    'https://drive.google.com/drive/folders/1jgopfeGuNA8oJX6mnYearpnNti4a8W-v',
+                  ),
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  leading: const Icon(Icons.auto_awesome),
+                  title: Text(Translator.get('credit_shiny_gen1_title')),
+                  subtitle: Text(Translator.get('credit_shiny_gen1_sub')),
+                  trailing: const Icon(Icons.open_in_new, size: 16),
+                  onTap: () => _launchURL(
+                    'https://bluemoonfalls.com/pages/shinies/gen-1-shiny-hunting',
+                  ),
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  leading: const Icon(Icons.bug_report_rounded),
+                  title: Text(Translator.get('credit_glitch_gen2_title')),
+                  subtitle: Text(Translator.get('credit_glitch_gen2_sub')),
+                  trailing: const Icon(Icons.open_in_new, size: 16),
+                  onTap: () => _launchURL(
+                    'https://glitchcity.wiki/wiki/Guides:Mail_Writer_Codes',
+                  ),
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  leading: const Icon(Icons.catching_pokemon),
+                  title: Text(Translator.get('credit_balls_title')),
+                  subtitle: Text(Translator.get('credit_balls_sub')),
+                  trailing: const Icon(Icons.open_in_new, size: 16),
+                  onTap: () => _launchURL(
+                    'https://docs.google.com/spreadsheets/d/1bvIx7Q2Lxp7efHRrUh48WkuwirNlKardwSHVz_R8kA0/edit',
+                  ),
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  leading: const Icon(Icons.memory),
+                  title: Text(Translator.get('credit_ai_title')),
+                  subtitle: Text(Translator.get('credit_ai_sub')),
+                  trailing: const Icon(Icons.open_in_new, size: 16),
+                  onTap: () => _launchURL('https://gemini.google.com/'),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 32),
         ],
       ),
     );
+  } // Ende der build Methode
+
+  Future<void> _launchURL(String urlString) async {
+    final Uri url = Uri.parse(urlString);
+    if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
+      NotificationHelper.showError("Link konnte nicht geöffnet werden.");
+    }
   }
 
   Widget _buildColorList(
@@ -383,7 +462,9 @@ class SettingsScreen extends StatelessWidget {
         },
       );
     } catch (e) {
-      NotificationHelper.showError("${Translator.get('error_show_colorpicker_dialog')} $e");
+      NotificationHelper.showError(
+        "${Translator.get('error_show_colorpicker_dialog')} $e",
+      );
     }
   }
 }

@@ -61,19 +61,24 @@ class Translator {
       'error_export': 'Fehler beim Exportieren:',
       'error_import': 'Fehler beim Importieren:',
       'error_start_app': 'Fehler beim Starten der App:',
-      'error_getting_available_features': 'Fehler beim bekomen von allen Optionen:',
-      'error_show_edit_dex_dialog': 'Fehler beim Anzeigen des Dex-Bearbeiten-Popups:',
+      'error_getting_available_features':
+          'Fehler beim bekomen von allen Optionen:',
+      'error_show_edit_dex_dialog':
+          'Fehler beim Anzeigen des Dex-Bearbeiten-Popups:',
       'error_confirm_delete': 'Fehler beim Bestätigen beim Löschen des Dexes:',
-      'error_confirm_multiple_delete': 'Fehler beim Bestätigen zum Löschen von mehreren Dexen:',
+      'error_confirm_multiple_delete':
+          'Fehler beim Bestätigen zum Löschen von mehreren Dexen:',
       'error_get_form_display_name': 'Fehler beim Anzeigen der Form:',
       'error_build_display_entries': 'Fehler beim bauen des Dexes:',
       'error_show_language_dialog': 'Fehler beim Anzeigen der Sprachauswahl:',
       'error_show_colorpicker_dialog': 'Fehler beim Anzeigen der Farbauswahl:',
       'error_load_prefs': 'Fehler beim Laden der Präferenzen:',
       'error_update_theme_color': 'Fehler beim aktualisieren der Theme-Farben:',
-      'error_update_background_color': 'Fehler beim aktualisieren der Hintergrundfarbe:',
+      'error_update_background_color':
+          'Fehler beim aktualisieren der Hintergrundfarbe:',
       'error_add_custom_color': 'Fehler beim hinzufügen einer eigenen Farbe:',
       'error_reset_to_default': 'Fehler beim zurücksetzen der Farben:',
+      'error_launch_url': 'Konnte URL nicht öffnen:',
 
       // Gruppen-Namen
       'group_national': 'National',
@@ -144,6 +149,20 @@ class Translator {
       "data_management": "Datenverwaltung",
       "apply": "Übernehmen",
       "reset_theme": "Standarddesign wiederherstellen",
+
+      'credits': 'Danksagungen & Quellen',
+      'credit_api_title': 'PokéAPI & Sprites',
+      'credit_api_sub': 'Basisdaten und offizielle Artworks',
+      'credit_inspi_title': 'Living Dex Inspiration',
+      'credit_inspi_sub': 'Community Google Sheet für Tracker-Basis',
+      'credit_shiny_gen1_title': 'Gen 1 Shiny Hunting',
+      'credit_shiny_gen1_sub': 'BlueMoonFalls Guide für DV-Werte',
+      'credit_glitch_gen2_title': 'Gen 2 Mail Writer Codes',
+      'credit_glitch_gen2_sub': 'GlitchCity Wiki für Gen 3 Shiny Starter',
+      'credit_balls_title': 'Matching Balls Guide',
+      'credit_balls_sub': 'Community Sheet für passende Pokébälle',
+      'credit_ai_title': 'Google Gemini',
+      'credit_ai_sub': 'KI-Assistenz beim Programmieren & Refactoring',
     },
     'en': {
       // Allgemeine UI
@@ -202,7 +221,8 @@ class Translator {
       'error_getting_available_features': 'Error retrieving available options:',
       'error_show_edit_dex_dialog': 'Error displaying the Dex edit dialog:',
       'error_confirm_delete': 'Error confirming Dex deletion:',
-      'error_confirm_multiple_delete': 'Error confirming deletion of multiple Dexes:',
+      'error_confirm_multiple_delete':
+          'Error confirming deletion of multiple Dexes:',
       'error_get_form_display_name': 'Error displaying the form:',
       'error_build_display_entries': 'Error building the Dex:',
       'error_show_language_dialog': 'Error displaying the language selection:',
@@ -212,6 +232,7 @@ class Translator {
       'error_update_background_color': 'Error updating background color:',
       'error_add_custom_color': 'Error adding a custom color:',
       'error_reset_to_default': 'Error resetting colors:',
+      'error_launch_url': 'Could not open URL:',
 
       // Gruppen-Namen
       'group_national': 'National',
@@ -282,6 +303,20 @@ class Translator {
       "data_management": "Data Management",
       "apply": "Apply",
       "reset_theme": "Restore default theme",
+
+      'credits': 'Credits & Sources',
+      'credit_api_title': 'PokéAPI & Sprites',
+      'credit_api_sub': 'Base data and official artworks',
+      'credit_inspi_title': 'Living Dex Inspiration',
+      'credit_inspi_sub': 'Community Google Sheet for tracker base',
+      'credit_shiny_gen1_title': 'Gen 1 Shiny Hunting',
+      'credit_shiny_gen1_sub': 'BlueMoonFalls guide for DV values',
+      'credit_glitch_gen2_title': 'Gen 2 Mail Writer Codes',
+      'credit_glitch_gen2_sub': 'GlitchCity Wiki for Gen 3 Shiny Starters',
+      'credit_balls_title': 'Matching Balls Guide',
+      'credit_balls_sub': 'Community sheet for matching Poké Balls',
+      'credit_ai_title': 'Google Gemini',
+      'credit_ai_sub': 'AI assistance in coding & refactoring',
     },
   };
 }

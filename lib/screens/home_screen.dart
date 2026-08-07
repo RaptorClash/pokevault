@@ -126,11 +126,7 @@ class _HomeScreenState extends State<HomeScreen> {
       if (dexKey.contains('galar') ||
           dexKey.contains('armor') ||
           dexKey.contains('tundra')) {
-        return {
-          'regional': true,
-          'mega': false,
-          'gmax': true,
-        };
+        return {'regional': true, 'mega': false, 'gmax': true};
       }
       if (dexKey.contains('hisui') ||
           dexKey.contains('paldea') ||
@@ -413,37 +409,149 @@ class _HomeScreenState extends State<HomeScreen> {
                 right: 16,
                 top: 24,
               ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    Translator.get('create_dex_title'),
-                    style: const TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      Translator.get('create_dex_title'),
+                      style: const TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    Translator.get('choose_generation'),
-                    style: TextStyle(color: Theme.of(context).hintColor),
-                  ),
-                  const SizedBox(height: 16),
-                  SizedBox(
-                    height: 160,
-                    child: ListView.builder(
-                      scrollDirection: Axis.horizontal,
-                      itemCount: _dexGroups.length,
-                      itemBuilder: (context, index) {
-                        final group = _dexGroups[index];
-                        final isSelected = selectedGroup == group;
+                    const SizedBox(height: 8),
+                    Text(
+                      Translator.get('choose_generation'),
+                      style: TextStyle(color: Theme.of(context).hintColor),
+                    ),
+                    const SizedBox(height: 16),
+                    SizedBox(
+                      height: 160,
+                      child: ListView.builder(
+                        scrollDirection: Axis.horizontal,
+                        itemCount: _dexGroups.length,
+                        itemBuilder: (context, index) {
+                          final group = _dexGroups[index];
+                          final isSelected = selectedGroup == group;
 
-                        return GestureDetector(
-                          onTap: () {
+                          return GestureDetector(
+                            onTap: () {
+                              setState(() {
+                                selectedGroup = group;
+                                selectedSubDex = group.dexKeys.first;
+                                nameController.text = Translator.get(
+                                  'region_$selectedSubDex',
+                                );
+
+                                features = _getAvailableFeatures(
+                                  selectedSubDex,
+                                );
+                                if (!features['regional']!)
+                                  includeRegional = false;
+                                if (!features['mega']!) includeMega = false;
+                                if (!features['gmax']!) includeGMax = false;
+                              });
+                            },
+                            child: AnimatedContainer(
+                              duration: const Duration(milliseconds: 200),
+                              width: 140,
+                              margin: const EdgeInsets.only(
+                                right: 12,
+                                bottom: 8,
+                              ),
+                              decoration: BoxDecoration(
+                                color: isSelected
+                                    ? Colors.red.withOpacity(0.15)
+                                    : Theme.of(context)
+                                          .colorScheme
+                                          .surfaceContainerHighest
+                                          .withOpacity(0.3),
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(
+                                  color: isSelected
+                                      ? Colors.red
+                                      : Colors.transparent,
+                                  width: 2,
+                                ),
+                              ),
+                              child: Column(
+                                children: [
+                                  Expanded(
+                                    flex: 3,
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: _buildCollage(
+                                        group.displayPokemonIds,
+                                      ),
+                                    ),
+                                  ),
+                                  Expanded(
+                                    flex: 1,
+                                    child: Container(
+                                      width: double.infinity,
+                                      decoration: BoxDecoration(
+                                        color: isSelected
+                                            ? Colors.red
+                                            : Colors.black.withOpacity(0.1),
+                                        borderRadius:
+                                            const BorderRadius.vertical(
+                                              bottom: Radius.circular(14),
+                                            ),
+                                      ),
+                                      alignment: Alignment.center,
+                                      child: Text(
+                                        Translator.get(group.nameKey),
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.bold,
+                                          color: isSelected
+                                              ? Colors.white
+                                              : Theme.of(
+                                                  context,
+                                                ).textTheme.bodyMedium?.color,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    if (selectedGroup.dexKeys.length > 1) ...[
+                      DropdownButtonFormField<String>(
+                        value: selectedSubDex,
+                        decoration: InputDecoration(
+                          labelText: Translator.get('exact_pokedex'),
+                          filled: true,
+                          fillColor: Theme.of(context)
+                              .colorScheme
+                              .surfaceContainerHighest
+                              .withOpacity(0.3),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide.none,
+                          ),
+                        ),
+                        items: selectedGroup.dexKeys.map((key) {
+                          return DropdownMenuItem<String>(
+                            value: key,
+                            child: Text(
+                              Translator.get('region_$key') != 'region_$key'
+                                  ? Translator.get('region_$key')
+                                  : key,
+                            ),
+                          );
+                        }).toList(),
+                        onChanged: (val) {
+                          if (val != null) {
                             setState(() {
-                              selectedGroup = group;
-                              selectedSubDex = group.dexKeys.first;
+                              selectedSubDex = val;
                               nameController.text = Translator.get(
                                 'region_$selectedSubDex',
                               );
@@ -454,77 +562,15 @@ class _HomeScreenState extends State<HomeScreen> {
                               if (!features['mega']!) includeMega = false;
                               if (!features['gmax']!) includeGMax = false;
                             });
-                          },
-                          child: AnimatedContainer(
-                            duration: const Duration(milliseconds: 200),
-                            width: 140,
-                            margin: const EdgeInsets.only(right: 12, bottom: 8),
-                            decoration: BoxDecoration(
-                              color: isSelected
-                                  ? Colors.red.withOpacity(0.15)
-                                  : Theme.of(context)
-                                        .colorScheme
-                                        .surfaceContainerHighest
-                                        .withOpacity(0.3),
-                              borderRadius: BorderRadius.circular(16),
-                              border: Border.all(
-                                color: isSelected
-                                    ? Colors.red
-                                    : Colors.transparent,
-                                width: 2,
-                              ),
-                            ),
-                            child: Column(
-                              children: [
-                                Expanded(
-                                  flex: 3,
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(8.0),
-                                    child: _buildCollage(
-                                      group.displayPokemonIds,
-                                    ),
-                                  ),
-                                ),
-                                Expanded(
-                                  flex: 1,
-                                  child: Container(
-                                    width: double.infinity,
-                                    decoration: BoxDecoration(
-                                      color: isSelected
-                                          ? Colors.red
-                                          : Colors.black.withOpacity(0.1),
-                                      borderRadius: const BorderRadius.vertical(
-                                        bottom: Radius.circular(14),
-                                      ),
-                                    ),
-                                    alignment: Alignment.center,
-                                    child: Text(
-                                      Translator.get(group.nameKey),
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.bold,
-                                        color: isSelected
-                                            ? Colors.white
-                                            : Theme.of(
-                                                context,
-                                              ).textTheme.bodyMedium?.color,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  if (selectedGroup.dexKeys.length > 1) ...[
-                    DropdownButtonFormField<String>(
-                      value: selectedSubDex,
+                          }
+                        },
+                      ),
+                      const SizedBox(height: 16),
+                    ],
+                    TextField(
+                      controller: nameController,
                       decoration: InputDecoration(
-                        labelText: Translator.get('exact_pokedex'),
+                        labelText: Translator.get('create_dex_hint'),
                         filled: true,
                         fillColor: Theme.of(
                           context,
@@ -533,168 +579,128 @@ class _HomeScreenState extends State<HomeScreen> {
                           borderRadius: BorderRadius.circular(12),
                           borderSide: BorderSide.none,
                         ),
+                        prefixIcon: const Icon(Icons.edit),
                       ),
-                      items: selectedGroup.dexKeys.map((key) {
-                        return DropdownMenuItem<String>(
-                          value: key,
-                          child: Text(
-                            Translator.get('region_$key') != 'region_$key'
-                                ? Translator.get('region_$key')
-                                : key,
-                          ),
-                        );
-                      }).toList(),
-                      onChanged: (val) {
-                        if (val != null) {
-                          setState(() {
-                            selectedSubDex = val;
-                            nameController.text = Translator.get(
-                              'region_$selectedSubDex',
-                            );
-
-                            features = _getAvailableFeatures(selectedSubDex);
-                            if (!features['regional']!) includeRegional = false;
-                            if (!features['mega']!) includeMega = false;
-                            if (!features['gmax']!) includeGMax = false;
-                          });
-                        }
-                      },
                     ),
                     const SizedBox(height: 16),
-                  ],
-                  TextField(
-                    controller: nameController,
-                    decoration: InputDecoration(
-                      labelText: Translator.get('create_dex_hint'),
-                      filled: true,
-                      fillColor: Theme.of(
-                        context,
-                      ).colorScheme.surfaceContainerHighest.withOpacity(0.3),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide.none,
+                    Container(
+                      decoration: BoxDecoration(
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.surfaceContainerHighest.withOpacity(0.3),
+                        borderRadius: BorderRadius.circular(16),
                       ),
-                      prefixIcon: const Icon(Icons.edit),
+                      child: Column(
+                        children: [
+                          SwitchListTile(
+                            title: Text(Translator.get('include_genders')),
+                            secondary: const Icon(Icons.wc),
+                            value: includeGenders,
+                            activeColor: Colors.red,
+                            onChanged: (val) =>
+                                setState(() => includeGenders = val),
+                          ),
+                          const Divider(height: 1),
+                          ExpansionTile(
+                            leading: const Icon(Icons.auto_awesome),
+                            title: Text(Translator.get('include_forms')),
+                            children: [
+                              CheckboxListTile(
+                                title: Text(Translator.get('form_regional')),
+                                value: includeRegional,
+                                activeColor: Colors.red,
+                                enabled: features['regional']!,
+                                onChanged: features['regional']!
+                                    ? (val) => setState(
+                                        () => includeRegional = val ?? false,
+                                      )
+                                    : null,
+                              ),
+                              CheckboxListTile(
+                                title: Text(Translator.get('form_mega')),
+                                value: includeMega,
+                                activeColor: Colors.red,
+                                enabled: features['mega']!,
+                                onChanged: features['mega']!
+                                    ? (val) => setState(
+                                        () => includeMega = val ?? false,
+                                      )
+                                    : null,
+                              ),
+                              CheckboxListTile(
+                                title: Text(Translator.get('form_gmax')),
+                                value: includeGMax,
+                                activeColor: Colors.red,
+                                enabled: features['gmax']!,
+                                onChanged: features['gmax']!
+                                    ? (val) => setState(
+                                        () => includeGMax = val ?? false,
+                                      )
+                                    : null,
+                              ),
+                              CheckboxListTile(
+                                title: Text(Translator.get('form_other')),
+                                value: includeOther,
+                                activeColor: Colors.red,
+                                onChanged: (val) =>
+                                    setState(() => includeOther = val ?? false),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 16),
-                  Container(
-                    decoration: BoxDecoration(
-                      color: Theme.of(
-                        context,
-                      ).colorScheme.surfaceContainerHighest.withOpacity(0.3),
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: Column(
+                    const SizedBox(height: 24),
+                    Row(
                       children: [
-                        SwitchListTile(
-                          title: Text(Translator.get('include_genders')),
-                          secondary: const Icon(Icons.wc),
-                          value: includeGenders,
-                          activeColor: Colors.red,
-                          onChanged: (val) =>
-                              setState(() => includeGenders = val),
+                        Expanded(
+                          child: TextButton(
+                            onPressed: () => Navigator.pop(context),
+                            style: TextButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                            ),
+                            child: Text(Translator.get('cancel')),
+                          ),
                         ),
-                        const Divider(height: 1),
-                        ExpansionTile(
-                          leading: const Icon(Icons.auto_awesome),
-                          title: Text(Translator.get('include_forms')),
-                          children: [
-                            CheckboxListTile(
-                              title: Text(Translator.get('form_regional')),
-                              value: includeRegional,
-                              activeColor: Colors.red,
-                              enabled: features['regional']!,
-                              onChanged: features['regional']!
-                                  ? (val) => setState(
-                                      () => includeRegional = val ?? false,
-                                    )
-                                  : null,
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: ElevatedButton(
+                            onPressed: () {
+                              if (nameController.text.isNotEmpty) {
+                                provider.createDex(
+                                  nameController.text,
+                                  selectedSubDex,
+                                  includeGenders,
+                                  includeRegional,
+                                  includeMega,
+                                  includeGMax,
+                                  includeOther,
+                                );
+                                Navigator.pop(context);
+                              }
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.red,
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
                             ),
-                            CheckboxListTile(
-                              title: Text(Translator.get('form_mega')),
-                              value: includeMega,
-                              activeColor: Colors.red,
-                              enabled: features['mega']!,
-                              onChanged: features['mega']!
-                                  ? (val) => setState(
-                                      () => includeMega = val ?? false,
-                                    )
-                                  : null,
+                            child: Text(
+                              Translator.get('create'),
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                              ),
                             ),
-                            CheckboxListTile(
-                              title: Text(Translator.get('form_gmax')),
-                              value: includeGMax,
-                              activeColor: Colors.red,
-                              enabled: features['gmax']!,
-                              onChanged: features['gmax']!
-                                  ? (val) => setState(
-                                      () => includeGMax = val ?? false,
-                                    )
-                                  : null,
-                            ),
-                            CheckboxListTile(
-                              title: Text(Translator.get('form_other')),
-                              value: includeOther,
-                              activeColor: Colors.red,
-                              onChanged: (val) =>
-                                  setState(() => includeOther = val ?? false),
-                            ),
-                          ],
+                          ),
                         ),
                       ],
                     ),
-                  ),
-                  const SizedBox(height: 24),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: TextButton(
-                          onPressed: () => Navigator.pop(context),
-                          style: TextButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                          ),
-                          child: Text(Translator.get('cancel')),
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: ElevatedButton(
-                          onPressed: () {
-                            if (nameController.text.isNotEmpty) {
-                              provider.createDex(
-                                nameController.text,
-                                selectedSubDex,
-                                includeGenders,
-                                includeRegional,
-                                includeMega,
-                                includeGMax,
-                                includeOther,
-                              );
-                              Navigator.pop(context);
-                            }
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.red,
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
-                          child: Text(
-                            Translator.get('create'),
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 24),
-                ],
+                    const SizedBox(height: 24),
+                  ],
+                ),
               ),
             );
           },
@@ -899,7 +905,9 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       );
     } catch (e) {
-      NotificationHelper.showError("${Translator.get('error_confirm_mutiple_delete')} $e");
+      NotificationHelper.showError(
+        "${Translator.get('error_confirm_mutiple_delete')} $e",
+      );
     }
   }
 }

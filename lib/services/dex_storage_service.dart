@@ -6,6 +6,7 @@ import '../models/user_dex.dart';
 import '../utils/notification_helper.dart';
 import 'package:file_selector/file_selector.dart';
 import '../providers/dex_provider.dart';
+import '../l10n/app_translations.dart';
 
 class DexStorageService {
   static Future<void> exportDexes(
@@ -32,7 +33,7 @@ class DexStorageService {
         await file.writeAsString(jsonString);
 
         NotificationHelper.showSuccess(
-          "${provider.getText('backup_success')}\n${file.path}",
+          "${Translator.get('backup_success')}\n${file.path}",
         );
       } else {
         final directory = await getTemporaryDirectory();
@@ -41,17 +42,17 @@ class DexStorageService {
 
         await Share.shareXFiles([
           XFile(file.path),
-        ], text: provider.getText('share_text'));
+        ], text: Translator.get('share_text'));
       }
     } catch (e) {
-      NotificationHelper.showError("${provider.getText('error_export')} $e");
+      NotificationHelper.showError("${Translator.get('error_export')} $e");
     }
   }
 
   static Future<List<UserDex>?> importDexes(DexProvider provider) async {
     try {
       final XTypeGroup typeGroup = XTypeGroup(
-        label: provider.getText('json_files'),
+        label: Translator.get('json_files'),
         extensions: const <String>['json'],
       );
 
@@ -66,7 +67,7 @@ class DexStorageService {
         return decoded.map((item) => UserDex.fromJson(item)).toList();
       }
     } catch (e) {
-      NotificationHelper.showError("${provider.getText('error_import')} $e");
+      NotificationHelper.showError("${Translator.get('error_import')} $e");
     }
     return null;
   }
