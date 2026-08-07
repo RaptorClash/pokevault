@@ -1,5 +1,6 @@
 class PokemonForm {
   final String name;
+  final String formType;
   final int minGen;
   final int imageId;
   final List<String> exclusiveRegions;
@@ -7,6 +8,7 @@ class PokemonForm {
 
   const PokemonForm({
     required this.name,
+    required this.formType,
     required this.minGen,
     required this.imageId,
     this.exclusiveRegions = const [],

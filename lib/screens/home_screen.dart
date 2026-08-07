@@ -7,6 +7,7 @@ import '../models/user_dex.dart';
 import 'dex_screen.dart';
 import '../data/national_dex_data.dart';
 import '../data/dex_orders.dart';
+import 'settings_screen.dart';
 
 class DexGroup {
   final String name;
@@ -29,90 +30,50 @@ class _HomeScreenState extends State<HomeScreen> {
 
   final List<DexGroup> _dexGroups = [
     DexGroup('National', [151, 251, 385, 493], ['national_overall']),
-
-    DexGroup(
-      'Kanto',
-      [3, 6, 9, 25],
-      ['kanto_regional', 'letsgo_kanto_regional'],
-    ),
-
-    DexGroup(
-      'Johto',
-      [250, 249, 245, 251],
-      ['johto_regional', 'updated_johto_regional'],
-    ),
-
-    DexGroup(
-      'Hoenn',
-      [382, 383, 384, 386],
-      ['hoenn_regional', 'updated_hoenn_regional'],
-    ),
-
-    DexGroup(
-      'Sinnoh',
-      [483, 484, 487, 448],
-      ['sinnoh_regional', 'extended_sinnoh_regional'],
-    ),
-
-    DexGroup(
-      'Einall',
-      [643, 644, 646, 494],
-      ['unova_regional', 'updated_unova_regional'],
-    ),
-
-    DexGroup(
-      'Kalos & Z-A',
-      [716, 717, 718, 719],
-      [
-        'kalos_central_regional',
-        'kalos_coastal_regional',
-        'kalos_mountain_regional',
-        'lumiose_regional',
-        'lumiose_dimensions_regional',
-      ],
-    ),
-
-    DexGroup(
-      'Alola',
-      [791, 792, 800, 773],
-      [
-        'alola_regional',
-        'melemele_regional',
-        'akala_regional',
-        'ulaula_regional',
-        'poni_regional',
-        'updated_alola_regional',
-        'updated_melemele_regional',
-        'updated_akala_regional',
-        'updated_ulaula_regional',
-        'updated_poni_regional',
-      ],
-    ),
-
-    DexGroup(
-      'Galar & Hisui',
-      [888, 889, 890, 493],
-      [
-        'galar_regional',
-        'isle_of_armor_regional',
-        'crown_tundra_regional',
-        'hisui_regional',
-      ],
-    ),
-
-    DexGroup(
-      'Paldea',
-      [1007, 1008, 1017, 1024],
-      ['paldea_regional', 'kitakami_regional', 'blueberry_regional'],
-    ),
+    DexGroup('Kanto', [3, 6, 9, 25], ['kanto_regional', 'letsgo_kanto_regional']),
+    DexGroup('Johto', [250, 249, 245, 251], ['johto_regional', 'updated_johto_regional']),
+    DexGroup('Hoenn', [382, 383, 384, 386], ['hoenn_regional', 'updated_hoenn_regional']),
+    DexGroup('Sinnoh', [483, 484, 487, 448], ['sinnoh_regional', 'extended_sinnoh_regional']),
+    DexGroup('Einall', [643, 644, 646, 494], ['unova_regional', 'updated_unova_regional']),
+    DexGroup('Kalos & Z-A', [716, 717, 718, 719], ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'lumiose_dimensions_regional']),
+    DexGroup('Alola', [791, 792, 800, 773], ['alola_regional', 'melemele_regional', 'akala_regional', 'ulaula_regional', 'poni_regional', 'updated_alola_regional', 'updated_melemele_regional', 'updated_akala_regional', 'updated_ulaula_regional', 'updated_poni_regional']),
+    DexGroup('Galar & Hisui', [888, 889, 890, 493], ['galar_regional', 'isle_of_armor_regional', 'crown_tundra_regional', 'hisui_regional']),
+    DexGroup('Paldea', [1007, 1008, 1017, 1024], ['paldea_regional', 'kitakami_regional', 'blueberry_regional']),
   ];
+
+  Map<String, bool> _getAvailableFeatures(String dexKey) {
+    if (dexKey == 'national_overall') {
+      return {'regional': true, 'mega': true, 'gmax': true};
+    }
+    if (dexKey == 'letsgo_kanto_regional') {
+      return {'regional': true, 'mega': true, 'gmax': false};
+    }
+    if (dexKey == 'updated_hoenn_regional') { // ORAS
+      return {'regional': false, 'mega': true, 'gmax': false};
+    }
+    if (dexKey.contains('kalos') || dexKey.contains('lumiose')) {
+      return {'regional': false, 'mega': true, 'gmax': false};
+    }
+    if (dexKey.contains('alola') || dexKey.contains('melemele') || dexKey.contains('akala') || dexKey.contains('ulaula') || dexKey.contains('poni')) {
+      return {'regional': true, 'mega': true, 'gmax': false};
+    }
+    if (dexKey.contains('galar') || dexKey.contains('armor') || dexKey.contains('tundra')) {
+      return {'regional': true, 'mega': false, 'gmax': true}; // Galar hat keine Megas
+    }
+    if (dexKey.contains('hisui') || dexKey.contains('paldea') || dexKey.contains('kitakami') || dexKey.contains('blueberry')) {
+      return {'regional': true, 'mega': false, 'gmax': false}; 
+    }
+    
+    return {'regional': false, 'mega': false, 'gmax': false};
+  }
 
   void _toggleSelection(String id) {
     setState(() {
-      if (_selectedDexIds.contains(id))
+      if (_selectedDexIds.contains(id)) {
         _selectedDexIds.remove(id);
-      else
+      } else {
         _selectedDexIds.add(id);
+      }
     });
   }
 
@@ -131,21 +92,14 @@ class _HomeScreenState extends State<HomeScreen> {
                 icon: const Icon(Icons.close),
                 onPressed: _clearSelection,
               ),
-              title: Text(
-                '${_selectedDexIds.length} ${provider.getText('selected')}',
-              ),
+              title: Text('${_selectedDexIds.length} ${provider.getText('selected')}'),
               actions: [
                 IconButton(
                   icon: const Icon(Icons.upload),
                   tooltip: provider.getText('export_tooltip'),
                   onPressed: () async {
-                    final selectedDexes = dexes
-                        .where((d) => _selectedDexIds.contains(d.id))
-                        .toList();
-                    await DexStorageService.exportDexes(
-                      selectedDexes,
-                      provider,
-                    );
+                    final selectedDexes = dexes.where((d) => _selectedDexIds.contains(d.id)).toList();
+                    await DexStorageService.exportDexes(selectedDexes, provider);
                     _clearSelection();
                   },
                 ),
@@ -158,71 +112,12 @@ class _HomeScreenState extends State<HomeScreen> {
           : AppBar(
               title: Text(provider.getText('app_title')),
               backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-              leading: PopupMenuButton<String>(
+              leading: IconButton(
                 icon: const Icon(Icons.settings),
                 tooltip: provider.getText('settings'),
-                onSelected: (value) async {
-                  if (value == 'theme') provider.toggleTheme();
-                  if (value == 'de' || value == 'en')
-                    provider.setLanguage(value);
-                  if (value == 'import') await provider.importJsonData();
-                  if (value == 'export') {
-                    if (dexes.isEmpty) return;
-                    await DexStorageService.exportDexes(dexes, provider);
-                  }
+                onPressed: () {
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => const SettingsScreen()));
                 },
-                itemBuilder: (context) => [
-                  PopupMenuItem(
-                    value: 'theme',
-                    child: Row(
-                      children: [
-                        Icon(
-                          provider.themeMode == ThemeMode.dark
-                              ? Icons.light_mode
-                              : Icons.dark_mode,
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          provider.getText(
-                            provider.themeMode == ThemeMode.dark
-                                ? 'light_mode'
-                                : 'dark_mode',
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const PopupMenuDivider(),
-                  const PopupMenuItem(
-                    value: 'de',
-                    child: Text('🇩🇪 Deutsch (DE)'),
-                  ),
-                  const PopupMenuItem(
-                    value: 'en',
-                    child: Text('🇬🇧 English (EN)'),
-                  ),
-                  const PopupMenuDivider(),
-                  PopupMenuItem(
-                    value: 'import',
-                    child: Row(
-                      children: [
-                        const Icon(Icons.download),
-                        const SizedBox(width: 8),
-                        Text(provider.getText('import_tooltip')),
-                      ],
-                    ),
-                  ),
-                  PopupMenuItem(
-                    value: 'export',
-                    child: Row(
-                      children: [
-                        const Icon(Icons.upload),
-                        const SizedBox(width: 8),
-                        Text(provider.getText('export_tooltip')),
-                      ],
-                    ),
-                  ),
-                ],
               ),
             ),
       body: dexes.isEmpty
@@ -241,9 +136,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
                 return ListTile(
                   selected: isSelected,
-                  selectedTileColor: Theme.of(
-                    context,
-                  ).colorScheme.primaryContainer.withOpacity(0.3),
+                  selectedTileColor: Theme.of(context).colorScheme.primaryContainer.withOpacity(0.3),
                   leading: _isSelectionMode
                       ? Checkbox(
                           value: isSelected,
@@ -251,10 +144,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         )
                       : const CircleAvatar(
                           backgroundColor: Colors.red,
-                          child: Icon(
-                            Icons.catching_pokemon,
-                            color: Colors.white,
-                          ),
+                          child: Icon(Icons.catching_pokemon, color: Colors.white),
                         ),
                   title: Text(dex.title),
                   subtitle: Text(
@@ -265,10 +155,11 @@ class _HomeScreenState extends State<HomeScreen> {
                       : PopupMenuButton<String>(
                           icon: const Icon(Icons.more_vert),
                           onSelected: (value) {
-                            if (value == 'edit')
+                            if (value == 'edit') {
                               _showEditDexDialog(context, provider, dex);
-                            else if (value == 'delete')
+                            } else if (value == 'delete') {
                               _confirmDelete(context, provider, dex);
+                            }
                           },
                           itemBuilder: (context) => [
                             PopupMenuItem(
@@ -285,11 +176,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               value: 'delete',
                               child: Row(
                                 children: [
-                                  const Icon(
-                                    Icons.delete,
-                                    size: 20,
-                                    color: Colors.red,
-                                  ),
+                                  const Icon(Icons.delete, size: 20, color: Colors.red),
                                   const SizedBox(width: 8),
                                   Text(
                                     provider.getText('delete'),
@@ -307,14 +194,15 @@ class _HomeScreenState extends State<HomeScreen> {
                     if (_isSelectionMode) {
                       _toggleSelection(dex.id);
                     } else {
-                      List<int> selectedOrder =
-                          allAvailableDexes[dex.region] ?? [];
+                      List<int> selectedOrder = allAvailableDexes[dex.region] ?? [];
                       List<Pokemon> selectedDatabase = selectedOrder.map((id) {
                         return nationalPokemonDatabase.firstWhere(
                           (pokemon) => pokemon.id == id,
                           orElse: () => Pokemon(
                             id: id,
                             names: {'de': 'Unbekannt', 'en': 'Unknown'},
+                            hasGenderDifferences: false,
+                            forms: [],
                           ),
                         );
                       }).toList();
@@ -343,43 +231,22 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildCollage(List<int> ids) {
-    const String baseUrl =
-        'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/';
+    const String baseUrl = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/';
     return Column(
       children: [
         Expanded(
           child: Row(
             children: [
-              Expanded(
-                child: Image.network(
-                  '$baseUrl${ids[0]}.png',
-                  fit: BoxFit.contain,
-                ),
-              ),
-              Expanded(
-                child: Image.network(
-                  '$baseUrl${ids[1]}.png',
-                  fit: BoxFit.contain,
-                ),
-              ),
+              Expanded(child: Image.network('$baseUrl${ids[0]}.png', fit: BoxFit.contain)),
+              Expanded(child: Image.network('$baseUrl${ids[1]}.png', fit: BoxFit.contain)),
             ],
           ),
         ),
         Expanded(
           child: Row(
             children: [
-              Expanded(
-                child: Image.network(
-                  '$baseUrl${ids[2]}.png',
-                  fit: BoxFit.contain,
-                ),
-              ),
-              Expanded(
-                child: Image.network(
-                  '$baseUrl${ids[3]}.png',
-                  fit: BoxFit.contain,
-                ),
-              ),
+              Expanded(child: Image.network('$baseUrl${ids[2]}.png', fit: BoxFit.contain)),
+              Expanded(child: Image.network('$baseUrl${ids[3]}.png', fit: BoxFit.contain)),
             ],
           ),
         ),
@@ -392,8 +259,14 @@ class _HomeScreenState extends State<HomeScreen> {
 
     DexGroup selectedGroup = _dexGroups.first;
     String selectedSubDex = selectedGroup.dexKeys.first;
-    bool includeForms = false;
+    
     bool includeGenders = false;
+    bool includeRegional = false;
+    bool includeMega = false;
+    bool includeGMax = false;
+    bool includeOther = false;
+    
+    Map<String, bool> features = _getAvailableFeatures(selectedSubDex);
 
     nameController.text = provider.getText('region_$selectedSubDex');
 
@@ -410,22 +283,14 @@ class _HomeScreenState extends State<HomeScreen> {
             final bottomPadding = MediaQuery.of(context).viewInsets.bottom;
 
             return Padding(
-              padding: EdgeInsets.only(
-                bottom: bottomPadding,
-                left: 16,
-                right: 16,
-                top: 24,
-              ),
+              padding: EdgeInsets.only(bottom: bottomPadding, left: 16, right: 16, top: 24),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     provider.getText('create_dex_title'),
-                    style: const TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 8),
                   Text(
@@ -448,27 +313,25 @@ class _HomeScreenState extends State<HomeScreen> {
                             setState(() {
                               selectedGroup = group;
                               selectedSubDex = group.dexKeys.first;
-                              nameController.text = provider.getText(
-                                'region_$selectedSubDex',
-                              );
+                              nameController.text = provider.getText('region_$selectedSubDex');
+                              
+                              features = _getAvailableFeatures(selectedSubDex);
+                              if (!features['regional']!) includeRegional = false;
+                              if (!features['mega']!) includeMega = false;
+                              if (!features['gmax']!) includeGMax = false;
                             });
                           },
                           child: AnimatedContainer(
                             duration: const Duration(milliseconds: 200),
-                            width: 140, // Breite der Collage-Karte
+                            width: 140,
                             margin: const EdgeInsets.only(right: 12, bottom: 8),
                             decoration: BoxDecoration(
                               color: isSelected
                                   ? Colors.red.withOpacity(0.15)
-                                  : Theme.of(context)
-                                        .colorScheme
-                                        .surfaceContainerHighest
-                                        .withOpacity(0.3),
+                                  : Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(0.3),
                               borderRadius: BorderRadius.circular(16),
                               border: Border.all(
-                                color: isSelected
-                                    ? Colors.red
-                                    : Colors.transparent,
+                                color: isSelected ? Colors.red : Colors.transparent,
                                 width: 2,
                               ),
                             ),
@@ -478,9 +341,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                   flex: 3,
                                   child: Padding(
                                     padding: const EdgeInsets.all(8.0),
-                                    child: _buildCollage(
-                                      group.displayPokemonIds,
-                                    ),
+                                    child: _buildCollage(group.displayPokemonIds),
                                   ),
                                 ),
                                 Expanded(
@@ -488,12 +349,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                   child: Container(
                                     width: double.infinity,
                                     decoration: BoxDecoration(
-                                      color: isSelected
-                                          ? Colors.red
-                                          : Colors.black.withOpacity(0.1),
-                                      borderRadius: const BorderRadius.vertical(
-                                        bottom: Radius.circular(14),
-                                      ),
+                                      color: isSelected ? Colors.red : Colors.black.withOpacity(0.1),
+                                      borderRadius: const BorderRadius.vertical(bottom: Radius.circular(14)),
                                     ),
                                     alignment: Alignment.center,
                                     child: Text(
@@ -501,11 +358,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                       style: TextStyle(
                                         fontSize: 12,
                                         fontWeight: FontWeight.bold,
-                                        color: isSelected
-                                            ? Colors.white
-                                            : Theme.of(
-                                                context,
-                                              ).textTheme.bodyMedium?.color,
+                                        color: isSelected ? Colors.white : Theme.of(context).textTheme.bodyMedium?.color,
                                       ),
                                     ),
                                   ),
@@ -525,9 +378,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       decoration: InputDecoration(
                         labelText: provider.getText('exact_pokedex'),
                         filled: true,
-                        fillColor: Theme.of(
-                          context,
-                        ).colorScheme.surfaceContainerHighest.withOpacity(0.3),
+                        fillColor: Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(0.3),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: BorderSide.none,
@@ -547,9 +398,12 @@ class _HomeScreenState extends State<HomeScreen> {
                         if (val != null) {
                           setState(() {
                             selectedSubDex = val;
-                            nameController.text = provider.getText(
-                              'region_$selectedSubDex',
-                            );
+                            nameController.text = provider.getText('region_$selectedSubDex');
+                            
+                            features = _getAvailableFeatures(selectedSubDex);
+                            if (!features['regional']!) includeRegional = false;
+                            if (!features['mega']!) includeMega = false;
+                            if (!features['gmax']!) includeGMax = false;
                           });
                         }
                       },
@@ -562,9 +416,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     decoration: InputDecoration(
                       labelText: provider.getText('create_dex_hint'),
                       filled: true,
-                      fillColor: Theme.of(
-                        context,
-                      ).colorScheme.surfaceContainerHighest.withOpacity(0.3),
+                      fillColor: Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(0.3),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                         borderSide: BorderSide.none,
@@ -574,46 +426,65 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                   const SizedBox(height: 16),
 
-                  // EINSTELLUNGEN
                   Container(
                     decoration: BoxDecoration(
-                      color: Theme.of(
-                        context,
-                      ).colorScheme.surfaceContainerHighest.withOpacity(0.3),
+                      color: Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(0.3),
                       borderRadius: BorderRadius.circular(16),
                     ),
                     child: Column(
                       children: [
                         SwitchListTile(
-                          title: Text(provider.getText('include_forms')),
-                          secondary: const Icon(Icons.auto_awesome),
-                          value: includeForms,
-                          activeColor: Colors.red,
-                          onChanged: (val) =>
-                              setState(() => includeForms = val),
-                        ),
-                        SwitchListTile(
                           title: Text(provider.getText('include_genders')),
                           secondary: const Icon(Icons.wc),
                           value: includeGenders,
                           activeColor: Colors.red,
-                          onChanged: (val) =>
-                              setState(() => includeGenders = val),
+                          onChanged: (val) => setState(() => includeGenders = val),
+                        ),
+                        const Divider(height: 1),
+                        ExpansionTile(
+                          leading: const Icon(Icons.auto_awesome),
+                          title: const Text('Formen auswählen'),
+                          children: [
+                            CheckboxListTile(
+                              title: const Text('Regionalformen (Alola, Galar...)'),
+                              value: includeRegional,
+                              activeColor: Colors.red,
+                              enabled: features['regional']!,
+                              onChanged: features['regional']! ? (val) => setState(() => includeRegional = val ?? false) : null,
+                            ),
+                            CheckboxListTile(
+                              title: const Text('Mega-Entwicklungen'),
+                              value: includeMega,
+                              activeColor: Colors.red,
+                              enabled: features['mega']!,
+                              onChanged: features['mega']! ? (val) => setState(() => includeMega = val ?? false) : null,
+                            ),
+                            CheckboxListTile(
+                              title: const Text('Gigadynamax (G-Max)'),
+                              value: includeGMax,
+                              activeColor: Colors.red,
+                              enabled: features['gmax']!,
+                              onChanged: features['gmax']! ? (val) => setState(() => includeGMax = val ?? false) : null,
+                            ),
+                            CheckboxListTile(
+                              title: const Text('Sonstige (Kostüme, Pokusan...)'),
+                              value: includeOther,
+                              activeColor: Colors.red,
+                              onChanged: (val) => setState(() => includeOther = val ?? false),
+                            ),
+                          ],
                         ),
                       ],
                     ),
                   ),
                   const SizedBox(height: 24),
 
-                  // BUTTONS
                   Row(
                     children: [
                       Expanded(
                         child: TextButton(
                           onPressed: () => Navigator.pop(context),
-                          style: TextButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                          ),
+                          style: TextButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 16)),
                           child: Text(provider.getText('cancel')),
                         ),
                       ),
@@ -625,8 +496,11 @@ class _HomeScreenState extends State<HomeScreen> {
                               provider.createDex(
                                 nameController.text,
                                 selectedSubDex,
-                                includeForms,
                                 includeGenders,
+                                includeRegional,
+                                includeMega,
+                                includeGMax,
+                                includeOther,
                               );
                               Navigator.pop(context);
                             }
@@ -635,16 +509,11 @@ class _HomeScreenState extends State<HomeScreen> {
                             backgroundColor: Colors.red,
                             foregroundColor: Colors.white,
                             padding: const EdgeInsets.symmetric(vertical: 16),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                           ),
                           child: Text(
                             provider.getText('create'),
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
-                            ),
+                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                           ),
                         ),
                       ),
@@ -660,16 +529,16 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  void _showEditDexDialog(
-    BuildContext context,
-    DexProvider provider,
-    UserDex dex,
-  ) {
-    final TextEditingController nameController = TextEditingController(
-      text: dex.title,
-    );
-    bool includeForms = dex.includeForms;
+  void _showEditDexDialog(BuildContext context, DexProvider provider, UserDex dex) {
+    final TextEditingController nameController = TextEditingController(text: dex.title);
+    
     bool includeGenders = dex.includeGenders;
+    bool includeRegional = dex.includeRegional;
+    bool includeMega = dex.includeMega;
+    bool includeGMax = dex.includeGMax;
+    bool includeOther = dex.includeOther;
+    
+    final features = _getAvailableFeatures(dex.region);
 
     showDialog(
       context: context,
@@ -686,26 +555,51 @@ class _HomeScreenState extends State<HomeScreen> {
                       controller: nameController,
                       decoration: InputDecoration(
                         labelText: provider.getText('create_dex_hint'),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                         prefixIcon: const Icon(Icons.edit),
                       ),
                     ),
                     const SizedBox(height: 16),
-                    SwitchListTile(
-                      title: Text(provider.getText('include_forms')),
-                      secondary: const Icon(Icons.auto_awesome),
-                      value: includeForms,
-                      activeColor: Colors.red,
-                      onChanged: (val) => setState(() => includeForms = val),
-                    ),
                     SwitchListTile(
                       title: Text(provider.getText('include_genders')),
                       secondary: const Icon(Icons.wc),
                       value: includeGenders,
                       activeColor: Colors.red,
                       onChanged: (val) => setState(() => includeGenders = val),
+                    ),
+                    const Divider(height: 1),
+                    ExpansionTile(
+                      leading: const Icon(Icons.auto_awesome),
+                      title: const Text('Formen auswählen'),
+                      children: [
+                        CheckboxListTile(
+                          title: const Text('Regionalformen'),
+                          value: includeRegional,
+                          activeColor: Colors.red,
+                          enabled: features['regional']!,
+                          onChanged: features['regional']! ? (val) => setState(() => includeRegional = val ?? false) : null,
+                        ),
+                        CheckboxListTile(
+                          title: const Text('Mega-Entwicklungen'),
+                          value: includeMega,
+                          activeColor: Colors.red,
+                          enabled: features['mega']!,
+                          onChanged: features['mega']! ? (val) => setState(() => includeMega = val ?? false) : null,
+                        ),
+                        CheckboxListTile(
+                          title: const Text('Gigadynamax (G-Max)'),
+                          value: includeGMax,
+                          activeColor: Colors.red,
+                          enabled: features['gmax']!,
+                          onChanged: features['gmax']! ? (val) => setState(() => includeGMax = val ?? false) : null,
+                        ),
+                        CheckboxListTile(
+                          title: const Text('Sonstige (Kostüme...)'),
+                          value: includeOther,
+                          activeColor: Colors.red,
+                          onChanged: (val) => setState(() => includeOther = val ?? false),
+                        ),
+                      ],
                     ),
                   ],
                 ),
@@ -721,9 +615,12 @@ class _HomeScreenState extends State<HomeScreen> {
                       provider.updateDex(
                         dex.id,
                         nameController.text,
-                        includeForms,
                         includeGenders,
-                      ); //[cite: 3]
+                        includeRegional,
+                        includeMega,
+                        includeGMax,
+                        includeOther,
+                      );
                       Navigator.pop(context);
                     }
                   },
@@ -753,12 +650,9 @@ class _HomeScreenState extends State<HomeScreen> {
             child: Text(provider.getText('cancel')),
           ),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
-              foregroundColor: Colors.white,
-            ),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red, foregroundColor: Colors.white),
             onPressed: () {
-              provider.deleteDex(dex.id); //[cite: 3]
+              provider.deleteDex(dex.id);
               Navigator.pop(context);
             },
             child: Text(provider.getText('delete')),
@@ -780,13 +674,10 @@ class _HomeScreenState extends State<HomeScreen> {
             child: Text(provider.getText('cancel')),
           ),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
-              foregroundColor: Colors.white,
-            ),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red, foregroundColor: Colors.white),
             onPressed: () {
-              provider.deleteMultipleDexes(_selectedDexIds); //[cite: 3]
-              _clearSelection(); //[cite: 4]
+              provider.deleteMultipleDexes(_selectedDexIds);
+              _clearSelection();
               Navigator.pop(context);
             },
             child: Text(provider.getText('delete')),

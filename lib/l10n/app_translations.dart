@@ -2,7 +2,8 @@ const Map<String, Map<String, String>> appTranslations = {
   'de': {
     // Allgemeine UI
     'app_title': 'PokéVault',
-    'no_dex': 'Noch kein Dex vorhanden.\nKlicke auf das "+" um einen zu erstellen!',
+    'no_dex':
+        'Noch kein Dex vorhanden.\nKlicke auf das "+" um einen zu erstellen!',
     'import_tooltip': 'Importieren',
     'export_tooltip': 'Exportieren',
     'no_export_data': 'Keine Dexe zum Exportieren da!',
@@ -32,9 +33,11 @@ const Map<String, Map<String, String>> appTranslations = {
 
     // Bestätigungs-Dialoge
     'delete_confirm_title': 'Dex löschen?',
-    'delete_confirm_text': 'Möchtest du diesen Dex wirklich löschen? Das kann nicht rückgängig gemacht werden.',
+    'delete_confirm_text':
+        'Möchtest du diesen Dex wirklich löschen? Das kann nicht rückgängig gemacht werden.',
     'delete_multiple_confirm_title': 'Dexe löschen?',
-    'delete_multiple_confirm_text': 'Möchtest du die ausgewählten Dexe wirklich löschen?',
+    'delete_multiple_confirm_text':
+        'Möchtest du die ausgewählten Dexe wirklich löschen?',
 
     // Benachrichtigungen (Notifications)
     'import_success': 'Pokédex erfolgreich importiert!',
@@ -45,6 +48,7 @@ const Map<String, Map<String, String>> appTranslations = {
     'error_save': 'Fehler beim Speichern:',
     'error_export': 'Fehler beim Exportieren:',
     'error_import': 'Fehler beim Importieren:',
+    'error_start_app': 'Fehler beim Starten der App:',
 
     // Regionale Dexe
     'region_national_overall': 'Nationaldex',
@@ -80,8 +84,20 @@ const Map<String, Map<String, String>> appTranslations = {
     'region_updated_akala_regional': 'Alola (US/UM Akala)',
     'region_updated_ulaula_regional': 'Alola (US/UM Ula-Ula)',
     'region_updated_poni_regional': 'Alola (US/UM Poni)',
+
+    "appearance": "Erscheinungsbild",
+    "choose_accent_color": "Akzentfarbe",
+    "choose_bg_color": "Hintergrundfarbe",
+    "general": "Allgemein",
+    "language": "Sprache",
+    "data_management": "Datenverwaltung",
+    "custom_color": "Eigene Farbe wählen",
+    "apply": "Übernehmen",
+    "reset_theme": "Standarddesign wiederherstellen",
+    'choose_background_color': 'Hintergrund wählen',
+    'choose_accent_color2': 'Akzentfarbe wählen',
   },
-  
+
   'en': {
     // Allgemeine UI
     'app_title': 'PokéVault',
@@ -115,9 +131,11 @@ const Map<String, Map<String, String>> appTranslations = {
 
     // Bestätigungs-Dialoge
     'delete_confirm_title': 'Delete Dex?',
-    'delete_confirm_text': 'Do you really want to delete this Dex? This cannot be undone.',
+    'delete_confirm_text':
+        'Do you really want to delete this Dex? This cannot be undone.',
     'delete_multiple_confirm_title': 'Delete Dexes?',
-    'delete_multiple_confirm_text': 'Do you really want to delete the selected Dexes?',
+    'delete_multiple_confirm_text':
+        'Do you really want to delete the selected Dexes?',
 
     // Benachrichtigungen (Notifications)
     'import_success': 'Pokédex imported successfully!',
@@ -163,5 +181,17 @@ const Map<String, Map<String, String>> appTranslations = {
     'region_updated_akala_regional': 'Alola (US/UM Akala)',
     'region_updated_ulaula_regional': 'Alola (US/UM Ula\'ula)',
     'region_updated_poni_regional': 'Alola (US/UM Poni)',
+
+    "appearance": "Appearance",
+    "choose_accent_color": "Accent Color",
+    "choose_bg_color": "Background Color",
+    "general": "General",
+    "language": "Language",
+    "data_management": "Data Management",
+    "custom_color": "Pick Custom Color",
+    "apply": "Apply",
+    "reset_theme": "Restore default theme",
+    'choose_background_color': 'Change Background Color',
+    'choose_accent_color2': 'Change Accent color',
   },
 };

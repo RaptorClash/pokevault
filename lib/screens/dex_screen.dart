@@ -83,80 +83,128 @@ class _DexScreenState extends State<DexScreen> {
     int dexGen = _getMaxGenForDex(liveDex.region);
     bool isNationalDex = liveDex.region == 'national_overall';
 
+    bool isNativeRegionalForm(PokemonForm f, String region) {
+      if (f.formType != 'regional') return false;
+      if (region.contains('alola') && f.name.contains('alola')) return true;
+      if (region.contains('galar') && f.name.contains('galar')) return true;
+      if (region.contains('hisui') && f.name.contains('hisui')) return true;
+      if (region.contains('paldea') && f.name.contains('paldea')) return true;
+      return false;
+    }
+
     for (var p in widget.pokemonList) {
-      bool hasAddedBase = false;
+      if (p.forms.isNotEmpty) {
+        var sortedForms = List.of(p.forms);
+        sortedForms.sort((a, b) {
+          int getWeight(String type) {
+            if (type == 'normal') return 0;
+            if (type == 'regional') return 1;
+            if (type == 'mega') return 2;
+            if (type == 'gmax') return 3;
+            return 4; // other
+          }
 
-      if (liveDex.includeGenders && p.hasGenderDifferences) {
-        entries.add(
-          DexDisplayEntry(
-            pokemon: p,
-            uniqueId: '${p.id}_m',
-            displaySuffix: ' ♂',
-            imageUrl: p.imageUrl,
-          ),
-        );
-        entries.add(
-          DexDisplayEntry(
-            pokemon: p,
-            uniqueId: '${p.id}_f',
-            displaySuffix: ' ♀',
-            imageUrl: p.imageUrl,
-          ),
-        );
-        hasAddedBase = true;
-      }
+          return getWeight(a.formType).compareTo(getWeight(b.formType));
+        });
 
-      if (liveDex.includeForms && p.forms.isNotEmpty) {
-        for (var form in p.forms) {
-          if (form.name == 'normal' && hasAddedBase) continue;
+        for (var form in sortedForms) {
+          bool isNativeRegional = isNativeRegionalForm(form, liveDex.region);
+
+          if (form.formType == 'normal' && !liveDex.includeRegional) {
+            bool hasNativeRegional = p.forms.any(
+              (f) => isNativeRegionalForm(f, liveDex.region),
+            );
+            if (hasNativeRegional) continue;
+          }
+
+          if (form.formType == 'regional' &&
+              !liveDex.includeRegional &&
+              !isNativeRegional)
+            continue;
+          if (form.formType == 'mega' && !liveDex.includeMega) continue;
+          if (form.formType == 'gmax' && !liveDex.includeGMax) continue;
+          if (form.formType == 'other' && !liveDex.includeOther) continue;
 
           bool isWhitelistedForThisDex = form.exclusiveRegions.contains(
             liveDex.region,
           );
 
           if (form.exclusiveRegions.isNotEmpty) {
-            if (!isNationalDex && !isWhitelistedForThisDex) {
-              continue;
-            }
+            if (!isNationalDex && !isWhitelistedForThisDex) continue;
           }
-
           if (!isNationalDex &&
               !isWhitelistedForThisDex &&
               form.minGen > dexGen) {
             continue;
           }
 
-          String suffix = form.name == 'normal'
-              ? ''
-              : ' (${_getFormDisplayName(form.name)})';
+          if (form.formType == 'normal' &&
+              liveDex.includeGenders &&
+              p.hasGenderDifferences) {
+            entries.add(
+              DexDisplayEntry(
+                pokemon: p,
+                uniqueId: '${p.id}_m',
+                displaySuffix: ' ♂',
+                imageUrl: p.imageUrl,
+              ),
+            );
+            entries.add(
+              DexDisplayEntry(
+                pokemon: p,
+                uniqueId: '${p.id}_f',
+                displaySuffix: ' ♀',
+                imageUrl:
+                    'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/female/${p.id}.png',
+              ),
+            );
+          } else {
+            String suffix = form.name == 'normal'
+                ? ''
+                : ' (${_getFormDisplayName(form.name)})';
+            String specificImageUrl =
+                'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${form.imageId}.png';
 
-          String specificImageUrl =
-              'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${form.imageId}.png';
-
+            entries.add(
+              DexDisplayEntry(
+                pokemon: p,
+                uniqueId: '${p.id}_${form.name}',
+                displaySuffix: suffix,
+                imageUrl: specificImageUrl,
+              ),
+            );
+          }
+        }
+      } else {
+        // Fallback
+        if (liveDex.includeGenders && p.hasGenderDifferences) {
           entries.add(
             DexDisplayEntry(
               pokemon: p,
-              uniqueId: '${p.id}_${form.name}',
-              displaySuffix: suffix,
-              imageUrl: specificImageUrl,
+              uniqueId: '${p.id}_m',
+              displaySuffix: ' ♂',
+              imageUrl: p.imageUrl,
             ),
           );
-
-          if (form.name == 'normal') {
-            hasAddedBase = true;
-          }
+          entries.add(
+            DexDisplayEntry(
+              pokemon: p,
+              uniqueId: '${p.id}_f',
+              displaySuffix: ' ♀',
+              imageUrl:
+                  'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/female/${p.id}.png',
+            ),
+          );
+        } else {
+          entries.add(
+            DexDisplayEntry(
+              pokemon: p,
+              uniqueId: '${p.id}_normal',
+              displaySuffix: '',
+              imageUrl: p.imageUrl,
+            ),
+          );
         }
-      }
-
-      if (!hasAddedBase) {
-        entries.add(
-          DexDisplayEntry(
-            pokemon: p,
-            uniqueId: '${p.id}_normal',
-            displaySuffix: '',
-            imageUrl: p.imageUrl,
-          ),
-        );
       }
     }
     return entries;
@@ -265,64 +313,83 @@ class _DexScreenState extends State<DexScreen> {
                       provider.togglePokemon(liveDex.id, entry.uniqueId),
                   child: Card(
                     color: isCaught
-                        ? Colors.red.withOpacity(0.15)
+                        ? Colors.green.withOpacity(0.15)
                         : Theme.of(context).cardColor,
                     elevation: isCaught ? 4 : 1,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                       side: BorderSide(
-                        color: isCaught ? Colors.red : Colors.transparent,
+                        color: isCaught ? Colors.green : Colors.transparent,
                         width: 2,
                       ),
                     ),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
+                    child: Stack(
                       children: [
-                        Text(
-                          '#${entry.pokemon.id.toString().padLeft(3, '0')}',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Theme.of(context).hintColor,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        Expanded(
-                          child: ColorFiltered(
-                            colorFilter: isCaught
-                                ? const ColorFilter.mode(
-                                    Colors.transparent,
-                                    BlendMode.dst,
-                                  )
-                                : const ColorFilter.mode(
-                                    Colors.grey,
-                                    BlendMode.saturation,
-                                  ),
-                            child: Image.network(
-                              entry.imageUrl,
-                              fit: BoxFit.contain,
-                              errorBuilder: (context, error, stackTrace) =>
-                                  const Icon(Icons.catching_pokemon, size: 40),
-                            ),
-                          ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 4.0,
-                            vertical: 4.0,
-                          ),
-                          child: FittedBox(
-                            fit: BoxFit.scaleDown,
-                            child: Text(
-                              entry.pokemon.getName(provider.currentLanguage) +
-                                  entry.displaySuffix,
+                        Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              '#${entry.pokemon.id.toString().padLeft(3, '0')}',
                               style: TextStyle(
-                                fontWeight: isCaught
-                                    ? FontWeight.bold
-                                    : FontWeight.normal,
+                                fontSize: 12,
+                                color: Theme.of(context).hintColor,
+                                fontWeight: FontWeight.bold,
                               ),
                             ),
-                          ),
+                            Expanded(
+                              child: ColorFiltered(
+                                colorFilter: isCaught
+                                    ? const ColorFilter.mode(
+                                        Colors.transparent,
+                                        BlendMode.dst,
+                                      )
+                                    : const ColorFilter.mode(
+                                        Colors.grey,
+                                        BlendMode.saturation,
+                                      ),
+                                child: Image.network(
+                                  entry.imageUrl,
+                                  fit: BoxFit.contain,
+                                  errorBuilder: (context, error, stackTrace) =>
+                                      const Icon(
+                                        Icons.catching_pokemon,
+                                        size: 40,
+                                      ),
+                                ),
+                              ),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 4.0,
+                                vertical: 4.0,
+                              ),
+                              child: FittedBox(
+                                fit: BoxFit.scaleDown,
+                                child: Text(
+                                  entry.pokemon.getName(
+                                        provider.currentLanguage,
+                                      ) +
+                                      entry.displaySuffix,
+                                  style: TextStyle(
+                                    fontWeight: isCaught
+                                        ? FontWeight.bold
+                                        : FontWeight.normal,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
+                        if (isCaught)
+                          const Positioned(
+                            top: 6,
+                            right: 6,
+                            child: Icon(
+                              Icons.catching_pokemon,
+                              color: Colors.green,
+                              size: 20,
+                            ),
+                          ),
                       ],
                     ),
                   ),

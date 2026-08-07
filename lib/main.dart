@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pokevault/providers/theme_provider.dart';
 import 'package:provider/provider.dart';
 import 'providers/dex_provider.dart';
 import 'screens/home_screen.dart';
@@ -9,8 +10,11 @@ void main() {
   try {
     WidgetsFlutterBinding.ensureInitialized();
     runApp(
-      ChangeNotifierProvider(
-        create: (context) => DexProvider(),
+      MultiProvider(
+        providers: [
+          ChangeNotifierProvider(create: (_) => ThemeProvider()),
+          ChangeNotifierProvider(create: (context) => DexProvider()),
+        ],
         child: const PokedexApp(),
       ),
     );
@@ -24,10 +28,11 @@ class PokedexApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final provider = context.watch<DexProvider>();
+    final dexProvider = context.watch<DexProvider>();
+    final themeProvider = Provider.of<ThemeProvider>(context);
 
     return MaterialApp(
-      title: 'Modular Pokédex',
+      title: 'PokéVault',
       debugShowCheckedModeBanner: false,
 
       scaffoldMessengerKey: NotificationHelper.scaffoldMessengerKey,
@@ -35,19 +40,23 @@ class PokedexApp extends StatelessWidget {
 
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.red,
+          seedColor: themeProvider.lightPrimaryColor,
           brightness: Brightness.light,
         ),
+        scaffoldBackgroundColor:
+            themeProvider.lightBackgroundColor,
         useMaterial3: true,
       ),
       darkTheme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.red,
+          seedColor: themeProvider.darkPrimaryColor,
           brightness: Brightness.dark,
         ),
+        scaffoldBackgroundColor:
+            themeProvider.darkBackgroundColor,
         useMaterial3: true,
       ),
-      themeMode: provider.themeMode,
+      themeMode: dexProvider.themeMode,
       home: const HomeScreen(),
     );
   }

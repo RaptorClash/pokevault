@@ -104,7 +104,6 @@ Future<String> generateMasterDex(int startId, int endId) async {
         for (var formObj in pokeData['forms']) {
           final formData = await _fetchJson(client, formObj['url']);
           if (formData == null) continue;
-
           String rawFormName = formData['name'];
           String cleanForm = rawFormName
               .replaceFirst(speciesName, '')
@@ -114,16 +113,76 @@ Future<String> generateMasterDex(int startId, int endId) async {
 
           int minGen = _versionToGen[formData['version_group']['name']] ?? 9;
 
-          // WHITELIST PRÜFEN
-          String formKey = "${i}_$cleanForm";
-          List<String> exclusives = _formWhitelist[formKey] ?? [];
+          String formType = 'other';
+          if (cleanForm == 'normal') {
+            formType = 'normal';
+            minGen = _getGenById(
+              i,
+            );
+          } else if (cleanForm.contains('alola') ||
+              cleanForm.contains('galar') ||
+              cleanForm.contains('hisui') ||
+              cleanForm.contains('paldea')) {
+            formType = 'regional';
+          } else if (cleanForm.contains('mega')) {
+            formType = 'mega';
+          } else if (cleanForm.contains('gmax')) {
+            formType = 'gmax';
+          }
+
+          Set<String> exclusives = (_formWhitelist["${i}_$cleanForm"] ?? [])
+              .toSet();
+
+          if (cleanForm.contains('alola')) {
+            exclusives.addAll([
+              'alola_regional',
+              'melemele_regional',
+              'akala_regional',
+              'ulaula_regional',
+              'poni_regional',
+              'updated_alola_regional',
+              'updated_melemele_regional',
+              'updated_akala_regional',
+              'updated_ulaula_regional',
+              'updated_poni_regional',
+            ]);
+          } else if (cleanForm.contains('galar')) {
+            exclusives.addAll([
+              'galar_regional',
+              'isle_of_armor_regional',
+              'crown_tundra_regional',
+            ]);
+          } else if (cleanForm.contains('hisui')) {
+            exclusives.addAll(['hisui_regional']);
+          } else if (cleanForm.contains('paldea')) {
+            exclusives.addAll([
+              'paldea_regional',
+              'kitakami_regional',
+              'blueberry_regional',
+            ]);
+          } else if (cleanForm.contains('mega')) {
+            exclusives.addAll([
+              'kalos_central_regional',
+              'kalos_coastal_regional',
+              'kalos_mountain_regional',
+              'lumiose_regional',
+              'updated_hoenn_regional',
+              'letsgo_kanto_regional',
+            ]);
+          } else if (cleanForm.contains('gmax')) {
+            exclusives.addAll([
+              'galar_regional',
+              'isle_of_armor_regional',
+              'crown_tundra_regional',
+            ]);
+          }
 
           String exclusiveString = exclusives.isEmpty
               ? "[]"
               : "[${exclusives.map((e) => "'$e'").join(', ')}]";
 
           formObjects.add(
-            "PokemonForm(name: '$cleanForm', minGen: $minGen, imageId: $varietyId, exclusiveRegions: $exclusiveString, extraInfo: null)",
+            "PokemonForm(name: '$cleanForm', formType: '$formType', minGen: $minGen, imageId: $varietyId, exclusiveRegions: $exclusiveString, extraInfo: null)",
           );
         }
       }
@@ -147,4 +206,16 @@ Future<String> generateMasterDex(int startId, int endId) async {
   client.close();
 
   return "import '../models/pokemon.dart';\n\nfinal List<Pokemon> nationalPokemonDatabase = [\n${pokemonEntries.join('\n')}\n];";
+}
+
+int _getGenById(int id) {
+  if (id <= 151) return 1;
+  if (id <= 251) return 2;
+  if (id <= 386) return 3;
+  if (id <= 493) return 4;
+  if (id <= 649) return 5;
+  if (id <= 721) return 6;
+  if (id <= 809) return 7;
+  if (id <= 905) return 8;
+  return 9;
 }

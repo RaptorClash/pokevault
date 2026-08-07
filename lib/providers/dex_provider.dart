@@ -86,8 +86,11 @@ class DexProvider extends ChangeNotifier {
   void createDex(
     String title,
     String region,
-    bool includeForms,
     bool includeGenders,
+    bool includeRegional,
+    bool includeMega,
+    bool includeGMax,
+    bool includeOther,
   ) {
     try {
       final newDex = UserDex(
@@ -95,8 +98,11 @@ class DexProvider extends ChangeNotifier {
         title: title,
         region: region,
         caughtIds: {},
-        includeForms: includeForms,
         includeGenders: includeGenders,
+        includeRegional: includeRegional,
+        includeMega: includeMega,
+        includeGMax: includeGMax,
+        includeOther: includeOther,
       );
       _userDexes.add(newDex);
       _saveToPrefs();
@@ -150,9 +156,12 @@ class DexProvider extends ChangeNotifier {
 
   void updateDex(
     String id,
-    String newTitle,
-    bool newIncludeForms,
-    bool newIncludeGenders,
+    String title,
+    bool includeGenders,
+    bool includeRegional,
+    bool includeMega,
+    bool includeGMax,
+    bool includeOther,
   ) {
     try {
       final dexIndex = _userDexes.indexWhere((d) => d.id == id);
@@ -161,11 +170,14 @@ class DexProvider extends ChangeNotifier {
 
         final updatedDex = UserDex(
           id: oldDex.id,
-          title: newTitle,
+          title: title,
           region: oldDex.region,
           caughtIds: oldDex.caughtIds,
-          includeForms: newIncludeForms,
-          includeGenders: newIncludeGenders,
+          includeGenders: includeGenders,
+          includeRegional: includeRegional,
+          includeMega: includeMega,
+          includeGMax: includeGMax,
+          includeOther: includeOther,
         );
 
         _userDexes[dexIndex] = updatedDex;
