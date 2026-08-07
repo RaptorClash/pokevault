@@ -50,7 +50,6 @@ class _DexScreenState extends State<DexScreen> {
         "${Translator.get('error_get_form_display_name')} $e",
       );
     }
-
     return form.isEmpty ? '' : form[0].toUpperCase() + form.substring(1);
   }
 
@@ -75,6 +74,8 @@ class _DexScreenState extends State<DexScreen> {
     try {
       int dexGen = _getMaxGenForDex(liveDex.region);
       bool isNationalDex = liveDex.region == 'national_overall';
+      bool isMegaDex = liveDex.region == 'mega_dex';
+      bool isIcognitoDex = liveDex.region == 'icognito_dex';
 
       bool isNativeRegionalForm(PokemonForm f, String region) {
         if (f.formType != 'regional') return false;
@@ -96,31 +97,42 @@ class _DexScreenState extends State<DexScreen> {
               if (type == 'gmax') return 3;
               return 4;
             }
-
             return getWeight(a.formType).compareTo(getWeight(b.formType));
           });
 
           for (var form in sortedForms) {
+            bool isBaseForm = form.name == 'normal' || p.forms.first.name == form.name;
+
+            if (isMegaDex && form.formType != 'mega') {
+              continue;
+            }
+
             bool isNativeRegional = isNativeRegionalForm(form, liveDex.region);
 
-            if (form.formType == 'normal' && !liveDex.includeRegional) {
+            if (form.formType == 'normal' && !liveDex.includeRegional && !isMegaDex) {
               bool hasNativeRegional = p.forms.any(
                 (f) => isNativeRegionalForm(f, liveDex.region),
               );
               if (hasNativeRegional) continue;
             }
 
-            if (form.formType == 'regional' &&
-                !liveDex.includeRegional &&
-                !isNativeRegional)
+            if (form.formType == 'regional' && !liveDex.includeRegional && !isNativeRegional) {
               continue;
-            if (form.formType == 'mega' && !liveDex.includeMega) continue;
-            if (form.formType == 'gmax' && !liveDex.includeGMax) continue;
-            if (form.formType == 'other' && !liveDex.includeOther) continue;
+            }
 
-            bool isWhitelistedForThisDex = form.exclusiveRegions.contains(
-              liveDex.region,
-            );
+            if (form.formType == 'mega' && !liveDex.includeMega && !isMegaDex) {
+              continue;
+            }
+
+            if (form.formType == 'gmax' && !liveDex.includeGMax) {
+              continue;
+            }
+
+            if (form.formType == 'other' && !liveDex.includeOther && !isIcognitoDex) {
+              if (!isBaseForm) continue;
+            }
+
+            bool isWhitelistedForThisDex = form.exclusiveRegions.contains(liveDex.region);
 
             if (form.exclusiveRegions.isNotEmpty) {
               if (!isNationalDex && !isWhitelistedForThisDex) continue;
@@ -128,13 +140,24 @@ class _DexScreenState extends State<DexScreen> {
 
             if (!isNationalDex &&
                 !isWhitelistedForThisDex &&
-                form.minGen > dexGen) {
+                form.minGen > dexGen &&
+                !isMegaDex &&
+                !isIcognitoDex) {
               continue;
             }
 
-            if (form.formType == 'normal' &&
-                liveDex.includeGenders &&
-                p.hasGenderDifferences) {
+            bool hideSuffix = form.name == 'normal' || (isBaseForm && !liveDex.includeOther && !isIcognitoDex && form.formType == 'other');
+            String suffix = hideSuffix ? '' : ' (${_getFormDisplayName(form.name, provider)})';
+
+            String specificImageUrl;
+            if (p.id == 201 && !hideSuffix) {
+               String formSuffix = form.name == 'a' ? '' : '-${form.name}';
+               specificImageUrl = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/home/201$formSuffix.png';
+            } else {
+               specificImageUrl = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${form.imageId}.png';
+            }
+
+            if (form.formType == 'normal' && liveDex.includeGenders && p.hasGenderDifferences) {
               entries.add(
                 DexDisplayEntry(
                   pokemon: p,
@@ -149,16 +172,10 @@ class _DexScreenState extends State<DexScreen> {
                   uniqueId: '${p.id}_f',
                   displaySuffix: ' ♀',
                   imageUrl:
-                      'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/female/${p.id}.png',
+                      'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/home/female/${p.id}.png', // <-- HOME Sprites für weibliche Pokémon
                 ),
               );
             } else {
-              String suffix = form.name == 'normal'
-                  ? ''
-                  : ' (${_getFormDisplayName(form.name, provider)})';
-              String specificImageUrl =
-                  'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${form.imageId}.png';
-
               entries.add(
                 DexDisplayEntry(
                   pokemon: p,
@@ -170,38 +187,42 @@ class _DexScreenState extends State<DexScreen> {
             }
           }
         } else {
-          if (liveDex.includeGenders && p.hasGenderDifferences) {
-            entries.add(
-              DexDisplayEntry(
-                pokemon: p,
-                uniqueId: '${p.id}_m',
-                displaySuffix: ' ♂',
-                imageUrl: p.imageUrl,
-              ),
-            );
-            entries.add(
-              DexDisplayEntry(
-                pokemon: p,
-                uniqueId: '${p.id}_f',
-                displaySuffix: ' ♀',
-                imageUrl:
-                    'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/female/${p.id}.png',
-              ),
-            );
-          } else {
-            entries.add(
-              DexDisplayEntry(
-                pokemon: p,
-                uniqueId: '${p.id}_normal',
-                displaySuffix: '',
-                imageUrl: p.imageUrl,
-              ),
-            );
+          if (!isMegaDex) {
+            if (liveDex.includeGenders && p.hasGenderDifferences) {
+              entries.add(
+                DexDisplayEntry(
+                  pokemon: p,
+                  uniqueId: '${p.id}_m',
+                  displaySuffix: ' ♂',
+                  imageUrl: p.imageUrl,
+                ),
+              );
+              entries.add(
+                DexDisplayEntry(
+                  pokemon: p,
+                  uniqueId: '${p.id}_f',
+                  displaySuffix: ' ♀',
+                  imageUrl:
+                      'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/home/female/${p.id}.png', // <-- HOME Sprites für weibliche Pokémon
+                ),
+              );
+            } else {
+              entries.add(
+                DexDisplayEntry(
+                  pokemon: p,
+                  uniqueId: '${p.id}_normal',
+                  displaySuffix: '',
+                  imageUrl: p.imageUrl,
+                ),
+              );
+            }
           }
         }
       }
     } catch (e) {
-      NotificationHelper.showError("${Translator.get('')} $e");
+      NotificationHelper.showError(
+        "${Translator.get('error_build_display_entries')} $e",
+      );
     }
     return entries;
   }

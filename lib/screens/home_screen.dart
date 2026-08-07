@@ -100,6 +100,11 @@ class _HomeScreenState extends State<HomeScreen> {
       [1007, 1008, 1017, 1024],
       ['paldea_regional', 'kitakami_regional', 'blueberry_regional'],
     ),
+    DexGroup(
+      'region_special_dex',
+      [150, 201, 719, 448],
+      ['mega_dex', 'icognito_dex'],
+    )
   ];
 
   Map<String, bool> _getAvailableFeatures(String dexKey) {
@@ -133,6 +138,12 @@ class _HomeScreenState extends State<HomeScreen> {
           dexKey.contains('kitakami') ||
           dexKey.contains('blueberry')) {
         return {'regional': true, 'mega': false, 'gmax': false};
+      }
+      if (dexKey == 'mega_dex') {
+        return {'regional': false, 'mega': true, 'gmax': false};
+      }
+      if (dexKey == 'icognito_dex') {
+        return {'regional': false, 'mega': false, 'gmax': false};
       }
     } catch (e) {
       NotificationHelper.showError(
@@ -448,9 +459,12 @@ class _HomeScreenState extends State<HomeScreen> {
                                 features = _getAvailableFeatures(
                                   selectedSubDex,
                                 );
+                                includeMega = selectedSubDex == 'mega_dex';
+                                includeOther = selectedSubDex == 'icognito_dex';
                                 if (!features['regional']!)
                                   includeRegional = false;
-                                if (!features['mega']!) includeMega = false;
+                                if (!features['mega']! && selectedSubDex != 'mega_dex')
+                                  includeMega = false;
                                 if (!features['gmax']!) includeGMax = false;
                               });
                             },
@@ -557,9 +571,12 @@ class _HomeScreenState extends State<HomeScreen> {
                               );
 
                               features = _getAvailableFeatures(selectedSubDex);
+                              includeMega = selectedSubDex == 'mega_dex';
+                              includeOther = selectedSubDex == 'icognito_dex';
                               if (!features['regional']!)
                                 includeRegional = false;
-                              if (!features['mega']!) includeMega = false;
+                              if (!features['mega']! && selectedSubDex != 'mega_dex')
+                                includeMega = false;
                               if (!features['gmax']!) includeGMax = false;
                             });
                           }
@@ -620,8 +637,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                 title: Text(Translator.get('form_mega')),
                                 value: includeMega,
                                 activeColor: Colors.red,
-                                enabled: features['mega']!,
-                                onChanged: features['mega']!
+                                enabled: features['mega']! || selectedSubDex == 'mega_dex',
+                                onChanged: (features['mega']! || selectedSubDex == 'mega_dex')
                                     ? (val) => setState(
                                         () => includeMega = val ?? false,
                                       )
@@ -777,8 +794,8 @@ class _HomeScreenState extends State<HomeScreen> {
                             title: Text(Translator.get('form_mega')),
                             value: includeMega,
                             activeColor: Colors.red,
-                            enabled: features['mega']!,
-                            onChanged: features['mega']!
+                            enabled: features['mega']! || dex.region == 'mega_dex',
+                            onChanged: (features['mega']! || dex.region == 'mega_dex')
                                 ? (val) =>
                                       setState(() => includeMega = val ?? false)
                                 : null,

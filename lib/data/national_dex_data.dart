@@ -19,7 +19,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     id: 3,
     names: {'de': "Bisaflor", 'en': "Venusaur"},
     hasGenderDifferences: true,
-    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 3, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 6, imageId: 10033, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional'], extraInfo: null), PokemonForm(name: 'gmax', formType: 'gmax', minGen: 8, imageId: 10195, exclusiveRegions: ['galar_regional', 'isle_of_armor_regional', 'crown_tundra_regional'], extraInfo: null)],
+    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 3, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 6, imageId: 10033, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null), PokemonForm(name: 'gmax', formType: 'gmax', minGen: 8, imageId: 10195, exclusiveRegions: ['galar_regional', 'isle_of_armor_regional', 'crown_tundra_regional'], extraInfo: null)],
     extraInfo: null,
   ),
   Pokemon(
@@ -40,7 +40,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     id: 6,
     names: {'de': "Glurak", 'en': "Charizard"},
     hasGenderDifferences: false,
-    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 6, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega-x', formType: 'mega', minGen: 6, imageId: 10034, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional'], extraInfo: null), PokemonForm(name: 'mega-y', formType: 'mega', minGen: 6, imageId: 10035, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional'], extraInfo: null), PokemonForm(name: 'gmax', formType: 'gmax', minGen: 8, imageId: 10196, exclusiveRegions: ['galar_regional', 'isle_of_armor_regional', 'crown_tundra_regional'], extraInfo: null)],
+    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 6, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega-x', formType: 'mega', minGen: 6, imageId: 10034, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null), PokemonForm(name: 'mega-y', formType: 'mega', minGen: 6, imageId: 10035, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null), PokemonForm(name: 'gmax', formType: 'gmax', minGen: 8, imageId: 10196, exclusiveRegions: ['galar_regional', 'isle_of_armor_regional', 'crown_tundra_regional'], extraInfo: null)],
     extraInfo: null,
   ),
   Pokemon(
@@ -61,7 +61,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     id: 9,
     names: {'de': "Turtok", 'en': "Blastoise"},
     hasGenderDifferences: false,
-    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 9, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 6, imageId: 10036, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional'], extraInfo: null), PokemonForm(name: 'gmax', formType: 'gmax', minGen: 8, imageId: 10197, exclusiveRegions: ['galar_regional', 'isle_of_armor_regional', 'crown_tundra_regional'], extraInfo: null)],
+    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 9, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 6, imageId: 10036, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null), PokemonForm(name: 'gmax', formType: 'gmax', minGen: 8, imageId: 10197, exclusiveRegions: ['galar_regional', 'isle_of_armor_regional', 'crown_tundra_regional'], extraInfo: null)],
     extraInfo: null,
   ),
   Pokemon(
@@ -103,7 +103,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     id: 15,
     names: {'de': "Bibor", 'en': "Beedrill"},
     hasGenderDifferences: false,
-    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 15, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 6, imageId: 10090, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional'], extraInfo: null)],
+    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 15, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 6, imageId: 10090, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
   ),
   Pokemon(
@@ -124,7 +124,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     id: 18,
     names: {'de': "Tauboss", 'en': "Pidgeot"},
     hasGenderDifferences: false,
-    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 18, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 6, imageId: 10073, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional'], extraInfo: null)],
+    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 18, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 6, imageId: 10073, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
   ),
   Pokemon(
@@ -180,7 +180,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     id: 26,
     names: {'de': "Raichu", 'en': "Raichu"},
     hasGenderDifferences: true,
-    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 26, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'alola', formType: 'regional', minGen: 7, imageId: 10100, exclusiveRegions: ['alola_regional', 'melemele_regional', 'akala_regional', 'ulaula_regional', 'poni_regional', 'updated_alola_regional', 'updated_melemele_regional', 'updated_akala_regional', 'updated_ulaula_regional', 'updated_poni_regional'], extraInfo: null), PokemonForm(name: 'mega-x', formType: 'mega', minGen: 9, imageId: 10304, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional'], extraInfo: null), PokemonForm(name: 'mega-y', formType: 'mega', minGen: 9, imageId: 10305, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional'], extraInfo: null)],
+    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 26, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'alola', formType: 'regional', minGen: 7, imageId: 10100, exclusiveRegions: ['alola_regional', 'melemele_regional', 'akala_regional', 'ulaula_regional', 'poni_regional', 'updated_alola_regional', 'updated_melemele_regional', 'updated_akala_regional', 'updated_ulaula_regional', 'updated_poni_regional'], extraInfo: null), PokemonForm(name: 'mega-x', formType: 'mega', minGen: 9, imageId: 10304, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null), PokemonForm(name: 'mega-y', formType: 'mega', minGen: 9, imageId: 10305, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
   ),
   Pokemon(
@@ -250,7 +250,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     id: 36,
     names: {'de': "Pixi", 'en': "Clefable"},
     hasGenderDifferences: false,
-    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 36, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 9, imageId: 10278, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional'], extraInfo: null)],
+    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 36, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 9, imageId: 10278, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
   ),
   Pokemon(
@@ -453,7 +453,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     id: 65,
     names: {'de': "Simsala", 'en': "Alakazam"},
     hasGenderDifferences: true,
-    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 65, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 6, imageId: 10037, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional'], extraInfo: null)],
+    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 65, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 6, imageId: 10037, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
   ),
   Pokemon(
@@ -495,7 +495,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     id: 71,
     names: {'de': "Sarzenia", 'en': "Victreebel"},
     hasGenderDifferences: false,
-    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 71, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 9, imageId: 10279, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional'], extraInfo: null)],
+    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 71, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 9, imageId: 10279, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
   ),
   Pokemon(
@@ -558,7 +558,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     id: 80,
     names: {'de': "Lahmus", 'en': "Slowbro"},
     hasGenderDifferences: false,
-    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 80, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 6, imageId: 10071, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional'], extraInfo: null), PokemonForm(name: 'galar', formType: 'regional', minGen: 8, imageId: 10165, exclusiveRegions: ['galar_regional', 'isle_of_armor_regional', 'crown_tundra_regional'], extraInfo: null)],
+    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 80, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 6, imageId: 10071, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null), PokemonForm(name: 'galar', formType: 'regional', minGen: 8, imageId: 10165, exclusiveRegions: ['galar_regional', 'isle_of_armor_regional', 'crown_tundra_regional'], extraInfo: null)],
     extraInfo: null,
   ),
   Pokemon(
@@ -656,7 +656,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     id: 94,
     names: {'de': "Gengar", 'en': "Gengar"},
     hasGenderDifferences: false,
-    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 94, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 6, imageId: 10038, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional'], extraInfo: null), PokemonForm(name: 'gmax', formType: 'gmax', minGen: 8, imageId: 10202, exclusiveRegions: ['galar_regional', 'isle_of_armor_regional', 'crown_tundra_regional'], extraInfo: null)],
+    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 94, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 6, imageId: 10038, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null), PokemonForm(name: 'gmax', formType: 'gmax', minGen: 8, imageId: 10202, exclusiveRegions: ['galar_regional', 'isle_of_armor_regional', 'crown_tundra_regional'], extraInfo: null)],
     extraInfo: null,
   ),
   Pokemon(
@@ -803,7 +803,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     id: 115,
     names: {'de': "Kangama", 'en': "Kangaskhan"},
     hasGenderDifferences: false,
-    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 115, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 6, imageId: 10039, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional'], extraInfo: null)],
+    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 115, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 6, imageId: 10039, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
   ),
   Pokemon(
@@ -845,7 +845,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     id: 121,
     names: {'de': "Starmie", 'en': "Starmie"},
     hasGenderDifferences: false,
-    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 121, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 9, imageId: 10280, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional'], extraInfo: null)],
+    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 121, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 9, imageId: 10280, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
   ),
   Pokemon(
@@ -887,7 +887,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     id: 127,
     names: {'de': "Pinsir", 'en': "Pinsir"},
     hasGenderDifferences: false,
-    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 127, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 6, imageId: 10040, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional'], extraInfo: null)],
+    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 127, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 6, imageId: 10040, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
   ),
   Pokemon(
@@ -908,7 +908,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     id: 130,
     names: {'de': "Garados", 'en': "Gyarados"},
     hasGenderDifferences: true,
-    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 130, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 6, imageId: 10041, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional'], extraInfo: null)],
+    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 130, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 6, imageId: 10041, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
   ),
   Pokemon(
@@ -992,7 +992,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     id: 142,
     names: {'de': "Aerodactyl", 'en': "Aerodactyl"},
     hasGenderDifferences: false,
-    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 142, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 6, imageId: 10042, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional'], extraInfo: null)],
+    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 142, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 6, imageId: 10042, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
   ),
   Pokemon(
@@ -1041,14 +1041,14 @@ final List<Pokemon> nationalPokemonDatabase = [
     id: 149,
     names: {'de': "Dragoran", 'en': "Dragonite"},
     hasGenderDifferences: false,
-    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 149, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 9, imageId: 10281, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional'], extraInfo: null)],
+    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 149, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 9, imageId: 10281, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
   ),
   Pokemon(
     id: 150,
     names: {'de': "Mewtu", 'en': "Mewtwo"},
     hasGenderDifferences: false,
-    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 150, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega-x', formType: 'mega', minGen: 6, imageId: 10043, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional'], extraInfo: null), PokemonForm(name: 'mega-y', formType: 'mega', minGen: 6, imageId: 10044, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional'], extraInfo: null)],
+    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 150, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega-x', formType: 'mega', minGen: 6, imageId: 10043, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null), PokemonForm(name: 'mega-y', formType: 'mega', minGen: 6, imageId: 10044, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
   ),
   Pokemon(
@@ -1076,7 +1076,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     id: 154,
     names: {'de': "Meganie", 'en': "Meganium"},
     hasGenderDifferences: true,
-    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 2, imageId: 154, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 9, imageId: 10282, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional'], extraInfo: null)],
+    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 2, imageId: 154, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 9, imageId: 10282, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
   ),
   Pokemon(
@@ -1118,7 +1118,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     id: 160,
     names: {'de': "Impergator", 'en': "Feraligatr"},
     hasGenderDifferences: false,
-    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 2, imageId: 160, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 9, imageId: 10283, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional'], extraInfo: null)],
+    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 2, imageId: 160, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 9, imageId: 10283, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
   ),
   Pokemon(
@@ -1265,7 +1265,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     id: 181,
     names: {'de': "Ampharos", 'en': "Ampharos"},
     hasGenderDifferences: false,
-    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 2, imageId: 181, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 6, imageId: 10045, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional'], extraInfo: null)],
+    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 2, imageId: 181, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 6, imageId: 10045, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
   ),
   Pokemon(
@@ -1454,7 +1454,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     id: 208,
     names: {'de': "Stahlos", 'en': "Steelix"},
     hasGenderDifferences: true,
-    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 2, imageId: 208, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 6, imageId: 10072, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional'], extraInfo: null)],
+    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 2, imageId: 208, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 6, imageId: 10072, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
   ),
   Pokemon(
@@ -1482,7 +1482,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     id: 212,
     names: {'de': "Scherox", 'en': "Scizor"},
     hasGenderDifferences: true,
-    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 2, imageId: 212, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 6, imageId: 10046, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional'], extraInfo: null)],
+    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 2, imageId: 212, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 6, imageId: 10046, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
   ),
   Pokemon(
@@ -1496,7 +1496,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     id: 214,
     names: {'de': "Skaraborn", 'en': "Heracross"},
     hasGenderDifferences: true,
-    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 2, imageId: 214, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 6, imageId: 10047, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional'], extraInfo: null)],
+    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 2, imageId: 214, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 6, imageId: 10047, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
   ),
   Pokemon(
@@ -1587,7 +1587,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     id: 227,
     names: {'de': "Panzaeron", 'en': "Skarmory"},
     hasGenderDifferences: false,
-    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 2, imageId: 227, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 9, imageId: 10284, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional'], extraInfo: null)],
+    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 2, imageId: 227, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 9, imageId: 10284, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
   ),
   Pokemon(
@@ -1601,7 +1601,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     id: 229,
     names: {'de': "Hundemon", 'en': "Houndoom"},
     hasGenderDifferences: true,
-    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 2, imageId: 229, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 6, imageId: 10048, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional'], extraInfo: null)],
+    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 2, imageId: 229, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 6, imageId: 10048, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
   ),
   Pokemon(
@@ -1734,7 +1734,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     id: 248,
     names: {'de': "Despotar", 'en': "Tyranitar"},
     hasGenderDifferences: false,
-    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 2, imageId: 248, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 6, imageId: 10049, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional'], extraInfo: null)],
+    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 2, imageId: 248, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 6, imageId: 10049, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
   ),
   Pokemon(
@@ -1776,7 +1776,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     id: 254,
     names: {'de': "Gewaldro", 'en': "Sceptile"},
     hasGenderDifferences: false,
-    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 254, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 6, imageId: 10065, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional'], extraInfo: null)],
+    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 254, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 6, imageId: 10065, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
   ),
   Pokemon(
@@ -1797,7 +1797,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     id: 257,
     names: {'de': "Lohgock", 'en': "Blaziken"},
     hasGenderDifferences: true,
-    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 257, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 6, imageId: 10050, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional'], extraInfo: null)],
+    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 257, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 6, imageId: 10050, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
   ),
   Pokemon(
@@ -1818,7 +1818,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     id: 260,
     names: {'de': "Sumpex", 'en': "Swampert"},
     hasGenderDifferences: false,
-    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 260, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 6, imageId: 10064, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional'], extraInfo: null)],
+    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 260, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 6, imageId: 10064, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
   ),
   Pokemon(
@@ -1972,7 +1972,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     id: 282,
     names: {'de': "Guardevoir", 'en': "Gardevoir"},
     hasGenderDifferences: false,
-    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 282, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 6, imageId: 10051, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional'], extraInfo: null)],
+    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 282, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 6, imageId: 10051, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
   ),
   Pokemon(
@@ -2112,14 +2112,14 @@ final List<Pokemon> nationalPokemonDatabase = [
     id: 302,
     names: {'de': "Zobiris", 'en': "Sableye"},
     hasGenderDifferences: false,
-    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 302, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 6, imageId: 10066, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional'], extraInfo: null)],
+    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 302, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 6, imageId: 10066, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
   ),
   Pokemon(
     id: 303,
     names: {'de': "Flunkifer", 'en': "Mawile"},
     hasGenderDifferences: false,
-    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 303, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 6, imageId: 10052, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional'], extraInfo: null)],
+    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 303, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 6, imageId: 10052, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
   ),
   Pokemon(
@@ -2140,7 +2140,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     id: 306,
     names: {'de': "Stolloss", 'en': "Aggron"},
     hasGenderDifferences: false,
-    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 306, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 6, imageId: 10053, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional'], extraInfo: null)],
+    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 306, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 6, imageId: 10053, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
   ),
   Pokemon(
@@ -2154,7 +2154,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     id: 308,
     names: {'de': "Meditalis", 'en': "Medicham"},
     hasGenderDifferences: true,
-    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 308, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 6, imageId: 10054, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional'], extraInfo: null)],
+    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 308, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 6, imageId: 10054, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
   ),
   Pokemon(
@@ -2168,7 +2168,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     id: 310,
     names: {'de': "Voltenso", 'en': "Manectric"},
     hasGenderDifferences: false,
-    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 310, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 6, imageId: 10055, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional'], extraInfo: null)],
+    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 310, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 6, imageId: 10055, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
   ),
   Pokemon(
@@ -2231,7 +2231,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     id: 319,
     names: {'de': "Tohaido", 'en': "Sharpedo"},
     hasGenderDifferences: false,
-    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 319, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 6, imageId: 10070, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional'], extraInfo: null)],
+    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 319, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 6, imageId: 10070, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
   ),
   Pokemon(
@@ -2259,7 +2259,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     id: 323,
     names: {'de': "Camerupt", 'en': "Camerupt"},
     hasGenderDifferences: true,
-    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 323, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 6, imageId: 10087, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional'], extraInfo: null)],
+    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 323, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 6, imageId: 10087, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
   ),
   Pokemon(
@@ -2336,7 +2336,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     id: 334,
     names: {'de': "Altaria", 'en': "Altaria"},
     hasGenderDifferences: false,
-    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 334, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 6, imageId: 10067, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional'], extraInfo: null)],
+    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 334, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 6, imageId: 10067, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
   ),
   Pokemon(
@@ -2476,7 +2476,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     id: 354,
     names: {'de': "Banette", 'en': "Banette"},
     hasGenderDifferences: false,
-    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 354, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 6, imageId: 10056, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional'], extraInfo: null)],
+    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 354, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 6, imageId: 10056, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
   ),
   Pokemon(
@@ -2504,14 +2504,14 @@ final List<Pokemon> nationalPokemonDatabase = [
     id: 358,
     names: {'de': "Palimpalim", 'en': "Chimecho"},
     hasGenderDifferences: false,
-    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 358, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 9, imageId: 10306, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional'], extraInfo: null)],
+    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 358, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 9, imageId: 10306, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
   ),
   Pokemon(
     id: 359,
     names: {'de': "Absol", 'en': "Absol"},
     hasGenderDifferences: false,
-    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 359, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 6, imageId: 10057, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional'], extraInfo: null), PokemonForm(name: 'mega-z', formType: 'mega', minGen: 9, imageId: 10307, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional'], extraInfo: null)],
+    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 359, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 6, imageId: 10057, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null), PokemonForm(name: 'mega-z', formType: 'mega', minGen: 9, imageId: 10307, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
   ),
   Pokemon(
@@ -2532,7 +2532,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     id: 362,
     names: {'de': "Firnontor", 'en': "Glalie"},
     hasGenderDifferences: false,
-    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 362, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 6, imageId: 10074, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional'], extraInfo: null)],
+    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 362, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 6, imageId: 10074, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
   ),
   Pokemon(
@@ -2609,7 +2609,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     id: 373,
     names: {'de': "Brutalanda", 'en': "Salamence"},
     hasGenderDifferences: false,
-    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 373, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 6, imageId: 10089, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional'], extraInfo: null)],
+    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 373, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 6, imageId: 10089, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
   ),
   Pokemon(
@@ -2630,7 +2630,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     id: 376,
     names: {'de': "Metagross", 'en': "Metagross"},
     hasGenderDifferences: false,
-    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 376, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 6, imageId: 10076, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional'], extraInfo: null)],
+    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 376, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 6, imageId: 10076, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
   ),
   Pokemon(
@@ -2658,14 +2658,14 @@ final List<Pokemon> nationalPokemonDatabase = [
     id: 380,
     names: {'de': "Latias", 'en': "Latias"},
     hasGenderDifferences: false,
-    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 380, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 6, imageId: 10062, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional'], extraInfo: null)],
+    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 380, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 6, imageId: 10062, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
   ),
   Pokemon(
     id: 381,
     names: {'de': "Latios", 'en': "Latios"},
     hasGenderDifferences: false,
-    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 381, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 6, imageId: 10063, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional'], extraInfo: null)],
+    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 381, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 6, imageId: 10063, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
   ),
   Pokemon(
@@ -2686,7 +2686,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     id: 384,
     names: {'de': "Rayquaza", 'en': "Rayquaza"},
     hasGenderDifferences: false,
-    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 384, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 6, imageId: 10079, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional'], extraInfo: null)],
+    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 384, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 6, imageId: 10079, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
   ),
   Pokemon(
@@ -2784,7 +2784,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     id: 398,
     names: {'de': "Staraptor", 'en': "Staraptor"},
     hasGenderDifferences: true,
-    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 4, imageId: 398, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 9, imageId: 10308, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional'], extraInfo: null)],
+    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 4, imageId: 398, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 9, imageId: 10308, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
   ),
   Pokemon(
@@ -2994,7 +2994,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     id: 428,
     names: {'de': "Schlapor", 'en': "Lopunny"},
     hasGenderDifferences: false,
-    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 4, imageId: 428, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 6, imageId: 10088, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional'], extraInfo: null)],
+    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 4, imageId: 428, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 6, imageId: 10088, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
   ),
   Pokemon(
@@ -3113,7 +3113,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     id: 445,
     names: {'de': "Knakrack", 'en': "Garchomp"},
     hasGenderDifferences: true,
-    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 4, imageId: 445, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 6, imageId: 10058, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional'], extraInfo: null), PokemonForm(name: 'mega-z', formType: 'mega', minGen: 9, imageId: 10309, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional'], extraInfo: null)],
+    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 4, imageId: 445, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 6, imageId: 10058, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null), PokemonForm(name: 'mega-z', formType: 'mega', minGen: 9, imageId: 10309, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
   ),
   Pokemon(
@@ -3134,7 +3134,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     id: 448,
     names: {'de': "Lucario", 'en': "Lucario"},
     hasGenderDifferences: false,
-    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 4, imageId: 448, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 6, imageId: 10059, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional'], extraInfo: null), PokemonForm(name: 'mega-z', formType: 'mega', minGen: 9, imageId: 10310, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional'], extraInfo: null)],
+    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 4, imageId: 448, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 6, imageId: 10059, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null), PokemonForm(name: 'mega-z', formType: 'mega', minGen: 9, imageId: 10310, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
   ),
   Pokemon(
@@ -3218,7 +3218,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     id: 460,
     names: {'de': "Rexblisar", 'en': "Abomasnow"},
     hasGenderDifferences: true,
-    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 4, imageId: 460, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 6, imageId: 10060, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional'], extraInfo: null)],
+    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 4, imageId: 460, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 6, imageId: 10060, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
   ),
   Pokemon(
@@ -3323,7 +3323,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     id: 475,
     names: {'de': "Galagladi", 'en': "Gallade"},
     hasGenderDifferences: false,
-    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 4, imageId: 475, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 6, imageId: 10068, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional'], extraInfo: null)],
+    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 4, imageId: 475, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 6, imageId: 10068, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
   ),
   Pokemon(
@@ -3344,7 +3344,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     id: 478,
     names: {'de': "Frosdedje", 'en': "Froslass"},
     hasGenderDifferences: false,
-    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 4, imageId: 478, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 9, imageId: 10285, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional'], extraInfo: null)],
+    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 4, imageId: 478, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 9, imageId: 10285, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
   ),
   Pokemon(
@@ -3393,7 +3393,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     id: 485,
     names: {'de': "Heatran", 'en': "Heatran"},
     hasGenderDifferences: false,
-    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 4, imageId: 485, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 9, imageId: 10311, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional'], extraInfo: null)],
+    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 4, imageId: 485, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 9, imageId: 10311, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
   ),
   Pokemon(
@@ -3435,7 +3435,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     id: 491,
     names: {'de': "Darkrai", 'en': "Darkrai"},
     hasGenderDifferences: false,
-    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 4, imageId: 491, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 9, imageId: 10312, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional'], extraInfo: null)],
+    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 4, imageId: 491, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 9, imageId: 10312, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
   ),
   Pokemon(
@@ -3498,7 +3498,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     id: 500,
     names: {'de': "Flambirex", 'en': "Emboar"},
     hasGenderDifferences: false,
-    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 500, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 9, imageId: 10286, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional'], extraInfo: null)],
+    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 500, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 9, imageId: 10286, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
   ),
   Pokemon(
@@ -3708,14 +3708,14 @@ final List<Pokemon> nationalPokemonDatabase = [
     id: 530,
     names: {'de': "Stalobor", 'en': "Excadrill"},
     hasGenderDifferences: false,
-    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 530, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 9, imageId: 10287, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional'], extraInfo: null)],
+    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 530, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 9, imageId: 10287, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
   ),
   Pokemon(
     id: 531,
     names: {'de': "Ohrdoch", 'en': "Audino"},
     hasGenderDifferences: false,
-    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 531, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 6, imageId: 10069, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional'], extraInfo: null)],
+    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 531, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 6, imageId: 10069, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
   ),
   Pokemon(
@@ -3813,7 +3813,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     id: 545,
     names: {'de': "Cerapendra", 'en': "Scolipede"},
     hasGenderDifferences: false,
-    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 545, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 9, imageId: 10288, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional'], extraInfo: null)],
+    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 545, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 9, imageId: 10288, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
   ),
   Pokemon(
@@ -3918,7 +3918,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     id: 560,
     names: {'de': "Irokex", 'en': "Scrafty"},
     hasGenderDifferences: false,
-    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 560, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 9, imageId: 10289, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional'], extraInfo: null)],
+    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 560, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 9, imageId: 10289, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
   ),
   Pokemon(
@@ -4226,7 +4226,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     id: 604,
     names: {'de': "Zapplarang", 'en': "Eelektross"},
     hasGenderDifferences: false,
-    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 604, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 9, imageId: 10290, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional'], extraInfo: null)],
+    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 604, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 9, imageId: 10290, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
   ),
   Pokemon(
@@ -4261,7 +4261,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     id: 609,
     names: {'de': "Skelabra", 'en': "Chandelure"},
     hasGenderDifferences: false,
-    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 609, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 9, imageId: 10291, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional'], extraInfo: null)],
+    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 609, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 9, imageId: 10291, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
   ),
   Pokemon(
@@ -4359,7 +4359,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     id: 623,
     names: {'de': "Golgantes", 'en': "Golurk"},
     hasGenderDifferences: false,
-    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 623, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 9, imageId: 10313, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional'], extraInfo: null)],
+    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 623, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 9, imageId: 10313, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
   ),
   Pokemon(
@@ -4562,7 +4562,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     id: 652,
     names: {'de': "Brigaron", 'en': "Chesnaught"},
     hasGenderDifferences: false,
-    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 6, imageId: 652, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 9, imageId: 10292, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional'], extraInfo: null)],
+    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 6, imageId: 652, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 9, imageId: 10292, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
   ),
   Pokemon(
@@ -4583,7 +4583,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     id: 655,
     names: {'de': "Fennexis", 'en': "Delphox"},
     hasGenderDifferences: false,
-    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 6, imageId: 655, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 9, imageId: 10293, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional'], extraInfo: null)],
+    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 6, imageId: 655, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 9, imageId: 10293, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
   ),
   Pokemon(
@@ -4604,7 +4604,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     id: 658,
     names: {'de': "Quajutsu", 'en': "Greninja"},
     hasGenderDifferences: false,
-    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 6, imageId: 658, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'battle-bond', formType: 'other', minGen: 7, imageId: 10116, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'ash', formType: 'other', minGen: 7, imageId: 10117, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 9, imageId: 10294, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional'], extraInfo: null)],
+    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 6, imageId: 658, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'battle-bond', formType: 'other', minGen: 7, imageId: 10116, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'ash', formType: 'other', minGen: 7, imageId: 10117, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 9, imageId: 10294, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
   ),
   Pokemon(
@@ -4674,7 +4674,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     id: 668,
     names: {'de': "Pyroleo", 'en': "Pyroar"},
     hasGenderDifferences: true,
-    forms: const [PokemonForm(name: 'male', formType: 'other', minGen: 6, imageId: 668, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'female', formType: 'other', minGen: 6, imageId: 668, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 9, imageId: 10295, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional'], extraInfo: null)],
+    forms: const [PokemonForm(name: 'male', formType: 'other', minGen: 6, imageId: 668, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'female', formType: 'other', minGen: 6, imageId: 668, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 9, imageId: 10295, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
   ),
   Pokemon(
@@ -4688,7 +4688,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     id: 670,
     names: {'de': "Floette", 'en': "Floette"},
     hasGenderDifferences: false,
-    forms: const [PokemonForm(name: 'red', formType: 'other', minGen: 6, imageId: 670, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'yellow', formType: 'other', minGen: 6, imageId: 670, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'orange', formType: 'other', minGen: 6, imageId: 670, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'blue', formType: 'other', minGen: 6, imageId: 670, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'white', formType: 'other', minGen: 6, imageId: 670, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'eternal', formType: 'other', minGen: 6, imageId: 10061, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional'], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 9, imageId: 10296, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional'], extraInfo: null)],
+    forms: const [PokemonForm(name: 'red', formType: 'other', minGen: 6, imageId: 670, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'yellow', formType: 'other', minGen: 6, imageId: 670, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'orange', formType: 'other', minGen: 6, imageId: 670, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'blue', formType: 'other', minGen: 6, imageId: 670, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'white', formType: 'other', minGen: 6, imageId: 670, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'eternal', formType: 'other', minGen: 6, imageId: 10061, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional'], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 9, imageId: 10296, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
   ),
   Pokemon(
@@ -4744,7 +4744,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     id: 678,
     names: {'de': "Psiaugon", 'en': "Meowstic"},
     hasGenderDifferences: true,
-    forms: const [PokemonForm(name: 'male', formType: 'other', minGen: 6, imageId: 678, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'female', formType: 'other', minGen: 6, imageId: 10025, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'male-mega', formType: 'mega', minGen: 9, imageId: 10314, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional'], extraInfo: null), PokemonForm(name: 'female-mega', formType: 'mega', minGen: 9, imageId: 10326, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional'], extraInfo: null)],
+    forms: const [PokemonForm(name: 'male', formType: 'other', minGen: 6, imageId: 678, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'female', formType: 'other', minGen: 6, imageId: 10025, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'male-mega', formType: 'mega', minGen: 9, imageId: 10314, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null), PokemonForm(name: 'female-mega', formType: 'mega', minGen: 9, imageId: 10326, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
   ),
   Pokemon(
@@ -4807,7 +4807,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     id: 687,
     names: {'de': "Calamanero", 'en': "Malamar"},
     hasGenderDifferences: false,
-    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 6, imageId: 687, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 9, imageId: 10297, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional'], extraInfo: null)],
+    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 6, imageId: 687, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 9, imageId: 10297, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
   ),
   Pokemon(
@@ -4821,7 +4821,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     id: 689,
     names: {'de': "Thanathora", 'en': "Barbaracle"},
     hasGenderDifferences: false,
-    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 6, imageId: 689, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 9, imageId: 10298, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional'], extraInfo: null)],
+    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 6, imageId: 689, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 9, imageId: 10298, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
   ),
   Pokemon(
@@ -4835,7 +4835,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     id: 691,
     names: {'de': "Tandrak", 'en': "Dragalge"},
     hasGenderDifferences: false,
-    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 6, imageId: 691, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 9, imageId: 10299, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional'], extraInfo: null)],
+    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 6, imageId: 691, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 9, imageId: 10299, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
   ),
   Pokemon(
@@ -4905,7 +4905,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     id: 701,
     names: {'de': "Resladero", 'en': "Hawlucha"},
     hasGenderDifferences: false,
-    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 6, imageId: 701, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 9, imageId: 10300, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional'], extraInfo: null)],
+    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 6, imageId: 701, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 9, imageId: 10300, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
   ),
   Pokemon(
@@ -5024,14 +5024,14 @@ final List<Pokemon> nationalPokemonDatabase = [
     id: 718,
     names: {'de': "Zygarde", 'en': "Zygarde"},
     hasGenderDifferences: false,
-    forms: const [PokemonForm(name: '50', formType: 'other', minGen: 6, imageId: 718, exclusiveRegions: [], extraInfo: null), PokemonForm(name: '10-power-construct', formType: 'other', minGen: 7, imageId: 10118, exclusiveRegions: [], extraInfo: null), PokemonForm(name: '50-power-construct', formType: 'other', minGen: 7, imageId: 10119, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'complete', formType: 'other', minGen: 7, imageId: 10120, exclusiveRegions: [], extraInfo: null), PokemonForm(name: '10', formType: 'other', minGen: 7, imageId: 10181, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 9, imageId: 10301, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional'], extraInfo: null)],
+    forms: const [PokemonForm(name: '50', formType: 'other', minGen: 6, imageId: 718, exclusiveRegions: [], extraInfo: null), PokemonForm(name: '10-power-construct', formType: 'other', minGen: 7, imageId: 10118, exclusiveRegions: [], extraInfo: null), PokemonForm(name: '50-power-construct', formType: 'other', minGen: 7, imageId: 10119, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'complete', formType: 'other', minGen: 7, imageId: 10120, exclusiveRegions: [], extraInfo: null), PokemonForm(name: '10', formType: 'other', minGen: 7, imageId: 10181, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 9, imageId: 10301, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
   ),
   Pokemon(
     id: 719,
     names: {'de': "Diancie", 'en': "Diancie"},
     hasGenderDifferences: false,
-    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 6, imageId: 719, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 6, imageId: 10075, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional'], extraInfo: null)],
+    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 6, imageId: 719, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 6, imageId: 10075, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
   ),
   Pokemon(
@@ -5178,7 +5178,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     id: 740,
     names: {'de': "Krawell", 'en': "Crabominable"},
     hasGenderDifferences: false,
-    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 7, imageId: 740, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 9, imageId: 10315, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional'], extraInfo: null)],
+    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 7, imageId: 740, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 9, imageId: 10315, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
   ),
   Pokemon(
@@ -5374,7 +5374,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     id: 768,
     names: {'de': "Tectass", 'en': "Golisopod"},
     hasGenderDifferences: false,
-    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 7, imageId: 768, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 9, imageId: 10316, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional'], extraInfo: null)],
+    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 7, imageId: 768, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 9, imageId: 10316, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
   ),
   Pokemon(
@@ -5458,7 +5458,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     id: 780,
     names: {'de': "Sen-Long", 'en': "Drampa"},
     hasGenderDifferences: false,
-    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 7, imageId: 780, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 9, imageId: 10302, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional'], extraInfo: null)],
+    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 7, imageId: 780, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 9, imageId: 10302, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
   ),
   Pokemon(
@@ -5605,7 +5605,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     id: 801,
     names: {'de': "Magearna", 'en': "Magearna"},
     hasGenderDifferences: false,
-    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 7, imageId: 801, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'original', formType: 'other', minGen: 7, imageId: 10147, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 9, imageId: 10317, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional'], extraInfo: null), PokemonForm(name: 'original-mega', formType: 'mega', minGen: 9, imageId: 10318, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional'], extraInfo: null)],
+    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 7, imageId: 801, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'original', formType: 'other', minGen: 7, imageId: 10147, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 9, imageId: 10317, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null), PokemonForm(name: 'original-mega', formType: 'mega', minGen: 9, imageId: 10318, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
   ),
   Pokemon(
@@ -5647,7 +5647,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     id: 807,
     names: {'de': "Zeraora", 'en': "Zeraora"},
     hasGenderDifferences: false,
-    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 7, imageId: 807, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 9, imageId: 10319, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional'], extraInfo: null)],
+    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 7, imageId: 807, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 9, imageId: 10319, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
   ),
   Pokemon(
@@ -6088,7 +6088,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     id: 870,
     names: {'de': "Legios", 'en': "Falinks"},
     hasGenderDifferences: false,
-    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 8, imageId: 870, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 9, imageId: 10303, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional'], extraInfo: null)],
+    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 8, imageId: 870, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 9, imageId: 10303, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
   ),
   Pokemon(
@@ -6662,7 +6662,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     id: 952,
     names: {'de': "Halupenjo", 'en': "Scovillain"},
     hasGenderDifferences: false,
-    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 9, imageId: 952, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 9, imageId: 10320, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional'], extraInfo: null)],
+    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 9, imageId: 952, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 9, imageId: 10320, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
   ),
   Pokemon(
@@ -6788,7 +6788,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     id: 970,
     names: {'de': "Lumiflora", 'en': "Glimmora"},
     hasGenderDifferences: false,
-    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 9, imageId: 970, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 9, imageId: 10321, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional'], extraInfo: null)],
+    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 9, imageId: 970, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 9, imageId: 10321, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
   ),
   Pokemon(
@@ -6844,7 +6844,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     id: 978,
     names: {'de': "Nigiragi", 'en': "Tatsugiri"},
     hasGenderDifferences: false,
-    forms: const [PokemonForm(name: 'curly', formType: 'other', minGen: 9, imageId: 978, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'droopy', formType: 'other', minGen: 9, imageId: 10258, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'stretchy', formType: 'other', minGen: 9, imageId: 10259, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'curly-mega', formType: 'mega', minGen: 9, imageId: 10322, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional'], extraInfo: null), PokemonForm(name: 'droopy-mega', formType: 'mega', minGen: 9, imageId: 10323, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional'], extraInfo: null), PokemonForm(name: 'stretchy-mega', formType: 'mega', minGen: 9, imageId: 10324, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional'], extraInfo: null)],
+    forms: const [PokemonForm(name: 'curly', formType: 'other', minGen: 9, imageId: 978, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'droopy', formType: 'other', minGen: 9, imageId: 10258, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'stretchy', formType: 'other', minGen: 9, imageId: 10259, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'curly-mega', formType: 'mega', minGen: 9, imageId: 10322, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null), PokemonForm(name: 'droopy-mega', formType: 'mega', minGen: 9, imageId: 10323, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null), PokemonForm(name: 'stretchy-mega', formType: 'mega', minGen: 9, imageId: 10324, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
   ),
   Pokemon(
@@ -6984,7 +6984,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     id: 998,
     names: {'de': "Espinodon", 'en': "Baxcalibur"},
     hasGenderDifferences: false,
-    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 9, imageId: 998, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 9, imageId: 10325, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional'], extraInfo: null)],
+    forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 9, imageId: 998, exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 9, imageId: 10325, exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
   ),
   Pokemon(

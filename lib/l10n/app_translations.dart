@@ -104,6 +104,8 @@ class Translator {
       'form_name_spiky-eared': 'Strubbelohr',
       'form_name_cosplay': 'Cosplay',
       'form_name_original-cap': 'Original-Kappe',
+      'form_name_exclamation': '!',
+      'form_name_question': '?',
 
       // Regionale Dexe
       'region_national_overall': 'Nationaldex',
@@ -139,6 +141,9 @@ class Translator {
       'region_updated_akala_regional': 'Alola (US/UM Akala)',
       'region_updated_ulaula_regional': 'Alola (US/UM Ula-Ula)',
       'region_updated_poni_regional': 'Alola (US/UM Poni)',
+      'region_special_dex': 'Spezial Dexe',
+      'region_mega_dex': 'Mega Dex',
+      'region_icognito_dex': 'Unkown Dex',
 
       "appearance": "Erscheinungsbild",
       "choose_accent_color": "Akzentfarbe",
@@ -258,6 +263,8 @@ class Translator {
       'form_name_spiky-eared': 'Spiky-eared',
       'form_name_cosplay': 'Cosplay',
       'form_name_original-cap': 'Original-Cap',
+      'form_name_exclamation': '!',
+      'form_name_question': '?',
 
       // Regionale Dexe
       'region_national_overall': 'National Dex',
@@ -293,6 +300,9 @@ class Translator {
       'region_updated_akala_regional': 'Alola (US/UM Akala)',
       'region_updated_ulaula_regional': 'Alola (US/UM Ula\'ula)',
       'region_updated_poni_regional': 'Alola (US/UM Poni)',
+      'region_special_dex': 'Special Dex',
+      'region_mega_dex': 'Mega Dex',
+      'region_icognito_dex': 'Icognito Dex',
 
       "appearance": "Appearance",
       "choose_accent_color": "Accent Color",

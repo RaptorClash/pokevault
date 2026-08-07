@@ -4,6 +4,59 @@ import 'dart:io';
 void main() async {
   print('Lade offizielle Pokédex-Reihenfolgen herunter...');
 
+  final hardcodedOrders = {
+    'lumiose': <int>[],
+    'lumiose-dimensions': <int>[],
+    'mega-dex': [
+      3,
+      6,
+      9,
+      15,
+      18,
+      65,
+      80,
+      94,
+      115,
+      127,
+      130,
+      142,
+      150,
+      181,
+      208,
+      212,
+      214,
+      229,
+      248,
+      254,
+      257,
+      260,
+      282,
+      302,
+      303,
+      306,
+      308,
+      310,
+      319,
+      323,
+      334,
+      354,
+      359,
+      362,
+      373,
+      376,
+      380,
+      381,
+      384,
+      428,
+      445,
+      448,
+      460,
+      475,
+      719,
+    ],
+    'icognito-dex': [201],
+  };
+
   final regionalDexEndpoints = {
     // Gen 1 & Remakes & Let's Go
     'kanto': ['kantoRegionalOrder', 'kanto_regional'],
@@ -60,11 +113,15 @@ void main() async {
     'paldea': ['paldeaRegionalOrder', 'paldea_regional'],
     'kitakami': ['kitakamiRegionalOrder', 'kitakami_regional'],
     'blueberry': ['blueberryRegionalOrder', 'blueberry_regional'],
-    'lumiose': ['lumioseRegionalOrder', 'lumiose_regional'],
-    'lumiose-dimensions': [
-      'lumioseDimensionsRegionalOrder',
-      'lumiose_dimensions_regional',
-    ],
+
+    // Does not exist at the moment
+    // 'lumiose': ['lumioseRegionalOrder', 'lumiose_regional'],
+    // 'lumiose-dimensions': [
+    //   'lumioseDimensionsRegionalOrder',
+    //   'lumiose_dimensions_regional',
+    // ],
+    'mega-dex': ['megaDexOrder', 'mega_dex'],
+    'icognito-dex': ['icognitoDexOrder', 'icognito_dex'],
   };
 
   Map<String, List<int>> fetchedOrders = {};
@@ -72,8 +129,13 @@ void main() async {
   for (var entry in regionalDexEndpoints.entries) {
     try {
       final varName = entry.value[0];
-      fetchedOrders[varName] = await fetchPokedexOrder(entry.key);
-      await Future.delayed(const Duration(milliseconds: 250));
+      if (hardcodedOrders.containsKey(entry.key)) {
+        fetchedOrders[varName] = hardcodedOrders[entry.key]!;
+        print('Lade Dex: ${entry.key}... (Hardcoded)');
+      } else {
+        fetchedOrders[varName] = await fetchPokedexOrder(entry.key);
+        await Future.delayed(const Duration(milliseconds: 250));
+      }
     } catch (e) {
       print('FEHLER beim Laden von ${entry.key}: $e');
       fetchedOrders[entry.value[0]] = [];
@@ -116,6 +178,7 @@ void main() async {
   sb.writeln('// 3. ALLE BEREITGESTELLTEN DEXE (FÜR DYNAMISCHE UI)');
   sb.writeln('// ==========================================');
   sb.writeln('final Map<String, List<int>> allAvailableDexes = {');
+  sb.writeln("  'national_overall': paldeaNationalOrder,");
 
   for (var entry in regionalDexEndpoints.values) {
     final varName = entry[0];

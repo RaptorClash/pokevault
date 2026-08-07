@@ -168,6 +168,7 @@ Future<String> generateMasterDex(int startId, int endId) async {
               'lumiose_regional',
               'updated_hoenn_regional',
               'letsgo_kanto_regional',
+              'mega_dex',
             ]);
           } else if (cleanForm.contains('gmax')) {
             exclusives.addAll([
