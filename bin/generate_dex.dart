@@ -124,7 +124,7 @@ Future<String> generateMasterDex(int startId, int endId) async {
               cleanForm.contains('hisui') ||
               cleanForm.contains('paldea')) {
             formType = 'regional';
-          } else if (cleanForm.contains('mega')) {
+          } else if (cleanForm.contains('mega') || cleanForm.contains('primal')) {
             formType = 'mega';
           } else if (cleanForm.contains('gmax')) {
             formType = 'gmax';
@@ -160,7 +160,7 @@ Future<String> generateMasterDex(int startId, int endId) async {
               'kitakami_regional',
               'blueberry_regional',
             ]);
-          } else if (cleanForm.contains('mega')) {
+          } else if (cleanForm.contains('mega') || cleanForm.contains('primal')) {
             exclusives.addAll([
               'kalos_central_regional',
               'kalos_coastal_regional',

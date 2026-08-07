@@ -106,6 +106,7 @@ class Translator {
       'form_name_original-cap': 'Original-Kappe',
       'form_name_exclamation': '!',
       'form_name_question': '?',
+      'form_name_primal': 'Protomorphose',
 
       // Regionale Dexe
       'region_national_overall': 'Nationaldex',
@@ -265,6 +266,7 @@ class Translator {
       'form_name_original-cap': 'Original-Cap',
       'form_name_exclamation': '!',
       'form_name_question': '?',
+      'form_name_primal': 'Primal',
 
       // Regionale Dexe
       'region_national_overall': 'National Dex',
