@@ -15,10 +15,6 @@ class DexProvider extends ChangeNotifier {
   String get currentLanguage => _currentLanguage;
   ThemeMode get themeMode => _themeMode;
 
-  String getText(String key) {
-    return appTranslations[_currentLanguage]?[key] ?? key;
-  }
-
   DexProvider() {
     _loadFromPrefs();
   }
@@ -28,6 +24,8 @@ class DexProvider extends ChangeNotifier {
       final prefs = await SharedPreferences.getInstance();
 
       _currentLanguage = prefs.getString('language') ?? 'de';
+
+      Translator.currentLanguage = _currentLanguage;
 
       final themeIndex = prefs.getInt('themeMode');
       if (themeIndex != null) {
@@ -44,7 +42,7 @@ class DexProvider extends ChangeNotifier {
       }
       notifyListeners();
     } catch (e) {
-      NotificationHelper.showError("${getText('error_load')} $e");
+      NotificationHelper.showError("${Translator.get('error_load')} $e");
     }
   }
 
@@ -57,7 +55,7 @@ class DexProvider extends ChangeNotifier {
       final jsonList = _userDexes.map((d) => d.toJson()).toList();
       await prefs.setString('saved_dexes', jsonEncode(jsonList));
     } catch (e) {
-      NotificationHelper.showError("${getText('error_save')} $e");
+      NotificationHelper.showError("${Translator.get('error_save')} $e");
     }
   }
 
@@ -69,17 +67,18 @@ class DexProvider extends ChangeNotifier {
       _saveToPrefs();
       notifyListeners();
     } catch (e) {
-      NotificationHelper.showError("${getText('error_save')} $e");
+      NotificationHelper.showError("${Translator.get('error_save')} $e");
     }
   }
 
   void setLanguage(String langCode) {
     try {
       _currentLanguage = langCode;
+      Translator.currentLanguage = langCode;
       _saveToPrefs();
       notifyListeners();
     } catch (e) {
-      NotificationHelper.showError("${getText('error_save')} $e");
+      NotificationHelper.showError("${Translator.get('error_save')} $e");
     }
   }
 
@@ -108,7 +107,7 @@ class DexProvider extends ChangeNotifier {
       _saveToPrefs();
       notifyListeners();
     } catch (e) {
-      NotificationHelper.showError("${getText('error_save')} $e");
+      NotificationHelper.showError("${Translator.get('error_save')} $e");
     }
   }
 
@@ -126,7 +125,7 @@ class DexProvider extends ChangeNotifier {
         notifyListeners();
       }
     } catch (e) {
-      NotificationHelper.showError("${getText('error_save')} $e");
+      NotificationHelper.showError("${Translator.get('error_save')} $e");
     }
   }
 
@@ -137,10 +136,10 @@ class DexProvider extends ChangeNotifier {
         _userDexes.addAll(imported);
         _saveToPrefs();
         notifyListeners();
-        NotificationHelper.showSuccess(getText('import_success'));
+        NotificationHelper.showSuccess(Translator.get('import_success'));
       }
     } catch (e) {
-      NotificationHelper.showError("${getText('error_import')} $e");
+      NotificationHelper.showError("${Translator.get('error_import')} $e");
     }
   }
 
@@ -150,7 +149,7 @@ class DexProvider extends ChangeNotifier {
       _saveToPrefs();
       notifyListeners();
     } catch (e) {
-      NotificationHelper.showError("${getText('error_save')} $e");
+      NotificationHelper.showError("${Translator.get('error_save')} $e");
     }
   }
 
@@ -185,7 +184,7 @@ class DexProvider extends ChangeNotifier {
         notifyListeners();
       }
     } catch (e) {
-      NotificationHelper.showError("${getText('error_save')} $e");
+      NotificationHelper.showError("${Translator.get('error_save')} $e");
     }
   }
 
@@ -195,7 +194,7 @@ class DexProvider extends ChangeNotifier {
       _saveToPrefs();
       notifyListeners();
     } catch (e) {
-      NotificationHelper.showError("${getText('error_save')} $e");
+      NotificationHelper.showError("${Translator.get('error_save')} $e");
     }
   }
 }

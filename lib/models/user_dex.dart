@@ -45,7 +45,6 @@ class UserDex {
               ?.map((e) => e.toString())
               .toSet() ??
           {},
-      // NEU: Die aufgeschlüsselten Booleans auslesen
       includeGenders: json['includeGenders'] as bool? ?? false,
       includeRegional: json['includeRegional'] as bool? ?? false,
       includeMega: json['includeMega'] as bool? ?? false,

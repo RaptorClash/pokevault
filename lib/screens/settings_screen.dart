@@ -4,6 +4,8 @@ import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import '../providers/theme_provider.dart';
 import '../providers/dex_provider.dart';
 import '../services/dex_storage_service.dart';
+import '../l10n/app_translations.dart';
+import '../utils/notification_helper.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -25,13 +27,13 @@ class SettingsScreen extends StatelessWidget {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      appBar: AppBar(title: Text(dexProvider.getText('settings'))),
+      appBar: AppBar(title: Text(Translator.get('settings'))),
       body: ListView(
         padding: const EdgeInsets.all(16.0),
         children: [
           _buildSectionHeader(
             context,
-            dexProvider.getText('appearance'),
+            Translator.get('appearance'),
             Icons.palette,
           ),
           Card(
@@ -39,21 +41,20 @@ class SettingsScreen extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 SwitchListTile(
-                  title: Text(dexProvider.getText('dark_mode')),
+                  title: Text(Translator.get('dark_mode')),
                   value: dexProvider.themeMode == ThemeMode.dark,
                   onChanged: (bool value) {
                     dexProvider.toggleTheme();
                   },
                 ),
                 const Divider(height: 1),
-                // --- AKZENTFARBE ---
                 Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        dexProvider.getText('choose_accent_color'),
+                        Translator.get('choose_accent_color'),
                         style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
@@ -70,14 +71,13 @@ class SettingsScreen extends StatelessWidget {
                   ),
                 ),
                 const Divider(height: 1),
-                // --- HINTERGRUNDFARBE ---
                 Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        dexProvider.getText('choose_bg_color'),
+                        Translator.get('choose_bg_color'),
                         style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
@@ -94,7 +94,6 @@ class SettingsScreen extends StatelessWidget {
                   ),
                 ),
                 const Divider(height: 1),
-                // --- RESET BUTTON ---
                 Padding(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 16.0,
@@ -104,8 +103,8 @@ class SettingsScreen extends StatelessWidget {
                     onPressed: () => themeProvider.resetToDefault(),
                     icon: const Icon(Icons.restore),
                     label: Text(
-                      dexProvider.getText('reset_theme') != 'reset_theme'
-                          ? dexProvider.getText('reset_theme')
+                      Translator.get('reset_theme') != 'reset_theme'
+                          ? Translator.get('reset_theme')
                           : 'Standarddesign wiederherstellen',
                     ),
                     style: TextButton.styleFrom(
@@ -119,13 +118,13 @@ class SettingsScreen extends StatelessWidget {
           const SizedBox(height: 24),
           _buildSectionHeader(
             context,
-            dexProvider.getText('general'),
+            Translator.get('general'),
             Icons.language,
           ),
           Card(
             child: ListTile(
-              title: Text(dexProvider.getText('language')),
-              subtitle: Text(dexProvider.getText('current_language')),
+              title: Text(Translator.get('language')),
+              subtitle: Text(Translator.get('current_language')),
               trailing: const Icon(Icons.arrow_forward_ios, size: 16),
               onTap: () => _showLanguageDialog(context, dexProvider),
             ),
@@ -133,7 +132,7 @@ class SettingsScreen extends StatelessWidget {
           const SizedBox(height: 24),
           _buildSectionHeader(
             context,
-            dexProvider.getText('data_management'),
+            Translator.get('data_management'),
             Icons.save,
           ),
           Card(
@@ -141,13 +140,13 @@ class SettingsScreen extends StatelessWidget {
               children: [
                 ListTile(
                   leading: const Icon(Icons.download),
-                  title: Text(dexProvider.getText('import_tooltip')),
+                  title: Text(Translator.get('import_tooltip')),
                   onTap: () async => await dexProvider.importJsonData(),
                 ),
                 const Divider(height: 1),
                 ListTile(
                   leading: const Icon(Icons.upload),
-                  title: Text(dexProvider.getText('export_tooltip')),
+                  title: Text(Translator.get('export_tooltip')),
                   onTap: () async {
                     if (dexProvider.userDexes.isNotEmpty) {
                       await DexStorageService.exportDexes(
@@ -173,11 +172,11 @@ class SettingsScreen extends StatelessWidget {
   }) {
     Color activeColor = isBackground
         ? (isDarkMode
-            ? themeProvider.darkBackgroundColor
-            : themeProvider.lightBackgroundColor)
+              ? themeProvider.darkBackgroundColor
+              : themeProvider.lightBackgroundColor)
         : (isDarkMode
-            ? themeProvider.darkPrimaryColor
-            : themeProvider.lightPrimaryColor);
+              ? themeProvider.darkPrimaryColor
+              : themeProvider.lightPrimaryColor);
 
     List<Color> allColorsToDisplay = [
       ..._defaultColors,
@@ -290,30 +289,36 @@ class SettingsScreen extends StatelessWidget {
   }
 
   void _showLanguageDialog(BuildContext context, DexProvider provider) {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return SimpleDialog(
-          title: Text(provider.getText('language')),
-          children: [
-            SimpleDialogOption(
-              onPressed: () {
-                provider.setLanguage('de');
-                Navigator.pop(context);
-              },
-              child: const Text('  Deutsch (DE)'),
-            ),
-            SimpleDialogOption(
-              onPressed: () {
-                provider.setLanguage('en');
-                Navigator.pop(context);
-              },
-              child: const Text('  English (EN)'),
-            ),
-          ],
-        );
-      },
-    );
+    try {
+      showDialog(
+        context: context,
+        builder: (context) {
+          return SimpleDialog(
+            title: Text(Translator.get('language')),
+            children: [
+              SimpleDialogOption(
+                onPressed: () {
+                  provider.setLanguage('de');
+                  Navigator.pop(context);
+                },
+                child: const Text('  Deutsch (DE)'),
+              ),
+              SimpleDialogOption(
+                onPressed: () {
+                  provider.setLanguage('en');
+                  Navigator.pop(context);
+                },
+                child: const Text('  English (EN)'),
+              ),
+            ],
+          );
+        },
+      );
+    } catch (e) {
+      NotificationHelper.showError(
+        "${Translator.get('error_show_language_dialog')} $e",
+      );
+    }
   }
 
   void _showColorPickerDialog(
@@ -323,56 +328,62 @@ class SettingsScreen extends StatelessWidget {
     bool isDarkMode,
     bool isBackground,
   ) {
-    Color pickerColor = isBackground
-        ? (isDarkMode
-            ? themeProvider.darkBackgroundColor
-            : themeProvider.lightBackgroundColor)
-        : (isDarkMode
-            ? themeProvider.darkPrimaryColor
-            : themeProvider.lightPrimaryColor);
+    try {
+      Color pickerColor = isBackground
+          ? (isDarkMode
+                ? themeProvider.darkBackgroundColor
+                : themeProvider.lightBackgroundColor)
+          : (isDarkMode
+                ? themeProvider.darkPrimaryColor
+                : themeProvider.lightPrimaryColor);
 
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          // Hier nutzen wir jetzt die gesäuberten Keys!
-          title: Text(
-            isBackground
-                ? dexProvider.getText('choose_bg_color')
-                : dexProvider.getText('choose_accent_color'),
-          ),
-          content: SingleChildScrollView(
-            child: ColorPicker(
-              pickerColor: pickerColor,
-              onColorChanged: (color) {
-                pickerColor = color;
-              },
-              pickerAreaHeightPercent: 0.8,
-              enableAlpha: true,
-              displayThumbColor: true,
-              hexInputBar: true,
+      showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: Text(
+              isBackground
+                  ? Translator.get('choose_bg_color')
+                  : Translator.get('choose_accent_color'),
             ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text(dexProvider.getText('cancel')),
+            content: SingleChildScrollView(
+              child: ColorPicker(
+                pickerColor: pickerColor,
+                onColorChanged: (color) {
+                  pickerColor = color;
+                },
+                pickerAreaHeightPercent: 0.8,
+                enableAlpha: true,
+                displayThumbColor: true,
+                hexInputBar: true,
+              ),
             ),
-            ElevatedButton(
-              onPressed: () {
-                themeProvider.addCustomColor(pickerColor);
-                if (isBackground) {
-                  themeProvider.updateBackgroundColor(pickerColor, isDarkMode);
-                } else {
-                  themeProvider.updateThemeColor(pickerColor, isDarkMode);
-                }
-                Navigator.pop(context);
-              },
-              child: Text(dexProvider.getText('apply')),
-            ),
-          ],
-        );
-      },
-    );
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: Text(Translator.get('cancel')),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  themeProvider.addCustomColor(pickerColor);
+                  if (isBackground) {
+                    themeProvider.updateBackgroundColor(
+                      pickerColor,
+                      isDarkMode,
+                    );
+                  } else {
+                    themeProvider.updateThemeColor(pickerColor, isDarkMode);
+                  }
+                  Navigator.pop(context);
+                },
+                child: Text(Translator.get('apply')),
+              ),
+            ],
+          );
+        },
+      );
+    } catch (e) {
+      NotificationHelper.showError("${Translator.get('error_show_colorpicker_dialog')} $e");
+    }
   }
 }

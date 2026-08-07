@@ -3,6 +3,8 @@ import 'package:provider/provider.dart';
 import '../models/user_dex.dart';
 import '../models/pokemon.dart';
 import '../providers/dex_provider.dart';
+import '../l10n/app_translations.dart';
+import '../utils/notification_helper.dart';
 
 class DexDisplayEntry {
   final Pokemon pokemon;
@@ -37,13 +39,18 @@ class _DexScreenState extends State<DexScreen> {
   String _filter = 'all';
 
   String _getFormDisplayName(String form, DexProvider provider) {
-    final key = 'form_name_${form.toLowerCase()}';
-    final translated = provider.getText(key);
-    // Wenn die Übersetzung vorhanden ist (also ungleich dem Key ist), gib sie zurück.
-    if (translated != key) {
-      return translated;
+    try {
+      final key = 'form_name_${form.toLowerCase()}';
+      final translated = Translator.get(key);
+      if (translated != key) {
+        return translated;
+      }
+    } catch (e) {
+      NotificationHelper.showError(
+        "${Translator.get('error_get_form_display_name')} $e",
+      );
     }
-    // Fallback: Einfach den ersten Buchstaben groß schreiben
+
     return form.isEmpty ? '' : form[0].toUpperCase() + form.substring(1);
   }
 
@@ -60,69 +67,110 @@ class _DexScreenState extends State<DexScreen> {
     return 9;
   }
 
-  List<DexDisplayEntry> _buildDisplayEntries(UserDex liveDex, DexProvider provider) {
+  List<DexDisplayEntry> _buildDisplayEntries(
+    UserDex liveDex,
+    DexProvider provider,
+  ) {
     List<DexDisplayEntry> entries = [];
-    int dexGen = _getMaxGenForDex(liveDex.region);
-    bool isNationalDex = liveDex.region == 'national_overall';
+    try {
+      int dexGen = _getMaxGenForDex(liveDex.region);
+      bool isNationalDex = liveDex.region == 'national_overall';
 
-    bool isNativeRegionalForm(PokemonForm f, String region) {
-      if (f.formType != 'regional') return false;
-      if (region.contains('alola') && f.name.contains('alola')) return true;
-      if (region.contains('galar') && f.name.contains('galar')) return true;
-      if (region.contains('hisui') && f.name.contains('hisui')) return true;
-      if (region.contains('paldea') && f.name.contains('paldea')) return true;
-      return false;
-    }
+      bool isNativeRegionalForm(PokemonForm f, String region) {
+        if (f.formType != 'regional') return false;
+        if (region.contains('alola') && f.name.contains('alola')) return true;
+        if (region.contains('galar') && f.name.contains('galar')) return true;
+        if (region.contains('hisui') && f.name.contains('hisui')) return true;
+        if (region.contains('paldea') && f.name.contains('paldea')) return true;
+        return false;
+      }
 
-    for (var p in widget.pokemonList) {
-      if (p.forms.isNotEmpty) {
-        var sortedForms = List.of(p.forms);
-        sortedForms.sort((a, b) {
-          int getWeight(String type) {
-            if (type == 'normal') return 0;
-            if (type == 'regional') return 1;
-            if (type == 'mega') return 2;
-            if (type == 'gmax') return 3;
-            return 4; // other
-          }
-          return getWeight(a.formType).compareTo(getWeight(b.formType));
-        });
+      for (var p in widget.pokemonList) {
+        if (p.forms.isNotEmpty) {
+          var sortedForms = List.of(p.forms);
+          sortedForms.sort((a, b) {
+            int getWeight(String type) {
+              if (type == 'normal') return 0;
+              if (type == 'regional') return 1;
+              if (type == 'mega') return 2;
+              if (type == 'gmax') return 3;
+              return 4;
+            }
 
-        for (var form in sortedForms) {
-          bool isNativeRegional = isNativeRegionalForm(form, liveDex.region);
+            return getWeight(a.formType).compareTo(getWeight(b.formType));
+          });
 
-          if (form.formType == 'normal' && !liveDex.includeRegional) {
-            bool hasNativeRegional = p.forms.any(
-              (f) => isNativeRegionalForm(f, liveDex.region),
+          for (var form in sortedForms) {
+            bool isNativeRegional = isNativeRegionalForm(form, liveDex.region);
+
+            if (form.formType == 'normal' && !liveDex.includeRegional) {
+              bool hasNativeRegional = p.forms.any(
+                (f) => isNativeRegionalForm(f, liveDex.region),
+              );
+              if (hasNativeRegional) continue;
+            }
+
+            if (form.formType == 'regional' &&
+                !liveDex.includeRegional &&
+                !isNativeRegional)
+              continue;
+            if (form.formType == 'mega' && !liveDex.includeMega) continue;
+            if (form.formType == 'gmax' && !liveDex.includeGMax) continue;
+            if (form.formType == 'other' && !liveDex.includeOther) continue;
+
+            bool isWhitelistedForThisDex = form.exclusiveRegions.contains(
+              liveDex.region,
             );
-            if (hasNativeRegional) continue;
+
+            if (form.exclusiveRegions.isNotEmpty) {
+              if (!isNationalDex && !isWhitelistedForThisDex) continue;
+            }
+
+            if (!isNationalDex &&
+                !isWhitelistedForThisDex &&
+                form.minGen > dexGen) {
+              continue;
+            }
+
+            if (form.formType == 'normal' &&
+                liveDex.includeGenders &&
+                p.hasGenderDifferences) {
+              entries.add(
+                DexDisplayEntry(
+                  pokemon: p,
+                  uniqueId: '${p.id}_m',
+                  displaySuffix: ' ♂',
+                  imageUrl: p.imageUrl,
+                ),
+              );
+              entries.add(
+                DexDisplayEntry(
+                  pokemon: p,
+                  uniqueId: '${p.id}_f',
+                  displaySuffix: ' ♀',
+                  imageUrl:
+                      'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/female/${p.id}.png',
+                ),
+              );
+            } else {
+              String suffix = form.name == 'normal'
+                  ? ''
+                  : ' (${_getFormDisplayName(form.name, provider)})';
+              String specificImageUrl =
+                  'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${form.imageId}.png';
+
+              entries.add(
+                DexDisplayEntry(
+                  pokemon: p,
+                  uniqueId: '${p.id}_${form.name}',
+                  displaySuffix: suffix,
+                  imageUrl: specificImageUrl,
+                ),
+              );
+            }
           }
-
-          if (form.formType == 'regional' &&
-              !liveDex.includeRegional &&
-              !isNativeRegional)
-            continue;
-          if (form.formType == 'mega' && !liveDex.includeMega) continue;
-          if (form.formType == 'gmax' && !liveDex.includeGMax) continue;
-          if (form.formType == 'other' && !liveDex.includeOther) continue;
-
-          bool isWhitelistedForThisDex = form.exclusiveRegions.contains(
-            liveDex.region,
-          );
-
-          if (form.exclusiveRegions.isNotEmpty) {
-            if (!isNationalDex && !isWhitelistedForThisDex) continue;
-          }
-
-          if (!isNationalDex &&
-              !isWhitelistedForThisDex &&
-              form.minGen > dexGen) {
-            continue;
-          }
-
-          if (form.formType == 'normal' &&
-              liveDex.includeGenders &&
-              p.hasGenderDifferences) {
+        } else {
+          if (liveDex.includeGenders && p.hasGenderDifferences) {
             entries.add(
               DexDisplayEntry(
                 pokemon: p,
@@ -141,53 +189,19 @@ class _DexScreenState extends State<DexScreen> {
               ),
             );
           } else {
-            String suffix = form.name == 'normal'
-                ? ''
-                : ' (${_getFormDisplayName(form.name, provider)})';
-            String specificImageUrl =
-                'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${form.imageId}.png';
-
             entries.add(
               DexDisplayEntry(
                 pokemon: p,
-                uniqueId: '${p.id}_${form.name}',
-                displaySuffix: suffix,
-                imageUrl: specificImageUrl,
+                uniqueId: '${p.id}_normal',
+                displaySuffix: '',
+                imageUrl: p.imageUrl,
               ),
             );
           }
         }
-      } else {
-        // Fallback
-        if (liveDex.includeGenders && p.hasGenderDifferences) {
-          entries.add(
-            DexDisplayEntry(
-              pokemon: p,
-              uniqueId: '${p.id}_m',
-              displaySuffix: ' ♂',
-              imageUrl: p.imageUrl,
-            ),
-          );
-          entries.add(
-            DexDisplayEntry(
-              pokemon: p,
-              uniqueId: '${p.id}_f',
-              displaySuffix: ' ♀',
-              imageUrl:
-                  'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/female/${p.id}.png',
-            ),
-          );
-        } else {
-          entries.add(
-            DexDisplayEntry(
-              pokemon: p,
-              uniqueId: '${p.id}_normal',
-              displaySuffix: '',
-              imageUrl: p.imageUrl,
-            ),
-          );
-        }
       }
+    } catch (e) {
+      NotificationHelper.showError("${Translator.get('')} $e");
     }
     return entries;
   }
@@ -200,7 +214,6 @@ class _DexScreenState extends State<DexScreen> {
       orElse: () => widget.initialDex,
     );
 
-    // Übergabe des Providers, damit wir hier übersetzen können
     final allEntries = _buildDisplayEntries(liveDex, provider);
     final caughtCount = liveDex.caughtIds.length;
     final totalCount = allEntries.length;
@@ -228,7 +241,7 @@ class _DexScreenState extends State<DexScreen> {
           children: [
             Text(liveDex.title, style: const TextStyle(fontSize: 18)),
             Text(
-              '$caughtCount / $totalCount ${provider.getText('caught')}',
+              '$caughtCount / $totalCount ${Translator.get('caught')}',
               style: const TextStyle(fontSize: 12),
             ),
           ],
@@ -243,7 +256,7 @@ class _DexScreenState extends State<DexScreen> {
                 Expanded(
                   child: TextField(
                     decoration: InputDecoration(
-                      hintText: provider.getText('search_hint'),
+                      hintText: Translator.get('search_hint'),
                       prefixIcon: const Icon(Icons.search),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
@@ -259,15 +272,15 @@ class _DexScreenState extends State<DexScreen> {
                   items: [
                     DropdownMenuItem(
                       value: 'all',
-                      child: Text(provider.getText('filter_all')),
+                      child: Text(Translator.get('filter_all')),
                     ),
                     DropdownMenuItem(
                       value: 'caught',
-                      child: Text(provider.getText('filter_caught')),
+                      child: Text(Translator.get('filter_caught')),
                     ),
                     DropdownMenuItem(
                       value: 'uncaught',
-                      child: Text(provider.getText('filter_missing')),
+                      child: Text(Translator.get('filter_missing')),
                     ),
                   ],
                   onChanged: (val) => setState(() => _filter = val ?? 'all'),

@@ -20,9 +20,7 @@ void main() {
       ),
     );
   } catch (e) {
-    // Holt sich den deutschen Error-String als Fallback, da beim Start die Sprache noch nicht geladen ist
-    final errorMsg = appTranslations['de']?['error_start_app'] ?? 'Fehler beim Starten der App:';
-    NotificationHelper.showError("$errorMsg $e");
+    NotificationHelper.showError("${Translator.get('error')} $e");
   }
 }
 

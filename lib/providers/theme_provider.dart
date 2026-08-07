@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../l10n/app_translations.dart';
+import '../utils/notification_helper.dart';
 
 class ThemeProvider extends ChangeNotifier {
-  static const Color defaultLightPrimary = Color(0xFFE53935); 
+  static const Color defaultLightPrimary = Color(0xFFE53935);
   static const Color defaultDarkPrimary = Color(0xFF9575CD);
   static const Color defaultLightBg = Color(0xFFF7F7F8);
   static const Color defaultDarkBg = Color(0xFF121212);
@@ -25,66 +27,102 @@ class ThemeProvider extends ChangeNotifier {
   List<Color> get customColors => _customColors;
 
   Future<void> _loadPreferences() async {
-    final prefs = await SharedPreferences.getInstance();
-    
-    if (prefs.containsKey('lightPrimary')) _lightPrimaryColor = Color(prefs.getInt('lightPrimary')!);
-    if (prefs.containsKey('darkPrimary')) _darkPrimaryColor = Color(prefs.getInt('darkPrimary')!);
-    if (prefs.containsKey('lightBg')) _lightBackgroundColor = Color(prefs.getInt('lightBg')!);
-    if (prefs.containsKey('darkBg')) _darkBackgroundColor = Color(prefs.getInt('darkBg')!);
-    
-    if (prefs.containsKey('customColors')) {
-      List<String> colorsString = prefs.getStringList('customColors')!;
-      _customColors = colorsString.map((c) => Color(int.parse(c))).toList();
+    try {
+      final prefs = await SharedPreferences.getInstance();
+
+      if (prefs.containsKey('lightPrimary')) {
+        _lightPrimaryColor = Color(prefs.getInt('lightPrimary')!);
+      }
+      if (prefs.containsKey('darkPrimary')) {
+        _darkPrimaryColor = Color(prefs.getInt('darkPrimary')!);
+      }
+      if (prefs.containsKey('lightBg')) {
+        _lightBackgroundColor = Color(prefs.getInt('lightBg')!);
+      }
+      if (prefs.containsKey('darkBg')) {
+        _darkBackgroundColor = Color(prefs.getInt('darkBg')!);
+      }
+
+      if (prefs.containsKey('customColors')) {
+        List<String> colorsString = prefs.getStringList('customColors')!;
+        _customColors = colorsString.map((c) => Color(int.parse(c))).toList();
+      }
+      notifyListeners();
+    } catch (e) {
+      NotificationHelper.showError("${Translator.get('error_laod_prefs')} $e");
     }
-    notifyListeners();
   }
 
   Future<void> updateThemeColor(Color newColor, bool isDarkMode) async {
-    final prefs = await SharedPreferences.getInstance();
-    if (isDarkMode) {
-      _darkPrimaryColor = newColor;
-      await prefs.setInt('darkPrimary', newColor.value);
-    } else {
-      _lightPrimaryColor = newColor;
-      await prefs.setInt('lightPrimary', newColor.value);
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      if (isDarkMode) {
+        _darkPrimaryColor = newColor;
+        await prefs.setInt('darkPrimary', newColor.value);
+      } else {
+        _lightPrimaryColor = newColor;
+        await prefs.setInt('lightPrimary', newColor.value);
+      }
+      notifyListeners();
+    } catch (e) {
+      NotificationHelper.showError(
+        "${Translator.get('error_update_theme_color')} $e",
+      );
     }
-    notifyListeners();
   }
 
   Future<void> updateBackgroundColor(Color newColor, bool isDarkMode) async {
-    final prefs = await SharedPreferences.getInstance();
-    if (isDarkMode) {
-      _darkBackgroundColor = newColor;
-      await prefs.setInt('darkBg', newColor.value);
-    } else {
-      _lightBackgroundColor = newColor;
-      await prefs.setInt('lightBg', newColor.value);
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      if (isDarkMode) {
+        _darkBackgroundColor = newColor;
+        await prefs.setInt('darkBg', newColor.value);
+      } else {
+        _lightBackgroundColor = newColor;
+        await prefs.setInt('lightBg', newColor.value);
+      }
+      notifyListeners();
+    } catch (e) {
+      NotificationHelper.showError(
+        "${Translator.get('error_update_background_color')} $e",
+      );
     }
-    notifyListeners();
   }
 
   Future<void> addCustomColor(Color color) async {
-    if (!_customColors.contains(color)) {
-      _customColors.add(color);
-      final prefs = await SharedPreferences.getInstance();
-      List<String> colorsString = _customColors.map((c) => c.value.toString()).toList();
-      await prefs.setStringList('customColors', colorsString);
-      notifyListeners();
+    try {
+      if (!_customColors.contains(color)) {
+        _customColors.add(color);
+        final prefs = await SharedPreferences.getInstance();
+        List<String> colorsString = _customColors
+            .map((c) => c.value.toString())
+            .toList();
+        await prefs.setStringList('customColors', colorsString);
+        notifyListeners();
+      }
+    } catch (e) {
+      NotificationHelper.showError(
+        "${Translator.get('error_add_custom_color')} $e",
+      );
     }
   }
 
   Future<void> resetToDefault() async {
-    _lightPrimaryColor = defaultLightPrimary;
-    _darkPrimaryColor = defaultDarkPrimary;
-    _lightBackgroundColor = defaultLightBg;
-    _darkBackgroundColor = defaultDarkBg;
+    try {
+      _lightPrimaryColor = defaultLightPrimary;
+      _darkPrimaryColor = defaultDarkPrimary;
+      _lightBackgroundColor = defaultLightBg;
+      _darkBackgroundColor = defaultDarkBg;
 
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove('lightPrimary');
-    await prefs.remove('darkPrimary');
-    await prefs.remove('lightBg');
-    await prefs.remove('darkBg');
-    
-    notifyListeners();
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove('lightPrimary');
+      await prefs.remove('darkPrimary');
+      await prefs.remove('lightBg');
+      await prefs.remove('darkBg');
+
+      notifyListeners();
+    } catch (e) {
+      NotificationHelper.showError("${Translator.get('')} $e");
+    }
   }
 }
