@@ -6,7 +6,6 @@ const Map<String, Map<String, String>> appTranslations = {
         'Noch kein Dex vorhanden.\nKlicke auf das "+" um einen zu erstellen!',
     'import_tooltip': 'Importieren',
     'export_tooltip': 'Exportieren',
-    'no_export_data': 'Keine Dexe zum Exportieren da!',
     'create_dex_title': 'Neuen Dex anlegen',
     'create_dex_hint': 'Name (z.B. Mein Run)',
     'cancel': 'Abbrechen',
@@ -17,7 +16,6 @@ const Map<String, Map<String, String>> appTranslations = {
     'filter_all': 'Alle',
     'filter_caught': 'Gefangen',
     'filter_missing': 'Fehlt',
-    'light_mode': 'Light Mode',
     'dark_mode': 'Dark Mode',
     'settings': 'Einstellungen',
     'selected': 'ausgewählt',
@@ -28,8 +26,14 @@ const Map<String, Map<String, String>> appTranslations = {
     // Neues Bottom Sheet & Formulare
     'choose_generation': 'Wähle eine Generation / Spiel',
     'exact_pokedex': 'Genauer Pokédex',
-    'include_forms': 'Formen (z.B. Alola)',
+    'include_forms': 'Formen auswählen',
     'include_genders': 'Geschlechter (M/W)',
+    'form_regional': 'Regionalformen (Alola, Galar...)',
+    'form_regional_short': 'Regionalformen',
+    'form_mega': 'Mega-Entwicklungen',
+    'form_gmax': 'Gigadynamax (G-Max)',
+    'form_other': 'Sonstige (Kostüme, Pokusan...)',
+    'form_other_short': 'Sonstige (Kostüme...)',
 
     // Bestätigungs-Dialoge
     'delete_confirm_title': 'Dex löschen?',
@@ -49,6 +53,31 @@ const Map<String, Map<String, String>> appTranslations = {
     'error_export': 'Fehler beim Exportieren:',
     'error_import': 'Fehler beim Importieren:',
     'error_start_app': 'Fehler beim Starten der App:',
+
+    // Gruppen-Namen
+    'group_national': 'National',
+    'group_kanto': 'Kanto',
+    'group_johto': 'Johto',
+    'group_hoenn': 'Hoenn',
+    'group_sinnoh': 'Sinnoh',
+    'group_unova': 'Einall',
+    'group_kalos': 'Kalos & Z-A',
+    'group_alola': 'Alola',
+    'group_galar': 'Galar & Hisui',
+    'group_paldea': 'Paldea',
+
+    // Form-Namen
+    'form_name_alola': 'Alola',
+    'form_name_galar': 'Galar',
+    'form_name_hisui': 'Hisui',
+    'form_name_paldea': 'Paldea',
+    'form_name_mega': 'Mega',
+    'form_name_mega-x': 'Mega X',
+    'form_name_mega-y': 'Mega Y',
+    'form_name_gmax': 'Gigadynamax',
+    'form_name_spiky-eared': 'Strubbelohr',
+    'form_name_cosplay': 'Cosplay',
+    'form_name_original-cap': 'Original-Kappe',
 
     // Regionale Dexe
     'region_national_overall': 'Nationaldex',
@@ -90,21 +119,17 @@ const Map<String, Map<String, String>> appTranslations = {
     "choose_bg_color": "Hintergrundfarbe",
     "general": "Allgemein",
     "language": "Sprache",
+    "current_language": "Deutsch",
     "data_management": "Datenverwaltung",
-    "custom_color": "Eigene Farbe wählen",
     "apply": "Übernehmen",
     "reset_theme": "Standarddesign wiederherstellen",
-    'choose_background_color': 'Hintergrund wählen',
-    'choose_accent_color2': 'Akzentfarbe wählen',
   },
-
   'en': {
     // Allgemeine UI
     'app_title': 'PokéVault',
     'no_dex': 'No dex available yet.\nTap the "+" to create one!',
     'import_tooltip': 'Import',
     'export_tooltip': 'Export',
-    'no_export_data': 'No dexes available to export!',
     'create_dex_title': 'Create new Dex',
     'create_dex_hint': 'Name (e.g. My Run)',
     'cancel': 'Cancel',
@@ -115,7 +140,6 @@ const Map<String, Map<String, String>> appTranslations = {
     'filter_all': 'All',
     'filter_caught': 'Caught',
     'filter_missing': 'Missing',
-    'light_mode': 'Light Mode',
     'dark_mode': 'Dark Mode',
     'settings': 'Settings',
     'selected': 'selected',
@@ -126,8 +150,14 @@ const Map<String, Map<String, String>> appTranslations = {
     // Neues Bottom Sheet & Formulare
     'choose_generation': 'Choose a Generation / Game',
     'exact_pokedex': 'Exact Pokédex',
-    'include_forms': 'Forms (e.g. Alola)',
+    'include_forms': 'Select Forms',
     'include_genders': 'Genders (M/F)',
+    'form_regional': 'Regional forms (Alola, Galar...)',
+    'form_regional_short': 'Regional forms',
+    'form_mega': 'Mega Evolutions',
+    'form_gmax': 'Gigantamax (G-Max)',
+    'form_other': 'Other (Costumes, Alcremie...)',
+    'form_other_short': 'Other (Costumes...)',
 
     // Bestätigungs-Dialoge
     'delete_confirm_title': 'Delete Dex?',
@@ -146,6 +176,32 @@ const Map<String, Map<String, String>> appTranslations = {
     'error_save': 'Error saving:',
     'error_export': 'Error exporting:',
     'error_import': 'Error importing:',
+    'error_start_app': 'Error starting the App:',
+
+    // Gruppen-Namen
+    'group_national': 'National',
+    'group_kanto': 'Kanto',
+    'group_johto': 'Johto',
+    'group_hoenn': 'Hoenn',
+    'group_sinnoh': 'Sinnoh',
+    'group_unova': 'Unova',
+    'group_kalos': 'Kalos & Z-A',
+    'group_alola': 'Alola',
+    'group_galar': 'Galar & Hisui',
+    'group_paldea': 'Paldea',
+
+    // Form-Namen
+    'form_name_alola': 'Alola',
+    'form_name_galar': 'Galar',
+    'form_name_hisui': 'Hisui',
+    'form_name_paldea': 'Paldea',
+    'form_name_mega': 'Mega',
+    'form_name_mega-x': 'Mega X',
+    'form_name_mega-y': 'Mega Y',
+    'form_name_gmax': 'Gigantamax',
+    'form_name_spiky-eared': 'Spiky-eared',
+    'form_name_cosplay': 'Cosplay',
+    'form_name_original-cap': 'Original-Cap',
 
     // Regionale Dexe
     'region_national_overall': 'National Dex',
@@ -187,11 +243,9 @@ const Map<String, Map<String, String>> appTranslations = {
     "choose_bg_color": "Background Color",
     "general": "General",
     "language": "Language",
+    "current_language": "English",
     "data_management": "Data Management",
-    "custom_color": "Pick Custom Color",
     "apply": "Apply",
     "reset_theme": "Restore default theme",
-    'choose_background_color': 'Change Background Color',
-    'choose_accent_color2': 'Change Accent color',
   },
 };

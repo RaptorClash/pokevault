@@ -36,33 +36,15 @@ class _DexScreenState extends State<DexScreen> {
   String _searchQuery = '';
   String _filter = 'all';
 
-  String _getFormDisplayName(String form) {
-    switch (form.toLowerCase()) {
-      case 'alola':
-        return 'Alola';
-      case 'galar':
-        return 'Galar';
-      case 'hisui':
-        return 'Hisui';
-      case 'paldea':
-        return 'Paldea';
-      case 'mega':
-        return 'Mega';
-      case 'mega-x':
-        return 'Mega X';
-      case 'mega-y':
-        return 'Mega Y';
-      case 'gmax':
-        return 'Gigadynamax';
-      case 'spiky-eared':
-        return 'Strubbelohr';
-      case 'cosplay':
-        return 'Cosplay';
-      case 'original-cap':
-        return 'Original-Kappe';
-      default:
-        return form.isEmpty ? '' : form[0].toUpperCase() + form.substring(1);
+  String _getFormDisplayName(String form, DexProvider provider) {
+    final key = 'form_name_${form.toLowerCase()}';
+    final translated = provider.getText(key);
+    // Wenn die Übersetzung vorhanden ist (also ungleich dem Key ist), gib sie zurück.
+    if (translated != key) {
+      return translated;
     }
+    // Fallback: Einfach den ersten Buchstaben groß schreiben
+    return form.isEmpty ? '' : form[0].toUpperCase() + form.substring(1);
   }
 
   int _getMaxGenForDex(String region) {
@@ -78,7 +60,7 @@ class _DexScreenState extends State<DexScreen> {
     return 9;
   }
 
-  List<DexDisplayEntry> _buildDisplayEntries(UserDex liveDex) {
+  List<DexDisplayEntry> _buildDisplayEntries(UserDex liveDex, DexProvider provider) {
     List<DexDisplayEntry> entries = [];
     int dexGen = _getMaxGenForDex(liveDex.region);
     bool isNationalDex = liveDex.region == 'national_overall';
@@ -103,7 +85,6 @@ class _DexScreenState extends State<DexScreen> {
             if (type == 'gmax') return 3;
             return 4; // other
           }
-
           return getWeight(a.formType).compareTo(getWeight(b.formType));
         });
 
@@ -132,6 +113,7 @@ class _DexScreenState extends State<DexScreen> {
           if (form.exclusiveRegions.isNotEmpty) {
             if (!isNationalDex && !isWhitelistedForThisDex) continue;
           }
+
           if (!isNationalDex &&
               !isWhitelistedForThisDex &&
               form.minGen > dexGen) {
@@ -161,7 +143,7 @@ class _DexScreenState extends State<DexScreen> {
           } else {
             String suffix = form.name == 'normal'
                 ? ''
-                : ' (${_getFormDisplayName(form.name)})';
+                : ' (${_getFormDisplayName(form.name, provider)})';
             String specificImageUrl =
                 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${form.imageId}.png';
 
@@ -213,13 +195,13 @@ class _DexScreenState extends State<DexScreen> {
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<DexProvider>();
-
     final liveDex = provider.userDexes.firstWhere(
       (d) => d.id == widget.initialDex.id,
       orElse: () => widget.initialDex,
     );
 
-    final allEntries = _buildDisplayEntries(liveDex);
+    // Übergabe des Providers, damit wir hier übersetzen können
+    final allEntries = _buildDisplayEntries(liveDex, provider);
     final caughtCount = liveDex.caughtIds.length;
     final totalCount = allEntries.length;
 
@@ -293,7 +275,6 @@ class _DexScreenState extends State<DexScreen> {
               ],
             ),
           ),
-
           Expanded(
             child: GridView.builder(
               padding: const EdgeInsets.all(8),

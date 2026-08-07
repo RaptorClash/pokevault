@@ -10,11 +10,11 @@ import '../data/dex_orders.dart';
 import 'settings_screen.dart';
 
 class DexGroup {
-  final String name;
+  final String nameKey;
   final List<int> displayPokemonIds;
   final List<String> dexKeys;
 
-  DexGroup(this.name, this.displayPokemonIds, this.dexKeys);
+  DexGroup(this.nameKey, this.displayPokemonIds, this.dexKeys);
 }
 
 class HomeScreen extends StatefulWidget {
@@ -26,19 +26,20 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final Set<String> _selectedDexIds = {};
+
   bool get _isSelectionMode => _selectedDexIds.isNotEmpty;
 
   final List<DexGroup> _dexGroups = [
-    DexGroup('National', [151, 251, 385, 493], ['national_overall']),
-    DexGroup('Kanto', [3, 6, 9, 25], ['kanto_regional', 'letsgo_kanto_regional']),
-    DexGroup('Johto', [250, 249, 245, 251], ['johto_regional', 'updated_johto_regional']),
-    DexGroup('Hoenn', [382, 383, 384, 386], ['hoenn_regional', 'updated_hoenn_regional']),
-    DexGroup('Sinnoh', [483, 484, 487, 448], ['sinnoh_regional', 'extended_sinnoh_regional']),
-    DexGroup('Einall', [643, 644, 646, 494], ['unova_regional', 'updated_unova_regional']),
-    DexGroup('Kalos & Z-A', [716, 717, 718, 719], ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'lumiose_dimensions_regional']),
-    DexGroup('Alola', [791, 792, 800, 773], ['alola_regional', 'melemele_regional', 'akala_regional', 'ulaula_regional', 'poni_regional', 'updated_alola_regional', 'updated_melemele_regional', 'updated_akala_regional', 'updated_ulaula_regional', 'updated_poni_regional']),
-    DexGroup('Galar & Hisui', [888, 889, 890, 493], ['galar_regional', 'isle_of_armor_regional', 'crown_tundra_regional', 'hisui_regional']),
-    DexGroup('Paldea', [1007, 1008, 1017, 1024], ['paldea_regional', 'kitakami_regional', 'blueberry_regional']),
+    DexGroup('group_national', [151, 251, 385, 493], ['national_overall']),
+    DexGroup('group_kanto', [3, 6, 9, 25], ['kanto_regional', 'letsgo_kanto_regional']),
+    DexGroup('group_johto', [250, 249, 245, 251], ['johto_regional', 'updated_johto_regional']),
+    DexGroup('group_hoenn', [382, 383, 384, 386], ['hoenn_regional', 'updated_hoenn_regional']),
+    DexGroup('group_sinnoh', [483, 484, 487, 448], ['sinnoh_regional', 'extended_sinnoh_regional']),
+    DexGroup('group_unova', [643, 644, 646, 494], ['unova_regional', 'updated_unova_regional']),
+    DexGroup('group_kalos', [716, 717, 718, 719], ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'lumiose_dimensions_regional']),
+    DexGroup('group_alola', [791, 792, 800, 773], ['alola_regional', 'melemele_regional', 'akala_regional', 'ulaula_regional', 'poni_regional', 'updated_alola_regional', 'updated_melemele_regional', 'updated_akala_regional', 'updated_ulaula_regional', 'updated_poni_regional']),
+    DexGroup('group_galar', [888, 889, 890, 493], ['galar_regional', 'isle_of_armor_regional', 'crown_tundra_regional', 'hisui_regional']),
+    DexGroup('group_paldea', [1007, 1008, 1017, 1024], ['paldea_regional', 'kitakami_regional', 'blueberry_regional']),
   ];
 
   Map<String, bool> _getAvailableFeatures(String dexKey) {
@@ -63,7 +64,6 @@ class _HomeScreenState extends State<HomeScreen> {
     if (dexKey.contains('hisui') || dexKey.contains('paldea') || dexKey.contains('kitakami') || dexKey.contains('blueberry')) {
       return {'regional': true, 'mega': false, 'gmax': false}; 
     }
-    
     return {'regional': false, 'mega': false, 'gmax': false};
   }
 
@@ -256,7 +256,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void _showCreateDexBottomSheet(BuildContext context, DexProvider provider) {
     final TextEditingController nameController = TextEditingController();
-
     DexGroup selectedGroup = _dexGroups.first;
     String selectedSubDex = selectedGroup.dexKeys.first;
     
@@ -281,7 +280,6 @@ class _HomeScreenState extends State<HomeScreen> {
         return StatefulBuilder(
           builder: (context, setState) {
             final bottomPadding = MediaQuery.of(context).viewInsets.bottom;
-
             return Padding(
               padding: EdgeInsets.only(bottom: bottomPadding, left: 16, right: 16, top: 24),
               child: Column(
@@ -298,7 +296,6 @@ class _HomeScreenState extends State<HomeScreen> {
                     style: TextStyle(color: Theme.of(context).hintColor),
                   ),
                   const SizedBox(height: 16),
-
                   SizedBox(
                     height: 160,
                     child: ListView.builder(
@@ -354,7 +351,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                     ),
                                     alignment: Alignment.center,
                                     child: Text(
-                                      group.name,
+                                      provider.getText(group.nameKey),
                                       style: TextStyle(
                                         fontSize: 12,
                                         fontWeight: FontWeight.bold,
@@ -371,7 +368,6 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ),
                   const SizedBox(height: 16),
-
                   if (selectedGroup.dexKeys.length > 1) ...[
                     DropdownButtonFormField<String>(
                       value: selectedSubDex,
@@ -410,7 +406,6 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                     const SizedBox(height: 16),
                   ],
-
                   TextField(
                     controller: nameController,
                     decoration: InputDecoration(
@@ -425,7 +420,6 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ),
                   const SizedBox(height: 16),
-
                   Container(
                     decoration: BoxDecoration(
                       color: Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(0.3),
@@ -443,31 +437,31 @@ class _HomeScreenState extends State<HomeScreen> {
                         const Divider(height: 1),
                         ExpansionTile(
                           leading: const Icon(Icons.auto_awesome),
-                          title: const Text('Formen auswählen'),
+                          title: Text(provider.getText('include_forms')),
                           children: [
                             CheckboxListTile(
-                              title: const Text('Regionalformen (Alola, Galar...)'),
+                              title: Text(provider.getText('form_regional')),
                               value: includeRegional,
                               activeColor: Colors.red,
                               enabled: features['regional']!,
                               onChanged: features['regional']! ? (val) => setState(() => includeRegional = val ?? false) : null,
                             ),
                             CheckboxListTile(
-                              title: const Text('Mega-Entwicklungen'),
+                              title: Text(provider.getText('form_mega')),
                               value: includeMega,
                               activeColor: Colors.red,
                               enabled: features['mega']!,
                               onChanged: features['mega']! ? (val) => setState(() => includeMega = val ?? false) : null,
                             ),
                             CheckboxListTile(
-                              title: const Text('Gigadynamax (G-Max)'),
+                              title: Text(provider.getText('form_gmax')),
                               value: includeGMax,
                               activeColor: Colors.red,
                               enabled: features['gmax']!,
                               onChanged: features['gmax']! ? (val) => setState(() => includeGMax = val ?? false) : null,
                             ),
                             CheckboxListTile(
-                              title: const Text('Sonstige (Kostüme, Pokusan...)'),
+                              title: Text(provider.getText('form_other')),
                               value: includeOther,
                               activeColor: Colors.red,
                               onChanged: (val) => setState(() => includeOther = val ?? false),
@@ -478,7 +472,6 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ),
                   const SizedBox(height: 24),
-
                   Row(
                     children: [
                       Expanded(
@@ -570,31 +563,31 @@ class _HomeScreenState extends State<HomeScreen> {
                     const Divider(height: 1),
                     ExpansionTile(
                       leading: const Icon(Icons.auto_awesome),
-                      title: const Text('Formen auswählen'),
+                      title: Text(provider.getText('include_forms')),
                       children: [
                         CheckboxListTile(
-                          title: const Text('Regionalformen'),
+                          title: Text(provider.getText('form_regional_short')),
                           value: includeRegional,
                           activeColor: Colors.red,
                           enabled: features['regional']!,
                           onChanged: features['regional']! ? (val) => setState(() => includeRegional = val ?? false) : null,
                         ),
                         CheckboxListTile(
-                          title: const Text('Mega-Entwicklungen'),
+                          title: Text(provider.getText('form_mega')),
                           value: includeMega,
                           activeColor: Colors.red,
                           enabled: features['mega']!,
                           onChanged: features['mega']! ? (val) => setState(() => includeMega = val ?? false) : null,
                         ),
                         CheckboxListTile(
-                          title: const Text('Gigadynamax (G-Max)'),
+                          title: Text(provider.getText('form_gmax')),
                           value: includeGMax,
                           activeColor: Colors.red,
                           enabled: features['gmax']!,
                           onChanged: features['gmax']! ? (val) => setState(() => includeGMax = val ?? false) : null,
                         ),
                         CheckboxListTile(
-                          title: const Text('Sonstige (Kostüme...)'),
+                          title: Text(provider.getText('form_other_short')),
                           value: includeOther,
                           activeColor: Colors.red,
                           onChanged: (val) => setState(() => includeOther = val ?? false),

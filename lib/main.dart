@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'providers/dex_provider.dart';
 import 'screens/home_screen.dart';
 import 'utils/notification_helper.dart';
+import 'l10n/app_translations.dart';
 import 'dart:ui';
 
 void main() {
@@ -19,7 +20,9 @@ void main() {
       ),
     );
   } catch (e) {
-    NotificationHelper.showError("Fehler beim Starten der App: $e");
+    // Holt sich den deutschen Error-String als Fallback, da beim Start die Sprache noch nicht geladen ist
+    final errorMsg = appTranslations['de']?['error_start_app'] ?? 'Fehler beim Starten der App:';
+    NotificationHelper.showError("$errorMsg $e");
   }
 }
 
@@ -34,17 +37,14 @@ class PokedexApp extends StatelessWidget {
     return MaterialApp(
       title: 'PokéVault',
       debugShowCheckedModeBanner: false,
-
       scaffoldMessengerKey: NotificationHelper.scaffoldMessengerKey,
       scrollBehavior: AppScrollBehavior(),
-
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
           seedColor: themeProvider.lightPrimaryColor,
           brightness: Brightness.light,
         ),
-        scaffoldBackgroundColor:
-            themeProvider.lightBackgroundColor,
+        scaffoldBackgroundColor: themeProvider.lightBackgroundColor,
         useMaterial3: true,
       ),
       darkTheme: ThemeData(
@@ -52,8 +52,7 @@ class PokedexApp extends StatelessWidget {
           seedColor: themeProvider.darkPrimaryColor,
           brightness: Brightness.dark,
         ),
-        scaffoldBackgroundColor:
-            themeProvider.darkBackgroundColor,
+        scaffoldBackgroundColor: themeProvider.darkBackgroundColor,
         useMaterial3: true,
       ),
       themeMode: dexProvider.themeMode,
@@ -65,8 +64,8 @@ class PokedexApp extends StatelessWidget {
 class AppScrollBehavior extends MaterialScrollBehavior {
   @override
   Set<PointerDeviceKind> get dragDevices => {
-    PointerDeviceKind.touch,
-    PointerDeviceKind.mouse,
-    PointerDeviceKind.trackpad,
-  };
+        PointerDeviceKind.touch,
+        PointerDeviceKind.mouse,
+        PointerDeviceKind.trackpad,
+      };
 }

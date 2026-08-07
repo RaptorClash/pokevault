@@ -46,7 +46,6 @@ class SettingsScreen extends StatelessWidget {
                   },
                 ),
                 const Divider(height: 1),
-
                 // --- AKZENTFARBE ---
                 Padding(
                   padding: const EdgeInsets.all(16.0),
@@ -70,9 +69,7 @@ class SettingsScreen extends StatelessWidget {
                     ],
                   ),
                 ),
-
                 const Divider(height: 1),
-
                 // --- HINTERGRUNDFARBE ---
                 Padding(
                   padding: const EdgeInsets.all(16.0),
@@ -96,9 +93,7 @@ class SettingsScreen extends StatelessWidget {
                     ],
                   ),
                 ),
-
                 const Divider(height: 1),
-
                 // --- RESET BUTTON ---
                 Padding(
                   padding: const EdgeInsets.symmetric(
@@ -122,7 +117,6 @@ class SettingsScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 24),
-
           _buildSectionHeader(
             context,
             dexProvider.getText('general'),
@@ -131,17 +125,12 @@ class SettingsScreen extends StatelessWidget {
           Card(
             child: ListTile(
               title: Text(dexProvider.getText('language')),
-              subtitle: Text(
-                dexProvider.getText('current_language') == 'en'
-                    ? 'English'
-                    : 'Deutsch',
-              ),
+              subtitle: Text(dexProvider.getText('current_language')),
               trailing: const Icon(Icons.arrow_forward_ios, size: 16),
               onTap: () => _showLanguageDialog(context, dexProvider),
             ),
           ),
           const SizedBox(height: 24),
-
           _buildSectionHeader(
             context,
             dexProvider.getText('data_management'),
@@ -184,11 +173,11 @@ class SettingsScreen extends StatelessWidget {
   }) {
     Color activeColor = isBackground
         ? (isDarkMode
-              ? themeProvider.darkBackgroundColor
-              : themeProvider.lightBackgroundColor)
+            ? themeProvider.darkBackgroundColor
+            : themeProvider.lightBackgroundColor)
         : (isDarkMode
-              ? themeProvider.darkPrimaryColor
-              : themeProvider.lightPrimaryColor);
+            ? themeProvider.darkPrimaryColor
+            : themeProvider.lightPrimaryColor);
 
     List<Color> allColorsToDisplay = [
       ..._defaultColors,
@@ -201,7 +190,6 @@ class SettingsScreen extends StatelessWidget {
       children: [
         ...allColorsToDisplay.map((color) {
           final isActive = activeColor.value == color.value;
-
           return GestureDetector(
             onTap: () {
               if (isBackground) {
@@ -242,7 +230,6 @@ class SettingsScreen extends StatelessWidget {
             ),
           );
         }),
-
         GestureDetector(
           onTap: () {
             final dexProvider = Provider.of<DexProvider>(
@@ -314,14 +301,14 @@ class SettingsScreen extends StatelessWidget {
                 provider.setLanguage('de');
                 Navigator.pop(context);
               },
-              child: const Text('🇩🇪 Deutsch (DE)'),
+              child: const Text('  Deutsch (DE)'),
             ),
             SimpleDialogOption(
               onPressed: () {
                 provider.setLanguage('en');
                 Navigator.pop(context);
               },
-              child: const Text('🇬🇧 English (EN)'),
+              child: const Text('  English (EN)'),
             ),
           ],
         );
@@ -338,21 +325,21 @@ class SettingsScreen extends StatelessWidget {
   ) {
     Color pickerColor = isBackground
         ? (isDarkMode
-              ? themeProvider.darkBackgroundColor
-              : themeProvider.lightBackgroundColor)
+            ? themeProvider.darkBackgroundColor
+            : themeProvider.lightBackgroundColor)
         : (isDarkMode
-              ? themeProvider.darkPrimaryColor
-              : themeProvider.lightPrimaryColor);
+            ? themeProvider.darkPrimaryColor
+            : themeProvider.lightPrimaryColor);
 
     showDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
-          // Hier nutzen wir jetzt deine Übersetzungs-Keys!
+          // Hier nutzen wir jetzt die gesäuberten Keys!
           title: Text(
             isBackground
-                ? dexProvider.getText('choose_background_color')
-                : dexProvider.getText('choose_accent_color2'),
+                ? dexProvider.getText('choose_bg_color')
+                : dexProvider.getText('choose_accent_color'),
           ),
           content: SingleChildScrollView(
             child: ColorPicker(
@@ -369,12 +356,11 @@ class SettingsScreen extends StatelessWidget {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: Text(dexProvider.getText('cancel')), // Abbrechen übersetzt
+              child: Text(dexProvider.getText('cancel')),
             ),
             ElevatedButton(
               onPressed: () {
                 themeProvider.addCustomColor(pickerColor);
-
                 if (isBackground) {
                   themeProvider.updateBackgroundColor(pickerColor, isDarkMode);
                 } else {
@@ -382,7 +368,7 @@ class SettingsScreen extends StatelessWidget {
                 }
                 Navigator.pop(context);
               },
-              child: Text(dexProvider.getText('apply')), // Übernehmen übersetzt
+              child: Text(dexProvider.getText('apply')),
             ),
           ],
         );
