@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../models/dex_view_models.dart';
 import '../providers/dex_provider.dart';
 import '../l10n/app_translations.dart';
-import 'dex_screen.dart';
 
 class PokemonInfoScreen extends StatelessWidget {
   final DexDisplayEntry entry;

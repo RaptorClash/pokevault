@@ -1,23 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:pokevault/l10n/app_translations.dart';
 import 'package:provider/provider.dart';
+import '../l10n/app_translations.dart';
 import '../providers/dex_provider.dart';
 import '../services/dex_storage_service.dart';
 import '../models/pokemon.dart';
 import '../models/user_dex.dart';
-import 'dex_screen.dart';
+import '../data/dex_groups_data.dart';
 import '../data/national_dex_data.dart';
 import '../data/dex_orders.dart';
+import 'dex_screen.dart';
 import 'settings_screen.dart';
 import '../utils/notification_helper.dart';
-
-class DexGroup {
-  final String nameKey;
-  final List<int> displayPokemonIds;
-  final List<String> dexKeys;
-
-  DexGroup(this.nameKey, this.displayPokemonIds, this.dexKeys);
-}
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -30,128 +23,6 @@ class _HomeScreenState extends State<HomeScreen> {
   final Set<String> _selectedDexIds = {};
 
   bool get _isSelectionMode => _selectedDexIds.isNotEmpty;
-
-  final List<DexGroup> _dexGroups = [
-    DexGroup('group_national', [151, 251, 385, 493], ['national_overall']),
-    DexGroup(
-      'group_kanto',
-      [3, 6, 9, 25],
-      ['kanto_regional', 'letsgo_kanto_regional'],
-    ),
-    DexGroup(
-      'group_johto',
-      [250, 249, 245, 251],
-      ['johto_regional', 'updated_johto_regional'],
-    ),
-    DexGroup(
-      'group_hoenn',
-      [382, 383, 384, 386],
-      ['hoenn_regional', 'updated_hoenn_regional'],
-    ),
-    DexGroup(
-      'group_sinnoh',
-      [483, 484, 487, 448],
-      ['sinnoh_regional', 'extended_sinnoh_regional'],
-    ),
-    DexGroup(
-      'group_unova',
-      [643, 644, 646, 494],
-      ['unova_regional', 'updated_unova_regional'],
-    ),
-    DexGroup(
-      'group_kalos',
-      [716, 717, 718, 719],
-      [
-        'kalos_central_regional',
-        'kalos_coastal_regional',
-        'kalos_mountain_regional',
-        'lumiose_regional',
-        'lumiose_dimensions_regional',
-      ],
-    ),
-    DexGroup(
-      'group_alola',
-      [791, 792, 800, 773],
-      [
-        'alola_regional',
-        'melemele_regional',
-        'akala_regional',
-        'ulaula_regional',
-        'poni_regional',
-        'updated_alola_regional',
-        'updated_melemele_regional',
-        'updated_akala_regional',
-        'updated_ulaula_regional',
-        'updated_poni_regional',
-      ],
-    ),
-    DexGroup(
-      'group_galar',
-      [888, 889, 890, 493],
-      [
-        'galar_regional',
-        'isle_of_armor_regional',
-        'crown_tundra_regional',
-        'hisui_regional',
-      ],
-    ),
-    DexGroup(
-      'group_paldea',
-      [1007, 1008, 1017, 1024],
-      ['paldea_regional', 'kitakami_regional', 'blueberry_regional'],
-    ),
-    DexGroup(
-      'region_special_dex',
-      [150, 201, 719, 448],
-      ['mega_dex', 'icognito_dex'],
-    )
-  ];
-
-  Map<String, bool> _getAvailableFeatures(String dexKey) {
-    try {
-      if (dexKey == 'national_overall') {
-        return {'regional': true, 'mega': true, 'gmax': true};
-      }
-      if (dexKey == 'letsgo_kanto_regional') {
-        return {'regional': true, 'mega': true, 'gmax': false};
-      }
-      if (dexKey == 'updated_hoenn_regional') {
-        return {'regional': false, 'mega': true, 'gmax': false};
-      }
-      if (dexKey.contains('kalos') || dexKey.contains('lumiose')) {
-        return {'regional': false, 'mega': true, 'gmax': false};
-      }
-      if (dexKey.contains('alola') ||
-          dexKey.contains('melemele') ||
-          dexKey.contains('akala') ||
-          dexKey.contains('ulaula') ||
-          dexKey.contains('poni')) {
-        return {'regional': true, 'mega': true, 'gmax': false};
-      }
-      if (dexKey.contains('galar') ||
-          dexKey.contains('armor') ||
-          dexKey.contains('tundra')) {
-        return {'regional': true, 'mega': false, 'gmax': true};
-      }
-      if (dexKey.contains('hisui') ||
-          dexKey.contains('paldea') ||
-          dexKey.contains('kitakami') ||
-          dexKey.contains('blueberry')) {
-        return {'regional': true, 'mega': false, 'gmax': false};
-      }
-      if (dexKey == 'mega_dex') {
-        return {'regional': false, 'mega': true, 'gmax': false};
-      }
-      if (dexKey == 'icognito_dex') {
-        return {'regional': false, 'mega': false, 'gmax': false};
-      }
-    } catch (e) {
-      NotificationHelper.showError(
-        "${Translator.get('error_getting_available_features')} $e",
-      );
-    }
-    return {'regional': false, 'mega': false, 'gmax': false};
-  }
 
   void _toggleSelection(String id) {
     try {
@@ -169,6 +40,63 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void _clearSelection() => setState(() => _selectedDexIds.clear());
 
+  void _confirmDelete(BuildContext context, DexProvider provider, UserDex dex) {
+    try {
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: Text(Translator.get('delete_confirm_title')),
+          content: Text(Translator.get('delete_confirm_text')),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text(Translator.get('cancel')),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.red, foregroundColor: Colors.white),
+              onPressed: () {
+                provider.deleteDex(dex.id);
+                Navigator.pop(context);
+              },
+              child: Text(Translator.get('delete')),
+            ),
+          ],
+        ),
+      );
+    } catch (e) {
+      NotificationHelper.showError("${Translator.get('error_confirm_delete')} $e");
+    }
+  }
+
+  void _confirmMultipleDelete(BuildContext context, DexProvider provider) {
+    try {
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: Text(Translator.get('delete_multiple_confirm_title')),
+          content: Text(Translator.get('delete_multiple_confirm_text')),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text(Translator.get('cancel')),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.red, foregroundColor: Colors.white),
+              onPressed: () {
+                provider.deleteMultipleDexes(_selectedDexIds);
+                _clearSelection();
+                Navigator.pop(context);
+              },
+              child: Text(Translator.get('delete')),
+            ),
+          ],
+        ),
+      );
+    } catch (e) {
+      NotificationHelper.showError("${Translator.get('error_confirm_mutiple_delete')} $e");
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<DexProvider>();
@@ -182,21 +110,14 @@ class _HomeScreenState extends State<HomeScreen> {
                 icon: const Icon(Icons.close),
                 onPressed: _clearSelection,
               ),
-              title: Text(
-                '${_selectedDexIds.length} ${Translator.get('selected')}',
-              ),
+              title: Text('${_selectedDexIds.length} ${Translator.get('selected')}'),
               actions: [
                 IconButton(
                   icon: const Icon(Icons.upload),
                   tooltip: Translator.get('export_tooltip'),
                   onPressed: () async {
-                    final selectedDexes = dexes
-                        .where((d) => _selectedDexIds.contains(d.id))
-                        .toList();
-                    await DexStorageService.exportDexes(
-                      selectedDexes,
-                      provider,
-                    );
+                    final selectedDexes = dexes.where((d) => _selectedDexIds.contains(d.id)).toList();
+                    await DexStorageService.exportDexes(selectedDexes, provider);
                     _clearSelection();
                   },
                 ),
@@ -213,12 +134,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 icon: const Icon(Icons.settings),
                 tooltip: Translator.get('settings'),
                 onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const SettingsScreen(),
-                    ),
-                  );
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => const SettingsScreen()));
                 },
               ),
             ),
@@ -238,9 +154,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
                 return ListTile(
                   selected: isSelected,
-                  selectedTileColor: Theme.of(
-                    context,
-                  ).colorScheme.primaryContainer.withOpacity(0.3),
+                  selectedTileColor: Theme.of(context).colorScheme.primaryContainer.withOpacity(0.3),
                   leading: _isSelectionMode
                       ? Checkbox(
                           value: isSelected,
@@ -248,22 +162,20 @@ class _HomeScreenState extends State<HomeScreen> {
                         )
                       : const CircleAvatar(
                           backgroundColor: Colors.red,
-                          child: Icon(
-                            Icons.catching_pokemon,
-                            color: Colors.white,
-                          ),
+                          child: Icon(Icons.catching_pokemon, color: Colors.white),
                         ),
                   title: Text(dex.title),
-                  subtitle: Text(
-                    '${Translator.get('region')}: $regionName | ${Translator.get('caught')}: ${dex.caughtIds.length}',
-                  ),
+                  subtitle: Text('${Translator.get('region')}: $regionName | ${Translator.get('caught')}: ${dex.caughtIds.length}'),
                   trailing: _isSelectionMode
                       ? null
                       : PopupMenuButton<String>(
                           icon: const Icon(Icons.more_vert),
                           onSelected: (value) {
                             if (value == 'edit') {
-                              _showEditDexDialog(context, provider, dex);
+                              showDialog(
+                                context: context,
+                                builder: (context) => EditDexDialog(provider: provider, dex: dex),
+                              );
                             } else if (value == 'delete') {
                               _confirmDelete(context, provider, dex);
                             }
@@ -283,16 +195,9 @@ class _HomeScreenState extends State<HomeScreen> {
                               value: 'delete',
                               child: Row(
                                 children: [
-                                  const Icon(
-                                    Icons.delete,
-                                    size: 20,
-                                    color: Colors.red,
-                                  ),
+                                  const Icon(Icons.delete, size: 20, color: Colors.red),
                                   const SizedBox(width: 8),
-                                  Text(
-                                    Translator.get('delete'),
-                                    style: const TextStyle(color: Colors.red),
-                                  ),
+                                  Text(Translator.get('delete'), style: const TextStyle(color: Colors.red)),
                                 ],
                               ),
                             ),
@@ -305,8 +210,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     if (_isSelectionMode) {
                       _toggleSelection(dex.id);
                     } else {
-                      List<int> selectedOrder =
-                          allAvailableDexes[dex.region] ?? [];
+                      List<int> selectedOrder = allAvailableDexes[dex.region] ?? [];
                       List<Pokemon> selectedDatabase = selectedOrder.map((id) {
                         return nationalPokemonDatabase.firstWhere(
                           (pokemon) => pokemon.id == id,
@@ -336,50 +240,79 @@ class _HomeScreenState extends State<HomeScreen> {
       floatingActionButton: _isSelectionMode
           ? null
           : FloatingActionButton(
-              onPressed: () => _showCreateDexBottomSheet(context, provider),
+              onPressed: () {
+                showModalBottomSheet(
+                  context: context,
+                  isScrollControlled: true,
+                  backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+                  shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+                  builder: (context) => CreateDexBottomSheet(provider: provider),
+                );
+              },
               child: const Icon(Icons.add),
             ),
     );
   }
+}
+
+// ---------------------------------------------------------
+// Extrahierte Widgets für saubere Struktur und Performance
+// ---------------------------------------------------------
+
+class CreateDexBottomSheet extends StatefulWidget {
+  final DexProvider provider;
+
+  const CreateDexBottomSheet({super.key, required this.provider});
+
+  @override
+  State<CreateDexBottomSheet> createState() => _CreateDexBottomSheetState();
+}
+
+class _CreateDexBottomSheetState extends State<CreateDexBottomSheet> {
+  final TextEditingController nameController = TextEditingController();
+  late DexGroup selectedGroup;
+  late String selectedSubDex;
+
+  bool includeGenders = false;
+  bool includeRegional = false;
+  bool includeMega = false;
+  bool includeGMax = false;
+  bool includeOther = false;
+
+  late Map<String, bool> features;
+
+  @override
+  void initState() {
+    super.initState();
+    selectedGroup = DexGroupsData.groups.first;
+    selectedSubDex = selectedGroup.dexKeys.first;
+    features = DexGroupsData.getAvailableFeatures(selectedSubDex);
+    nameController.text = Translator.get('region_$selectedSubDex');
+  }
+
+  @override
+  void dispose() {
+    nameController.dispose();
+    super.dispose();
+  }
 
   Widget _buildCollage(List<int> ids) {
-    const String baseUrl =
-        'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/';
+    const String baseUrl = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/';
     return Column(
       children: [
         Expanded(
           child: Row(
             children: [
-              Expanded(
-                child: Image.network(
-                  '$baseUrl${ids[0]}.png',
-                  fit: BoxFit.contain,
-                ),
-              ),
-              Expanded(
-                child: Image.network(
-                  '$baseUrl${ids[1]}.png',
-                  fit: BoxFit.contain,
-                ),
-              ),
+              Expanded(child: Image.network('$baseUrl${ids[0]}.png', fit: BoxFit.contain)),
+              Expanded(child: Image.network('$baseUrl${ids[1]}.png', fit: BoxFit.contain)),
             ],
           ),
         ),
         Expanded(
           child: Row(
             children: [
-              Expanded(
-                child: Image.network(
-                  '$baseUrl${ids[2]}.png',
-                  fit: BoxFit.contain,
-                ),
-              ),
-              Expanded(
-                child: Image.network(
-                  '$baseUrl${ids[3]}.png',
-                  fit: BoxFit.contain,
-                ),
-              ),
+              Expanded(child: Image.network('$baseUrl${ids[2]}.png', fit: BoxFit.contain)),
+              Expanded(child: Image.network('$baseUrl${ids[3]}.png', fit: BoxFit.contain)),
             ],
           ),
         ),
@@ -387,452 +320,194 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  void _showCreateDexBottomSheet(BuildContext context, DexProvider provider) {
-    final TextEditingController nameController = TextEditingController();
-    DexGroup selectedGroup = _dexGroups.first;
-    String selectedSubDex = selectedGroup.dexKeys.first;
-
-    bool includeGenders = false;
-    bool includeRegional = false;
-    bool includeMega = false;
-    bool includeGMax = false;
-    bool includeOther = false;
-
-    Map<String, bool> features = _getAvailableFeatures(selectedSubDex);
-
-    nameController.text = Translator.get('region_$selectedSubDex');
-
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      builder: (context) {
-        return StatefulBuilder(
-          builder: (context, setState) {
-            final bottomPadding = MediaQuery.of(context).viewInsets.bottom;
-            return Padding(
-              padding: EdgeInsets.only(
-                bottom: bottomPadding,
-                left: 16,
-                right: 16,
-                top: 24,
-              ),
-              child: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      Translator.get('create_dex_title'),
-                      style: const TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      Translator.get('choose_generation'),
-                      style: TextStyle(color: Theme.of(context).hintColor),
-                    ),
-                    const SizedBox(height: 16),
-                    SizedBox(
-                      height: 160,
-                      child: ListView.builder(
-                        scrollDirection: Axis.horizontal,
-                        itemCount: _dexGroups.length,
-                        itemBuilder: (context, index) {
-                          final group = _dexGroups[index];
-                          final isSelected = selectedGroup == group;
-
-                          return GestureDetector(
-                            onTap: () {
-                              setState(() {
-                                selectedGroup = group;
-                                selectedSubDex = group.dexKeys.first;
-                                nameController.text = Translator.get(
-                                  'region_$selectedSubDex',
-                                );
-
-                                features = _getAvailableFeatures(
-                                  selectedSubDex,
-                                );
-                                includeMega = selectedSubDex == 'mega_dex';
-                                includeOther = selectedSubDex == 'icognito_dex';
-                                if (!features['regional']!)
-                                  includeRegional = false;
-                                if (!features['mega']! && selectedSubDex != 'mega_dex')
-                                  includeMega = false;
-                                if (!features['gmax']!) includeGMax = false;
-                              });
-                            },
-                            child: AnimatedContainer(
-                              duration: const Duration(milliseconds: 200),
-                              width: 140,
-                              margin: const EdgeInsets.only(
-                                right: 12,
-                                bottom: 8,
-                              ),
-                              decoration: BoxDecoration(
-                                color: isSelected
-                                    ? Colors.red.withOpacity(0.15)
-                                    : Theme.of(context)
-                                          .colorScheme
-                                          .surfaceContainerHighest
-                                          .withOpacity(0.3),
-                                borderRadius: BorderRadius.circular(16),
-                                border: Border.all(
-                                  color: isSelected
-                                      ? Colors.red
-                                      : Colors.transparent,
-                                  width: 2,
-                                ),
-                              ),
-                              child: Column(
-                                children: [
-                                  Expanded(
-                                    flex: 3,
-                                    child: Padding(
-                                      padding: const EdgeInsets.all(8.0),
-                                      child: _buildCollage(
-                                        group.displayPokemonIds,
-                                      ),
-                                    ),
-                                  ),
-                                  Expanded(
-                                    flex: 1,
-                                    child: Container(
-                                      width: double.infinity,
-                                      decoration: BoxDecoration(
-                                        color: isSelected
-                                            ? Colors.red
-                                            : Colors.black.withOpacity(0.1),
-                                        borderRadius:
-                                            const BorderRadius.vertical(
-                                              bottom: Radius.circular(14),
-                                            ),
-                                      ),
-                                      alignment: Alignment.center,
-                                      child: Text(
-                                        Translator.get(group.nameKey),
-                                        style: TextStyle(
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.bold,
-                                          color: isSelected
-                                              ? Colors.white
-                                              : Theme.of(
-                                                  context,
-                                                ).textTheme.bodyMedium?.color,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          );
-                        },
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    if (selectedGroup.dexKeys.length > 1) ...[
-                      DropdownButtonFormField<String>(
-                        value: selectedSubDex,
-                        decoration: InputDecoration(
-                          labelText: Translator.get('exact_pokedex'),
-                          filled: true,
-                          fillColor: Theme.of(context)
-                              .colorScheme
-                              .surfaceContainerHighest
-                              .withOpacity(0.3),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide.none,
-                          ),
-                        ),
-                        items: selectedGroup.dexKeys.map((key) {
-                          return DropdownMenuItem<String>(
-                            value: key,
-                            child: Text(
-                              Translator.get('region_$key') != 'region_$key'
-                                  ? Translator.get('region_$key')
-                                  : key,
-                            ),
-                          );
-                        }).toList(),
-                        onChanged: (val) {
-                          if (val != null) {
-                            setState(() {
-                              selectedSubDex = val;
-                              nameController.text = Translator.get(
-                                'region_$selectedSubDex',
-                              );
-
-                              features = _getAvailableFeatures(selectedSubDex);
-                              includeMega = selectedSubDex == 'mega_dex';
-                              includeOther = selectedSubDex == 'icognito_dex';
-                              if (!features['regional']!)
-                                includeRegional = false;
-                              if (!features['mega']! && selectedSubDex != 'mega_dex')
-                                includeMega = false;
-                              if (!features['gmax']!) includeGMax = false;
-                            });
-                          }
-                        },
-                      ),
-                      const SizedBox(height: 16),
-                    ],
-                    TextField(
-                      controller: nameController,
-                      decoration: InputDecoration(
-                        labelText: Translator.get('create_dex_hint'),
-                        filled: true,
-                        fillColor: Theme.of(
-                          context,
-                        ).colorScheme.surfaceContainerHighest.withOpacity(0.3),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide.none,
-                        ),
-                        prefixIcon: const Icon(Icons.edit),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    Container(
+  @override
+  Widget build(BuildContext context) {
+    final bottomPadding = MediaQuery.of(context).viewInsets.bottom;
+    
+    return Padding(
+      padding: EdgeInsets.only(bottom: bottomPadding, left: 16, right: 16, top: 24),
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(Translator.get('create_dex_title'), style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 8),
+            Text(Translator.get('choose_generation'), style: TextStyle(color: Theme.of(context).hintColor)),
+            const SizedBox(height: 16),
+            SizedBox(
+              height: 160,
+              child: ListView.builder(
+                scrollDirection: Axis.horizontal,
+                itemCount: DexGroupsData.groups.length,
+                itemBuilder: (context, index) {
+                  final group = DexGroupsData.groups[index];
+                  final isSelected = selectedGroup == group;
+                  return GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        selectedGroup = group;
+                        selectedSubDex = group.dexKeys.first;
+                        nameController.text = Translator.get('region_$selectedSubDex');
+                        features = DexGroupsData.getAvailableFeatures(selectedSubDex);
+                        includeMega = selectedSubDex == 'mega_dex';
+                        includeOther = selectedSubDex == 'icognito_dex';
+                        if (!features['regional']!) includeRegional = false;
+                        if (!features['mega']! && selectedSubDex != 'mega_dex') includeMega = false;
+                        if (!features['gmax']!) includeGMax = false;
+                      });
+                    },
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 200),
+                      width: 140,
+                      margin: const EdgeInsets.only(right: 12, bottom: 8),
                       decoration: BoxDecoration(
-                        color: Theme.of(
-                          context,
-                        ).colorScheme.surfaceContainerHighest.withOpacity(0.3),
+                        color: isSelected ? Colors.red.withOpacity(0.15) : Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(0.3),
                         borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: isSelected ? Colors.red : Colors.transparent, width: 2),
                       ),
                       child: Column(
                         children: [
-                          SwitchListTile(
-                            title: Text(Translator.get('include_genders')),
-                            secondary: const Icon(Icons.wc),
-                            value: includeGenders,
-                            activeColor: Colors.red,
-                            onChanged: (val) =>
-                                setState(() => includeGenders = val),
-                          ),
-                          const Divider(height: 1),
-                          ExpansionTile(
-                            leading: const Icon(Icons.auto_awesome),
-                            title: Text(Translator.get('include_forms')),
-                            children: [
-                              CheckboxListTile(
-                                title: Text(Translator.get('form_regional')),
-                                value: includeRegional,
-                                activeColor: Colors.red,
-                                enabled: features['regional']!,
-                                onChanged: features['regional']!
-                                    ? (val) => setState(
-                                        () => includeRegional = val ?? false,
-                                      )
-                                    : null,
+                          Expanded(flex: 3, child: Padding(padding: const EdgeInsets.all(8.0), child: _buildCollage(group.displayPokemonIds))),
+                          Expanded(
+                            flex: 1,
+                            child: Container(
+                              width: double.infinity,
+                              decoration: BoxDecoration(
+                                color: isSelected ? Colors.red : Colors.black.withOpacity(0.1),
+                                borderRadius: const BorderRadius.vertical(bottom: Radius.circular(14)),
                               ),
-                              CheckboxListTile(
-                                title: Text(Translator.get('form_mega')),
-                                value: includeMega,
-                                activeColor: Colors.red,
-                                enabled: features['mega']! || selectedSubDex == 'mega_dex',
-                                onChanged: (features['mega']! || selectedSubDex == 'mega_dex')
-                                    ? (val) => setState(
-                                        () => includeMega = val ?? false,
-                                      )
-                                    : null,
+                              alignment: Alignment.center,
+                              child: Text(
+                                Translator.get(group.nameKey),
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                  color: isSelected ? Colors.white : Theme.of(context).textTheme.bodyMedium?.color,
+                                ),
                               ),
-                              CheckboxListTile(
-                                title: Text(Translator.get('form_gmax')),
-                                value: includeGMax,
-                                activeColor: Colors.red,
-                                enabled: features['gmax']!,
-                                onChanged: features['gmax']!
-                                    ? (val) => setState(
-                                        () => includeGMax = val ?? false,
-                                      )
-                                    : null,
-                              ),
-                              CheckboxListTile(
-                                title: Text(Translator.get('form_other')),
-                                value: includeOther,
-                                activeColor: Colors.red,
-                                onChanged: (val) =>
-                                    setState(() => includeOther = val ?? false),
-                              ),
-                            ],
+                            ),
                           ),
                         ],
                       ),
                     ),
-                    const SizedBox(height: 24),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: TextButton(
-                            onPressed: () => Navigator.pop(context),
-                            style: TextButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(vertical: 16),
-                            ),
-                            child: Text(Translator.get('cancel')),
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: ElevatedButton(
-                            onPressed: () {
-                              if (nameController.text.isNotEmpty) {
-                                provider.createDex(
-                                  nameController.text,
-                                  selectedSubDex,
-                                  includeGenders,
-                                  includeRegional,
-                                  includeMega,
-                                  includeGMax,
-                                  includeOther,
-                                );
-                                Navigator.pop(context);
-                              }
-                            },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.red,
-                              foregroundColor: Colors.white,
-                              padding: const EdgeInsets.symmetric(vertical: 16),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                            ),
-                            child: Text(
-                              Translator.get('create'),
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 24),
-                  ],
-                ),
+                  );
+                },
               ),
-            );
-          },
-        );
-      },
-    );
-  }
-
-  void _showEditDexDialog(
-    BuildContext context,
-    DexProvider provider,
-    UserDex dex,
-  ) {
-    try {
-      final TextEditingController nameController = TextEditingController(
-        text: dex.title,
-      );
-
-      bool includeGenders = dex.includeGenders;
-      bool includeRegional = dex.includeRegional;
-      bool includeMega = dex.includeMega;
-      bool includeGMax = dex.includeGMax;
-      bool includeOther = dex.includeOther;
-
-      final features = _getAvailableFeatures(dex.region);
-
-      showDialog(
-        context: context,
-        builder: (context) {
-          return StatefulBuilder(
-            builder: (context, setState) {
-              return AlertDialog(
-                title: Text(Translator.get('edit')),
-                content: SingleChildScrollView(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
+            ),
+            const SizedBox(height: 16),
+            if (selectedGroup.dexKeys.length > 1) ...[
+              DropdownButtonFormField<String>(
+                value: selectedSubDex,
+                decoration: InputDecoration(
+                  labelText: Translator.get('exact_pokedex'),
+                  filled: true,
+                  fillColor: Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(0.3),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                ),
+                items: selectedGroup.dexKeys.map((key) {
+                  return DropdownMenuItem<String>(
+                    value: key,
+                    child: Text(Translator.get('region_$key') != 'region_$key' ? Translator.get('region_$key') : key),
+                  );
+                }).toList(),
+                onChanged: (val) {
+                  if (val != null) {
+                    setState(() {
+                      selectedSubDex = val;
+                      nameController.text = Translator.get('region_$selectedSubDex');
+                      features = DexGroupsData.getAvailableFeatures(selectedSubDex);
+                      includeMega = selectedSubDex == 'mega_dex';
+                      includeOther = selectedSubDex == 'icognito_dex';
+                      if (!features['regional']!) includeRegional = false;
+                      if (!features['mega']! && selectedSubDex != 'mega_dex') includeMega = false;
+                      if (!features['gmax']!) includeGMax = false;
+                    });
+                  }
+                },
+              ),
+              const SizedBox(height: 16),
+            ],
+            TextField(
+              controller: nameController,
+              decoration: InputDecoration(
+                labelText: Translator.get('create_dex_hint'),
+                filled: true,
+                fillColor: Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(0.3),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                prefixIcon: const Icon(Icons.edit),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Container(
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(0.3),
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Column(
+                children: [
+                  SwitchListTile(
+                    title: Text(Translator.get('include_genders')),
+                    secondary: const Icon(Icons.wc),
+                    value: includeGenders,
+                    activeColor: Colors.red,
+                    onChanged: (val) => setState(() => includeGenders = val),
+                  ),
+                  const Divider(height: 1),
+                  ExpansionTile(
+                    leading: const Icon(Icons.auto_awesome),
+                    title: Text(Translator.get('include_forms')),
                     children: [
-                      TextField(
-                        controller: nameController,
-                        decoration: InputDecoration(
-                          labelText: Translator.get('create_dex_hint'),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          prefixIcon: const Icon(Icons.edit),
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      SwitchListTile(
-                        title: Text(Translator.get('include_genders')),
-                        secondary: const Icon(Icons.wc),
-                        value: includeGenders,
+                      CheckboxListTile(
+                        title: Text(Translator.get('form_regional')),
+                        value: includeRegional,
                         activeColor: Colors.red,
-                        onChanged: (val) =>
-                            setState(() => includeGenders = val),
+                        enabled: features['regional']!,
+                        onChanged: features['regional']! ? (val) => setState(() => includeRegional = val ?? false) : null,
                       ),
-                      const Divider(height: 1),
-                      ExpansionTile(
-                        leading: const Icon(Icons.auto_awesome),
-                        title: Text(Translator.get('include_forms')),
-                        children: [
-                          CheckboxListTile(
-                            title: Text(Translator.get('form_regional_short')),
-                            value: includeRegional,
-                            activeColor: Colors.red,
-                            enabled: features['regional']!,
-                            onChanged: features['regional']!
-                                ? (val) => setState(
-                                    () => includeRegional = val ?? false,
-                                  )
-                                : null,
-                          ),
-                          CheckboxListTile(
-                            title: Text(Translator.get('form_mega')),
-                            value: includeMega,
-                            activeColor: Colors.red,
-                            enabled: features['mega']! || dex.region == 'mega_dex',
-                            onChanged: (features['mega']! || dex.region == 'mega_dex')
-                                ? (val) =>
-                                      setState(() => includeMega = val ?? false)
-                                : null,
-                          ),
-                          CheckboxListTile(
-                            title: Text(Translator.get('form_gmax')),
-                            value: includeGMax,
-                            activeColor: Colors.red,
-                            enabled: features['gmax']!,
-                            onChanged: features['gmax']!
-                                ? (val) =>
-                                      setState(() => includeGMax = val ?? false)
-                                : null,
-                          ),
-                          CheckboxListTile(
-                            title: Text(Translator.get('form_other_short')),
-                            value: includeOther,
-                            activeColor: Colors.red,
-                            onChanged: (val) =>
-                                setState(() => includeOther = val ?? false),
-                          ),
-                        ],
+                      CheckboxListTile(
+                        title: Text(Translator.get('form_mega')),
+                        value: includeMega,
+                        activeColor: Colors.red,
+                        enabled: features['mega']! || selectedSubDex == 'mega_dex',
+                        onChanged: (features['mega']! || selectedSubDex == 'mega_dex') ? (val) => setState(() => includeMega = val ?? false) : null,
+                      ),
+                      CheckboxListTile(
+                        title: Text(Translator.get('form_gmax')),
+                        value: includeGMax,
+                        activeColor: Colors.red,
+                        enabled: features['gmax']!,
+                        onChanged: features['gmax']! ? (val) => setState(() => includeGMax = val ?? false) : null,
+                      ),
+                      CheckboxListTile(
+                        title: Text(Translator.get('form_other')),
+                        value: includeOther,
+                        activeColor: Colors.red,
+                        onChanged: (val) => setState(() => includeOther = val ?? false),
                       ),
                     ],
                   ),
-                ),
-                actions: [
-                  TextButton(
+                ],
+              ),
+            ),
+            const SizedBox(height: 24),
+            Row(
+              children: [
+                Expanded(
+                  child: TextButton(
                     onPressed: () => Navigator.pop(context),
+                    style: TextButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 16)),
                     child: Text(Translator.get('cancel')),
                   ),
-                  ElevatedButton(
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: ElevatedButton(
                     onPressed: () {
                       if (nameController.text.isNotEmpty) {
-                        provider.updateDex(
-                          dex.id,
+                        widget.provider.createDex(
                           nameController.text,
+                          selectedSubDex,
                           includeGenders,
                           includeRegional,
                           includeMega,
@@ -845,86 +520,144 @@ class _HomeScreenState extends State<HomeScreen> {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.red,
                       foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     ),
-                    child: Text(Translator.get('save')),
+                    child: Text(Translator.get('create'), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                   ),
-                ],
+                ),
+              ],
+            ),
+            const SizedBox(height: 24),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class EditDexDialog extends StatefulWidget {
+  final DexProvider provider;
+  final UserDex dex;
+
+  const EditDexDialog({super.key, required this.provider, required this.dex});
+
+  @override
+  State<EditDexDialog> createState() => _EditDexDialogState();
+}
+
+class _EditDexDialogState extends State<EditDexDialog> {
+  late TextEditingController nameController;
+  late bool includeGenders;
+  late bool includeRegional;
+  late bool includeMega;
+  late bool includeGMax;
+  late bool includeOther;
+  late Map<String, bool> features;
+
+  @override
+  void initState() {
+    super.initState();
+    nameController = TextEditingController(text: widget.dex.title);
+    includeGenders = widget.dex.includeGenders;
+    includeRegional = widget.dex.includeRegional;
+    includeMega = widget.dex.includeMega;
+    includeGMax = widget.dex.includeGMax;
+    includeOther = widget.dex.includeOther;
+    features = DexGroupsData.getAvailableFeatures(widget.dex.region);
+  }
+
+  @override
+  void dispose() {
+    nameController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: Text(Translator.get('edit')),
+      content: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: nameController,
+              decoration: InputDecoration(
+                labelText: Translator.get('create_dex_hint'),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                prefixIcon: const Icon(Icons.edit),
+              ),
+            ),
+            const SizedBox(height: 16),
+            SwitchListTile(
+              title: Text(Translator.get('include_genders')),
+              secondary: const Icon(Icons.wc),
+              value: includeGenders,
+              activeColor: Colors.red,
+              onChanged: (val) => setState(() => includeGenders = val),
+            ),
+            const Divider(height: 1),
+            ExpansionTile(
+              leading: const Icon(Icons.auto_awesome),
+              title: Text(Translator.get('include_forms')),
+              children: [
+                CheckboxListTile(
+                  title: Text(Translator.get('form_regional_short')),
+                  value: includeRegional,
+                  activeColor: Colors.red,
+                  enabled: features['regional']!,
+                  onChanged: features['regional']! ? (val) => setState(() => includeRegional = val ?? false) : null,
+                ),
+                CheckboxListTile(
+                  title: Text(Translator.get('form_mega')),
+                  value: includeMega,
+                  activeColor: Colors.red,
+                  enabled: features['mega']! || widget.dex.region == 'mega_dex',
+                  onChanged: (features['mega']! || widget.dex.region == 'mega_dex') ? (val) => setState(() => includeMega = val ?? false) : null,
+                ),
+                CheckboxListTile(
+                  title: Text(Translator.get('form_gmax')),
+                  value: includeGMax,
+                  activeColor: Colors.red,
+                  enabled: features['gmax']!,
+                  onChanged: features['gmax']! ? (val) => setState(() => includeGMax = val ?? false) : null,
+                ),
+                CheckboxListTile(
+                  title: Text(Translator.get('form_other_short')),
+                  value: includeOther,
+                  activeColor: Colors.red,
+                  onChanged: (val) => setState(() => includeOther = val ?? false),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: Text(Translator.get('cancel')),
+        ),
+        ElevatedButton(
+          onPressed: () {
+            if (nameController.text.isNotEmpty) {
+              widget.provider.updateDex(
+                widget.dex.id,
+                nameController.text,
+                includeGenders,
+                includeRegional,
+                includeMega,
+                includeGMax,
+                includeOther,
               );
-            },
-          );
-        },
-      );
-    } catch (e) {
-      NotificationHelper.showError(
-        "${Translator.get('error_show_edit_dex_dialog')} $e",
-      );
-    }
-  }
-
-  void _confirmDelete(BuildContext context, DexProvider provider, UserDex dex) {
-    try {
-      showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: Text(Translator.get('delete_confirm_title')),
-          content: Text(Translator.get('delete_confirm_text')),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text(Translator.get('cancel')),
-            ),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.red,
-                foregroundColor: Colors.white,
-              ),
-              onPressed: () {
-                provider.deleteDex(dex.id);
-                Navigator.pop(context);
-              },
-              child: Text(Translator.get('delete')),
-            ),
-          ],
+              Navigator.pop(context);
+            }
+          },
+          style: ElevatedButton.styleFrom(backgroundColor: Colors.red, foregroundColor: Colors.white),
+          child: Text(Translator.get('save')),
         ),
-      );
-    } catch (e) {
-      NotificationHelper.showError(
-        "${Translator.get('error_confirm_delete')} $e",
-      );
-    }
-  }
-
-  void _confirmMultipleDelete(BuildContext context, DexProvider provider) {
-    try {
-      showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: Text(Translator.get('delete_multiple_confirm_title')),
-          content: Text(Translator.get('delete_multiple_confirm_text')),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text(Translator.get('cancel')),
-            ),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.red,
-                foregroundColor: Colors.white,
-              ),
-              onPressed: () {
-                provider.deleteMultipleDexes(_selectedDexIds);
-                _clearSelection();
-                Navigator.pop(context);
-              },
-              child: Text(Translator.get('delete')),
-            ),
-          ],
-        ),
-      );
-    } catch (e) {
-      NotificationHelper.showError(
-        "${Translator.get('error_confirm_mutiple_delete')} $e",
-      );
-    }
+      ],
+    );
   }
 }

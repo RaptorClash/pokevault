@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:pokevault/providers/theme_provider.dart';
 import 'package:provider/provider.dart';
+import 'dart:ui';
+
+import 'providers/theme_provider.dart';
 import 'providers/dex_provider.dart';
 import 'screens/home_screen.dart';
 import 'utils/notification_helper.dart';
 import 'l10n/app_translations.dart';
-import 'dart:ui';
 
 void main() {
   try {
@@ -31,9 +32,9 @@ class PokedexApp extends StatelessWidget {
   Widget build(BuildContext context) {
     final dexProvider = context.watch<DexProvider>();
     final themeProvider = Provider.of<ThemeProvider>(context);
-
+    
     return MaterialApp(
-      title: 'PokéVault',
+      title: 'Poke Vault',
       debugShowCheckedModeBanner: false,
       scaffoldMessengerKey: NotificationHelper.scaffoldMessengerKey,
       scrollBehavior: AppScrollBehavior(),
