@@ -5,11 +5,9 @@ import urllib.request
 import json
 import time
 
-# Pfad zur Excel-Datei und Ausgabe-Datei
 EXCEL_PATH = 'bin/Legal_Matching_Pokéballs.xlsx'
 OUTPUT_PATH = 'lib/data/matching_balls_data.dart'
 
-# Mapping aus dem Intro-Tab für Arceus & Amigento
 TYPE_BALL_MAPPING = {
     'normal': 'premier_ball',
     'fire': 'fast_ball',
@@ -63,7 +61,6 @@ def get_form(name, is_direct=False):
         form_part = name.split('(')[1].replace(')', '').strip()
         form_part = form_part.lower().replace('é', 'e')
         
-        # Mapping von abweichenden Excel-Namen zu PokeAPI "normal" Namen
         base_forms = [
             'no plate', 'altered', 'land', 'incarnate', 'aria', 'ordinary',
             'shield', '50%', 'confined', 'baile', 'midday', 'solo', 'red core',
@@ -101,7 +98,6 @@ def main():
     key_to_url = {}
     database = {}
     
-    # 1. Intro Tab parsen (Mapping: URL -> Ball Key)
     intro_sheet = wb['Intro']
     for row in intro_sheet.iter_rows(min_row=1, max_row=100, values_only=True):
         for c in range(len(row) - 1):
@@ -113,7 +109,6 @@ def main():
                     url_to_key[url] = key
                     key_to_url[key] = url
 
-    # Manuelle Fallbacks
     url_to_key['https://i.imgur.com/eru43o1.png'] = 'strange_ball'
     key_to_url['strange_ball'] = 'https://i.imgur.com/eru43o1.png'
     url_to_key['https://i.imgur.com/aeqHLEh.png'] = 'cherish_ball'
@@ -121,7 +116,6 @@ def main():
 
     print(f"  Mapping erstellt: {len(url_to_key)} Bälle gefunden.")
     
-    # 2. Reguläre Generationen parsen
     for sheet_name in wb.sheetnames:
         if sheet_name in ['Intro', 'Vivillon', 'Alcremie']:
             continue
@@ -166,7 +160,6 @@ def main():
                 entries += 1
         print(f"  -> {entries} Einträge gefunden.")
         
-    # 3. Vivillon parsen (Jetzt absolut dynamisch via Stichwortsuche!)
     print("Lese Tab: Vivillon ...")
     if 'Vivillon' in wb.sheetnames:
         viv_sheet = wb['Vivillon']
@@ -215,7 +208,6 @@ def main():
                         entries += 1
         print(f"  -> {entries} Einträge gefunden.")
     
-    # 4. Alcremie parsen (Ebenfalls dynamisch via Stichwortsuche!)
     print("Lese Tab: Alcremie ...")
     if 'Alcremie' in wb.sheetnames:
         alc_sheet = wb['Alcremie']
@@ -263,7 +255,6 @@ def main():
                     entries += 1
         print(f"  -> {entries} Einträge gefunden.")
 
-    # 5. PokeAPI Fallbacks für Zwischenentwicklungen
     print("\nFühre API Fallbacks für fehlende Bälle (Zwischenentwicklungen) durch...")
     root_cache = {}
     fallback_count = 0
@@ -308,7 +299,6 @@ def main():
 
     print(f"  -> {fallback_count} Entwicklungen erfolgreich mit Bällen der Basis-Form befüllt!")
     
-    # 6. Type-basiertes Überschreiben für Arceus (493) & Amigento (773)
     print("\nSetze spezifische Bälle für Arceus (493) und Amigento (773) anhand ihrer Typen ...")
     for poke_id in [493, 773]:
         for type_name, ball_key in TYPE_BALL_MAPPING.items():
@@ -317,14 +307,12 @@ def main():
                 'normal': f"['{ball_key}']",
                 'shiny': f"['{ball_key}']"
             }
-            # Fallback Setzen für die pure "normal" Aufrufe
             if type_name == 'normal':
                 database[f"{poke_id}_normal"] = {
                     'normal': f"['{ball_key}']",
                     'shiny': f"['{ball_key}']"
                 }
 
-    # 7. Dart Datei generieren
     os.makedirs(os.path.dirname(OUTPUT_PATH), exist_ok=True)
     with open(OUTPUT_PATH, 'w', encoding='utf-8') as f:
         f.write("// Automatisch generierte Datei - NICHT MANUELL ÄNDERN!\n")

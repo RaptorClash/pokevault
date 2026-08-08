@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import '../models/dex_view_models.dart';
 import '../providers/dex_provider.dart';
 import '../l10n/app_translations.dart';
-import '../data/matching_balls_data.dart'; // Wichtig für ballImageUrls und database
+import '../data/matching_balls_data.dart';
 
 class PokemonInfoScreen extends StatelessWidget {
   final DexDisplayEntry entry;
@@ -22,9 +22,6 @@ class PokemonInfoScreen extends StatelessWidget {
     final isCaught = liveDex.caughtIds.contains(entry.uniqueId);
     final isShiny = liveDex.shinyIds.contains(entry.uniqueId);
 
-    // Bälle aus der jetzt Listen-basierten Database holen
-    // Dank des Python-Scripts schlägt dies nun nahtlos auf die Basis-Bälle fehl,
-    // selbst wenn Arceus- oder Bisaknosp-Daten geprüft werden!
     final matchingBalls =
         matchingBallsDatabase[entry.uniqueId] ??
         matchingBallsDatabase['${entry.pokemon.id}_normal'];
@@ -136,7 +133,6 @@ class PokemonInfoScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 16),
-            // Neue Chip-basierte Matching Ball Cards
             _buildBallCard(
               context,
               Icons.catching_pokemon,

@@ -273,15 +273,6 @@ class DexLogicHelper {
           );
           for (int i = 0; i < chunks.length; i++) {
             String baseTitle;
-            bool isSpecial = [
-              'cap',
-              'unown',
-              'vivillon',
-              'alcremie',
-              'gmax',
-              'regional',
-              'mega',
-            ].contains(catId);
             String localizedCat = Translator.get('cat_$catId');
             if (localizedCat == 'cat_$catId') localizedCat = catId;
 
