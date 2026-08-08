@@ -263,18 +263,53 @@ class _DexScreenState extends State<DexScreen> {
     int crossAxis = isOriginalKantoJohto ? 5 : 6;
 
     if (!separateForms) {
-      List<List<DexDisplayEntry>> chunks = _chunkList(entries, capacity);
-      for (int i = 0; i < chunks.length; i++) {
+      List<DexDisplayEntry> baseEntries = [];
+      List<DexDisplayEntry> formEntries = [];
+
+      // 1. Liste sauber in Basis-Pokémon und Formen aufteilen
+      for (var entry in entries) {
+        if (_getEntryCategoryId(entry) == 'base') {
+          baseEntries.add(entry);
+        } else {
+          formEntries.add(entry);
+        }
+      }
+
+      // 2. Basis-Pokémon in die klassischen 30er-Boxen abfüllen
+      List<List<DexDisplayEntry>> baseChunks = _chunkList(
+        baseEntries,
+        capacity,
+      );
+      for (int i = 0; i < baseChunks.length; i++) {
         int start = i * capacity + 1;
-        int end = start + chunks[i].length - 1;
+        int end = start + baseChunks[i].length - 1;
         boxes.add(
           BoxData(
             '${Translator.get('box')} ${i + 1} ($start-$end)',
             'kanto',
-            chunks[i],
+            baseChunks[i],
             crossAxis,
           ),
         );
+      }
+
+      if (formEntries.isNotEmpty) {
+        List<List<DexDisplayEntry>> formChunks = _chunkList(
+          formEntries,
+          capacity,
+        );
+        int boxOffset = baseChunks.length;
+
+        String formLabel = Translator.currentLanguage == 'de'
+            ? 'Formen'
+            : 'Forms';
+
+        for (int i = 0; i < formChunks.length; i++) {
+          String title = formChunks.length == 1
+              ? '${Translator.get('box')} ${boxOffset + i + 1} ($formLabel)'
+              : '${Translator.get('box')} ${boxOffset + i + 1} ($formLabel ${i + 1})';
+          boxes.add(BoxData(title, 'kanto', formChunks[i], crossAxis));
+        }
       }
     } else {
       List<String> regionOrder = [
@@ -861,7 +896,7 @@ class _DexScreenState extends State<DexScreen> {
                         ),
                         GestureDetector(
                           onTap: () {
-                            if (boxes.length > 1) {
+                            if (_separateForms && boxes.length > 1) {
                               _showQuickNavDialog(boxes);
                             }
                           },
@@ -892,7 +927,7 @@ class _DexScreenState extends State<DexScreen> {
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
-                                if (boxes.length > 1)
+                                if (_separateForms && boxes.length > 1)
                                   const Padding(
                                     padding: EdgeInsets.only(left: 4.0),
                                     child: Icon(
