@@ -22,3 +22,18 @@ subprojects {
 tasks.register<Delete>("clean") {
     delete(rootProject.layout.buildDirectory)
 }
+
+subprojects {
+    if (project.name == "app") {
+        return@subprojects
+    }
+    
+    afterEvaluate {
+        val androidExtension = project.extensions.findByName("android")
+        if (androidExtension != null) {
+            val methods = androidExtension.javaClass.methods
+            val setCompileSdkMethod = methods.find { it.name == "setCompileSdk" && it.parameterCount == 1 }
+            setCompileSdkMethod?.invoke(androidExtension, 36)
+        }
+    }
+}
