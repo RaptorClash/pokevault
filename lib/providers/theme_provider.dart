@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
 import '../l10n/app_translations.dart';
 import '../utils/notification_helper.dart';
 
@@ -42,14 +43,14 @@ class ThemeProvider extends ChangeNotifier {
       if (prefs.containsKey('darkBg')) {
         _darkBackgroundColor = Color(prefs.getInt('darkBg')!);
       }
-
       if (prefs.containsKey('customColors')) {
         List<String> colorsString = prefs.getStringList('customColors')!;
         _customColors = colorsString.map((c) => Color(int.parse(c))).toList();
       }
+
       notifyListeners();
     } catch (e) {
-      NotificationHelper.showError("${Translator.get('error_laod_prefs')} $e");
+      NotificationHelper.showError("${Translator.get('error_load_prefs')} $e");
     }
   }
 
@@ -122,7 +123,7 @@ class ThemeProvider extends ChangeNotifier {
 
       notifyListeners();
     } catch (e) {
-      NotificationHelper.showError("${Translator.get('')} $e");
+      NotificationHelper.showError("${Translator.get('error_reset_to_default')} $e");
     }
   }
 }

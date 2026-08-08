@@ -160,10 +160,8 @@ class SettingsScreen extends StatelessWidget {
               ],
             ),
           ),
-          // ... (hier ist deine bestehende Datenverwaltungs-Card) ...
           const SizedBox(height: 24),
 
-          // --- CREDITS SEKTION ---
           _buildSectionHeader(
             context,
             Translator.get('credits'),
@@ -234,7 +232,7 @@ class SettingsScreen extends StatelessWidget {
         ],
       ),
     );
-  } // Ende der build Methode
+  } 
 
   Future<void> _launchURL(String urlString) async {
     final Uri url = Uri.parse(urlString);

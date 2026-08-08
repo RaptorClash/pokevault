@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
 import '../models/user_dex.dart';
 import '../services/dex_storage_service.dart';
 import '../l10n/app_translations.dart';
@@ -24,10 +25,12 @@ class DexProvider extends ChangeNotifier {
       final prefs = await SharedPreferences.getInstance();
       _currentLanguage = prefs.getString('language') ?? 'de';
       Translator.currentLanguage = _currentLanguage;
+
       final themeIndex = prefs.getInt('themeMode');
       if (themeIndex != null) {
         _themeMode = ThemeMode.values[themeIndex];
       }
+
       final dexJson = prefs.getString('saved_dexes');
       if (dexJson != null) {
         final List<dynamic> decoded = jsonDecode(dexJson);
@@ -46,6 +49,7 @@ class DexProvider extends ChangeNotifier {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('language', _currentLanguage);
       await prefs.setInt('themeMode', _themeMode.index);
+
       final jsonList = _userDexes.map((d) => d.toJson()).toList();
       await prefs.setString('saved_dexes', jsonEncode(jsonList));
     } catch (e) {
@@ -112,6 +116,7 @@ class DexProvider extends ChangeNotifier {
         final dex = _userDexes[dexIndex];
         if (dex.caughtIds.contains(entryId)) {
           dex.caughtIds.remove(entryId);
+          dex.shinyIds.remove(entryId);
         } else {
           dex.caughtIds.add(entryId);
         }

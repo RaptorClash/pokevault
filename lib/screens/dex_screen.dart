@@ -221,10 +221,6 @@ class _DexScreenState extends State<DexScreen> {
   }
 }
 
-// ---------------------------------------------------------
-// Extrahierte Widgets für saubere Struktur und Performance
-// ---------------------------------------------------------
-
 class DexBoxView extends StatelessWidget {
   final List<BoxData> boxes;
   final UserDex liveDex;

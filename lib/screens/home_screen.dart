@@ -21,8 +21,15 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final Set<String> _selectedDexIds = {};
+  late final Map<int, Pokemon> _pokemonCache;
 
   bool get _isSelectionMode => _selectedDexIds.isNotEmpty;
+
+  @override
+  void initState() {
+    super.initState();
+    _pokemonCache = {for (var p in nationalPokemonDatabase) p.id: p};
+  }
 
   void _toggleSelection(String id) {
     try {
@@ -212,14 +219,11 @@ class _HomeScreenState extends State<HomeScreen> {
                     } else {
                       List<int> selectedOrder = allAvailableDexes[dex.region] ?? [];
                       List<Pokemon> selectedDatabase = selectedOrder.map((id) {
-                        return nationalPokemonDatabase.firstWhere(
-                          (pokemon) => pokemon.id == id,
-                          orElse: () => Pokemon(
-                            id: id,
-                            names: {'de': 'Unbekannt', 'en': 'Unknown'},
-                            hasGenderDifferences: false,
-                            forms: [],
-                          ),
+                        return _pokemonCache[id] ?? Pokemon(
+                          id: id,
+                          names: {'de': 'Unbekannt', 'en': 'Unknown'},
+                          hasGenderDifferences: false,
+                          forms: [],
                         );
                       }).toList();
 
@@ -254,10 +258,6 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 }
-
-// ---------------------------------------------------------
-// Extrahierte Widgets für saubere Struktur und Performance
-// ---------------------------------------------------------
 
 class CreateDexBottomSheet extends StatefulWidget {
   final DexProvider provider;
