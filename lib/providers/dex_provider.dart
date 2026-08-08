@@ -22,18 +22,13 @@ class DexProvider extends ChangeNotifier {
   Future<void> _loadFromPrefs() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-
       _currentLanguage = prefs.getString('language') ?? 'de';
-
       Translator.currentLanguage = _currentLanguage;
-
       final themeIndex = prefs.getInt('themeMode');
       if (themeIndex != null) {
         _themeMode = ThemeMode.values[themeIndex];
       }
-
       final dexJson = prefs.getString('saved_dexes');
-
       if (dexJson != null) {
         final List<dynamic> decoded = jsonDecode(dexJson);
         _userDexes = decoded
@@ -51,7 +46,6 @@ class DexProvider extends ChangeNotifier {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('language', _currentLanguage);
       await prefs.setInt('themeMode', _themeMode.index);
-
       final jsonList = _userDexes.map((d) => d.toJson()).toList();
       await prefs.setString('saved_dexes', jsonEncode(jsonList));
     } catch (e) {
@@ -61,9 +55,7 @@ class DexProvider extends ChangeNotifier {
 
   void toggleTheme() {
     try {
-      _themeMode = _themeMode == ThemeMode.light
-          ? ThemeMode.dark
-          : ThemeMode.light;
+      _themeMode = _themeMode == ThemeMode.light ? ThemeMode.dark : ThemeMode.light;
       _saveToPrefs();
       notifyListeners();
     } catch (e) {
@@ -97,6 +89,8 @@ class DexProvider extends ChangeNotifier {
         title: title,
         region: region,
         caughtIds: {},
+        ignoredIds: {},
+        shinyIds: {},
         includeGenders: includeGenders,
         includeRegional: includeRegional,
         includeMega: includeMega,
@@ -121,6 +115,55 @@ class DexProvider extends ChangeNotifier {
         } else {
           dex.caughtIds.add(entryId);
         }
+        _saveToPrefs();
+        notifyListeners();
+      }
+    } catch (e) {
+      NotificationHelper.showError("${Translator.get('error_save')} $e");
+    }
+  }
+
+  void toggleShiny(String dexId, String entryId) {
+    try {
+      final dexIndex = _userDexes.indexWhere((d) => d.id == dexId);
+      if (dexIndex != -1) {
+        final dex = _userDexes[dexIndex];
+        if (dex.shinyIds.contains(entryId)) {
+          dex.shinyIds.remove(entryId);
+        } else {
+          dex.shinyIds.add(entryId);
+          dex.caughtIds.add(entryId);
+        }
+        _saveToPrefs();
+        notifyListeners();
+      }
+    } catch (e) {
+      NotificationHelper.showError("${Translator.get('error_save')} $e");
+    }
+  }
+
+  void ignorePokemon(String dexId, String entryId) {
+    try {
+      final dexIndex = _userDexes.indexWhere((d) => d.id == dexId);
+      if (dexIndex != -1) {
+        final dex = _userDexes[dexIndex];
+        dex.ignoredIds.add(entryId);
+        dex.caughtIds.remove(entryId);
+        dex.shinyIds.remove(entryId);
+        _saveToPrefs();
+        notifyListeners();
+      }
+    } catch (e) {
+      NotificationHelper.showError("${Translator.get('error_save')} $e");
+    }
+  }
+
+  void restorePokemon(String dexId, String entryId) {
+    try {
+      final dexIndex = _userDexes.indexWhere((d) => d.id == dexId);
+      if (dexIndex != -1) {
+        final dex = _userDexes[dexIndex];
+        dex.ignoredIds.remove(entryId);
         _saveToPrefs();
         notifyListeners();
       }
@@ -166,19 +209,19 @@ class DexProvider extends ChangeNotifier {
       final dexIndex = _userDexes.indexWhere((d) => d.id == id);
       if (dexIndex != -1) {
         final oldDex = _userDexes[dexIndex];
-
         final updatedDex = UserDex(
           id: oldDex.id,
           title: title,
           region: oldDex.region,
           caughtIds: oldDex.caughtIds,
+          ignoredIds: oldDex.ignoredIds,
+          shinyIds: oldDex.shinyIds,
           includeGenders: includeGenders,
           includeRegional: includeRegional,
           includeMega: includeMega,
           includeGMax: includeGMax,
           includeOther: includeOther,
         );
-
         _userDexes[dexIndex] = updatedDex;
         _saveToPrefs();
         notifyListeners();

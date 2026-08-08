@@ -79,6 +79,7 @@ class Translator {
       'error_add_custom_color': 'Fehler beim hinzufügen einer eigenen Farbe:',
       'error_reset_to_default': 'Fehler beim zurücksetzen der Farben:',
       'error_launch_url': 'Konnte URL nicht öffnen:',
+      'error_toggle_shiny': 'Fehler beim Shiny eingeben:',
 
       // Gruppen-Namen
       'group_national': 'National',
@@ -365,6 +366,21 @@ class Translator {
       'region_name_unknown': 'Unbekannt',
       'region_name_gmax': 'Galar G-Max',
       'jump_to_region': 'Zu Region springen...',
+
+      // Extra-Info Box
+      'extra_info': 'Zusatzinformationen',
+      'form': 'Form',
+      'games_appearance': 'Kommt vor in',
+      'games_catchable': 'Fangbar in',
+      'events': 'Event-Verteilungen',
+      'ignore_pokemon': 'Aus Dex entfernen',
+      'ignore_confirm_title': 'Pokémon entfernen?',
+      'ignore_confirm_text':
+          'Möchtest du dieses Pokémon ausblenden? Du kannst es im Menü jederzeit wiederherstellen.',
+      'ignored_list_title': 'Ausgeblendete Pokémon',
+      'restore_pokemon': 'Wiederherstellen',
+      'empty_ignored': 'Es wurden keine Pokémon ausgeblendet.',
+      'placeholder_text': 'Wird in zukünftigen Updates hinzugefügt.',
     },
     'en': {
       // UI
@@ -433,6 +449,7 @@ class Translator {
       'error_add_custom_color': 'Error adding a custom color:',
       'error_reset_to_default': 'Error resetting colors:',
       'error_launch_url': 'Could not open URL:',
+      'error_toggle_shiny': 'Error toggle shiny:',
 
       // Group-names
       'group_national': 'National',
@@ -720,6 +737,21 @@ class Translator {
       'region_name_unknown': 'Unknown',
       'region_name_gmax': 'Galar G-Max',
       'jump_to_region': 'Jump to Region...',
+
+      // Extra info box
+      'extra_info': 'Extra Info',
+      'form': 'Form',
+      'games_appearance': 'Appears in',
+      'games_catchable': 'Catchable in',
+      'events': 'Event Distributions',
+      'ignore_pokemon': 'Remove from Dex',
+      'ignore_confirm_title': 'Remove Pokémon?',
+      'ignore_confirm_text':
+          'Do you want to hide this Pokémon? You can restore it anytime from the menu.',
+      'ignored_list_title': 'Hidden Pokémon',
+      'restore_pokemon': 'Restore',
+      'empty_ignored': 'No Pokémon have been hidden.',
+      'placeholder_text': 'Will be added in future updates.',
     },
   };
 }

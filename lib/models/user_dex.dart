@@ -3,6 +3,8 @@ class UserDex {
   final String title;
   final String region;
   final Set<String> caughtIds;
+  final Set<String> ignoredIds;
+  final Set<String> shinyIds;
   final bool includeGenders;
   final bool includeRegional;
   final bool includeMega;
@@ -14,6 +16,8 @@ class UserDex {
     required this.title,
     required this.region,
     required this.caughtIds,
+    this.ignoredIds = const {},
+    this.shinyIds = const {},
     this.includeGenders = false,
     required this.includeRegional,
     required this.includeMega,
@@ -27,6 +31,8 @@ class UserDex {
       'title': title,
       'region': region,
       'caughtIds': caughtIds.toList(),
+      'ignoredIds': ignoredIds.toList(),
+      'shinyIds': shinyIds.toList(),
       'includeRegional': includeRegional,
       'includeMega': includeMega,
       'includeGMax': includeGMax,
@@ -42,6 +48,16 @@ class UserDex {
       region: json['region'] as String,
       caughtIds:
           (json['caughtIds'] as List<dynamic>?)
+              ?.map((e) => e.toString())
+              .toSet() ??
+          {},
+      ignoredIds:
+          (json['ignoredIds'] as List<dynamic>?)
+              ?.map((e) => e.toString())
+              .toSet() ??
+          {},
+      shinyIds:
+          (json['shinyIds'] as List<dynamic>?)
               ?.map((e) => e.toString())
               .toSet() ??
           {},

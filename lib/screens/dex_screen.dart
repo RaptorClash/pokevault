@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
 import '../models/user_dex.dart';
 import '../models/pokemon.dart';
 import '../providers/dex_provider.dart';
 import '../l10n/app_translations.dart';
 import '../utils/notification_helper.dart';
+import 'pokemon_info_screen.dart';
+import 'ignored_list_screen.dart';
 
 class DexDisplayEntry {
   final Pokemon pokemon;
@@ -48,7 +49,6 @@ class DexScreen extends StatefulWidget {
 class _DexScreenState extends State<DexScreen> {
   String _searchQuery = '';
   String _filter = 'all';
-
   bool _isBoxView = false;
   bool _separateForms = true;
   bool _isLoadingPrefs = true;
@@ -172,12 +172,14 @@ class _DexScreenState extends State<DexScreen> {
   String _getPokemonRegionId(Pokemon p, PokemonForm? f) {
     if (f != null) {
       if (p.id == 25 && f.name.contains('cap')) return 'kanto';
+
       if (f.formType == 'gmax') return 'galar';
-      if (f.name.contains('alola')) return 'alola';
+      if (f.name.contains('alola') || f.name.contains('totem')) return 'alola';
       if (f.name.contains('galar')) return 'galar';
       if (f.name.contains('hisui')) return 'hisui';
       if (f.name.contains('paldea')) return 'paldea';
     }
+
     int id = p.id;
     if (id <= 151) return 'kanto';
     if (id <= 251) return 'johto';
@@ -195,18 +197,29 @@ class _DexScreenState extends State<DexScreen> {
   String _getEntryCategoryId(DexDisplayEntry entry) {
     final id = entry.pokemon.id;
     final uniqueId = entry.uniqueId.toLowerCase();
-    final suffix = entry.displaySuffix.trim();
+
+    bool isBaseForm = false;
+    if (!uniqueId.contains('_')) {
+      isBaseForm = true;
+    } else {
+      String formName = uniqueId.substring(uniqueId.indexOf('_') + 1);
+      if (formName == 'normal' || formName == 'm' || formName == 'male') {
+        isBaseForm = true;
+      } else if (entry.pokemon.forms.isNotEmpty &&
+          formName == entry.pokemon.forms.first.name.toLowerCase()) {
+        isBaseForm = true;
+      }
+    }
+
+    if (isBaseForm) return 'base';
 
     if (id == 25 && uniqueId.contains('cap')) return 'cap';
     if (id == 201) return 'unown';
-    if (id == 666 && suffix.isNotEmpty && suffix != ' ' && suffix != ' ')
-      return 'vivillon';
-    if (id == 869 && suffix.isNotEmpty && suffix != ' ' && suffix != ' ')
-      return 'alcremie';
+    if (id == 666) return 'vivillon';
+    if (id == 869) return 'alcremie';
 
     if (uniqueId.endsWith('_f') || uniqueId.endsWith('_female'))
       return 'females';
-    if (suffix.isEmpty || suffix == ' ') return 'base';
 
     if (uniqueId.contains('_')) {
       String formName = uniqueId.substring(uniqueId.indexOf('_') + 1);
@@ -216,8 +229,7 @@ class _DexScreenState extends State<DexScreen> {
         );
         if (form.formType == 'gmax') return 'gmax';
         if (form.formType == 'regional') return 'regional';
-        if (form.formType == 'mega')
-          return 'mega';
+        if (form.formType == 'mega') return 'mega';
       } catch (_) {}
     }
 
@@ -280,6 +292,7 @@ class _DexScreenState extends State<DexScreen> {
       ];
 
       Map<String, Map<String, List<DexDisplayEntry>>> structured = {};
+
       for (var entry in entries) {
         PokemonForm? form;
         if (entry.uniqueId.contains('_')) {
@@ -309,6 +322,8 @@ class _DexScreenState extends State<DexScreen> {
       for (String regionId in presentRegions) {
         var cats = structured[regionId]!;
         String localizedRegion = Translator.get('region_name_$regionId');
+        if (localizedRegion == 'region_name_$regionId')
+          localizedRegion = regionId[0].toUpperCase() + regionId.substring(1);
 
         void buildChunks(String catId) {
           if (!cats.containsKey(catId)) return;
@@ -324,13 +339,17 @@ class _DexScreenState extends State<DexScreen> {
               'unown',
               'vivillon',
               'alcremie',
+              'gmax',
+              'regional',
+              'mega',
             ].contains(catId);
             String localizedCat = Translator.get('cat_$catId');
+            if (localizedCat == 'cat_$catId') localizedCat = catId;
 
             if (catId == 'base') {
               baseTitle = localizedRegion;
             } else if (isSpecial) {
-              baseTitle = localizedCat;
+              baseTitle = '$localizedRegion $localizedCat';
             } else {
               baseTitle = '$localizedRegion $localizedCat';
             }
@@ -508,12 +527,7 @@ class _DexScreenState extends State<DexScreen> {
                 !isIcognitoDex)
               continue;
 
-            bool hideSuffix =
-                form.name == 'normal' ||
-                (isBaseForm &&
-                    !liveDex.includeOther &&
-                    !isIcognitoDex &&
-                    form.formType == 'other');
+            bool hideSuffix = form.name == 'normal';
             String suffix = hideSuffix
                 ? ''
                 : ' (${_getFormDisplayName(form.name, provider)})';
@@ -635,14 +649,16 @@ class _DexScreenState extends State<DexScreen> {
     }
 
     final caughtCount = liveDex.caughtIds.length;
-    final totalCount = rawEntries.length;
 
     final filteredList = rawEntries.where((entry) {
+      if (liveDex.ignoredIds.contains(entry.uniqueId)) return false;
+
       final baseName = entry.pokemon.getName(provider.currentLanguage);
       final fullName = baseName + entry.displaySuffix;
       final matchesSearch =
           fullName.toLowerCase().contains(_searchQuery.toLowerCase()) ||
           entry.pokemon.id.toString().contains(_searchQuery);
+
       final isCaught = liveDex.caughtIds.contains(entry.uniqueId);
 
       if (_filter == 'caught' && !isCaught) return false;
@@ -650,6 +666,9 @@ class _DexScreenState extends State<DexScreen> {
       return matchesSearch;
     }).toList();
 
+    final totalCount = rawEntries
+        .where((e) => !liveDex.ignoredIds.contains(e.uniqueId))
+        .length;
     final List<BoxData> boxes = _generateBoxes(
       filteredList,
       _separateForms,
@@ -680,6 +699,17 @@ class _DexScreenState extends State<DexScreen> {
             onSelected: (value) {
               if (value == 'toggle_view') _toggleBoxView();
               if (value == 'toggle_sort') _toggleSeparateForms();
+              if (value == 'ignored_list') {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => IgnoredListScreen(
+                      dexId: liveDex.id,
+                      allRawEntries: rawEntries,
+                    ),
+                  ),
+                );
+              }
             },
             itemBuilder: (context) => [
               PopupMenuItem(
@@ -711,6 +741,22 @@ class _DexScreenState extends State<DexScreen> {
                       _separateForms
                           ? Translator.get('sort_dex')
                           : Translator.get('sort_forms'),
+                    ),
+                  ],
+                ),
+              ),
+              const PopupMenuDivider(),
+              PopupMenuItem(
+                value: 'ignored_list',
+                child: Row(
+                  children: [
+                    const Icon(Icons.visibility_off, size: 20),
+                    const SizedBox(width: 8),
+                    Text(
+                      Translator.get('ignored_list_title') !=
+                              'ignored_list_title'
+                          ? Translator.get('ignored_list_title')
+                          : 'Ausgeblendete Pokémon',
                     ),
                   ],
                 ),
@@ -888,9 +934,23 @@ class _DexScreenState extends State<DexScreen> {
                       final isCaught = liveDex.caughtIds.contains(
                         entry.uniqueId,
                       );
+                      final isShiny = liveDex.shinyIds.contains(entry.uniqueId);
+
                       return GestureDetector(
                         onTap: () =>
                             provider.togglePokemon(liveDex.id, entry.uniqueId),
+                        onLongPress: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              fullscreenDialog: true,
+                              builder: (context) => PokemonInfoScreen(
+                                entry: entry,
+                                dexId: liveDex.id,
+                              ),
+                            ),
+                          );
+                        },
                         child: Container(
                           decoration: BoxDecoration(
                             color: isCaught
@@ -960,14 +1020,25 @@ class _DexScreenState extends State<DexScreen> {
                                   ),
                                 ),
                               ),
-                              if (isCaught)
-                                const Positioned(
+                              if (isCaught || isShiny)
+                                Positioned(
                                   top: 2,
                                   right: 2,
-                                  child: Icon(
-                                    Icons.catching_pokemon,
-                                    color: Colors.green,
-                                    size: 14,
+                                  child: Column(
+                                    children: [
+                                      if (isCaught)
+                                        const Icon(
+                                          Icons.catching_pokemon,
+                                          color: Colors.green,
+                                          size: 14,
+                                        ),
+                                      if (isShiny)
+                                        const Icon(
+                                          Icons.star,
+                                          color: Colors.amber,
+                                          size: 14,
+                                        ),
+                                    ],
                                   ),
                                 ),
                             ],
@@ -1011,9 +1082,20 @@ class _DexScreenState extends State<DexScreen> {
       itemBuilder: (context, index) {
         final entry = displayList[index];
         final isCaught = liveDex.caughtIds.contains(entry.uniqueId);
+        final isShiny = liveDex.shinyIds.contains(entry.uniqueId);
 
         return GestureDetector(
           onTap: () => provider.togglePokemon(liveDex.id, entry.uniqueId),
+          onLongPress: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                fullscreenDialog: true,
+                builder: (context) =>
+                    PokemonInfoScreen(entry: entry, dexId: liveDex.id),
+              ),
+            );
+          },
           child: Card(
             color: isCaught
                 ? Colors.green.withOpacity(0.15)
@@ -1046,10 +1128,28 @@ class _DexScreenState extends State<DexScreen> {
                                 Colors.transparent,
                                 BlendMode.dst,
                               )
-                            : const ColorFilter.mode(
-                                Colors.grey,
-                                BlendMode.saturation,
-                              ),
+                            : const ColorFilter.matrix(<double>[
+                                0.2126,
+                                0.7152,
+                                0.0722,
+                                0,
+                                0,
+                                0.2126,
+                                0.7152,
+                                0.0722,
+                                0,
+                                0,
+                                0.2126,
+                                0.7152,
+                                0.0722,
+                                0,
+                                0,
+                                0,
+                                0,
+                                0,
+                                1,
+                                0,
+                              ]),
                         child: Image.network(
                           entry.imageUrl,
                           fit: BoxFit.contain,
@@ -1085,14 +1185,21 @@ class _DexScreenState extends State<DexScreen> {
                     ),
                   ],
                 ),
-                if (isCaught)
-                  const Positioned(
+                if (isCaught || isShiny)
+                  Positioned(
                     top: 6,
                     right: 6,
-                    child: Icon(
-                      Icons.catching_pokemon,
-                      color: Colors.green,
-                      size: 20,
+                    child: Column(
+                      children: [
+                        if (isCaught)
+                          const Icon(
+                            Icons.catching_pokemon,
+                            color: Colors.green,
+                            size: 20,
+                          ),
+                        if (isShiny)
+                          const Icon(Icons.star, color: Colors.amber, size: 20),
+                      ],
                     ),
                   ),
               ],
