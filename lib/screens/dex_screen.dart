@@ -24,7 +24,7 @@ class DexDisplayEntry {
 
 class BoxData {
   final String title;
-  final String regionKey; // Interne Key-ID zum Gruppieren der Regionen
+  final String regionKey;
   final List<DexDisplayEntry> entries;
   final int crossAxisCount;
 
@@ -92,9 +92,7 @@ class _DexScreenState extends State<DexScreen> {
     super.dispose();
   }
 
-  // --- NEU: Quick-Navigation zeigt NUR EINMALIG jede Region an ---
   void _showQuickNavDialog(List<BoxData> boxes) {
-    // Filtere eindeutige Regionen heraus (findet jeweils den ersten Box-Index der Region)
     final Map<String, int> regionFirstIndices = {};
     for (int i = 0; i < boxes.length; i++) {
       if (!regionFirstIndices.containsKey(boxes[i].regionKey)) {
@@ -188,7 +186,7 @@ class _DexScreenState extends State<DexScreen> {
     if (id <= 649) return 'unova';
     if (id <= 721) return 'kalos';
     if (id <= 807) return 'alola';
-    if (id <= 809) return 'unknown'; // Meltan & Melmetal
+    if (id <= 809) return 'unknown';
     if (id <= 898) return 'galar';
     if (id <= 905) return 'hisui';
     return 'paldea';
@@ -210,7 +208,6 @@ class _DexScreenState extends State<DexScreen> {
       return 'females';
     if (suffix.isEmpty || suffix == ' ') return 'base';
 
-    // NEU: Form-Typ prüfen, um G-Max, Regional und Mega zu trennen!
     if (uniqueId.contains('_')) {
       String formName = uniqueId.substring(uniqueId.indexOf('_') + 1);
       try {
@@ -220,11 +217,10 @@ class _DexScreenState extends State<DexScreen> {
         if (form.formType == 'gmax') return 'gmax';
         if (form.formType == 'regional') return 'regional';
         if (form.formType == 'mega')
-          return 'mega'; // Ich habe Mega-Formen direkt mit getrennt, das ist übersichtlicher!
+          return 'mega';
       } catch (_) {}
     }
 
-    // Alles andere (wie z.B. Ash-Quajutsu, Urformen, Kostüme) landet weiterhin hier
     return 'alternate';
   }
 
@@ -784,7 +780,6 @@ class _DexScreenState extends State<DexScreen> {
     }
 
     double screenWidth = MediaQuery.of(context).size.width;
-    // --- PC-Breite stark vergrößert für Fullscreen (bis zu 1100px) ---
     double boxMaxWidth = screenWidth > 1200
         ? 1100
         : (screenWidth > 800 ? 800 : double.infinity);
@@ -798,7 +793,6 @@ class _DexScreenState extends State<DexScreen> {
           itemBuilder: (context, boxIndex) {
             final box = boxes[boxIndex];
 
-            // --- HIER BEHOBEN: SingleChildScrollView verhindert das Aufreißen/Renderer-Bugs auf Handys ---
             return CustomScrollView(
               slivers: [
                 SliverToBoxAdapter(
@@ -916,7 +910,6 @@ class _DexScreenState extends State<DexScreen> {
                             children: [
                               Center(
                                 child: ColorFiltered(
-                                  // HIER IST DER FIX FÜR DEN ANDROID RENDER-BUG
                                   colorFilter: isCaught
                                       ? const ColorFilter.mode(
                                           Colors.transparent,

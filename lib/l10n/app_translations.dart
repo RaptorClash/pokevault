@@ -686,7 +686,7 @@ class Translator {
       'credit_ai_title': 'Google Gemini',
       'credit_ai_sub': 'AI assistance in coding & refactoring',
 
-      // PC-Box Ansicht & Sortierung
+      // PC-Box overview
       'view_list': 'Switch to List View',
       'view_box': 'Switch to PC Box View',
       'sort_dex': 'Sort by PokéDex (Normal)',
@@ -695,7 +695,7 @@ class Translator {
       'empty_box': 'No Pokémon found.',
       'box': 'Box',
 
-      // PC-Box Kategorien
+      // PC-Box categories
       'cat_females': 'Females',
       'cat_alternate': 'Alternate',
       'cat_cap': 'Cap Pikachu',
@@ -706,7 +706,7 @@ class Translator {
       'cat_regional': 'Regionalformen',
       'cat_mega': 'Mega',
 
-      // Reine Regionen-Namen für die Boxen
+      // Region names for boxes
       'region_name_kanto': 'Kanto',
       'region_name_johto': 'Johto',
       'region_name_hoenn': 'Hoenn',
