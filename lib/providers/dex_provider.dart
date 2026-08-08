@@ -59,7 +59,9 @@ class DexProvider extends ChangeNotifier {
 
   void toggleTheme() {
     try {
-      _themeMode = _themeMode == ThemeMode.light ? ThemeMode.dark : ThemeMode.light;
+      _themeMode = _themeMode == ThemeMode.light
+          ? ThemeMode.dark
+          : ThemeMode.light;
       _saveToPrefs();
       notifyListeners();
     } catch (e) {
@@ -86,6 +88,7 @@ class DexProvider extends ChangeNotifier {
     bool includeMega,
     bool includeGMax,
     bool includeOther,
+    bool isShinyDex,
   ) {
     try {
       final newDex = UserDex(
@@ -100,6 +103,7 @@ class DexProvider extends ChangeNotifier {
         includeMega: includeMega,
         includeGMax: includeGMax,
         includeOther: includeOther,
+        isShinyDex: isShinyDex,
       );
       _userDexes.add(newDex);
       _saveToPrefs();
@@ -119,6 +123,9 @@ class DexProvider extends ChangeNotifier {
           dex.shinyIds.remove(entryId);
         } else {
           dex.caughtIds.add(entryId);
+          if (dex.isShinyDex) {
+            dex.shinyIds.add(entryId);
+          }
         }
         _saveToPrefs();
         notifyListeners();
@@ -209,6 +216,7 @@ class DexProvider extends ChangeNotifier {
     bool includeMega,
     bool includeGMax,
     bool includeOther,
+    bool isShinyDex,
   ) {
     try {
       final dexIndex = _userDexes.indexWhere((d) => d.id == id);
@@ -226,6 +234,7 @@ class DexProvider extends ChangeNotifier {
           includeMega: includeMega,
           includeGMax: includeGMax,
           includeOther: includeOther,
+          isShinyDex: isShinyDex,
         );
         _userDexes[dexIndex] = updatedDex;
         _saveToPrefs();

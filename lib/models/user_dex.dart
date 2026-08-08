@@ -10,6 +10,7 @@ class UserDex {
   final bool includeMega;
   final bool includeGMax;
   final bool includeOther;
+  final bool isShinyDex;
 
   UserDex({
     required this.id,
@@ -23,6 +24,7 @@ class UserDex {
     required this.includeMega,
     required this.includeGMax,
     required this.includeOther,
+    this.isShinyDex = false,
   });
 
   Map<String, dynamic> toJson() {
@@ -38,6 +40,7 @@ class UserDex {
       'includeGMax': includeGMax,
       'includeOther': includeOther,
       'includeGenders': includeGenders,
+      'isShinyDex': isShinyDex,
     };
   }
 
@@ -66,6 +69,9 @@ class UserDex {
       includeMega: json['includeMega'] as bool? ?? false,
       includeGMax: json['includeGMax'] as bool? ?? false,
       includeOther: json['includeOther'] as bool? ?? false,
+      isShinyDex:
+          json['isShinyDex'] as bool? ??
+          false,
     );
   }
 }

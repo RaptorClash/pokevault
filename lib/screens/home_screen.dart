@@ -261,7 +261,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
 class CreateDexBottomSheet extends StatefulWidget {
   final DexProvider provider;
-
   const CreateDexBottomSheet({super.key, required this.provider});
 
   @override
@@ -278,6 +277,7 @@ class _CreateDexBottomSheetState extends State<CreateDexBottomSheet> {
   bool includeMega = false;
   bool includeGMax = false;
   bool includeOther = false;
+  bool isShinyDex = false;
 
   late Map<String, bool> features;
 
@@ -323,6 +323,7 @@ class _CreateDexBottomSheetState extends State<CreateDexBottomSheet> {
   @override
   Widget build(BuildContext context) {
     final bottomPadding = MediaQuery.of(context).viewInsets.bottom;
+    bool isMegaDex = selectedSubDex == 'mega_dex';
     
     return Padding(
       padding: EdgeInsets.only(bottom: bottomPadding, left: 16, right: 16, top: 24),
@@ -447,6 +448,14 @@ class _CreateDexBottomSheetState extends State<CreateDexBottomSheet> {
               child: Column(
                 children: [
                   SwitchListTile(
+                    title: Text(Translator.get('shiny_dex') != 'shiny_dex' ? Translator.get('shiny_dex') : 'Shiny Dex'),
+                    secondary: const Icon(Icons.star, color: Colors.amber),
+                    value: isShinyDex,
+                    activeColor: Colors.amber,
+                    onChanged: (val) => setState(() => isShinyDex = val),
+                  ),
+                  const Divider(height: 1),
+                  SwitchListTile(
                     title: Text(Translator.get('include_genders')),
                     secondary: const Icon(Icons.wc),
                     value: includeGenders,
@@ -467,10 +476,10 @@ class _CreateDexBottomSheetState extends State<CreateDexBottomSheet> {
                       ),
                       CheckboxListTile(
                         title: Text(Translator.get('form_mega')),
-                        value: includeMega,
+                        value: isMegaDex ? true : includeMega,
                         activeColor: Colors.red,
-                        enabled: features['mega']! || selectedSubDex == 'mega_dex',
-                        onChanged: (features['mega']! || selectedSubDex == 'mega_dex') ? (val) => setState(() => includeMega = val ?? false) : null,
+                        enabled: !isMegaDex && features['mega']!,
+                        onChanged: (!isMegaDex && features['mega']!) ? (val) => setState(() => includeMega = val ?? false) : null,
                       ),
                       CheckboxListTile(
                         title: Text(Translator.get('form_gmax')),
@@ -513,6 +522,7 @@ class _CreateDexBottomSheetState extends State<CreateDexBottomSheet> {
                           includeMega,
                           includeGMax,
                           includeOther,
+                          isShinyDex,
                         );
                         Navigator.pop(context);
                       }
@@ -539,7 +549,6 @@ class _CreateDexBottomSheetState extends State<CreateDexBottomSheet> {
 class EditDexDialog extends StatefulWidget {
   final DexProvider provider;
   final UserDex dex;
-
   const EditDexDialog({super.key, required this.provider, required this.dex});
 
   @override
@@ -553,6 +562,7 @@ class _EditDexDialogState extends State<EditDexDialog> {
   late bool includeMega;
   late bool includeGMax;
   late bool includeOther;
+  late bool isShinyDex;
   late Map<String, bool> features;
 
   @override
@@ -564,6 +574,7 @@ class _EditDexDialogState extends State<EditDexDialog> {
     includeMega = widget.dex.includeMega;
     includeGMax = widget.dex.includeGMax;
     includeOther = widget.dex.includeOther;
+    isShinyDex = widget.dex.isShinyDex;
     features = DexGroupsData.getAvailableFeatures(widget.dex.region);
   }
 
@@ -575,6 +586,7 @@ class _EditDexDialogState extends State<EditDexDialog> {
 
   @override
   Widget build(BuildContext context) {
+    bool isMegaDex = widget.dex.region == 'mega_dex';
     return AlertDialog(
       title: Text(Translator.get('edit')),
       content: SingleChildScrollView(
@@ -590,6 +602,14 @@ class _EditDexDialogState extends State<EditDexDialog> {
               ),
             ),
             const SizedBox(height: 16),
+            SwitchListTile(
+              title: Text(Translator.get('shiny_dex') != 'shiny_dex' ? Translator.get('shiny_dex') : 'Shiny Dex'),
+              secondary: const Icon(Icons.star, color: Colors.amber),
+              value: isShinyDex,
+              activeColor: Colors.amber,
+              onChanged: (val) => setState(() => isShinyDex = val),
+            ),
+            const Divider(height: 1),
             SwitchListTile(
               title: Text(Translator.get('include_genders')),
               secondary: const Icon(Icons.wc),
@@ -611,10 +631,10 @@ class _EditDexDialogState extends State<EditDexDialog> {
                 ),
                 CheckboxListTile(
                   title: Text(Translator.get('form_mega')),
-                  value: includeMega,
+                  value: isMegaDex ? true : includeMega,
                   activeColor: Colors.red,
-                  enabled: features['mega']! || widget.dex.region == 'mega_dex',
-                  onChanged: (features['mega']! || widget.dex.region == 'mega_dex') ? (val) => setState(() => includeMega = val ?? false) : null,
+                  enabled: !isMegaDex && features['mega']!,
+                  onChanged: (!isMegaDex && features['mega']!) ? (val) => setState(() => includeMega = val ?? false) : null,
                 ),
                 CheckboxListTile(
                   title: Text(Translator.get('form_gmax')),
@@ -650,6 +670,7 @@ class _EditDexDialogState extends State<EditDexDialog> {
                 includeMega,
                 includeGMax,
                 includeOther,
+                isShinyDex,
               );
               Navigator.pop(context);
             }
