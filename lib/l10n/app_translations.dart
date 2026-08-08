@@ -330,6 +330,41 @@ class Translator {
       'credit_balls_sub': 'Community Sheet für passende Pokébälle',
       'credit_ai_title': 'Google Gemini',
       'credit_ai_sub': 'KI-Assistenz beim Programmieren & Refactoring',
+
+      // PC-Box Ansicht & Sortierung
+      'view_list': 'Zur Listen-Ansicht',
+      'view_box': 'Zur PC-Box Ansicht',
+      'sort_dex': 'Nach PokéDex (Normal)',
+      'sort_forms': 'Nach Regionen & Formen',
+      'tooltip_view_sort': 'Ansicht & Sortierung',
+      'empty_box': 'Keine Pokémon gefunden.',
+      'box': 'Box',
+
+      // PC-Box Kategorien
+      'cat_females': 'Weibchen',
+      'cat_alternate': 'Alternativ',
+      'cat_cap': 'Cap Pikachu',
+      'cat_unown': 'Icognitodex',
+      'cat_vivillon': 'Vivillon',
+      'cat_alcremie': 'Pokusan',
+      'cat_gmax': 'Gigantamax',
+      'cat_regional': 'Regional Forms',
+      'cat_mega': 'Mega',
+
+      // Reine Regionen-Namen für die Boxen
+      'region_name_kanto': 'Kanto',
+      'region_name_johto': 'Johto',
+      'region_name_hoenn': 'Hoenn',
+      'region_name_sinnoh': 'Sinnoh',
+      'region_name_unova': 'Einall',
+      'region_name_kalos': 'Kalos',
+      'region_name_alola': 'Alola',
+      'region_name_galar': 'Galar',
+      'region_name_hisui': 'Hisui',
+      'region_name_paldea': 'Paldea',
+      'region_name_unknown': 'Unbekannt',
+      'region_name_gmax': 'Galar G-Max',
+      'jump_to_region': 'Zu Region springen...',
     },
     'en': {
       // UI
@@ -650,6 +685,41 @@ class Translator {
       'credit_balls_sub': 'Community sheet for matching Poké Balls',
       'credit_ai_title': 'Google Gemini',
       'credit_ai_sub': 'AI assistance in coding & refactoring',
+
+      // PC-Box Ansicht & Sortierung
+      'view_list': 'Switch to List View',
+      'view_box': 'Switch to PC Box View',
+      'sort_dex': 'Sort by PokéDex (Normal)',
+      'sort_forms': 'Sort by Regions & Forms',
+      'tooltip_view_sort': 'View & Sort',
+      'empty_box': 'No Pokémon found.',
+      'box': 'Box',
+
+      // PC-Box Kategorien
+      'cat_females': 'Females',
+      'cat_alternate': 'Alternate',
+      'cat_cap': 'Cap Pikachu',
+      'cat_unown': 'UnownDex',
+      'cat_vivillon': 'Vivillon',
+      'cat_alcremie': 'Alcremie',
+      'cat_gmax': 'Gigadynamax',
+      'cat_regional': 'Regionalformen',
+      'cat_mega': 'Mega',
+
+      // Reine Regionen-Namen für die Boxen
+      'region_name_kanto': 'Kanto',
+      'region_name_johto': 'Johto',
+      'region_name_hoenn': 'Hoenn',
+      'region_name_sinnoh': 'Sinnoh',
+      'region_name_unova': 'Unova',
+      'region_name_kalos': 'Kalos',
+      'region_name_alola': 'Alola',
+      'region_name_galar': 'Galar',
+      'region_name_hisui': 'Hisui',
+      'region_name_paldea': 'Paldea',
+      'region_name_unknown': 'Unknown',
+      'region_name_gmax': 'Galar G-Max',
+      'jump_to_region': 'Jump to Region...',
     },
   };
 }
