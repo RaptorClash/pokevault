@@ -337,7 +337,6 @@ class ShinyLogicHelper {
     151: [100, 100, 100, 100, 100],
   };
 
-  // Alle besonderen Encounter, basierend auf den bereitgestellten Daten.
   static final Map<int, List<Gen1Encounter>> _gen1SpecialEncounters = {
     1: [
       Gen1Encounter(
