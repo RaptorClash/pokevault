@@ -29,7 +29,6 @@ class Translator {
       'edit': 'Bearbeiten',
       'delete': 'Löschen',
       'save': 'Speichern',
-
       // Neues Bottom Sheet & Formulare
       'choose_generation': 'Wähle eine Generation / Spiel',
       'exact_pokedex': 'Genauer Pokédex',
@@ -41,7 +40,6 @@ class Translator {
       'form_gmax': 'Gigadynamax (G-Max)',
       'form_other': 'Sonstige (Kostüme, Pokusan...)',
       'form_other_short': 'Sonstige (Kostüme...)',
-
       // Bestätigungs-Dialoge
       'delete_confirm_title': 'Dex löschen?',
       'delete_confirm_text':
@@ -49,7 +47,6 @@ class Translator {
       'delete_multiple_confirm_title': 'Dexe löschen?',
       'delete_multiple_confirm_text':
           'Möchtest du die ausgewählten Dexe wirklich löschen?',
-
       // Benachrichtigungen (Notifications)
       'import_success': 'Pokédex erfolgreich importiert!',
       'backup_success': 'Backup erfolgreich gespeichert unter:',
@@ -80,7 +77,6 @@ class Translator {
       'error_reset_to_default': 'Fehler beim zurücksetzen der Farben:',
       'error_launch_url': 'Konnte URL nicht öffnen:',
       'error_toggle_shiny': 'Fehler beim Shiny eingeben:',
-
       // Gruppen-Namen
       'group_national': 'National',
       'group_kanto': 'Kanto',
@@ -92,7 +88,6 @@ class Translator {
       'group_alola': 'Alola',
       'group_galar': 'Galar & Hisui',
       'group_paldea': 'Paldea',
-
       // Form-Namen
       'form_name_alola': 'Alola',
       'form_name_galar': 'Galar',
@@ -267,7 +262,6 @@ class Translator {
       'form_name_steel': 'Stahl',
       'form_name_water': 'Wasser',
       'form_name_unknown': 'Unbekannt',
-
       // Regionale Dexe
       'region_national_overall': 'Nationaldex',
       'region_kanto_regional': 'Kanto (Regional)',
@@ -305,7 +299,6 @@ class Translator {
       'region_special_dex': 'Spezial Dexe',
       'region_mega_dex': 'Mega Dex',
       'region_icognito_dex': 'Unkown Dex',
-
       // Erscheinungseinstellungen
       "appearance": "Erscheinungsbild",
       "choose_accent_color": "Akzentfarbe",
@@ -316,7 +309,6 @@ class Translator {
       "data_management": "Datenverwaltung",
       "apply": "Übernehmen",
       "reset_theme": "Standarddesign wiederherstellen",
-
       // Credit Bildschirm
       'credits': 'Danksagungen & Quellen',
       'credit_api_title': 'PokéAPI & Sprites',
@@ -331,7 +323,6 @@ class Translator {
       'credit_balls_sub': 'Community Sheet für passende Pokébälle',
       'credit_ai_title': 'Google Gemini',
       'credit_ai_sub': 'KI-Assistenz beim Programmieren & Refactoring',
-
       // PC-Box Ansicht & Sortierung
       'view_list': 'Zur Listen-Ansicht',
       'view_box': 'Zur PC-Box Ansicht',
@@ -340,7 +331,6 @@ class Translator {
       'tooltip_view_sort': 'Ansicht & Sortierung',
       'empty_box': 'Keine Pokémon gefunden.',
       'box': 'Box',
-
       // PC-Box Kategorien
       'cat_females': 'Weibchen',
       'cat_alternate': 'Alternativ',
@@ -349,9 +339,8 @@ class Translator {
       'cat_vivillon': 'Vivillon',
       'cat_alcremie': 'Pokusan',
       'cat_gmax': 'Gigantamax',
-      'cat_regional': 'Regional Forms',
+      'cat_regional': 'Regionalformen',
       'cat_mega': 'Mega',
-
       // Reine Regionen-Namen für die Boxen
       'region_name_kanto': 'Kanto',
       'region_name_johto': 'Johto',
@@ -366,7 +355,6 @@ class Translator {
       'region_name_unknown': 'Unbekannt',
       'region_name_gmax': 'Galar G-Max',
       'jump_to_region': 'Zu Region springen...',
-
       // Extra-Info Box
       'extra_info': 'Zusatzinformationen',
       'form': 'Form',
@@ -381,7 +369,6 @@ class Translator {
       'restore_pokemon': 'Wiederherstellen',
       'empty_ignored': 'Es wurden keine Pokémon ausgeblendet.',
       'placeholder_text': 'Wird in zukünftigen Updates hinzugefügt.',
-
       'shiny_dex': 'Shiny Dex',
       'region_legendary_dex': 'Legenden Dex',
       'region_mythical_dex': 'Mysteriöse Dex',
@@ -402,7 +389,6 @@ class Translator {
       'region_egg_dragon': 'Eigruppe: Drache',
       'region_egg_no_eggs': 'Eigruppe: Unbekannt',
       'any_ball': 'Beliebig / Unbekannt',
-
       // Bälle
       'ball_poke_ball': 'Pokéball',
       'ball_great_ball': 'Superball',
@@ -431,6 +417,36 @@ class Translator {
       'ball_dream_ball': 'Traumball',
       'ball_beast_ball': 'Ultraball',
       'ball_strange_ball': 'Seltsamer Ball',
+      // Shiny Guide Updates
+      'shiny_guide_title': 'Shiny Guide',
+      'shiny_guide_gen1': 'Generation 1',
+      'shiny_guide_gen1_desc':
+          'Tipp: Fange/Züchte das Pokémon in Gen 2 und tausche es per Zeitkapsel nach Gen 1. Wenn du es dann auf Pokémon Bank/HOME überträgst, behält es seinen Shiny-Status, bekommt das Gameboy-Icon und als Herkunftsort "Kanto"!',
+      'shiny_stat_calculator': 'Shiny Stat Rechner',
+      'level': 'Level',
+      'base_stats': 'Basiswerte',
+      'table_hp_0': 'Tabelle 1 (KP DV: 0)',
+      'table_hp_8': 'Tabelle 2 (KP DV: 8)',
+      'stat_hp': 'KP',
+      'stat_atk': 'ANG',
+      'stat_def': 'VER',
+      'stat_spe': 'INIT',
+      'stat_spc': 'SPEZ',
+      'shiny_huntable_yes': 'Regulär Huntbar: Ja',
+      'shiny_huntable_no': 'Regulär Huntbar: Nein',
+      'notable_encounters': 'Besondere Begegnungen:',
+      'encounter_stationary': 'Stationär',
+      'encounter_gift': 'Geschenk',
+      'encounter_game_corner': 'Spielhalle',
+      'encounter_trade': 'In-Game Tausch',
+      'encounter_fishing': 'Angeln',
+      'encounter_evolution': 'Durch Entwicklung einer fangbaren Vorentwicklung',
+      'encounter_glitch': 'Glitch',
+      'tutorials_mew': 'Mew 8F-Glitch Tutorials:',
+      'tutorial_mew_video_de': 'Video Tutorial (DE) - LEOsMIND',
+      'tutorial_mew_video_en': 'Video Tutorial (EN) - Austin John',
+      'tutorial_mew_text_en': 'Text Tutorial (EN) - extratricky',
+      'error_shiny_guide': 'Fehler beim Laden des Shiny Guides.',
     },
     'en': {
       // UI
@@ -464,7 +480,6 @@ class Translator {
       'form_gmax': 'Gigantamax (G-Max)',
       'form_other': 'Other (Costumes, Alcremie...)',
       'form_other_short': 'Other (Costumes...)',
-
       // Confirm dialogs
       'delete_confirm_title': 'Delete Dex?',
       'delete_confirm_text':
@@ -472,7 +487,6 @@ class Translator {
       'delete_multiple_confirm_title': 'Delete Dexes?',
       'delete_multiple_confirm_text':
           'Do you really want to delete the selected Dexes?',
-
       // Notifications
       'import_success': 'Pokédex imported successfully!',
       'backup_success': 'Backup saved successfully at:',
@@ -500,7 +514,6 @@ class Translator {
       'error_reset_to_default': 'Error resetting colors:',
       'error_launch_url': 'Could not open URL:',
       'error_toggle_shiny': 'Error toggle shiny:',
-
       // Group-names
       'group_national': 'National',
       'group_kanto': 'Kanto',
@@ -512,7 +525,6 @@ class Translator {
       'group_alola': 'Alola',
       'group_galar': 'Galar & Hisui',
       'group_paldea': 'Paldea',
-
       // Forms
       'form_name_alola': 'Alola',
       'form_name_galar': 'Galar',
@@ -668,7 +680,6 @@ class Translator {
       'form_name_10': '10%',
       'form_name_50': '50%',
       'form_name_unbound': 'Unbound',
-
       // Types (Arceus & Amigento)
       'form_name_bug': 'Bug',
       'form_name_dark': 'Dark',
@@ -688,7 +699,6 @@ class Translator {
       'form_name_steel': 'Steel',
       'form_name_water': 'Water',
       'form_name_unknown': 'Unknown',
-
       // Regionale Dexe
       'region_national_overall': 'National Dex',
       'region_kanto_regional': 'Kanto (Regional)',
@@ -726,7 +736,6 @@ class Translator {
       'region_special_dex': 'Special Dex',
       'region_mega_dex': 'Mega Dex',
       'region_icognito_dex': 'Icognito Dex',
-
       // Appearance settings
       "appearance": "Appearance",
       "choose_accent_color": "Accent Color",
@@ -737,7 +746,6 @@ class Translator {
       "data_management": "Data Management",
       "apply": "Apply",
       "reset_theme": "Restore default theme",
-
       // Credit screen
       'credits': 'Credits & Sources',
       'credit_api_title': 'PokéAPI & Sprites',
@@ -752,7 +760,6 @@ class Translator {
       'credit_balls_sub': 'Community sheet for matching Poké Balls',
       'credit_ai_title': 'Google Gemini',
       'credit_ai_sub': 'AI assistance in coding & refactoring',
-
       // PC-Box overview
       'view_list': 'Switch to List View',
       'view_box': 'Switch to PC Box View',
@@ -761,7 +768,6 @@ class Translator {
       'tooltip_view_sort': 'View & Sort',
       'empty_box': 'No Pokémon found.',
       'box': 'Box',
-
       // PC-Box categories
       'cat_females': 'Females',
       'cat_alternate': 'Alternate',
@@ -772,7 +778,6 @@ class Translator {
       'cat_gmax': 'Gigadynamax',
       'cat_regional': 'Regionalformen',
       'cat_mega': 'Mega',
-
       // Region names for boxes
       'region_name_kanto': 'Kanto',
       'region_name_johto': 'Johto',
@@ -787,7 +792,6 @@ class Translator {
       'region_name_unknown': 'Unknown',
       'region_name_gmax': 'Galar G-Max',
       'jump_to_region': 'Jump to Region...',
-
       // Extra info box
       'extra_info': 'Extra Info',
       'form': 'Form',
@@ -802,7 +806,6 @@ class Translator {
       'restore_pokemon': 'Restore',
       'empty_ignored': 'No Pokémon have been hidden.',
       'placeholder_text': 'Will be added in future updates.',
-
       'shiny_dex': 'Shiny Dex',
       'region_legendary_dex': 'Legendary Dex',
       'region_mythical_dex': 'Mythical Dex',
@@ -823,7 +826,6 @@ class Translator {
       'region_egg_dragon': 'Egg Group: Dragon',
       'region_egg_no_eggs': 'Egg Group: Undiscovered',
       'any_ball': 'Any / Unknown',
-
       // Balls
       'ball_poke_ball': 'Poké Ball',
       'ball_great_ball': 'Great Ball',
@@ -852,6 +854,36 @@ class Translator {
       'ball_dream_ball': 'Dream Ball',
       'ball_beast_ball': 'Beast Ball',
       'ball_strange_ball': 'Strange Ball',
+      // Shiny Guide Updates
+      'shiny_guide_title': 'Shiny Guide',
+      'shiny_guide_gen1': 'Generation 1',
+      'shiny_guide_gen1_desc':
+          'Tip: Catch/breed the Pokémon in Gen 2 and trade it back to Gen 1 via Time Capsule. When you transfer it to Pokémon Bank/HOME, it will keep its shiny status, get the Gameboy icon, and show "Kanto" as its origin!',
+      'shiny_stat_calculator': 'Shiny Stat Calculator',
+      'level': 'Level',
+      'base_stats': 'Base Stats',
+      'table_hp_0': 'Table 1 (HP DV: 0)',
+      'table_hp_8': 'Table 2 (HP DV: 8)',
+      'stat_hp': 'HP',
+      'stat_atk': 'ATK',
+      'stat_def': 'DEF',
+      'stat_spe': 'SPE',
+      'stat_spc': 'SPC',
+      'shiny_huntable_yes': 'Regularly Huntable: Yes',
+      'shiny_huntable_no': 'Regularly Huntable: No',
+      'notable_encounters': 'Notable Encounters:',
+      'encounter_stationary': 'Stationary',
+      'encounter_gift': 'Gift',
+      'encounter_game_corner': 'Game Corner',
+      'encounter_trade': 'In-Game Trade',
+      'encounter_fishing': 'Fishing',
+      'encounter_evolution': 'By evolving a catchable pre-evolution',
+      'encounter_glitch': 'Glitch',
+      'tutorials_mew': 'Mew 8F Glitch Tutorials:',
+      'tutorial_mew_video_de': 'Video Tutorial (DE) - LEOsMIND',
+      'tutorial_mew_video_en': 'Video Tutorial (EN) - Austin John',
+      'tutorial_mew_text_en': 'Text Tutorial (EN) - extratricky',
+      'error_shiny_guide': 'Error loading Shiny Guide.',
     },
   };
 }
