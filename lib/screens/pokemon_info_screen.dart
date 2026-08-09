@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
 import '../models/dex_view_models.dart';
 import '../providers/dex_provider.dart';
 import '../l10n/app_translations.dart';
 import '../data/matching_balls_data.dart';
+import 'shiny_guide_widget.dart'; // <--- Das Importieren nicht vergessen!
 
 class PokemonInfoScreen extends StatelessWidget {
   final DexDisplayEntry entry;
@@ -25,7 +27,6 @@ class PokemonInfoScreen extends StatelessWidget {
     final matchingBalls =
         matchingBallsDatabase[entry.uniqueId] ??
         matchingBallsDatabase['${entry.pokemon.id}_normal'];
-
     final List<String> normalBalls = matchingBalls?['normal'] ?? [];
     final List<String> shinyBalls = matchingBalls?['shiny'] ?? [];
 
@@ -151,6 +152,11 @@ class PokemonInfoScreen extends StatelessWidget {
               shinyBalls,
               Colors.amber,
             ),
+            const SizedBox(height: 16),
+
+            // NEUER ABSCHNITT: Hier wird das ShinyGuideWidget hinzugefügt
+            ShinyGuideWidget(pokemon: entry.pokemon),
+
             const SizedBox(height: 32),
             SizedBox(
               width: double.infinity,
@@ -188,7 +194,6 @@ class PokemonInfoScreen extends StatelessWidget {
     Color iconColor,
   ) {
     bool isAny = ballKeys.isEmpty || ballKeys.contains('any_ball');
-
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 8),
       child: Padding(
