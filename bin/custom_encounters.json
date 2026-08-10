@@ -235,6 +235,17 @@
         }
     },
     "252": {
+        "gen_2": {
+            "gold": [
+                "Mail Writer Glitch"
+            ],
+            "silver": [
+                "Mail Writer Glitch"
+            ],
+            "crystal": [
+                "Mail Writer Glitch"
+            ]
+        },
         "gen_3": {
             "ruby": [
                 "Route 101 (Starter)"
@@ -247,7 +258,44 @@
             ]
         }
     },
+    "253": {
+        "gen_2": {
+            "gold": [
+                "Mail Writer Glitch"
+            ],
+            "silver": [
+                "Mail Writer Glitch"
+            ],
+            "crystal": [
+                "Mail Writer Glitch"
+            ]
+        }
+    },
+    "254": {
+        "gen_2": {
+            "gold": [
+                "Mail Writer Glitch"
+            ],
+            "silver": [
+                "Mail Writer Glitch"
+            ],
+            "crystal": [
+                "Mail Writer Glitch"
+            ]
+        }
+    },
     "255": {
+        "gen_2": {
+            "gold": [
+                "Mail Writer Glitch"
+            ],
+            "silver": [
+                "Mail Writer Glitch"
+            ],
+            "crystal": [
+                "Mail Writer Glitch"
+            ]
+        },
         "gen_3": {
             "ruby": [
                 "Route 101 (Starter)"
@@ -257,6 +305,32 @@
             ],
             "emerald": [
                 "Route 101 (Starter)"
+            ]
+        }
+    },
+    "256": {
+        "gen_2": {
+            "gold": [
+                "Mail Writer Glitch"
+            ],
+            "silver": [
+                "Mail Writer Glitch"
+            ],
+            "crystal": [
+                "Mail Writer Glitch"
+            ]
+        }
+    },
+    "257": {
+        "gen_2": {
+            "gold": [
+                "Mail Writer Glitch"
+            ],
+            "silver": [
+                "Mail Writer Glitch"
+            ],
+            "crystal": [
+                "Mail Writer Glitch"
             ]
         }
     },

@@ -1,3 +1,6 @@
+import '../data/encounters_data.dart';
+import '../data/dex_orders.dart';
+
 class ShinyLogicHelper {
   static final Set<int> _huntableInGen1 = {
     1,
@@ -92,6 +95,209 @@ class ShinyLogicHelper {
 
   static bool isHuntableInGen1(int dexId) {
     return _huntableInGen1.contains(dexId);
+  }
+
+  static bool isStaticEncounter(int dexId, String gen) {
+    final encounters = encountersDatabase[dexId];
+    if (encounters != null && encounters.containsKey(gen)) {
+      for (var locs in encounters[gen]!.values) {
+        for (var loc in locs) {
+          if (loc.contains('(Gift)') ||
+              loc.contains('(Starter)') ||
+              loc.contains('(Fossil)') ||
+              loc.contains('(Fighting Dojo)') ||
+              loc.contains('(Stationary)')) {
+            return true;
+          }
+        }
+      }
+    }
+    if (gen == 'gen_1' && [143, 144, 145, 146, 150].contains(dexId))
+      return true;
+    if (gen == 'gen_2' &&
+        [130, 131, 143, 185, 243, 244, 245, 249, 250, 251].contains(dexId))
+      return true;
+
+    return false;
+  }
+
+  static String getSoftResetCombo(String gen) {
+    switch (gen) {
+      case 'gen_1':
+      case 'gen_2':
+      case 'gen_3':
+        return 'A + B + Start + Select';
+      case 'gen_4':
+      case 'gen_5':
+      case 'gen_6':
+      case 'gen_7':
+        return 'L + R + Start + Select';
+      case 'gen_8':
+      case 'gen_9':
+        return 'HOME -> X -> A';
+      default:
+        return '';
+    }
+  }
+
+  static bool isBreedable(int dexId) {
+    if (ordereggnoeggs.contains(dexId)) return false;
+    if (ordereggditto.contains(dexId)) return false;
+    return true;
+  }
+
+  static bool isBaby(int dexId) {
+    return [172, 173, 174, 236, 238, 239, 240].contains(dexId);
+  }
+
+  static const Map<int, Map<String, dynamic>> gen12PreEvolutions = {
+    2: {'pre': 1, 'req': 'Level 16'},
+    3: {'pre': 2, 'req': 'Level 32'},
+    5: {'pre': 4, 'req': 'Level 16'},
+    6: {'pre': 5, 'req': 'Level 36'},
+    8: {'pre': 7, 'req': 'Level 16'},
+    9: {'pre': 8, 'req': 'Level 36'},
+    11: {'pre': 10, 'req': 'Level 7'},
+    12: {'pre': 11, 'req': 'Level 10'},
+    14: {'pre': 13, 'req': 'Level 7'},
+    15: {'pre': 14, 'req': 'Level 10'},
+    17: {'pre': 16, 'req': 'Level 18'},
+    18: {'pre': 17, 'req': 'Level 36'},
+    20: {'pre': 19, 'req': 'Level 20'},
+    22: {'pre': 21, 'req': 'Level 20'},
+    24: {'pre': 23, 'req': 'Level 22'},
+    25: {'pre': 172, 'req': 'Friendship'},
+    26: {'pre': 25, 'req': 'Thunder Stone'},
+    28: {'pre': 27, 'req': 'Level 22'},
+    30: {'pre': 29, 'req': 'Level 16'},
+    31: {'pre': 30, 'req': 'Moon Stone'},
+    33: {'pre': 32, 'req': 'Level 16'},
+    34: {'pre': 33, 'req': 'Moon Stone'},
+    35: {'pre': 173, 'req': 'Friendship'},
+    36: {'pre': 35, 'req': 'Moon Stone'},
+    38: {'pre': 37, 'req': 'Fire Stone'},
+    39: {'pre': 174, 'req': 'Friendship'},
+    40: {'pre': 39, 'req': 'Moon Stone'},
+    42: {'pre': 41, 'req': 'Level 22'},
+    169: {'pre': 42, 'req': 'Friendship'},
+    44: {'pre': 43, 'req': 'Level 21'},
+    45: {'pre': 44, 'req': 'Leaf Stone'},
+    182: {'pre': 44, 'req': 'Sun Stone'},
+    47: {'pre': 46, 'req': 'Level 24'},
+    49: {'pre': 48, 'req': 'Level 31'},
+    51: {'pre': 50, 'req': 'Level 26'},
+    53: {'pre': 52, 'req': 'Level 28'},
+    55: {'pre': 54, 'req': 'Level 33'},
+    57: {'pre': 56, 'req': 'Level 28'},
+    59: {'pre': 58, 'req': 'Fire Stone'},
+    61: {'pre': 60, 'req': 'Level 25'},
+    62: {'pre': 61, 'req': 'Water Stone'},
+    186: {'pre': 61, 'req': 'Trade w/ King\'s Rock'},
+    64: {'pre': 63, 'req': 'Level 16'},
+    65: {'pre': 64, 'req': 'Trade'},
+    67: {'pre': 66, 'req': 'Level 28'},
+    68: {'pre': 67, 'req': 'Trade'},
+    70: {'pre': 69, 'req': 'Level 21'},
+    71: {'pre': 70, 'req': 'Leaf Stone'},
+    73: {'pre': 72, 'req': 'Water Stone'},
+    75: {'pre': 74, 'req': 'Level 25'},
+    76: {'pre': 75, 'req': 'Trade'},
+    78: {'pre': 77, 'req': 'Level 40'},
+    80: {'pre': 79, 'req': 'Level 37'},
+    199: {'pre': 80, 'req': 'Trade w/ King\'s Rock'},
+    82: {'pre': 81, 'req': 'Level 30'},
+    85: {'pre': 84, 'req': 'Level 31'},
+    87: {'pre': 86, 'req': 'Level 34'},
+    89: {'pre': 88, 'req': 'Level 38'},
+    91: {'pre': 90, 'req': 'Water Stone'},
+    93: {'pre': 92, 'req': 'Level 25'},
+    94: {'pre': 93, 'req': 'Trade'},
+    97: {'pre': 96, 'req': 'Level 33'},
+    99: {'pre': 98, 'req': 'Level 28'},
+    101: {'pre': 100, 'req': 'Level 30'},
+    103: {'pre': 102, 'req': 'Level 34'},
+    105: {'pre': 104, 'req': 'Level 28'},
+    106: {'pre': 236, 'req': 'Level 20 (Atk > Def)'},
+    107: {'pre': 236, 'req': 'Level 20 (Atk < Def)'},
+    237: {'pre': 236, 'req': 'Level 20 (Atk = Def)'},
+    110: {'pre': 109, 'req': 'Level 35'},
+    112: {'pre': 111, 'req': 'Level 42'},
+    117: {'pre': 116, 'req': 'Level 32'},
+    230: {'pre': 117, 'req': 'Trade w/ Dragon Scale'},
+    119: {'pre': 118, 'req': 'Level 33'},
+    121: {'pre': 120, 'req': 'Water Stone'},
+    124: {'pre': 238, 'req': 'Level 30'},
+    125: {'pre': 239, 'req': 'Level 30'},
+    126: {'pre': 240, 'req': 'Level 30'},
+    130: {'pre': 129, 'req': 'Level 20'},
+    134: {'pre': 133, 'req': 'Water Stone'},
+    135: {'pre': 133, 'req': 'Thunder Stone'},
+    136: {'pre': 133, 'req': 'Fire Stone'},
+    196: {'pre': 133, 'req': 'Friendship (Day)'},
+    197: {'pre': 133, 'req': 'Friendship (Night)'},
+    233: {'pre': 137, 'req': 'Trade w/ Up-Grade'},
+    139: {'pre': 138, 'req': 'Level 40'},
+    141: {'pre': 140, 'req': 'Level 40'},
+    148: {'pre': 147, 'req': 'Level 30'},
+    149: {'pre': 148, 'req': 'Level 55'},
+    153: {'pre': 152, 'req': 'Level 16'},
+    154: {'pre': 153, 'req': 'Level 32'},
+    156: {'pre': 155, 'req': 'Level 14'},
+    157: {'pre': 156, 'req': 'Level 36'},
+    159: {'pre': 158, 'req': 'Level 18'},
+    160: {'pre': 159, 'req': 'Level 30'},
+    162: {'pre': 161, 'req': 'Level 15'},
+    164: {'pre': 163, 'req': 'Level 20'},
+    166: {'pre': 165, 'req': 'Level 18'},
+    168: {'pre': 167, 'req': 'Level 22'},
+    171: {'pre': 170, 'req': 'Level 27'},
+    176: {'pre': 175, 'req': 'Friendship'},
+    178: {'pre': 177, 'req': 'Level 25'},
+    180: {'pre': 179, 'req': 'Level 15'},
+    181: {'pre': 180, 'req': 'Level 30'},
+    184: {'pre': 183, 'req': 'Level 18'},
+    188: {'pre': 187, 'req': 'Level 18'},
+    189: {'pre': 188, 'req': 'Level 27'},
+    192: {'pre': 191, 'req': 'Sun Stone'},
+    195: {'pre': 194, 'req': 'Level 20'},
+    205: {'pre': 204, 'req': 'Level 31'},
+    210: {'pre': 209, 'req': 'Level 23'},
+    212: {'pre': 123, 'req': 'Trade w/ Metal Coat'},
+    217: {'pre': 216, 'req': 'Level 30'},
+    219: {'pre': 218, 'req': 'Level 38'},
+    221: {'pre': 220, 'req': 'Level 33'},
+    224: {'pre': 223, 'req': 'Level 25'},
+    229: {'pre': 228, 'req': 'Level 24'},
+    232: {'pre': 231, 'req': 'Level 25'},
+    242: {'pre': 113, 'req': 'Friendship'},
+    247: {'pre': 246, 'req': 'Level 20'},
+    248: {'pre': 247, 'req': 'Level 55'},
+  };
+
+  static int getBaseForm(int id) {
+    int curr = id;
+    while (gen12PreEvolutions.containsKey(curr)) {
+      curr = gen12PreEvolutions[curr]!['pre'];
+    }
+    return curr;
+  }
+
+  static List<Map<String, dynamic>> getEvolutionPath(int baseId, int targetId) {
+    List<int> chain = [];
+    int curr = targetId;
+    while (curr != baseId && gen12PreEvolutions.containsKey(curr)) {
+      chain.insert(0, curr);
+      curr = gen12PreEvolutions[curr]!['pre'];
+    }
+    List<Map<String, dynamic>> steps = [];
+    for (int id in chain) {
+      steps.add({
+        'from': gen12PreEvolutions[id]!['pre'],
+        'to': id,
+        'req': gen12PreEvolutions[id]!['req'],
+      });
+    }
+    return steps;
   }
 
   static int getDefaultLevel(int dexId) {

@@ -5,14 +5,11 @@ class Translator {
     if (_translations[currentLanguage]?.containsKey(key) ?? false) {
       return _translations[currentLanguage]![key]!;
     }
-
     if (currentLanguage == 'de') {
       String translated = key;
-
       if (translated.startsWith('loc_')) {
         translated = translated.substring(4);
       }
-
       translated = translated.replaceAll('(Starter)', '(Starter)');
       translated = translated.replaceAll('(Gift)', '(Geschenk)');
       translated = translated.replaceAll('(Trade)', '(Tausch)');
@@ -24,10 +21,24 @@ class Translator {
       translated = translated.replaceAll('(Fossil)', '(Fossil)');
       translated = translated.replaceAll('(Egg)', '(Ei)');
 
+      // Entwicklungen & Items
+      translated = translated.replaceAll('Water Stone', 'Wasserstein');
+      translated = translated.replaceAll('Fire Stone', 'Feuerstein');
+      translated = translated.replaceAll('Thunder Stone', 'Donnerstein');
+      translated = translated.replaceAll('Leaf Stone', 'Blattstein');
+      translated = translated.replaceAll('Moon Stone', 'Mondstein');
+      translated = translated.replaceAll('Sun Stone', 'Sonnenstein');
+      translated = translated.replaceAll('Trade', 'Tausch');
+      translated = translated.replaceAll('Friendship', 'Zuneigung');
+      translated = translated.replaceAll('Day', 'Tag');
+      translated = translated.replaceAll('Night', 'Nacht');
+      translated = translated.replaceAll('Atk', 'Angriff');
+      translated = translated.replaceAll('Def', 'Vert.');
+      translated = translated.replaceAll('w/', 'mit');
+
       if (translated.contains('Max Den')) {
         translated = translated.replaceAll('Max Den', 'Dyna-Nest');
       }
-
       if (translated.startsWith('Friend Safari')) {
         translated = translated.replaceFirst('Friend Safari', 'Kontaktsafari');
         translated = translated.replaceAll('Grass', 'Pflanze');
@@ -67,10 +78,8 @@ class Translator {
           translated = translated.replaceAll(eng, ger);
         }
       });
-
       return translated;
     }
-
     if (key.startsWith('loc_')) {
       return key.substring(4);
     }
@@ -89,7 +98,6 @@ class Translator {
     'Safari Zone Mountain': 'Safari-Zone (Berglandschaft)',
     'Safari Zone Plains': 'Safari-Zone (Graslandschaft)',
     'Safari Zone Wetland': 'Safari-Zone (Feuchtgebiet)',
-
     'Pallet Town': 'Alabastia',
     'Viridian City': 'Vertania City',
     'Pewter City': 'Marmoria City',
@@ -121,7 +129,6 @@ class Translator {
     'Canyon Entrance': 'Schluchteingang',
     'Sevault Canyon': 'Canyon-Sevault',
     'Pattern Bush': 'Musterbuschwald',
-
     'New Bark Town': 'Neuborkia',
     'Cherrygrove City': 'Rosalia City',
     'Violet City': 'Viola City',
@@ -148,7 +155,6 @@ class Translator {
     'Dark Cave': 'Dunkelhöhle',
     'Mt Silver': 'Silberberg',
     'Tohjo Falls': 'Tohjo-Fälle',
-
     'Littleroot Town': 'Wurzelheim',
     'Oldale Town': 'Rosaltstadt',
     'Dewford Town': 'Faustauhaven',
@@ -182,7 +188,6 @@ class Translator {
     'Desert Underpass': 'Wüstentunnel',
     'Artisan Cave': 'Künstlerhöhle',
     'Altering Cave': 'Wandelhöhle',
-
     'Twinleaf Town': 'Zweiblattdorf',
     'Sandgem Town': 'Sandgemme',
     'Jubilife City': 'Jubelstadt',
@@ -218,7 +223,6 @@ class Translator {
     'Snowpoint Temple': 'Blizzach-Tempel',
     'Stark Mountain': 'Kahlberg',
     'Fuego Ironworks': 'Feuriohütte',
-
     'Nuvema Town': 'Avenitia',
     'Accumula Town': 'Gavina',
     'Striaton City': 'Orion City',
@@ -251,7 +255,6 @@ class Translator {
     'Strange House': 'Bizarre Villa',
     'Seaside Cave': 'Meerhöhle',
     'P2 Laboratory': 'P2-Labor',
-
     'Aquacorde Town': 'Petrophia',
     'Ambrette Town': 'Relievera City',
     'Cyllage City': 'Cromlexia',
@@ -271,7 +274,6 @@ class Translator {
     'Sea Spirits Den': 'Meerestitanenhöhle',
     'Lost Hotel': 'Hotel Ruine',
     'Lumiose City': 'Illumina City',
-
     'Hauoli City': 'Hauholi City',
     'Melemele Meadow': 'Melemele-Blumenmeer',
     'Seaward Cave': 'Meereshöhle',
@@ -303,7 +305,6 @@ class Translator {
     'Vast Poni Canyon': 'Canyon von Poni',
     'Poni Gauntlet': 'Poni-Küste',
     'Mount Lanakila': 'Mount Lanakila',
-
     'Postwick': 'Furlongham',
     'Wedgehurst': 'Brassbury',
     'Motostoke': 'Engine City',
@@ -363,14 +364,12 @@ class Translator {
     'Three Point Pass': 'Dreiwegpass',
     'Ballimere Lake': 'Ballsee',
     'Dyna Tree Hill': 'Hügel des Dyna-Baums',
-
     'Roaming Kanto': 'Wanderpokémon (Kanto)',
     'Roaming Johto': 'Wanderpokémon (Johto)',
     'Roaming Hoenn': 'Wanderpokémon (Hoenn)',
     'Roaming Sinnoh': 'Wanderpokémon (Sinnoh)',
     'Roaming Kalos': 'Wanderpokémon (Kalos)',
     'Roaming Galar': 'Wanderpokémon (Galar)',
-
     'Outside': 'Außenbereich',
     'Inside': 'Innenbereich',
     'Entrance': 'Eingang',
@@ -760,6 +759,10 @@ class Translator {
       'credit_balls_sub': 'Community Sheet für passende Pokébälle',
       'credit_ai_title': 'Google Gemini',
       'credit_ai_sub': 'KI-Assistenz beim Programmieren & Refactoring',
+      'credit_pokewiki_title': 'PokéWiki',
+      'credit_pokewiki_sub': 'Umfangreiche Wissensdatenbank',
+      'credit_bisafans_title': 'Bisafans',
+      'credit_bisafans_sub': 'Guides und Tutorials',
 
       // PC-Box Ansicht & Sortierung
       'view_list': 'Zur Listen-Ansicht',
@@ -818,7 +821,6 @@ class Translator {
           'Keine Fundorte bekannt (oder noch nicht generiert).',
       'encounter_missing_note':
           'Hinweis: Wenn eine Edition nicht aufgeführt ist, ist das Pokémon dort in der Regel nur durch Entwicklung, Tausch oder Transfer erhältlich.',
-
       'gen_1': 'Generation 1',
       'gen_2': 'Generation 2',
       'gen_3': 'Generation 3',
@@ -966,6 +968,52 @@ class Translator {
       'method_Fly': 'Fliegen',
       'method_Fighting Dojo': 'Kampf-Dojo',
       'method_Event Trade': 'Event / Tausch',
+
+      // Zucht-Ketten und Gen 2
+      'shiny_breed_calc_title': 'Shiny Zucht-Ketten Rechner (Gen 2)',
+      'shiny_breed_start': 'Start-Pokémon (Männliches Shiny)',
+      'shiny_breed_target': 'Ziel-Pokémon',
+      'shiny_breed_calc_btn': 'Kette berechnen',
+      'shiny_breed_no_path': 'Keine Zuchtkette gefunden.',
+      'shiny_breed_note':
+          'Hinweis: Die Zucht-Kette funktioniert nur, wenn das Ziel-Pokémon (und alle Zwischenstufen) weiblich sein können. Für rein männliche oder geschlechtslose Pokémon benötigst du ein Shiny Ditto.',
+      'shiny_breed_female_note':
+          'Tipp: Wenn dein Start-Pokémon ein weibliches Shiny ist, paare es zuerst mit einem normalen Männchen derselben Art. Das erzeugt mit einer Chance von 1:64 ein Shiny, welches (je nach Geschlechterverhältnis) männlich sein könnte. Mit diesem kannst du dann diese Kette starten!',
+      'shiny_breed_step_female':
+          'Paare ♂ Shiny {0} mit ♀ {1} ➔ {2} (1:64)', // 0: Start, 1: Parent2, 2: Child (Base)
+      'shiny_breed_step_male':
+          'Paare ♀ Shiny {0} mit ♂ {0} ➔ ♂ Shiny {0} (1:64)',
+      'shiny_breed_step_final':
+          'Paare ♂ Shiny {0} mit ♀ {1} ➔ Shiny {2} (1:64)',
+      'shiny_breed_step_ditto': 'Paare Shiny Ditto mit {0} ➔ Shiny {1} (1:64)',
+      'shiny_breed_chance': 'Chance: 1:64',
+      'shiny_breed_success': 'Chance: 1:64 (Ziel erreicht!)',
+      'shiny_breed_evo_step': 'Entwicklung: ',
+      'soft_reset': 'Soft Reset',
+      'shiny_ditto_guide': 'Shiny Ditto bekommen (Für Zucht)',
+      'shiny_guide_gen2': 'Generation 2',
+      'shiny_guide_gen3': 'Generation 3',
+      'shiny_guide_gen4': 'Generation 4',
+      'shiny_guide_gen5': 'Generation 5',
+      'shiny_guide_gen6': 'Generation 6',
+      'shiny_guide_gen7': 'Generation 7',
+      'shiny_guide_gen8': 'Generation 8',
+      'shiny_guide_gen9': 'Generation 9',
+      'shiny_hunt_methods_soon':
+          'Weitere Jagdmethoden werden in Zukunft hinzugefügt.',
+      'shiny_guide_missing_note':
+          'Hinweis: Wenn eine Generation nicht aufgeführt ist, kann das Pokémon dort nicht regulär als Shiny gejagt/gezüchtet werden (oder die Jagdmethoden werden in zukünftigen Updates ergänzt).',
+      'shiny_odd_egg_title': 'Das Kurios-Ei (Pokémon Kristall)',
+      'shiny_odd_egg_desc':
+          'In Pokémon Kristall erhältst du in der Pension das Kurios-Ei. Daraus schlüpft ein zufälliges Baby-Pokémon. Die Shiny-Chance ist massiv erhöht: 14% in der westlichen Version und sogar 50% in der japanischen Version!',
+
+      // Mail Writer
+      'shiny_mail_writer_title': 'Gen 3 Starter in Gen 2 (Mail Writer Glitch)',
+      'shiny_mail_writer_note':
+          'Hinweis: Mit dem Mail Writer Glitch können in Pokémon Gold/Silber/Kristall die ersten Pokémon der 3. Generation generiert werden. Beim Transfer über den PokéMover auf die Pokémon Bank werden diese dann völlig legal als Gen 3 Starter anerkannt!',
+      'tutorial_mail_writer_main': 'Text Tutorial (EN) - Mail Writer Codes',
+      'tutorial_mail_writer_scripts': 'Text Tutorial (EN) - Gen3Giver Scripts',
+      'Mail Writer Glitch': 'Mail Writer Glitch',
     },
     'en': {
       // UI
@@ -1339,6 +1387,10 @@ class Translator {
       'credit_balls_sub': 'Community sheet for matching Poké Balls',
       'credit_ai_title': 'Google Gemini',
       'credit_ai_sub': 'AI assistance in coding & refactoring',
+      'credit_pokewiki_title': 'PokéWiki',
+      'credit_pokewiki_sub': 'Comprehensive knowledge base',
+      'credit_bisafans_title': 'Bisafans',
+      'credit_bisafans_sub': 'Guides and tutorials',
 
       // PC-Box overview
       'view_list': 'Switch to List View',
@@ -1396,7 +1448,6 @@ class Translator {
       'no_encounters_found': 'No locations known (or not generated yet).',
       'encounter_missing_note':
           'Note: If an edition is not listed, the Pokémon is usually only available via Evolution, Trade, or Transfer.',
-
       'gen_1': 'Generation 1',
       'gen_2': 'Generation 2',
       'gen_3': 'Generation 3',
@@ -1543,8 +1594,6 @@ class Translator {
       'tutorial_mew_video_de': 'Video Tutorial (DE) - LEOsMIND',
       'tutorial_mew_video_en': 'Video Tutorial (EN) - Austin John',
       'tutorial_mew_text_en': 'Text Tutorial (EN) - extratricky',
-
-      // Methoden / Conditions
       'method_Starter': 'Starter',
       'method_Gift': 'Gift',
       'method_Trade': 'In-Game Trade',
@@ -1557,6 +1606,52 @@ class Translator {
       'method_Fly': 'Flying',
       'method_Fighting Dojo': 'Fighting Dojo',
       'method_Event Trade': 'Event / Trade',
+
+      // Breeding Chain and Gen 2
+      'shiny_breed_calc_title': 'Shiny Breeding Chain Calculator (Gen 2)',
+      'shiny_breed_start': 'Start Pokémon (Male Shiny)',
+      'shiny_breed_target': 'Target Pokémon',
+      'shiny_breed_calc_btn': 'Calculate Chain',
+      'shiny_breed_no_path': 'No breeding chain found.',
+      'shiny_breed_note':
+          'Note: The breeding chain only works if the target Pokémon (and all intermediates) can be female. For male-only or genderless Pokémon, you need a Shiny Ditto.',
+      'shiny_breed_female_note':
+          'Tip: If your starting Pokémon is a female Shiny, breed it first with a normal male of the same species. This has a 1:64 chance to hatch a Shiny, which could be male (depending on the gender ratio). You can then use it to start this chain!',
+      'shiny_breed_step_female':
+          'Breed ♂ Shiny {0} with ♀ {1} (or evolution) ➔ ♀ {2} (1:64)',
+      'shiny_breed_step_male':
+          'Breed ♀ Shiny {0} with ♂ {0} (or evolution) ➔ ♂ Shiny {0} (1:64)',
+      'shiny_breed_step_final':
+          'Breed ♂ Shiny {0} with ♀ {1} (or evolution) ➔ Shiny {2} (1:64)',
+      'shiny_breed_step_ditto': 'Breed Shiny Ditto with {0} ➔ Shiny {1} (1:64)',
+      'shiny_breed_chance': 'Chance: 1:64',
+      'shiny_breed_success': 'Chance: 1:64 (Target reached!)',
+      'shiny_breed_evo_step': 'Evolution: ',
+      'soft_reset': 'Soft Reset',
+      'shiny_ditto_guide': 'How to get a Shiny Ditto (For Breeding)',
+      'shiny_guide_gen2': 'Generation 2',
+      'shiny_guide_gen3': 'Generation 3',
+      'shiny_guide_gen4': 'Generation 4',
+      'shiny_guide_gen5': 'Generation 5',
+      'shiny_guide_gen6': 'Generation 6',
+      'shiny_guide_gen7': 'Generation 7',
+      'shiny_guide_gen8': 'Generation 8',
+      'shiny_guide_gen9': 'Generation 9',
+      'shiny_hunt_methods_soon':
+          'More hunting methods will be added in the future.',
+      'shiny_guide_missing_note':
+          'Note: If a generation is not listed, the Pokémon cannot be regularly shiny hunted/bred there (or the hunting methods will be added in future updates).',
+      'shiny_odd_egg_title': 'The Odd Egg (Pokémon Crystal)',
+      'shiny_odd_egg_desc':
+          'In Pokémon Crystal, you receive the Odd Egg at the Day Care. A random baby Pokémon hatches from it. The shiny chance is massively increased: 14% in Western versions and an incredible 50% in Japanese versions!',
+
+      // Mail Writer
+      'shiny_mail_writer_title': 'Gen 3 Starters in Gen 2 (Mail Writer Glitch)',
+      'shiny_mail_writer_note':
+          'Note: Using the Mail Writer Glitch in Pokémon Gold/Silver/Crystal, you can generate the first Gen 3 Pokémon. When transferred via Poké Transporter to Pokémon Bank, they will be legally recognized as Gen 3 starters!',
+      'tutorial_mail_writer_main': 'Text Tutorial (EN) - Mail Writer Codes',
+      'tutorial_mail_writer_scripts': 'Text Tutorial (EN) - Gen3Giver Scripts',
+      'Mail Writer Glitch': 'Mail Writer Glitch',
     },
   };
 }

@@ -7,6 +7,7 @@ import '../data/matching_balls_data.dart';
 import '../data/encounters_data.dart';
 import '../utils/notification_helper.dart';
 import 'shiny_guide_widget.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class GameVersion {
   final Color bgColor;
@@ -347,7 +348,6 @@ class PokemonInfoScreen extends StatelessWidget {
       }
 
       List<Widget> genWidgets = [];
-
       final sortedGens = encounters.keys.toList()
         ..sort((a, b) {
           int aNum = int.tryParse(a.replaceAll(RegExp(r'[^0-9]'), '')) ?? 0;
@@ -357,28 +357,26 @@ class PokemonInfoScreen extends StatelessWidget {
 
       for (var gen in sortedGens) {
         final versionsMap = encounters[gen]!;
-
         Map<String, List<String>> groupedEncounters = {};
+
         versionsMap.forEach((ver, locs) {
           String key = locs.join('|||');
           groupedEncounters.putIfAbsent(key, () => []).add(ver);
         });
 
         List<Widget> versionWidgets = [];
+
         groupedEncounters.forEach((locationsStr, versions) {
           final locations = locationsStr.split('|||');
-
           final String formattedLocations = locations
               .map((loc) {
                 String base = loc;
                 String method = '';
-
                 if (loc.contains(' (')) {
                   int bracketIndex = loc.indexOf(' (');
                   base = loc.substring(0, bracketIndex);
                   method = loc.substring(bracketIndex + 2, loc.length - 1);
                 }
-
                 String transBase = Translator.get(base);
                 if (transBase == base) {
                   transBase = Translator.get('loc_$base');
@@ -386,7 +384,6 @@ class PokemonInfoScreen extends StatelessWidget {
                     transBase = base;
                   }
                 }
-
                 String transMethod = '';
                 if (method.isNotEmpty) {
                   String tMethod = Translator.get('method_$method');
@@ -396,8 +393,7 @@ class PokemonInfoScreen extends StatelessWidget {
                   }
                   transMethod = ' ($tMethod)';
                 }
-
-                return '• $transBase$transMethod';
+                return '  $transBase$transMethod';
               })
               .join('\n');
 
@@ -419,6 +415,99 @@ class PokemonInfoScreen extends StatelessWidget {
             ),
           );
         });
+
+        if (gen == 'gen_2' && pokemonId >= 252 && pokemonId <= 257) {
+          versionWidgets.add(
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.tertiaryContainer.withOpacity(0.5),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.tertiary.withOpacity(0.3),
+                      ),
+                    ),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Icon(
+                          Icons.memory,
+                          size: 20,
+                          color: Theme.of(context).colorScheme.tertiary,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            Translator.get('shiny_mail_writer_note'),
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.onTertiaryContainer,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      icon: const Icon(Icons.language),
+                      label: Text(Translator.get('tutorial_mail_writer_main')),
+                      onPressed: () async {
+                        final url = Uri.parse(
+                          'https://glitchcity.wiki/wiki/Guides:Mail_Writer_Codes',
+                        );
+                        if (!await launchUrl(
+                          url,
+                          mode: LaunchMode.externalApplication,
+                        )) {
+                          NotificationHelper.showError(
+                            '${Translator.get('error_launch_url')} $url',
+                          );
+                        }
+                      },
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      icon: const Icon(Icons.code),
+                      label: Text(
+                        Translator.get('tutorial_mail_writer_scripts'),
+                      ),
+                      onPressed: () async {
+                        final url = Uri.parse(
+                          'https://glitchcity.wiki/wiki/Guides:Mail_Writer_Codes#Gen3Giver_scripts',
+                        );
+                        if (!await launchUrl(
+                          url,
+                          mode: LaunchMode.externalApplication,
+                        )) {
+                          NotificationHelper.showError(
+                            '${Translator.get('error_launch_url')} $url',
+                          );
+                        }
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
 
         genWidgets.add(
           ExpansionTile(

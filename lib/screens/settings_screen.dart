@@ -189,6 +189,22 @@ class SettingsScreen extends StatelessWidget {
                 ),
                 const Divider(height: 1),
                 ListTile(
+                  leading: const Icon(Icons.menu_book),
+                  title: Text(Translator.get('credit_pokewiki_title')),
+                  subtitle: Text(Translator.get('credit_pokewiki_sub')),
+                  trailing: const Icon(Icons.open_in_new, size: 16),
+                  onTap: () => _launchURL('https://www.pokewiki.de/'),
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  leading: const Icon(Icons.article),
+                  title: Text(Translator.get('credit_bisafans_title')),
+                  subtitle: Text(Translator.get('credit_bisafans_sub')),
+                  trailing: const Icon(Icons.open_in_new, size: 16),
+                  onTap: () => _launchURL('https://www.bisafans.de/'),
+                ),
+                const Divider(height: 1),
+                ListTile(
                   leading: const Icon(Icons.auto_awesome),
                   title: Text(Translator.get('credit_shiny_gen1_title')),
                   subtitle: Text(Translator.get('credit_shiny_gen1_sub')),
@@ -232,7 +248,7 @@ class SettingsScreen extends StatelessWidget {
         ],
       ),
     );
-  } 
+  }
 
   Future<void> _launchURL(String urlString) async {
     final Uri url = Uri.parse(urlString);

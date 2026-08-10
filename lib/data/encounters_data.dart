@@ -7166,6 +7166,11 @@ const Map<int, Map<String, Map<String, List<String>>>> encountersDatabase = {
     },
   },
   252: {
+    'gen_2': {
+      'gold': ['Mail Writer Glitch'],
+      'silver': ['Mail Writer Glitch'],
+      'crystal': ['Mail Writer Glitch'],
+    },
     'gen_3': {
       'ruby': ['Route 101 (Starter)'],
       'sapphire': ['Route 101 (Starter)'],
@@ -7181,6 +7186,11 @@ const Map<int, Map<String, Map<String, List<String>>>> encountersDatabase = {
     },
   },
   253: {
+    'gen_2': {
+      'gold': ['Mail Writer Glitch'],
+      'silver': ['Mail Writer Glitch'],
+      'crystal': ['Mail Writer Glitch'],
+    },
     'gen_8': {
       'the-crown-tundra-sword': ['Max Lair'],
       'the-crown-tundra-shield': ['Max Lair'],
@@ -7191,12 +7201,22 @@ const Map<int, Map<String, Map<String, List<String>>>> encountersDatabase = {
     },
   },
   254: {
+    'gen_2': {
+      'gold': ['Mail Writer Glitch'],
+      'silver': ['Mail Writer Glitch'],
+      'crystal': ['Mail Writer Glitch'],
+    },
     'gen_8': {
       'the-crown-tundra-sword': ['Max Lair'],
       'the-crown-tundra-shield': ['Max Lair'],
     },
   },
   255: {
+    'gen_2': {
+      'gold': ['Mail Writer Glitch'],
+      'silver': ['Mail Writer Glitch'],
+      'crystal': ['Mail Writer Glitch'],
+    },
     'gen_3': {
       'ruby': ['Route 101 (Starter)'],
       'sapphire': ['Route 101 (Starter)'],
@@ -7212,6 +7232,11 @@ const Map<int, Map<String, Map<String, List<String>>>> encountersDatabase = {
     },
   },
   256: {
+    'gen_2': {
+      'gold': ['Mail Writer Glitch'],
+      'silver': ['Mail Writer Glitch'],
+      'crystal': ['Mail Writer Glitch'],
+    },
     'gen_8': {
       'the-crown-tundra-sword': ['Max Lair'],
       'the-crown-tundra-shield': ['Max Lair'],
@@ -7222,6 +7247,11 @@ const Map<int, Map<String, Map<String, List<String>>>> encountersDatabase = {
     },
   },
   257: {
+    'gen_2': {
+      'gold': ['Mail Writer Glitch'],
+      'silver': ['Mail Writer Glitch'],
+      'crystal': ['Mail Writer Glitch'],
+    },
     'gen_8': {
       'the-crown-tundra-sword': ['Max Lair'],
       'the-crown-tundra-shield': ['Max Lair'],

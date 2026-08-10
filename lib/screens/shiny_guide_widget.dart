@@ -3,6 +3,8 @@ import 'package:url_launcher/url_launcher.dart';
 import '../models/pokemon.dart';
 import '../utils/shiny_logic_helper.dart';
 import '../l10n/app_translations.dart';
+import '../data/encounters_data.dart';
+import 'breeding_calculator_widget.dart';
 
 class ShinyGuideWidget extends StatefulWidget {
   final Pokemon pokemon;
@@ -36,42 +38,91 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    if (widget.pokemon.id > 151) return const SizedBox.shrink();
+  int _getMaxIdForGen(int gen) {
+    switch (gen) {
+      case 1:
+        return 151;
+      case 2:
+        return 251;
+      case 3:
+        return 386;
+      case 4:
+        return 493;
+      case 5:
+        return 649;
+      case 6:
+        return 721;
+      case 7:
+        return 809;
+      case 8:
+        return 905;
+      case 9:
+        return 1025;
+      default:
+        return 1025;
+    }
+  }
 
-    return Card(
-      margin: const EdgeInsets.symmetric(vertical: 8),
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: ExpansionTile(
-        leading: const Icon(Icons.auto_awesome, color: Colors.amber),
-        title: Text(
-          Translator.get('shiny_guide_title'),
+  bool _shouldShowGen(int gen) {
+    if (gen == 2 && widget.pokemon.id >= 252 && widget.pokemon.id <= 257) {
+      return true;
+    }
+
+    if (widget.pokemon.id > _getMaxIdForGen(gen)) return false;
+
+    if (gen == 1) {
+      return ShinyLogicHelper.isHuntableInGen1(widget.pokemon.id);
+    }
+
+    bool hasEncounters =
+        encountersDatabase[widget.pokemon.id]?.containsKey('gen_$gen') ?? false;
+    bool isBreedable = ShinyLogicHelper.isBreedable(widget.pokemon.id);
+    bool isStatic = ShinyLogicHelper.isStaticEncounter(
+      widget.pokemon.id,
+      'gen_$gen',
+    );
+
+    return hasEncounters || isBreedable || isStatic;
+  }
+
+  Widget _buildGenContent(BuildContext context, int gen) {
+    List<Widget> content = [];
+    String genKey = 'gen_$gen';
+
+    bool isStatic = ShinyLogicHelper.isStaticEncounter(
+      widget.pokemon.id,
+      genKey,
+    );
+    if (isStatic) {
+      String combo = ShinyLogicHelper.getSoftResetCombo(genKey);
+      content.add(
+        Text(
+          '${Translator.get('soft_reset')}: $combo',
           style: const TextStyle(fontWeight: FontWeight.bold),
         ),
-        children: [
-          ExpansionTile(
-            title: Text(
-              Translator.get('shiny_guide_gen1'),
-              style: const TextStyle(fontWeight: FontWeight.w600),
-            ),
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: _buildGen1Content(context),
-              ),
-            ],
-          ),
-        ],
-      ),
+      );
+      content.add(const SizedBox(height: 16));
+    }
+
+    if (gen == 1) {
+      content.add(_buildGen1Specific(context));
+    } else if (gen == 2) {
+      content.add(_buildGen2Specific(context));
+    } else {
+      if (!isStatic) {
+        content.add(Text(Translator.get('shiny_hunt_methods_soon')));
+      }
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: content,
     );
   }
 
-  Widget _buildGen1Content(BuildContext context) {
+  Widget _buildGen1Specific(BuildContext context) {
     try {
       final isHuntable = ShinyLogicHelper.isHuntableInGen1(widget.pokemon.id);
-
       final statusWidget = Text(
         isHuntable
             ? Translator.get('shiny_huntable_yes')
@@ -83,6 +134,7 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
       );
 
       final tipWidget = Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
             padding: const EdgeInsets.all(12),
@@ -254,6 +306,168 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
     }
   }
 
+  Widget _buildGen2Specific(BuildContext context) {
+    List<Widget> content = [];
+
+    if (widget.pokemon.id >= 252 && widget.pokemon.id <= 257) {
+      content.add(
+        Text(
+          Translator.get('shiny_mail_writer_title'),
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
+      );
+      content.add(const SizedBox(height: 8));
+      content.add(
+        Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: Theme.of(
+              context,
+            ).colorScheme.tertiaryContainer.withOpacity(0.5),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(
+              color: Theme.of(context).colorScheme.tertiary.withOpacity(0.3),
+            ),
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(
+                Icons.memory,
+                size: 20,
+                color: Theme.of(context).colorScheme.tertiary,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  Translator.get('shiny_mail_writer_note'),
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Theme.of(context).colorScheme.onTertiaryContainer,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+      content.add(const SizedBox(height: 12));
+      content.add(
+        SizedBox(
+          width: double.infinity,
+          child: ElevatedButton.icon(
+            icon: const Icon(Icons.language),
+            label: Text(Translator.get('tutorial_mail_writer_main')),
+            onPressed: () => _launchURL(
+              'https://glitchcity.wiki/wiki/Guides:Mail_Writer_Codes',
+            ),
+          ),
+        ),
+      );
+      content.add(const SizedBox(height: 8));
+      content.add(
+        SizedBox(
+          width: double.infinity,
+          child: ElevatedButton.icon(
+            icon: const Icon(Icons.code),
+            label: Text(Translator.get('tutorial_mail_writer_scripts')),
+            onPressed: () => _launchURL(
+              'https://glitchcity.wiki/wiki/Guides:Mail_Writer_Codes#Gen3Giver_scripts',
+            ),
+          ),
+        ),
+      );
+      content.add(const SizedBox(height: 24));
+    }
+
+    if (widget.pokemon.id <= 251 &&
+        ShinyLogicHelper.isBaby(widget.pokemon.id)) {
+      content.add(
+        Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: Theme.of(
+              context,
+            ).colorScheme.tertiaryContainer.withOpacity(0.5),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(
+              color: Theme.of(context).colorScheme.tertiary.withOpacity(0.3),
+            ),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(
+                    Icons.egg,
+                    color: Theme.of(context).colorScheme.tertiary,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    Translator.get('shiny_odd_egg_title'),
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Text(
+                Translator.get('shiny_odd_egg_desc'),
+                style: const TextStyle(fontSize: 13),
+              ),
+            ],
+          ),
+        ),
+      );
+      content.add(const SizedBox(height: 16));
+    }
+
+    if (widget.pokemon.id <= 251 &&
+        (ShinyLogicHelper.isBreedable(widget.pokemon.id) ||
+            ShinyLogicHelper.isBaby(widget.pokemon.id))) {
+      content.add(
+        Text(
+          Translator.get('shiny_ditto_guide'),
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
+      );
+      content.add(const SizedBox(height: 8));
+      content.add(
+        SizedBox(
+          width: double.infinity,
+          child: ElevatedButton.icon(
+            icon: const Icon(Icons.language),
+            label: const Text('Text Tutorial (DE) - Bisafans'),
+            onPressed: () => _launchURL(
+              'https://www.bisafans.de/spiele/editionen/gold-silber/shiny-ditto.php',
+            ),
+          ),
+        ),
+      );
+      content.add(const SizedBox(height: 8));
+      content.add(
+        SizedBox(
+          width: double.infinity,
+          child: ElevatedButton.icon(
+            icon: const Icon(Icons.language),
+            label: const Text('Text Tutorial (EN) - Reddit'),
+            onPressed: () => _launchURL(
+              'https://www.reddit.com/r/ShinyPokemon/comments/14s1ush/discussion_found_a_way_to_get_a_shiny_ditto_in/',
+            ),
+          ),
+        ),
+      );
+
+      content.add(const SizedBox(height: 24));
+      content.add(BreedingCalculatorWidget(initialTargetId: widget.pokemon.id));
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: content,
+    );
+  }
+
   int _calcStat(int base, int dv, int level, bool isHp) {
     int stat = (((base + dv) * 2) * level) ~/ 100;
     return isHp ? stat + level + 10 : stat + 5;
@@ -371,6 +585,71 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    List<Widget> genTiles = [];
+
+    for (int gen = 1; gen <= 2; gen++) {
+      if (_shouldShowGen(gen)) {
+        Widget content = _buildGenContent(context, gen);
+        genTiles.add(
+          ExpansionTile(
+            title: Text(
+              Translator.get('shiny_guide_gen$gen') != 'shiny_guide_gen$gen'
+                  ? Translator.get('shiny_guide_gen$gen')
+                  : 'Generation $gen',
+              style: const TextStyle(fontWeight: FontWeight.w600),
+            ),
+            children: [
+              Padding(padding: const EdgeInsets.all(16.0), child: content),
+            ],
+          ),
+        );
+      }
+    }
+
+    if (genTiles.isEmpty) return const SizedBox.shrink();
+
+    return Card(
+      margin: const EdgeInsets.symmetric(vertical: 8),
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: ExpansionTile(
+        leading: const Icon(Icons.auto_awesome, color: Colors.amber),
+        title: Text(
+          Translator.get('shiny_guide_title'),
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
+        children: [
+          ...genTiles,
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(
+                  Icons.info_outline,
+                  size: 18,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    Translator.get('shiny_guide_missing_note'),
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontStyle: FontStyle.italic,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
