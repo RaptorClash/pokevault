@@ -38,7 +38,6 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
 
   @override
   Widget build(BuildContext context) {
-    // Zeige das Widget nur für Gen 1 Pokémon an
     if (widget.pokemon.id > 151) return const SizedBox.shrink();
 
     return Card(
@@ -72,9 +71,7 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
   Widget _buildGen1Content(BuildContext context) {
     try {
       final isHuntable = ShinyLogicHelper.isHuntableInGen1(widget.pokemon.id);
-      final encounters = ShinyLogicHelper.getGen1Encounters(widget.pokemon.id);
 
-      // 1. Huntable Status Text
       final statusWidget = Text(
         isHuntable
             ? Translator.get('shiny_huntable_yes')
@@ -85,119 +82,81 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
         ),
       );
 
-      // 2. Tipp anzeigen (wird immer angezeigt)
-      final tipWidget = Container(
-        padding: const EdgeInsets.all(12),
-        margin: const EdgeInsets.only(bottom: 16),
-        decoration: BoxDecoration(
-          color: Theme.of(
-            context,
-          ).colorScheme.primaryContainer.withOpacity(0.3),
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(
-            color: Theme.of(context).colorScheme.primary.withOpacity(0.5),
-          ),
-        ),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Icon(
-              Icons.info_outline,
-              color: Theme.of(context).colorScheme.primary,
-              size: 20,
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Text(
-                Translator.get('shiny_guide_gen1_desc'),
-                style: const TextStyle(
-                  fontStyle: FontStyle.italic,
-                  fontSize: 13,
-                ),
+      final tipWidget = Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            margin: const EdgeInsets.only(bottom: 16),
+            decoration: BoxDecoration(
+              color: Theme.of(
+                context,
+              ).colorScheme.primaryContainer.withOpacity(0.3),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(
+                color: Theme.of(context).colorScheme.primary.withOpacity(0.5),
               ),
             ),
-          ],
-        ),
-      );
-
-      // 3. Encounters anzeigen (Nur wenn es Encounters gibt - also bei huntbaren Pokémon inkl. Mew)
-      Widget encountersWidget = const SizedBox.shrink();
-      if (encounters.isNotEmpty) {
-        encountersWidget = Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(
+                  Icons.info_outline,
+                  color: Theme.of(context).colorScheme.primary,
+                  size: 20,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    Translator.get('shiny_guide_gen1_desc'),
+                    style: const TextStyle(
+                      fontStyle: FontStyle.italic,
+                      fontSize: 13,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          if (widget.pokemon.id == 151) ...[
+            const SizedBox(height: 8),
             Text(
-              Translator.get('notable_encounters'),
-              style: const TextStyle(fontWeight: FontWeight.w600),
+              Translator.get('tutorials_mew'),
+              style: const TextStyle(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
-            ...encounters.map(
-              (e) => Padding(
-                padding: const EdgeInsets.only(bottom: 8.0),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      '- ${Translator.get(e.typeKey)}: ',
-                      style: const TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    Expanded(
-                      child: Text(
-                        Translator.currentLanguage == 'de'
-                            ? e.detailsDe
-                            : e.detailsEn,
-                      ),
-                    ),
-                  ],
-                ),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                icon: const Icon(Icons.play_circle_filled),
+                label: Text(Translator.get('tutorial_mew_video_de')),
+                onPressed: () =>
+                    _launchURL('https://www.youtube.com/watch?v=jJro6Hx4IfQ'),
               ),
             ),
-
-            // Mew Tutorials
-            if (widget.pokemon.id == 151) ...[
-              const SizedBox(height: 16),
-              const Divider(),
-              const SizedBox(height: 8),
-              Text(
-                Translator.get('tutorials_mew'),
-                style: const TextStyle(fontWeight: FontWeight.bold),
+            const SizedBox(height: 8),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                icon: const Icon(Icons.play_circle_filled),
+                label: Text(Translator.get('tutorial_mew_video_en')),
+                onPressed: () =>
+                    _launchURL('https://www.youtube.com/watch?v=rvhuJsS4EhE'),
               ),
-              const SizedBox(height: 8),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton.icon(
-                  icon: const Icon(Icons.play_circle_filled),
-                  label: Text(Translator.get('tutorial_mew_video_de')),
-                  onPressed: () =>
-                      _launchURL('https://www.youtube.com/watch?v=jJro6Hx4IfQ'),
-                ),
+            ),
+            const SizedBox(height: 8),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                icon: const Icon(Icons.article),
+                label: Text(Translator.get('tutorial_mew_text_en')),
+                onPressed: () =>
+                    _launchURL('https://extratricky.com/md/mew.md'),
               ),
-              const SizedBox(height: 8),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton.icon(
-                  icon: const Icon(Icons.play_circle_filled),
-                  label: Text(Translator.get('tutorial_mew_video_en')),
-                  onPressed: () =>
-                      _launchURL('https://www.youtube.com/watch?v=rvhuJsS4EhE'),
-                ),
-              ),
-              const SizedBox(height: 8),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton.icon(
-                  icon: const Icon(Icons.article),
-                  label: Text(Translator.get('tutorial_mew_text_en')),
-                  onPressed: () =>
-                      _launchURL('https://extratricky.com/md/mew.md'),
-                ),
-              ),
-            ],
+            ),
           ],
-        );
-      }
+        ],
+      );
 
-      // 4. Stat Rechner (Nur wenn huntbar UND NICHT Mew)
       Widget calculatorWidget = const SizedBox.shrink();
       if (isHuntable && widget.pokemon.id != 151) {
         final baseStats = ShinyLogicHelper.gen1BaseStats[widget.pokemon.id];
@@ -287,7 +246,6 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
           statusWidget,
           const SizedBox(height: 12),
           tipWidget,
-          encountersWidget,
           calculatorWidget,
         ],
       );

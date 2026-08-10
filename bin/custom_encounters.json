@@ -1,0 +1,570 @@
+{
+    "1": {
+        "gen_1": {
+            "red": [
+                "Pallet Town (Starter)"
+            ],
+            "blue": [
+                "Pallet Town (Starter)"
+            ],
+            "yellow": [
+                "Cerulean City (Gift)"
+            ]
+        }
+    },
+    "4": {
+        "gen_1": {
+            "red": [
+                "Pallet Town (Starter)"
+            ],
+            "blue": [
+                "Pallet Town (Starter)"
+            ],
+            "yellow": [
+                "Route 24 (Gift)"
+            ]
+        }
+    },
+    "7": {
+        "gen_1": {
+            "red": [
+                "Pallet Town (Starter)"
+            ],
+            "blue": [
+                "Pallet Town (Starter)"
+            ],
+            "yellow": [
+                "Vermilion City (Gift)"
+            ]
+        }
+    },
+    "25": {
+        "gen_1": {
+            "yellow": [
+                "Pallet Town (Starter)"
+            ]
+        }
+    },
+    "29": {
+        "gen_1": {
+            "red": [
+                "Underground Path (Trade)"
+            ],
+            "blue": [
+                "Underground Path (Trade)"
+            ]
+        }
+    },
+    "30": {
+        "gen_1": {
+            "red": [
+                "Route 11 (Trade)"
+            ],
+            "blue": [
+                "Route 11 (Trade)"
+            ]
+        }
+    },
+    "106": {
+        "gen_1": {
+            "red": [
+                "Saffron City (Fighting Dojo)"
+            ],
+            "blue": [
+                "Saffron City (Fighting Dojo)"
+            ],
+            "yellow": [
+                "Saffron City (Fighting Dojo)"
+            ]
+        }
+    },
+    "107": {
+        "gen_1": {
+            "red": [
+                "Saffron City (Fighting Dojo)"
+            ],
+            "blue": [
+                "Saffron City (Fighting Dojo)"
+            ],
+            "yellow": [
+                "Saffron City (Fighting Dojo)"
+            ]
+        }
+    },
+    "131": {
+        "gen_1": {
+            "red": [
+                "Saffron City (Gift)"
+            ],
+            "blue": [
+                "Saffron City (Gift)"
+            ],
+            "yellow": [
+                "Saffron City (Gift)"
+            ]
+        }
+    },
+    "133": {
+        "gen_1": {
+            "red": [
+                "Celadon City (Gift)"
+            ],
+            "blue": [
+                "Celadon City (Gift)"
+            ],
+            "yellow": [
+                "Celadon City (Gift)"
+            ]
+        }
+    },
+    "138": {
+        "gen_1": {
+            "red": [
+                "Pewter City (Fossil)"
+            ],
+            "blue": [
+                "Pewter City (Fossil)"
+            ],
+            "yellow": [
+                "Pewter City (Fossil)"
+            ]
+        }
+    },
+    "140": {
+        "gen_1": {
+            "red": [
+                "Pewter City (Fossil)"
+            ],
+            "blue": [
+                "Pewter City (Fossil)"
+            ],
+            "yellow": [
+                "Pewter City (Fossil)"
+            ]
+        }
+    },
+    "142": {
+        "gen_1": {
+            "red": [
+                "Pewter City (Fossil)"
+            ],
+            "blue": [
+                "Pewter City (Fossil)"
+            ],
+            "yellow": [
+                "Pewter City (Fossil)"
+            ]
+        }
+    },
+    "152": {
+        "gen_2": {
+            "gold": [
+                "New Bark Town (Starter)"
+            ],
+            "silver": [
+                "New Bark Town (Starter)"
+            ],
+            "crystal": [
+                "New Bark Town (Starter)"
+            ]
+        }
+    },
+    "155": {
+        "gen_2": {
+            "gold": [
+                "New Bark Town (Starter)"
+            ],
+            "silver": [
+                "New Bark Town (Starter)"
+            ],
+            "crystal": [
+                "New Bark Town (Starter)"
+            ]
+        }
+    },
+    "158": {
+        "gen_2": {
+            "gold": [
+                "New Bark Town (Starter)"
+            ],
+            "silver": [
+                "New Bark Town (Starter)"
+            ],
+            "crystal": [
+                "New Bark Town (Starter)"
+            ]
+        }
+    },
+    "175": {
+        "gen_2": {
+            "gold": [
+                "Violet City (Egg)"
+            ],
+            "silver": [
+                "Violet City (Egg)"
+            ],
+            "crystal": [
+                "Violet City (Egg)"
+            ]
+        }
+    },
+    "213": {
+        "gen_2": {
+            "gold": [
+                "Cianwood City (Gift)"
+            ],
+            "silver": [
+                "Cianwood City (Gift)"
+            ],
+            "crystal": [
+                "Cianwood City (Gift)"
+            ]
+        }
+    },
+    "236": {
+        "gen_2": {
+            "gold": [
+                "Mt Mortar (Gift)"
+            ],
+            "silver": [
+                "Mt Mortar (Gift)"
+            ],
+            "crystal": [
+                "Mt Mortar (Gift)"
+            ]
+        }
+    },
+    "252": {
+        "gen_3": {
+            "ruby": [
+                "Route 101 (Starter)"
+            ],
+            "sapphire": [
+                "Route 101 (Starter)"
+            ],
+            "emerald": [
+                "Route 101 (Starter)"
+            ]
+        }
+    },
+    "255": {
+        "gen_3": {
+            "ruby": [
+                "Route 101 (Starter)"
+            ],
+            "sapphire": [
+                "Route 101 (Starter)"
+            ],
+            "emerald": [
+                "Route 101 (Starter)"
+            ]
+        }
+    },
+    "258": {
+        "gen_3": {
+            "ruby": [
+                "Route 101 (Starter)"
+            ],
+            "sapphire": [
+                "Route 101 (Starter)"
+            ],
+            "emerald": [
+                "Route 101 (Starter)"
+            ]
+        }
+    },
+    "360": {
+        "gen_3": {
+            "ruby": [
+                "Lavaridge Town (Egg)"
+            ],
+            "sapphire": [
+                "Lavaridge Town (Egg)"
+            ],
+            "emerald": [
+                "Lavaridge Town (Egg)"
+            ]
+        }
+    },
+    "374": {
+        "gen_3": {
+            "ruby": [
+                "Mossdeep City (Gift)"
+            ],
+            "sapphire": [
+                "Mossdeep City (Gift)"
+            ],
+            "emerald": [
+                "Mossdeep City (Gift)"
+            ]
+        }
+    },
+    "387": {
+        "gen_4": {
+            "diamond": [
+                "Lake Verity (Starter)"
+            ],
+            "pearl": [
+                "Lake Verity (Starter)"
+            ],
+            "platinum": [
+                "Route 201 (Starter)"
+            ]
+        }
+    },
+    "390": {
+        "gen_4": {
+            "diamond": [
+                "Lake Verity (Starter)"
+            ],
+            "pearl": [
+                "Lake Verity (Starter)"
+            ],
+            "platinum": [
+                "Route 201 (Starter)"
+            ]
+        }
+    },
+    "393": {
+        "gen_4": {
+            "diamond": [
+                "Lake Verity (Starter)"
+            ],
+            "pearl": [
+                "Lake Verity (Starter)"
+            ],
+            "platinum": [
+                "Route 201 (Starter)"
+            ]
+        }
+    },
+    "447": {
+        "gen_4": {
+            "diamond": [
+                "Iron Island (Egg)"
+            ],
+            "pearl": [
+                "Iron Island (Egg)"
+            ],
+            "platinum": [
+                "Iron Island (Egg)"
+            ]
+        }
+    },
+    "495": {
+        "gen_5": {
+            "black": [
+                "Nuvema Town (Starter)"
+            ],
+            "white": [
+                "Nuvema Town (Starter)"
+            ],
+            "black-2": [
+                "Event Trade"
+            ],
+            "white-2": [
+                "Event Trade"
+            ]
+        }
+    },
+    "498": {
+        "gen_5": {
+            "black": [
+                "Nuvema Town (Starter)"
+            ],
+            "white": [
+                "Nuvema Town (Starter)"
+            ],
+            "black-2": [
+                "Event Trade"
+            ],
+            "white-2": [
+                "Event Trade"
+            ]
+        }
+    },
+    "501": {
+        "gen_5": {
+            "black": [
+                "Nuvema Town (Starter)"
+            ],
+            "white": [
+                "Nuvema Town (Starter)"
+            ],
+            "black-2": [
+                "Event Trade"
+            ],
+            "white-2": [
+                "Event Trade"
+            ]
+        }
+    },
+    "511": {
+        "gen_5": {
+            "black": [
+                "Dreamyard (Gift)"
+            ],
+            "white": [
+                "Dreamyard (Gift)"
+            ]
+        }
+    },
+    "513": {
+        "gen_5": {
+            "black": [
+                "Dreamyard (Gift)"
+            ],
+            "white": [
+                "Dreamyard (Gift)"
+            ]
+        }
+    },
+    "515": {
+        "gen_5": {
+            "black": [
+                "Dreamyard (Gift)"
+            ],
+            "white": [
+                "Dreamyard (Gift)"
+            ]
+        }
+    },
+    "650": {
+        "gen_6": {
+            "x": [
+                "Aquacorde Town (Starter)"
+            ],
+            "y": [
+                "Aquacorde Town (Starter)"
+            ]
+        }
+    },
+    "653": {
+        "gen_6": {
+            "x": [
+                "Aquacorde Town (Starter)"
+            ],
+            "y": [
+                "Aquacorde Town (Starter)"
+            ]
+        }
+    },
+    "656": {
+        "gen_6": {
+            "x": [
+                "Aquacorde Town (Starter)"
+            ],
+            "y": [
+                "Aquacorde Town (Starter)"
+            ]
+        }
+    },
+    "722": {
+        "gen_7": {
+            "sun": [
+                "Route 1 (Starter)"
+            ],
+            "moon": [
+                "Route 1 (Starter)"
+            ],
+            "ultra-sun": [
+                "Route 1 (Starter)"
+            ],
+            "ultra-moon": [
+                "Route 1 (Starter)"
+            ]
+        }
+    },
+    "725": {
+        "gen_7": {
+            "sun": [
+                "Route 1 (Starter)"
+            ],
+            "moon": [
+                "Route 1 (Starter)"
+            ],
+            "ultra-sun": [
+                "Route 1 (Starter)"
+            ],
+            "ultra-moon": [
+                "Route 1 (Starter)"
+            ]
+        }
+    },
+    "728": {
+        "gen_7": {
+            "sun": [
+                "Route 1 (Starter)"
+            ],
+            "moon": [
+                "Route 1 (Starter)"
+            ],
+            "ultra-sun": [
+                "Route 1 (Starter)"
+            ],
+            "ultra-moon": [
+                "Route 1 (Starter)"
+            ]
+        }
+    },
+    "810": {
+        "gen_8": {
+            "sword": [
+                "Postwick (Starter)"
+            ],
+            "shield": [
+                "Postwick (Starter)"
+            ]
+        }
+    },
+    "813": {
+        "gen_8": {
+            "sword": [
+                "Postwick (Starter)"
+            ],
+            "shield": [
+                "Postwick (Starter)"
+            ]
+        }
+    },
+    "816": {
+        "gen_8": {
+            "sword": [
+                "Postwick (Starter)"
+            ],
+            "shield": [
+                "Postwick (Starter)"
+            ]
+        }
+    },
+    "906": {
+        "gen_9": {
+            "scarlet": [
+                "Cabo Poco (Starter)"
+            ],
+            "violet": [
+                "Cabo Poco (Starter)"
+            ]
+        }
+    },
+    "909": {
+        "gen_9": {
+            "scarlet": [
+                "Cabo Poco (Starter)"
+            ],
+            "violet": [
+                "Cabo Poco (Starter)"
+            ]
+        }
+    },
+    "912": {
+        "gen_9": {
+            "scarlet": [
+                "Cabo Poco (Starter)"
+            ],
+            "violet": [
+                "Cabo Poco (Starter)"
+            ]
+        }
+    }
+}

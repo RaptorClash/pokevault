@@ -56,11 +56,24 @@
    ```
 
 ## 🛠️ Data Generation (Internal)
-The app uses Python scripts to generate static Dart data from external sources (e.g., PokeAPI and an Excel sheet for Matching Balls).
+The app uses Python and Dart scripts to generate static Dart data from external sources (e.g., PokeAPI and an Excel sheet for Matching Balls).
 If you want to update the database, you can run the scripts located in the bin/ folder:
 - `python bin/generate_matching_balls.py`
 - `dart bin/generate_dex.dart`
 - `dart bin/generate_orders.dart`
+
+## 🤝 Help Needed: Missing Encounters (Gen 8+)
+This app fetches Pokémon encounter locations from PokéAPI. However, their database is currently severely lacking data for games starting from Gen 8 (Sword/Shield DLCs, BDSP, Legends: Arceus, Scarlet/Violet).
+
+**Want to contribute? It's super easy:**
+You don't need to write any complex Dart code! All missing, incorrect, or special encounters (like gifts/events) can simply be added to a JSON file:
+1. Open the file `bin/custom_encounters.json`.
+2. Add the Pokémon using its National Dex ID, the generation, the game version, and its English location (just copy the structure of the existing entries).
+3. **Bonus Step:** Open `lib/l10n/app_translations.dart` and add the new English location name along with its translations to the respective language maps (e.g., `_baseLocationTranslationsDe` for German). If you don't speak those languages, no worries – just skip this step!
+4. Open a Pull Request with your changes.
+5. I will run the generation script (`dart bin/generate_encounters.dart`) which merges your JSON data with the API data.
+
+Any contribution to fill in these gaps is highly appreciated!
 
 ## 🏪 App Store Publishing
 I currently do not own any iOS/Mac devices to compile and publish the app for Apple platforms. If anyone from the community wants to take the compiled app and publish it to the Apple App Store, Google Play Store, or any other platform, you are more than welcome to do so! 

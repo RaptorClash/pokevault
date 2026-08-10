@@ -2,8 +2,385 @@ class Translator {
   static String currentLanguage = 'de';
 
   static String get(String key) {
-    return _translations[currentLanguage]?[key] ?? key;
+    if (_translations[currentLanguage]?.containsKey(key) ?? false) {
+      return _translations[currentLanguage]![key]!;
+    }
+
+    if (currentLanguage == 'de') {
+      String translated = key;
+
+      if (translated.startsWith('loc_')) {
+        translated = translated.substring(4);
+      }
+
+      translated = translated.replaceAll('(Starter)', '(Starter)');
+      translated = translated.replaceAll('(Gift)', '(Geschenk)');
+      translated = translated.replaceAll('(Trade)', '(Tausch)');
+      translated = translated.replaceAll('(Fly)', '(Fliegen)');
+      translated = translated.replaceAll('(Surf)', '(Surfer)');
+      translated = translated.replaceAll('(Old Rod)', '(Angel)');
+      translated = translated.replaceAll('(Good Rod)', '(Profiangel)');
+      translated = translated.replaceAll('(Super Rod)', '(Superangel)');
+      translated = translated.replaceAll('(Fossil)', '(Fossil)');
+      translated = translated.replaceAll('(Egg)', '(Ei)');
+
+      if (translated.contains('Max Den')) {
+        translated = translated.replaceAll('Max Den', 'Dyna-Nest');
+      }
+
+      if (translated.startsWith('Friend Safari')) {
+        translated = translated.replaceFirst('Friend Safari', 'Kontaktsafari');
+        translated = translated.replaceAll('Grass', 'Pflanze');
+        translated = translated.replaceAll('Fire', 'Feuer');
+        translated = translated.replaceAll('Water', 'Wasser');
+        translated = translated.replaceAll('Bug', 'Käfer');
+        translated = translated.replaceAll('Poison', 'Gift');
+        translated = translated.replaceAll('Flying', 'Flug');
+        translated = translated.replaceAll('Ground', 'Boden');
+        translated = translated.replaceAll('Fairy', 'Fee');
+        translated = translated.replaceAll('Electric', 'Elektro');
+        translated = translated.replaceAll('Fighting', 'Kampf');
+        translated = translated.replaceAll('Rock', 'Gestein');
+        translated = translated.replaceAll('Ice', 'Eis');
+        translated = translated.replaceAll('Psychic', 'Psycho');
+        translated = translated.replaceAll('Steel', 'Stahl');
+        translated = translated.replaceAll('Dragon', 'Drache');
+        translated = translated.replaceAll('Normal', 'Normal');
+        translated = translated.replaceAll('Ghost', 'Geist');
+        translated = translated.replaceAll('Dark', 'Unlicht');
+      }
+
+      translated = translated.replaceAll(RegExp(r'\b1f\b'), 'EG');
+      translated = translated.replaceAll(RegExp(r'\b2f\b'), '1. OG');
+      translated = translated.replaceAll(RegExp(r'\b3f\b'), '2. OG');
+      translated = translated.replaceAll(RegExp(r'\b4f\b'), '3. OG');
+      translated = translated.replaceAll(RegExp(r'\b5f\b'), '4. OG');
+      translated = translated.replaceAll(RegExp(r'\b6f\b'), '5. OG');
+      translated = translated.replaceAll(RegExp(r'\b7f\b'), '6. OG');
+      translated = translated.replaceAll(RegExp(r'\bB1f\b'), 'U1');
+      translated = translated.replaceAll(RegExp(r'\bB2f\b'), 'U2');
+      translated = translated.replaceAll(RegExp(r'\bB3f\b'), 'U3');
+      translated = translated.replaceAll(RegExp(r'\bB4f\b'), 'U4');
+
+      _baseLocationTranslationsDe.forEach((eng, ger) {
+        if (translated.contains(eng)) {
+          translated = translated.replaceAll(eng, ger);
+        }
+      });
+
+      return translated;
+    }
+
+    if (key.startsWith('loc_')) {
+      return key.substring(4);
+    }
+    return key;
   }
+
+  static const Map<String, String> _baseLocationTranslationsDe = {
+    'Safari Zone Peak': 'Safari-Zone (Felslandschaft)',
+    'Safari Zone Desert': 'Safari-Zone (Wüste)',
+    'Safari Zone Wasteland': 'Safari-Zone (Ödland)',
+    'Safari Zone Meadow': 'Safari-Zone (Blumenbeet)',
+    'Safari Zone Swamp': 'Safari-Zone (Moorlandschaft)',
+    'Safari Zone Marshland': 'Safari-Zone (Sumpflandschaft)',
+    'Safari Zone Forest': 'Safari-Zone (Wald)',
+    'Safari Zone Rocky Beach': 'Safari-Zone (Felsufer)',
+    'Safari Zone Mountain': 'Safari-Zone (Berglandschaft)',
+    'Safari Zone Plains': 'Safari-Zone (Graslandschaft)',
+    'Safari Zone Wetland': 'Safari-Zone (Feuchtgebiet)',
+
+    'Pallet Town': 'Alabastia',
+    'Viridian City': 'Vertania City',
+    'Pewter City': 'Marmoria City',
+    'Cerulean City': 'Azuria City',
+    'Vermilion City': 'Orania City',
+    'Lavender Town': 'Lavandia',
+    'Celadon City': 'Prismania City',
+    'Fuchsia City': 'Fuchsania City',
+    'Saffron City': 'Saffronia City',
+    'Cinnabar Island': 'Zinnoberinsel',
+    'Viridian Forest': 'Vertania-Wald',
+    'Mt Moon': 'Mondberg',
+    'Rock Tunnel': 'Felstunnel',
+    'Pokemon Tower': 'Pokémon-Turm',
+    'Safari Zone': 'Safari-Zone',
+    'Seafoam Islands': 'See-Schauminseln',
+    'Pokemon Mansion': 'Pokémon-Haus',
+    'Power Plant': 'Kraftwerk',
+    'Victory Road': 'Siegesstraße',
+    'Cerulean Cave': 'Geheimdungeon',
+    'Digletts Cave': 'Digdas Höhle',
+    'Berry Forest': 'Beerenforst',
+    'Bond Bridge': 'Bundebrücke',
+    'Five Isle Meadow': 'Eiland 5-Weide',
+    'Treasure Beach': 'Schatzstrand',
+    'Cape Brink': 'Kap Kante',
+    'Water Path': 'Wasserirrgarten',
+    'Ruin Valley': 'Ruinental',
+    'Canyon Entrance': 'Schluchteingang',
+    'Sevault Canyon': 'Canyon-Sevault',
+    'Pattern Bush': 'Musterbuschwald',
+
+    'New Bark Town': 'Neuborkia',
+    'Cherrygrove City': 'Rosalia City',
+    'Violet City': 'Viola City',
+    'Azalea Town': 'Azalea City',
+    'Goldenrod City': 'Dukatia City',
+    'Ecruteak City': 'Teak City',
+    'Olivine City': 'Oliviana City',
+    'Cianwood City': 'Anemonia City',
+    'Mahogany Town': 'Mahagonia City',
+    'Blackthorn City': 'Ebenholz City',
+    'Sprout Tower': 'Knofensa-Turm',
+    'Ruins Of Alph': 'Alph-Ruinen',
+    'Union Cave': 'Einheitshöhle',
+    'Slowpoke Well': 'Flegmon-Brunnen',
+    'Ilex Forest': 'Steineichenwald',
+    'National Park': 'Nationalpark',
+    'Burned Tower': 'Turmruine',
+    'Bell Tower': 'Zinnturm',
+    'Whirl Islands': 'Strudelinseln',
+    'Mt Mortar': 'Kesselberg',
+    'Lake Of Rage': 'See des Zorns',
+    'Ice Path': 'Eispfad',
+    'Dragons Den': 'Drachenhöhle',
+    'Dark Cave': 'Dunkelhöhle',
+    'Mt Silver': 'Silberberg',
+    'Tohjo Falls': 'Tohjo-Fälle',
+
+    'Littleroot Town': 'Wurzelheim',
+    'Oldale Town': 'Rosaltstadt',
+    'Dewford Town': 'Faustauhaven',
+    'Slateport City': 'Graphitport City',
+    'Mauville City': 'Malvenfroh City',
+    'Verdanturf Town': 'Wiesenflur',
+    'Fallarbor Town': 'Laubwechselfeld',
+    'Lavaridge Town': 'Bad Lavastadt',
+    'Fortree City': 'Baumhausen City',
+    'Lilycove City': 'Seegrasulb City',
+    'Mossdeep City': 'Moosbach City',
+    'Sootopolis City': 'Xeneroville',
+    'Pacifidlog Town': 'Floßbrunn',
+    'Ever Grande City': 'Prachtpolis City',
+    'Petalburg City': 'Blütenburg City',
+    'Meteor Falls': 'Meteorfälle',
+    'Rusturf Tunnel': 'Metaflurtunnel',
+    'Granite Cave': 'Granithöhle',
+    'Fiery Path': 'Feuriger Pfad',
+    'Jagged Pass': 'Steilpass',
+    'New Mauville': 'Neu Malvenfroh',
+    'Sea Mauville': 'Seewoge Malvenfroh',
+    'Mt Pyre': 'Pyroberg',
+    'Magma Hideout': 'Magma-Versteck',
+    'Aqua Hideout': 'Aqua-Versteck',
+    'Shoal Cave': 'Küstenhöhle',
+    'Cave Of Origin': 'Urzeithöhle',
+    'Sky Pillar': 'Himmelturm',
+    'Seafloor Cavern': 'Tiefseehöhle',
+    'Mirage Island': 'Wundereiland',
+    'Desert Underpass': 'Wüstentunnel',
+    'Artisan Cave': 'Künstlerhöhle',
+    'Altering Cave': 'Wandelhöhle',
+
+    'Twinleaf Town': 'Zweiblattdorf',
+    'Sandgem Town': 'Sandgemme',
+    'Jubilife City': 'Jubelstadt',
+    'Oreburgh City': 'Erzelingen',
+    'Floaroma Town': 'Flori',
+    'Eterna City': 'Ewigenau',
+    'Hearthome City': 'Herzhofen',
+    'Solaceon Town': 'Trostu',
+    'Veilstone City': 'Schleiede',
+    'Pastoria City': 'Weideburg',
+    'Celestic Town': 'Elyses',
+    'Canalave City': 'Fleetburg',
+    'Snowpoint City': 'Blizzach',
+    'Sunyshore City': 'Sonnewik',
+    'Oreburgh Gate': 'Erzelingen-Tor',
+    'Ravaged Path': 'Verwüsteter Pfad',
+    'Oreburgh Mine': 'Erzelingen-Mine',
+    'Valley Windworks': 'Windkraftwerk',
+    'Eterna Forest': 'Ewigwald',
+    'Old Chateau': 'Alte Villa',
+    'Wayward Cave': 'Bizarre Höhle',
+    'Mt Coronet': 'Kraterberg',
+    'Great Marsh': 'Großmoor',
+    'Ruin Maniac Cave': 'Ruinenmaniac-Höhle',
+    'Maniac Tunnel': 'Maniac-Tunnel',
+    'Trophy Garden': 'Trophäengarten',
+    'Iron Island': 'Eiseninsel',
+    'Lake Verity': 'Wahrheitssee',
+    'Lake Valor': 'Kühnheitssee',
+    'Lake Acuity': 'Stärkesee',
+    'Sendoff Spring': 'Frühlingspfad',
+    'Turnback Cave': 'Höhle der Umkehr',
+    'Snowpoint Temple': 'Blizzach-Tempel',
+    'Stark Mountain': 'Kahlberg',
+    'Fuego Ironworks': 'Feuriohütte',
+
+    'Nuvema Town': 'Avenitia',
+    'Accumula Town': 'Gavina',
+    'Striaton City': 'Orion City',
+    'Nacrene City': 'Septerna City',
+    'Castelia City': 'Stratos City',
+    'Nimbasa City': 'Rayono City',
+    'Driftveil City': 'Marea City',
+    'Mistralton City': 'Panaero City',
+    'Icirrus City': 'Nevaio City',
+    'Opelucid City': 'Twindrake City',
+    'Undella Town': 'Ondula',
+    'Lacunosa Town': 'Tessera',
+    'Dreamyard': 'Traumbrache',
+    'Pinwheel Forest': 'Ewigenwald',
+    'Desert Resort': 'Wüstenresort',
+    'Relic Castle': 'Alter Palast',
+    'Cold Storage': 'Tiefkühlcontainer',
+    'Chargestone Cave': 'Elektrolithhöhle',
+    'Twist Mountain': 'Wendelberg',
+    'Dragonspiral Tower': 'Drachenstiege',
+    'Moor of Icirrus': 'Moor von Nevaio',
+    'Challengers Cave': 'Höhle der Schulung',
+    'Giant Chasm': 'Riesengrotte',
+    'Abundant Shrine': 'Schrein der Ernte',
+    'Lostlorn Forest': 'Hain der Täuschung',
+    'Nature Sanctuary': 'Naturschutzgebiet',
+    'Virbank Complex': 'Vapydro-Werke',
+    'Castelia Sewers': 'Stratos-Kanalisation',
+    'Relic Passage': 'Alte Flucht',
+    'Strange House': 'Bizarre Villa',
+    'Seaside Cave': 'Meerhöhle',
+    'P2 Laboratory': 'P2-Labor',
+
+    'Aquacorde Town': 'Petrophia',
+    'Ambrette Town': 'Relievera City',
+    'Cyllage City': 'Cromlexia',
+    'Shalour City': 'Yantara City',
+    'Couriway Town': 'Mosaia',
+    'Laverre City': 'Romantia City',
+    'Santalune Forest': 'Nouvaria-Wald',
+    'Parfum Palace': 'Magnum-Opus-Palast',
+    'Connecting Cave': 'Verbindungshöhle',
+    'Glittering Cave': 'Leuchthöhle',
+    'Reflection Cave': 'Spiegelhöhle',
+    'Azure Bay': 'Azurbucht',
+    'Frost Cavern': 'Frosthöhle',
+    'Terminus Cave': 'Omega-Höhle',
+    'Pokemon Village': 'Pokémon-Dorf',
+    'Unknown Dungeon': 'Geheimdungeon',
+    'Sea Spirits Den': 'Meerestitanenhöhle',
+    'Lost Hotel': 'Hotel Ruine',
+    'Lumiose City': 'Illumina City',
+
+    'Hauoli City': 'Hauholi City',
+    'Melemele Meadow': 'Melemele-Blumenmeer',
+    'Seaward Cave': 'Meereshöhle',
+    'Ten Carat Hill': 'Tenkarat-Hügel',
+    'Kalae Bay': 'Kalae-Bucht',
+    'Paniola Town': 'Ohana',
+    'Paniola Ranch': 'Ohana-Farm',
+    'Brooklet Hill': 'Plätscherhügel',
+    'Wela Volcano Park': 'Wela-Vulkanpark',
+    'Lush Jungle': 'Schattendschungel',
+    'Digletts Tunnel': 'Digda-Tunnel',
+    'Memorial Hill': 'Gedenkhügel',
+    'Akala Outskirts': 'Akala-Küstenland',
+    'Malie City': 'Malihe City',
+    'Malie Garden': 'Malihe-Ziergarten',
+    'Mount Hokulani': 'Hokulani-Berg',
+    'Thrifty Megamart': 'Schnäppchenparadies',
+    'Ulaula Meadow': 'Ula-Ula-Blumenmeer',
+    'Po Town': 'Po Town',
+    'Seafolk Village': 'Dorf des Seevolkes',
+    'Poni Wilds': 'Poni-Wildnis',
+    'Ancient Poni Path': 'Alter Poni-Pfad',
+    'Poni Breaker Coast': 'Poni-Küstenklippe',
+    'Poni Grove': 'Poni-Hain',
+    'Poni Plains': 'Poni-Ebene',
+    'Poni Meadow': 'Poni-Blumenmeer',
+    'Resolution Cave': 'Finalhöhle',
+    'Exeggutor Island': 'Kokowei-Eiland',
+    'Vast Poni Canyon': 'Canyon von Poni',
+    'Poni Gauntlet': 'Poni-Küste',
+    'Mount Lanakila': 'Mount Lanakila',
+
+    'Postwick': 'Furlongham',
+    'Wedgehurst': 'Brassbury',
+    'Motostoke': 'Engine City',
+    'Turffield': 'Turffield',
+    'Hulbury': 'Keel Town',
+    'Hammerlocke': 'Claw City',
+    'Stow-on-Side': 'Passio',
+    'Spikemuth': 'Spikeford',
+    'Circhester': 'Circhester',
+    'Wyndon': 'Score City',
+    'Slumbering Weald': 'Schlummerwald',
+    'Galar Mine': 'Galar-Mine',
+    'Rolling Fields': 'Wonnewiesen',
+    'Dappled Grove': 'Hain der Entspannung',
+    'West Lake Axewell': 'Milza-See (West)',
+    'East Lake Axewell': 'Milza-See (Ost)',
+    'Watchtower Ruins': 'Wachturmruine',
+    'South Lake Miloch': 'Miloch-See (Süd)',
+    'North Lake Miloch': 'Miloch-See (Nord)',
+    'Giants Seat': 'Sitz des Giganten',
+    'Motostoke Riverbank': 'Engine-Flussufer',
+    'Bridge Field': 'Brückenfeld',
+    'Stony Wilderness': 'Steinige Wildnis',
+    'Dusty Bowl': 'Sandsturmkessel',
+    'Giants Mirror': 'Spiegel des Giganten',
+    'Hammerlocke Hills': 'Claw-Plateau',
+    'Giants Cap': 'Kappe des Giganten',
+    'Lake Of Outrage': 'Wutanfall-See',
+    'Master Dojo': 'Meister-Dojo',
+    'Fields Of Honor': 'Grußgefilde',
+    'Soothing Wetlands': 'Balsamsumpf',
+    'Forest Of Focus': 'Fokuswald',
+    'Challenge Beach': 'Strand der Prüfung',
+    'Brawlers Cave': 'Kämpfergrotte',
+    'Challenge Road': 'Pfad der Prüfung',
+    'Courageous Cavern': 'Tapferkeitshöhle',
+    'Loop Lagoon': 'Ringbucht',
+    'Training Lowlands': 'Trainingsniederung',
+    'Warm Up Tunnel': 'Aufwärmtunnel',
+    'Potbottom Desert': 'Pfannenkessel',
+    'Workout Sea': 'Fitnessmeer',
+    'Stepping Stone Sea': 'Inselmeer',
+    'Insular Sea': 'Fernes Meer',
+    'Honeycalm Sea': 'Wabenmeer',
+    'Honeycalm Island': 'Wabeninsel',
+    'Slippery Slope': 'Schollenhang',
+    'Frostpoint Field': 'Frostfeld',
+    'Giants Bed': 'Bett des Giganten',
+    'Old Cemetery': 'Uralter Friedhof',
+    'Snowslide Slope': 'Schneeschlucht',
+    'Tunnel To The Top': 'Tunnel zum Gipfel',
+    'Path To The Peak': 'Gipfelpfad',
+    'Crown Shrine': 'Krönungstempel',
+    'Giants Foot': 'Fuß des Giganten',
+    'Roaring Sea Caves': 'Rauschende Höhlen',
+    'Frigid Sea': 'Schollenmeer',
+    'Three Point Pass': 'Dreiwegpass',
+    'Ballimere Lake': 'Ballsee',
+    'Dyna Tree Hill': 'Hügel des Dyna-Baums',
+
+    'Roaming Kanto': 'Wanderpokémon (Kanto)',
+    'Roaming Johto': 'Wanderpokémon (Johto)',
+    'Roaming Hoenn': 'Wanderpokémon (Hoenn)',
+    'Roaming Sinnoh': 'Wanderpokémon (Sinnoh)',
+    'Roaming Kalos': 'Wanderpokémon (Kalos)',
+    'Roaming Galar': 'Wanderpokémon (Galar)',
+
+    'Outside': 'Außenbereich',
+    'Inside': 'Innenbereich',
+    'Entrance': 'Eingang',
+    'Back': 'Hinterer Bereich',
+    'Small Room': 'Kleiner Raum',
+    'Sea Route': 'Seeroute',
+    'Main': 'Hauptbereich',
+    'Area 2': 'Bereich 2',
+    'Area 3': 'Bereich 3',
+  };
 
   static const Map<String, Map<String, String>> _translations = {
     'de': {
@@ -29,6 +406,57 @@ class Translator {
       'edit': 'Bearbeiten',
       'delete': 'Löschen',
       'save': 'Speichern',
+
+      // Badges (Edition Kürzel) - DE
+      'badge_red': 'R',
+      'badge_blue': 'B',
+      'badge_yellow': 'G',
+      'badge_gold': 'G',
+      'badge_silver': 'S',
+      'badge_crystal': 'K',
+      'badge_ruby': 'RU',
+      'badge_sapphire': 'SA',
+      'badge_emerald': 'SM',
+      'badge_firered': 'FR',
+      'badge_leafgreen': 'BG',
+      'badge_diamond': 'D',
+      'badge_pearl': 'P',
+      'badge_platinum': 'PT',
+      'badge_heartgold': 'HG',
+      'badge_soulsilver': 'SS',
+      'badge_black': 'S',
+      'badge_white': 'W',
+      'badge_black-2': 'S2',
+      'badge_white-2': 'W2',
+      'badge_x': 'X',
+      'badge_y': 'Y',
+      'badge_omega-ruby': 'ΩR',
+      'badge_alpha-sapphire': 'αS',
+      'badge_sun': 'S',
+      'badge_moon': 'M',
+      'badge_ultra-sun': 'US',
+      'badge_ultra-moon': 'UM',
+      'badge_lets-go-pikachu': 'LGP',
+      'badge_lets-go-eevee': 'LGE',
+      'badge_sword': 'SW',
+      'badge_shield': 'SH',
+      'badge_the-isle-of-armor-sword': 'SW EX',
+      'badge_the-isle-of-armor-shield': 'SH EX',
+      'badge_the-crown-tundra-sword': 'SW EX2',
+      'badge_the-crown-tundra-shield': 'SH EX2',
+      'badge_brilliant-diamond': 'SD',
+      'badge_shining-pearl': 'LP',
+      'badge_legends-arceus': 'PLA',
+      'badge_scarlet': 'KA',
+      'badge_violet': 'PU',
+      'badge_the-teal-mask-scarlet': 'KA EX',
+      'badge_the-teal-mask-violet': 'PU EX',
+      'badge_the-indigo-disk-scarlet': 'KA EX2',
+      'badge_the-indigo-disk-violet': 'PU EX2',
+      'badge_legends-z-a': 'PLZA',
+      'badge_colosseum': 'COLO',
+      'badge_xd': 'XD',
+
       // Neues Bottom Sheet & Formulare
       'choose_generation': 'Wähle eine Generation / Spiel',
       'exact_pokedex': 'Genauer Pokédex',
@@ -40,6 +468,7 @@ class Translator {
       'form_gmax': 'Gigadynamax (G-Max)',
       'form_other': 'Sonstige (Kostüme, Pokusan...)',
       'form_other_short': 'Sonstige (Kostüme...)',
+
       // Bestätigungs-Dialoge
       'delete_confirm_title': 'Dex löschen?',
       'delete_confirm_text':
@@ -47,6 +476,7 @@ class Translator {
       'delete_multiple_confirm_title': 'Dexe löschen?',
       'delete_multiple_confirm_text':
           'Möchtest du die ausgewählten Dexe wirklich löschen?',
+
       // Benachrichtigungen (Notifications)
       'import_success': 'Pokédex erfolgreich importiert!',
       'backup_success': 'Backup erfolgreich gespeichert unter:',
@@ -77,6 +507,8 @@ class Translator {
       'error_reset_to_default': 'Fehler beim zurücksetzen der Farben:',
       'error_launch_url': 'Konnte URL nicht öffnen:',
       'error_toggle_shiny': 'Fehler beim Shiny eingeben:',
+      'error_loading_encounters': 'Fehler beim Laden der Fundorte:',
+
       // Gruppen-Namen
       'group_national': 'National',
       'group_kanto': 'Kanto',
@@ -88,6 +520,7 @@ class Translator {
       'group_alola': 'Alola',
       'group_galar': 'Galar & Hisui',
       'group_paldea': 'Paldea',
+
       // Form-Namen
       'form_name_alola': 'Alola',
       'form_name_galar': 'Galar',
@@ -243,6 +676,7 @@ class Translator {
       'form_name_10': '10%',
       'form_name_50': '50%',
       'form_name_unbound': 'Entfesselt',
+
       // Formen: Typen (für Arceus & Amigento)
       'form_name_bug': 'Käfer',
       'form_name_dark': 'Unlicht',
@@ -262,6 +696,7 @@ class Translator {
       'form_name_steel': 'Stahl',
       'form_name_water': 'Wasser',
       'form_name_unknown': 'Unbekannt',
+
       // Regionale Dexe
       'region_national_overall': 'Nationaldex',
       'region_kanto_regional': 'Kanto (Regional)',
@@ -299,6 +734,7 @@ class Translator {
       'region_special_dex': 'Spezial Dexe',
       'region_mega_dex': 'Mega Dex',
       'region_icognito_dex': 'Unkown Dex',
+
       // Erscheinungseinstellungen
       "appearance": "Erscheinungsbild",
       "choose_accent_color": "Akzentfarbe",
@@ -309,6 +745,7 @@ class Translator {
       "data_management": "Datenverwaltung",
       "apply": "Übernehmen",
       "reset_theme": "Standarddesign wiederherstellen",
+
       // Credit Bildschirm
       'credits': 'Danksagungen & Quellen',
       'credit_api_title': 'PokéAPI & Sprites',
@@ -323,6 +760,7 @@ class Translator {
       'credit_balls_sub': 'Community Sheet für passende Pokébälle',
       'credit_ai_title': 'Google Gemini',
       'credit_ai_sub': 'KI-Assistenz beim Programmieren & Refactoring',
+
       // PC-Box Ansicht & Sortierung
       'view_list': 'Zur Listen-Ansicht',
       'view_box': 'Zur PC-Box Ansicht',
@@ -331,6 +769,7 @@ class Translator {
       'tooltip_view_sort': 'Ansicht & Sortierung',
       'empty_box': 'Keine Pokémon gefunden.',
       'box': 'Box',
+
       // PC-Box Kategorien
       'cat_females': 'Weibchen',
       'cat_alternate': 'Alternativ',
@@ -341,6 +780,7 @@ class Translator {
       'cat_gmax': 'Gigantamax',
       'cat_regional': 'Regionalformen',
       'cat_mega': 'Mega',
+
       // Reine Regionen-Namen für die Boxen
       'region_name_kanto': 'Kanto',
       'region_name_johto': 'Johto',
@@ -355,6 +795,7 @@ class Translator {
       'region_name_unknown': 'Unbekannt',
       'region_name_gmax': 'Galar G-Max',
       'jump_to_region': 'Zu Region springen...',
+
       // Extra-Info Box
       'extra_info': 'Zusatzinformationen',
       'form': 'Form',
@@ -370,8 +811,76 @@ class Translator {
       'empty_ignored': 'Es wurden keine Pokémon ausgeblendet.',
       'placeholder_text': 'Wird in zukünftigen Updates hinzugefügt.',
       'shiny_dex': 'Shiny Dex',
+
+      // Fundorte, Encounter, Editionen, Generationen
+      'encounters_title': 'Fundorte & Begegnungen',
+      'no_encounters_found':
+          'Keine Fundorte bekannt (oder noch nicht generiert).',
+      'encounter_missing_note':
+          'Hinweis: Wenn eine Edition nicht aufgeführt ist, ist das Pokémon dort in der Regel nur durch Entwicklung, Tausch oder Transfer erhältlich.',
+
+      'gen_1': 'Generation 1',
+      'gen_2': 'Generation 2',
+      'gen_3': 'Generation 3',
+      'gen_4': 'Generation 4',
+      'gen_5': 'Generation 5',
+      'gen_6': 'Generation 6',
+      'gen_7': 'Generation 7',
+      'gen_8': 'Generation 8',
+      'gen_9': 'Generation 9',
+
+      'version_red': 'Rote Edition',
+      'version_blue': 'Blaue Edition',
+      'version_yellow': 'Gelbe Edition',
+      'version_gold': 'Goldene Edition',
+      'version_silver': 'Silberne Edition',
+      'version_crystal': 'Kristall Edition',
+      'version_ruby': 'Rubin Edition',
+      'version_sapphire': 'Saphir Edition',
+      'version_emerald': 'Smaragd Edition',
+      'version_firered': 'Feuerrote Edition',
+      'version_leafgreen': 'Blattgrüne Edition',
+      'version_diamond': 'Diamant Edition',
+      'version_pearl': 'Perl Edition',
+      'version_platinum': 'Platin Edition',
+      'version_heartgold': 'HeartGold',
+      'version_soulsilver': 'SoulSilver',
+      'version_black': 'Schwarze Edition',
+      'version_white': 'Weiße Edition',
+      'version_black-2': 'Schwarz 2',
+      'version_white-2': 'Weiß 2',
+      'version_x': 'Pokémon X',
+      'version_y': 'Pokémon Y',
+      'version_omega-ruby': 'Omega Rubin',
+      'version_alpha-sapphire': 'Alpha Saphir',
+      'version_sun': 'Sonne',
+      'version_moon': 'Mond',
+      'version_ultra-sun': 'Ultrasonne',
+      'version_ultra-moon': 'Ultramond',
+      'version_lets-go-pikachu': 'Let\'s Go Pikachu',
+      'version_lets-go-eevee': 'Let\'s Go Evoli',
+      'version_sword': 'Schwert',
+      'version_shield': 'Schild',
+      'version_the-isle-of-armor-sword': 'Rüstungsinsel (SW)',
+      'version_the-isle-of-armor-shield': 'Rüstungsinsel (SH)',
+      'version_the-crown-tundra-sword': 'Schneelande der Krone (SW)',
+      'version_the-crown-tundra-shield': 'Schneelande der Krone (SH)',
+      'version_brilliant-diamond': 'Strahlender Diamant',
+      'version_shining-pearl': 'Leuchtende Perle',
+      'version_legends-arceus': 'Legenden: Arceus',
+      'version_scarlet': 'Karmesin',
+      'version_violet': 'Purpur',
+      'version_the-teal-mask-scarlet': 'Die Türkisgrüne Maske (KA)',
+      'version_the-teal-mask-violet': 'Die Türkisgrüne Maske (PU)',
+      'version_the-indigo-disk-scarlet': 'Die Indigoblaue Scheibe (KA)',
+      'version_the-indigo-disk-violet': 'Die Indigoblaue Scheibe (PU)',
+      'version_legends-z-a': 'Legenden: Z-A',
+      'version_colosseum': 'Pokémon Colosseum',
+      'version_xd': 'Pokémon XD: Der Dunkle Sturm',
+
       'region_legendary_dex': 'Legenden Dex',
       'region_mythical_dex': 'Mysteriöse Dex',
+
       'group_egg_groups': 'Eigruppen',
       'region_egg_monster': 'Eigruppe: Monster',
       'region_egg_water1': 'Eigruppe: Wasser 1',
@@ -388,7 +897,10 @@ class Translator {
       'region_egg_ditto': 'Eigruppe: Ditto',
       'region_egg_dragon': 'Eigruppe: Drache',
       'region_egg_no_eggs': 'Eigruppe: Unbekannt',
+
       'any_ball': 'Beliebig / Unbekannt',
+      'matching_balls': 'Matching Balls',
+
       // Bälle
       'ball_poke_ball': 'Pokéball',
       'ball_great_ball': 'Superball',
@@ -417,6 +929,7 @@ class Translator {
       'ball_dream_ball': 'Traumball',
       'ball_beast_ball': 'Ultraball',
       'ball_strange_ball': 'Seltsamer Ball',
+
       // Shiny Guide Updates
       'shiny_guide_title': 'Shiny Guide',
       'shiny_guide_gen1': 'Generation 1',
@@ -435,18 +948,24 @@ class Translator {
       'shiny_huntable_yes': 'Regulär Huntbar: Ja',
       'shiny_huntable_no': 'Regulär Huntbar: Nein',
       'notable_encounters': 'Besondere Begegnungen:',
-      'encounter_stationary': 'Stationär',
-      'encounter_gift': 'Geschenk',
-      'encounter_game_corner': 'Spielhalle',
-      'encounter_trade': 'In-Game Tausch',
-      'encounter_fishing': 'Angeln',
-      'encounter_evolution': 'Durch Entwicklung einer fangbaren Vorentwicklung',
-      'encounter_glitch': 'Glitch',
       'tutorials_mew': 'Mew 8F-Glitch Tutorials:',
       'tutorial_mew_video_de': 'Video Tutorial (DE) - LEOsMIND',
       'tutorial_mew_video_en': 'Video Tutorial (EN) - Austin John',
       'tutorial_mew_text_en': 'Text Tutorial (EN) - extratricky',
-      'error_shiny_guide': 'Fehler beim Laden des Shiny Guides.',
+
+      // Methoden / Conditions
+      'method_Starter': 'Starter',
+      'method_Gift': 'Geschenk',
+      'method_Trade': 'NPC-Tausch',
+      'method_Fossil': 'Fossil',
+      'method_Egg': 'Ei',
+      'method_Surf': 'Surfer',
+      'method_Old Rod': 'Angel',
+      'method_Good Rod': 'Profiangel',
+      'method_Super Rod': 'Superangel',
+      'method_Fly': 'Fliegen',
+      'method_Fighting Dojo': 'Kampf-Dojo',
+      'method_Event Trade': 'Event / Tausch',
     },
     'en': {
       // UI
@@ -470,6 +989,57 @@ class Translator {
       'edit': 'Edit',
       'delete': 'Delete',
       'save': 'Save',
+
+      // Badges (Edition Kürzel) - EN
+      'badge_red': 'R',
+      'badge_blue': 'B',
+      'badge_yellow': 'Y',
+      'badge_gold': 'G',
+      'badge_silver': 'S',
+      'badge_crystal': 'C',
+      'badge_ruby': 'RU',
+      'badge_sapphire': 'SA',
+      'badge_emerald': 'E',
+      'badge_firered': 'FR',
+      'badge_leafgreen': 'LG',
+      'badge_diamond': 'D',
+      'badge_pearl': 'P',
+      'badge_platinum': 'PT',
+      'badge_heartgold': 'HG',
+      'badge_soulsilver': 'SS',
+      'badge_black': 'B',
+      'badge_white': 'W',
+      'badge_black-2': 'B2',
+      'badge_white-2': 'W2',
+      'badge_x': 'X',
+      'badge_y': 'Y',
+      'badge_omega-ruby': 'ΩR',
+      'badge_alpha-sapphire': 'αS',
+      'badge_sun': 'S',
+      'badge_moon': 'M',
+      'badge_ultra-sun': 'US',
+      'badge_ultra-moon': 'UM',
+      'badge_lets-go-pikachu': 'LGP',
+      'badge_lets-go-eevee': 'LGE',
+      'badge_sword': 'SW',
+      'badge_shield': 'SH',
+      'badge_the-isle-of-armor-sword': 'SW EX',
+      'badge_the-isle-of-armor-shield': 'SH EX',
+      'badge_the-crown-tundra-sword': 'SW EX2',
+      'badge_the-crown-tundra-shield': 'SH EX2',
+      'badge_brilliant-diamond': 'BD',
+      'badge_shining-pearl': 'SP',
+      'badge_legends-arceus': 'PLA',
+      'badge_scarlet': 'S',
+      'badge_violet': 'V',
+      'badge_the-teal-mask-scarlet': 'S EX',
+      'badge_the-teal-mask-violet': 'V EX',
+      'badge_the-indigo-disk-scarlet': 'S EX2',
+      'badge_the-indigo-disk-violet': 'V EX2',
+      'badge_legends-z-a': 'PLZA',
+      'badge_colosseum': 'COLO',
+      'badge_xd': 'XD',
+
       'choose_generation': 'Choose a Generation / Game',
       'exact_pokedex': 'Exact Pokédex',
       'include_forms': 'Select Forms',
@@ -480,6 +1050,7 @@ class Translator {
       'form_gmax': 'Gigantamax (G-Max)',
       'form_other': 'Other (Costumes, Alcremie...)',
       'form_other_short': 'Other (Costumes...)',
+
       // Confirm dialogs
       'delete_confirm_title': 'Delete Dex?',
       'delete_confirm_text':
@@ -487,6 +1058,7 @@ class Translator {
       'delete_multiple_confirm_title': 'Delete Dexes?',
       'delete_multiple_confirm_text':
           'Do you really want to delete the selected Dexes?',
+
       // Notifications
       'import_success': 'Pokédex imported successfully!',
       'backup_success': 'Backup saved successfully at:',
@@ -514,6 +1086,8 @@ class Translator {
       'error_reset_to_default': 'Error resetting colors:',
       'error_launch_url': 'Could not open URL:',
       'error_toggle_shiny': 'Error toggle shiny:',
+      'error_loading_encounters': 'Error loading encounters:',
+
       // Group-names
       'group_national': 'National',
       'group_kanto': 'Kanto',
@@ -525,6 +1099,7 @@ class Translator {
       'group_alola': 'Alola',
       'group_galar': 'Galar & Hisui',
       'group_paldea': 'Paldea',
+
       // Forms
       'form_name_alola': 'Alola',
       'form_name_galar': 'Galar',
@@ -680,6 +1255,7 @@ class Translator {
       'form_name_10': '10%',
       'form_name_50': '50%',
       'form_name_unbound': 'Unbound',
+
       // Types (Arceus & Amigento)
       'form_name_bug': 'Bug',
       'form_name_dark': 'Dark',
@@ -699,6 +1275,7 @@ class Translator {
       'form_name_steel': 'Steel',
       'form_name_water': 'Water',
       'form_name_unknown': 'Unknown',
+
       // Regionale Dexe
       'region_national_overall': 'National Dex',
       'region_kanto_regional': 'Kanto (Regional)',
@@ -736,6 +1313,7 @@ class Translator {
       'region_special_dex': 'Special Dex',
       'region_mega_dex': 'Mega Dex',
       'region_icognito_dex': 'Icognito Dex',
+
       // Appearance settings
       "appearance": "Appearance",
       "choose_accent_color": "Accent Color",
@@ -746,6 +1324,7 @@ class Translator {
       "data_management": "Data Management",
       "apply": "Apply",
       "reset_theme": "Restore default theme",
+
       // Credit screen
       'credits': 'Credits & Sources',
       'credit_api_title': 'PokéAPI & Sprites',
@@ -760,6 +1339,7 @@ class Translator {
       'credit_balls_sub': 'Community sheet for matching Poké Balls',
       'credit_ai_title': 'Google Gemini',
       'credit_ai_sub': 'AI assistance in coding & refactoring',
+
       // PC-Box overview
       'view_list': 'Switch to List View',
       'view_box': 'Switch to PC Box View',
@@ -768,6 +1348,7 @@ class Translator {
       'tooltip_view_sort': 'View & Sort',
       'empty_box': 'No Pokémon found.',
       'box': 'Box',
+
       // PC-Box categories
       'cat_females': 'Females',
       'cat_alternate': 'Alternate',
@@ -778,6 +1359,7 @@ class Translator {
       'cat_gmax': 'Gigadynamax',
       'cat_regional': 'Regionalformen',
       'cat_mega': 'Mega',
+
       // Region names for boxes
       'region_name_kanto': 'Kanto',
       'region_name_johto': 'Johto',
@@ -792,6 +1374,7 @@ class Translator {
       'region_name_unknown': 'Unknown',
       'region_name_gmax': 'Galar G-Max',
       'jump_to_region': 'Jump to Region...',
+
       // Extra info box
       'extra_info': 'Extra Info',
       'form': 'Form',
@@ -807,8 +1390,88 @@ class Translator {
       'empty_ignored': 'No Pokémon have been hidden.',
       'placeholder_text': 'Will be added in future updates.',
       'shiny_dex': 'Shiny Dex',
+
+      // New: Encounters, Locations
+      'encounters_title': 'Locations & Encounters',
+      'no_encounters_found': 'No locations known (or not generated yet).',
+      'encounter_missing_note':
+          'Note: If an edition is not listed, the Pokémon is usually only available via Evolution, Trade, or Transfer.',
+
+      'gen_1': 'Generation 1',
+      'gen_2': 'Generation 2',
+      'gen_3': 'Generation 3',
+      'gen_4': 'Generation 4',
+      'gen_5': 'Generation 5',
+      'gen_6': 'Generation 6',
+      'gen_7': 'Generation 7',
+      'gen_8': 'Generation 8',
+      'gen_9': 'Generation 9',
+
+      'version_red': 'Red Version',
+      'version_blue': 'Blue Version',
+      'version_yellow': 'Yellow Version',
+      'version_gold': 'Gold Version',
+      'version_silver': 'Silver Version',
+      'version_crystal': 'Crystal Version',
+      'version_ruby': 'Ruby Version',
+      'version_sapphire': 'Sapphire Version',
+      'version_emerald': 'Emerald Version',
+      'version_firered': 'FireRed Version',
+      'version_leafgreen': 'LeafGreen Version',
+      'version_diamond': 'Diamond Version',
+      'version_pearl': 'Pearl Version',
+      'version_platinum': 'Platinum Version',
+      'version_heartgold': 'HeartGold',
+      'version_soulsilver': 'SoulSilver',
+      'version_black': 'Black Version',
+      'version_white': 'White Version',
+      'version_black-2': 'Black 2',
+      'version_white-2': 'White 2',
+      'version_x': 'Pokémon X',
+      'version_y': 'Pokémon Y',
+      'version_omega-ruby': 'Omega Ruby',
+      'version_alpha-sapphire': 'Alpha Sapphire',
+      'version_sun': 'Sun',
+      'version_moon': 'Moon',
+      'version_ultra-sun': 'Ultra Sun',
+      'version_ultra-moon': 'Ultra Moon',
+      'version_lets-go-pikachu': 'Let\'s Go Pikachu',
+      'version_lets-go-eevee': 'Let\'s Go Eevee',
+      'version_sword': 'Sword',
+      'version_shield': 'Shield',
+      'version_the-isle-of-armor-sword': 'The Isle of Armor (SW)',
+      'version_the-isle-of-armor-shield': 'The Isle of Armor (SH)',
+      'version_the-crown-tundra-sword': 'The Crown Tundra (SW)',
+      'version_the-crown-tundra-shield': 'The Crown Tundra (SH)',
+      'version_brilliant-diamond': 'Brilliant Diamond',
+      'version_shining-pearl': 'Shining Pearl',
+      'version_legends-arceus': 'Legends: Arceus',
+      'version_scarlet': 'Scarlet',
+      'version_violet': 'Violet',
+      'version_the-teal-mask-scarlet': 'The Teal Mask (KA)',
+      'version_the-teal-mask-violet': 'The Teal Mask (PU)',
+      'version_the-indigo-disk-scarlet': 'The Indigo Disk (KA)',
+      'version_the-indigo-disk-violet': 'The Indigo Disk (PU)',
+      'version_legends-z-a': 'Legends: Z-A',
+      'version_colosseum': 'Pokémon Colosseum',
+      'version_xd': 'Pokémon XD: Gale of Darkness',
+
+      'encounter_starter_oak': 'Starter (Prof. Oak)',
+      'encounter_gift_cerulean': 'Gift (Cerulean City)',
+      'encounter_gift_route24': 'Gift (Route 24)',
+      'encounter_gift_vermilion': 'Gift (Vermilion City)',
+      'encounter_gift_mansion': 'Gift (Celadon Mansion)',
+      'encounter_gift_silph': 'Gift (Silph Co.)',
+      'encounter_gift_dojo': 'Gift (Fighting Dojo)',
+      'encounter_fossil_restoration': 'Fossil Restoration',
+      'encounter_stationary': 'Stationary Encounter',
+      'encounter_trade': 'In-Game Trade',
+      'encounter_game_corner': 'Game Corner',
+      'encounter_glitch_8f': '8F Item Underflow Glitch',
+
       'region_legendary_dex': 'Legendary Dex',
       'region_mythical_dex': 'Mythical Dex',
+
       'group_egg_groups': 'Egg Groups',
       'region_egg_monster': 'Egg Group: Monster',
       'region_egg_water1': 'Egg Group: Water 1',
@@ -825,7 +1488,10 @@ class Translator {
       'region_egg_ditto': 'Egg Group: Ditto',
       'region_egg_dragon': 'Egg Group: Dragon',
       'region_egg_no_eggs': 'Egg Group: Undiscovered',
+
       'any_ball': 'Any / Unknown',
+      'matching_balls': 'Matching Balls',
+
       // Balls
       'ball_poke_ball': 'Poké Ball',
       'ball_great_ball': 'Great Ball',
@@ -854,6 +1520,7 @@ class Translator {
       'ball_dream_ball': 'Dream Ball',
       'ball_beast_ball': 'Beast Ball',
       'ball_strange_ball': 'Strange Ball',
+
       // Shiny Guide Updates
       'shiny_guide_title': 'Shiny Guide',
       'shiny_guide_gen1': 'Generation 1',
@@ -872,18 +1539,24 @@ class Translator {
       'shiny_huntable_yes': 'Regularly Huntable: Yes',
       'shiny_huntable_no': 'Regularly Huntable: No',
       'notable_encounters': 'Notable Encounters:',
-      'encounter_stationary': 'Stationary',
-      'encounter_gift': 'Gift',
-      'encounter_game_corner': 'Game Corner',
-      'encounter_trade': 'In-Game Trade',
-      'encounter_fishing': 'Fishing',
-      'encounter_evolution': 'By evolving a catchable pre-evolution',
-      'encounter_glitch': 'Glitch',
       'tutorials_mew': 'Mew 8F Glitch Tutorials:',
       'tutorial_mew_video_de': 'Video Tutorial (DE) - LEOsMIND',
       'tutorial_mew_video_en': 'Video Tutorial (EN) - Austin John',
       'tutorial_mew_text_en': 'Text Tutorial (EN) - extratricky',
-      'error_shiny_guide': 'Error loading Shiny Guide.',
+
+      // Methoden / Conditions
+      'method_Starter': 'Starter',
+      'method_Gift': 'Gift',
+      'method_Trade': 'In-Game Trade',
+      'method_Fossil': 'Fossil',
+      'method_Egg': 'Egg',
+      'method_Surf': 'Surfing',
+      'method_Old Rod': 'Old Rod',
+      'method_Good Rod': 'Good Rod',
+      'method_Super Rod': 'Super Rod',
+      'method_Fly': 'Flying',
+      'method_Fighting Dojo': 'Fighting Dojo',
+      'method_Event Trade': 'Event / Trade',
     },
   };
 }

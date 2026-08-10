@@ -56,11 +56,24 @@
    ```
 
 ## 🛠️ Daten-Generierung (Intern)
-Die App nutzt Python-Skripte, um statische Dart-Daten aus externen Quellen (z. B. PokeAPI und eine Excel-Tabelle für Matching Balls) zu generieren.
+Die App nutzt Python- und Dart-Skripte, um statische Dart-Daten aus externen Quellen (z. B. PokeAPI und eine Excel-Tabelle für Matching Balls) zu generieren.
 Um die lokale Datenbank zu aktualisieren, kannst du die Skripte im Ordner bin/ ausführen:
 - `python bin/generate_matching_balls.py`
 - `dart bin/generate_dex.dart`
 - `dart bin/generate_orders.dart`
+
+## 🤝 Hilfe benötigt: Fehlende Fundorte (Gen 8+)
+Die App zieht sich die Fundorte (Encounters) der Pokémon über die PokéAPI. Da die API jedoch bei Spielen ab Generation 8 extrem lückenhaft ist (Schwert/Schild DLCs, Strahlender Diamant/Leuchtende Perle, Legenden: Arceus, Karmesin/Purpur), fehlen diese Infos oft in der App.
+
+**Du möchtest helfen? So geht's:**
+Du musst keinen Code schreiben! Alle fehlenden, falschen oder speziellen Fundorte (z.B. Event-Verteilungen) können ganz einfach in einer JSON-Datei eingetragen werden:
+1. Öffne die Datei `bin/custom_encounters.json`.
+2. Füge das Pokémon über seine Dex-ID, die Generation, die Edition und den englischen Fundort hinzu (Schau dir am besten die bestehenden Einträge als Muster an).
+3. **Bonus-Schritt:** Öffne die Datei `lib/l10n/app_translations.dart` und trage den neuen englischen Ortsnamen samt seinen Übersetzungen in die entsprechenden Sprach-Maps ein (z. B. `_baseLocationTranslationsDe` für Deutsch).
+4. Öffne einen Pull Request mit deinen Änderungen.
+5. Ich führe das Skript (`dart bin/generate_encounters.dart`) aus, welches deine Daten mit denen der API zusammenführt.
+
+Jede Hilfe ist enorm wertvoll für die Community!
 
 ## 🏪 App Store Veröffentlichung
 Da ich selbst keine iOS/Mac-Geräte besitze, um die App für Apple-Geräte zu kompilieren, lade ich die Community herzlich dazu ein, dies zu übernehmen! Wenn jemand die App im Apple App Store, Google Play Store oder in alternativen Stores veröffentlichen möchte, habt ihr hiermit meinen vollen Segen.
