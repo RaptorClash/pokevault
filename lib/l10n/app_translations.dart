@@ -1014,6 +1014,13 @@ class Translator {
       'tutorial_mail_writer_main': 'Text Tutorial (EN) - Mail Writer Codes',
       'tutorial_mail_writer_scripts': 'Text Tutorial (EN) - Gen3Giver Scripts',
       'Mail Writer Glitch': 'Mail Writer Glitch',
+
+      // Community & Support
+      'community_support': 'Community & Support',
+      'report_issue_title': 'Fehler oder fehlende Daten melden',
+      'report_issue_sub': 'Erstelle ein Ticket (Issue) auf GitHub',
+      'contribute_title': 'Selber beitragen',
+      'contribute_sub': 'Hilf mit via Pull Request (.json Dateien)',
     },
     'en': {
       // UI
@@ -1652,6 +1659,13 @@ class Translator {
       'tutorial_mail_writer_main': 'Text Tutorial (EN) - Mail Writer Codes',
       'tutorial_mail_writer_scripts': 'Text Tutorial (EN) - Gen3Giver Scripts',
       'Mail Writer Glitch': 'Mail Writer Glitch',
+
+      // Community & Support
+      'community_support': 'Community & Support',
+      'report_issue_title': 'Report Bug or Missing Data',
+      'report_issue_sub': 'Create an issue on GitHub',
+      'contribute_title': 'Contribute',
+      'contribute_sub': 'Help out via Pull Request (.json files)',
     },
   };
 }

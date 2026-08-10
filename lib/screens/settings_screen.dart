@@ -164,6 +164,38 @@ class SettingsScreen extends StatelessWidget {
 
           _buildSectionHeader(
             context,
+            Translator.get('community_support'),
+            Icons.people_alt,
+          ),
+          Card(
+            child: Column(
+              children: [
+                ListTile(
+                  leading: const Icon(Icons.bug_report_outlined),
+                  title: Text(Translator.get('report_issue_title')),
+                  subtitle: Text(Translator.get('report_issue_sub')),
+                  trailing: const Icon(Icons.open_in_new, size: 16),
+                  onTap: () => _launchURL(
+                    'https://github.com/raptorclash/pokevault/issues/new/choose',
+                  ),
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  leading: const Icon(Icons.code),
+                  title: Text(Translator.get('contribute_title')),
+                  subtitle: Text(Translator.get('contribute_sub')),
+                  trailing: const Icon(Icons.open_in_new, size: 16),
+                  onTap: () => _launchURL(
+                    'https://github.com/raptorclash/pokevault',
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 24),
+
+          _buildSectionHeader(
+            context,
             Translator.get('credits'),
             Icons.favorite_rounded,
           ),
@@ -251,9 +283,15 @@ class SettingsScreen extends StatelessWidget {
   }
 
   Future<void> _launchURL(String urlString) async {
-    final Uri url = Uri.parse(urlString);
-    if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
-      NotificationHelper.showError("Link konnte nicht geöffnet werden.");
+    try {
+      final Uri url = Uri.parse(urlString);
+      if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
+        NotificationHelper.showError(
+          "${Translator.get('error_launch_url')} $urlString",
+        );
+      }
+    } catch (e) {
+      NotificationHelper.showError("${Translator.get('error_launch_url')} $e");
     }
   }
 
@@ -394,14 +432,14 @@ class SettingsScreen extends StatelessWidget {
                   provider.setLanguage('de');
                   Navigator.pop(context);
                 },
-                child: const Text('  Deutsch (DE)'),
+                child: const Text('🇩🇪 Deutsch (DE)'),
               ),
               SimpleDialogOption(
                 onPressed: () {
                   provider.setLanguage('en');
                   Navigator.pop(context);
                 },
-                child: const Text('  English (EN)'),
+                child: const Text('🇬🇧 English (EN)'),
               ),
             ],
           );
@@ -429,7 +467,6 @@ class SettingsScreen extends StatelessWidget {
           : (isDarkMode
                 ? themeProvider.darkPrimaryColor
                 : themeProvider.lightPrimaryColor);
-
       showDialog(
         context: context,
         builder: (context) {

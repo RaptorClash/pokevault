@@ -62,18 +62,44 @@ Um die lokale Datenbank zu aktualisieren, kannst du die Skripte im Ordner bin/ a
 - `dart bin/generate_dex.dart`
 - `dart bin/generate_orders.dart`
 
-## 🤝 Hilfe benötigt: Fehlende Fundorte (Gen 8+)
-Die App zieht sich die Fundorte (Encounters) der Pokémon über die PokéAPI. Da die API jedoch bei Spielen ab Generation 8 extrem lückenhaft ist (Schwert/Schild DLCs, Strahlender Diamant/Leuchtende Perle, Legenden: Arceus, Karmesin/Purpur), fehlen diese Infos oft in der App.
+## 🤝 Daten ergänzen (Community Contributions)
+Fehlen dir Fundorte oder passen die Matching Balls nicht? Du kannst diese Daten ganz ohne Programmierkenntnisse in den JSON-Dateien im `bin/`-Ordner ergänzen. 
 
-**Du möchtest helfen? So geht's:**
-Du musst keinen Code schreiben! Alle fehlenden, falschen oder speziellen Fundorte (z.B. Event-Verteilungen) können ganz einfach in einer JSON-Datei eingetragen werden:
-1. Öffne die Datei `bin/custom_encounters.json`.
-2. Füge das Pokémon über seine Dex-ID, die Generation, die Edition und den englischen Fundort hinzu (Schau dir am besten die bestehenden Einträge als Muster an).
-3. **Bonus-Schritt:** Öffne die Datei `lib/l10n/app_translations.dart` und trage den neuen englischen Ortsnamen samt seinen Übersetzungen in die entsprechenden Sprach-Maps ein (z. B. `_baseLocationTranslationsDe` für Deutsch).
-4. Öffne einen Pull Request mit deinen Änderungen.
-5. Ich führe das Skript (`dart bin/generate_encounters.dart`) aus, welches deine Daten mit denen der API zusammenführt.
+*(Hinweis: Wenn eine JSON-Datei aktuell keine Daten enthält, steht dort einfach `{}` drin – das ist völlig normal und gewollt!)*
 
-Jede Hilfe ist enorm wertvoll für die Community!
+### 📍 Fundorte (`bin/custom_encounters.json`)
+Hier kannst du fehlende Fundorte für bestimmte Editionen ergänzen (die API ist z.B. ab Gen 8 sehr lückenhaft). 
+**Format-Beispiel:**
+```json
+{
+  "1": { 
+    "gen_1": {
+      "red": ["Pallet Town (Starter)"]
+    }
+  }
+}
+```
+
+- `"1"`: Die nationale Dex-ID des Pokémon (hier: Bisasam).
+- `"gen_1"`: Die Generation.
+- `"red"`: Der Name der Edition auf Englisch.
+- `"[...]"`: Eine Liste der Fundorte auf Englisch (z.B. "Route 1", "Gift", "Trade").
+
+### 🔴 Matching Balls (`bin/custom_matching_balls.json`)
+Hier kannst du die perfekten Pokébälle für die normale und Shiny-Version eines Pokémon korrigieren oder definieren.
+Format-Beispiel:
+```json
+{
+  "1_normal": {
+    "normal": ["poke_ball", "friend_ball"],
+    "shiny": ["premier_ball"]
+  }
+}
+```
+- `"1_normal"`: Die Dex-ID gefolgt von einem Unterstrich und der Form. Für die Standardform nutzt du _normal. Für Regionalformen z.B. `"19_alola"` (Alola-Rattfratz) oder `"52_galar"` (Galar-Mauzi).
+- `"normal"` / `"shiny"`: Die englischen internen Namen der Bälle (z.B `"great_ball"`, `"ultra_ball"`). Wenn der Ball egal ist, schreibe `["any_ball"]`.
+
+Öffne einfach einen Pull Request mit deinen Anpassungen in den JSON-Dateien!
 
 ## 🏪 App Store Veröffentlichung
 Da ich selbst keine iOS/Mac-Geräte besitze, um die App für Apple-Geräte zu kompilieren, lade ich die Community herzlich dazu ein, dies zu übernehmen! Wenn jemand die App im Apple App Store, Google Play Store oder in alternativen Stores veröffentlichen möchte, habt ihr hiermit meinen vollen Segen.

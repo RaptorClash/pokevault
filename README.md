@@ -62,18 +62,42 @@ If you want to update the database, you can run the scripts located in the bin/ 
 - `dart bin/generate_dex.dart`
 - `dart bin/generate_orders.dart`
 
-## 🤝 Help Needed: Missing Encounters (Gen 8+)
-This app fetches Pokémon encounter locations from PokéAPI. However, their database is currently severely lacking data for games starting from Gen 8 (Sword/Shield DLCs, BDSP, Legends: Arceus, Scarlet/Violet).
+## 🤝 Contributing Data (Community Fixes)
+Missing encounters or do you have better Matching Ball suggestions? You can easily add or correct these in the JSON files located in the `bin/` folder without any coding knowledge.
 
-**Want to contribute? It's super easy:**
-You don't need to write any complex Dart code! All missing, incorrect, or special encounters (like gifts/events) can simply be added to a JSON file:
-1. Open the file `bin/custom_encounters.json`.
-2. Add the Pokémon using its National Dex ID, the generation, the game version, and its English location (just copy the structure of the existing entries).
-3. **Bonus Step:** Open `lib/l10n/app_translations.dart` and add the new English location name along with its translations to the respective language maps (e.g., `_baseLocationTranslationsDe` for German). If you don't speak those languages, no worries – just skip this step!
-4. Open a Pull Request with your changes.
-5. I will run the generation script (`dart bin/generate_encounters.dart`) which merges your JSON data with the API data.
+### 📍 Encounters (`bin/custom_encounters.json`)
+You can add missing locations for specific games here (especially helpful for Gen 8+ since the API lacks data there).
+**Format Example:**
+```json
+{
+  "1": { 
+    "gen_1": {
+      "red": ["Pallet Town (Starter)"]
+    }
+  }
+}
+```
 
-Any contribution to fill in these gaps is highly appreciated!
+- `"1"`: The National Dex ID of the Pokémon (e.g., Bulbasaur).
+- `"gen_1"`: The Generation.
+- `"red"`: The English internal name of the game version.
+- `"[...]"`: A list of the encounter locations in English (e.g., "Route 1", "Gift", "Trade").
+
+### 🔴 Matching Balls (`bin/custom_matching_balls.json`)
+Here you can define the perfect Poké Balls for the regular and shiny versions of a Pokémon.
+Format Example:
+```json
+{
+  "1_normal": {
+    "normal": ["poke_ball", "friend_ball"],
+    "shiny": ["premier_ball"]
+  }
+}
+```
+- `"1_normal"`: The Dex ID followed by an underscore and the form. Use _normal for the standard form. For regional forms, use the suffix (e.g., `"19_alola"` for Alolan Rattata or `"52_galar"` for Galarian Meowth).
+- `"normal"` / `"shiny"`: The internal English names of the Poké Balls (e.g., `"great_ball"`, `"ultra_ball"`). If any ball is fine, use `["any_ball"]`.
+
+Just open a Pull Request with your additions to the JSON files!
 
 ## 🏪 App Store Publishing
 I currently do not own any iOS/Mac devices to compile and publish the app for Apple platforms. If anyone from the community wants to take the compiled app and publish it to the Apple App Store, Google Play Store, or any other platform, you are more than welcome to do so! 

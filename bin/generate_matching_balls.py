@@ -5,7 +5,8 @@ import urllib.request
 import json
 import time
 
-EXCEL_PATH = 'bin/Legal_Matching_Pokéballs.xlsx'
+EXCEL_PATH = 'bin/Legal_Matching_Pok balls.xlsx'
+CUSTOM_JSON_PATH = 'bin/custom_matching_balls.json'
 OUTPUT_PATH = 'lib/data/matching_balls_data.dart'
 
 TYPE_BALL_MAPPING = {
@@ -30,7 +31,7 @@ TYPE_BALL_MAPPING = {
 }
 
 if not os.path.exists(EXCEL_PATH):
-    EXCEL_PATH = 'Legal_Matching_Pokéballs.xlsx'
+    EXCEL_PATH = 'Legal_Matching_Pok balls.xlsx'
 
 def get_url(cell_value):
     if not isinstance(cell_value, str):
@@ -77,7 +78,7 @@ def get_form(name, is_direct=False):
     return 'normal'
 
 def to_key(name):
-    return name.lower().replace('é', 'e').replace(' ', '_').strip()
+    return name.lower().replace(' ', 'e').replace(' ', '_').strip()
 
 def main():
     actual_path = EXCEL_PATH
@@ -145,14 +146,14 @@ def main():
                         url = get_url(rows[r+offset][c])
                         if url and url in url_to_key and url_to_key[url] not in normal_balls:
                             normal_balls.append(url_to_key[url])
-                            
+                
                 shiny_balls = []
                 for offset in [4, 5, 6]:
                     if r + offset < len(rows) and c < len(rows[r+offset]):
                         url = get_url(rows[r+offset][c])
                         if url and url in url_to_key and url_to_key[url] not in shiny_balls:
                             shiny_balls.append(url_to_key[url])
-                            
+                
                 norm_str = "['" + "', '".join(normal_balls) + "']" if normal_balls else "['any_ball']"
                 shin_str = "['" + "', '".join(shiny_balls) + "']" if shiny_balls else "['any_ball']"
                 
@@ -207,7 +208,7 @@ def main():
                         database[unique_id] = {'normal': norm_str, 'shiny': shin_str}
                         entries += 1
         print(f"  -> {entries} Einträge gefunden.")
-    
+
     print("Lese Tab: Alcremie ...")
     if 'Alcremie' in wb.sheetnames:
         alc_sheet = wb['Alcremie']
@@ -239,14 +240,14 @@ def main():
                     url = get_url(row_data[c])
                     if url and url in url_to_key and url_to_key[url] not in normal_balls:
                         normal_balls.append(url_to_key[url])
-                        
+                
                 if r + 1 < len(alc_rows):
                     row_shiny = alc_rows[r+1]
                     for c in range(1, len(row_shiny)):
                         url = get_url(row_shiny[c])
                         if url and url in url_to_key and url_to_key[url] not in shiny_balls:
                             shiny_balls.append(url_to_key[url])
-                            
+                
                 norm_str = "['" + "', '".join(normal_balls) + "']" if normal_balls else "['any_ball']"
                 shin_str = "['" + "', '".join(shiny_balls) + "']" if shiny_balls else "['any_ball']"
                 
@@ -254,6 +255,24 @@ def main():
                     database[unique_id] = {'normal': norm_str, 'shiny': shin_str}
                     entries += 1
         print(f"  -> {entries} Einträge gefunden.")
+
+    print("\nLese benutzerdefinierte Bälle aus JSON (Community Fixes)...")
+    if os.path.exists(CUSTOM_JSON_PATH):
+        try:
+            with open(CUSTOM_JSON_PATH, 'r', encoding='utf-8') as f:
+                custom_data = json.load(f)
+                custom_entries = 0
+                for unique_id, data in custom_data.items():
+                    norm_str = "['" + "', '".join(data.get('normal', [])) + "']" if data.get('normal') else "['any_ball']"
+                    shin_str = "['" + "', '".join(data.get('shiny', [])) + "']" if data.get('shiny') else "['any_ball']"
+                    
+                    database[unique_id] = {'normal': norm_str, 'shiny': shin_str}
+                    custom_entries += 1
+            print(f"  -> {custom_entries} benutzerdefinierte Einträge aus {CUSTOM_JSON_PATH} geladen und überschrieben.")
+        except Exception as e:
+            print(f"  -> Fehler beim Laden der JSON: {e}")
+    else:
+        print(f"  -> Keine {CUSTOM_JSON_PATH} gefunden. Überspringe Community Fixes.")
 
     print("\nFühre API Fallbacks für fehlende Bälle (Zwischenentwicklungen) durch...")
     root_cache = {}
@@ -282,7 +301,7 @@ def main():
                 except Exception:
                     root_cache[curr_id] = curr_id
                     break
-                    
+            
             root_id = root_cache.get(curr_id, curr_id)
             root_cache[poke_id] = root_id
             
@@ -290,15 +309,14 @@ def main():
                 base_key = f"{root_id}_{form}"
                 if base_key not in database:
                     base_key = f"{root_id}_normal"
-                    
+                
                 if base_key in database and database[base_key]['normal'] != "['any_ball']":
                     database[unique_id]['normal'] = database[base_key]['normal']
                     if data['shiny'] == "['any_ball']":
                         database[unique_id]['shiny'] = database[base_key]['shiny']
                     fallback_count += 1
-
     print(f"  -> {fallback_count} Entwicklungen erfolgreich mit Bällen der Basis-Form befüllt!")
-    
+
     print("\nSetze spezifische Bälle für Arceus (493) und Amigento (773) anhand ihrer Typen ...")
     for poke_id in [493, 773]:
         for type_name, ball_key in TYPE_BALL_MAPPING.items():
