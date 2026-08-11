@@ -1028,6 +1028,11 @@ class Translator {
           'Hinweis: Mew kann in den Spielen der 1. Generation durch den bekannten "Mew-Glitch" (Trainer-Flucht-Glitch) gefangen werden, welcher es dir ermöglicht, ein wildes Mew auf Level 7 anzutreffen.',
       'tutorial_mew_normal_link': 'Text Tutorial (EN) - Reddit',
       'method_Mew Glitch': 'Mew-Glitch',
+      'shiny_roamer_gen2_title': 'Wander-Pokémon (Legendäre Raubkatzen)',
+      'shiny_roamer_gen2_beasts_note':
+          'Hinweis: Die Statuswerte (und damit der Shiny-Status) von Raikou und Entei werden in Gold, Silber und Kristall bereits festgelegt, wenn sie in der Turmruine freigelassen werden! Du musst also vor dem Freilassen speichern, sie suchen und bei Nicht-Erfolg das Spiel neustarten (Soft Reset).',
+      'shiny_roamer_gen2_suicune_note':
+          'Hinweis: In Gold und Silber wird Suicunes Shiny-Status beim Freilassen in der Turmruine festgelegt (wie bei Raikou/Entei). In Pokémon Kristall hingegen ist Suicune ein statisches Event im Zinnturm und kann dort ganz normal per Soft Reset gejagt werden!',
     },
     'en': {
       // UI
@@ -1680,6 +1685,12 @@ class Translator {
           'Note: Mew can be caught in the Generation 1 games using the well-known "Mew Glitch" (Trainer Fly Glitch), which allows you to encounter a wild Mew at level 7.',
       'tutorial_mew_normal_link': 'Text Tutorial (EN) - Reddit',
       'method_Mew Glitch': 'Mew Glitch',
+
+      'shiny_roamer_gen2_title': 'Roaming Pokémon (Legendary Beasts)',
+      'shiny_roamer_gen2_beasts_note':
+          'Note: The stats (and thus the Shiny status) of Raikou and Entei are generated the moment they are released from the Burned Tower in Gold, Silver, and Crystal! You have to save before releasing them, track them down, and Soft Reset if they are not shiny.',
+      'shiny_roamer_gen2_suicune_note':
+          'Note: In Gold and Silver, Suicune\'s Shiny status is determined when it is released in the Burned Tower. However, in Pokémon Crystal, Suicune is a stationary encounter at the Tin Tower and can be shiny hunted via normal Soft Resets!',
     },
   };
 }

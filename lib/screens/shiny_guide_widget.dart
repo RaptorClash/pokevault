@@ -30,16 +30,12 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
       final Uri url = Uri.parse(urlString);
       if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
         if (mounted) {
-          NotificationHelper.showError(
-            '${Translator.get('error_launch_url')} $urlString',
-          );
+          NotificationHelper.showError('${Translator.get('error_launch_url')} $urlString');
         }
       }
     } catch (e) {
       if (mounted) {
-        NotificationHelper.showError(
-          '${Translator.get('error_launch_url')} $e',
-        );
+        NotificationHelper.showError('${Translator.get('error_launch_url')} $e');
       }
     }
   }
@@ -76,6 +72,7 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
     if (widget.pokemon.id > _getMaxIdForGen(gen)) return false;
 
     if (gen == 1) {
+      // Mew immer in Gen 1 anzeigen für Glitch-Tutorials
       if (widget.pokemon.id == 151) return true;
       return ShinyLogicHelper.isHuntableInGen1(widget.pokemon.id);
     }
@@ -331,6 +328,54 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
 
   Widget _buildGen2Specific(BuildContext context) {
     List<Widget> content = [];
+
+    // Gen 2 Roamer Info (Raikou 243, Entei 244, Suicune 245)
+    if (widget.pokemon.id >= 243 && widget.pokemon.id <= 245) {
+      content.add(
+        Text(
+          Translator.get('shiny_roamer_gen2_title'),
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
+      );
+      content.add(const SizedBox(height: 8));
+      content.add(
+        Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: Theme.of(
+              context,
+            ).colorScheme.tertiaryContainer.withOpacity(0.5),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(
+              color: Theme.of(context).colorScheme.tertiary.withOpacity(0.3),
+            ),
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(
+                Icons.info_outline,
+                size: 20,
+                color: Theme.of(context).colorScheme.tertiary,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  widget.pokemon.id == 245
+                      ? Translator.get('shiny_roamer_gen2_suicune_note')
+                      : Translator.get('shiny_roamer_gen2_beasts_note'),
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Theme.of(context).colorScheme.onTertiaryContainer,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+      content.add(const SizedBox(height: 16));
+    }
 
     if (widget.pokemon.id >= 252 && widget.pokemon.id <= 257) {
       content.add(
