@@ -9,8 +9,13 @@ import '../utils/notification_helper.dart';
 
 class ShinyGuideWidget extends StatefulWidget {
   final Pokemon pokemon;
+  final String dexId;
 
-  const ShinyGuideWidget({super.key, required this.pokemon});
+  const ShinyGuideWidget({
+    super.key,
+    required this.pokemon,
+    required this.dexId,
+  });
 
   @override
   State<ShinyGuideWidget> createState() => _ShinyGuideWidgetState();
@@ -536,7 +541,12 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
       );
       content.add(const SizedBox(height: 24));
 
-      content.add(BreedingCalculatorWidget(initialTargetId: widget.pokemon.id));
+      content.add(
+        BreedingCalculatorWidget(
+          initialTargetId: widget.pokemon.id,
+          dexId: widget.dexId,
+        ),
+      );
     }
 
     return Column(

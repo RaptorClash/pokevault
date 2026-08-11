@@ -268,7 +268,7 @@ class PokemonInfoScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 16),
-            ShinyGuideWidget(pokemon: entry.pokemon),
+            ShinyGuideWidget(pokemon: entry.pokemon, dexId: dexId),
             const SizedBox(height: 32),
             SizedBox(
               width: double.infinity,

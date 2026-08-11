@@ -1033,6 +1033,23 @@ class Translator {
           'Hinweis: Die Statuswerte (und damit der Shiny-Status) von Raikou und Entei werden in Gold, Silber und Kristall bereits festgelegt, wenn sie in der Turmruine freigelassen werden! Du musst also vor dem Freilassen speichern, sie suchen und bei Nicht-Erfolg das Spiel neustarten (Soft Reset).',
       'shiny_roamer_gen2_suicune_note':
           'Hinweis: In Gold und Silber wird Suicunes Shiny-Status beim Freilassen in der Turmruine festgelegt (wie bei Raikou/Entei). In Pokémon Kristall hingegen ist Suicune ein statisches Event im Zinnturm und kann dort ganz normal per Soft Reset gejagt werden!',
+      'shiny_breed_mechanics_title': 'Wichtige Zucht-Mechaniken (Gen 2)',
+      'shiny_breed_mechanics_dv_passing':
+          'Warum dieser Geschlechter-Wechsel? In Gen 2 wird der Shiny-Status immer an das *andere* Geschlecht vererbt. Ein männliches Shiny erzeugt also immer ein weibliches Shiny und umgekehrt. Daher muss das Geschlecht bei jedem Zuchtschritt wechseln!',
+      'shiny_breed_dv_conflict_text':
+          'Inzest-Sperre: Pokémon verweigern die Zucht ("Sie zeigen kein Interesse"), wenn ihre Verteidigungs- und Spezial-DVs identisch sind. Da dein Shiny seine DVs vererbt, fange dir einfach ein neues normales Partner-Pokémon in der Wildnis, falls der Pensionsleiter diesen Spruch aufsagt!',
+      'only_caught_pokemon': 'Nur gefangene Pokémon für Route verwenden',
+      'no_path_caught':
+          'Es konnte keine Zucht-Route mit deinen gefangenen Pokémon generiert werden.',
+      'no_path_impossible':
+          'Unmöglich! Dieses Pokémon hat eine zu geringe Weibchen-Rate (oder ist rein männlich/geschlechtslos) und kann daher in Gen 2 nicht als Shiny von einer anderen Spezies gezüchtet werden. Du MUSST ein Shiny Ditto verwenden!',
+      'odds_total': 'Gesamt',
+      'odds_gender': 'Geschlecht',
+      'impossible': 'Unmöglich!',
+      'shiny_breed_carrier_note':
+          'Hinweis: Da weibliche Shinys bei dieser Spezies mathematisch unmöglich sind (durch Gen 2 Programmierung), erhältst du hier ein normal aussehendes Weibchen, das die Shiny-Gene in sich trägt (Gen-Trägerin). Du erkennst sie daran, dass der Pensionsleiter "Sie zeigen kein Interesse" sagt, wenn du sie mit dem Vater paarst!',
+      'carrier': 'Trägerin',
+      'chance_carrier': 'Chance: 1:2 (Gen-Trägerin)',
     },
     'en': {
       // UI
@@ -1691,6 +1708,23 @@ class Translator {
           'Note: The stats (and thus the Shiny status) of Raikou and Entei are generated the moment they are released from the Burned Tower in Gold, Silver, and Crystal! You have to save before releasing them, track them down, and Soft Reset if they are not shiny.',
       'shiny_roamer_gen2_suicune_note':
           'Note: In Gold and Silver, Suicune\'s Shiny status is determined when it is released in the Burned Tower. However, in Pokémon Crystal, Suicune is a stationary encounter at the Tin Tower and can be shiny hunted via normal Soft Resets!',
+      'shiny_breed_mechanics_title': 'Important Breeding Mechanics (Gen 2)',
+      'shiny_breed_mechanics_dv_passing':
+          'Why this gender swap? In Gen 2, DVs (and thus Shiny status) are always inherited from the parent of the *opposite* gender. A male Shiny only passes the status to female offspring and vice versa. Therefore, the gender must alternate with every breeding step!',
+      'shiny_breed_dv_conflict_text':
+          'Incest Lock: Pokémon will refuse to breed ("They show no interest in each other") if their Defense and Special DVs are identical. Since your Shiny passes down its DVs, simply catch a new normal partner Pokémon in the wild if the Day-Care Man says this!',
+      'only_caught_pokemon': 'Use only caught Pokémon for the route',
+      'no_path_caught':
+          'No breeding route could be generated using your caught Pokémon.',
+      'no_path_impossible':
+          'Impossible! This Pokémon has a very low female ratio (or is male-only/genderless) and therefore cannot be bred as a shiny from another species in Gen 2. You MUST use a Shiny Ditto!',
+      'odds_total': 'Total',
+      'odds_gender': 'Gender',
+      'impossible': 'Impossible!',
+      'shiny_breed_carrier_note':
+          'Note: Since female Shinies are mathematically impossible for this species (due to Gen 2 code), you will get a normal-looking female that carries the Shiny genes. You can identify her if the Day-Care Man says "They show no interest" when bred with her father!',
+      'carrier': 'Carrier',
+      'chance_carrier': 'Chance: 1:2 (Gene Carrier)',
     },
   };
 }
