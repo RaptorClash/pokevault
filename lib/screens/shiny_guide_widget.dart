@@ -5,6 +5,7 @@ import '../utils/shiny_logic_helper.dart';
 import '../l10n/app_translations.dart';
 import '../data/encounters_data.dart';
 import 'breeding_calculator_widget.dart';
+import '../utils/notification_helper.dart';
 
 class ShinyGuideWidget extends StatefulWidget {
   final Pokemon pokemon;
@@ -25,14 +26,19 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
   }
 
   Future<void> _launchURL(String urlString) async {
-    final Uri url = Uri.parse(urlString);
-    if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
+    try {
+      final Uri url = Uri.parse(urlString);
+      if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
+        if (mounted) {
+          NotificationHelper.showError(
+            '${Translator.get('error_launch_url')} $urlString',
+          );
+        }
+      }
+    } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('${Translator.get('error_launch_url')} $urlString'),
-            backgroundColor: Colors.red,
-          ),
+        NotificationHelper.showError(
+          '${Translator.get('error_launch_url')} $e',
         );
       }
     }
@@ -67,10 +73,10 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
     if (gen == 2 && widget.pokemon.id >= 252 && widget.pokemon.id <= 257) {
       return true;
     }
-
     if (widget.pokemon.id > _getMaxIdForGen(gen)) return false;
 
     if (gen == 1) {
+      if (widget.pokemon.id == 151) return true;
       return ShinyLogicHelper.isHuntableInGen1(widget.pokemon.id);
     }
 
@@ -93,6 +99,7 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
       widget.pokemon.id,
       genKey,
     );
+
     if (isStatic) {
       String combo = ShinyLogicHelper.getSoftResetCombo(genKey);
       content.add(
@@ -123,6 +130,7 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
   Widget _buildGen1Specific(BuildContext context) {
     try {
       final isHuntable = ShinyLogicHelper.isHuntableInGen1(widget.pokemon.id);
+
       final statusWidget = Text(
         isHuntable
             ? Translator.get('shiny_huntable_yes')
@@ -203,6 +211,20 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
                 label: Text(Translator.get('tutorial_mew_text_en')),
                 onPressed: () =>
                     _launchURL('https://extratricky.com/md/mew.md'),
+              ),
+            ),
+            const SizedBox(height: 8),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                icon: const Icon(Icons.article),
+                label: Text(Translator.get('tutorial_mew_normal_text')),
+                onPressed: () {
+                  final url = Translator.currentLanguage == 'de'
+                      ? 'https://www.pokewiki.de/Mew-Glitch'
+                      : 'https://bulbapedia.bulbagarden.net/wiki/Mew_glitch';
+                  _launchURL(url);
+                },
               ),
             ),
           ],
@@ -302,6 +324,7 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
         ],
       );
     } catch (e) {
+      NotificationHelper.showError('${Translator.get('error_shiny_guide')} $e');
       return Text('${Translator.get('error_shiny_guide')} $e');
     }
   }
@@ -457,8 +480,8 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
           ),
         ),
       );
-
       content.add(const SizedBox(height: 24));
+
       content.add(BreedingCalculatorWidget(initialTargetId: widget.pokemon.id));
     }
 

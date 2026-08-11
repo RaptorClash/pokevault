@@ -79,6 +79,19 @@ class PokemonInfoScreen extends StatelessWidget {
     required this.dexId,
   });
 
+  Future<void> _launchURL(String urlString) async {
+    try {
+      final Uri url = Uri.parse(urlString);
+      if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
+        NotificationHelper.showError(
+          '${Translator.get('error_launch_url')} $urlString',
+        );
+      }
+    } catch (e) {
+      NotificationHelper.showError('${Translator.get('error_launch_url')} $e');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<DexProvider>();
@@ -287,6 +300,7 @@ class PokemonInfoScreen extends StatelessWidget {
 
   Widget _buildVersionBadge(List<String> versions) {
     if (versions.isEmpty) return const SizedBox.shrink();
+
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: versions.asMap().entries.map((entry) {
@@ -332,6 +346,7 @@ class PokemonInfoScreen extends StatelessWidget {
   List<Widget> _buildEncountersList(BuildContext context, int pokemonId) {
     try {
       final encounters = encountersDatabase[pokemonId];
+
       if (encounters == null || encounters.isEmpty) {
         return [
           Padding(
@@ -357,26 +372,28 @@ class PokemonInfoScreen extends StatelessWidget {
 
       for (var gen in sortedGens) {
         final versionsMap = encounters[gen]!;
-        Map<String, List<String>> groupedEncounters = {};
 
+        Map<String, List<String>> groupedEncounters = {};
         versionsMap.forEach((ver, locs) {
           String key = locs.join('|||');
           groupedEncounters.putIfAbsent(key, () => []).add(ver);
         });
 
         List<Widget> versionWidgets = [];
-
         groupedEncounters.forEach((locationsStr, versions) {
           final locations = locationsStr.split('|||');
+
           final String formattedLocations = locations
               .map((loc) {
                 String base = loc;
                 String method = '';
+
                 if (loc.contains(' (')) {
                   int bracketIndex = loc.indexOf(' (');
                   base = loc.substring(0, bracketIndex);
                   method = loc.substring(bracketIndex + 2, loc.length - 1);
                 }
+
                 String transBase = Translator.get(base);
                 if (transBase == base) {
                   transBase = Translator.get('loc_$base');
@@ -384,6 +401,7 @@ class PokemonInfoScreen extends StatelessWidget {
                     transBase = base;
                   }
                 }
+
                 String transMethod = '';
                 if (method.isNotEmpty) {
                   String tMethod = Translator.get('method_$method');
@@ -393,6 +411,7 @@ class PokemonInfoScreen extends StatelessWidget {
                   }
                   transMethod = ' ($tMethod)';
                 }
+
                 return '  $transBase$transMethod';
               })
               .join('\n');
@@ -465,19 +484,9 @@ class PokemonInfoScreen extends StatelessWidget {
                     child: ElevatedButton.icon(
                       icon: const Icon(Icons.language),
                       label: Text(Translator.get('tutorial_mail_writer_main')),
-                      onPressed: () async {
-                        final url = Uri.parse(
-                          'https://glitchcity.wiki/wiki/Guides:Mail_Writer_Codes',
-                        );
-                        if (!await launchUrl(
-                          url,
-                          mode: LaunchMode.externalApplication,
-                        )) {
-                          NotificationHelper.showError(
-                            '${Translator.get('error_launch_url')} $url',
-                          );
-                        }
-                      },
+                      onPressed: () => _launchURL(
+                        'https://glitchcity.wiki/wiki/Guides:Mail_Writer_Codes',
+                      ),
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -488,19 +497,69 @@ class PokemonInfoScreen extends StatelessWidget {
                       label: Text(
                         Translator.get('tutorial_mail_writer_scripts'),
                       ),
-                      onPressed: () async {
-                        final url = Uri.parse(
-                          'https://glitchcity.wiki/wiki/Guides:Mail_Writer_Codes#Gen3Giver_scripts',
-                        );
-                        if (!await launchUrl(
-                          url,
-                          mode: LaunchMode.externalApplication,
-                        )) {
-                          NotificationHelper.showError(
-                            '${Translator.get('error_launch_url')} $url',
-                          );
-                        }
-                      },
+                      onPressed: () => _launchURL(
+                        'https://glitchcity.wiki/wiki/Guides:Mail_Writer_Codes#Gen3Giver_scripts',
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
+
+        if (gen == 'gen_1' && pokemonId == 151) {
+          versionWidgets.add(
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.tertiaryContainer.withOpacity(0.5),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.tertiary.withOpacity(0.3),
+                      ),
+                    ),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Icon(
+                          Icons.memory,
+                          size: 20,
+                          color: Theme.of(context).colorScheme.tertiary,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            Translator.get('mew_glitch_note'),
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.onTertiaryContainer,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      icon: const Icon(Icons.language),
+                      label: Text(Translator.get('tutorial_mew_normal_link')),
+                      onPressed: () => _launchURL(
+                        'https://www.reddit.com/r/gaming/comments/47uono/heres_a_guide_on_catching_a_level_7_mew_on_the/',
+                      ),
                     ),
                   ),
                 ],

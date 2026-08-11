@@ -4859,6 +4859,11 @@ const Map<int, Map<String, Map<String, List<String>>>> encountersDatabase = {
     },
   },
   151: {
+    'gen_1': {
+      'red': ['Route 24 (Mew Glitch)'],
+      'blue': ['Route 24 (Mew Glitch)'],
+      'yellow': ['Route 24 (Mew Glitch)'],
+    },
     'gen_3': {
       'emerald': ['Faraway Island'],
     },

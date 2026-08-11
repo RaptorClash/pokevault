@@ -1021,6 +1021,13 @@ class Translator {
       'report_issue_sub': 'Erstelle ein Ticket (Issue) auf GitHub',
       'contribute_title': 'Selber beitragen',
       'contribute_sub': 'Hilf mit via Pull Request (.json Dateien)',
+
+      'tutorial_mew_normal_text': 'Text Tutorial (Mew-Glitch)',
+      'error_shiny_guide': 'Fehler beim Laden des Shiny-Guides:',
+      'mew_glitch_note':
+          'Hinweis: Mew kann in den Spielen der 1. Generation durch den bekannten "Mew-Glitch" (Trainer-Flucht-Glitch) gefangen werden, welcher es dir ermöglicht, ein wildes Mew auf Level 7 anzutreffen.',
+      'tutorial_mew_normal_link': 'Text Tutorial (EN) - Reddit',
+      'method_Mew Glitch': 'Mew-Glitch',
     },
     'en': {
       // UI
@@ -1666,6 +1673,13 @@ class Translator {
       'report_issue_sub': 'Create an issue on GitHub',
       'contribute_title': 'Contribute',
       'contribute_sub': 'Help out via Pull Request (.json files)',
+
+      'tutorial_mew_normal_text': 'Text Tutorial (Mew-Glitch)',
+      'error_shiny_guide': 'Error loading Shiny Guide:',
+      'mew_glitch_note':
+          'Note: Mew can be caught in the Generation 1 games using the well-known "Mew Glitch" (Trainer Fly Glitch), which allows you to encounter a wild Mew at level 7.',
+      'tutorial_mew_normal_link': 'Text Tutorial (EN) - Reddit',
+      'method_Mew Glitch': 'Mew Glitch',
     },
   };
 }
