@@ -162,31 +162,55 @@ class UpdateHelper {
     String appDir = File(exePath).parent.path;
     Directory tempDir = await getTemporaryDirectory();
     String batPath = '${tempDir.path}\\update_pokevault.bat';
+    String vbsPath = '${tempDir.path}\\run_hidden.vbs';
+
+    String zipW = zipPath.replaceAll('/', '\\');
+    String appW = appDir.replaceAll('/', '\\');
+    String exeW = exePath.replaceAll('/', '\\');
+    String vbsW = vbsPath.replaceAll(
+      '/',
+      '\\',
+    );
 
     String batContent =
         '''
 @echo off
-echo Warte auf Beendigung der App...
-timeout /t 5 /nobreak > NUL
-echo Entpacke Update...
-tar -m -xf "$zipPath" -C "$appDir"
-echo Starte App neu...
-start "" "$exePath"
-del "$zipPath"
+set RETRIES=0
+timeout /t 3 /nobreak > NUL
+
+:Extract
+powershell -Command "try { Expand-Archive -Path '$zipW' -DestinationPath '$appW' -Force } catch { exit 1 }" > NUL 2>&1
+
+if %errorlevel% equ 0 goto Success
+
+:Fail
+set /a RETRIES+=1
+if %RETRIES% geq 5 goto Success
+timeout /t 2 /nobreak > NUL
+goto Extract
+
+:Success
+start "" "$exeW"
+del "$zipW"
+del "$vbsW"
 del "%~f0"
 ''';
 
     File batFile = File(batPath);
     await batFile.writeAsString(batContent);
 
-    await Process.start('cmd', [
-      '/c',
-      'start',
-      '/min',
-      'cmd',
-      '/c',
-      batPath,
-    ], mode: ProcessStartMode.detached);
+    String vbsContent =
+        '''
+Set WshShell = CreateObject("WScript.Shell")
+WshShell.Run chr(34) & "$batPath" & chr(34), 0, False
+Set WshShell = Nothing
+''';
+
+    File vbsFile = File(vbsPath);
+    await vbsFile.writeAsString(vbsContent);
+
+    await Process.start('wscript', [vbsPath], mode: ProcessStartMode.detached);
+
     exit(0);
   }
 }
