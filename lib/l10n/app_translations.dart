@@ -39,6 +39,7 @@ class Translator {
       if (translated.contains('Max Den')) {
         translated = translated.replaceAll('Max Den', 'Dyna-Nest');
       }
+
       if (translated.startsWith('Friend Safari')) {
         translated = translated.replaceFirst('Friend Safari', 'Kontaktsafari');
         translated = translated.replaceAll('Grass', 'Pflanze');
@@ -882,7 +883,6 @@ class Translator {
 
       'region_legendary_dex': 'Legenden Dex',
       'region_mythical_dex': 'Mysteriöse Dex',
-
       'group_egg_groups': 'Eigruppen',
       'region_egg_monster': 'Eigruppe: Monster',
       'region_egg_water1': 'Eigruppe: Wasser 1',
@@ -947,9 +947,11 @@ class Translator {
       'stat_def': 'VER',
       'stat_spe': 'INIT',
       'stat_spc': 'SPEZ',
+
       'shiny_huntable_yes': 'Regulär Huntbar: Ja',
       'shiny_huntable_no': 'Regulär Huntbar: Nein',
       'notable_encounters': 'Besondere Begegnungen:',
+
       'tutorials_mew': 'Mew 8F-Glitch Tutorials:',
       'tutorial_mew_video_de': 'Video Tutorial (DE) - LEOsMIND',
       'tutorial_mew_video_en': 'Video Tutorial (EN) - Austin John',
@@ -980,15 +982,16 @@ class Translator {
       'shiny_breed_female_note':
           'Tipp: Wenn dein Start-Pokémon ein weibliches Shiny ist, paare es zuerst mit einem normalen Männchen derselben Art. Das erzeugt mit einer Chance von 1:64 ein Shiny, welches (je nach Geschlechterverhältnis) männlich sein könnte. Mit diesem kannst du dann diese Kette starten!',
       'shiny_breed_step_female':
-          'Paare ♂ Shiny {0} mit ♀ {1} ➔ {2} (1:64)', // 0: Start, 1: Parent2, 2: Child (Base)
+          'Paare ♂ Shiny {0} mit ♀ {1} ➡ ♀ {2} (1:64)', // 0: Start, 1: Parent2, 2: Child (Base)
       'shiny_breed_step_male':
-          'Paare ♀ Shiny {0} mit ♂ {0} ➔ ♂ Shiny {0} (1:64)',
+          'Paare ♂ Shiny {0} mit ♀ {0} ➡ ♂ Shiny {0} (1:64)',
       'shiny_breed_step_final':
-          'Paare ♂ Shiny {0} mit ♀ {1} ➔ Shiny {2} (1:64)',
-      'shiny_breed_step_ditto': 'Paare Shiny Ditto mit {0} ➔ Shiny {1} (1:64)',
+          'Paare ♂ Shiny {0} mit ♀ {1} ➡ ♂ Shiny {2} (1:64)',
+      'shiny_breed_step_ditto': 'Paare Shiny Ditto mit {0} ➡ Shiny {1} (1:64)',
       'shiny_breed_chance': 'Chance: 1:64',
       'shiny_breed_success': 'Chance: 1:64 (Ziel erreicht!)',
       'shiny_breed_evo_step': 'Entwicklung: ',
+
       'soft_reset': 'Soft Reset',
       'shiny_ditto_guide': 'Shiny Ditto bekommen (Für Zucht)',
       'shiny_guide_gen2': 'Generation 2',
@@ -1021,13 +1024,13 @@ class Translator {
       'report_issue_sub': 'Erstelle ein Ticket (Issue) auf GitHub',
       'contribute_title': 'Selber beitragen',
       'contribute_sub': 'Hilf mit via Pull Request (.json Dateien)',
-
       'tutorial_mew_normal_text': 'Text Tutorial (Mew-Glitch)',
       'error_shiny_guide': 'Fehler beim Laden des Shiny-Guides:',
       'mew_glitch_note':
           'Hinweis: Mew kann in den Spielen der 1. Generation durch den bekannten "Mew-Glitch" (Trainer-Flucht-Glitch) gefangen werden, welcher es dir ermöglicht, ein wildes Mew auf Level 7 anzutreffen.',
       'tutorial_mew_normal_link': 'Text Tutorial (EN) - Reddit',
       'method_Mew Glitch': 'Mew-Glitch',
+
       'shiny_roamer_gen2_title': 'Wander-Pokémon (Legendäre Raubkatzen)',
       'shiny_roamer_gen2_beasts_note':
           'Hinweis: Die Statuswerte (und damit der Shiny-Status) von Raikou und Entei werden in Gold, Silber und Kristall bereits festgelegt, wenn sie in der Turmruine freigelassen werden! Du musst also vor dem Freilassen speichern, sie suchen und bei Nicht-Erfolg das Spiel neustarten (Soft Reset).',
@@ -1038,6 +1041,7 @@ class Translator {
           'Warum dieser Geschlechter-Wechsel? In Gen 2 wird der Shiny-Status immer an das *andere* Geschlecht vererbt. Ein männliches Shiny erzeugt also immer ein weibliches Shiny und umgekehrt. Daher muss das Geschlecht bei jedem Zuchtschritt wechseln!',
       'shiny_breed_dv_conflict_text':
           'Inzest-Sperre: Pokémon verweigern die Zucht ("Sie zeigen kein Interesse"), wenn ihre Verteidigungs- und Spezial-DVs identisch sind. Da dein Shiny seine DVs vererbt, fange dir einfach ein neues normales Partner-Pokémon in der Wildnis, falls der Pensionsleiter diesen Spruch aufsagt!',
+
       'only_caught_pokemon': 'Nur gefangene Pokémon für Route verwenden',
       'no_path_caught':
           'Es konnte keine Zucht-Route mit deinen gefangenen Pokémon generiert werden.',
@@ -1050,6 +1054,15 @@ class Translator {
           'Hinweis: Da weibliche Shinys bei dieser Spezies mathematisch unmöglich sind (durch Gen 2 Programmierung), erhältst du hier ein normal aussehendes Weibchen, das die Shiny-Gene in sich trägt (Gen-Trägerin). Du erkennst sie daran, dass der Pensionsleiter "Sie zeigen kein Interesse" sagt, wenn du sie mit dem Vater paarst!',
       'carrier': 'Trägerin',
       'chance_carrier': 'Chance: 1:2 (Gen-Trägerin)',
+      'update_available_title': 'Neues Update verfügbar!',
+      'dismiss': 'Später',
+      'download_update': 'Update herunterladen',
+      'updates': 'Updates',
+      'check_for_updates': 'Nach Updates suchen',
+      'up_to_date': 'Die App ist auf dem neuesten Stand.',
+      'new_version': 'Neue Version',
+      'update_backup_warning':
+          'Tipp: Exportiere zur Sicherheit deine PokéDexe über die Einstellungen (Datenverwaltung), bevor du das Update durchführst!',
     },
     'en': {
       // UI
@@ -1558,7 +1571,6 @@ class Translator {
 
       'region_legendary_dex': 'Legendary Dex',
       'region_mythical_dex': 'Mythical Dex',
-
       'group_egg_groups': 'Egg Groups',
       'region_egg_monster': 'Egg Group: Monster',
       'region_egg_water1': 'Egg Group: Water 1',
@@ -1623,13 +1635,16 @@ class Translator {
       'stat_def': 'DEF',
       'stat_spe': 'SPE',
       'stat_spc': 'SPC',
+
       'shiny_huntable_yes': 'Regularly Huntable: Yes',
       'shiny_huntable_no': 'Regularly Huntable: No',
       'notable_encounters': 'Notable Encounters:',
+
       'tutorials_mew': 'Mew 8F Glitch Tutorials:',
       'tutorial_mew_video_de': 'Video Tutorial (DE) - LEOsMIND',
       'tutorial_mew_video_en': 'Video Tutorial (EN) - Austin John',
       'tutorial_mew_text_en': 'Text Tutorial (EN) - extratricky',
+
       'method_Starter': 'Starter',
       'method_Gift': 'Gift',
       'method_Trade': 'In-Game Trade',
@@ -1654,15 +1669,16 @@ class Translator {
       'shiny_breed_female_note':
           'Tip: If your starting Pokémon is a female Shiny, breed it first with a normal male of the same species. This has a 1:64 chance to hatch a Shiny, which could be male (depending on the gender ratio). You can then use it to start this chain!',
       'shiny_breed_step_female':
-          'Breed ♂ Shiny {0} with ♀ {1} (or evolution) ➔ ♀ {2} (1:64)',
+          'Breed ♂ Shiny {0} with ♀ {1} (or evolution) ➡ ♀ {2} (1:64)',
       'shiny_breed_step_male':
-          'Breed ♀ Shiny {0} with ♂ {0} (or evolution) ➔ ♂ Shiny {0} (1:64)',
+          'Breed ♂ Shiny {0} with ♀ {0} (or evolution) ➡ ♂ Shiny {0} (1:64)',
       'shiny_breed_step_final':
-          'Breed ♂ Shiny {0} with ♀ {1} (or evolution) ➔ Shiny {2} (1:64)',
-      'shiny_breed_step_ditto': 'Breed Shiny Ditto with {0} ➔ Shiny {1} (1:64)',
+          'Breed ♂ Shiny {0} with ♀ {1} (or evolution) ➡ ♂ Shiny {2} (1:64)',
+      'shiny_breed_step_ditto': 'Breed Shiny Ditto with {0} ➡ Shiny {1} (1:64)',
       'shiny_breed_chance': 'Chance: 1:64',
       'shiny_breed_success': 'Chance: 1:64 (Target reached!)',
       'shiny_breed_evo_step': 'Evolution: ',
+
       'soft_reset': 'Soft Reset',
       'shiny_ditto_guide': 'How to get a Shiny Ditto (For Breeding)',
       'shiny_guide_gen2': 'Generation 2',
@@ -1695,7 +1711,6 @@ class Translator {
       'report_issue_sub': 'Create an issue on GitHub',
       'contribute_title': 'Contribute',
       'contribute_sub': 'Help out via Pull Request (.json files)',
-
       'tutorial_mew_normal_text': 'Text Tutorial (Mew-Glitch)',
       'error_shiny_guide': 'Error loading Shiny Guide:',
       'mew_glitch_note':
@@ -1713,6 +1728,7 @@ class Translator {
           'Why this gender swap? In Gen 2, DVs (and thus Shiny status) are always inherited from the parent of the *opposite* gender. A male Shiny only passes the status to female offspring and vice versa. Therefore, the gender must alternate with every breeding step!',
       'shiny_breed_dv_conflict_text':
           'Incest Lock: Pokémon will refuse to breed ("They show no interest in each other") if their Defense and Special DVs are identical. Since your Shiny passes down its DVs, simply catch a new normal partner Pokémon in the wild if the Day-Care Man says this!',
+
       'only_caught_pokemon': 'Use only caught Pokémon for the route',
       'no_path_caught':
           'No breeding route could be generated using your caught Pokémon.',
@@ -1725,6 +1741,15 @@ class Translator {
           'Note: Since female Shinies are mathematically impossible for this species (due to Gen 2 code), you will get a normal-looking female that carries the Shiny genes. You can identify her if the Day-Care Man says "They show no interest" when bred with her father!',
       'carrier': 'Carrier',
       'chance_carrier': 'Chance: 1:2 (Gene Carrier)',
+      'update_available_title': 'New Update Available!',
+      'dismiss': 'Later',
+      'download_update': 'Download Update',
+      'updates': 'Updates',
+      'check_for_updates': 'Check for Updates',
+      'up_to_date': 'The app is up to date.',
+      'new_version': 'New Version',
+      'update_backup_warning':
+          'Tip: Please export your PokéDexes via the settings (Data Management) as a backup before updating!',
     },
   };
 }

@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import '../providers/theme_provider.dart';
 import '../providers/dex_provider.dart';
 import '../services/dex_storage_service.dart';
 import '../l10n/app_translations.dart';
 import '../utils/notification_helper.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../utils/update_helper.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -117,6 +119,52 @@ class SettingsScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 24),
+
+          _buildSectionHeader(
+            context,
+            Translator.get('updates'),
+            Icons.system_update,
+          ),
+          Card(
+            child: ListTile(
+              leading: const Icon(Icons.update),
+              title: Text(Translator.get('check_for_updates')),
+              trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+              onTap: () async {
+                showDialog(
+                  context: context,
+                  barrierDismissible: false,
+                  builder: (context) =>
+                      const Center(child: CircularProgressIndicator()),
+                );
+                try {
+                  final updateInfo = await UpdateHelper.checkForUpdate();
+                  if (context.mounted) {
+                    Navigator.pop(context);
+                    if (updateInfo != null) {
+                      showDialog(
+                        context: context,
+                        barrierDismissible: false,
+                        builder: (context) =>
+                            UpdateDialog(updateInfo: updateInfo),
+                      );
+                    } else {
+                      NotificationHelper.showInfo(Translator.get('up_to_date'));
+                    }
+                  }
+                } catch (e) {
+                  if (context.mounted) {
+                    Navigator.pop(context);
+                    NotificationHelper.showError(
+                      '${Translator.get('error')} $e',
+                    );
+                  }
+                }
+              },
+            ),
+          ),
+          const SizedBox(height: 24),
+
           _buildSectionHeader(
             context,
             Translator.get('general'),
@@ -131,6 +179,7 @@ class SettingsScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 24),
+
           _buildSectionHeader(
             context,
             Translator.get('data_management'),
@@ -185,9 +234,8 @@ class SettingsScreen extends StatelessWidget {
                   title: Text(Translator.get('contribute_title')),
                   subtitle: Text(Translator.get('contribute_sub')),
                   trailing: const Icon(Icons.open_in_new, size: 16),
-                  onTap: () => _launchURL(
-                    'https://github.com/raptorclash/pokevault',
-                  ),
+                  onTap: () =>
+                      _launchURL('https://github.com/raptorclash/pokevault'),
                 ),
               ],
             ),
@@ -277,6 +325,28 @@ class SettingsScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 32),
+
+          FutureBuilder<PackageInfo>(
+            future: PackageInfo.fromPlatform(),
+            builder: (context, snapshot) {
+              if (snapshot.hasData) {
+                final packageInfo = snapshot.data!;
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 24.0),
+                  child: Center(
+                    child: Text(
+                      'Version ${packageInfo.version} (Build ${packageInfo.buildNumber})',
+                      style: TextStyle(
+                        color: Theme.of(context).hintColor,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ),
+                );
+              }
+              return const SizedBox.shrink();
+            },
+          ),
         ],
       ),
     );
@@ -467,6 +537,7 @@ class SettingsScreen extends StatelessWidget {
           : (isDarkMode
                 ? themeProvider.darkPrimaryColor
                 : themeProvider.lightPrimaryColor);
+
       showDialog(
         context: context,
         builder: (context) {
