@@ -253,7 +253,7 @@ class DexBoxView extends StatelessWidget {
                                     padding: const EdgeInsets.all(4.0),
                                     child: CachedNetworkImage(
                                       imageUrl: entry.imageUrl,
-                                      memCacheWidth: 200, // RAM Optimierung!
+                                      memCacheWidth: 200,
                                       fit: BoxFit.contain,
                                       placeholder: (context, url) =>
                                           const Center(

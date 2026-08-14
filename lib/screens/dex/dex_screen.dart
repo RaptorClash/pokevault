@@ -33,7 +33,6 @@ class _DexScreenState extends State<DexScreen> {
   bool _isLoadingPrefs = true;
   final PageController _pageController = PageController();
 
-  // Wichtig für Performance: Einmalig in initState berechnen
   late List<DexDisplayEntry> _rawEntries;
 
   @override
@@ -41,8 +40,6 @@ class _DexScreenState extends State<DexScreen> {
     super.initState();
     _loadPrefs();
 
-    // Die Basis-Einträge müssen nur einmal generiert werden (CPU-Intensiv).
-    // Sie ändern sich nicht durchs Checken von Checkboxen, sondern nur in den Einstellungen.
     _rawEntries = DexLogicHelper.buildDisplayEntries(
       widget.initialDex,
       context.read<DexProvider>(),
@@ -94,7 +91,6 @@ class _DexScreenState extends State<DexScreen> {
       orElse: () => widget.initialDex,
     );
 
-    // Wir filtern lediglich die vorberechnete Liste (Sehr performant)
     final caughtCount = liveDex.caughtIds.length;
     final filteredList = _rawEntries.where((entry) {
       if (liveDex.ignoredIds.contains(entry.uniqueId)) return false;
@@ -117,7 +113,6 @@ class _DexScreenState extends State<DexScreen> {
         .where((e) => !liveDex.ignoredIds.contains(e.uniqueId))
         .length;
 
-    // Nur das Chunking wird neu ausgeführt
     final List<BoxData> boxes = DexLogicHelper.generateBoxes(
       filteredList,
       _separateForms,

@@ -111,7 +111,7 @@ class DexListView extends StatelessWidget {
                               ]),
                         child: CachedNetworkImage(
                           imageUrl: entry.imageUrl,
-                          memCacheWidth: 200, // RAM Optimierung!
+                          memCacheWidth: 200,
                           fit: BoxFit.contain,
                           placeholder: (context, url) => const Center(
                             child: CircularProgressIndicator(strokeWidth: 2),
@@ -119,7 +119,7 @@ class DexListView extends StatelessWidget {
                           errorWidget: (context, url, error) => CachedNetworkImage(
                             imageUrl:
                                 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${liveDex.isShinyDex ? 'shiny/' : ''}${entry.pokemon.id}.png',
-                            memCacheWidth: 200, // RAM Optimierung!
+                            memCacheWidth: 200,
                             fit: BoxFit.contain,
                             errorWidget: (c, e, s) =>
                                 const Icon(Icons.catching_pokemon, size: 24),

@@ -49,7 +49,6 @@ class _HomeScreenState extends State<HomeScreen> {
         );
       }
     } catch (e) {
-      // Leise scheitern, wenn kein Update gefunden wurde
     }
   }
 
