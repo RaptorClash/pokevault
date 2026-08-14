@@ -26,6 +26,56 @@ class UpdateHelper {
   static const String _repoOwner = 'RaptorClash';
   static const String _repoName = 'pokevault';
 
+  static Future<List<UpdateInfo>> getAllReleases() async {
+    try {
+      final response = await http.get(
+        Uri.parse(
+          'https://api.github.com/repos/$_repoOwner/$_repoName/releases',
+        ),
+      );
+      if (response.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(response.body);
+        List<UpdateInfo> releases = [];
+        for (var release in data) {
+          String tagName = release['tag_name'] ?? '';
+          String downloadUrl = '';
+          String fileExtension = '';
+          List assets = release['assets'] ?? [];
+          for (var asset in assets) {
+            String assetName = asset['name'].toString().toLowerCase();
+            if (Platform.isAndroid && assetName.endsWith('.apk')) {
+              downloadUrl = asset['browser_download_url'];
+              fileExtension = '.apk';
+              break;
+            } else if (Platform.isWindows &&
+                (assetName.endsWith('.zip') ||
+                    assetName.endsWith('.exe') ||
+                    assetName.endsWith('.msix'))) {
+              downloadUrl = asset['browser_download_url'];
+              fileExtension = assetName.substring(assetName.lastIndexOf('.'));
+              break;
+            }
+          }
+          if (downloadUrl.isNotEmpty) {
+            releases.add(
+              UpdateInfo(
+                version: tagName,
+                title: release['name'] ?? tagName,
+                releaseNotes: release['body'] ?? '',
+                downloadUrl: downloadUrl,
+                extension: fileExtension,
+              ),
+            );
+          }
+        }
+        return releases;
+      }
+    } catch (e) {
+      debugPrint('Error fetching all releases: $e');
+    }
+    return [];
+  }
+
   static Future<UpdateInfo?> checkForUpdate() async {
     try {
       final response = await http.get(
@@ -33,20 +83,18 @@ class UpdateHelper {
           'https://api.github.com/repos/$_repoOwner/$_repoName/releases/latest',
         ),
       );
-
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         String tagName = data['tag_name'] ?? '';
         String latestVersion = tagName.replaceAll(RegExp(r'[^0-9.]'), '');
-
         PackageInfo packageInfo = await PackageInfo.fromPlatform();
         String currentVersion = packageInfo.version;
 
         if (_isNewerVersion(currentVersion, latestVersion)) {
           String downloadUrl = '';
           String fileExtension = '';
-
           List assets = data['assets'] ?? [];
+
           for (var asset in assets) {
             String assetName = asset['name'].toString().toLowerCase();
             if (Platform.isAndroid && assetName.endsWith('.apk')) {
@@ -83,7 +131,6 @@ class UpdateHelper {
   static bool _isNewerVersion(String current, String latest) {
     String c = current.split('+')[0];
     String l = latest.split('+')[0];
-
     List<int> currentParts = c
         .split('.')
         .map((e) => int.tryParse(e.replaceAll(RegExp(r'[^0-9]'), '')) ?? 0)
@@ -96,14 +143,13 @@ class UpdateHelper {
     for (int i = 0; i < 3; i++) {
       int curr = i < currentParts.length ? currentParts[i] : 0;
       int lat = i < latestParts.length ? latestParts[i] : 0;
-
       if (lat > curr) return true;
       if (lat < curr) return false;
     }
     return false;
   }
 
-  static Future<void> downloadAndInstallUpdate(
+  static Future<String> downloadOnly(
     String url,
     String version,
     String extension,
@@ -118,11 +164,21 @@ class UpdateHelper {
 
         if (response.statusCode == 200) {
           Directory tempDir = await getTemporaryDirectory();
-          String savePath =
-              '${tempDir.path}/PokeVault_Update_$version$extension';
+          String savePath = '';
+
+          if (Platform.isAndroid && extension == '.apk') {
+            Directory downloadDir = Directory('/storage/emulated/0/Download');
+            if (await downloadDir.exists()) {
+              savePath = '${downloadDir.path}/PokeVault_$version$extension';
+            } else {
+              savePath = '${tempDir.path}/PokeVault_$version$extension';
+            }
+          } else {
+            savePath = '${tempDir.path}/PokeVault_$version$extension';
+          }
+
           File file = File(savePath);
           var sink = file.openWrite();
-
           int downloaded = 0;
           int contentLength = response.contentLength;
 
@@ -136,12 +192,7 @@ class UpdateHelper {
           await sink.flush();
           await sink.close();
 
-          if (Platform.isWindows && extension == '.zip') {
-            await _installWindowsUpdate(savePath);
-          } else {
-            await OpenFilex.open(savePath);
-          }
-          return;
+          return savePath;
         } else {
           throw Exception('HTTP Status Code: ${response.statusCode}');
         }
@@ -153,16 +204,29 @@ class UpdateHelper {
         await Future.delayed(const Duration(seconds: 2));
       }
     }
+    throw Exception('Download fehlgeschlagen.');
+  }
+
+  static Future<void> downloadAndInstallUpdate(
+    String url,
+    String version,
+    String extension,
+    Function(double) onProgress,
+  ) async {
+    String savePath = await downloadOnly(url, version, extension, onProgress);
+    if (Platform.isWindows && extension == '.zip') {
+      await _installWindowsUpdate(savePath);
+    } else {
+      await OpenFilex.open(savePath);
+    }
   }
 
   static Future<void> _installWindowsUpdate(String zipPath) async {
     String exePath = Platform.resolvedExecutable;
     String appDir = File(exePath).parent.path;
     Directory tempDir = await getTemporaryDirectory();
-
     String batPath = '${tempDir.path}\\update_pokevault.bat';
     String vbsPath = '${tempDir.path}\\run_hidden.vbs';
-
     String zipW = zipPath.replaceAll('/', '\\');
     String appW = appDir.replaceAll('/', '\\');
     String exeW = exePath.replaceAll('/', '\\');
@@ -173,24 +237,20 @@ class UpdateHelper {
 @echo off
 set RETRIES=0
 timeout /t 3 /nobreak > NUL
-
 :Extract
 powershell -Command "try { Expand-Archive -Path '$zipW' -DestinationPath '$appW' -Force } catch { exit 1 }" > NUL 2>&1
 if %errorlevel% equ 0 goto Success
-
 :Fail
 set /a RETRIES+=1
 if %RETRIES% geq 5 goto Success
 timeout /t 2 /nobreak > NUL
 goto Extract
-
 :Success
 start "" "$exeW"
 del "$zipW"
 del "$vbsW"
 del "%~f0"
 ''';
-
     File batFile = File(batPath);
     await batFile.writeAsString(batContent);
 
@@ -200,7 +260,6 @@ Set WshShell = CreateObject("WScript.Shell")
 WshShell.Run chr(34) & "$batPath" & chr(34), 0, False
 Set WshShell = Nothing
 ''';
-
     File vbsFile = File(vbsPath);
     await vbsFile.writeAsString(vbsContent);
 

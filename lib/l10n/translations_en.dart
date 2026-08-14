@@ -81,9 +81,11 @@ const Map<String, String> translationsEn = {
   'form_other_short': 'Other (Costumes...)',
   // Confirm dialogs
   'delete_confirm_title': 'Delete Dex?',
-  'delete_confirm_text': 'Do you really want to delete this Dex? This cannot be undone.',
+  'delete_confirm_text':
+      'Do you really want to delete this Dex? This cannot be undone.',
   'delete_multiple_confirm_title': 'Delete Dexes?',
-  'delete_multiple_confirm_text': 'Do you really want to delete the selected Dexes?',
+  'delete_multiple_confirm_text':
+      'Do you really want to delete the selected Dexes?',
   // Notifications
   'import_success': 'Pokédex imported successfully!',
   'backup_success': 'Backup saved successfully at:',
@@ -98,7 +100,8 @@ const Map<String, String> translationsEn = {
   'error_getting_available_features': 'Error retrieving available options:',
   'error_show_edit_dex_dialog': 'Error displaying the Dex edit dialog:',
   'error_confirm_delete': 'Error confirming Dex deletion:',
-  'error_confirm_multiple_delete': 'Error confirming deletion of multiple Dexes:',
+  'error_confirm_multiple_delete':
+      'Error confirming deletion of multiple Dexes:',
   'error_get_form_display_name': 'Error displaying the form:',
   'error_build_display_entries': 'Error building the Dex:',
   'error_show_language_dialog': 'Error displaying the language selection:',
@@ -401,7 +404,8 @@ const Map<String, String> translationsEn = {
   'events': 'Event Distributions',
   'ignore_pokemon': 'Remove from Dex',
   'ignore_confirm_title': 'Remove Pokémon?',
-  'ignore_confirm_text': 'Do you want to hide this Pokémon? You can restore it anytime from the menu.',
+  'ignore_confirm_text':
+      'Do you want to hide this Pokémon? You can restore it anytime from the menu.',
   'ignored_list_title': 'Hidden Pokémon',
   'restore_pokemon': 'Restore',
   'empty_ignored': 'No Pokémon have been hidden.',
@@ -410,7 +414,8 @@ const Map<String, String> translationsEn = {
   // New: Encounters, Locations
   'encounters_title': 'Locations & Encounters',
   'no_encounters_found': 'No locations known (or not generated yet).',
-  'encounter_missing_note': 'Note: If an edition is not listed, the Pokémon is usually only available via Evolution, Trade, or Transfer.',
+  'encounter_missing_note':
+      'Note: If an edition is not listed, the Pokémon is usually only available via Evolution, Trade, or Transfer.',
   'gen_1': 'Generation 1',
   'gen_2': 'Generation 2',
   'gen_3': 'Generation 3',
@@ -531,7 +536,8 @@ const Map<String, String> translationsEn = {
   // Shiny Guide Updates
   'shiny_guide_title': 'Shiny Guide',
   'shiny_guide_gen1': 'Generation 1',
-  'shiny_guide_gen1_desc': 'Tip: Catch/breed the Pokémon in Gen 2 and trade it back to Gen 1 via Time Capsule. When you transfer it to Pokémon Bank/HOME, it will keep its shiny status, get the Gameboy icon, and show "Kanto" as its origin!',
+  'shiny_guide_gen1_desc':
+      'Tip: Catch/breed the Pokémon in Gen 2 and trade it back to Gen 1 via Time Capsule. When you transfer it to Pokémon Bank/HOME, it will keep its shiny status, get the Gameboy icon, and show "Kanto" as its origin!',
   'shiny_stat_calculator': 'Shiny Stat Calculator',
   'level': 'Level',
   'base_stats': 'Base Stats',
@@ -567,11 +573,16 @@ const Map<String, String> translationsEn = {
   'shiny_breed_target': 'Target Pokémon',
   'shiny_breed_calc_btn': 'Calculate Chain',
   'shiny_breed_no_path': 'No breeding chain found.',
-  'shiny_breed_note': 'Note: The breeding chain only works if the target Pokémon (and all intermediates) can be female. For male-only or genderless Pokémon, you need a Shiny Ditto.',
-  'shiny_breed_female_note': 'Tip: If your starting Pokémon is a female Shiny, breed it first with a normal male of the same species. This has a 1:64 chance to hatch a Shiny, which could be male (depending on the gender ratio). You can then use it to start this chain!',
-  'shiny_breed_step_female': 'Breed ♂ Shiny {0} with ♀ {1} (or evolution) ➔ ♀ {2} (1:64)',
-  'shiny_breed_step_male': 'Breed ♂ Shiny {0} with ♀ {0} (or evolution) ➔ ♂ Shiny {0} (1:64)',
-  'shiny_breed_step_final': 'Breed ♂ Shiny {0} with ♀ {1} (or evolution) ➔ ♂/♀ Shiny {2} (1:64)',
+  'shiny_breed_note':
+      'Note: The breeding chain only works if the target Pokémon (and all intermediates) can be female. For male-only or genderless Pokémon, you need a Shiny Ditto.',
+  'shiny_breed_female_note':
+      'Tip: If your starting Pokémon is a female Shiny, breed it first with a normal male of the same species. This has a 1:64 chance to hatch a Shiny, which could be male (depending on the gender ratio). You can then use it to start this chain!',
+  'shiny_breed_step_female':
+      'Breed ♂ Shiny {0} with ♀ {1} (or evolution) ➔ ♀ {2} (1:64)',
+  'shiny_breed_step_male':
+      'Breed ♂ Shiny {0} with ♀ {0} (or evolution) ➔ ♂ Shiny {0} (1:64)',
+  'shiny_breed_step_final':
+      'Breed ♂ Shiny {0} with ♀ {1} (or evolution) ➔ ♂/♀ Shiny {2} (1:64)',
   'shiny_breed_step_ditto': 'Breed Shiny Ditto with {0} ➔ Shiny {1} (1:64)',
   'shiny_breed_chance': 'Chance: 1:64',
   'shiny_breed_success': 'Chance: 1:64 (Target reached!)',
@@ -586,13 +597,17 @@ const Map<String, String> translationsEn = {
   'shiny_guide_gen7': 'Generation 7',
   'shiny_guide_gen8': 'Generation 8',
   'shiny_guide_gen9': 'Generation 9',
-  'shiny_hunt_methods_soon': 'More hunting methods will be added in the future.',
-  'shiny_guide_missing_note': 'Note: If a generation is not listed, the Pokémon cannot be regularly shiny hunted/bred there (or the hunting methods will be added in future updates).',
+  'shiny_hunt_methods_soon':
+      'More hunting methods will be added in the future.',
+  'shiny_guide_missing_note':
+      'Note: If a generation is not listed, the Pokémon cannot be regularly shiny hunted/bred there (or the hunting methods will be added in future updates).',
   'shiny_odd_egg_title': 'The Odd Egg (Pokémon Crystal)',
-  'shiny_odd_egg_desc': 'In Pokémon Crystal, you receive the Odd Egg at the Day Care. A random baby Pokémon hatches from it. The shiny chance is massively increased: 14% in Western versions and an incredible 50% in Japanese versions!',
+  'shiny_odd_egg_desc':
+      'In Pokémon Crystal, you receive the Odd Egg at the Day Care. A random baby Pokémon hatches from it. The shiny chance is massively increased: 14% in Western versions and an incredible 50% in Japanese versions!',
   // Mail Writer
   'shiny_mail_writer_title': 'Gen 3 Starters in Gen 2 (Mail Writer Glitch)',
-  'shiny_mail_writer_note': 'Note: Using the Mail Writer Glitch in Pokémon Gold/Silver/Crystal, you can generate the first Gen 3 Pokémon. When transferred via Poké Transporter to Pokémon Bank, they will be legally recognized as Gen 3 starters!',
+  'shiny_mail_writer_note':
+      'Note: Using the Mail Writer Glitch in Pokémon Gold/Silver/Crystal, you can generate the first Gen 3 Pokémon. When transferred via Poké Transporter to Pokémon Bank, they will be legally recognized as Gen 3 starters!',
   'tutorial_mail_writer_main': 'Text Tutorial (EN) - Mail Writer Codes',
   'tutorial_mail_writer_scripts': 'Text Tutorial (EN) - Gen3Giver Scripts',
   'Mail Writer Glitch': 'Mail Writer Glitch',
@@ -604,22 +619,30 @@ const Map<String, String> translationsEn = {
   'contribute_sub': 'Help out via Pull Request (.json files)',
   'tutorial_mew_normal_text': 'Text Tutorial (Mew-Glitch)',
   'error_shiny_guide': 'Error loading Shiny Guide:',
-  'mew_glitch_note': 'Note: Mew can be caught in the Generation 1 games using the well-known "Mew Glitch" (Trainer Fly Glitch), which allows you to encounter a wild Mew at level 7.',
+  'mew_glitch_note':
+      'Note: Mew can be caught in the Generation 1 games using the well-known "Mew Glitch" (Trainer Fly Glitch), which allows you to encounter a wild Mew at level 7.',
   'tutorial_mew_normal_link': 'Text Tutorial (EN) - Reddit',
   'method_Mew Glitch': 'Mew Glitch',
   'shiny_roamer_gen2_title': 'Roaming Pokémon (Legendary Beasts)',
-  'shiny_roamer_gen2_beasts_note': 'Note: The stats (and thus the Shiny status) of Raikou and Entei are generated the moment they are released from the Burned Tower in Gold, Silver, and Crystal! You have to save before releasing them, track them down, and Soft Reset if they are not shiny.',
-  'shiny_roamer_gen2_suicune_note': 'Note: In Gold and Silver, Suicune\'s Shiny status is determined when it is released in the Burned Tower. However, in Pokémon Crystal, Suicune is a stationary encounter at the Tin Tower and can be shiny hunted via normal Soft Resets!',
+  'shiny_roamer_gen2_beasts_note':
+      'Note: The stats (and thus the Shiny status) of Raikou and Entei are generated the moment they are released from the Burned Tower in Gold, Silver, and Crystal! You have to save before releasing them, track them down, and Soft Reset if they are not shiny.',
+  'shiny_roamer_gen2_suicune_note':
+      'Note: In Gold and Silver, Suicune\'s Shiny status is determined when it is released in the Burned Tower. However, in Pokémon Crystal, Suicune is a stationary encounter at the Tin Tower and can be shiny hunted via normal Soft Resets!',
   'shiny_breed_mechanics_title': 'Important Breeding Mechanics (Gen 2)',
-  'shiny_breed_mechanics_dv_passing': 'Why this gender swap? In Gen 2, DVs (and thus Shiny status) are always inherited from the parent of the *opposite* gender. A male Shiny only passes the status to female offspring and vice versa. Therefore, the gender must alternate with every breeding step!',
-  'shiny_breed_dv_conflict_text': 'Incest Lock: Pokémon will refuse to breed ("They show no interest in each other") if their Defense and Special DVs are identical. Since your Shiny passes down its DVs, simply catch a new normal partner Pokémon in the wild if the Day-Care Man says this!',
+  'shiny_breed_mechanics_dv_passing':
+      'Why this gender swap? In Gen 2, DVs (and thus Shiny status) are always inherited from the parent of the *opposite* gender. A male Shiny only passes the status to female offspring and vice versa. Therefore, the gender must alternate with every breeding step!',
+  'shiny_breed_dv_conflict_text':
+      'Incest Lock: Pokémon will refuse to breed ("They show no interest in each other") if their Defense and Special DVs are identical. Since your Shiny passes down its DVs, simply catch a new normal partner Pokémon in the wild if the Day-Care Man says this!',
   'only_caught_pokemon': 'Use only caught Pokémon for the route',
-  'no_path_caught': 'No breeding route could be generated using your caught Pokémon.',
-  'no_path_impossible': 'Impossible! This Pokémon has a very low female ratio (or is male-only/genderless) and therefore cannot be bred as a shiny from another species in Gen 2. You MUST use a Shiny Ditto!',
+  'no_path_caught':
+      'No breeding route could be generated using your caught Pokémon.',
+  'no_path_impossible':
+      'Impossible! This Pokémon has a very low female ratio (or is male-only/genderless) and therefore cannot be bred as a shiny from another species in Gen 2. You MUST use a Shiny Ditto!',
   'odds_total': 'Total',
   'odds_gender': 'Gender',
   'impossible': 'Impossible!',
-  'shiny_breed_carrier_note': 'Note: Since female Shinies are mathematically impossible for this species (due to Gen 2 code), you will get a normal-looking female that carries the Shiny genes. You can identify her if the Day-Care Man says "They show no interest" when bred with her father!',
+  'shiny_breed_carrier_note':
+      'Note: Since female Shinies are mathematically impossible for this species (due to Gen 2 code), you will get a normal-looking female that carries the Shiny genes. You can identify her if the Day-Care Man says "They show no interest" when bred with her father!',
   'carrier': 'Carrier',
   'chance_carrier': 'Chance: 1:2 (Gene Carrier)',
   'update_available_title': 'New Update Available!',
@@ -629,5 +652,20 @@ const Map<String, String> translationsEn = {
   'check_for_updates': 'Check for Updates',
   'up_to_date': 'The app is up to date.',
   'new_version': 'New Version',
-  'update_backup_warning': 'Tip: Please export your PokéDexes via the settings (Data Management) as a backup before updating!',
+  'update_backup_warning':
+      'Tip: Please export your PokéDexes via the settings (Data Management) as a backup before updating!',
+  'downgrades_title': 'Previous versions (downgrades)',
+  'attention_downgrade': 'Attention: Downgrade',
+  'downgrade_warning_text':
+      'You are about to revert to an older version of the app. This may result in the loss of new features or cause incompatibilities.\n\nIMPORTANT FOR ANDROID: Android blocks direct downgrades. You must first uninstall the app and manually install the downloaded APK.\n\nPlease make sure to export your Pokédexes in the settings as a backup beforehand!',
+  'downgrade_execute': 'Perform downgrade',
+  'downgrade_backup_title': 'Create a backup first?',
+  'downgrade_backup_text':
+      'Would you like to back up your current Pokédexes before downgrading? This is highly recommended!',
+  'downgrade_backup_create': 'Create backup',
+  'downgrade_backup_skip': 'Continue without backup',
+  'downgrade_final_warning_title': 'Final warning',
+  'downgrade_final_warning_text':
+      'Are you absolutely sure you want to downgrade to this old version? Have you created your backup?',
+  'downgrade_final_confirm': 'Yes, start downgrade',
 };

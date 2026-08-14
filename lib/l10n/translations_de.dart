@@ -296,7 +296,8 @@ const Map<String, String> baseLocationTranslationsDe = {
 const Map<String, String> translationsDe = {
   // Allgemeine UI
   'app_title': 'PokéVault',
-  'no_dex': 'Noch kein Dex vorhanden.\nKlicke auf das "+" um einen zu erstellen!',
+  'no_dex':
+      'Noch kein Dex vorhanden.\nKlicke auf das "+" um einen zu erstellen!',
   'import_tooltip': 'Importieren',
   'export_tooltip': 'Exportieren',
   'create_dex_title': 'Neuen Dex anlegen',
@@ -377,9 +378,11 @@ const Map<String, String> translationsDe = {
   'form_other_short': 'Sonstige (Kostüme...)',
   // Bestätigungs-Dialoge
   'delete_confirm_title': 'Dex löschen?',
-  'delete_confirm_text': 'Möchtest du diesen Dex wirklich löschen? Das kann nicht rückgängig gemacht werden.',
+  'delete_confirm_text':
+      'Möchtest du diesen Dex wirklich löschen? Das kann nicht rückgängig gemacht werden.',
   'delete_multiple_confirm_title': 'Dexe löschen?',
-  'delete_multiple_confirm_text': 'Möchtest du die ausgewählten Dexe wirklich löschen?',
+  'delete_multiple_confirm_text':
+      'Möchtest du die ausgewählten Dexe wirklich löschen?',
   // Benachrichtigungen (Notifications)
   'import_success': 'Pokédex erfolgreich importiert!',
   'backup_success': 'Backup erfolgreich gespeichert unter:',
@@ -392,16 +395,19 @@ const Map<String, String> translationsDe = {
   'error_import': 'Fehler beim Importieren:',
   'error_start_app': 'Fehler beim Starten der App:',
   'error_getting_available_features': 'Fehler beim bekomen von allen Optionen:',
-  'error_show_edit_dex_dialog': 'Fehler beim Anzeigen des Dex-Bearbeiten-Popups:',
+  'error_show_edit_dex_dialog':
+      'Fehler beim Anzeigen des Dex-Bearbeiten-Popups:',
   'error_confirm_delete': 'Fehler beim Bestätigen beim Löschen des Dexes:',
-  'error_confirm_multiple_delete': 'Fehler beim Bestätigen zum Löschen von mehreren Dexen:',
+  'error_confirm_multiple_delete':
+      'Fehler beim Bestätigen zum Löschen von mehreren Dexen:',
   'error_get_form_display_name': 'Fehler beim Anzeigen der Form:',
   'error_build_display_entries': 'Fehler beim bauen des Dexes:',
   'error_show_language_dialog': 'Fehler beim Anzeigen der Sprachauswahl:',
   'error_show_colorpicker_dialog': 'Fehler beim Anzeigen der Farbauswahl:',
   'error_load_prefs': 'Fehler beim Laden der Präferenzen:',
   'error_update_theme_color': 'Fehler beim aktualisieren der Theme-Farben:',
-  'error_update_background_color': 'Fehler beim aktualisieren der Hintergrundfarbe:',
+  'error_update_background_color':
+      'Fehler beim aktualisieren der Hintergrundfarbe:',
   'error_add_custom_color': 'Fehler beim hinzufügen einer eigenen Farbe:',
   'error_reset_to_default': 'Fehler beim zurücksetzen der Farben:',
   'error_launch_url': 'Konnte URL nicht öffnen:',
@@ -697,7 +703,8 @@ const Map<String, String> translationsDe = {
   'events': 'Event-Verteilungen',
   'ignore_pokemon': 'Aus Dex entfernen',
   'ignore_confirm_title': 'Pokémon entfernen?',
-  'ignore_confirm_text': 'Möchtest du dieses Pokémon ausblenden? Du kannst es im Menü jederzeit wiederherstellen.',
+  'ignore_confirm_text':
+      'Möchtest du dieses Pokémon ausblenden? Du kannst es im Menü jederzeit wiederherstellen.',
   'ignored_list_title': 'Ausgeblendete Pokémon',
   'restore_pokemon': 'Wiederherstellen',
   'empty_ignored': 'Es wurden keine Pokémon ausgeblendet.',
@@ -706,7 +713,8 @@ const Map<String, String> translationsDe = {
   // Fundorte, Encounter, Editionen, Generationen
   'encounters_title': 'Fundorte & Begegnungen',
   'no_encounters_found': 'Keine Fundorte bekannt (oder noch nicht generiert).',
-  'encounter_missing_note': 'Hinweis: Wenn eine Edition nicht aufgeführt ist, ist das Pokémon dort in der Regel nur durch Entwicklung, Tausch oder Transfer erhältlich.',
+  'encounter_missing_note':
+      'Hinweis: Wenn eine Edition nicht aufgeführt ist, ist das Pokémon dort in der Regel nur durch Entwicklung, Tausch oder Transfer erhältlich.',
   'gen_1': 'Generation 1',
   'gen_2': 'Generation 2',
   'gen_3': 'Generation 3',
@@ -815,7 +823,8 @@ const Map<String, String> translationsDe = {
   // Shiny Guide Updates
   'shiny_guide_title': 'Shiny Guide',
   'shiny_guide_gen1': 'Generation 1',
-  'shiny_guide_gen1_desc': 'Tipp: Fange/Züchte das Pokémon in Gen 2 und tausche es per Zeitkapsel nach Gen 1. Wenn du es dann auf Pokémon Bank/HOME überträgst, behält es seinen Shiny-Status, bekommt das Gameboy-Icon und als Herkunftsort "Kanto"!',
+  'shiny_guide_gen1_desc':
+      'Tipp: Fange/Züchte das Pokémon in Gen 2 und tausche es per Zeitkapsel nach Gen 1. Wenn du es dann auf Pokémon Bank/HOME überträgst, behält es seinen Shiny-Status, bekommt das Gameboy-Icon und als Herkunftsort "Kanto"!',
   'shiny_stat_calculator': 'Shiny Stat Rechner',
   'level': 'Level',
   'base_stats': 'Basiswerte',
@@ -852,11 +861,14 @@ const Map<String, String> translationsDe = {
   'shiny_breed_target': 'Ziel-Pokémon',
   'shiny_breed_calc_btn': 'Kette berechnen',
   'shiny_breed_no_path': 'Keine Zuchtkette gefunden.',
-  'shiny_breed_note': 'Hinweis: Die Zucht-Kette funktioniert nur, wenn das Ziel-Pokémon (und alle Zwischenstufen) weiblich sein können. Für rein männliche oder geschlechtslose Pokémon benötigst du ein Shiny Ditto.',
-  'shiny_breed_female_note': 'Tipp: Wenn dein Start-Pokémon ein weibliches Shiny ist, paare es zuerst mit einem normalen Männchen derselben Art. Das erzeugt mit einer Chance von 1:64 ein Shiny, welches (je nach Geschlechterverhältnis) männlich sein könnte. Mit diesem kannst du dann diese Kette starten!',
+  'shiny_breed_note':
+      'Hinweis: Die Zucht-Kette funktioniert nur, wenn das Ziel-Pokémon (und alle Zwischenstufen) weiblich sein können. Für rein männliche oder geschlechtslose Pokémon benötigst du ein Shiny Ditto.',
+  'shiny_breed_female_note':
+      'Tipp: Wenn dein Start-Pokémon ein weibliches Shiny ist, paare es zuerst mit einem normalen Männchen derselben Art. Das erzeugt mit einer Chance von 1:64 ein Shiny, welches (je nach Geschlechterverhältnis) männlich sein könnte. Mit diesem kannst du dann diese Kette starten!',
   'shiny_breed_step_female': 'Paare ♂ Shiny {0} mit ♀ {1} ➔ ♀ {2} (1:64)',
   'shiny_breed_step_male': 'Paare ♂ Shiny {0} mit ♀ {0} ➔ ♂ Shiny {0} (1:64)',
-  'shiny_breed_step_final': 'Paare ♂ Shiny {0} mit ♀ {1} ➔ ♂/♀ Shiny {2} (1:64)',
+  'shiny_breed_step_final':
+      'Paare ♂ Shiny {0} mit ♀ {1} ➔ ♂/♀ Shiny {2} (1:64)',
   'shiny_breed_step_ditto': 'Paare Shiny Ditto mit {0} ➔ Shiny {1} (1:64)',
   'shiny_breed_chance': 'Chance: 1:64',
   'shiny_breed_success': 'Chance: 1:64 (Ziel erreicht!)',
@@ -871,13 +883,17 @@ const Map<String, String> translationsDe = {
   'shiny_guide_gen7': 'Generation 7',
   'shiny_guide_gen8': 'Generation 8',
   'shiny_guide_gen9': 'Generation 9',
-  'shiny_hunt_methods_soon': 'Weitere Jagdmethoden werden in Zukunft hinzugefügt.',
-  'shiny_guide_missing_note': 'Hinweis: Wenn eine Generation nicht aufgeführt ist, kann das Pokémon dort nicht regulär als Shiny gejagt/gezüchtet werden (oder die Jagdmethoden werden in zukünftigen Updates ergänzt).',
+  'shiny_hunt_methods_soon':
+      'Weitere Jagdmethoden werden in Zukunft hinzugefügt.',
+  'shiny_guide_missing_note':
+      'Hinweis: Wenn eine Generation nicht aufgeführt ist, kann das Pokémon dort nicht regulär als Shiny gejagt/gezüchtet werden (oder die Jagdmethoden werden in zukünftigen Updates ergänzt).',
   'shiny_odd_egg_title': 'Das Kurios-Ei (Pokémon Kristall)',
-  'shiny_odd_egg_desc': 'In Pokémon Kristall erhältst du in der Pension das Kurios-Ei. Daraus schlüpft ein zufälliges Baby-Pokémon. Die Shiny-Chance ist massiv erhöht: 14% in der westlichen Version und sogar 50% in der japanischen Version!',
+  'shiny_odd_egg_desc':
+      'In Pokémon Kristall erhältst du in der Pension das Kurios-Ei. Daraus schlüpft ein zufälliges Baby-Pokémon. Die Shiny-Chance ist massiv erhöht: 14% in der westlichen Version und sogar 50% in der japanischen Version!',
   // Mail Writer
   'shiny_mail_writer_title': 'Gen 3 Starter in Gen 2 (Mail Writer Glitch)',
-  'shiny_mail_writer_note': 'Hinweis: Mit dem Mail Writer Glitch können in Pokémon Gold/Silber/Kristall die ersten Pokémon der 3. Generation generiert werden. Beim Transfer über den PokéMover auf die Pokémon Bank werden diese dann völlig legal als Gen 3 Starter anerkannt!',
+  'shiny_mail_writer_note':
+      'Hinweis: Mit dem Mail Writer Glitch können in Pokémon Gold/Silber/Kristall die ersten Pokémon der 3. Generation generiert werden. Beim Transfer über den PokéMover auf die Pokémon Bank werden diese dann völlig legal als Gen 3 Starter anerkannt!',
   'tutorial_mail_writer_main': 'Text Tutorial (EN) - Mail Writer Codes',
   'tutorial_mail_writer_scripts': 'Text Tutorial (EN) - Gen3Giver Scripts',
   'Mail Writer Glitch': 'Mail Writer Glitch',
@@ -889,22 +905,30 @@ const Map<String, String> translationsDe = {
   'contribute_sub': 'Hilf mit via Pull Request (.json Dateien)',
   'tutorial_mew_normal_text': 'Text Tutorial (Mew-Glitch)',
   'error_shiny_guide': 'Fehler beim Laden des Shiny-Guides:',
-  'mew_glitch_note': 'Hinweis: Mew kann in den Spielen der 1. Generation durch den bekannten "Mew-Glitch" (Trainer-Flucht-Glitch) gefangen werden, welcher es dir ermöglicht, ein wildes Mew auf Level 7 anzutreffen.',
+  'mew_glitch_note':
+      'Hinweis: Mew kann in den Spielen der 1. Generation durch den bekannten "Mew-Glitch" (Trainer-Flucht-Glitch) gefangen werden, welcher es dir ermöglicht, ein wildes Mew auf Level 7 anzutreffen.',
   'tutorial_mew_normal_link': 'Text Tutorial (EN) - Reddit',
   'method_Mew Glitch': 'Mew-Glitch',
   'shiny_roamer_gen2_title': 'Wander-Pokémon (Legendäre Raubkatzen)',
-  'shiny_roamer_gen2_beasts_note': 'Hinweis: Die Statuswerte (und damit der Shiny-Status) von Raikou und Entei werden in Gold, Silber und Kristall bereits festgelegt, wenn sie in der Turmruine freigelassen werden! Du musst also vor dem Freilassen speichern, sie suchen und bei Nicht-Erfolg das Spiel neustarten (Soft Reset).',
-  'shiny_roamer_gen2_suicune_note': 'Hinweis: In Gold und Silber wird Suicunes Shiny-Status beim Freilassen in der Turmruine festgelegt (wie bei Raikou/Entei). In Pokémon Kristall hingegen ist Suicune ein statisches Event im Zinnturm und kann dort ganz normal per Soft Reset gejagt werden!',
+  'shiny_roamer_gen2_beasts_note':
+      'Hinweis: Die Statuswerte (und damit der Shiny-Status) von Raikou und Entei werden in Gold, Silber und Kristall bereits festgelegt, wenn sie in der Turmruine freigelassen werden! Du musst also vor dem Freilassen speichern, sie suchen und bei Nicht-Erfolg das Spiel neustarten (Soft Reset).',
+  'shiny_roamer_gen2_suicune_note':
+      'Hinweis: In Gold und Silber wird Suicunes Shiny-Status beim Freilassen in der Turmruine festgelegt (wie bei Raikou/Entei). In Pokémon Kristall hingegen ist Suicune ein statisches Event im Zinnturm und kann dort ganz normal per Soft Reset gejagt werden!',
   'shiny_breed_mechanics_title': 'Wichtige Zucht-Mechaniken (Gen 2)',
-  'shiny_breed_mechanics_dv_passing': 'Warum dieser Geschlechter-Wechsel? In Gen 2 wird der Shiny-Status immer an das *andere* Geschlecht vererbt. Ein männliches Shiny erzeugt also immer ein weibliches Shiny und umgekehrt. Daher muss das Geschlecht bei jedem Zuchtschritt wechseln!',
-  'shiny_breed_dv_conflict_text': 'Inzest-Sperre: Pokémon verweigern die Zucht ("Sie zeigen kein Interesse"), wenn ihre Verteidigungs- und Spezial-DVs identisch sind. Da dein Shiny seine DVs vererbt, fange dir einfach ein neues normales Partner-Pokémon in der Wildnis, falls der Pensionsleiter diesen Spruch aufsagt!',
+  'shiny_breed_mechanics_dv_passing':
+      'Warum dieser Geschlechter-Wechsel? In Gen 2 wird der Shiny-Status immer an das *andere* Geschlecht vererbt. Ein männliches Shiny erzeugt also immer ein weibliches Shiny und umgekehrt. Daher muss das Geschlecht bei jedem Zuchtschritt wechseln!',
+  'shiny_breed_dv_conflict_text':
+      'Inzest-Sperre: Pokémon verweigern die Zucht ("Sie zeigen kein Interesse"), wenn ihre Verteidigungs- und Spezial-DVs identisch sind. Da dein Shiny seine DVs vererbt, fange dir einfach ein neues normales Partner-Pokémon in der Wildnis, falls der Pensionsleiter diesen Spruch aufsagt!',
   'only_caught_pokemon': 'Nur gefangene Pokémon für Route verwenden',
-  'no_path_caught': 'Es konnte keine Zucht-Route mit deinen gefangenen Pokémon generiert werden.',
-  'no_path_impossible': 'Unmöglich! Dieses Pokémon hat eine zu geringe Weibchen-Rate (oder ist rein männlich/geschlechtslos) und kann daher in Gen 2 nicht als Shiny von einer anderen Spezies gezüchtet werden. Du MUSST ein Shiny Ditto verwenden!',
+  'no_path_caught':
+      'Es konnte keine Zucht-Route mit deinen gefangenen Pokémon generiert werden.',
+  'no_path_impossible':
+      'Unmöglich! Dieses Pokémon hat eine zu geringe Weibchen-Rate (oder ist rein männlich/geschlechtslos) und kann daher in Gen 2 nicht als Shiny von einer anderen Spezies gezüchtet werden. Du MUSST ein Shiny Ditto verwenden!',
   'odds_total': 'Gesamt',
   'odds_gender': 'Geschlecht',
   'impossible': 'Unmöglich!',
-  'shiny_breed_carrier_note': 'Hinweis: Da weibliche Shinys bei dieser Spezies mathematisch unmöglich sind (durch Gen 2 Programmierung), erhältst du hier ein normal aussehendes Weibchen, das die Shiny-Gene in sich trägt (Gen-Trägerin). Du erkennst sie daran, dass der Pensionsleiter "Sie zeigen kein Interesse" sagt, wenn du sie mit dem Vater paarst!',
+  'shiny_breed_carrier_note':
+      'Hinweis: Da weibliche Shinys bei dieser Spezies mathematisch unmöglich sind (durch Gen 2 Programmierung), erhältst du hier ein normal aussehendes Weibchen, das die Shiny-Gene in sich trägt (Gen-Trägerin). Du erkennst sie daran, dass der Pensionsleiter "Sie zeigen kein Interesse" sagt, wenn du sie mit dem Vater paarst!',
   'carrier': 'Trägerin',
   'chance_carrier': 'Chance: 1:2 (Gen-Trägerin)',
   'update_available_title': 'Neues Update verfügbar!',
@@ -914,5 +938,20 @@ const Map<String, String> translationsDe = {
   'check_for_updates': 'Nach Updates suchen',
   'up_to_date': 'Die App ist auf dem neuesten Stand.',
   'new_version': 'Neue Version',
-  'update_backup_warning': 'Tipp: Exportiere zur Sicherheit deine PokéDexe über die Einstellungen (Datenverwaltung), bevor du das Update durchführst!',
+  'update_backup_warning':
+      'Tipp: Exportiere zur Sicherheit deine PokéDexe über die Einstellungen (Datenverwaltung), bevor du das Update durchführst!',
+  'downgrades_title': 'Vorherige Versionen (Downgrades)',
+  'attention_downgrade': 'Achtung: Downgrade',
+  'downgrade_warning_text':
+      'Du bist dabei, auf eine ältere Version der App zurückzukehren. Dabei können neue Funktionen verloren gehen oder Inkompatibilitäten auftreten.\n\nWICHTIG FÜR ANDROID: Android blockiert direkte Downgrades. Du musst die App erst deinstallieren und die heruntergeladene APK manuell installieren.\n\nBitte exportiere VORHER unbedingt deine Dexe in den Einstellungen als Backup!',
+  'downgrade_execute': 'Downgrade ausführen',
+  'downgrade_backup_title': 'Vorher Backup erstellen?',
+  'downgrade_backup_text':
+      'Möchtest du deine aktuellen PokéDexe vor dem Downgrade sichern? Das wird dringend empfohlen!',
+  'downgrade_backup_create': 'Backup erstellen',
+  'downgrade_backup_skip': 'Ohne Backup fortfahren',
+  'downgrade_final_warning_title': 'Letzte Warnung',
+  'downgrade_final_warning_text':
+      'Bist du dir absolut sicher, dass du auf diese alte Version downgraden möchtest? Hast du dein Backup gemacht?',
+  'downgrade_final_confirm': 'Ja, Downgrade starten',
 };

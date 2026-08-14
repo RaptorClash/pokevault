@@ -18,7 +18,6 @@ class DexStorageService {
           .map((d) => d.toJson())
           .toList();
       final String jsonString = jsonEncode(jsonList);
-
       final String dateString = DateTime.now().toIso8601String().split('T')[0];
       final String fileName = 'pokevault_backup_$dateString.json';
 
@@ -28,18 +27,34 @@ class DexStorageService {
       if (isDesktop) {
         Directory? directory = await getDownloadsDirectory();
         directory ??= await getApplicationDocumentsDirectory();
-
         final file = File('${directory.path}/$fileName');
         await file.writeAsString(jsonString);
-
         NotificationHelper.showSuccess(
           "${Translator.get('backup_success')}\n${file.path}",
         );
+      } else if (Platform.isAndroid) {
+        try {
+          final directory = Directory('/storage/emulated/0/Download');
+          if (!await directory.exists()) {
+            await directory.create(recursive: true);
+          }
+          final file = File('${directory.path}/$fileName');
+          await file.writeAsString(jsonString);
+          NotificationHelper.showSuccess(
+            "${Translator.get('backup_success')}\n${file.path}",
+          );
+        } catch (e) {
+          final directory = await getTemporaryDirectory();
+          final file = File('${directory.path}/$fileName');
+          await file.writeAsString(jsonString);
+          await Share.shareXFiles([
+            XFile(file.path),
+          ], text: Translator.get('share_text'));
+        }
       } else {
         final directory = await getTemporaryDirectory();
         final file = File('${directory.path}/$fileName');
         await file.writeAsString(jsonString);
-
         await Share.shareXFiles([
           XFile(file.path),
         ], text: Translator.get('share_text'));

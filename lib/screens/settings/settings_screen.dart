@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
-
+import 'downgrade_screen.dart';
 import '../../providers/theme_provider.dart';
 import '../../providers/dex_provider.dart';
 import '../../services/dex_storage_service.dart';
@@ -127,41 +127,65 @@ class SettingsScreen extends StatelessWidget {
             Icons.system_update,
           ),
           Card(
-            child: ListTile(
-              leading: const Icon(Icons.update),
-              title: Text(Translator.get('check_for_updates')),
-              trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-              onTap: () async {
-                showDialog(
-                  context: context,
-                  barrierDismissible: false,
-                  builder: (context) =>
-                      const Center(child: CircularProgressIndicator()),
-                );
-                try {
-                  final updateInfo = await UpdateHelper.checkForUpdate();
-                  if (context.mounted) {
-                    Navigator.pop(context);
-                    if (updateInfo != null) {
-                      showDialog(
-                        context: context,
-                        barrierDismissible: false,
-                        builder: (context) =>
-                            UpdateDialog(updateInfo: updateInfo),
-                      );
-                    } else {
-                      NotificationHelper.showInfo(Translator.get('up_to_date'));
-                    }
-                  }
-                } catch (e) {
-                  if (context.mounted) {
-                    Navigator.pop(context);
-                    NotificationHelper.showError(
-                      '${Translator.get('error')} $e',
+            child: Column(
+              children: [
+                ListTile(
+                  leading: const Icon(Icons.update),
+                  title: Text(Translator.get('check_for_updates')),
+                  trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                  onTap: () async {
+                    showDialog(
+                      context: context,
+                      barrierDismissible: false,
+                      builder: (context) =>
+                          const Center(child: CircularProgressIndicator()),
                     );
-                  }
-                }
-              },
+                    try {
+                      final updateInfo = await UpdateHelper.checkForUpdate();
+                      if (context.mounted) {
+                        Navigator.pop(context);
+                        if (updateInfo != null) {
+                          showDialog(
+                            context: context,
+                            barrierDismissible: false,
+                            builder: (context) =>
+                                UpdateDialog(updateInfo: updateInfo),
+                          );
+                        } else {
+                          NotificationHelper.showInfo(
+                            Translator.get('up_to_date'),
+                          );
+                        }
+                      }
+                    } catch (e) {
+                      if (context.mounted) {
+                        Navigator.pop(context);
+                        NotificationHelper.showError(
+                          '${Translator.get('error')} $e',
+                        );
+                      }
+                    }
+                  },
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  leading: const Icon(Icons.history, color: Colors.redAccent),
+                  title: Text(
+                    Translator.get('downgrades_title') != 'downgrades_title'
+                        ? Translator.get('downgrades_title')
+                        : 'Vorherige Versionen (Downgrades)',
+                  ),
+                  trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const DowngradeScreen(),
+                      ),
+                    );
+                  },
+                ),
+              ],
             ),
           ),
           const SizedBox(height: 24),
