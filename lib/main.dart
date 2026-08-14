@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'dart:ui';
-
 import 'providers/theme_provider.dart';
 import 'providers/dex_provider.dart';
 import 'screens/home_screen.dart';
@@ -11,6 +10,10 @@ import 'l10n/app_translations.dart';
 void main() {
   try {
     WidgetsFlutterBinding.ensureInitialized();
+    PaintingBinding.instance.imageCache.maximumSize =
+        150;
+    PaintingBinding.instance.imageCache.maximumSizeBytes =
+        1024 * 1024 * 40;
     runApp(
       MultiProvider(
         providers: [
@@ -32,7 +35,7 @@ class PokedexApp extends StatelessWidget {
   Widget build(BuildContext context) {
     final dexProvider = context.watch<DexProvider>();
     final themeProvider = Provider.of<ThemeProvider>(context);
-    
+
     return MaterialApp(
       title: 'Poke Vault',
       debugShowCheckedModeBanner: false,
@@ -63,8 +66,8 @@ class PokedexApp extends StatelessWidget {
 class AppScrollBehavior extends MaterialScrollBehavior {
   @override
   Set<PointerDeviceKind> get dragDevices => {
-        PointerDeviceKind.touch,
-        PointerDeviceKind.mouse,
-        PointerDeviceKind.trackpad,
-      };
+    PointerDeviceKind.touch,
+    PointerDeviceKind.mouse,
+    PointerDeviceKind.trackpad,
+  };
 }

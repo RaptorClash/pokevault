@@ -8,7 +8,7 @@ import '../models/user_dex.dart';
 import '../data/dex_groups_data.dart';
 import '../data/national_dex_data.dart';
 import '../data/dex_orders.dart';
-import 'dex_screen.dart';
+import 'dex/dex_screen.dart';
 import 'settings_screen.dart';
 import '../utils/notification_helper.dart';
 import '../utils/update_helper.dart';
