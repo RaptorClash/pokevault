@@ -8,11 +8,11 @@ import '../../models/user_dex.dart';
 import '../../data/national_dex_data.dart';
 import '../../data/dex_orders.dart';
 import '../dex/dex_screen.dart';
-import '../settings_screen.dart';
+import '../settings/settings_screen.dart';
 import '../../utils/notification_helper.dart';
 import '../../utils/update_helper.dart';
+import '../../widgets/dialogs/update_dialog.dart';
 
-// Die ausgelagerten Widgets importieren
 import 'create_dex_bottom_sheet.dart';
 import 'edit_dex_dialog.dart';
 

@@ -2,13 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:package_info_plus/package_info_plus.dart';
-import '../providers/theme_provider.dart';
-import '../providers/dex_provider.dart';
-import '../services/dex_storage_service.dart';
-import '../l10n/app_translations.dart';
-import '../utils/notification_helper.dart';
 import 'package:url_launcher/url_launcher.dart';
-import '../utils/update_helper.dart';
+
+import '../../providers/theme_provider.dart';
+import '../../providers/dex_provider.dart';
+import '../../services/dex_storage_service.dart';
+import '../../l10n/app_translations.dart';
+import '../../utils/notification_helper.dart';
+import '../../utils/update_helper.dart';
+import '../../widgets/dialogs/update_dialog.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -119,7 +121,6 @@ class SettingsScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 24),
-
           _buildSectionHeader(
             context,
             Translator.get('updates'),
@@ -164,7 +165,6 @@ class SettingsScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 24),
-
           _buildSectionHeader(
             context,
             Translator.get('general'),
@@ -179,7 +179,6 @@ class SettingsScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 24),
-
           _buildSectionHeader(
             context,
             Translator.get('data_management'),
@@ -210,7 +209,6 @@ class SettingsScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 24),
-
           _buildSectionHeader(
             context,
             Translator.get('community_support'),
@@ -241,7 +239,6 @@ class SettingsScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 24),
-
           _buildSectionHeader(
             context,
             Translator.get('credits'),
@@ -325,7 +322,6 @@ class SettingsScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 32),
-
           FutureBuilder<PackageInfo>(
             future: PackageInfo.fromPlatform(),
             builder: (context, snapshot) {
@@ -502,14 +498,14 @@ class SettingsScreen extends StatelessWidget {
                   provider.setLanguage('de');
                   Navigator.pop(context);
                 },
-                child: const Text('🇩🇪 Deutsch (DE)'),
+                child: const Text('  Deutsch (DE)'),
               ),
               SimpleDialogOption(
                 onPressed: () {
                   provider.setLanguage('en');
                   Navigator.pop(context);
                 },
-                child: const Text('🇬🇧 English (EN)'),
+                child: const Text('  English (EN)'),
               ),
             ],
           );

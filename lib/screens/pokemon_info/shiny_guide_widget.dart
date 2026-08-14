@@ -4,7 +4,7 @@ import '../../models/pokemon.dart';
 import '../../utils/shiny_logic_helper.dart';
 import '../../l10n/app_translations.dart';
 import '../../data/encounters_data.dart';
-import '../breeding_calculator_widget.dart';
+import 'breeding_calculator_widget.dart';
 import '../../utils/notification_helper.dart';
 
 class ShinyGuideWidget extends StatefulWidget {
@@ -78,6 +78,7 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
     if (gen == 2 && widget.pokemon.id >= 252 && widget.pokemon.id <= 257) {
       return true;
     }
+
     if (widget.pokemon.id > _getMaxIdForGen(gen)) return false;
 
     if (gen == 1) {
@@ -99,7 +100,6 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
   Widget _buildGenContent(BuildContext context, int gen) {
     List<Widget> content = [];
     String genKey = 'gen_$gen';
-
     bool isStatic = ShinyLogicHelper.isStaticEncounter(
       widget.pokemon.id,
       genKey,
@@ -135,7 +135,6 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
   Widget _buildGen1Specific(BuildContext context) {
     try {
       final isHuntable = ShinyLogicHelper.isHuntableInGen1(widget.pokemon.id);
-
       final statusWidget = Text(
         isHuntable
             ? Translator.get('shiny_huntable_yes')
@@ -343,7 +342,6 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
 
   Widget _buildGen2Specific(BuildContext context) {
     List<Widget> content = [];
-
     if (widget.pokemon.id >= 243 && widget.pokemon.id <= 245) {
       content.add(
         Text(
@@ -548,7 +546,6 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
         ),
       );
     }
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: content,

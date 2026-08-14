@@ -7,7 +7,7 @@ import '../../models/dex_view_models.dart';
 import '../../providers/dex_provider.dart';
 import '../../l10n/app_translations.dart';
 import '../../utils/dex_logic_helper.dart';
-import '../ignored_list_screen.dart';
+import '../ignored_list/ignored_list_screen.dart';
 import 'dex_box_view.dart';
 import 'dex_list_view.dart';
 
