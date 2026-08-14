@@ -4,7 +4,7 @@ import '../../models/user_dex.dart';
 import '../../models/dex_view_models.dart';
 import '../../providers/dex_provider.dart';
 import '../../l10n/app_translations.dart';
-import '../pokemon_info_screen.dart';
+import '../pokemon_info/pokemon_info_screen.dart';
 
 class DexListView extends StatelessWidget {
   final List<DexDisplayEntry> displayList;
@@ -88,26 +88,41 @@ class DexListView extends StatelessWidget {
                                 BlendMode.dst,
                               )
                             : const ColorFilter.matrix(<double>[
-                                0.2126, 0.7152, 0.0722, 0, 0,
-                                0.2126, 0.7152, 0.0722, 0, 0,
-                                0.2126, 0.7152, 0.0722, 0, 0,
-                                0,      0,      0,      1, 0,
+                                0.2126,
+                                0.7152,
+                                0.0722,
+                                0,
+                                0,
+                                0.2126,
+                                0.7152,
+                                0.0722,
+                                0,
+                                0,
+                                0.2126,
+                                0.7152,
+                                0.0722,
+                                0,
+                                0,
+                                0,
+                                0,
+                                0,
+                                1,
+                                0,
                               ]),
                         child: CachedNetworkImage(
                           imageUrl: entry.imageUrl,
                           memCacheWidth: 200, // RAM Optimierung!
                           fit: BoxFit.contain,
                           placeholder: (context, url) => const Center(
-                              child: CircularProgressIndicator(strokeWidth: 2)),
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          ),
                           errorWidget: (context, url, error) => CachedNetworkImage(
                             imageUrl:
                                 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${liveDex.isShinyDex ? 'shiny/' : ''}${entry.pokemon.id}.png',
                             memCacheWidth: 200, // RAM Optimierung!
                             fit: BoxFit.contain,
-                            errorWidget: (c, e, s) => const Icon(
-                              Icons.catching_pokemon,
-                              size: 24,
-                            ),
+                            errorWidget: (c, e, s) =>
+                                const Icon(Icons.catching_pokemon, size: 24),
                           ),
                         ),
                       ),

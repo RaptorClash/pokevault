@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
-import '../models/pokemon.dart';
-import '../utils/shiny_logic_helper.dart';
-import '../l10n/app_translations.dart';
-import '../data/encounters_data.dart';
-import 'breeding_calculator_widget.dart';
-import '../utils/notification_helper.dart';
+import '../../models/pokemon.dart';
+import '../../utils/shiny_logic_helper.dart';
+import '../../l10n/app_translations.dart';
+import '../../data/encounters_data.dart';
+import '../breeding_calculator_widget.dart';
+import '../../utils/notification_helper.dart';
 
 class ShinyGuideWidget extends StatefulWidget {
   final Pokemon pokemon;

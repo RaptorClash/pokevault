@@ -40,7 +40,7 @@ class _DexScreenState extends State<DexScreen> {
   void initState() {
     super.initState();
     _loadPrefs();
-    
+
     // Die Basis-Einträge müssen nur einmal generiert werden (CPU-Intensiv).
     // Sie ändern sich nicht durchs Checken von Checkboxen, sondern nur in den Einstellungen.
     _rawEntries = DexLogicHelper.buildDisplayEntries(

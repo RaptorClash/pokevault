@@ -46,8 +46,7 @@ class _HomeScreenState extends State<HomeScreen> {
           builder: (context) => UpdateDialog(updateInfo: updateInfo),
         );
       }
-    } catch (e) {
-    }
+    } catch (e) {}
   }
 
   void _toggleSelection(String id) {

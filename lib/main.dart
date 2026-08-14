@@ -10,10 +10,8 @@ import 'l10n/app_translations.dart';
 void main() {
   try {
     WidgetsFlutterBinding.ensureInitialized();
-    PaintingBinding.instance.imageCache.maximumSize =
-        150;
-    PaintingBinding.instance.imageCache.maximumSizeBytes =
-        1024 * 1024 * 40;
+    PaintingBinding.instance.imageCache.maximumSize = 150;
+    PaintingBinding.instance.imageCache.maximumSizeBytes = 1024 * 1024 * 40;
     runApp(
       MultiProvider(
         providers: [

@@ -4,7 +4,7 @@ import '../../models/user_dex.dart';
 import '../../models/dex_view_models.dart';
 import '../../providers/dex_provider.dart';
 import '../../l10n/app_translations.dart';
-import '../pokemon_info_screen.dart';
+import '../pokemon_info/pokemon_info_screen.dart';
 
 class DexBoxView extends StatelessWidget {
   final List<BoxData> boxes;
@@ -57,9 +57,9 @@ class DexBoxView extends StatelessWidget {
                       regionName,
                       style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
-                    backgroundColor: Theme.of(ctx)
-                        .colorScheme
-                        .surfaceContainerHighest,
+                    backgroundColor: Theme.of(
+                      ctx,
+                    ).colorScheme.surfaceContainerHighest,
                     onPressed: () {
                       Navigator.pop(ctx);
                       pageController.jumpToPage(boxIndex);
@@ -129,9 +129,9 @@ class DexBoxView extends StatelessWidget {
                                   .withOpacity(0.5),
                               borderRadius: BorderRadius.circular(16),
                               border: Border.all(
-                                color: Theme.of(context)
-                                    .dividerColor
-                                    .withOpacity(0.5),
+                                color: Theme.of(
+                                  context,
+                                ).dividerColor.withOpacity(0.5),
                               ),
                             ),
                             child: Row(
@@ -183,8 +183,9 @@ class DexBoxView extends StatelessWidget {
                     ),
                     delegate: SliverChildBuilderDelegate((context, index) {
                       final entry = box.entries[index];
-                      final isCaught =
-                          liveDex.caughtIds.contains(entry.uniqueId);
+                      final isCaught = liveDex.caughtIds.contains(
+                        entry.uniqueId,
+                      );
                       final isShiny = liveDex.shinyIds.contains(entry.uniqueId);
 
                       return GestureDetector(
@@ -211,9 +212,9 @@ class DexBoxView extends StatelessWidget {
                             border: Border.all(
                               color: isCaught
                                   ? Colors.green
-                                  : Theme.of(context)
-                                      .dividerColor
-                                      .withOpacity(0.3),
+                                  : Theme.of(
+                                      context,
+                                    ).dividerColor.withOpacity(0.3),
                               width: isCaught ? 2 : 1,
                             ),
                           ),
@@ -227,10 +228,26 @@ class DexBoxView extends StatelessWidget {
                                           BlendMode.dst,
                                         )
                                       : const ColorFilter.matrix(<double>[
-                                          0.2126, 0.7152, 0.0722, 0, 0,
-                                          0.2126, 0.7152, 0.0722, 0, 0,
-                                          0.2126, 0.7152, 0.0722, 0, 0,
-                                          0,      0,      0,      1, 0,
+                                          0.2126,
+                                          0.7152,
+                                          0.0722,
+                                          0,
+                                          0,
+                                          0.2126,
+                                          0.7152,
+                                          0.0722,
+                                          0,
+                                          0,
+                                          0.2126,
+                                          0.7152,
+                                          0.0722,
+                                          0,
+                                          0,
+                                          0,
+                                          0,
+                                          0,
+                                          1,
+                                          0,
                                         ]),
                                   child: Padding(
                                     padding: const EdgeInsets.all(4.0),
@@ -238,19 +255,28 @@ class DexBoxView extends StatelessWidget {
                                       imageUrl: entry.imageUrl,
                                       memCacheWidth: 200, // RAM Optimierung!
                                       fit: BoxFit.contain,
-                                      placeholder: (context, url) => const Center(
-                                          child: CircularProgressIndicator(strokeWidth: 2)),
-                                      errorWidget: (context, error, stackTrace) =>
-                                          CachedNetworkImage(
-                                        imageUrl:
-                                            'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${liveDex.isShinyDex ? 'shiny/' : ''}${entry.pokemon.id}.png',
-                                        memCacheWidth: 200,
-                                        fit: BoxFit.contain,
-                                        errorWidget: (c, e, s) => const Icon(
-                                          Icons.catching_pokemon,
-                                          size: 24,
-                                        ),
-                                      ),
+                                      placeholder: (context, url) =>
+                                          const Center(
+                                            child: CircularProgressIndicator(
+                                              strokeWidth: 2,
+                                            ),
+                                          ),
+                                      errorWidget:
+                                          (
+                                            context,
+                                            error,
+                                            stackTrace,
+                                          ) => CachedNetworkImage(
+                                            imageUrl:
+                                                'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${liveDex.isShinyDex ? 'shiny/' : ''}${entry.pokemon.id}.png',
+                                            memCacheWidth: 200,
+                                            fit: BoxFit.contain,
+                                            errorWidget: (c, e, s) =>
+                                                const Icon(
+                                                  Icons.catching_pokemon,
+                                                  size: 24,
+                                                ),
+                                          ),
                                     ),
                                   ),
                                 ),

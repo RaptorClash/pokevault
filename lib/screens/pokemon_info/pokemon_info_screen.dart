@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../models/dex_view_models.dart';
-import '../providers/dex_provider.dart';
-import '../l10n/app_translations.dart';
-import '../data/matching_balls_data.dart';
-import '../data/encounters_data.dart';
-import '../utils/notification_helper.dart';
+import '../../models/dex_view_models.dart';
+import '../../providers/dex_provider.dart';
+import '../../l10n/app_translations.dart';
+import '../../data/matching_balls_data.dart';
+import '../../data/encounters_data.dart';
+import '../../utils/notification_helper.dart';
 import 'shiny_guide_widget.dart';
 import 'package:url_launcher/url_launcher.dart';
 
