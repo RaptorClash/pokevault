@@ -10,6 +10,7 @@ import '../../utils/dex_logic_helper.dart';
 import '../ignored_list/ignored_list_screen.dart';
 import 'dex_box_view.dart';
 import 'dex_list_view.dart';
+import 'route_tracker_screen.dart';
 
 class DexScreen extends StatefulWidget {
   final UserDex initialDex;
@@ -137,6 +138,21 @@ class _DexScreenState extends State<DexScreen> {
           ],
         ),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.location_on),
+            tooltip: Translator.get('route_tracker'),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => RouteTrackerScreen(
+                    dexId: liveDex.id,
+                    rawEntries: _rawEntries,
+                  ),
+                ),
+              );
+            },
+          ),
           PopupMenuButton<String>(
             icon: const Icon(Icons.sort),
             tooltip: Translator.get('tooltip_view_sort'),

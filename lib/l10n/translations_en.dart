@@ -681,4 +681,9 @@ const Map<String, String> translationsEn = {
   'method_gift': 'Gift',
   'method_only-one': 'Static / Only One',
   'method_trade': 'NPC Trade',
+
+  'route_tracker': 'Route Tracker',
+  'route_tracker_empty': 'No encounters found for this version.',
+  'hide_caught': 'Hide caught',
+  'select_version': 'Select version',
 };

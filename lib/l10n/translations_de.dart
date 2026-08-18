@@ -967,4 +967,9 @@ const Map<String, String> translationsDe = {
   'method_gift': 'Geschenk',
   'method_only-one': 'Einmalig / Statisch',
   'method_trade': 'NPC-Tausch',
+
+  'route_tracker': 'Routen-Tracker',
+  'route_tracker_empty': 'Keine Fundorte für diese Edition gefunden.',
+  'hide_caught': 'Gefangene ausblenden',
+  'select_version': 'Edition wählen',
 };
