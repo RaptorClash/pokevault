@@ -70,7 +70,7 @@ final Map<String, GameVersion> _versionColors = {
   'xd': GameVersion(const Color(0xFF4C2A69), Colors.white),
 };
 
-class PokemonInfoScreen extends StatelessWidget {
+class PokemonInfoScreen extends StatefulWidget {
   final DexDisplayEntry entry;
   final String dexId;
 
@@ -79,6 +79,13 @@ class PokemonInfoScreen extends StatelessWidget {
     required this.entry,
     required this.dexId,
   });
+
+  @override
+  State<PokemonInfoScreen> createState() => _PokemonInfoScreenState();
+}
+
+class _PokemonInfoScreenState extends State<PokemonInfoScreen> {
+  bool? _manualShinyToggle;
 
   Future<void> _launchURL(String urlString) async {
     try {
@@ -93,31 +100,58 @@ class PokemonInfoScreen extends StatelessWidget {
     }
   }
 
+  String _getImageUrl(bool wantShiny) {
+    String url = widget.entry.imageUrl;
+    bool isCurrentlyShiny = url.contains('/shiny/');
+
+    if (wantShiny && !isCurrentlyShiny) {
+      if (url.contains('official-artwork/')) {
+        return url.replaceFirst('official-artwork/', 'official-artwork/shiny/');
+      } else if (url.contains('home/female/')) {
+        return url.replaceFirst('home/female/', 'home/shiny/female/');
+      } else if (url.contains('home/')) {
+        return url.replaceFirst('home/', 'home/shiny/');
+      }
+    } else if (!wantShiny && isCurrentlyShiny) {
+      return url.replaceFirst('/shiny/', '/');
+    }
+    return url;
+  }
+
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<DexProvider>();
-    final liveDex = provider.userDexes.firstWhere((d) => d.id == dexId);
-    final isCaught = liveDex.caughtIds.contains(entry.uniqueId);
-    final isShiny = liveDex.shinyIds.contains(entry.uniqueId);
+    final liveDex = provider.userDexes.firstWhere((d) => d.id == widget.dexId);
+    final isCaught = liveDex.caughtIds.contains(widget.entry.uniqueId);
+    final isShiny = liveDex.shinyIds.contains(widget.entry.uniqueId);
+
+    bool wantShiny = _manualShinyToggle ?? liveDex.isShinyDex;
+    String currentImageUrl = _getImageUrl(wantShiny);
+    String fallbackUrl =
+        'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${wantShiny ? 'shiny/' : ''}${widget.entry.pokemon.id}.png';
 
     final matchingBalls =
-        matchingBallsDatabase[entry.uniqueId] ??
-        matchingBallsDatabase['${entry.pokemon.id}_normal'];
+        matchingBallsDatabase[widget.entry.uniqueId] ??
+        matchingBallsDatabase['${widget.entry.pokemon.id}_normal'];
     final List<String> normalBalls = matchingBalls?['normal'] ?? [];
     final List<String> shinyBalls = matchingBalls?['shiny'] ?? [];
 
     String formName = 'normal';
-    if (entry.uniqueId.contains('_')) {
-      formName = entry.uniqueId.substring(entry.uniqueId.indexOf('_') + 1);
+    if (widget.entry.uniqueId.contains('_')) {
+      formName = widget.entry.uniqueId.substring(
+        widget.entry.uniqueId.indexOf('_') + 1,
+      );
       if (formName == 'm' || formName == 'f') formName = 'normal';
     }
 
     PokemonForm? currentForm;
     try {
-      currentForm = entry.pokemon.forms.firstWhere((f) => f.name == formName);
+      currentForm = widget.entry.pokemon.forms.firstWhere(
+        (f) => f.name == formName,
+      );
     } catch (_) {
-      if (entry.pokemon.forms.isNotEmpty)
-        currentForm = entry.pokemon.forms.first;
+      if (widget.entry.pokemon.forms.isNotEmpty)
+        currentForm = widget.entry.pokemon.forms.first;
     }
 
     final Map<String, Color> typeColors = {
@@ -165,46 +199,48 @@ class PokemonInfoScreen extends StatelessWidget {
                 ).colorScheme.surfaceContainerHighest.withOpacity(0.3),
                 borderRadius: BorderRadius.circular(24),
               ),
-              child: ColorFiltered(
-                colorFilter: isCaught
-                    ? const ColorFilter.mode(Colors.transparent, BlendMode.dst)
-                    : const ColorFilter.matrix(<double>[
-                        0.2126,
-                        0.7152,
-                        0.0722,
-                        0,
-                        0,
-                        0.2126,
-                        0.7152,
-                        0.0722,
-                        0,
-                        0,
-                        0.2126,
-                        0.7152,
-                        0.0722,
-                        0,
-                        0,
-                        0,
-                        0,
-                        0,
-                        1,
-                        0,
-                      ]),
-                child: Image.network(
-                  entry.imageUrl,
-                  fit: BoxFit.contain,
-                  errorBuilder: (context, error, stackTrace) => Image.network(
-                    'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${liveDex.isShinyDex ? 'shiny/' : ''}${entry.pokemon.id}.png',
-                    fit: BoxFit.contain,
-                    errorBuilder: (c, e, s) =>
-                        const Icon(Icons.catching_pokemon, size: 60),
+              child: Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  Center(
+                    child: Image.network(
+                      currentImageUrl,
+                      fit: BoxFit.contain,
+                      errorBuilder: (context, error, stackTrace) =>
+                          Image.network(
+                            fallbackUrl,
+                            fit: BoxFit.contain,
+                            errorBuilder: (c, e, s) =>
+                                const Icon(Icons.catching_pokemon, size: 60),
+                          ),
+                    ),
                   ),
-                ),
+                  Positioned(
+                    top: -8,
+                    right: -8,
+                    child: IconButton(
+                      icon: Icon(
+                        wantShiny
+                            ? Icons.auto_awesome
+                            : Icons.auto_awesome_outlined,
+                        color: wantShiny ? Colors.amber : Colors.grey,
+                      ),
+                      tooltip: wantShiny
+                          ? 'Normale Form anzeigen'
+                          : 'Shiny Form anzeigen',
+                      onPressed: () {
+                        setState(() {
+                          _manualShinyToggle = !wantShiny;
+                        });
+                      },
+                    ),
+                  ),
+                ],
               ),
             ),
             const SizedBox(height: 24),
             Text(
-              '#${entry.pokemon.id.toString().padLeft(3, '0')}',
+              '#${widget.entry.pokemon.id.toString().padLeft(3, '0')}',
               style: TextStyle(
                 fontSize: 20,
                 color: Theme.of(context).hintColor,
@@ -212,7 +248,7 @@ class PokemonInfoScreen extends StatelessWidget {
               ),
             ),
             Text(
-              entry.pokemon.getName(provider.currentLanguage),
+              widget.entry.pokemon.getName(provider.currentLanguage),
               style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
               textAlign: TextAlign.center,
             ),
@@ -246,10 +282,10 @@ class PokemonInfoScreen extends StatelessWidget {
               ),
             ],
 
-            if (entry.displaySuffix.trim().isNotEmpty) ...[
+            if (widget.entry.displaySuffix.trim().isNotEmpty) ...[
               const SizedBox(height: 8),
               Text(
-                '${Translator.get('form') != 'form' ? Translator.get('form') : 'Form'}: ${entry.displaySuffix.replaceAll('(', '').replaceAll(')', '').trim()}',
+                '${Translator.get('form') != 'form' ? Translator.get('form') : 'Form'}: ${widget.entry.displaySuffix.replaceAll('(', '').replaceAll(')', '').trim()}',
                 style: const TextStyle(
                   fontSize: 18,
                   fontStyle: FontStyle.italic,
@@ -257,8 +293,35 @@ class PokemonInfoScreen extends StatelessWidget {
               ),
             ],
             const SizedBox(height: 32),
+
             Card(
-              margin: const EdgeInsets.symmetric(vertical: 8),
+              margin: const EdgeInsets.symmetric(vertical: 4),
+              child: SwitchListTile(
+                title: Text(
+                  Translator.get('caught_status') != 'caught_status'
+                      ? Translator.get('caught_status')
+                      : 'Gefangen Status',
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+                subtitle: Text(
+                  Translator.get('mark_as_caught') != 'mark_as_caught'
+                      ? Translator.get('mark_as_caught')
+                      : 'Als gefangen markieren',
+                ),
+                secondary: Icon(
+                  Icons.catching_pokemon,
+                  color: isCaught ? Colors.green : Colors.grey,
+                ),
+                value: isCaught,
+                activeColor: Colors.green,
+                onChanged: (val) {
+                  provider.togglePokemon(widget.dexId, widget.entry.uniqueId);
+                },
+              ),
+            ),
+
+            Card(
+              margin: const EdgeInsets.symmetric(vertical: 4),
               child: SwitchListTile(
                 title: const Text(
                   'Shiny Status',
@@ -272,7 +335,7 @@ class PokemonInfoScreen extends StatelessWidget {
                 value: isShiny,
                 activeColor: Colors.amber,
                 onChanged: (val) {
-                  provider.toggleShiny(dexId, entry.uniqueId);
+                  provider.toggleShiny(widget.dexId, widget.entry.uniqueId);
                 },
               ),
             ),
@@ -332,11 +395,17 @@ class PokemonInfoScreen extends StatelessWidget {
                       : 'Fundorte & Begegnungen',
                   style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
-                children: _buildEncountersList(context, entry.pokemon.id),
+                children: _buildEncountersList(
+                  context,
+                  widget.entry.pokemon.id,
+                ),
               ),
             ),
             const SizedBox(height: 16),
-            ShinyGuideWidget(pokemon: entry.pokemon, dexId: dexId),
+            ShinyGuideWidget(
+              pokemon: widget.entry.pokemon,
+              dexId: widget.dexId,
+            ),
             const SizedBox(height: 32),
             SizedBox(
               width: double.infinity,
@@ -844,7 +913,7 @@ class PokemonInfoScreen extends StatelessWidget {
               foregroundColor: Theme.of(context).colorScheme.onError,
             ),
             onPressed: () {
-              provider.ignorePokemon(dexId, entry.uniqueId);
+              provider.ignorePokemon(widget.dexId, widget.entry.uniqueId);
               Navigator.pop(ctx);
               Navigator.pop(context);
             },

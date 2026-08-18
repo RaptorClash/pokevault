@@ -1002,4 +1002,7 @@ const Map<String, String> translationsDe = {
   'type_dark': 'Unlicht',
   'type_steel': 'Stahl',
   'type_fairy': 'Fee',
+
+  'caught_status': 'Gefangen Status',
+  'mark_as_caught': 'Als gefangen markieren',
 };

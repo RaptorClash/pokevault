@@ -716,4 +716,7 @@ const Map<String, String> translationsEn = {
   'type_dark': 'Dark',
   'type_steel': 'Steel',
   'type_fairy': 'Fairy',
+
+  'caught_status': 'Caught Status',
+  'mark_as_caught': 'Mark as caught',
 };
