@@ -954,4 +954,17 @@ const Map<String, String> translationsDe = {
   'downgrade_final_warning_text':
       'Bist du dir absolut sicher, dass du auf diese alte Version downgraden möchtest? Hast du dein Backup gemacht?',
   'downgrade_final_confirm': 'Ja, Downgrade starten',
+
+  'encounter_level': 'Level',
+  'encounter_chance': 'Häufigkeit',
+  'encounter_method': 'Methode',
+  'encounter_location': 'Ort',
+  'method_walk': 'Hohes Gras',
+  'method_surf': 'Surfen',
+  'method_old-rod': 'Angel',
+  'method_good-rod': 'Profiangel',
+  'method_super-rod': 'Superangel',
+  'method_gift': 'Geschenk',
+  'method_only-one': 'Einmalig / Statisch',
+  'method_trade': 'NPC-Tausch',
 };

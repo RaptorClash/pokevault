@@ -301,12 +301,10 @@ class PokemonInfoScreen extends StatelessWidget {
   Widget _buildVersionBadge(List<String> versions) {
     if (versions.isEmpty) return const SizedBox.shrink();
 
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: versions.asMap().entries.map((entry) {
-        int idx = entry.key;
-        String ver = entry.value;
-
+    return Wrap(
+      spacing: 2,
+      runSpacing: 4,
+      children: versions.map((ver) {
         GameVersion? gameVer = _versionColors[ver];
         if (gameVer == null) return const SizedBox.shrink();
 
@@ -323,24 +321,40 @@ class PokemonInfoScreen extends StatelessWidget {
               color: Colors.black.withOpacity(0.2),
               width: 0.5,
             ),
-            borderRadius: BorderRadius.horizontal(
-              left: idx == 0 ? const Radius.circular(8) : Radius.zero,
-              right: idx == versions.length - 1
-                  ? const Radius.circular(8)
-                  : Radius.zero,
-            ),
+            borderRadius: BorderRadius.circular(8),
           ),
           child: Text(
             shortText,
             style: TextStyle(
               color: gameVer.textColor,
-              fontSize: 12,
+              fontSize: 10,
               fontWeight: FontWeight.bold,
             ),
           ),
         );
       }).toList(),
     );
+  }
+
+  String _translateLoc(String loc) {
+    String transBase = Translator.get(loc);
+    if (transBase == loc) {
+      transBase = Translator.get('loc_$loc');
+      if (transBase == 'loc_$loc') {
+        return loc;
+      }
+    }
+    return transBase;
+  }
+
+  String _translateMethod(String method) {
+    if (method.isEmpty) return '';
+    String tMethod = Translator.get('method_$method');
+    if (tMethod == 'method_$method') {
+      tMethod = Translator.get(method);
+      if (tMethod == method) return method;
+    }
+    return tMethod;
   }
 
   List<Widget> _buildEncountersList(BuildContext context, int pokemonId) {
@@ -375,61 +389,137 @@ class PokemonInfoScreen extends StatelessWidget {
 
         Map<String, List<String>> groupedEncounters = {};
         versionsMap.forEach((ver, locs) {
-          String key = locs.join('|||');
+          String key = locs.join('|||||');
           groupedEncounters.putIfAbsent(key, () => []).add(ver);
         });
 
         List<Widget> versionWidgets = [];
+
         groupedEncounters.forEach((locationsStr, versions) {
-          final locations = locationsStr.split('|||');
+          final locations = locationsStr.split('|||||');
 
-          final String formattedLocations = locations
-              .map((loc) {
-                String base = loc;
-                String method = '';
+          List<Widget> locationRows = locations.map((loc) {
+            if (loc.contains('|||')) {
+              final parts = loc.split('|||');
+              final baseLoc = _translateLoc(parts[0]);
+              final method = _translateMethod(parts.length > 1 ? parts[1] : '');
+              final lvl = parts.length > 2 ? parts[2] : '';
+              final chance = parts.length > 3 ? '${parts[3]} %' : '';
 
-                if (loc.contains(' (')) {
-                  int bracketIndex = loc.indexOf(' (');
-                  base = loc.substring(0, bracketIndex);
-                  method = loc.substring(bracketIndex + 2, loc.length - 1);
-                }
+              return Padding(
+                padding: const EdgeInsets.symmetric(vertical: 4.0),
+                child: Row(
+                  children: [
+                    Expanded(
+                      flex: 3,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            baseLoc,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 13,
+                            ),
+                          ),
+                          if (method.isNotEmpty)
+                            Row(
+                              children: [
+                                Icon(
+                                  Icons.grass,
+                                  size: 12,
+                                  color: Theme.of(context).colorScheme.primary,
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  method,
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.primary,
+                                  ),
+                                ),
+                              ],
+                            ),
+                        ],
+                      ),
+                    ),
+                    Expanded(
+                      flex: 1,
+                      child: Text(
+                        lvl.isNotEmpty ? 'Lv. $lvl' : '',
+                        style: const TextStyle(fontSize: 12),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                    Expanded(
+                      flex: 1,
+                      child: Text(
+                        chance,
+                        style: const TextStyle(fontSize: 12),
+                        textAlign: TextAlign.end,
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            } else {
+              String base = loc;
+              String method = '';
+              if (loc.contains(' (')) {
+                int bracketIndex = loc.indexOf(' (');
+                base = loc.substring(0, bracketIndex);
+                method = loc.substring(bracketIndex + 2, loc.length - 1);
+              }
+              String transBase = _translateLoc(base);
+              String transMethod = method.isNotEmpty
+                  ? ' (${_translateMethod(method)})'
+                  : '';
 
-                String transBase = Translator.get(base);
-                if (transBase == base) {
-                  transBase = Translator.get('loc_$base');
-                  if (transBase == 'loc_$base') {
-                    transBase = base;
-                  }
-                }
-
-                String transMethod = '';
-                if (method.isNotEmpty) {
-                  String tMethod = Translator.get('method_$method');
-                  if (tMethod == 'method_$method') {
-                    tMethod = Translator.get(method);
-                    if (tMethod == method) tMethod = method;
-                  }
-                  transMethod = ' ($tMethod)';
-                }
-
-                return '  $transBase$transMethod';
-              })
-              .join('\n');
+              return Padding(
+                padding: const EdgeInsets.symmetric(vertical: 4.0),
+                child: Text(
+                  '• $transBase$transMethod',
+                  style: const TextStyle(fontSize: 13),
+                ),
+              );
+            }
+          }).toList();
 
           versionWidgets.add(
-            ListTile(
-              leading: _buildVersionBadge(versions),
-              title: Padding(
-                padding: const EdgeInsets.only(top: 4.0),
-                child: Text(
-                  formattedLocations,
-                  style: const TextStyle(fontSize: 14),
+            Card(
+              elevation: 0,
+              color: Theme.of(
+                context,
+              ).colorScheme.surfaceContainerHighest.withOpacity(0.3),
+              margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+              clipBehavior: Clip.antiAlias,
+              child: Theme(
+                data: Theme.of(
+                  context,
+                ).copyWith(dividerColor: Colors.transparent),
+                child: ExpansionTile(
+                  tilePadding: const EdgeInsets.symmetric(horizontal: 12),
+                  title: _buildVersionBadge(versions),
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.only(
+                        left: 12,
+                        right: 12,
+                        bottom: 12,
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Divider(height: 1),
+                          const SizedBox(height: 8),
+                          ...locationRows,
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
-              ),
-              minLeadingWidth: 40,
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 8,
               ),
             ),
           );
@@ -437,133 +527,25 @@ class PokemonInfoScreen extends StatelessWidget {
 
         if (gen == 'gen_2' && pokemonId >= 252 && pokemonId <= 257) {
           versionWidgets.add(
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: Theme.of(
-                        context,
-                      ).colorScheme.tertiaryContainer.withOpacity(0.5),
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(
-                        color: Theme.of(
-                          context,
-                        ).colorScheme.tertiary.withOpacity(0.3),
-                      ),
-                    ),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Icon(
-                          Icons.memory,
-                          size: 20,
-                          color: Theme.of(context).colorScheme.tertiary,
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            Translator.get('shiny_mail_writer_note'),
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Theme.of(
-                                context,
-                              ).colorScheme.onTertiaryContainer,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton.icon(
-                      icon: const Icon(Icons.language),
-                      label: Text(Translator.get('tutorial_mail_writer_main')),
-                      onPressed: () => _launchURL(
-                        'https://glitchcity.wiki/wiki/Guides:Mail_Writer_Codes',
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton.icon(
-                      icon: const Icon(Icons.code),
-                      label: Text(
-                        Translator.get('tutorial_mail_writer_scripts'),
-                      ),
-                      onPressed: () => _launchURL(
-                        'https://glitchcity.wiki/wiki/Guides:Mail_Writer_Codes#Gen3Giver_scripts',
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+            _buildGlitchNote(
+              context,
+              'shiny_mail_writer_note',
+              'tutorial_mail_writer_main',
+              'https://glitchcity.wiki/wiki/Guides:Mail_Writer_Codes',
+              secondBtnTitle: 'tutorial_mail_writer_scripts',
+              secondBtnUrl:
+                  'https://glitchcity.wiki/wiki/Guides:Mail_Writer_Codes#Gen3Giver_scripts',
             ),
           );
         }
 
         if (gen == 'gen_1' && pokemonId == 151) {
           versionWidgets.add(
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: Theme.of(
-                        context,
-                      ).colorScheme.tertiaryContainer.withOpacity(0.5),
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(
-                        color: Theme.of(
-                          context,
-                        ).colorScheme.tertiary.withOpacity(0.3),
-                      ),
-                    ),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Icon(
-                          Icons.memory,
-                          size: 20,
-                          color: Theme.of(context).colorScheme.tertiary,
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            Translator.get('mew_glitch_note'),
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Theme.of(
-                                context,
-                              ).colorScheme.onTertiaryContainer,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton.icon(
-                      icon: const Icon(Icons.language),
-                      label: Text(Translator.get('tutorial_mew_normal_link')),
-                      onPressed: () => _launchURL(
-                        'https://www.reddit.com/r/gaming/comments/47uono/heres_a_guide_on_catching_a_level_7_mew_on_the/',
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+            _buildGlitchNote(
+              context,
+              'mew_glitch_note',
+              'tutorial_mew_normal_link',
+              'https://www.reddit.com/r/gaming/comments/47uono/heres_a_guide_on_catching_a_level_7_mew_on_the/',
             ),
           );
         }
@@ -617,6 +599,76 @@ class PokemonInfoScreen extends StatelessWidget {
       );
       return [const SizedBox.shrink()];
     }
+  }
+
+  Widget _buildGlitchNote(
+    BuildContext context,
+    String textKey,
+    String btn1Key,
+    String btn1Url, {
+    String? secondBtnTitle,
+    String? secondBtnUrl,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Theme.of(
+                context,
+              ).colorScheme.tertiaryContainer.withOpacity(0.5),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(
+                color: Theme.of(context).colorScheme.tertiary.withOpacity(0.3),
+              ),
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(
+                  Icons.memory,
+                  size: 20,
+                  color: Theme.of(context).colorScheme.tertiary,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    Translator.get(textKey),
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Theme.of(context).colorScheme.onTertiaryContainer,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              icon: const Icon(Icons.language),
+              label: Text(Translator.get(btn1Key)),
+              onPressed: () => _launchURL(btn1Url),
+            ),
+          ),
+          if (secondBtnTitle != null && secondBtnUrl != null) ...[
+            const SizedBox(height: 8),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                icon: const Icon(Icons.code),
+                label: Text(Translator.get(secondBtnTitle)),
+                onPressed: () => _launchURL(secondBtnUrl),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
   }
 
   Widget _buildBallCard(
