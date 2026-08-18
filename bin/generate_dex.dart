@@ -3,17 +3,14 @@ import 'dart:io';
 
 final Map<String, List<String>> _formWhitelist = {
   "172_spiky-eared": ["updated_johto_regional"],
-
   "25_cosplay": ["updated_hoenn_regional"],
   "25_rockstar": ["updated_hoenn_regional"],
   "25_belle": ["updated_hoenn_regional"],
   "25_popstar": ["updated_hoenn_regional"],
   "25_phd": ["updated_hoenn_regional"],
   "25_libre": ["updated_hoenn_regional"],
-
   "25_starter": ["kanto_regional"],
   "133_starter": ["kanto_regional"],
-
   "670_eternal": [
     "kalos_central_regional",
     "kalos_coastal_regional",
@@ -46,7 +43,7 @@ final Map<String, int> _versionToGen = {
 };
 
 void main() async {
-  print('Start Download (inkl. Whitelist-Logik)...');
+  print('Start Download (inkl. Whitelist & korrekter Form-Typen-Logik)...');
   final code = await generateMasterDex(1, 1025);
   File('lib/data/national_dex_data.dart').writeAsStringSync(code);
   print('Fertig!');
@@ -92,7 +89,6 @@ Future<String> generateMasterDex(int startId, int endId) async {
 
       bool hasGenderDiff = speciesData['has_gender_differences'] ?? false;
       String speciesName = speciesData['name'];
-
       List<String> formObjects = [];
 
       for (var variety in speciesData['varieties']) {
@@ -104,6 +100,20 @@ Future<String> generateMasterDex(int startId, int endId) async {
         for (var formObj in pokeData['forms']) {
           final formData = await _fetchJson(client, formObj['url']);
           if (formData == null) continue;
+
+          List<String> types = [];
+          if (formData['types'] != null &&
+              (formData['types'] as List).isNotEmpty) {
+            for (var t in formData['types']) {
+              types.add(t['type']['name']);
+            }
+          } else {
+            for (var t in pokeData['types']) {
+              types.add(t['type']['name']);
+            }
+          }
+          String typesString = "['${types.join("', '")}']";
+
           String rawFormName = formData['name'];
           String cleanForm = rawFormName
               .replaceFirst(speciesName, '')
@@ -112,19 +122,18 @@ Future<String> generateMasterDex(int startId, int endId) async {
           if (cleanForm.isEmpty) cleanForm = 'normal';
 
           int minGen = _versionToGen[formData['version_group']['name']] ?? 9;
-
           String formType = 'other';
+
           if (cleanForm == 'normal') {
             formType = 'normal';
-            minGen = _getGenById(
-              i,
-            );
+            minGen = _getGenById(i);
           } else if (cleanForm.contains('alola') ||
               cleanForm.contains('galar') ||
               cleanForm.contains('hisui') ||
               cleanForm.contains('paldea')) {
             formType = 'regional';
-          } else if (cleanForm.contains('mega') || cleanForm.contains('primal')) {
+          } else if (cleanForm.contains('mega') ||
+              cleanForm.contains('primal')) {
             formType = 'mega';
           } else if (cleanForm.contains('gmax')) {
             formType = 'gmax';
@@ -160,7 +169,8 @@ Future<String> generateMasterDex(int startId, int endId) async {
               'kitakami_regional',
               'blueberry_regional',
             ]);
-          } else if (cleanForm.contains('mega') || cleanForm.contains('primal')) {
+          } else if (cleanForm.contains('mega') ||
+              cleanForm.contains('primal')) {
             exclusives.addAll([
               'kalos_central_regional',
               'kalos_coastal_regional',
@@ -184,7 +194,7 @@ Future<String> generateMasterDex(int startId, int endId) async {
               : "[${exclusives.map((e) => "'$e'").join(', ')}]";
 
           formObjects.add(
-            "PokemonForm(name: '$cleanForm', formType: '$formType', minGen: $minGen, imageId: $varietyId, exclusiveRegions: $exclusiveString, extraInfo: null)",
+            "PokemonForm(name: '$cleanForm', formType: '$formType', minGen: $minGen, imageId: $varietyId, types: $typesString, exclusiveRegions: $exclusiveString, extraInfo: null)",
           );
         }
       }
@@ -198,15 +208,14 @@ Future<String> generateMasterDex(int startId, int endId) async {
     forms: const [${formObjects.join(', ')}],
     extraInfo: null,
   ),""";
-
       pokemonEntries.add(entry);
       print('Gezogen: #$i $nameDe');
     } catch (e) {
       print('Fehler bei ID $i: $e');
     }
   }
-  client.close();
 
+  client.close();
   return "import '../models/pokemon.dart';\n\nfinal List<Pokemon> nationalPokemonDatabase = [\n${pokemonEntries.join('\n')}\n];";
 }
 

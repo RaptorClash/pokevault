@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../models/dex_view_models.dart';
+import '../../models/pokemon.dart';
 import '../../providers/dex_provider.dart';
 import '../../l10n/app_translations.dart';
 import '../../data/matching_balls_data.dart';
@@ -105,6 +106,41 @@ class PokemonInfoScreen extends StatelessWidget {
     final List<String> normalBalls = matchingBalls?['normal'] ?? [];
     final List<String> shinyBalls = matchingBalls?['shiny'] ?? [];
 
+    String formName = 'normal';
+    if (entry.uniqueId.contains('_')) {
+      formName = entry.uniqueId.substring(entry.uniqueId.indexOf('_') + 1);
+      if (formName == 'm' || formName == 'f') formName = 'normal';
+    }
+
+    PokemonForm? currentForm;
+    try {
+      currentForm = entry.pokemon.forms.firstWhere((f) => f.name == formName);
+    } catch (_) {
+      if (entry.pokemon.forms.isNotEmpty)
+        currentForm = entry.pokemon.forms.first;
+    }
+
+    final Map<String, Color> typeColors = {
+      'normal': const Color(0xFFA8A77A),
+      'fire': const Color(0xFFEE8130),
+      'water': const Color(0xFF6390F0),
+      'electric': const Color(0xFFF7D02C),
+      'grass': const Color(0xFF7AC74C),
+      'ice': const Color(0xFF96D9D6),
+      'fighting': const Color(0xFFC22E28),
+      'poison': const Color(0xFFA33EA1),
+      'ground': const Color(0xFFE2BF65),
+      'flying': const Color(0xFFA98FF3),
+      'psychic': const Color(0xFFF95587),
+      'bug': const Color(0xFFA6B91A),
+      'rock': const Color(0xFFB6A136),
+      'ghost': const Color(0xFF735797),
+      'dragon': const Color(0xFF6F35FC),
+      'dark': const Color(0xFF705848),
+      'steel': const Color(0xFFB7B7CE),
+      'fairy': const Color(0xFFD685AD),
+    };
+
     return Scaffold(
       appBar: AppBar(
         title: Text(
@@ -180,7 +216,38 @@ class PokemonInfoScreen extends StatelessWidget {
               style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
               textAlign: TextAlign.center,
             ),
-            if (entry.displaySuffix.trim().isNotEmpty)
+
+            if (currentForm != null && currentForm.types.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 8,
+                children: currentForm.types.map((type) {
+                  return Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: typeColors[type] ?? Colors.grey,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: Colors.black26),
+                    ),
+                    child: Text(
+                      Translator.get('type_$type').toUpperCase(),
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 12,
+                        shadows: [Shadow(color: Colors.black45, blurRadius: 2)],
+                      ),
+                    ),
+                  );
+                }).toList(),
+              ),
+            ],
+
+            if (entry.displaySuffix.trim().isNotEmpty) ...[
+              const SizedBox(height: 8),
               Text(
                 '${Translator.get('form') != 'form' ? Translator.get('form') : 'Form'}: ${entry.displaySuffix.replaceAll('(', '').replaceAll(')', '').trim()}',
                 style: const TextStyle(
@@ -188,6 +255,7 @@ class PokemonInfoScreen extends StatelessWidget {
                   fontStyle: FontStyle.italic,
                 ),
               ),
+            ],
             const SizedBox(height: 32),
             Card(
               margin: const EdgeInsets.symmetric(vertical: 8),

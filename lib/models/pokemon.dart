@@ -3,6 +3,7 @@ class PokemonForm {
   final String formType;
   final int minGen;
   final int imageId;
+  final List<String> types;
   final List<String> exclusiveRegions;
   final String? extraInfo;
 
@@ -11,6 +12,7 @@ class PokemonForm {
     required this.formType,
     required this.minGen,
     required this.imageId,
+    this.types = const [],
     this.exclusiveRegions = const [],
     this.extraInfo,
   });
