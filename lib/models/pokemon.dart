@@ -24,6 +24,7 @@ class Pokemon {
   final bool hasGenderDifferences;
   final List<PokemonForm> forms;
   final String? extraInfo;
+  final int captureRate;
 
   const Pokemon({
     required this.id,
@@ -31,6 +32,7 @@ class Pokemon {
     this.hasGenderDifferences = false,
     this.forms = const [],
     this.extraInfo,
+    this.captureRate = 255,
   });
 
   String getName([String lang = 'de']) {

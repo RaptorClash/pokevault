@@ -9,6 +9,7 @@ import '../../data/encounters_data.dart';
 import '../../utils/notification_helper.dart';
 import 'shiny_guide_widget.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'widgets/catch_rate_calculator.dart';
 
 class GameVersion {
   final Color bgColor;
@@ -337,6 +338,28 @@ class _PokemonInfoScreenState extends State<PokemonInfoScreen> {
                 onChanged: (val) {
                   provider.toggleShiny(widget.dexId, widget.entry.uniqueId);
                 },
+              ),
+            ),
+            const SizedBox(height: 16),
+            Card(
+              margin: const EdgeInsets.symmetric(vertical: 8),
+              elevation: 2,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: ExpansionTile(
+                leading: const Icon(
+                  Icons.calculate_outlined,
+                  color: Colors.purple,
+                ),
+                title: Text(
+                  Translator.get('catch_calculator_title') !=
+                          'catch_calculator_title'
+                      ? Translator.get('catch_calculator_title')
+                      : 'Ultimativer Fangratenrechner',
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+                children: [CatchRateCalculator(pokemon: widget.entry.pokemon)],
               ),
             ),
             const SizedBox(height: 16),

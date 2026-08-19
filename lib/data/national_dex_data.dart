@@ -7,6 +7,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 1, types: ['grass', 'poison'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 2,
@@ -14,6 +15,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 2, types: ['grass', 'poison'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 3,
@@ -21,6 +23,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: true,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 3, types: ['grass', 'poison'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 6, imageId: 10033, types: ['grass', 'poison'], exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'lumiose_dimensions_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null), PokemonForm(name: 'gmax', formType: 'gmax', minGen: 8, imageId: 10195, types: ['grass', 'poison'], exclusiveRegions: ['galar_regional', 'isle_of_armor_regional', 'crown_tundra_regional'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 4,
@@ -28,6 +31,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 4, types: ['fire'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 5,
@@ -35,6 +39,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 5, types: ['fire'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 6,
@@ -42,6 +47,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 6, types: ['fire', 'flying'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega-x', formType: 'mega', minGen: 6, imageId: 10034, types: ['fire', 'dragon'], exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'lumiose_dimensions_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null), PokemonForm(name: 'mega-y', formType: 'mega', minGen: 6, imageId: 10035, types: ['fire', 'flying'], exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'lumiose_dimensions_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null), PokemonForm(name: 'gmax', formType: 'gmax', minGen: 8, imageId: 10196, types: ['fire', 'flying'], exclusiveRegions: ['galar_regional', 'isle_of_armor_regional', 'crown_tundra_regional'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 7,
@@ -49,6 +55,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 7, types: ['water'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 8,
@@ -56,6 +63,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 8, types: ['water'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 9,
@@ -63,6 +71,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 9, types: ['water'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 6, imageId: 10036, types: ['water'], exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'lumiose_dimensions_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null), PokemonForm(name: 'gmax', formType: 'gmax', minGen: 8, imageId: 10197, types: ['water'], exclusiveRegions: ['galar_regional', 'isle_of_armor_regional', 'crown_tundra_regional'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 10,
@@ -70,6 +79,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 10, types: ['bug'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 255,
   ),
   Pokemon(
     id: 11,
@@ -77,6 +87,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 11, types: ['bug'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 120,
   ),
   Pokemon(
     id: 12,
@@ -84,6 +95,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: true,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 12, types: ['bug', 'flying'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'gmax', formType: 'gmax', minGen: 8, imageId: 10198, types: ['bug', 'flying'], exclusiveRegions: ['galar_regional', 'isle_of_armor_regional', 'crown_tundra_regional'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 13,
@@ -91,6 +103,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 13, types: ['bug', 'poison'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 255,
   ),
   Pokemon(
     id: 14,
@@ -98,6 +111,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 14, types: ['bug', 'poison'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 120,
   ),
   Pokemon(
     id: 15,
@@ -105,6 +119,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 15, types: ['bug', 'poison'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 6, imageId: 10090, types: ['bug', 'poison'], exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'lumiose_dimensions_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 16,
@@ -112,6 +127,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 16, types: ['normal', 'flying'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 255,
   ),
   Pokemon(
     id: 17,
@@ -119,6 +135,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 17, types: ['normal', 'flying'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 120,
   ),
   Pokemon(
     id: 18,
@@ -126,6 +143,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 18, types: ['normal', 'flying'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 6, imageId: 10073, types: ['normal', 'flying'], exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'lumiose_dimensions_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 19,
@@ -133,6 +151,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: true,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 19, types: ['normal'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'alola', formType: 'regional', minGen: 7, imageId: 10091, types: ['dark', 'normal'], exclusiveRegions: ['alola_regional', 'melemele_regional', 'akala_regional', 'ulaula_regional', 'poni_regional', 'updated_alola_regional', 'updated_melemele_regional', 'updated_akala_regional', 'updated_ulaula_regional', 'updated_poni_regional'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 255,
   ),
   Pokemon(
     id: 20,
@@ -140,6 +159,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: true,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 20, types: ['normal'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'alola', formType: 'regional', minGen: 7, imageId: 10092, types: ['dark', 'normal'], exclusiveRegions: ['alola_regional', 'melemele_regional', 'akala_regional', 'ulaula_regional', 'poni_regional', 'updated_alola_regional', 'updated_melemele_regional', 'updated_akala_regional', 'updated_ulaula_regional', 'updated_poni_regional'], extraInfo: null), PokemonForm(name: 'totem-alola', formType: 'regional', minGen: 7, imageId: 10093, types: ['dark', 'normal'], exclusiveRegions: ['alola_regional', 'melemele_regional', 'akala_regional', 'ulaula_regional', 'poni_regional', 'updated_alola_regional', 'updated_melemele_regional', 'updated_akala_regional', 'updated_ulaula_regional', 'updated_poni_regional'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 127,
   ),
   Pokemon(
     id: 21,
@@ -147,6 +167,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 21, types: ['normal', 'flying'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 255,
   ),
   Pokemon(
     id: 22,
@@ -154,6 +175,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 22, types: ['normal', 'flying'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 90,
   ),
   Pokemon(
     id: 23,
@@ -161,6 +183,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 23, types: ['poison'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 255,
   ),
   Pokemon(
     id: 24,
@@ -168,6 +191,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 24, types: ['poison'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 90,
   ),
   Pokemon(
     id: 25,
@@ -175,6 +199,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: true,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 25, types: ['electric'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'rock-star', formType: 'other', minGen: 6, imageId: 10080, types: ['electric'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'belle', formType: 'other', minGen: 6, imageId: 10081, types: ['electric'], exclusiveRegions: ['updated_hoenn_regional'], extraInfo: null), PokemonForm(name: 'pop-star', formType: 'other', minGen: 6, imageId: 10082, types: ['electric'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'phd', formType: 'other', minGen: 6, imageId: 10083, types: ['electric'], exclusiveRegions: ['updated_hoenn_regional'], extraInfo: null), PokemonForm(name: 'libre', formType: 'other', minGen: 6, imageId: 10084, types: ['electric'], exclusiveRegions: ['updated_hoenn_regional'], extraInfo: null), PokemonForm(name: 'cosplay', formType: 'other', minGen: 6, imageId: 10085, types: ['electric'], exclusiveRegions: ['updated_hoenn_regional'], extraInfo: null), PokemonForm(name: 'original-cap', formType: 'other', minGen: 7, imageId: 10094, types: ['electric'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'hoenn-cap', formType: 'other', minGen: 7, imageId: 10095, types: ['electric'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'sinnoh-cap', formType: 'other', minGen: 7, imageId: 10096, types: ['electric'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'unova-cap', formType: 'other', minGen: 7, imageId: 10097, types: ['electric'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'kalos-cap', formType: 'other', minGen: 7, imageId: 10098, types: ['electric'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'alola-cap', formType: 'regional', minGen: 7, imageId: 10099, types: ['electric'], exclusiveRegions: ['alola_regional', 'melemele_regional', 'akala_regional', 'ulaula_regional', 'poni_regional', 'updated_alola_regional', 'updated_melemele_regional', 'updated_akala_regional', 'updated_ulaula_regional', 'updated_poni_regional'], extraInfo: null), PokemonForm(name: 'partner-cap', formType: 'other', minGen: 7, imageId: 10148, types: ['electric'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'starter', formType: 'other', minGen: 7, imageId: 10158, types: ['electric'], exclusiveRegions: ['kanto_regional'], extraInfo: null), PokemonForm(name: 'world-cap', formType: 'other', minGen: 8, imageId: 10160, types: ['electric'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'gmax', formType: 'gmax', minGen: 8, imageId: 10199, types: ['electric'], exclusiveRegions: ['galar_regional', 'isle_of_armor_regional', 'crown_tundra_regional'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 190,
   ),
   Pokemon(
     id: 26,
@@ -182,6 +207,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: true,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 26, types: ['electric'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'alola', formType: 'regional', minGen: 7, imageId: 10100, types: ['electric', 'psychic'], exclusiveRegions: ['alola_regional', 'melemele_regional', 'akala_regional', 'ulaula_regional', 'poni_regional', 'updated_alola_regional', 'updated_melemele_regional', 'updated_akala_regional', 'updated_ulaula_regional', 'updated_poni_regional'], extraInfo: null), PokemonForm(name: 'mega-x', formType: 'mega', minGen: 9, imageId: 10304, types: ['electric'], exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'lumiose_dimensions_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null), PokemonForm(name: 'mega-y', formType: 'mega', minGen: 9, imageId: 10305, types: ['electric'], exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'lumiose_dimensions_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 75,
   ),
   Pokemon(
     id: 27,
@@ -189,6 +215,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 27, types: ['ground'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'alola', formType: 'regional', minGen: 7, imageId: 10101, types: ['ice', 'steel'], exclusiveRegions: ['alola_regional', 'melemele_regional', 'akala_regional', 'ulaula_regional', 'poni_regional', 'updated_alola_regional', 'updated_melemele_regional', 'updated_akala_regional', 'updated_ulaula_regional', 'updated_poni_regional'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 255,
   ),
   Pokemon(
     id: 28,
@@ -196,6 +223,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 28, types: ['ground'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'alola', formType: 'regional', minGen: 7, imageId: 10102, types: ['ice', 'steel'], exclusiveRegions: ['alola_regional', 'melemele_regional', 'akala_regional', 'ulaula_regional', 'poni_regional', 'updated_alola_regional', 'updated_melemele_regional', 'updated_akala_regional', 'updated_ulaula_regional', 'updated_poni_regional'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 90,
   ),
   Pokemon(
     id: 29,
@@ -203,6 +231,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 29, types: ['poison'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 235,
   ),
   Pokemon(
     id: 30,
@@ -210,6 +239,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 30, types: ['poison'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 120,
   ),
   Pokemon(
     id: 31,
@@ -217,6 +247,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 31, types: ['poison', 'ground'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 32,
@@ -224,6 +255,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 32, types: ['poison'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 235,
   ),
   Pokemon(
     id: 33,
@@ -231,6 +263,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 33, types: ['poison'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 120,
   ),
   Pokemon(
     id: 34,
@@ -238,6 +271,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 34, types: ['poison', 'ground'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 35,
@@ -245,6 +279,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 35, types: ['fairy'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 150,
   ),
   Pokemon(
     id: 36,
@@ -252,6 +287,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 36, types: ['fairy'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 9, imageId: 10278, types: ['fairy', 'flying'], exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'lumiose_dimensions_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 25,
   ),
   Pokemon(
     id: 37,
@@ -259,6 +295,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 37, types: ['fire'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'alola', formType: 'regional', minGen: 7, imageId: 10103, types: ['ice'], exclusiveRegions: ['alola_regional', 'melemele_regional', 'akala_regional', 'ulaula_regional', 'poni_regional', 'updated_alola_regional', 'updated_melemele_regional', 'updated_akala_regional', 'updated_ulaula_regional', 'updated_poni_regional'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 190,
   ),
   Pokemon(
     id: 38,
@@ -266,6 +303,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 38, types: ['fire'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'alola', formType: 'regional', minGen: 7, imageId: 10104, types: ['ice', 'fairy'], exclusiveRegions: ['alola_regional', 'melemele_regional', 'akala_regional', 'ulaula_regional', 'poni_regional', 'updated_alola_regional', 'updated_melemele_regional', 'updated_akala_regional', 'updated_ulaula_regional', 'updated_poni_regional'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 75,
   ),
   Pokemon(
     id: 39,
@@ -273,6 +311,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 39, types: ['normal', 'fairy'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 170,
   ),
   Pokemon(
     id: 40,
@@ -280,6 +319,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 40, types: ['normal', 'fairy'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 50,
   ),
   Pokemon(
     id: 41,
@@ -287,6 +327,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: true,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 41, types: ['poison', 'flying'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 255,
   ),
   Pokemon(
     id: 42,
@@ -294,6 +335,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: true,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 42, types: ['poison', 'flying'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 90,
   ),
   Pokemon(
     id: 43,
@@ -301,6 +343,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 43, types: ['grass', 'poison'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 255,
   ),
   Pokemon(
     id: 44,
@@ -308,6 +351,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: true,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 44, types: ['grass', 'poison'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 120,
   ),
   Pokemon(
     id: 45,
@@ -315,6 +359,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: true,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 45, types: ['grass', 'poison'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 46,
@@ -322,6 +367,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 46, types: ['bug', 'grass'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 190,
   ),
   Pokemon(
     id: 47,
@@ -329,6 +375,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 47, types: ['bug', 'grass'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 75,
   ),
   Pokemon(
     id: 48,
@@ -336,6 +383,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 48, types: ['bug', 'poison'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 190,
   ),
   Pokemon(
     id: 49,
@@ -343,6 +391,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 49, types: ['bug', 'poison'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 75,
   ),
   Pokemon(
     id: 50,
@@ -350,6 +399,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 50, types: ['ground'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'alola', formType: 'regional', minGen: 7, imageId: 10105, types: ['ground', 'steel'], exclusiveRegions: ['alola_regional', 'melemele_regional', 'akala_regional', 'ulaula_regional', 'poni_regional', 'updated_alola_regional', 'updated_melemele_regional', 'updated_akala_regional', 'updated_ulaula_regional', 'updated_poni_regional'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 255,
   ),
   Pokemon(
     id: 51,
@@ -357,6 +407,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 51, types: ['ground'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'alola', formType: 'regional', minGen: 7, imageId: 10106, types: ['ground', 'steel'], exclusiveRegions: ['alola_regional', 'melemele_regional', 'akala_regional', 'ulaula_regional', 'poni_regional', 'updated_alola_regional', 'updated_melemele_regional', 'updated_akala_regional', 'updated_ulaula_regional', 'updated_poni_regional'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 50,
   ),
   Pokemon(
     id: 52,
@@ -364,6 +415,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 52, types: ['normal'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'alola', formType: 'regional', minGen: 7, imageId: 10107, types: ['dark'], exclusiveRegions: ['alola_regional', 'melemele_regional', 'akala_regional', 'ulaula_regional', 'poni_regional', 'updated_alola_regional', 'updated_melemele_regional', 'updated_akala_regional', 'updated_ulaula_regional', 'updated_poni_regional'], extraInfo: null), PokemonForm(name: 'galar', formType: 'regional', minGen: 8, imageId: 10161, types: ['steel'], exclusiveRegions: ['galar_regional', 'isle_of_armor_regional', 'crown_tundra_regional'], extraInfo: null), PokemonForm(name: 'gmax', formType: 'gmax', minGen: 8, imageId: 10200, types: ['normal'], exclusiveRegions: ['galar_regional', 'isle_of_armor_regional', 'crown_tundra_regional'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 255,
   ),
   Pokemon(
     id: 53,
@@ -371,6 +423,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 53, types: ['normal'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'alola', formType: 'regional', minGen: 7, imageId: 10108, types: ['dark'], exclusiveRegions: ['alola_regional', 'melemele_regional', 'akala_regional', 'ulaula_regional', 'poni_regional', 'updated_alola_regional', 'updated_melemele_regional', 'updated_akala_regional', 'updated_ulaula_regional', 'updated_poni_regional'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 90,
   ),
   Pokemon(
     id: 54,
@@ -378,6 +431,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 54, types: ['water'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 190,
   ),
   Pokemon(
     id: 55,
@@ -385,6 +439,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 55, types: ['water'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 75,
   ),
   Pokemon(
     id: 56,
@@ -392,6 +447,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 56, types: ['fighting'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 190,
   ),
   Pokemon(
     id: 57,
@@ -399,6 +455,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 57, types: ['fighting'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 75,
   ),
   Pokemon(
     id: 58,
@@ -406,6 +463,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 58, types: ['fire'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'hisui', formType: 'regional', minGen: 8, imageId: 10229, types: ['fire', 'rock'], exclusiveRegions: ['hisui_regional'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 190,
   ),
   Pokemon(
     id: 59,
@@ -413,6 +471,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 59, types: ['fire'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'hisui', formType: 'regional', minGen: 8, imageId: 10230, types: ['fire', 'rock'], exclusiveRegions: ['hisui_regional'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 75,
   ),
   Pokemon(
     id: 60,
@@ -420,6 +479,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 60, types: ['water'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 255,
   ),
   Pokemon(
     id: 61,
@@ -427,6 +487,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 61, types: ['water'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 120,
   ),
   Pokemon(
     id: 62,
@@ -434,6 +495,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 62, types: ['water', 'fighting'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 63,
@@ -441,6 +503,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 63, types: ['psychic'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 200,
   ),
   Pokemon(
     id: 64,
@@ -448,6 +511,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: true,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 64, types: ['psychic'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 100,
   ),
   Pokemon(
     id: 65,
@@ -455,6 +519,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: true,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 65, types: ['psychic'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 6, imageId: 10037, types: ['psychic'], exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'lumiose_dimensions_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 50,
   ),
   Pokemon(
     id: 66,
@@ -462,6 +527,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 66, types: ['fighting'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 180,
   ),
   Pokemon(
     id: 67,
@@ -469,6 +535,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 67, types: ['fighting'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 90,
   ),
   Pokemon(
     id: 68,
@@ -476,6 +543,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 68, types: ['fighting'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'gmax', formType: 'gmax', minGen: 8, imageId: 10201, types: ['fighting'], exclusiveRegions: ['galar_regional', 'isle_of_armor_regional', 'crown_tundra_regional'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 69,
@@ -483,6 +551,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 69, types: ['grass', 'poison'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 255,
   ),
   Pokemon(
     id: 70,
@@ -490,6 +559,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 70, types: ['grass', 'poison'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 120,
   ),
   Pokemon(
     id: 71,
@@ -497,6 +567,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 71, types: ['grass', 'poison'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 9, imageId: 10279, types: ['grass', 'poison'], exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'lumiose_dimensions_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 72,
@@ -504,6 +575,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 72, types: ['water', 'poison'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 190,
   ),
   Pokemon(
     id: 73,
@@ -511,6 +583,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 73, types: ['water', 'poison'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 60,
   ),
   Pokemon(
     id: 74,
@@ -518,6 +591,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 74, types: ['rock', 'ground'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'alola', formType: 'regional', minGen: 7, imageId: 10109, types: ['rock', 'electric'], exclusiveRegions: ['alola_regional', 'melemele_regional', 'akala_regional', 'ulaula_regional', 'poni_regional', 'updated_alola_regional', 'updated_melemele_regional', 'updated_akala_regional', 'updated_ulaula_regional', 'updated_poni_regional'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 255,
   ),
   Pokemon(
     id: 75,
@@ -525,6 +599,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 75, types: ['rock', 'ground'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'alola', formType: 'regional', minGen: 7, imageId: 10110, types: ['rock', 'electric'], exclusiveRegions: ['alola_regional', 'melemele_regional', 'akala_regional', 'ulaula_regional', 'poni_regional', 'updated_alola_regional', 'updated_melemele_regional', 'updated_akala_regional', 'updated_ulaula_regional', 'updated_poni_regional'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 120,
   ),
   Pokemon(
     id: 76,
@@ -532,6 +607,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 76, types: ['rock', 'ground'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'alola', formType: 'regional', minGen: 7, imageId: 10111, types: ['rock', 'electric'], exclusiveRegions: ['alola_regional', 'melemele_regional', 'akala_regional', 'ulaula_regional', 'poni_regional', 'updated_alola_regional', 'updated_melemele_regional', 'updated_akala_regional', 'updated_ulaula_regional', 'updated_poni_regional'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 77,
@@ -539,6 +615,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 77, types: ['fire'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'galar', formType: 'regional', minGen: 8, imageId: 10162, types: ['psychic'], exclusiveRegions: ['galar_regional', 'isle_of_armor_regional', 'crown_tundra_regional'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 190,
   ),
   Pokemon(
     id: 78,
@@ -546,6 +623,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 78, types: ['fire'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'galar', formType: 'regional', minGen: 8, imageId: 10163, types: ['psychic', 'fairy'], exclusiveRegions: ['galar_regional', 'isle_of_armor_regional', 'crown_tundra_regional'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 60,
   ),
   Pokemon(
     id: 79,
@@ -553,6 +631,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 79, types: ['water', 'psychic'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'galar', formType: 'regional', minGen: 8, imageId: 10164, types: ['psychic'], exclusiveRegions: ['galar_regional', 'isle_of_armor_regional', 'crown_tundra_regional'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 190,
   ),
   Pokemon(
     id: 80,
@@ -560,6 +639,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 80, types: ['water', 'psychic'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 6, imageId: 10071, types: ['water', 'psychic'], exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'lumiose_dimensions_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null), PokemonForm(name: 'galar', formType: 'regional', minGen: 8, imageId: 10165, types: ['poison', 'psychic'], exclusiveRegions: ['galar_regional', 'isle_of_armor_regional', 'crown_tundra_regional'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 75,
   ),
   Pokemon(
     id: 81,
@@ -567,6 +647,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 81, types: ['electric', 'steel'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 190,
   ),
   Pokemon(
     id: 82,
@@ -574,6 +655,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 82, types: ['electric', 'steel'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 60,
   ),
   Pokemon(
     id: 83,
@@ -581,6 +663,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 83, types: ['normal', 'flying'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'galar', formType: 'regional', minGen: 8, imageId: 10166, types: ['fighting'], exclusiveRegions: ['galar_regional', 'isle_of_armor_regional', 'crown_tundra_regional'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 84,
@@ -588,6 +671,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: true,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 84, types: ['normal', 'flying'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 190,
   ),
   Pokemon(
     id: 85,
@@ -595,6 +679,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: true,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 85, types: ['normal', 'flying'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 86,
@@ -602,6 +687,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 86, types: ['water'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 190,
   ),
   Pokemon(
     id: 87,
@@ -609,6 +695,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 87, types: ['water', 'ice'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 75,
   ),
   Pokemon(
     id: 88,
@@ -616,6 +703,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 88, types: ['poison'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'alola', formType: 'regional', minGen: 7, imageId: 10112, types: ['poison', 'dark'], exclusiveRegions: ['alola_regional', 'melemele_regional', 'akala_regional', 'ulaula_regional', 'poni_regional', 'updated_alola_regional', 'updated_melemele_regional', 'updated_akala_regional', 'updated_ulaula_regional', 'updated_poni_regional'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 190,
   ),
   Pokemon(
     id: 89,
@@ -623,6 +711,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 89, types: ['poison'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'alola', formType: 'regional', minGen: 7, imageId: 10113, types: ['poison', 'dark'], exclusiveRegions: ['alola_regional', 'melemele_regional', 'akala_regional', 'ulaula_regional', 'poni_regional', 'updated_alola_regional', 'updated_melemele_regional', 'updated_akala_regional', 'updated_ulaula_regional', 'updated_poni_regional'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 75,
   ),
   Pokemon(
     id: 90,
@@ -630,6 +719,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 90, types: ['water'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 190,
   ),
   Pokemon(
     id: 91,
@@ -637,6 +727,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 91, types: ['water', 'ice'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 60,
   ),
   Pokemon(
     id: 92,
@@ -644,6 +735,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 92, types: ['ghost', 'poison'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 190,
   ),
   Pokemon(
     id: 93,
@@ -651,6 +743,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 93, types: ['ghost', 'poison'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 90,
   ),
   Pokemon(
     id: 94,
@@ -658,6 +751,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 94, types: ['ghost', 'poison'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 6, imageId: 10038, types: ['ghost', 'poison'], exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'lumiose_dimensions_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null), PokemonForm(name: 'gmax', formType: 'gmax', minGen: 8, imageId: 10202, types: ['ghost', 'poison'], exclusiveRegions: ['galar_regional', 'isle_of_armor_regional', 'crown_tundra_regional'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 95,
@@ -665,6 +759,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 95, types: ['rock', 'ground'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 96,
@@ -672,6 +767,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 96, types: ['psychic'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 190,
   ),
   Pokemon(
     id: 97,
@@ -679,6 +775,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: true,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 97, types: ['psychic'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 75,
   ),
   Pokemon(
     id: 98,
@@ -686,6 +783,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 98, types: ['water'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 225,
   ),
   Pokemon(
     id: 99,
@@ -693,6 +791,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 99, types: ['water'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'gmax', formType: 'gmax', minGen: 8, imageId: 10203, types: ['water'], exclusiveRegions: ['galar_regional', 'isle_of_armor_regional', 'crown_tundra_regional'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 60,
   ),
   Pokemon(
     id: 100,
@@ -700,6 +799,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 100, types: ['electric'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'hisui', formType: 'regional', minGen: 8, imageId: 10231, types: ['electric', 'grass'], exclusiveRegions: ['hisui_regional'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 190,
   ),
   Pokemon(
     id: 101,
@@ -707,6 +807,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 101, types: ['electric'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'hisui', formType: 'regional', minGen: 8, imageId: 10232, types: ['electric', 'grass'], exclusiveRegions: ['hisui_regional'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 60,
   ),
   Pokemon(
     id: 102,
@@ -714,6 +815,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 102, types: ['grass', 'psychic'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 90,
   ),
   Pokemon(
     id: 103,
@@ -721,6 +823,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 103, types: ['grass', 'psychic'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'alola', formType: 'regional', minGen: 7, imageId: 10114, types: ['grass', 'dragon'], exclusiveRegions: ['alola_regional', 'melemele_regional', 'akala_regional', 'ulaula_regional', 'poni_regional', 'updated_alola_regional', 'updated_melemele_regional', 'updated_akala_regional', 'updated_ulaula_regional', 'updated_poni_regional'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 104,
@@ -728,6 +831,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 104, types: ['ground'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 190,
   ),
   Pokemon(
     id: 105,
@@ -735,6 +839,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 105, types: ['ground'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'alola', formType: 'regional', minGen: 7, imageId: 10115, types: ['fire', 'ghost'], exclusiveRegions: ['alola_regional', 'melemele_regional', 'akala_regional', 'ulaula_regional', 'poni_regional', 'updated_alola_regional', 'updated_melemele_regional', 'updated_akala_regional', 'updated_ulaula_regional', 'updated_poni_regional'], extraInfo: null), PokemonForm(name: 'totem', formType: 'other', minGen: 7, imageId: 10149, types: ['fire', 'ghost'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 75,
   ),
   Pokemon(
     id: 106,
@@ -742,6 +847,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 106, types: ['fighting'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 107,
@@ -749,6 +855,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 107, types: ['fighting'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 108,
@@ -756,6 +863,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 108, types: ['normal'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 109,
@@ -763,6 +871,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 109, types: ['poison'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 190,
   ),
   Pokemon(
     id: 110,
@@ -770,6 +879,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 110, types: ['poison'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'galar', formType: 'regional', minGen: 8, imageId: 10167, types: ['poison', 'fairy'], exclusiveRegions: ['galar_regional', 'isle_of_armor_regional', 'crown_tundra_regional'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 60,
   ),
   Pokemon(
     id: 111,
@@ -777,6 +887,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: true,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 111, types: ['ground', 'rock'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 120,
   ),
   Pokemon(
     id: 112,
@@ -784,6 +895,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: true,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 112, types: ['ground', 'rock'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 60,
   ),
   Pokemon(
     id: 113,
@@ -791,6 +903,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 113, types: ['normal'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 30,
   ),
   Pokemon(
     id: 114,
@@ -798,6 +911,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 114, types: ['grass'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 115,
@@ -805,6 +919,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 115, types: ['normal'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 6, imageId: 10039, types: ['normal'], exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'lumiose_dimensions_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 116,
@@ -812,6 +927,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 116, types: ['water'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 225,
   ),
   Pokemon(
     id: 117,
@@ -819,6 +935,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 117, types: ['water'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 75,
   ),
   Pokemon(
     id: 118,
@@ -826,6 +943,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: true,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 118, types: ['water'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 225,
   ),
   Pokemon(
     id: 119,
@@ -833,6 +951,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: true,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 119, types: ['water'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 60,
   ),
   Pokemon(
     id: 120,
@@ -840,6 +959,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 120, types: ['water'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 225,
   ),
   Pokemon(
     id: 121,
@@ -847,6 +967,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 121, types: ['water', 'psychic'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 9, imageId: 10280, types: ['water', 'psychic'], exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'lumiose_dimensions_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 60,
   ),
   Pokemon(
     id: 122,
@@ -854,6 +975,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 122, types: ['psychic', 'fairy'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'galar', formType: 'regional', minGen: 8, imageId: 10168, types: ['ice', 'psychic'], exclusiveRegions: ['galar_regional', 'isle_of_armor_regional', 'crown_tundra_regional'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 123,
@@ -861,6 +983,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: true,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 123, types: ['bug', 'flying'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 124,
@@ -868,6 +991,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 124, types: ['ice', 'psychic'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 125,
@@ -875,6 +999,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 125, types: ['electric'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 126,
@@ -882,6 +1007,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 126, types: ['fire'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 127,
@@ -889,6 +1015,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 127, types: ['bug'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 6, imageId: 10040, types: ['bug', 'flying'], exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'lumiose_dimensions_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 128,
@@ -896,6 +1023,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 128, types: ['normal'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'paldea-combat-breed', formType: 'regional', minGen: 9, imageId: 10250, types: ['fighting'], exclusiveRegions: ['paldea_regional', 'kitakami_regional', 'blueberry_regional'], extraInfo: null), PokemonForm(name: 'paldea-blaze-breed', formType: 'regional', minGen: 9, imageId: 10251, types: ['fighting', 'fire'], exclusiveRegions: ['paldea_regional', 'kitakami_regional', 'blueberry_regional'], extraInfo: null), PokemonForm(name: 'paldea-aqua-breed', formType: 'regional', minGen: 9, imageId: 10252, types: ['fighting', 'water'], exclusiveRegions: ['paldea_regional', 'kitakami_regional', 'blueberry_regional'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 129,
@@ -903,6 +1031,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: true,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 129, types: ['water'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 255,
   ),
   Pokemon(
     id: 130,
@@ -910,6 +1039,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: true,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 130, types: ['water', 'flying'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 6, imageId: 10041, types: ['water', 'dark'], exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'lumiose_dimensions_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 131,
@@ -917,6 +1047,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 131, types: ['water', 'ice'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'gmax', formType: 'gmax', minGen: 8, imageId: 10204, types: ['water', 'ice'], exclusiveRegions: ['galar_regional', 'isle_of_armor_regional', 'crown_tundra_regional'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 132,
@@ -924,6 +1055,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 132, types: ['normal'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 35,
   ),
   Pokemon(
     id: 133,
@@ -931,6 +1063,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: true,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 133, types: ['normal'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'starter', formType: 'other', minGen: 7, imageId: 10159, types: ['normal'], exclusiveRegions: ['kanto_regional'], extraInfo: null), PokemonForm(name: 'gmax', formType: 'gmax', minGen: 8, imageId: 10205, types: ['normal'], exclusiveRegions: ['galar_regional', 'isle_of_armor_regional', 'crown_tundra_regional'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 134,
@@ -938,6 +1071,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 134, types: ['water'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 135,
@@ -945,6 +1079,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 135, types: ['electric'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 136,
@@ -952,6 +1087,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 136, types: ['fire'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 137,
@@ -959,6 +1095,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 137, types: ['normal'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 138,
@@ -966,6 +1103,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 138, types: ['rock', 'water'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 139,
@@ -973,6 +1111,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 139, types: ['rock', 'water'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 140,
@@ -980,6 +1119,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 140, types: ['rock', 'water'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 141,
@@ -987,6 +1127,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 141, types: ['rock', 'water'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 142,
@@ -994,6 +1135,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 142, types: ['rock', 'flying'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 6, imageId: 10042, types: ['rock', 'flying'], exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'lumiose_dimensions_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 143,
@@ -1001,6 +1143,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 143, types: ['normal'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'gmax', formType: 'gmax', minGen: 8, imageId: 10206, types: ['normal'], exclusiveRegions: ['galar_regional', 'isle_of_armor_regional', 'crown_tundra_regional'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 25,
   ),
   Pokemon(
     id: 144,
@@ -1008,6 +1151,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 144, types: ['ice', 'flying'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'galar', formType: 'regional', minGen: 8, imageId: 10169, types: ['psychic', 'flying'], exclusiveRegions: ['galar_regional', 'isle_of_armor_regional', 'crown_tundra_regional'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 3,
   ),
   Pokemon(
     id: 145,
@@ -1015,6 +1159,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 145, types: ['electric', 'flying'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'galar', formType: 'regional', minGen: 8, imageId: 10170, types: ['fighting', 'flying'], exclusiveRegions: ['galar_regional', 'isle_of_armor_regional', 'crown_tundra_regional'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 3,
   ),
   Pokemon(
     id: 146,
@@ -1022,6 +1167,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 146, types: ['fire', 'flying'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'galar', formType: 'regional', minGen: 8, imageId: 10171, types: ['dark', 'flying'], exclusiveRegions: ['galar_regional', 'isle_of_armor_regional', 'crown_tundra_regional'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 3,
   ),
   Pokemon(
     id: 147,
@@ -1029,6 +1175,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 147, types: ['dragon'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 148,
@@ -1036,6 +1183,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 148, types: ['dragon'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 149,
@@ -1043,6 +1191,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 149, types: ['dragon', 'flying'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 9, imageId: 10281, types: ['dragon', 'flying'], exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'lumiose_dimensions_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 150,
@@ -1050,6 +1199,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 150, types: ['psychic'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega-x', formType: 'mega', minGen: 6, imageId: 10043, types: ['psychic', 'fighting'], exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'lumiose_dimensions_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null), PokemonForm(name: 'mega-y', formType: 'mega', minGen: 6, imageId: 10044, types: ['psychic'], exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'lumiose_dimensions_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 3,
   ),
   Pokemon(
     id: 151,
@@ -1057,6 +1207,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 1, imageId: 151, types: ['psychic'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 152,
@@ -1064,6 +1215,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 2, imageId: 152, types: ['grass'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 153,
@@ -1071,6 +1223,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 2, imageId: 153, types: ['grass'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 154,
@@ -1078,6 +1231,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: true,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 2, imageId: 154, types: ['grass'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 9, imageId: 10282, types: ['grass', 'fairy'], exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'lumiose_dimensions_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 155,
@@ -1085,6 +1239,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 2, imageId: 155, types: ['fire'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 156,
@@ -1092,6 +1247,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 2, imageId: 156, types: ['fire'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 157,
@@ -1099,6 +1255,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 2, imageId: 157, types: ['fire'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'hisui', formType: 'regional', minGen: 8, imageId: 10233, types: ['fire', 'ghost'], exclusiveRegions: ['hisui_regional'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 158,
@@ -1106,6 +1263,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 2, imageId: 158, types: ['water'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 159,
@@ -1113,6 +1271,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 2, imageId: 159, types: ['water'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 160,
@@ -1120,6 +1279,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 2, imageId: 160, types: ['water'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 9, imageId: 10283, types: ['water', 'dragon'], exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'lumiose_dimensions_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 161,
@@ -1127,6 +1287,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 2, imageId: 161, types: ['normal'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 255,
   ),
   Pokemon(
     id: 162,
@@ -1134,6 +1295,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 2, imageId: 162, types: ['normal'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 90,
   ),
   Pokemon(
     id: 163,
@@ -1141,6 +1303,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 2, imageId: 163, types: ['normal', 'flying'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 255,
   ),
   Pokemon(
     id: 164,
@@ -1148,6 +1311,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 2, imageId: 164, types: ['normal', 'flying'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 90,
   ),
   Pokemon(
     id: 165,
@@ -1155,6 +1319,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: true,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 2, imageId: 165, types: ['bug', 'flying'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 255,
   ),
   Pokemon(
     id: 166,
@@ -1162,6 +1327,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: true,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 2, imageId: 166, types: ['bug', 'flying'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 90,
   ),
   Pokemon(
     id: 167,
@@ -1169,6 +1335,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 2, imageId: 167, types: ['bug', 'poison'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 255,
   ),
   Pokemon(
     id: 168,
@@ -1176,6 +1343,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 2, imageId: 168, types: ['bug', 'poison'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 90,
   ),
   Pokemon(
     id: 169,
@@ -1183,6 +1351,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 2, imageId: 169, types: ['poison', 'flying'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 90,
   ),
   Pokemon(
     id: 170,
@@ -1190,6 +1359,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 2, imageId: 170, types: ['water', 'electric'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 190,
   ),
   Pokemon(
     id: 171,
@@ -1197,6 +1367,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 2, imageId: 171, types: ['water', 'electric'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 75,
   ),
   Pokemon(
     id: 172,
@@ -1204,6 +1375,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 2, imageId: 172, types: ['electric'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'spiky-eared', formType: 'other', minGen: 4, imageId: 172, types: ['electric'], exclusiveRegions: ['updated_johto_regional'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 190,
   ),
   Pokemon(
     id: 173,
@@ -1211,6 +1383,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 2, imageId: 173, types: ['fairy'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 150,
   ),
   Pokemon(
     id: 174,
@@ -1218,6 +1391,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 2, imageId: 174, types: ['normal', 'fairy'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 170,
   ),
   Pokemon(
     id: 175,
@@ -1225,6 +1399,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 2, imageId: 175, types: ['fairy'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 190,
   ),
   Pokemon(
     id: 176,
@@ -1232,6 +1407,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 2, imageId: 176, types: ['fairy', 'flying'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 75,
   ),
   Pokemon(
     id: 177,
@@ -1239,6 +1415,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 2, imageId: 177, types: ['psychic', 'flying'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 190,
   ),
   Pokemon(
     id: 178,
@@ -1246,6 +1423,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: true,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 2, imageId: 178, types: ['psychic', 'flying'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 75,
   ),
   Pokemon(
     id: 179,
@@ -1253,6 +1431,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 2, imageId: 179, types: ['electric'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 235,
   ),
   Pokemon(
     id: 180,
@@ -1260,6 +1439,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 2, imageId: 180, types: ['electric'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 120,
   ),
   Pokemon(
     id: 181,
@@ -1267,6 +1447,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 2, imageId: 181, types: ['electric'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 6, imageId: 10045, types: ['electric', 'dragon'], exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'lumiose_dimensions_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 182,
@@ -1274,6 +1455,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 2, imageId: 182, types: ['grass'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 183,
@@ -1281,6 +1463,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 2, imageId: 183, types: ['water', 'fairy'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 190,
   ),
   Pokemon(
     id: 184,
@@ -1288,6 +1471,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 2, imageId: 184, types: ['water', 'fairy'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 75,
   ),
   Pokemon(
     id: 185,
@@ -1295,6 +1479,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: true,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 2, imageId: 185, types: ['rock'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 65,
   ),
   Pokemon(
     id: 186,
@@ -1302,6 +1487,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: true,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 2, imageId: 186, types: ['water'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 187,
@@ -1309,6 +1495,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 2, imageId: 187, types: ['grass', 'flying'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 255,
   ),
   Pokemon(
     id: 188,
@@ -1316,6 +1503,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 2, imageId: 188, types: ['grass', 'flying'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 120,
   ),
   Pokemon(
     id: 189,
@@ -1323,6 +1511,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 2, imageId: 189, types: ['grass', 'flying'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 190,
@@ -1330,6 +1519,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: true,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 2, imageId: 190, types: ['normal'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 191,
@@ -1337,6 +1527,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 2, imageId: 191, types: ['grass'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 235,
   ),
   Pokemon(
     id: 192,
@@ -1344,6 +1535,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 2, imageId: 192, types: ['grass'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 120,
   ),
   Pokemon(
     id: 193,
@@ -1351,6 +1543,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 2, imageId: 193, types: ['bug', 'flying'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 75,
   ),
   Pokemon(
     id: 194,
@@ -1358,6 +1551,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: true,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 2, imageId: 194, types: ['water', 'ground'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'paldea', formType: 'regional', minGen: 9, imageId: 10253, types: ['poison', 'ground'], exclusiveRegions: ['paldea_regional', 'kitakami_regional', 'blueberry_regional'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 255,
   ),
   Pokemon(
     id: 195,
@@ -1365,6 +1559,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: true,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 2, imageId: 195, types: ['water', 'ground'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 90,
   ),
   Pokemon(
     id: 196,
@@ -1372,6 +1567,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 2, imageId: 196, types: ['psychic'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 197,
@@ -1379,6 +1575,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 2, imageId: 197, types: ['dark'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 198,
@@ -1386,6 +1583,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: true,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 2, imageId: 198, types: ['dark', 'flying'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 30,
   ),
   Pokemon(
     id: 199,
@@ -1393,6 +1591,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 2, imageId: 199, types: ['water', 'psychic'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'galar', formType: 'regional', minGen: 8, imageId: 10172, types: ['poison', 'psychic'], exclusiveRegions: ['galar_regional', 'isle_of_armor_regional', 'crown_tundra_regional'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 70,
   ),
   Pokemon(
     id: 200,
@@ -1400,6 +1599,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 2, imageId: 200, types: ['ghost'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 201,
@@ -1407,6 +1607,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'a', formType: 'other', minGen: 2, imageId: 201, types: ['psychic'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'b', formType: 'other', minGen: 2, imageId: 201, types: ['psychic'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'c', formType: 'other', minGen: 2, imageId: 201, types: ['psychic'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'd', formType: 'other', minGen: 2, imageId: 201, types: ['psychic'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'e', formType: 'other', minGen: 2, imageId: 201, types: ['psychic'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'f', formType: 'other', minGen: 2, imageId: 201, types: ['psychic'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'g', formType: 'other', minGen: 2, imageId: 201, types: ['psychic'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'h', formType: 'other', minGen: 2, imageId: 201, types: ['psychic'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'i', formType: 'other', minGen: 2, imageId: 201, types: ['psychic'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'j', formType: 'other', minGen: 2, imageId: 201, types: ['psychic'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'k', formType: 'other', minGen: 2, imageId: 201, types: ['psychic'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'l', formType: 'other', minGen: 2, imageId: 201, types: ['psychic'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'm', formType: 'other', minGen: 2, imageId: 201, types: ['psychic'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'n', formType: 'other', minGen: 2, imageId: 201, types: ['psychic'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'o', formType: 'other', minGen: 2, imageId: 201, types: ['psychic'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'p', formType: 'other', minGen: 2, imageId: 201, types: ['psychic'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'q', formType: 'other', minGen: 2, imageId: 201, types: ['psychic'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'r', formType: 'other', minGen: 2, imageId: 201, types: ['psychic'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 's', formType: 'other', minGen: 2, imageId: 201, types: ['psychic'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 't', formType: 'other', minGen: 2, imageId: 201, types: ['psychic'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'u', formType: 'other', minGen: 2, imageId: 201, types: ['psychic'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'v', formType: 'other', minGen: 2, imageId: 201, types: ['psychic'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'w', formType: 'other', minGen: 2, imageId: 201, types: ['psychic'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'x', formType: 'other', minGen: 2, imageId: 201, types: ['psychic'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'y', formType: 'other', minGen: 2, imageId: 201, types: ['psychic'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'z', formType: 'other', minGen: 2, imageId: 201, types: ['psychic'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'exclamation', formType: 'other', minGen: 3, imageId: 201, types: ['psychic'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'question', formType: 'other', minGen: 3, imageId: 201, types: ['psychic'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 225,
   ),
   Pokemon(
     id: 202,
@@ -1414,6 +1615,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: true,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 2, imageId: 202, types: ['psychic'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 203,
@@ -1421,6 +1623,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: true,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 2, imageId: 203, types: ['normal', 'psychic'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 60,
   ),
   Pokemon(
     id: 204,
@@ -1428,6 +1631,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 2, imageId: 204, types: ['bug'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 190,
   ),
   Pokemon(
     id: 205,
@@ -1435,6 +1639,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 2, imageId: 205, types: ['bug', 'steel'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 75,
   ),
   Pokemon(
     id: 206,
@@ -1442,6 +1647,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 2, imageId: 206, types: ['normal'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 190,
   ),
   Pokemon(
     id: 207,
@@ -1449,6 +1655,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: true,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 2, imageId: 207, types: ['ground', 'flying'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 60,
   ),
   Pokemon(
     id: 208,
@@ -1456,6 +1663,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: true,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 2, imageId: 208, types: ['steel', 'ground'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 6, imageId: 10072, types: ['steel', 'ground'], exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'lumiose_dimensions_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 25,
   ),
   Pokemon(
     id: 209,
@@ -1463,6 +1671,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 2, imageId: 209, types: ['fairy'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 190,
   ),
   Pokemon(
     id: 210,
@@ -1470,6 +1679,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 2, imageId: 210, types: ['fairy'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 75,
   ),
   Pokemon(
     id: 211,
@@ -1477,6 +1687,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 2, imageId: 211, types: ['water', 'poison'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'hisui', formType: 'regional', minGen: 8, imageId: 10234, types: ['dark', 'poison'], exclusiveRegions: ['hisui_regional'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 212,
@@ -1484,6 +1695,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: true,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 2, imageId: 212, types: ['bug', 'steel'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 6, imageId: 10046, types: ['bug', 'steel'], exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'lumiose_dimensions_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 25,
   ),
   Pokemon(
     id: 213,
@@ -1491,6 +1703,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 2, imageId: 213, types: ['bug', 'rock'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 190,
   ),
   Pokemon(
     id: 214,
@@ -1498,6 +1711,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: true,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 2, imageId: 214, types: ['bug', 'fighting'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 6, imageId: 10047, types: ['bug', 'fighting'], exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'lumiose_dimensions_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 215,
@@ -1505,6 +1719,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: true,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 2, imageId: 215, types: ['dark', 'ice'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'hisui', formType: 'regional', minGen: 8, imageId: 10235, types: ['fighting', 'poison'], exclusiveRegions: ['hisui_regional'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 60,
   ),
   Pokemon(
     id: 216,
@@ -1512,6 +1727,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 2, imageId: 216, types: ['normal'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 120,
   ),
   Pokemon(
     id: 217,
@@ -1519,6 +1735,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: true,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 2, imageId: 217, types: ['normal'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 60,
   ),
   Pokemon(
     id: 218,
@@ -1526,6 +1743,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 2, imageId: 218, types: ['fire'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 190,
   ),
   Pokemon(
     id: 219,
@@ -1533,6 +1751,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 2, imageId: 219, types: ['fire', 'rock'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 75,
   ),
   Pokemon(
     id: 220,
@@ -1540,6 +1759,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 2, imageId: 220, types: ['ice', 'ground'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 225,
   ),
   Pokemon(
     id: 221,
@@ -1547,6 +1767,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: true,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 2, imageId: 221, types: ['ice', 'ground'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 75,
   ),
   Pokemon(
     id: 222,
@@ -1554,6 +1775,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 2, imageId: 222, types: ['water', 'rock'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'galar', formType: 'regional', minGen: 8, imageId: 10173, types: ['ghost'], exclusiveRegions: ['galar_regional', 'isle_of_armor_regional', 'crown_tundra_regional'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 60,
   ),
   Pokemon(
     id: 223,
@@ -1561,6 +1783,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 2, imageId: 223, types: ['water'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 190,
   ),
   Pokemon(
     id: 224,
@@ -1568,6 +1791,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: true,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 2, imageId: 224, types: ['water'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 75,
   ),
   Pokemon(
     id: 225,
@@ -1575,6 +1799,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 2, imageId: 225, types: ['ice', 'flying'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 226,
@@ -1582,6 +1807,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 2, imageId: 226, types: ['water', 'flying'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 25,
   ),
   Pokemon(
     id: 227,
@@ -1589,6 +1815,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 2, imageId: 227, types: ['steel', 'flying'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 9, imageId: 10284, types: ['steel', 'flying'], exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'lumiose_dimensions_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 25,
   ),
   Pokemon(
     id: 228,
@@ -1596,6 +1823,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 2, imageId: 228, types: ['dark', 'fire'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 120,
   ),
   Pokemon(
     id: 229,
@@ -1603,6 +1831,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: true,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 2, imageId: 229, types: ['dark', 'fire'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 6, imageId: 10048, types: ['dark', 'fire'], exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'lumiose_dimensions_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 230,
@@ -1610,6 +1839,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 2, imageId: 230, types: ['water', 'dragon'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 231,
@@ -1617,6 +1847,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 2, imageId: 231, types: ['ground'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 120,
   ),
   Pokemon(
     id: 232,
@@ -1624,6 +1855,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: true,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 2, imageId: 232, types: ['ground'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 60,
   ),
   Pokemon(
     id: 233,
@@ -1631,6 +1863,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 2, imageId: 233, types: ['normal'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 234,
@@ -1638,6 +1871,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 2, imageId: 234, types: ['normal'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 235,
@@ -1645,6 +1879,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 2, imageId: 235, types: ['normal'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 236,
@@ -1652,6 +1887,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 2, imageId: 236, types: ['fighting'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 75,
   ),
   Pokemon(
     id: 237,
@@ -1659,6 +1895,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 2, imageId: 237, types: ['fighting'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 238,
@@ -1666,6 +1903,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 2, imageId: 238, types: ['ice', 'psychic'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 239,
@@ -1673,6 +1911,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 2, imageId: 239, types: ['electric'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 240,
@@ -1680,6 +1919,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 2, imageId: 240, types: ['fire'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 241,
@@ -1687,6 +1927,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 2, imageId: 241, types: ['normal'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 242,
@@ -1694,6 +1935,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 2, imageId: 242, types: ['normal'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 30,
   ),
   Pokemon(
     id: 243,
@@ -1701,6 +1943,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 2, imageId: 243, types: ['electric'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 3,
   ),
   Pokemon(
     id: 244,
@@ -1708,6 +1951,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 2, imageId: 244, types: ['fire'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 3,
   ),
   Pokemon(
     id: 245,
@@ -1715,6 +1959,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 2, imageId: 245, types: ['water'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 3,
   ),
   Pokemon(
     id: 246,
@@ -1722,6 +1967,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 2, imageId: 246, types: ['rock', 'ground'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 247,
@@ -1729,6 +1975,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 2, imageId: 247, types: ['rock', 'ground'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 248,
@@ -1736,6 +1983,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 2, imageId: 248, types: ['rock', 'dark'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 6, imageId: 10049, types: ['rock', 'dark'], exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'lumiose_dimensions_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 249,
@@ -1743,6 +1991,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 2, imageId: 249, types: ['psychic', 'flying'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 3,
   ),
   Pokemon(
     id: 250,
@@ -1750,6 +1999,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 2, imageId: 250, types: ['fire', 'flying'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 3,
   ),
   Pokemon(
     id: 251,
@@ -1757,6 +2007,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 2, imageId: 251, types: ['psychic', 'grass'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 252,
@@ -1764,6 +2015,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 252, types: ['grass'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 253,
@@ -1771,6 +2023,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 253, types: ['grass'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 254,
@@ -1778,6 +2031,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 254, types: ['grass'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 6, imageId: 10065, types: ['grass', 'dragon'], exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'lumiose_dimensions_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 255,
@@ -1785,6 +2039,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: true,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 255, types: ['fire'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 256,
@@ -1792,6 +2047,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: true,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 256, types: ['fire', 'fighting'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 257,
@@ -1799,6 +2055,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: true,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 257, types: ['fire', 'fighting'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 6, imageId: 10050, types: ['fire', 'fighting'], exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'lumiose_dimensions_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 258,
@@ -1806,6 +2063,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 258, types: ['water'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 259,
@@ -1813,6 +2071,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 259, types: ['water', 'ground'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 260,
@@ -1820,6 +2079,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 260, types: ['water', 'ground'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 6, imageId: 10064, types: ['water', 'ground'], exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'lumiose_dimensions_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 261,
@@ -1827,6 +2087,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 261, types: ['dark'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 255,
   ),
   Pokemon(
     id: 262,
@@ -1834,6 +2095,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 262, types: ['dark'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 127,
   ),
   Pokemon(
     id: 263,
@@ -1841,6 +2103,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 263, types: ['normal'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'galar', formType: 'regional', minGen: 8, imageId: 10174, types: ['dark', 'normal'], exclusiveRegions: ['galar_regional', 'isle_of_armor_regional', 'crown_tundra_regional'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 255,
   ),
   Pokemon(
     id: 264,
@@ -1848,6 +2111,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 264, types: ['normal'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'galar', formType: 'regional', minGen: 8, imageId: 10175, types: ['dark', 'normal'], exclusiveRegions: ['galar_regional', 'isle_of_armor_regional', 'crown_tundra_regional'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 90,
   ),
   Pokemon(
     id: 265,
@@ -1855,6 +2119,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 265, types: ['bug'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 255,
   ),
   Pokemon(
     id: 266,
@@ -1862,6 +2127,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 266, types: ['bug'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 120,
   ),
   Pokemon(
     id: 267,
@@ -1869,6 +2135,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: true,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 267, types: ['bug', 'flying'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 268,
@@ -1876,6 +2143,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 268, types: ['bug'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 120,
   ),
   Pokemon(
     id: 269,
@@ -1883,6 +2151,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: true,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 269, types: ['bug', 'poison'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 270,
@@ -1890,6 +2159,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 270, types: ['water', 'grass'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 255,
   ),
   Pokemon(
     id: 271,
@@ -1897,6 +2167,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 271, types: ['water', 'grass'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 120,
   ),
   Pokemon(
     id: 272,
@@ -1904,6 +2175,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: true,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 272, types: ['water', 'grass'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 273,
@@ -1911,6 +2183,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 273, types: ['grass'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 255,
   ),
   Pokemon(
     id: 274,
@@ -1918,6 +2191,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: true,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 274, types: ['grass', 'dark'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 120,
   ),
   Pokemon(
     id: 275,
@@ -1925,6 +2199,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: true,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 275, types: ['grass', 'dark'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 276,
@@ -1932,6 +2207,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 276, types: ['normal', 'flying'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 200,
   ),
   Pokemon(
     id: 277,
@@ -1939,6 +2215,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 277, types: ['normal', 'flying'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 278,
@@ -1946,6 +2223,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 278, types: ['water', 'flying'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 190,
   ),
   Pokemon(
     id: 279,
@@ -1953,6 +2231,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 279, types: ['water', 'flying'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 280,
@@ -1960,6 +2239,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 280, types: ['psychic', 'fairy'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 235,
   ),
   Pokemon(
     id: 281,
@@ -1967,6 +2247,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 281, types: ['psychic', 'fairy'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 120,
   ),
   Pokemon(
     id: 282,
@@ -1974,6 +2255,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 282, types: ['psychic', 'fairy'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 6, imageId: 10051, types: ['psychic', 'fairy'], exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'lumiose_dimensions_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 283,
@@ -1981,6 +2263,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 283, types: ['bug', 'water'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 200,
   ),
   Pokemon(
     id: 284,
@@ -1988,6 +2271,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 284, types: ['bug', 'flying'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 75,
   ),
   Pokemon(
     id: 285,
@@ -1995,6 +2279,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 285, types: ['grass'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 255,
   ),
   Pokemon(
     id: 286,
@@ -2002,6 +2287,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 286, types: ['grass', 'fighting'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 90,
   ),
   Pokemon(
     id: 287,
@@ -2009,6 +2295,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 287, types: ['normal'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 255,
   ),
   Pokemon(
     id: 288,
@@ -2016,6 +2303,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 288, types: ['normal'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 120,
   ),
   Pokemon(
     id: 289,
@@ -2023,6 +2311,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 289, types: ['normal'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 290,
@@ -2030,6 +2319,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 290, types: ['bug', 'ground'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 255,
   ),
   Pokemon(
     id: 291,
@@ -2037,6 +2327,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 291, types: ['bug', 'flying'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 120,
   ),
   Pokemon(
     id: 292,
@@ -2044,6 +2335,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 292, types: ['bug', 'ghost'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 293,
@@ -2051,6 +2343,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 293, types: ['normal'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 190,
   ),
   Pokemon(
     id: 294,
@@ -2058,6 +2351,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 294, types: ['normal'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 120,
   ),
   Pokemon(
     id: 295,
@@ -2065,6 +2359,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 295, types: ['normal'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 296,
@@ -2072,6 +2367,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 296, types: ['fighting'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 180,
   ),
   Pokemon(
     id: 297,
@@ -2079,6 +2375,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 297, types: ['fighting'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 200,
   ),
   Pokemon(
     id: 298,
@@ -2086,6 +2383,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 298, types: ['normal', 'fairy'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 150,
   ),
   Pokemon(
     id: 299,
@@ -2093,6 +2391,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 299, types: ['rock'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 255,
   ),
   Pokemon(
     id: 300,
@@ -2100,6 +2399,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 300, types: ['normal'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 255,
   ),
   Pokemon(
     id: 301,
@@ -2107,6 +2407,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 301, types: ['normal'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 60,
   ),
   Pokemon(
     id: 302,
@@ -2114,6 +2415,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 302, types: ['dark', 'ghost'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 6, imageId: 10066, types: ['dark', 'ghost'], exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'lumiose_dimensions_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 303,
@@ -2121,6 +2423,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 303, types: ['steel', 'fairy'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 6, imageId: 10052, types: ['steel', 'fairy'], exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'lumiose_dimensions_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 304,
@@ -2128,6 +2431,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 304, types: ['steel', 'rock'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 180,
   ),
   Pokemon(
     id: 305,
@@ -2135,6 +2439,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 305, types: ['steel', 'rock'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 90,
   ),
   Pokemon(
     id: 306,
@@ -2142,6 +2447,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 306, types: ['steel', 'rock'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 6, imageId: 10053, types: ['steel'], exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'lumiose_dimensions_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 307,
@@ -2149,6 +2455,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: true,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 307, types: ['fighting', 'psychic'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 180,
   ),
   Pokemon(
     id: 308,
@@ -2156,6 +2463,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: true,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 308, types: ['fighting', 'psychic'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 6, imageId: 10054, types: ['fighting', 'psychic'], exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'lumiose_dimensions_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 90,
   ),
   Pokemon(
     id: 309,
@@ -2163,6 +2471,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 309, types: ['electric'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 120,
   ),
   Pokemon(
     id: 310,
@@ -2170,6 +2479,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 310, types: ['electric'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 6, imageId: 10055, types: ['electric'], exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'lumiose_dimensions_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 311,
@@ -2177,6 +2487,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 311, types: ['electric'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 200,
   ),
   Pokemon(
     id: 312,
@@ -2184,6 +2495,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 312, types: ['electric'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 200,
   ),
   Pokemon(
     id: 313,
@@ -2191,6 +2503,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 313, types: ['bug'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 150,
   ),
   Pokemon(
     id: 314,
@@ -2198,6 +2511,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 314, types: ['bug'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 150,
   ),
   Pokemon(
     id: 315,
@@ -2205,6 +2519,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: true,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 315, types: ['grass', 'poison'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 150,
   ),
   Pokemon(
     id: 316,
@@ -2212,6 +2527,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: true,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 316, types: ['poison'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 225,
   ),
   Pokemon(
     id: 317,
@@ -2219,6 +2535,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: true,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 317, types: ['poison'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 75,
   ),
   Pokemon(
     id: 318,
@@ -2226,6 +2543,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 318, types: ['water', 'dark'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 225,
   ),
   Pokemon(
     id: 319,
@@ -2233,6 +2551,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 319, types: ['water', 'dark'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 6, imageId: 10070, types: ['water', 'dark'], exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'lumiose_dimensions_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 60,
   ),
   Pokemon(
     id: 320,
@@ -2240,6 +2559,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 320, types: ['water'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 125,
   ),
   Pokemon(
     id: 321,
@@ -2247,6 +2567,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 321, types: ['water'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 60,
   ),
   Pokemon(
     id: 322,
@@ -2254,6 +2575,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: true,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 322, types: ['fire', 'ground'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 255,
   ),
   Pokemon(
     id: 323,
@@ -2261,6 +2583,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: true,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 323, types: ['fire', 'ground'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 6, imageId: 10087, types: ['fire', 'ground'], exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'lumiose_dimensions_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 150,
   ),
   Pokemon(
     id: 324,
@@ -2268,6 +2591,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 324, types: ['fire'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 90,
   ),
   Pokemon(
     id: 325,
@@ -2275,6 +2599,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 325, types: ['psychic'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 255,
   ),
   Pokemon(
     id: 326,
@@ -2282,6 +2607,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 326, types: ['psychic'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 60,
   ),
   Pokemon(
     id: 327,
@@ -2289,6 +2615,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 327, types: ['normal'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 255,
   ),
   Pokemon(
     id: 328,
@@ -2296,6 +2623,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 328, types: ['ground'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 255,
   ),
   Pokemon(
     id: 329,
@@ -2303,6 +2631,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 329, types: ['ground', 'dragon'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 120,
   ),
   Pokemon(
     id: 330,
@@ -2310,6 +2639,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 330, types: ['ground', 'dragon'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 331,
@@ -2317,6 +2647,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 331, types: ['grass'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 190,
   ),
   Pokemon(
     id: 332,
@@ -2324,6 +2655,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: true,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 332, types: ['grass', 'dark'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 60,
   ),
   Pokemon(
     id: 333,
@@ -2331,6 +2663,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 333, types: ['normal', 'flying'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 255,
   ),
   Pokemon(
     id: 334,
@@ -2338,6 +2671,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 334, types: ['dragon', 'flying'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 6, imageId: 10067, types: ['dragon', 'fairy'], exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'lumiose_dimensions_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 335,
@@ -2345,6 +2679,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 335, types: ['normal'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 90,
   ),
   Pokemon(
     id: 336,
@@ -2352,6 +2687,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 336, types: ['poison'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 90,
   ),
   Pokemon(
     id: 337,
@@ -2359,6 +2695,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 337, types: ['rock', 'psychic'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 338,
@@ -2366,6 +2703,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 338, types: ['rock', 'psychic'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 339,
@@ -2373,6 +2711,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 339, types: ['water', 'ground'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 190,
   ),
   Pokemon(
     id: 340,
@@ -2380,6 +2719,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 340, types: ['water', 'ground'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 75,
   ),
   Pokemon(
     id: 341,
@@ -2387,6 +2727,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 341, types: ['water'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 205,
   ),
   Pokemon(
     id: 342,
@@ -2394,6 +2735,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 342, types: ['water', 'dark'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 155,
   ),
   Pokemon(
     id: 343,
@@ -2401,6 +2743,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 343, types: ['ground', 'psychic'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 255,
   ),
   Pokemon(
     id: 344,
@@ -2408,6 +2751,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 344, types: ['ground', 'psychic'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 90,
   ),
   Pokemon(
     id: 345,
@@ -2415,6 +2759,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 345, types: ['rock', 'grass'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 346,
@@ -2422,6 +2767,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 346, types: ['rock', 'grass'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 347,
@@ -2429,6 +2775,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 347, types: ['rock', 'bug'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 348,
@@ -2436,6 +2783,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 348, types: ['rock', 'bug'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 349,
@@ -2443,6 +2791,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 349, types: ['water'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 255,
   ),
   Pokemon(
     id: 350,
@@ -2450,6 +2799,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: true,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 350, types: ['water'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 60,
   ),
   Pokemon(
     id: 351,
@@ -2457,6 +2807,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 351, types: ['normal'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'sunny', formType: 'other', minGen: 3, imageId: 10013, types: ['fire'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'rainy', formType: 'other', minGen: 3, imageId: 10014, types: ['water'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'snowy', formType: 'other', minGen: 3, imageId: 10015, types: ['ice'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 352,
@@ -2464,6 +2815,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 352, types: ['normal'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 200,
   ),
   Pokemon(
     id: 353,
@@ -2471,6 +2823,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 353, types: ['ghost'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 225,
   ),
   Pokemon(
     id: 354,
@@ -2478,6 +2831,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 354, types: ['ghost'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 6, imageId: 10056, types: ['ghost'], exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'lumiose_dimensions_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 355,
@@ -2485,6 +2839,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 355, types: ['ghost'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 190,
   ),
   Pokemon(
     id: 356,
@@ -2492,6 +2847,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 356, types: ['ghost'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 90,
   ),
   Pokemon(
     id: 357,
@@ -2499,6 +2855,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 357, types: ['grass', 'flying'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 200,
   ),
   Pokemon(
     id: 358,
@@ -2506,6 +2863,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 358, types: ['psychic'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 9, imageId: 10306, types: ['psychic', 'steel'], exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'lumiose_dimensions_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 359,
@@ -2513,6 +2871,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 359, types: ['dark'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 6, imageId: 10057, types: ['dark'], exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'lumiose_dimensions_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null), PokemonForm(name: 'mega-z', formType: 'mega', minGen: 9, imageId: 10307, types: ['dark', 'ghost'], exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'lumiose_dimensions_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 30,
   ),
   Pokemon(
     id: 360,
@@ -2520,6 +2879,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 360, types: ['psychic'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 125,
   ),
   Pokemon(
     id: 361,
@@ -2527,6 +2887,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 361, types: ['ice'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 190,
   ),
   Pokemon(
     id: 362,
@@ -2534,6 +2895,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 362, types: ['ice'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 6, imageId: 10074, types: ['ice'], exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'lumiose_dimensions_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 75,
   ),
   Pokemon(
     id: 363,
@@ -2541,6 +2903,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 363, types: ['ice', 'water'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 255,
   ),
   Pokemon(
     id: 364,
@@ -2548,6 +2911,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 364, types: ['ice', 'water'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 120,
   ),
   Pokemon(
     id: 365,
@@ -2555,6 +2919,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 365, types: ['ice', 'water'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 366,
@@ -2562,6 +2927,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 366, types: ['water'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 255,
   ),
   Pokemon(
     id: 367,
@@ -2569,6 +2935,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 367, types: ['water'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 60,
   ),
   Pokemon(
     id: 368,
@@ -2576,6 +2943,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 368, types: ['water'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 60,
   ),
   Pokemon(
     id: 369,
@@ -2583,6 +2951,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: true,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 369, types: ['water', 'rock'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 25,
   ),
   Pokemon(
     id: 370,
@@ -2590,6 +2959,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 370, types: ['water'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 225,
   ),
   Pokemon(
     id: 371,
@@ -2597,6 +2967,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 371, types: ['dragon'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 372,
@@ -2604,6 +2975,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 372, types: ['dragon'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 373,
@@ -2611,6 +2983,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 373, types: ['dragon', 'flying'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 6, imageId: 10089, types: ['dragon', 'flying'], exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'lumiose_dimensions_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 374,
@@ -2618,6 +2991,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 374, types: ['steel', 'psychic'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 3,
   ),
   Pokemon(
     id: 375,
@@ -2625,6 +2999,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 375, types: ['steel', 'psychic'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 3,
   ),
   Pokemon(
     id: 376,
@@ -2632,6 +3007,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 376, types: ['steel', 'psychic'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 6, imageId: 10076, types: ['steel', 'psychic'], exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'lumiose_dimensions_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 3,
   ),
   Pokemon(
     id: 377,
@@ -2639,6 +3015,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 377, types: ['rock'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 3,
   ),
   Pokemon(
     id: 378,
@@ -2646,6 +3023,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 378, types: ['ice'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 3,
   ),
   Pokemon(
     id: 379,
@@ -2653,6 +3031,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 379, types: ['steel'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 3,
   ),
   Pokemon(
     id: 380,
@@ -2660,6 +3039,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 380, types: ['dragon', 'psychic'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 6, imageId: 10062, types: ['dragon', 'psychic'], exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'lumiose_dimensions_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 3,
   ),
   Pokemon(
     id: 381,
@@ -2667,6 +3047,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 381, types: ['dragon', 'psychic'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 6, imageId: 10063, types: ['dragon', 'psychic'], exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'lumiose_dimensions_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 3,
   ),
   Pokemon(
     id: 382,
@@ -2674,6 +3055,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 382, types: ['water'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'primal', formType: 'mega', minGen: 6, imageId: 10077, types: ['water'], exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'lumiose_dimensions_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 3,
   ),
   Pokemon(
     id: 383,
@@ -2681,6 +3063,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 383, types: ['ground'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'primal', formType: 'mega', minGen: 6, imageId: 10078, types: ['ground', 'fire'], exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'lumiose_dimensions_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 3,
   ),
   Pokemon(
     id: 384,
@@ -2688,6 +3071,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 384, types: ['dragon', 'flying'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 6, imageId: 10079, types: ['dragon', 'flying'], exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'lumiose_dimensions_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 385,
@@ -2695,6 +3079,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 385, types: ['steel', 'psychic'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 3,
   ),
   Pokemon(
     id: 386,
@@ -2702,6 +3087,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 3, imageId: 386, types: ['psychic'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'attack', formType: 'other', minGen: 3, imageId: 10001, types: ['psychic'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'defense', formType: 'other', minGen: 3, imageId: 10002, types: ['psychic'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'speed', formType: 'other', minGen: 3, imageId: 10003, types: ['psychic'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 3,
   ),
   Pokemon(
     id: 387,
@@ -2709,6 +3095,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 4, imageId: 387, types: ['grass'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 388,
@@ -2716,6 +3103,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 4, imageId: 388, types: ['grass'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 389,
@@ -2723,6 +3111,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 4, imageId: 389, types: ['grass', 'ground'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 390,
@@ -2730,6 +3119,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 4, imageId: 390, types: ['fire'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 391,
@@ -2737,6 +3127,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 4, imageId: 391, types: ['fire', 'fighting'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 392,
@@ -2744,6 +3135,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 4, imageId: 392, types: ['fire', 'fighting'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 393,
@@ -2751,6 +3143,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 4, imageId: 393, types: ['water'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 394,
@@ -2758,6 +3151,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 4, imageId: 394, types: ['water'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 395,
@@ -2765,6 +3159,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 4, imageId: 395, types: ['water', 'steel'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 396,
@@ -2772,6 +3167,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: true,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 4, imageId: 396, types: ['normal', 'flying'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 255,
   ),
   Pokemon(
     id: 397,
@@ -2779,6 +3175,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: true,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 4, imageId: 397, types: ['normal', 'flying'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 120,
   ),
   Pokemon(
     id: 398,
@@ -2786,6 +3183,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: true,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 4, imageId: 398, types: ['normal', 'flying'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 9, imageId: 10308, types: ['fighting', 'flying'], exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'lumiose_dimensions_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 399,
@@ -2793,6 +3191,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: true,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 4, imageId: 399, types: ['normal'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 255,
   ),
   Pokemon(
     id: 400,
@@ -2800,6 +3199,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: true,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 4, imageId: 400, types: ['normal', 'water'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 127,
   ),
   Pokemon(
     id: 401,
@@ -2807,6 +3207,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: true,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 4, imageId: 401, types: ['bug'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 255,
   ),
   Pokemon(
     id: 402,
@@ -2814,6 +3215,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: true,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 4, imageId: 402, types: ['bug'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 403,
@@ -2821,6 +3223,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: true,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 4, imageId: 403, types: ['electric'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 235,
   ),
   Pokemon(
     id: 404,
@@ -2828,6 +3231,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: true,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 4, imageId: 404, types: ['electric'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 120,
   ),
   Pokemon(
     id: 405,
@@ -2835,6 +3239,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: true,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 4, imageId: 405, types: ['electric'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 406,
@@ -2842,6 +3247,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 4, imageId: 406, types: ['grass', 'poison'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 255,
   ),
   Pokemon(
     id: 407,
@@ -2849,6 +3255,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: true,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 4, imageId: 407, types: ['grass', 'poison'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 75,
   ),
   Pokemon(
     id: 408,
@@ -2856,6 +3263,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 4, imageId: 408, types: ['rock'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 409,
@@ -2863,6 +3271,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 4, imageId: 409, types: ['rock'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 410,
@@ -2870,6 +3279,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 4, imageId: 410, types: ['rock', 'steel'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 411,
@@ -2877,6 +3287,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 4, imageId: 411, types: ['rock', 'steel'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 412,
@@ -2884,6 +3295,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'plant', formType: 'other', minGen: 4, imageId: 412, types: ['bug'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'sandy', formType: 'other', minGen: 4, imageId: 412, types: ['bug'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'trash', formType: 'other', minGen: 4, imageId: 412, types: ['bug'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 120,
   ),
   Pokemon(
     id: 413,
@@ -2891,6 +3303,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'plant', formType: 'other', minGen: 4, imageId: 413, types: ['bug', 'grass'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'sandy', formType: 'other', minGen: 4, imageId: 10004, types: ['bug', 'ground'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'trash', formType: 'other', minGen: 4, imageId: 10005, types: ['bug', 'steel'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 414,
@@ -2898,6 +3311,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'plant', formType: 'other', minGen: 4, imageId: 414, types: ['bug', 'flying'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'sandy', formType: 'other', minGen: 7, imageId: 414, types: ['bug', 'flying'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'trash', formType: 'other', minGen: 7, imageId: 414, types: ['bug', 'flying'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 415,
@@ -2905,6 +3319,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: true,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 4, imageId: 415, types: ['bug', 'flying'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 120,
   ),
   Pokemon(
     id: 416,
@@ -2912,6 +3327,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 4, imageId: 416, types: ['bug', 'flying'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 417,
@@ -2919,6 +3335,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: true,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 4, imageId: 417, types: ['electric'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 200,
   ),
   Pokemon(
     id: 418,
@@ -2926,6 +3343,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: true,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 4, imageId: 418, types: ['water'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 190,
   ),
   Pokemon(
     id: 419,
@@ -2933,6 +3351,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: true,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 4, imageId: 419, types: ['water'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 75,
   ),
   Pokemon(
     id: 420,
@@ -2940,6 +3359,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 4, imageId: 420, types: ['grass'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 190,
   ),
   Pokemon(
     id: 421,
@@ -2947,6 +3367,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'overcast', formType: 'other', minGen: 4, imageId: 421, types: ['grass'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'sunshine', formType: 'other', minGen: 4, imageId: 421, types: ['grass'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 75,
   ),
   Pokemon(
     id: 422,
@@ -2954,6 +3375,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'west', formType: 'other', minGen: 4, imageId: 422, types: ['water'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'east', formType: 'other', minGen: 4, imageId: 422, types: ['water'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 190,
   ),
   Pokemon(
     id: 423,
@@ -2961,6 +3383,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'west', formType: 'other', minGen: 4, imageId: 423, types: ['water', 'ground'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'east', formType: 'other', minGen: 4, imageId: 423, types: ['water', 'ground'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 75,
   ),
   Pokemon(
     id: 424,
@@ -2968,6 +3391,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: true,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 4, imageId: 424, types: ['normal'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 425,
@@ -2975,6 +3399,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 4, imageId: 425, types: ['ghost', 'flying'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 125,
   ),
   Pokemon(
     id: 426,
@@ -2982,6 +3407,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 4, imageId: 426, types: ['ghost', 'flying'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 60,
   ),
   Pokemon(
     id: 427,
@@ -2989,6 +3415,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 4, imageId: 427, types: ['normal'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 190,
   ),
   Pokemon(
     id: 428,
@@ -2996,6 +3423,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 4, imageId: 428, types: ['normal'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 6, imageId: 10088, types: ['normal', 'fighting'], exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'lumiose_dimensions_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 60,
   ),
   Pokemon(
     id: 429,
@@ -3003,6 +3431,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 4, imageId: 429, types: ['ghost'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 430,
@@ -3010,6 +3439,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 4, imageId: 430, types: ['dark', 'flying'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 30,
   ),
   Pokemon(
     id: 431,
@@ -3017,6 +3447,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 4, imageId: 431, types: ['normal'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 190,
   ),
   Pokemon(
     id: 432,
@@ -3024,6 +3455,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 4, imageId: 432, types: ['normal'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 75,
   ),
   Pokemon(
     id: 433,
@@ -3031,6 +3463,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 4, imageId: 433, types: ['psychic'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 120,
   ),
   Pokemon(
     id: 434,
@@ -3038,6 +3471,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 4, imageId: 434, types: ['poison', 'dark'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 225,
   ),
   Pokemon(
     id: 435,
@@ -3045,6 +3479,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 4, imageId: 435, types: ['poison', 'dark'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 60,
   ),
   Pokemon(
     id: 436,
@@ -3052,6 +3487,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 4, imageId: 436, types: ['steel', 'psychic'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 255,
   ),
   Pokemon(
     id: 437,
@@ -3059,6 +3495,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 4, imageId: 437, types: ['steel', 'psychic'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 90,
   ),
   Pokemon(
     id: 438,
@@ -3066,6 +3503,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 4, imageId: 438, types: ['rock'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 255,
   ),
   Pokemon(
     id: 439,
@@ -3073,6 +3511,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 4, imageId: 439, types: ['psychic', 'fairy'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 145,
   ),
   Pokemon(
     id: 440,
@@ -3080,6 +3519,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 4, imageId: 440, types: ['normal'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 130,
   ),
   Pokemon(
     id: 441,
@@ -3087,6 +3527,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 4, imageId: 441, types: ['normal', 'flying'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 30,
   ),
   Pokemon(
     id: 442,
@@ -3094,6 +3535,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 4, imageId: 442, types: ['ghost', 'dark'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 100,
   ),
   Pokemon(
     id: 443,
@@ -3101,6 +3543,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: true,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 4, imageId: 443, types: ['dragon', 'ground'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 444,
@@ -3108,6 +3551,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: true,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 4, imageId: 444, types: ['dragon', 'ground'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 445,
@@ -3115,6 +3559,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: true,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 4, imageId: 445, types: ['dragon', 'ground'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 6, imageId: 10058, types: ['dragon', 'ground'], exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'lumiose_dimensions_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null), PokemonForm(name: 'mega-z', formType: 'mega', minGen: 9, imageId: 10309, types: ['dragon'], exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'lumiose_dimensions_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 446,
@@ -3122,6 +3567,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 4, imageId: 446, types: ['normal'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 50,
   ),
   Pokemon(
     id: 447,
@@ -3129,6 +3575,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 4, imageId: 447, types: ['fighting'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 75,
   ),
   Pokemon(
     id: 448,
@@ -3136,6 +3583,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 4, imageId: 448, types: ['fighting', 'steel'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 6, imageId: 10059, types: ['fighting', 'steel'], exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'lumiose_dimensions_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null), PokemonForm(name: 'mega-z', formType: 'mega', minGen: 9, imageId: 10310, types: ['fighting', 'steel'], exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'lumiose_dimensions_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 449,
@@ -3143,6 +3591,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: true,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 4, imageId: 449, types: ['ground'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 140,
   ),
   Pokemon(
     id: 450,
@@ -3150,6 +3599,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: true,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 4, imageId: 450, types: ['ground'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 60,
   ),
   Pokemon(
     id: 451,
@@ -3157,6 +3607,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 4, imageId: 451, types: ['poison', 'bug'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 120,
   ),
   Pokemon(
     id: 452,
@@ -3164,6 +3615,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 4, imageId: 452, types: ['poison', 'dark'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 453,
@@ -3171,6 +3623,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: true,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 4, imageId: 453, types: ['poison', 'fighting'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 140,
   ),
   Pokemon(
     id: 454,
@@ -3178,6 +3631,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: true,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 4, imageId: 454, types: ['poison', 'fighting'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 75,
   ),
   Pokemon(
     id: 455,
@@ -3185,6 +3639,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 4, imageId: 455, types: ['grass'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 200,
   ),
   Pokemon(
     id: 456,
@@ -3192,6 +3647,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: true,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 4, imageId: 456, types: ['water'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 190,
   ),
   Pokemon(
     id: 457,
@@ -3199,6 +3655,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: true,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 4, imageId: 457, types: ['water'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 75,
   ),
   Pokemon(
     id: 458,
@@ -3206,6 +3663,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 4, imageId: 458, types: ['water', 'flying'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 25,
   ),
   Pokemon(
     id: 459,
@@ -3213,6 +3671,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: true,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 4, imageId: 459, types: ['grass', 'ice'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 120,
   ),
   Pokemon(
     id: 460,
@@ -3220,6 +3679,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: true,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 4, imageId: 460, types: ['grass', 'ice'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 6, imageId: 10060, types: ['grass', 'ice'], exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'lumiose_dimensions_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 60,
   ),
   Pokemon(
     id: 461,
@@ -3227,6 +3687,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: true,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 4, imageId: 461, types: ['dark', 'ice'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 462,
@@ -3234,6 +3695,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 4, imageId: 462, types: ['electric', 'steel'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 30,
   ),
   Pokemon(
     id: 463,
@@ -3241,6 +3703,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 4, imageId: 463, types: ['normal'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 30,
   ),
   Pokemon(
     id: 464,
@@ -3248,6 +3711,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: true,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 4, imageId: 464, types: ['ground', 'rock'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 30,
   ),
   Pokemon(
     id: 465,
@@ -3255,6 +3719,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: true,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 4, imageId: 465, types: ['grass'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 30,
   ),
   Pokemon(
     id: 466,
@@ -3262,6 +3727,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 4, imageId: 466, types: ['electric'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 30,
   ),
   Pokemon(
     id: 467,
@@ -3269,6 +3735,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 4, imageId: 467, types: ['fire'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 30,
   ),
   Pokemon(
     id: 468,
@@ -3276,6 +3743,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 4, imageId: 468, types: ['fairy', 'flying'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 30,
   ),
   Pokemon(
     id: 469,
@@ -3283,6 +3751,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 4, imageId: 469, types: ['bug', 'flying'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 30,
   ),
   Pokemon(
     id: 470,
@@ -3290,6 +3759,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 4, imageId: 470, types: ['grass'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 471,
@@ -3297,6 +3767,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 4, imageId: 471, types: ['ice'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 472,
@@ -3304,6 +3775,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 4, imageId: 472, types: ['ground', 'flying'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 30,
   ),
   Pokemon(
     id: 473,
@@ -3311,6 +3783,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: true,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 4, imageId: 473, types: ['ice', 'ground'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 50,
   ),
   Pokemon(
     id: 474,
@@ -3318,6 +3791,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 4, imageId: 474, types: ['normal'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 30,
   ),
   Pokemon(
     id: 475,
@@ -3325,6 +3799,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 4, imageId: 475, types: ['psychic', 'fighting'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 6, imageId: 10068, types: ['psychic', 'fighting'], exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'lumiose_dimensions_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 476,
@@ -3332,6 +3807,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 4, imageId: 476, types: ['rock', 'steel'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 60,
   ),
   Pokemon(
     id: 477,
@@ -3339,6 +3815,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 4, imageId: 477, types: ['ghost'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 478,
@@ -3346,6 +3823,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 4, imageId: 478, types: ['ice', 'ghost'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 9, imageId: 10285, types: ['ice', 'ghost'], exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'lumiose_dimensions_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 75,
   ),
   Pokemon(
     id: 479,
@@ -3353,6 +3831,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 4, imageId: 479, types: ['electric', 'ghost'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'heat', formType: 'other', minGen: 4, imageId: 10008, types: ['electric', 'fire'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'wash', formType: 'other', minGen: 4, imageId: 10009, types: ['electric', 'water'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'frost', formType: 'other', minGen: 4, imageId: 10010, types: ['electric', 'ice'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'fan', formType: 'other', minGen: 4, imageId: 10011, types: ['electric', 'flying'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mow', formType: 'other', minGen: 4, imageId: 10012, types: ['electric', 'grass'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 480,
@@ -3360,6 +3839,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 4, imageId: 480, types: ['psychic'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 3,
   ),
   Pokemon(
     id: 481,
@@ -3367,6 +3847,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 4, imageId: 481, types: ['psychic'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 3,
   ),
   Pokemon(
     id: 482,
@@ -3374,6 +3855,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 4, imageId: 482, types: ['psychic'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 3,
   ),
   Pokemon(
     id: 483,
@@ -3381,6 +3863,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 4, imageId: 483, types: ['steel', 'dragon'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'origin', formType: 'other', minGen: 8, imageId: 10245, types: ['steel', 'dragon'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 3,
   ),
   Pokemon(
     id: 484,
@@ -3388,6 +3871,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 4, imageId: 484, types: ['water', 'dragon'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'origin', formType: 'other', minGen: 8, imageId: 10246, types: ['water', 'dragon'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 3,
   ),
   Pokemon(
     id: 485,
@@ -3395,6 +3879,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 4, imageId: 485, types: ['fire', 'steel'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 9, imageId: 10311, types: ['fire', 'steel'], exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'lumiose_dimensions_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 3,
   ),
   Pokemon(
     id: 486,
@@ -3402,6 +3887,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 4, imageId: 486, types: ['normal'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 3,
   ),
   Pokemon(
     id: 487,
@@ -3409,6 +3895,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'altered', formType: 'other', minGen: 4, imageId: 487, types: ['ghost', 'dragon'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'origin', formType: 'other', minGen: 4, imageId: 10007, types: ['ghost', 'dragon'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 3,
   ),
   Pokemon(
     id: 488,
@@ -3416,6 +3903,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 4, imageId: 488, types: ['psychic'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 3,
   ),
   Pokemon(
     id: 489,
@@ -3423,6 +3911,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 4, imageId: 489, types: ['water'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 30,
   ),
   Pokemon(
     id: 490,
@@ -3430,6 +3919,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 4, imageId: 490, types: ['water'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 3,
   ),
   Pokemon(
     id: 491,
@@ -3437,6 +3927,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 4, imageId: 491, types: ['dark'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 9, imageId: 10312, types: ['dark'], exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'lumiose_dimensions_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 3,
   ),
   Pokemon(
     id: 492,
@@ -3444,6 +3935,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'land', formType: 'other', minGen: 4, imageId: 492, types: ['grass'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'sky', formType: 'other', minGen: 4, imageId: 10006, types: ['grass', 'flying'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 493,
@@ -3451,6 +3943,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 4, imageId: 493, types: ['normal'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'bug', formType: 'other', minGen: 4, imageId: 493, types: ['bug'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'dark', formType: 'other', minGen: 4, imageId: 493, types: ['dark'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'dragon', formType: 'other', minGen: 4, imageId: 493, types: ['dragon'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'electric', formType: 'other', minGen: 4, imageId: 493, types: ['electric'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'fighting', formType: 'other', minGen: 4, imageId: 493, types: ['fighting'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'fire', formType: 'other', minGen: 4, imageId: 493, types: ['fire'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'flying', formType: 'other', minGen: 4, imageId: 493, types: ['flying'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'ghost', formType: 'other', minGen: 4, imageId: 493, types: ['ghost'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'grass', formType: 'other', minGen: 4, imageId: 493, types: ['grass'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'ground', formType: 'other', minGen: 4, imageId: 493, types: ['ground'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'ice', formType: 'other', minGen: 4, imageId: 493, types: ['ice'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'poison', formType: 'other', minGen: 4, imageId: 493, types: ['poison'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'psychic', formType: 'other', minGen: 4, imageId: 493, types: ['psychic'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'rock', formType: 'other', minGen: 4, imageId: 493, types: ['rock'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'steel', formType: 'other', minGen: 4, imageId: 493, types: ['steel'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'water', formType: 'other', minGen: 4, imageId: 493, types: ['water'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'unknown', formType: 'other', minGen: 4, imageId: 493, types: ['unknown'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'fairy', formType: 'other', minGen: 6, imageId: 493, types: ['fairy'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 3,
   ),
   Pokemon(
     id: 494,
@@ -3458,6 +3951,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 494, types: ['psychic', 'fire'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 3,
   ),
   Pokemon(
     id: 495,
@@ -3465,6 +3959,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 495, types: ['grass'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 496,
@@ -3472,6 +3967,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 496, types: ['grass'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 497,
@@ -3479,6 +3975,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 497, types: ['grass'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 498,
@@ -3486,6 +3983,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 498, types: ['fire'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 499,
@@ -3493,6 +3991,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 499, types: ['fire', 'fighting'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 500,
@@ -3500,6 +3999,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 500, types: ['fire', 'fighting'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 9, imageId: 10286, types: ['fire', 'fighting'], exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'lumiose_dimensions_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 501,
@@ -3507,6 +4007,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 501, types: ['water'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 502,
@@ -3514,6 +4015,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 502, types: ['water'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 503,
@@ -3521,6 +4023,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 503, types: ['water'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'hisui', formType: 'regional', minGen: 8, imageId: 10236, types: ['water', 'dark'], exclusiveRegions: ['hisui_regional'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 504,
@@ -3528,6 +4031,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 504, types: ['normal'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 255,
   ),
   Pokemon(
     id: 505,
@@ -3535,6 +4039,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 505, types: ['normal'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 255,
   ),
   Pokemon(
     id: 506,
@@ -3542,6 +4047,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 506, types: ['normal'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 255,
   ),
   Pokemon(
     id: 507,
@@ -3549,6 +4055,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 507, types: ['normal'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 120,
   ),
   Pokemon(
     id: 508,
@@ -3556,6 +4063,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 508, types: ['normal'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 509,
@@ -3563,6 +4071,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 509, types: ['dark'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 255,
   ),
   Pokemon(
     id: 510,
@@ -3570,6 +4079,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 510, types: ['dark'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 90,
   ),
   Pokemon(
     id: 511,
@@ -3577,6 +4087,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 511, types: ['grass'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 190,
   ),
   Pokemon(
     id: 512,
@@ -3584,6 +4095,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 512, types: ['grass'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 75,
   ),
   Pokemon(
     id: 513,
@@ -3591,6 +4103,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 513, types: ['fire'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 190,
   ),
   Pokemon(
     id: 514,
@@ -3598,6 +4111,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 514, types: ['fire'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 75,
   ),
   Pokemon(
     id: 515,
@@ -3605,6 +4119,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 515, types: ['water'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 190,
   ),
   Pokemon(
     id: 516,
@@ -3612,6 +4127,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 516, types: ['water'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 75,
   ),
   Pokemon(
     id: 517,
@@ -3619,6 +4135,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 517, types: ['psychic'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 190,
   ),
   Pokemon(
     id: 518,
@@ -3626,6 +4143,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 518, types: ['psychic'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 75,
   ),
   Pokemon(
     id: 519,
@@ -3633,6 +4151,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 519, types: ['normal', 'flying'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 255,
   ),
   Pokemon(
     id: 520,
@@ -3640,6 +4159,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 520, types: ['normal', 'flying'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 120,
   ),
   Pokemon(
     id: 521,
@@ -3647,6 +4167,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: true,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 521, types: ['normal', 'flying'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 522,
@@ -3654,6 +4175,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 522, types: ['electric'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 190,
   ),
   Pokemon(
     id: 523,
@@ -3661,6 +4183,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 523, types: ['electric'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 75,
   ),
   Pokemon(
     id: 524,
@@ -3668,6 +4191,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 524, types: ['rock'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 255,
   ),
   Pokemon(
     id: 525,
@@ -3675,6 +4199,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 525, types: ['rock'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 120,
   ),
   Pokemon(
     id: 526,
@@ -3682,6 +4207,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 526, types: ['rock'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 527,
@@ -3689,6 +4215,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 527, types: ['psychic', 'flying'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 190,
   ),
   Pokemon(
     id: 528,
@@ -3696,6 +4223,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 528, types: ['psychic', 'flying'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 529,
@@ -3703,6 +4231,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 529, types: ['ground'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 120,
   ),
   Pokemon(
     id: 530,
@@ -3710,6 +4239,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 530, types: ['ground', 'steel'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 9, imageId: 10287, types: ['ground', 'steel'], exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'lumiose_dimensions_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 60,
   ),
   Pokemon(
     id: 531,
@@ -3717,6 +4247,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 531, types: ['normal'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 6, imageId: 10069, types: ['normal', 'fairy'], exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'lumiose_dimensions_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 255,
   ),
   Pokemon(
     id: 532,
@@ -3724,6 +4255,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 532, types: ['fighting'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 180,
   ),
   Pokemon(
     id: 533,
@@ -3731,6 +4263,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 533, types: ['fighting'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 90,
   ),
   Pokemon(
     id: 534,
@@ -3738,6 +4271,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 534, types: ['fighting'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 535,
@@ -3745,6 +4279,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 535, types: ['water'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 255,
   ),
   Pokemon(
     id: 536,
@@ -3752,6 +4287,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 536, types: ['water', 'ground'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 120,
   ),
   Pokemon(
     id: 537,
@@ -3759,6 +4295,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 537, types: ['water', 'ground'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 538,
@@ -3766,6 +4303,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 538, types: ['fighting'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 539,
@@ -3773,6 +4311,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 539, types: ['fighting'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 540,
@@ -3780,6 +4319,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 540, types: ['bug', 'grass'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 255,
   ),
   Pokemon(
     id: 541,
@@ -3787,6 +4327,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 541, types: ['bug', 'grass'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 120,
   ),
   Pokemon(
     id: 542,
@@ -3794,6 +4335,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 542, types: ['bug', 'grass'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 543,
@@ -3801,6 +4343,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 543, types: ['bug', 'poison'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 255,
   ),
   Pokemon(
     id: 544,
@@ -3808,6 +4351,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 544, types: ['bug', 'poison'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 120,
   ),
   Pokemon(
     id: 545,
@@ -3815,6 +4359,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 545, types: ['bug', 'poison'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 9, imageId: 10288, types: ['bug', 'poison'], exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'lumiose_dimensions_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 546,
@@ -3822,6 +4367,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 546, types: ['grass', 'fairy'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 190,
   ),
   Pokemon(
     id: 547,
@@ -3829,6 +4375,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 547, types: ['grass', 'fairy'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 75,
   ),
   Pokemon(
     id: 548,
@@ -3836,6 +4383,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 548, types: ['grass'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 190,
   ),
   Pokemon(
     id: 549,
@@ -3843,6 +4391,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 549, types: ['grass'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'hisui', formType: 'regional', minGen: 8, imageId: 10237, types: ['grass', 'fighting'], exclusiveRegions: ['hisui_regional'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 75,
   ),
   Pokemon(
     id: 550,
@@ -3850,6 +4399,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'red-striped', formType: 'other', minGen: 5, imageId: 550, types: ['water'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'blue-striped', formType: 'other', minGen: 5, imageId: 10016, types: ['water'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'white-striped', formType: 'other', minGen: 8, imageId: 10247, types: ['water'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 25,
   ),
   Pokemon(
     id: 551,
@@ -3857,6 +4407,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 551, types: ['ground', 'dark'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 180,
   ),
   Pokemon(
     id: 552,
@@ -3864,6 +4415,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 552, types: ['ground', 'dark'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 90,
   ),
   Pokemon(
     id: 553,
@@ -3871,6 +4423,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 553, types: ['ground', 'dark'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 554,
@@ -3878,6 +4431,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 554, types: ['fire'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'galar', formType: 'regional', minGen: 8, imageId: 10176, types: ['ice'], exclusiveRegions: ['galar_regional', 'isle_of_armor_regional', 'crown_tundra_regional'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 120,
   ),
   Pokemon(
     id: 555,
@@ -3885,6 +4439,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'standard', formType: 'other', minGen: 5, imageId: 555, types: ['fire'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'zen', formType: 'other', minGen: 5, imageId: 10017, types: ['fire', 'psychic'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'galar-standard', formType: 'regional', minGen: 8, imageId: 10177, types: ['ice'], exclusiveRegions: ['galar_regional', 'isle_of_armor_regional', 'crown_tundra_regional'], extraInfo: null), PokemonForm(name: 'galar-zen', formType: 'regional', minGen: 8, imageId: 10178, types: ['ice', 'fire'], exclusiveRegions: ['galar_regional', 'isle_of_armor_regional', 'crown_tundra_regional'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 60,
   ),
   Pokemon(
     id: 556,
@@ -3892,6 +4447,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 556, types: ['grass'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 255,
   ),
   Pokemon(
     id: 557,
@@ -3899,6 +4455,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 557, types: ['bug', 'rock'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 190,
   ),
   Pokemon(
     id: 558,
@@ -3906,6 +4463,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 558, types: ['bug', 'rock'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 75,
   ),
   Pokemon(
     id: 559,
@@ -3913,6 +4471,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 559, types: ['dark', 'fighting'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 180,
   ),
   Pokemon(
     id: 560,
@@ -3920,6 +4479,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 560, types: ['dark', 'fighting'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 9, imageId: 10289, types: ['dark', 'fighting'], exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'lumiose_dimensions_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 90,
   ),
   Pokemon(
     id: 561,
@@ -3927,6 +4487,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 561, types: ['psychic', 'flying'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 562,
@@ -3934,6 +4495,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 562, types: ['ghost'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'galar', formType: 'regional', minGen: 8, imageId: 10179, types: ['ground', 'ghost'], exclusiveRegions: ['galar_regional', 'isle_of_armor_regional', 'crown_tundra_regional'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 190,
   ),
   Pokemon(
     id: 563,
@@ -3941,6 +4503,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 563, types: ['ghost'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 90,
   ),
   Pokemon(
     id: 564,
@@ -3948,6 +4511,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 564, types: ['water', 'rock'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 565,
@@ -3955,6 +4519,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 565, types: ['water', 'rock'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 566,
@@ -3962,6 +4527,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 566, types: ['rock', 'flying'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 567,
@@ -3969,6 +4535,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 567, types: ['rock', 'flying'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 568,
@@ -3976,6 +4543,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 568, types: ['poison'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 190,
   ),
   Pokemon(
     id: 569,
@@ -3983,6 +4551,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 569, types: ['poison'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'gmax', formType: 'gmax', minGen: 8, imageId: 10207, types: ['poison'], exclusiveRegions: ['galar_regional', 'isle_of_armor_regional', 'crown_tundra_regional'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 60,
   ),
   Pokemon(
     id: 570,
@@ -3990,6 +4559,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 570, types: ['dark'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'hisui', formType: 'regional', minGen: 8, imageId: 10238, types: ['normal', 'ghost'], exclusiveRegions: ['hisui_regional'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 75,
   ),
   Pokemon(
     id: 571,
@@ -3997,6 +4567,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 571, types: ['dark'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'hisui', formType: 'regional', minGen: 8, imageId: 10239, types: ['normal', 'ghost'], exclusiveRegions: ['hisui_regional'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 572,
@@ -4004,6 +4575,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 572, types: ['normal'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 255,
   ),
   Pokemon(
     id: 573,
@@ -4011,6 +4583,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 573, types: ['normal'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 60,
   ),
   Pokemon(
     id: 574,
@@ -4018,6 +4591,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 574, types: ['psychic'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 200,
   ),
   Pokemon(
     id: 575,
@@ -4025,6 +4599,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 575, types: ['psychic'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 100,
   ),
   Pokemon(
     id: 576,
@@ -4032,6 +4607,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 576, types: ['psychic'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 50,
   ),
   Pokemon(
     id: 577,
@@ -4039,6 +4615,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 577, types: ['psychic'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 200,
   ),
   Pokemon(
     id: 578,
@@ -4046,6 +4623,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 578, types: ['psychic'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 100,
   ),
   Pokemon(
     id: 579,
@@ -4053,6 +4631,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 579, types: ['psychic'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 50,
   ),
   Pokemon(
     id: 580,
@@ -4060,6 +4639,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 580, types: ['water', 'flying'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 190,
   ),
   Pokemon(
     id: 581,
@@ -4067,6 +4647,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 581, types: ['water', 'flying'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 582,
@@ -4074,6 +4655,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 582, types: ['ice'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 255,
   ),
   Pokemon(
     id: 583,
@@ -4081,6 +4663,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 583, types: ['ice'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 120,
   ),
   Pokemon(
     id: 584,
@@ -4088,6 +4671,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 584, types: ['ice'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 585,
@@ -4095,6 +4679,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'spring', formType: 'other', minGen: 5, imageId: 585, types: ['normal', 'grass'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'summer', formType: 'other', minGen: 5, imageId: 585, types: ['normal', 'grass'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'autumn', formType: 'other', minGen: 5, imageId: 585, types: ['normal', 'grass'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'winter', formType: 'other', minGen: 5, imageId: 585, types: ['normal', 'grass'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 190,
   ),
   Pokemon(
     id: 586,
@@ -4102,6 +4687,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'spring', formType: 'other', minGen: 5, imageId: 586, types: ['normal', 'grass'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'summer', formType: 'other', minGen: 5, imageId: 586, types: ['normal', 'grass'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'autumn', formType: 'other', minGen: 5, imageId: 586, types: ['normal', 'grass'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'winter', formType: 'other', minGen: 5, imageId: 586, types: ['normal', 'grass'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 75,
   ),
   Pokemon(
     id: 587,
@@ -4109,6 +4695,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 587, types: ['electric', 'flying'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 200,
   ),
   Pokemon(
     id: 588,
@@ -4116,6 +4703,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 588, types: ['bug'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 200,
   ),
   Pokemon(
     id: 589,
@@ -4123,6 +4711,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 589, types: ['bug', 'steel'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 75,
   ),
   Pokemon(
     id: 590,
@@ -4130,6 +4719,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 590, types: ['grass', 'poison'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 190,
   ),
   Pokemon(
     id: 591,
@@ -4137,6 +4727,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 591, types: ['grass', 'poison'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 75,
   ),
   Pokemon(
     id: 592,
@@ -4144,6 +4735,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: true,
     forms: const [PokemonForm(name: 'male', formType: 'other', minGen: 5, imageId: 592, types: ['water', 'ghost'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'female', formType: 'other', minGen: 5, imageId: 592, types: ['water', 'ghost'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 190,
   ),
   Pokemon(
     id: 593,
@@ -4151,6 +4743,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: true,
     forms: const [PokemonForm(name: 'male', formType: 'other', minGen: 5, imageId: 593, types: ['water', 'ghost'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'female', formType: 'other', minGen: 5, imageId: 593, types: ['water', 'ghost'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 60,
   ),
   Pokemon(
     id: 594,
@@ -4158,6 +4751,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 594, types: ['water'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 75,
   ),
   Pokemon(
     id: 595,
@@ -4165,6 +4759,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 595, types: ['bug', 'electric'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 190,
   ),
   Pokemon(
     id: 596,
@@ -4172,6 +4767,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 596, types: ['bug', 'electric'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 75,
   ),
   Pokemon(
     id: 597,
@@ -4179,6 +4775,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 597, types: ['grass', 'steel'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 255,
   ),
   Pokemon(
     id: 598,
@@ -4186,6 +4783,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 598, types: ['grass', 'steel'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 90,
   ),
   Pokemon(
     id: 599,
@@ -4193,6 +4791,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 599, types: ['steel'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 130,
   ),
   Pokemon(
     id: 600,
@@ -4200,6 +4799,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 600, types: ['steel'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 60,
   ),
   Pokemon(
     id: 601,
@@ -4207,6 +4807,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 601, types: ['steel'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 30,
   ),
   Pokemon(
     id: 602,
@@ -4214,6 +4815,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 602, types: ['electric'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 190,
   ),
   Pokemon(
     id: 603,
@@ -4221,6 +4823,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 603, types: ['electric'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 60,
   ),
   Pokemon(
     id: 604,
@@ -4228,6 +4831,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 604, types: ['electric'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 9, imageId: 10290, types: ['electric'], exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'lumiose_dimensions_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 30,
   ),
   Pokemon(
     id: 605,
@@ -4235,6 +4839,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 605, types: ['psychic'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 255,
   ),
   Pokemon(
     id: 606,
@@ -4242,6 +4847,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 606, types: ['psychic'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 90,
   ),
   Pokemon(
     id: 607,
@@ -4249,6 +4855,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 607, types: ['ghost', 'fire'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 190,
   ),
   Pokemon(
     id: 608,
@@ -4256,6 +4863,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 608, types: ['ghost', 'fire'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 90,
   ),
   Pokemon(
     id: 609,
@@ -4263,6 +4871,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 609, types: ['ghost', 'fire'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 9, imageId: 10291, types: ['ghost', 'fire'], exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'lumiose_dimensions_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 610,
@@ -4270,6 +4879,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 610, types: ['dragon'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 75,
   ),
   Pokemon(
     id: 611,
@@ -4277,6 +4887,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 611, types: ['dragon'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 60,
   ),
   Pokemon(
     id: 612,
@@ -4284,6 +4895,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 612, types: ['dragon'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 613,
@@ -4291,6 +4903,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 613, types: ['ice'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 120,
   ),
   Pokemon(
     id: 614,
@@ -4298,6 +4911,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 614, types: ['ice'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 60,
   ),
   Pokemon(
     id: 615,
@@ -4305,6 +4919,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 615, types: ['ice'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 25,
   ),
   Pokemon(
     id: 616,
@@ -4312,6 +4927,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 616, types: ['bug'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 200,
   ),
   Pokemon(
     id: 617,
@@ -4319,6 +4935,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 617, types: ['bug'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 75,
   ),
   Pokemon(
     id: 618,
@@ -4326,6 +4943,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 618, types: ['ground', 'electric'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'galar', formType: 'regional', minGen: 8, imageId: 10180, types: ['ground', 'steel'], exclusiveRegions: ['galar_regional', 'isle_of_armor_regional', 'crown_tundra_regional'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 75,
   ),
   Pokemon(
     id: 619,
@@ -4333,6 +4951,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 619, types: ['fighting'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 180,
   ),
   Pokemon(
     id: 620,
@@ -4340,6 +4959,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 620, types: ['fighting'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 621,
@@ -4347,6 +4967,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 621, types: ['dragon'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 622,
@@ -4354,6 +4975,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 622, types: ['ground', 'ghost'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 190,
   ),
   Pokemon(
     id: 623,
@@ -4361,6 +4983,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 623, types: ['ground', 'ghost'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 9, imageId: 10313, types: ['ground', 'ghost'], exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'lumiose_dimensions_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 90,
   ),
   Pokemon(
     id: 624,
@@ -4368,6 +4991,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 624, types: ['dark', 'steel'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 120,
   ),
   Pokemon(
     id: 625,
@@ -4375,6 +4999,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 625, types: ['dark', 'steel'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 626,
@@ -4382,6 +5007,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 626, types: ['normal'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 627,
@@ -4389,6 +5015,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 627, types: ['normal', 'flying'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 190,
   ),
   Pokemon(
     id: 628,
@@ -4396,6 +5023,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 628, types: ['normal', 'flying'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'hisui', formType: 'regional', minGen: 8, imageId: 10240, types: ['psychic', 'flying'], exclusiveRegions: ['hisui_regional'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 60,
   ),
   Pokemon(
     id: 629,
@@ -4403,6 +5031,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 629, types: ['dark', 'flying'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 190,
   ),
   Pokemon(
     id: 630,
@@ -4410,6 +5039,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 630, types: ['dark', 'flying'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 60,
   ),
   Pokemon(
     id: 631,
@@ -4417,6 +5047,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 631, types: ['fire'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 90,
   ),
   Pokemon(
     id: 632,
@@ -4424,6 +5055,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 632, types: ['bug', 'steel'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 90,
   ),
   Pokemon(
     id: 633,
@@ -4431,6 +5063,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 633, types: ['dark', 'dragon'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 634,
@@ -4438,6 +5071,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 634, types: ['dark', 'dragon'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 635,
@@ -4445,6 +5079,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 635, types: ['dark', 'dragon'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 636,
@@ -4452,6 +5087,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 636, types: ['bug', 'fire'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 637,
@@ -4459,6 +5095,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 637, types: ['bug', 'fire'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 15,
   ),
   Pokemon(
     id: 638,
@@ -4466,6 +5103,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 638, types: ['steel', 'fighting'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 3,
   ),
   Pokemon(
     id: 639,
@@ -4473,6 +5111,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 639, types: ['rock', 'fighting'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 3,
   ),
   Pokemon(
     id: 640,
@@ -4480,6 +5119,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 640, types: ['grass', 'fighting'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 3,
   ),
   Pokemon(
     id: 641,
@@ -4487,6 +5127,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'incarnate', formType: 'other', minGen: 5, imageId: 641, types: ['flying'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'therian', formType: 'other', minGen: 5, imageId: 10019, types: ['flying'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 3,
   ),
   Pokemon(
     id: 642,
@@ -4494,6 +5135,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'incarnate', formType: 'other', minGen: 5, imageId: 642, types: ['electric', 'flying'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'therian', formType: 'other', minGen: 5, imageId: 10020, types: ['electric', 'flying'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 3,
   ),
   Pokemon(
     id: 643,
@@ -4501,6 +5143,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 643, types: ['dragon', 'fire'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 3,
   ),
   Pokemon(
     id: 644,
@@ -4508,6 +5151,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 644, types: ['dragon', 'electric'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 3,
   ),
   Pokemon(
     id: 645,
@@ -4515,6 +5159,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'incarnate', formType: 'other', minGen: 5, imageId: 645, types: ['ground', 'flying'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'therian', formType: 'other', minGen: 5, imageId: 10021, types: ['ground', 'flying'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 3,
   ),
   Pokemon(
     id: 646,
@@ -4522,6 +5167,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 646, types: ['dragon', 'ice'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'black', formType: 'other', minGen: 5, imageId: 10022, types: ['dragon', 'ice'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'white', formType: 'other', minGen: 5, imageId: 10023, types: ['dragon', 'ice'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 3,
   ),
   Pokemon(
     id: 647,
@@ -4529,6 +5175,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'ordinary', formType: 'other', minGen: 5, imageId: 647, types: ['water', 'fighting'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'resolute', formType: 'other', minGen: 5, imageId: 10024, types: ['water', 'fighting'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 3,
   ),
   Pokemon(
     id: 648,
@@ -4536,6 +5183,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'aria', formType: 'other', minGen: 5, imageId: 648, types: ['normal', 'psychic'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'pirouette', formType: 'other', minGen: 5, imageId: 10018, types: ['normal', 'fighting'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 3,
   ),
   Pokemon(
     id: 649,
@@ -4543,6 +5191,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 5, imageId: 649, types: ['bug', 'steel'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'douse', formType: 'other', minGen: 5, imageId: 649, types: ['bug', 'steel'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'shock', formType: 'other', minGen: 5, imageId: 649, types: ['bug', 'steel'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'burn', formType: 'other', minGen: 5, imageId: 649, types: ['bug', 'steel'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'chill', formType: 'other', minGen: 5, imageId: 649, types: ['bug', 'steel'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 3,
   ),
   Pokemon(
     id: 650,
@@ -4550,6 +5199,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 6, imageId: 650, types: ['grass'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 651,
@@ -4557,6 +5207,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 6, imageId: 651, types: ['grass'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 652,
@@ -4564,6 +5215,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 6, imageId: 652, types: ['grass', 'fighting'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 9, imageId: 10292, types: ['grass', 'fighting'], exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'lumiose_dimensions_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 653,
@@ -4571,6 +5223,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 6, imageId: 653, types: ['fire'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 654,
@@ -4578,6 +5231,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 6, imageId: 654, types: ['fire'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 655,
@@ -4585,6 +5239,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 6, imageId: 655, types: ['fire', 'psychic'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 9, imageId: 10293, types: ['fire', 'psychic'], exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'lumiose_dimensions_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 656,
@@ -4592,6 +5247,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 6, imageId: 656, types: ['water'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 657,
@@ -4599,6 +5255,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 6, imageId: 657, types: ['water'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 658,
@@ -4606,6 +5263,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 6, imageId: 658, types: ['water', 'dark'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'battle-bond', formType: 'other', minGen: 7, imageId: 10116, types: ['water', 'dark'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'ash', formType: 'other', minGen: 7, imageId: 10117, types: ['water', 'dark'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 9, imageId: 10294, types: ['water', 'dark'], exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'lumiose_dimensions_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 659,
@@ -4613,6 +5271,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 6, imageId: 659, types: ['normal'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 255,
   ),
   Pokemon(
     id: 660,
@@ -4620,6 +5279,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 6, imageId: 660, types: ['normal', 'ground'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 127,
   ),
   Pokemon(
     id: 661,
@@ -4627,6 +5287,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 6, imageId: 661, types: ['normal', 'flying'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 255,
   ),
   Pokemon(
     id: 662,
@@ -4634,6 +5295,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 6, imageId: 662, types: ['fire', 'flying'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 120,
   ),
   Pokemon(
     id: 663,
@@ -4641,6 +5303,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 6, imageId: 663, types: ['fire', 'flying'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 664,
@@ -4648,6 +5311,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'icy-snow', formType: 'other', minGen: 6, imageId: 664, types: ['bug'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'polar', formType: 'other', minGen: 7, imageId: 664, types: ['bug'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'tundra', formType: 'other', minGen: 7, imageId: 664, types: ['bug'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'continental', formType: 'other', minGen: 7, imageId: 664, types: ['bug'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'garden', formType: 'other', minGen: 7, imageId: 664, types: ['bug'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'elegant', formType: 'other', minGen: 7, imageId: 664, types: ['bug'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'meadow', formType: 'other', minGen: 7, imageId: 664, types: ['bug'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'modern', formType: 'other', minGen: 7, imageId: 664, types: ['bug'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'marine', formType: 'other', minGen: 7, imageId: 664, types: ['bug'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'archipelago', formType: 'other', minGen: 7, imageId: 664, types: ['bug'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'high-plains', formType: 'other', minGen: 7, imageId: 664, types: ['bug'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'sandstorm', formType: 'other', minGen: 7, imageId: 664, types: ['bug'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'river', formType: 'other', minGen: 7, imageId: 664, types: ['bug'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'monsoon', formType: 'other', minGen: 7, imageId: 664, types: ['bug'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'savanna', formType: 'other', minGen: 7, imageId: 664, types: ['bug'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'sun', formType: 'other', minGen: 7, imageId: 664, types: ['bug'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'ocean', formType: 'other', minGen: 7, imageId: 664, types: ['bug'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'jungle', formType: 'other', minGen: 7, imageId: 664, types: ['bug'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'fancy', formType: 'other', minGen: 7, imageId: 664, types: ['bug'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'poke-ball', formType: 'other', minGen: 7, imageId: 664, types: ['bug'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 255,
   ),
   Pokemon(
     id: 665,
@@ -4655,6 +5319,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'icy-snow', formType: 'other', minGen: 6, imageId: 665, types: ['bug'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'polar', formType: 'other', minGen: 7, imageId: 665, types: ['bug'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'tundra', formType: 'other', minGen: 7, imageId: 665, types: ['bug'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'continental', formType: 'other', minGen: 7, imageId: 665, types: ['bug'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'garden', formType: 'other', minGen: 7, imageId: 665, types: ['bug'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'elegant', formType: 'other', minGen: 7, imageId: 665, types: ['bug'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'meadow', formType: 'other', minGen: 7, imageId: 665, types: ['bug'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'modern', formType: 'other', minGen: 7, imageId: 665, types: ['bug'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'marine', formType: 'other', minGen: 7, imageId: 665, types: ['bug'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'archipelago', formType: 'other', minGen: 7, imageId: 665, types: ['bug'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'high-plains', formType: 'other', minGen: 7, imageId: 665, types: ['bug'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'sandstorm', formType: 'other', minGen: 7, imageId: 665, types: ['bug'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'river', formType: 'other', minGen: 7, imageId: 665, types: ['bug'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'monsoon', formType: 'other', minGen: 7, imageId: 665, types: ['bug'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'savanna', formType: 'other', minGen: 7, imageId: 665, types: ['bug'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'sun', formType: 'other', minGen: 7, imageId: 665, types: ['bug'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'ocean', formType: 'other', minGen: 7, imageId: 665, types: ['bug'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'jungle', formType: 'other', minGen: 7, imageId: 665, types: ['bug'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'fancy', formType: 'other', minGen: 7, imageId: 665, types: ['bug'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'poke-ball', formType: 'other', minGen: 7, imageId: 665, types: ['bug'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 120,
   ),
   Pokemon(
     id: 666,
@@ -4662,6 +5327,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'meadow', formType: 'other', minGen: 6, imageId: 666, types: ['bug', 'flying'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'icy-snow', formType: 'other', minGen: 6, imageId: 666, types: ['bug', 'flying'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'polar', formType: 'other', minGen: 6, imageId: 666, types: ['bug', 'flying'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'tundra', formType: 'other', minGen: 6, imageId: 666, types: ['bug', 'flying'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'continental', formType: 'other', minGen: 6, imageId: 666, types: ['bug', 'flying'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'garden', formType: 'other', minGen: 6, imageId: 666, types: ['bug', 'flying'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'elegant', formType: 'other', minGen: 6, imageId: 666, types: ['bug', 'flying'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'modern', formType: 'other', minGen: 6, imageId: 666, types: ['bug', 'flying'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'marine', formType: 'other', minGen: 6, imageId: 666, types: ['bug', 'flying'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'archipelago', formType: 'other', minGen: 6, imageId: 666, types: ['bug', 'flying'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'high-plains', formType: 'other', minGen: 6, imageId: 666, types: ['bug', 'flying'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'sandstorm', formType: 'other', minGen: 6, imageId: 666, types: ['bug', 'flying'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'river', formType: 'other', minGen: 6, imageId: 666, types: ['bug', 'flying'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'monsoon', formType: 'other', minGen: 6, imageId: 666, types: ['bug', 'flying'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'savanna', formType: 'other', minGen: 6, imageId: 666, types: ['bug', 'flying'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'sun', formType: 'other', minGen: 6, imageId: 666, types: ['bug', 'flying'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'ocean', formType: 'other', minGen: 6, imageId: 666, types: ['bug', 'flying'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'jungle', formType: 'other', minGen: 6, imageId: 666, types: ['bug', 'flying'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'fancy', formType: 'other', minGen: 6, imageId: 666, types: ['bug', 'flying'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'poke-ball', formType: 'other', minGen: 6, imageId: 666, types: ['bug', 'flying'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 667,
@@ -4669,6 +5335,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 6, imageId: 667, types: ['fire', 'normal'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 220,
   ),
   Pokemon(
     id: 668,
@@ -4676,6 +5343,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: true,
     forms: const [PokemonForm(name: 'male', formType: 'other', minGen: 6, imageId: 668, types: ['fire', 'normal'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'female', formType: 'other', minGen: 6, imageId: 668, types: ['fire', 'normal'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 9, imageId: 10295, types: ['fire', 'normal'], exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'lumiose_dimensions_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 65,
   ),
   Pokemon(
     id: 669,
@@ -4683,6 +5351,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'red', formType: 'other', minGen: 6, imageId: 669, types: ['fairy'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'yellow', formType: 'other', minGen: 6, imageId: 669, types: ['fairy'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'orange', formType: 'other', minGen: 6, imageId: 669, types: ['fairy'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'blue', formType: 'other', minGen: 6, imageId: 669, types: ['fairy'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'white', formType: 'other', minGen: 6, imageId: 669, types: ['fairy'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 225,
   ),
   Pokemon(
     id: 670,
@@ -4690,6 +5359,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'red', formType: 'other', minGen: 6, imageId: 670, types: ['fairy'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'yellow', formType: 'other', minGen: 6, imageId: 670, types: ['fairy'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'orange', formType: 'other', minGen: 6, imageId: 670, types: ['fairy'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'blue', formType: 'other', minGen: 6, imageId: 670, types: ['fairy'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'white', formType: 'other', minGen: 6, imageId: 670, types: ['fairy'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'eternal', formType: 'other', minGen: 6, imageId: 10061, types: ['fairy'], exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional'], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 9, imageId: 10296, types: ['fairy'], exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'lumiose_dimensions_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 120,
   ),
   Pokemon(
     id: 671,
@@ -4697,6 +5367,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'red', formType: 'other', minGen: 6, imageId: 671, types: ['fairy'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'yellow', formType: 'other', minGen: 6, imageId: 671, types: ['fairy'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'orange', formType: 'other', minGen: 6, imageId: 671, types: ['fairy'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'blue', formType: 'other', minGen: 6, imageId: 671, types: ['fairy'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'white', formType: 'other', minGen: 6, imageId: 671, types: ['fairy'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 672,
@@ -4704,6 +5375,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 6, imageId: 672, types: ['grass'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 200,
   ),
   Pokemon(
     id: 673,
@@ -4711,6 +5383,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 6, imageId: 673, types: ['grass'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 674,
@@ -4718,6 +5391,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 6, imageId: 674, types: ['fighting'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 220,
   ),
   Pokemon(
     id: 675,
@@ -4725,6 +5399,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 6, imageId: 675, types: ['fighting', 'dark'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 65,
   ),
   Pokemon(
     id: 676,
@@ -4732,6 +5407,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'natural', formType: 'other', minGen: 6, imageId: 676, types: ['normal'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'heart', formType: 'other', minGen: 6, imageId: 676, types: ['normal'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'star', formType: 'other', minGen: 6, imageId: 676, types: ['normal'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'diamond', formType: 'other', minGen: 6, imageId: 676, types: ['normal'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'debutante', formType: 'other', minGen: 6, imageId: 676, types: ['normal'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'matron', formType: 'other', minGen: 6, imageId: 676, types: ['normal'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'dandy', formType: 'other', minGen: 6, imageId: 676, types: ['normal'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'la-reine', formType: 'other', minGen: 6, imageId: 676, types: ['normal'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'kabuki', formType: 'other', minGen: 6, imageId: 676, types: ['normal'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'pharaoh', formType: 'other', minGen: 6, imageId: 676, types: ['normal'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 160,
   ),
   Pokemon(
     id: 677,
@@ -4739,6 +5415,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 6, imageId: 677, types: ['psychic'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 190,
   ),
   Pokemon(
     id: 678,
@@ -4746,6 +5423,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: true,
     forms: const [PokemonForm(name: 'male', formType: 'other', minGen: 6, imageId: 678, types: ['psychic'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'female', formType: 'other', minGen: 6, imageId: 10025, types: ['psychic'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'male-mega', formType: 'mega', minGen: 9, imageId: 10314, types: ['psychic'], exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'lumiose_dimensions_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null), PokemonForm(name: 'female-mega', formType: 'mega', minGen: 9, imageId: 10326, types: ['psychic'], exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'lumiose_dimensions_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 75,
   ),
   Pokemon(
     id: 679,
@@ -4753,6 +5431,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 6, imageId: 679, types: ['steel', 'ghost'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 180,
   ),
   Pokemon(
     id: 680,
@@ -4760,6 +5439,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 6, imageId: 680, types: ['steel', 'ghost'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 90,
   ),
   Pokemon(
     id: 681,
@@ -4767,6 +5447,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'shield', formType: 'other', minGen: 6, imageId: 681, types: ['steel', 'ghost'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'blade', formType: 'other', minGen: 6, imageId: 10026, types: ['steel', 'ghost'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 682,
@@ -4774,6 +5455,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 6, imageId: 682, types: ['fairy'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 200,
   ),
   Pokemon(
     id: 683,
@@ -4781,6 +5463,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 6, imageId: 683, types: ['fairy'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 140,
   ),
   Pokemon(
     id: 684,
@@ -4788,6 +5471,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 6, imageId: 684, types: ['fairy'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 200,
   ),
   Pokemon(
     id: 685,
@@ -4795,6 +5479,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 6, imageId: 685, types: ['fairy'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 140,
   ),
   Pokemon(
     id: 686,
@@ -4802,6 +5487,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 6, imageId: 686, types: ['dark', 'psychic'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 190,
   ),
   Pokemon(
     id: 687,
@@ -4809,6 +5495,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 6, imageId: 687, types: ['dark', 'psychic'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 9, imageId: 10297, types: ['dark', 'psychic'], exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'lumiose_dimensions_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 80,
   ),
   Pokemon(
     id: 688,
@@ -4816,6 +5503,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 6, imageId: 688, types: ['rock', 'water'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 120,
   ),
   Pokemon(
     id: 689,
@@ -4823,6 +5511,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 6, imageId: 689, types: ['rock', 'water'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 9, imageId: 10298, types: ['rock', 'fighting'], exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'lumiose_dimensions_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 690,
@@ -4830,6 +5519,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 6, imageId: 690, types: ['poison', 'water'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 225,
   ),
   Pokemon(
     id: 691,
@@ -4837,6 +5527,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 6, imageId: 691, types: ['poison', 'dragon'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 9, imageId: 10299, types: ['poison', 'dragon'], exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'lumiose_dimensions_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 55,
   ),
   Pokemon(
     id: 692,
@@ -4844,6 +5535,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 6, imageId: 692, types: ['water'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 225,
   ),
   Pokemon(
     id: 693,
@@ -4851,6 +5543,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 6, imageId: 693, types: ['water'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 55,
   ),
   Pokemon(
     id: 694,
@@ -4858,6 +5551,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 6, imageId: 694, types: ['electric', 'normal'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 190,
   ),
   Pokemon(
     id: 695,
@@ -4865,6 +5559,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 6, imageId: 695, types: ['electric', 'normal'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 75,
   ),
   Pokemon(
     id: 696,
@@ -4872,6 +5567,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 6, imageId: 696, types: ['rock', 'dragon'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 697,
@@ -4879,6 +5575,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 6, imageId: 697, types: ['rock', 'dragon'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 698,
@@ -4886,6 +5583,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 6, imageId: 698, types: ['rock', 'ice'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 699,
@@ -4893,6 +5591,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 6, imageId: 699, types: ['rock', 'ice'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 700,
@@ -4900,6 +5599,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 6, imageId: 700, types: ['fairy'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 701,
@@ -4907,6 +5607,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 6, imageId: 701, types: ['fighting', 'flying'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 9, imageId: 10300, types: ['fighting', 'flying'], exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'lumiose_dimensions_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 100,
   ),
   Pokemon(
     id: 702,
@@ -4914,6 +5615,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 6, imageId: 702, types: ['electric', 'fairy'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 180,
   ),
   Pokemon(
     id: 703,
@@ -4921,6 +5623,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 6, imageId: 703, types: ['rock', 'fairy'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 60,
   ),
   Pokemon(
     id: 704,
@@ -4928,6 +5631,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 6, imageId: 704, types: ['dragon'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 705,
@@ -4935,6 +5639,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 6, imageId: 705, types: ['dragon'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'hisui', formType: 'regional', minGen: 8, imageId: 10241, types: ['steel', 'dragon'], exclusiveRegions: ['hisui_regional'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 706,
@@ -4942,6 +5647,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 6, imageId: 706, types: ['dragon'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'hisui', formType: 'regional', minGen: 8, imageId: 10242, types: ['steel', 'dragon'], exclusiveRegions: ['hisui_regional'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 707,
@@ -4949,6 +5655,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 6, imageId: 707, types: ['steel', 'fairy'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 75,
   ),
   Pokemon(
     id: 708,
@@ -4956,6 +5663,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 6, imageId: 708, types: ['ghost', 'grass'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 120,
   ),
   Pokemon(
     id: 709,
@@ -4963,6 +5671,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 6, imageId: 709, types: ['ghost', 'grass'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 60,
   ),
   Pokemon(
     id: 710,
@@ -4970,6 +5679,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'average', formType: 'other', minGen: 6, imageId: 710, types: ['ghost', 'grass'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'small', formType: 'other', minGen: 6, imageId: 10027, types: ['ghost', 'grass'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'large', formType: 'other', minGen: 6, imageId: 10028, types: ['ghost', 'grass'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'super', formType: 'other', minGen: 6, imageId: 10029, types: ['ghost', 'grass'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 120,
   ),
   Pokemon(
     id: 711,
@@ -4977,6 +5687,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'average', formType: 'other', minGen: 6, imageId: 711, types: ['ghost', 'grass'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'small', formType: 'other', minGen: 6, imageId: 10030, types: ['ghost', 'grass'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'large', formType: 'other', minGen: 6, imageId: 10031, types: ['ghost', 'grass'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'super', formType: 'other', minGen: 6, imageId: 10032, types: ['ghost', 'grass'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 60,
   ),
   Pokemon(
     id: 712,
@@ -4984,6 +5695,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 6, imageId: 712, types: ['ice'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 190,
   ),
   Pokemon(
     id: 713,
@@ -4991,6 +5703,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 6, imageId: 713, types: ['ice'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'hisui', formType: 'regional', minGen: 8, imageId: 10243, types: ['ice', 'rock'], exclusiveRegions: ['hisui_regional'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 55,
   ),
   Pokemon(
     id: 714,
@@ -4998,6 +5711,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 6, imageId: 714, types: ['flying', 'dragon'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 190,
   ),
   Pokemon(
     id: 715,
@@ -5005,6 +5719,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 6, imageId: 715, types: ['flying', 'dragon'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 716,
@@ -5012,6 +5727,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'active', formType: 'other', minGen: 6, imageId: 716, types: ['fairy'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'neutral', formType: 'other', minGen: 6, imageId: 716, types: ['fairy'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 717,
@@ -5019,6 +5735,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 6, imageId: 717, types: ['dark', 'flying'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 718,
@@ -5026,6 +5743,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: '50', formType: 'other', minGen: 6, imageId: 718, types: ['dragon', 'ground'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: '10-power-construct', formType: 'other', minGen: 7, imageId: 10118, types: ['dragon', 'ground'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: '50-power-construct', formType: 'other', minGen: 7, imageId: 10119, types: ['dragon', 'ground'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'complete', formType: 'other', minGen: 7, imageId: 10120, types: ['dragon', 'ground'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: '10', formType: 'other', minGen: 7, imageId: 10181, types: ['dragon', 'ground'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 9, imageId: 10301, types: ['dragon', 'ground'], exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'lumiose_dimensions_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 3,
   ),
   Pokemon(
     id: 719,
@@ -5033,6 +5751,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 6, imageId: 719, types: ['rock', 'fairy'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 6, imageId: 10075, types: ['rock', 'fairy'], exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'lumiose_dimensions_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 3,
   ),
   Pokemon(
     id: 720,
@@ -5040,6 +5759,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 6, imageId: 720, types: ['psychic', 'ghost'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'unbound', formType: 'other', minGen: 6, imageId: 10086, types: ['psychic', 'dark'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 3,
   ),
   Pokemon(
     id: 721,
@@ -5047,6 +5767,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 6, imageId: 721, types: ['fire', 'water'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 3,
   ),
   Pokemon(
     id: 722,
@@ -5054,6 +5775,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 7, imageId: 722, types: ['grass', 'flying'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 723,
@@ -5061,6 +5783,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 7, imageId: 723, types: ['grass', 'flying'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 724,
@@ -5068,6 +5791,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 7, imageId: 724, types: ['grass', 'ghost'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'hisui', formType: 'regional', minGen: 8, imageId: 10244, types: ['grass', 'fighting'], exclusiveRegions: ['hisui_regional'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 725,
@@ -5075,6 +5799,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 7, imageId: 725, types: ['fire'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 726,
@@ -5082,6 +5807,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 7, imageId: 726, types: ['fire'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 727,
@@ -5089,6 +5815,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 7, imageId: 727, types: ['fire', 'dark'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 728,
@@ -5096,6 +5823,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 7, imageId: 728, types: ['water'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 729,
@@ -5103,6 +5831,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 7, imageId: 729, types: ['water'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 730,
@@ -5110,6 +5839,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 7, imageId: 730, types: ['water', 'fairy'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 731,
@@ -5117,6 +5847,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 7, imageId: 731, types: ['normal', 'flying'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 255,
   ),
   Pokemon(
     id: 732,
@@ -5124,6 +5855,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 7, imageId: 732, types: ['normal', 'flying'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 120,
   ),
   Pokemon(
     id: 733,
@@ -5131,6 +5863,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 7, imageId: 733, types: ['normal', 'flying'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 734,
@@ -5138,6 +5871,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 7, imageId: 734, types: ['normal'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 255,
   ),
   Pokemon(
     id: 735,
@@ -5145,6 +5879,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 7, imageId: 735, types: ['normal'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'totem', formType: 'other', minGen: 7, imageId: 10121, types: ['normal'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 127,
   ),
   Pokemon(
     id: 736,
@@ -5152,6 +5887,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 7, imageId: 736, types: ['bug'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 255,
   ),
   Pokemon(
     id: 737,
@@ -5159,6 +5895,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 7, imageId: 737, types: ['bug', 'electric'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 120,
   ),
   Pokemon(
     id: 738,
@@ -5166,6 +5903,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 7, imageId: 738, types: ['bug', 'electric'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'totem', formType: 'other', minGen: 7, imageId: 10122, types: ['bug', 'electric'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 739,
@@ -5173,6 +5911,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 7, imageId: 739, types: ['fighting'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 225,
   ),
   Pokemon(
     id: 740,
@@ -5180,6 +5919,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 7, imageId: 740, types: ['fighting', 'ice'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 9, imageId: 10315, types: ['fighting', 'ice'], exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'lumiose_dimensions_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 60,
   ),
   Pokemon(
     id: 741,
@@ -5187,6 +5927,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'baile', formType: 'other', minGen: 7, imageId: 741, types: ['fire', 'flying'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'pom-pom', formType: 'other', minGen: 7, imageId: 10123, types: ['electric', 'flying'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'pau', formType: 'other', minGen: 7, imageId: 10124, types: ['psychic', 'flying'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'sensu', formType: 'other', minGen: 7, imageId: 10125, types: ['ghost', 'flying'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 742,
@@ -5194,6 +5935,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 7, imageId: 742, types: ['bug', 'fairy'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 190,
   ),
   Pokemon(
     id: 743,
@@ -5201,6 +5943,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 7, imageId: 743, types: ['bug', 'fairy'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'totem', formType: 'other', minGen: 7, imageId: 10150, types: ['bug', 'fairy'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 75,
   ),
   Pokemon(
     id: 744,
@@ -5208,6 +5951,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 7, imageId: 744, types: ['rock'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'own-tempo', formType: 'other', minGen: 7, imageId: 10151, types: ['rock'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 190,
   ),
   Pokemon(
     id: 745,
@@ -5215,6 +5959,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'midday', formType: 'other', minGen: 7, imageId: 745, types: ['rock'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'midnight', formType: 'other', minGen: 7, imageId: 10126, types: ['rock'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'dusk', formType: 'other', minGen: 7, imageId: 10152, types: ['rock'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 90,
   ),
   Pokemon(
     id: 746,
@@ -5222,6 +5967,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'solo', formType: 'other', minGen: 7, imageId: 746, types: ['water'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'school', formType: 'other', minGen: 7, imageId: 10127, types: ['water'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 60,
   ),
   Pokemon(
     id: 747,
@@ -5229,6 +5975,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 7, imageId: 747, types: ['poison', 'water'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 190,
   ),
   Pokemon(
     id: 748,
@@ -5236,6 +5983,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 7, imageId: 748, types: ['poison', 'water'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 75,
   ),
   Pokemon(
     id: 749,
@@ -5243,6 +5991,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 7, imageId: 749, types: ['ground'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 190,
   ),
   Pokemon(
     id: 750,
@@ -5250,6 +5999,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 7, imageId: 750, types: ['ground'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 60,
   ),
   Pokemon(
     id: 751,
@@ -5257,6 +6007,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 7, imageId: 751, types: ['water', 'bug'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 200,
   ),
   Pokemon(
     id: 752,
@@ -5264,6 +6015,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 7, imageId: 752, types: ['water', 'bug'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'totem', formType: 'other', minGen: 7, imageId: 10153, types: ['water', 'bug'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 100,
   ),
   Pokemon(
     id: 753,
@@ -5271,6 +6023,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 7, imageId: 753, types: ['grass'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 190,
   ),
   Pokemon(
     id: 754,
@@ -5278,6 +6031,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 7, imageId: 754, types: ['grass'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'totem', formType: 'other', minGen: 7, imageId: 10128, types: ['grass'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 75,
   ),
   Pokemon(
     id: 755,
@@ -5285,6 +6039,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 7, imageId: 755, types: ['grass', 'fairy'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 190,
   ),
   Pokemon(
     id: 756,
@@ -5292,6 +6047,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 7, imageId: 756, types: ['grass', 'fairy'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 75,
   ),
   Pokemon(
     id: 757,
@@ -5299,6 +6055,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 7, imageId: 757, types: ['poison', 'fire'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 120,
   ),
   Pokemon(
     id: 758,
@@ -5306,6 +6063,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 7, imageId: 758, types: ['poison', 'fire'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'totem', formType: 'other', minGen: 7, imageId: 10129, types: ['poison', 'fire'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 759,
@@ -5313,6 +6071,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 7, imageId: 759, types: ['normal', 'fighting'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 140,
   ),
   Pokemon(
     id: 760,
@@ -5320,6 +6079,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 7, imageId: 760, types: ['normal', 'fighting'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 70,
   ),
   Pokemon(
     id: 761,
@@ -5327,6 +6087,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 7, imageId: 761, types: ['grass'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 235,
   ),
   Pokemon(
     id: 762,
@@ -5334,6 +6095,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 7, imageId: 762, types: ['grass'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 120,
   ),
   Pokemon(
     id: 763,
@@ -5341,6 +6103,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 7, imageId: 763, types: ['grass'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 764,
@@ -5348,6 +6111,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 7, imageId: 764, types: ['fairy'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 60,
   ),
   Pokemon(
     id: 765,
@@ -5355,6 +6119,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 7, imageId: 765, types: ['normal', 'psychic'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 766,
@@ -5362,6 +6127,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 7, imageId: 766, types: ['fighting'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 767,
@@ -5369,6 +6135,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 7, imageId: 767, types: ['bug', 'water'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 90,
   ),
   Pokemon(
     id: 768,
@@ -5376,6 +6143,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 7, imageId: 768, types: ['bug', 'water'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 9, imageId: 10316, types: ['bug', 'steel'], exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'lumiose_dimensions_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 769,
@@ -5383,6 +6151,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 7, imageId: 769, types: ['ghost', 'ground'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 140,
   ),
   Pokemon(
     id: 770,
@@ -5390,6 +6159,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 7, imageId: 770, types: ['ghost', 'ground'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 60,
   ),
   Pokemon(
     id: 771,
@@ -5397,6 +6167,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 7, imageId: 771, types: ['water'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 60,
   ),
   Pokemon(
     id: 772,
@@ -5404,6 +6175,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 7, imageId: 772, types: ['normal'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 3,
   ),
   Pokemon(
     id: 773,
@@ -5411,6 +6183,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 7, imageId: 773, types: ['normal'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'fighting', formType: 'other', minGen: 7, imageId: 773, types: ['fighting'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'flying', formType: 'other', minGen: 7, imageId: 773, types: ['flying'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'poison', formType: 'other', minGen: 7, imageId: 773, types: ['poison'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'ground', formType: 'other', minGen: 7, imageId: 773, types: ['ground'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'rock', formType: 'other', minGen: 7, imageId: 773, types: ['rock'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'bug', formType: 'other', minGen: 7, imageId: 773, types: ['bug'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'ghost', formType: 'other', minGen: 7, imageId: 773, types: ['ghost'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'steel', formType: 'other', minGen: 7, imageId: 773, types: ['steel'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'fire', formType: 'other', minGen: 7, imageId: 773, types: ['fire'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'water', formType: 'other', minGen: 7, imageId: 773, types: ['water'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'grass', formType: 'other', minGen: 7, imageId: 773, types: ['grass'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'electric', formType: 'other', minGen: 7, imageId: 773, types: ['electric'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'psychic', formType: 'other', minGen: 7, imageId: 773, types: ['psychic'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'ice', formType: 'other', minGen: 7, imageId: 773, types: ['ice'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'dragon', formType: 'other', minGen: 7, imageId: 773, types: ['dragon'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'dark', formType: 'other', minGen: 7, imageId: 773, types: ['dark'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'fairy', formType: 'other', minGen: 7, imageId: 773, types: ['fairy'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 3,
   ),
   Pokemon(
     id: 774,
@@ -5418,6 +6191,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'red-meteor', formType: 'other', minGen: 7, imageId: 774, types: ['rock', 'flying'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'orange-meteor', formType: 'other', minGen: 7, imageId: 10130, types: ['rock', 'flying'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'yellow-meteor', formType: 'other', minGen: 7, imageId: 10131, types: ['rock', 'flying'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'green-meteor', formType: 'other', minGen: 7, imageId: 10132, types: ['rock', 'flying'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'blue-meteor', formType: 'other', minGen: 7, imageId: 10133, types: ['rock', 'flying'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'indigo-meteor', formType: 'other', minGen: 7, imageId: 10134, types: ['rock', 'flying'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'violet-meteor', formType: 'other', minGen: 7, imageId: 10135, types: ['rock', 'flying'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'red', formType: 'other', minGen: 7, imageId: 10136, types: ['rock', 'flying'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'orange', formType: 'other', minGen: 7, imageId: 10137, types: ['rock', 'flying'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'yellow', formType: 'other', minGen: 7, imageId: 10138, types: ['rock', 'flying'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'green', formType: 'other', minGen: 7, imageId: 10139, types: ['rock', 'flying'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'blue', formType: 'other', minGen: 7, imageId: 10140, types: ['rock', 'flying'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'indigo', formType: 'other', minGen: 7, imageId: 10141, types: ['rock', 'flying'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'violet', formType: 'other', minGen: 7, imageId: 10142, types: ['rock', 'flying'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 30,
   ),
   Pokemon(
     id: 775,
@@ -5425,6 +6199,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 7, imageId: 775, types: ['normal'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 776,
@@ -5432,6 +6207,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 7, imageId: 776, types: ['fire', 'dragon'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 70,
   ),
   Pokemon(
     id: 777,
@@ -5439,6 +6215,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 7, imageId: 777, types: ['electric', 'steel'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'totem', formType: 'other', minGen: 7, imageId: 10154, types: ['electric', 'steel'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 180,
   ),
   Pokemon(
     id: 778,
@@ -5446,6 +6223,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'disguised', formType: 'other', minGen: 7, imageId: 778, types: ['ghost', 'fairy'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'busted', formType: 'other', minGen: 7, imageId: 10143, types: ['ghost', 'fairy'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'totem-disguised', formType: 'other', minGen: 7, imageId: 10144, types: ['ghost', 'fairy'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'totem-busted', formType: 'other', minGen: 7, imageId: 10145, types: ['ghost', 'fairy'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 779,
@@ -5453,6 +6231,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 7, imageId: 779, types: ['water', 'psychic'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 80,
   ),
   Pokemon(
     id: 780,
@@ -5460,6 +6239,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 7, imageId: 780, types: ['normal', 'dragon'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 9, imageId: 10302, types: ['normal', 'dragon'], exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'lumiose_dimensions_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 70,
   ),
   Pokemon(
     id: 781,
@@ -5467,6 +6247,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 7, imageId: 781, types: ['ghost', 'grass'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 25,
   ),
   Pokemon(
     id: 782,
@@ -5474,6 +6255,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 7, imageId: 782, types: ['dragon'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 783,
@@ -5481,6 +6263,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 7, imageId: 783, types: ['dragon', 'fighting'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 784,
@@ -5488,6 +6271,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 7, imageId: 784, types: ['dragon', 'fighting'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'totem', formType: 'other', minGen: 7, imageId: 10146, types: ['dragon', 'fighting'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 785,
@@ -5495,6 +6279,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 7, imageId: 785, types: ['electric', 'fairy'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 3,
   ),
   Pokemon(
     id: 786,
@@ -5502,6 +6287,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 7, imageId: 786, types: ['psychic', 'fairy'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 3,
   ),
   Pokemon(
     id: 787,
@@ -5509,6 +6295,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 7, imageId: 787, types: ['grass', 'fairy'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 3,
   ),
   Pokemon(
     id: 788,
@@ -5516,6 +6303,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 7, imageId: 788, types: ['water', 'fairy'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 3,
   ),
   Pokemon(
     id: 789,
@@ -5523,6 +6311,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 7, imageId: 789, types: ['psychic'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 790,
@@ -5530,6 +6319,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 7, imageId: 790, types: ['psychic'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 791,
@@ -5537,6 +6327,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 7, imageId: 791, types: ['psychic', 'steel'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 792,
@@ -5544,6 +6335,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 7, imageId: 792, types: ['psychic', 'ghost'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 793,
@@ -5551,6 +6343,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 7, imageId: 793, types: ['rock', 'poison'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 794,
@@ -5558,6 +6351,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 7, imageId: 794, types: ['bug', 'fighting'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 795,
@@ -5565,6 +6359,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 7, imageId: 795, types: ['bug', 'fighting'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 796,
@@ -5572,6 +6367,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 7, imageId: 796, types: ['electric'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 797,
@@ -5579,6 +6375,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 7, imageId: 797, types: ['steel', 'flying'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 798,
@@ -5586,6 +6383,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 7, imageId: 798, types: ['grass', 'steel'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 799,
@@ -5593,6 +6391,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 7, imageId: 799, types: ['dark', 'dragon'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 800,
@@ -5600,6 +6399,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 7, imageId: 800, types: ['psychic'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'dusk', formType: 'other', minGen: 7, imageId: 10155, types: ['psychic', 'steel'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'dawn', formType: 'other', minGen: 7, imageId: 10156, types: ['psychic', 'ghost'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'ultra', formType: 'other', minGen: 7, imageId: 10157, types: ['psychic', 'dragon'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 255,
   ),
   Pokemon(
     id: 801,
@@ -5607,6 +6407,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 7, imageId: 801, types: ['steel', 'fairy'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'original', formType: 'other', minGen: 7, imageId: 10147, types: ['steel', 'fairy'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 9, imageId: 10317, types: ['steel', 'fairy'], exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'lumiose_dimensions_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null), PokemonForm(name: 'original-mega', formType: 'mega', minGen: 9, imageId: 10318, types: ['steel', 'fairy'], exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'lumiose_dimensions_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 3,
   ),
   Pokemon(
     id: 802,
@@ -5614,6 +6415,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 7, imageId: 802, types: ['fighting', 'ghost'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 3,
   ),
   Pokemon(
     id: 803,
@@ -5621,6 +6423,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 7, imageId: 803, types: ['poison'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 804,
@@ -5628,6 +6431,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 7, imageId: 804, types: ['poison', 'dragon'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 805,
@@ -5635,6 +6439,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 7, imageId: 805, types: ['rock', 'steel'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 30,
   ),
   Pokemon(
     id: 806,
@@ -5642,6 +6447,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 7, imageId: 806, types: ['fire', 'ghost'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 30,
   ),
   Pokemon(
     id: 807,
@@ -5649,6 +6455,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 7, imageId: 807, types: ['electric'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 9, imageId: 10319, types: ['electric'], exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'lumiose_dimensions_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 3,
   ),
   Pokemon(
     id: 808,
@@ -5656,6 +6463,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 7, imageId: 808, types: ['steel'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 3,
   ),
   Pokemon(
     id: 809,
@@ -5663,6 +6471,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 7, imageId: 809, types: ['steel'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'gmax', formType: 'gmax', minGen: 8, imageId: 10208, types: ['steel'], exclusiveRegions: ['galar_regional', 'isle_of_armor_regional', 'crown_tundra_regional'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 3,
   ),
   Pokemon(
     id: 810,
@@ -5670,6 +6479,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 8, imageId: 810, types: ['grass'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 811,
@@ -5677,6 +6487,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 8, imageId: 811, types: ['grass'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 812,
@@ -5684,6 +6495,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 8, imageId: 812, types: ['grass'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'gmax', formType: 'gmax', minGen: 8, imageId: 10209, types: ['grass'], exclusiveRegions: ['galar_regional', 'isle_of_armor_regional', 'crown_tundra_regional'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 813,
@@ -5691,6 +6503,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 8, imageId: 813, types: ['fire'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 814,
@@ -5698,6 +6511,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 8, imageId: 814, types: ['fire'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 815,
@@ -5705,6 +6519,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 8, imageId: 815, types: ['fire'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'gmax', formType: 'gmax', minGen: 8, imageId: 10210, types: ['fire'], exclusiveRegions: ['galar_regional', 'isle_of_armor_regional', 'crown_tundra_regional'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 816,
@@ -5712,6 +6527,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 8, imageId: 816, types: ['water'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 817,
@@ -5719,6 +6535,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 8, imageId: 817, types: ['water'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 818,
@@ -5726,6 +6543,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 8, imageId: 818, types: ['water'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'gmax', formType: 'gmax', minGen: 8, imageId: 10211, types: ['water'], exclusiveRegions: ['galar_regional', 'isle_of_armor_regional', 'crown_tundra_regional'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 819,
@@ -5733,6 +6551,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 8, imageId: 819, types: ['normal'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 255,
   ),
   Pokemon(
     id: 820,
@@ -5740,6 +6559,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 8, imageId: 820, types: ['normal'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 90,
   ),
   Pokemon(
     id: 821,
@@ -5747,6 +6567,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 8, imageId: 821, types: ['flying'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 255,
   ),
   Pokemon(
     id: 822,
@@ -5754,6 +6575,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 8, imageId: 822, types: ['flying'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 120,
   ),
   Pokemon(
     id: 823,
@@ -5761,6 +6583,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 8, imageId: 823, types: ['flying', 'steel'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'gmax', formType: 'gmax', minGen: 8, imageId: 10212, types: ['flying', 'steel'], exclusiveRegions: ['galar_regional', 'isle_of_armor_regional', 'crown_tundra_regional'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 824,
@@ -5768,6 +6591,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 8, imageId: 824, types: ['bug'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 255,
   ),
   Pokemon(
     id: 825,
@@ -5775,6 +6599,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 8, imageId: 825, types: ['bug', 'psychic'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 120,
   ),
   Pokemon(
     id: 826,
@@ -5782,6 +6607,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 8, imageId: 826, types: ['bug', 'psychic'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'gmax', formType: 'gmax', minGen: 8, imageId: 10213, types: ['bug', 'psychic'], exclusiveRegions: ['galar_regional', 'isle_of_armor_regional', 'crown_tundra_regional'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 827,
@@ -5789,6 +6615,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 8, imageId: 827, types: ['dark'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 255,
   ),
   Pokemon(
     id: 828,
@@ -5796,6 +6623,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 8, imageId: 828, types: ['dark'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 127,
   ),
   Pokemon(
     id: 829,
@@ -5803,6 +6631,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 8, imageId: 829, types: ['grass'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 190,
   ),
   Pokemon(
     id: 830,
@@ -5810,6 +6639,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 8, imageId: 830, types: ['grass'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 75,
   ),
   Pokemon(
     id: 831,
@@ -5817,6 +6647,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 8, imageId: 831, types: ['normal'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 255,
   ),
   Pokemon(
     id: 832,
@@ -5824,6 +6655,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 8, imageId: 832, types: ['normal'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 127,
   ),
   Pokemon(
     id: 833,
@@ -5831,6 +6663,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 8, imageId: 833, types: ['water'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 255,
   ),
   Pokemon(
     id: 834,
@@ -5838,6 +6671,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 8, imageId: 834, types: ['water', 'rock'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'gmax', formType: 'gmax', minGen: 8, imageId: 10214, types: ['water', 'rock'], exclusiveRegions: ['galar_regional', 'isle_of_armor_regional', 'crown_tundra_regional'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 75,
   ),
   Pokemon(
     id: 835,
@@ -5845,6 +6679,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 8, imageId: 835, types: ['electric'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 255,
   ),
   Pokemon(
     id: 836,
@@ -5852,6 +6687,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 8, imageId: 836, types: ['electric'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 837,
@@ -5859,6 +6695,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 8, imageId: 837, types: ['rock'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 255,
   ),
   Pokemon(
     id: 838,
@@ -5866,6 +6703,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 8, imageId: 838, types: ['rock', 'fire'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 120,
   ),
   Pokemon(
     id: 839,
@@ -5873,6 +6711,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 8, imageId: 839, types: ['rock', 'fire'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'gmax', formType: 'gmax', minGen: 8, imageId: 10215, types: ['rock', 'fire'], exclusiveRegions: ['galar_regional', 'isle_of_armor_regional', 'crown_tundra_regional'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 840,
@@ -5880,6 +6719,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 8, imageId: 840, types: ['grass', 'dragon'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 255,
   ),
   Pokemon(
     id: 841,
@@ -5887,6 +6727,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 8, imageId: 841, types: ['grass', 'dragon'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'gmax', formType: 'gmax', minGen: 8, imageId: 10216, types: ['grass', 'dragon'], exclusiveRegions: ['galar_regional', 'isle_of_armor_regional', 'crown_tundra_regional'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 842,
@@ -5894,6 +6735,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 8, imageId: 842, types: ['grass', 'dragon'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'gmax', formType: 'gmax', minGen: 8, imageId: 10217, types: ['grass', 'dragon'], exclusiveRegions: ['galar_regional', 'isle_of_armor_regional', 'crown_tundra_regional'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 843,
@@ -5901,6 +6743,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 8, imageId: 843, types: ['ground'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 255,
   ),
   Pokemon(
     id: 844,
@@ -5908,6 +6751,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 8, imageId: 844, types: ['ground'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'gmax', formType: 'gmax', minGen: 8, imageId: 10218, types: ['ground'], exclusiveRegions: ['galar_regional', 'isle_of_armor_regional', 'crown_tundra_regional'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 120,
   ),
   Pokemon(
     id: 845,
@@ -5915,6 +6759,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 8, imageId: 845, types: ['flying', 'water'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'gulping', formType: 'other', minGen: 8, imageId: 10182, types: ['flying', 'water'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'gorging', formType: 'other', minGen: 8, imageId: 10183, types: ['flying', 'water'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 846,
@@ -5922,6 +6767,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 8, imageId: 846, types: ['water'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 255,
   ),
   Pokemon(
     id: 847,
@@ -5929,6 +6775,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 8, imageId: 847, types: ['water'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 60,
   ),
   Pokemon(
     id: 848,
@@ -5936,6 +6783,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 8, imageId: 848, types: ['electric', 'poison'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 75,
   ),
   Pokemon(
     id: 849,
@@ -5943,6 +6791,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'amped', formType: 'other', minGen: 8, imageId: 849, types: ['electric', 'poison'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'low-key', formType: 'other', minGen: 8, imageId: 10184, types: ['electric', 'poison'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'amped-gmax', formType: 'gmax', minGen: 8, imageId: 10219, types: ['electric', 'poison'], exclusiveRegions: ['galar_regional', 'isle_of_armor_regional', 'crown_tundra_regional'], extraInfo: null), PokemonForm(name: 'low-key-gmax', formType: 'gmax', minGen: 8, imageId: 10228, types: ['electric', 'poison'], exclusiveRegions: ['galar_regional', 'isle_of_armor_regional', 'crown_tundra_regional'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 850,
@@ -5950,6 +6799,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 8, imageId: 850, types: ['fire', 'bug'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 190,
   ),
   Pokemon(
     id: 851,
@@ -5957,6 +6807,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 8, imageId: 851, types: ['fire', 'bug'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'gmax', formType: 'gmax', minGen: 8, imageId: 10220, types: ['fire', 'bug'], exclusiveRegions: ['galar_regional', 'isle_of_armor_regional', 'crown_tundra_regional'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 75,
   ),
   Pokemon(
     id: 852,
@@ -5964,6 +6815,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 8, imageId: 852, types: ['fighting'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 180,
   ),
   Pokemon(
     id: 853,
@@ -5971,6 +6823,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 8, imageId: 853, types: ['fighting'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 854,
@@ -5978,6 +6831,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'phony', formType: 'other', minGen: 8, imageId: 854, types: ['ghost'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'antique', formType: 'other', minGen: 8, imageId: 854, types: ['ghost'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 120,
   ),
   Pokemon(
     id: 855,
@@ -5985,6 +6839,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'phony', formType: 'other', minGen: 8, imageId: 855, types: ['ghost'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'antique', formType: 'other', minGen: 8, imageId: 855, types: ['ghost'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 60,
   ),
   Pokemon(
     id: 856,
@@ -5992,6 +6847,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 8, imageId: 856, types: ['psychic'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 235,
   ),
   Pokemon(
     id: 857,
@@ -5999,6 +6855,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 8, imageId: 857, types: ['psychic'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 120,
   ),
   Pokemon(
     id: 858,
@@ -6006,6 +6863,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 8, imageId: 858, types: ['psychic', 'fairy'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'gmax', formType: 'gmax', minGen: 8, imageId: 10221, types: ['psychic', 'fairy'], exclusiveRegions: ['galar_regional', 'isle_of_armor_regional', 'crown_tundra_regional'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 859,
@@ -6013,6 +6871,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 8, imageId: 859, types: ['dark', 'fairy'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 255,
   ),
   Pokemon(
     id: 860,
@@ -6020,6 +6879,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 8, imageId: 860, types: ['dark', 'fairy'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 120,
   ),
   Pokemon(
     id: 861,
@@ -6027,6 +6887,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 8, imageId: 861, types: ['dark', 'fairy'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'gmax', formType: 'gmax', minGen: 8, imageId: 10222, types: ['dark', 'fairy'], exclusiveRegions: ['galar_regional', 'isle_of_armor_regional', 'crown_tundra_regional'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 862,
@@ -6034,6 +6895,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 8, imageId: 862, types: ['dark', 'normal'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 863,
@@ -6041,6 +6903,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 8, imageId: 863, types: ['steel'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 90,
   ),
   Pokemon(
     id: 864,
@@ -6048,6 +6911,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 8, imageId: 864, types: ['ghost'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 30,
   ),
   Pokemon(
     id: 865,
@@ -6055,6 +6919,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 8, imageId: 865, types: ['fighting'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 866,
@@ -6062,6 +6927,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 8, imageId: 866, types: ['ice', 'psychic'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 867,
@@ -6069,6 +6935,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 8, imageId: 867, types: ['ground', 'ghost'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 90,
   ),
   Pokemon(
     id: 868,
@@ -6076,6 +6943,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 8, imageId: 868, types: ['fairy'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 200,
   ),
   Pokemon(
     id: 869,
@@ -6083,6 +6951,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'vanilla-cream-strawberry-sweet', formType: 'other', minGen: 8, imageId: 869, types: ['fairy'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'ruby-cream-strawberry-sweet', formType: 'other', minGen: 8, imageId: 869, types: ['fairy'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'matcha-cream-strawberry-sweet', formType: 'other', minGen: 8, imageId: 869, types: ['fairy'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mint-cream-strawberry-sweet', formType: 'other', minGen: 8, imageId: 869, types: ['fairy'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'lemon-cream-strawberry-sweet', formType: 'other', minGen: 8, imageId: 869, types: ['fairy'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'salted-cream-strawberry-sweet', formType: 'other', minGen: 8, imageId: 869, types: ['fairy'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'ruby-swirl-strawberry-sweet', formType: 'other', minGen: 8, imageId: 869, types: ['fairy'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'caramel-swirl-strawberry-sweet', formType: 'other', minGen: 8, imageId: 869, types: ['fairy'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'rainbow-swirl-strawberry-sweet', formType: 'other', minGen: 8, imageId: 869, types: ['fairy'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'vanilla-cream-berry-sweet', formType: 'other', minGen: 8, imageId: 869, types: ['fairy'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'ruby-cream-berry-sweet', formType: 'other', minGen: 8, imageId: 869, types: ['fairy'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'matcha-cream-berry-sweet', formType: 'other', minGen: 8, imageId: 869, types: ['fairy'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mint-cream-berry-sweet', formType: 'other', minGen: 8, imageId: 869, types: ['fairy'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'lemon-cream-berry-sweet', formType: 'other', minGen: 8, imageId: 869, types: ['fairy'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'salted-cream-berry-sweet', formType: 'other', minGen: 8, imageId: 869, types: ['fairy'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'ruby-swirl-berry-sweet', formType: 'other', minGen: 8, imageId: 869, types: ['fairy'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'caramel-swirl-berry-sweet', formType: 'other', minGen: 8, imageId: 869, types: ['fairy'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'rainbow-swirl-berry-sweet', formType: 'other', minGen: 8, imageId: 869, types: ['fairy'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'vanilla-cream-love-sweet', formType: 'other', minGen: 8, imageId: 869, types: ['fairy'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'ruby-cream-love-sweet', formType: 'other', minGen: 8, imageId: 869, types: ['fairy'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'matcha-cream-love-sweet', formType: 'other', minGen: 8, imageId: 869, types: ['fairy'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mint-cream-love-sweet', formType: 'other', minGen: 8, imageId: 869, types: ['fairy'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'lemon-cream-love-sweet', formType: 'other', minGen: 8, imageId: 869, types: ['fairy'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'salted-cream-love-sweet', formType: 'other', minGen: 8, imageId: 869, types: ['fairy'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'ruby-swirl-love-sweet', formType: 'other', minGen: 8, imageId: 869, types: ['fairy'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'caramel-swirl-love-sweet', formType: 'other', minGen: 8, imageId: 869, types: ['fairy'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'rainbow-swirl-love-sweet', formType: 'other', minGen: 8, imageId: 869, types: ['fairy'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'vanilla-cream-star-sweet', formType: 'other', minGen: 8, imageId: 869, types: ['fairy'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'ruby-cream-star-sweet', formType: 'other', minGen: 8, imageId: 869, types: ['fairy'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'matcha-cream-star-sweet', formType: 'other', minGen: 8, imageId: 869, types: ['fairy'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mint-cream-star-sweet', formType: 'other', minGen: 8, imageId: 869, types: ['fairy'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'lemon-cream-star-sweet', formType: 'other', minGen: 8, imageId: 869, types: ['fairy'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'salted-cream-star-sweet', formType: 'other', minGen: 8, imageId: 869, types: ['fairy'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'ruby-swirl-star-sweet', formType: 'other', minGen: 8, imageId: 869, types: ['fairy'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'caramel-swirl-star-sweet', formType: 'other', minGen: 8, imageId: 869, types: ['fairy'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'rainbow-swirl-star-sweet', formType: 'other', minGen: 8, imageId: 869, types: ['fairy'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'vanilla-cream-clover-sweet', formType: 'other', minGen: 8, imageId: 869, types: ['fairy'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'ruby-cream-clover-sweet', formType: 'other', minGen: 8, imageId: 869, types: ['fairy'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'matcha-cream-clover-sweet', formType: 'other', minGen: 8, imageId: 869, types: ['fairy'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mint-cream-clover-sweet', formType: 'other', minGen: 8, imageId: 869, types: ['fairy'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'lemon-cream-clover-sweet', formType: 'other', minGen: 8, imageId: 869, types: ['fairy'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'salted-cream-clover-sweet', formType: 'other', minGen: 8, imageId: 869, types: ['fairy'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'ruby-swirl-clover-sweet', formType: 'other', minGen: 8, imageId: 869, types: ['fairy'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'caramel-swirl-clover-sweet', formType: 'other', minGen: 8, imageId: 869, types: ['fairy'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'rainbow-swirl-clover-sweet', formType: 'other', minGen: 8, imageId: 869, types: ['fairy'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'vanilla-cream-flower-sweet', formType: 'other', minGen: 8, imageId: 869, types: ['fairy'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'ruby-cream-flower-sweet', formType: 'other', minGen: 8, imageId: 869, types: ['fairy'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'matcha-cream-flower-sweet', formType: 'other', minGen: 8, imageId: 869, types: ['fairy'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mint-cream-flower-sweet', formType: 'other', minGen: 8, imageId: 869, types: ['fairy'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'lemon-cream-flower-sweet', formType: 'other', minGen: 8, imageId: 869, types: ['fairy'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'salted-cream-flower-sweet', formType: 'other', minGen: 8, imageId: 869, types: ['fairy'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'ruby-swirl-flower-sweet', formType: 'other', minGen: 8, imageId: 869, types: ['fairy'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'caramel-swirl-flower-sweet', formType: 'other', minGen: 8, imageId: 869, types: ['fairy'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'rainbow-swirl-flower-sweet', formType: 'other', minGen: 8, imageId: 869, types: ['fairy'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'vanilla-cream-ribbon-sweet', formType: 'other', minGen: 8, imageId: 869, types: ['fairy'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'ruby-cream-ribbon-sweet', formType: 'other', minGen: 8, imageId: 869, types: ['fairy'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'matcha-cream-ribbon-sweet', formType: 'other', minGen: 8, imageId: 869, types: ['fairy'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mint-cream-ribbon-sweet', formType: 'other', minGen: 8, imageId: 869, types: ['fairy'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'lemon-cream-ribbon-sweet', formType: 'other', minGen: 8, imageId: 869, types: ['fairy'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'salted-cream-ribbon-sweet', formType: 'other', minGen: 8, imageId: 869, types: ['fairy'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'ruby-swirl-ribbon-sweet', formType: 'other', minGen: 8, imageId: 869, types: ['fairy'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'caramel-swirl-ribbon-sweet', formType: 'other', minGen: 8, imageId: 869, types: ['fairy'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'rainbow-swirl-ribbon-sweet', formType: 'other', minGen: 8, imageId: 869, types: ['fairy'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'gmax', formType: 'gmax', minGen: 8, imageId: 10223, types: ['fairy'], exclusiveRegions: ['galar_regional', 'isle_of_armor_regional', 'crown_tundra_regional'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 100,
   ),
   Pokemon(
     id: 870,
@@ -6090,6 +6959,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 8, imageId: 870, types: ['fighting'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 9, imageId: 10303, types: ['fighting'], exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'lumiose_dimensions_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 871,
@@ -6097,6 +6967,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 8, imageId: 871, types: ['electric'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 75,
   ),
   Pokemon(
     id: 872,
@@ -6104,6 +6975,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 8, imageId: 872, types: ['ice', 'bug'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 190,
   ),
   Pokemon(
     id: 873,
@@ -6111,6 +6983,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 8, imageId: 873, types: ['ice', 'bug'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 75,
   ),
   Pokemon(
     id: 874,
@@ -6118,6 +6991,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 8, imageId: 874, types: ['rock'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 60,
   ),
   Pokemon(
     id: 875,
@@ -6125,6 +6999,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'ice', formType: 'other', minGen: 8, imageId: 875, types: ['ice'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'noice', formType: 'other', minGen: 8, imageId: 10185, types: ['ice'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 60,
   ),
   Pokemon(
     id: 876,
@@ -6132,6 +7007,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: true,
     forms: const [PokemonForm(name: 'male', formType: 'other', minGen: 8, imageId: 876, types: ['psychic', 'normal'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'female', formType: 'other', minGen: 8, imageId: 10186, types: ['psychic', 'normal'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 30,
   ),
   Pokemon(
     id: 877,
@@ -6139,6 +7015,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'full-belly', formType: 'other', minGen: 8, imageId: 877, types: ['electric', 'dark'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'hangry', formType: 'other', minGen: 8, imageId: 10187, types: ['electric', 'dark'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 180,
   ),
   Pokemon(
     id: 878,
@@ -6146,6 +7023,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 8, imageId: 878, types: ['steel'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 190,
   ),
   Pokemon(
     id: 879,
@@ -6153,6 +7031,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 8, imageId: 879, types: ['steel'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'gmax', formType: 'gmax', minGen: 8, imageId: 10224, types: ['steel'], exclusiveRegions: ['galar_regional', 'isle_of_armor_regional', 'crown_tundra_regional'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 90,
   ),
   Pokemon(
     id: 880,
@@ -6160,6 +7039,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 8, imageId: 880, types: ['electric', 'dragon'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 881,
@@ -6167,6 +7047,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 8, imageId: 881, types: ['electric', 'ice'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 882,
@@ -6174,6 +7055,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 8, imageId: 882, types: ['water', 'dragon'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 883,
@@ -6181,6 +7063,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 8, imageId: 883, types: ['water', 'ice'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 884,
@@ -6188,6 +7071,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 8, imageId: 884, types: ['steel', 'dragon'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'gmax', formType: 'gmax', minGen: 8, imageId: 10225, types: ['steel', 'dragon'], exclusiveRegions: ['galar_regional', 'isle_of_armor_regional', 'crown_tundra_regional'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 885,
@@ -6195,6 +7079,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 8, imageId: 885, types: ['dragon', 'ghost'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 886,
@@ -6202,6 +7087,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 8, imageId: 886, types: ['dragon', 'ghost'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 887,
@@ -6209,6 +7095,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 8, imageId: 887, types: ['dragon', 'ghost'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 888,
@@ -6216,6 +7103,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 8, imageId: 888, types: ['fairy'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'crowned', formType: 'other', minGen: 8, imageId: 10188, types: ['fairy', 'steel'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 10,
   ),
   Pokemon(
     id: 889,
@@ -6223,6 +7111,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 8, imageId: 889, types: ['fighting'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'crowned', formType: 'other', minGen: 8, imageId: 10189, types: ['fighting', 'steel'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 10,
   ),
   Pokemon(
     id: 890,
@@ -6230,6 +7119,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 8, imageId: 890, types: ['poison', 'dragon'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'eternamax', formType: 'other', minGen: 8, imageId: 10190, types: ['poison', 'dragon'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 255,
   ),
   Pokemon(
     id: 891,
@@ -6237,6 +7127,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 8, imageId: 891, types: ['fighting'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 3,
   ),
   Pokemon(
     id: 892,
@@ -6244,6 +7135,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'single-strike', formType: 'other', minGen: 8, imageId: 892, types: ['fighting', 'dark'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'rapid-strike', formType: 'other', minGen: 8, imageId: 10191, types: ['fighting', 'water'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'single-strike-gmax', formType: 'gmax', minGen: 8, imageId: 10226, types: ['fighting', 'dark'], exclusiveRegions: ['galar_regional', 'isle_of_armor_regional', 'crown_tundra_regional'], extraInfo: null), PokemonForm(name: 'rapid-strike-gmax', formType: 'gmax', minGen: 8, imageId: 10227, types: ['fighting', 'water'], exclusiveRegions: ['galar_regional', 'isle_of_armor_regional', 'crown_tundra_regional'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 3,
   ),
   Pokemon(
     id: 893,
@@ -6251,6 +7143,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 8, imageId: 893, types: ['dark', 'grass'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'dada', formType: 'other', minGen: 8, imageId: 10192, types: ['dark', 'grass'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 3,
   ),
   Pokemon(
     id: 894,
@@ -6258,6 +7151,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 8, imageId: 894, types: ['electric'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 3,
   ),
   Pokemon(
     id: 895,
@@ -6265,6 +7159,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 8, imageId: 895, types: ['dragon'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 3,
   ),
   Pokemon(
     id: 896,
@@ -6272,6 +7167,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 8, imageId: 896, types: ['ice'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 3,
   ),
   Pokemon(
     id: 897,
@@ -6279,6 +7175,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 8, imageId: 897, types: ['ghost'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 3,
   ),
   Pokemon(
     id: 898,
@@ -6286,6 +7183,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 8, imageId: 898, types: ['psychic', 'grass'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'ice', formType: 'other', minGen: 8, imageId: 10193, types: ['psychic', 'ice'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'shadow', formType: 'other', minGen: 8, imageId: 10194, types: ['psychic', 'ghost'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 3,
   ),
   Pokemon(
     id: 899,
@@ -6293,6 +7191,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 8, imageId: 899, types: ['normal', 'psychic'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 135,
   ),
   Pokemon(
     id: 900,
@@ -6300,6 +7199,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 8, imageId: 900, types: ['bug', 'rock'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 115,
   ),
   Pokemon(
     id: 901,
@@ -6307,6 +7207,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 8, imageId: 901, types: ['ground', 'normal'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'bloodmoon', formType: 'other', minGen: 9, imageId: 10272, types: ['ground', 'normal'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 75,
   ),
   Pokemon(
     id: 902,
@@ -6314,6 +7215,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: true,
     forms: const [PokemonForm(name: 'male', formType: 'other', minGen: 8, imageId: 902, types: ['water', 'ghost'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'female', formType: 'other', minGen: 8, imageId: 10248, types: ['water', 'ghost'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 135,
   ),
   Pokemon(
     id: 903,
@@ -6321,6 +7223,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 8, imageId: 903, types: ['fighting', 'poison'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 135,
   ),
   Pokemon(
     id: 904,
@@ -6328,6 +7231,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 8, imageId: 904, types: ['dark', 'poison'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 135,
   ),
   Pokemon(
     id: 905,
@@ -6335,6 +7239,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'incarnate', formType: 'other', minGen: 8, imageId: 905, types: ['fairy', 'flying'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'therian', formType: 'other', minGen: 8, imageId: 10249, types: ['fairy', 'flying'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 3,
   ),
   Pokemon(
     id: 906,
@@ -6342,6 +7247,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 9, imageId: 906, types: ['grass'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 907,
@@ -6349,6 +7255,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 9, imageId: 907, types: ['grass'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 908,
@@ -6356,6 +7263,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 9, imageId: 908, types: ['grass', 'dark'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 909,
@@ -6363,6 +7271,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 9, imageId: 909, types: ['fire'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 910,
@@ -6370,6 +7279,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 9, imageId: 910, types: ['fire'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 911,
@@ -6377,6 +7287,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 9, imageId: 911, types: ['fire', 'ghost'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 912,
@@ -6384,6 +7295,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 9, imageId: 912, types: ['water'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 913,
@@ -6391,6 +7303,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 9, imageId: 913, types: ['water'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 914,
@@ -6398,6 +7311,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 9, imageId: 914, types: ['water', 'fighting'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 915,
@@ -6405,6 +7319,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 9, imageId: 915, types: ['normal'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 255,
   ),
   Pokemon(
     id: 916,
@@ -6412,6 +7327,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: true,
     forms: const [PokemonForm(name: 'male', formType: 'other', minGen: 9, imageId: 916, types: ['normal'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'female', formType: 'other', minGen: 9, imageId: 10254, types: ['normal'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 100,
   ),
   Pokemon(
     id: 917,
@@ -6419,6 +7335,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 9, imageId: 917, types: ['bug'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 255,
   ),
   Pokemon(
     id: 918,
@@ -6426,6 +7343,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 9, imageId: 918, types: ['bug'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 120,
   ),
   Pokemon(
     id: 919,
@@ -6433,6 +7351,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 9, imageId: 919, types: ['bug'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 190,
   ),
   Pokemon(
     id: 920,
@@ -6440,6 +7359,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 9, imageId: 920, types: ['bug', 'dark'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 30,
   ),
   Pokemon(
     id: 921,
@@ -6447,6 +7367,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 9, imageId: 921, types: ['electric'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 190,
   ),
   Pokemon(
     id: 922,
@@ -6454,6 +7375,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 9, imageId: 922, types: ['electric', 'fighting'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 80,
   ),
   Pokemon(
     id: 923,
@@ -6461,6 +7383,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 9, imageId: 923, types: ['electric', 'fighting'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 924,
@@ -6468,6 +7391,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 9, imageId: 924, types: ['normal'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 150,
   ),
   Pokemon(
     id: 925,
@@ -6475,6 +7399,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'family-of-four', formType: 'other', minGen: 9, imageId: 925, types: ['normal'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'family-of-three', formType: 'other', minGen: 9, imageId: 10257, types: ['normal'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 75,
   ),
   Pokemon(
     id: 926,
@@ -6482,6 +7407,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 9, imageId: 926, types: ['fairy'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 190,
   ),
   Pokemon(
     id: 927,
@@ -6489,6 +7415,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 9, imageId: 927, types: ['fairy'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 90,
   ),
   Pokemon(
     id: 928,
@@ -6496,6 +7423,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 9, imageId: 928, types: ['grass', 'normal'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 255,
   ),
   Pokemon(
     id: 929,
@@ -6503,6 +7431,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 9, imageId: 929, types: ['grass', 'normal'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 120,
   ),
   Pokemon(
     id: 930,
@@ -6510,6 +7439,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 9, imageId: 930, types: ['grass', 'normal'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 931,
@@ -6517,6 +7447,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'green-plumage', formType: 'other', minGen: 9, imageId: 931, types: ['normal', 'flying'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'blue-plumage', formType: 'other', minGen: 9, imageId: 10260, types: ['normal', 'flying'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'yellow-plumage', formType: 'other', minGen: 9, imageId: 10261, types: ['normal', 'flying'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'white-plumage', formType: 'other', minGen: 9, imageId: 10262, types: ['normal', 'flying'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 190,
   ),
   Pokemon(
     id: 932,
@@ -6524,6 +7455,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 9, imageId: 932, types: ['rock'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 255,
   ),
   Pokemon(
     id: 933,
@@ -6531,6 +7463,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 9, imageId: 933, types: ['rock'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 120,
   ),
   Pokemon(
     id: 934,
@@ -6538,6 +7471,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 9, imageId: 934, types: ['rock'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 935,
@@ -6545,6 +7479,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 9, imageId: 935, types: ['fire'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 90,
   ),
   Pokemon(
     id: 936,
@@ -6552,6 +7487,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 9, imageId: 936, types: ['fire', 'psychic'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 25,
   ),
   Pokemon(
     id: 937,
@@ -6559,6 +7495,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 9, imageId: 937, types: ['fire', 'ghost'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 25,
   ),
   Pokemon(
     id: 938,
@@ -6566,6 +7503,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 9, imageId: 938, types: ['electric'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 190,
   ),
   Pokemon(
     id: 939,
@@ -6573,6 +7511,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 9, imageId: 939, types: ['electric'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 50,
   ),
   Pokemon(
     id: 940,
@@ -6580,6 +7519,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 9, imageId: 940, types: ['electric', 'flying'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 180,
   ),
   Pokemon(
     id: 941,
@@ -6587,6 +7527,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 9, imageId: 941, types: ['electric', 'flying'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 90,
   ),
   Pokemon(
     id: 942,
@@ -6594,6 +7535,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 9, imageId: 942, types: ['dark'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 150,
   ),
   Pokemon(
     id: 943,
@@ -6601,6 +7543,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 9, imageId: 943, types: ['dark'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 75,
   ),
   Pokemon(
     id: 944,
@@ -6608,6 +7551,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 9, imageId: 944, types: ['poison', 'normal'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 190,
   ),
   Pokemon(
     id: 945,
@@ -6615,6 +7559,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 9, imageId: 945, types: ['poison', 'normal'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 90,
   ),
   Pokemon(
     id: 946,
@@ -6622,6 +7567,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 9, imageId: 946, types: ['grass', 'ghost'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 190,
   ),
   Pokemon(
     id: 947,
@@ -6629,6 +7575,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 9, imageId: 947, types: ['grass', 'ghost'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 948,
@@ -6636,6 +7583,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 9, imageId: 948, types: ['ground', 'grass'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 190,
   ),
   Pokemon(
     id: 949,
@@ -6643,6 +7591,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 9, imageId: 949, types: ['ground', 'grass'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 90,
   ),
   Pokemon(
     id: 950,
@@ -6650,6 +7599,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 9, imageId: 950, types: ['rock'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 120,
   ),
   Pokemon(
     id: 951,
@@ -6657,6 +7607,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 9, imageId: 951, types: ['grass'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 190,
   ),
   Pokemon(
     id: 952,
@@ -6664,6 +7615,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 9, imageId: 952, types: ['grass', 'fire'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 9, imageId: 10320, types: ['grass', 'fire'], exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'lumiose_dimensions_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 75,
   ),
   Pokemon(
     id: 953,
@@ -6671,6 +7623,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 9, imageId: 953, types: ['bug'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 190,
   ),
   Pokemon(
     id: 954,
@@ -6678,6 +7631,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 9, imageId: 954, types: ['bug', 'psychic'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 955,
@@ -6685,6 +7639,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 9, imageId: 955, types: ['psychic'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 120,
   ),
   Pokemon(
     id: 956,
@@ -6692,6 +7647,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 9, imageId: 956, types: ['psychic'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 60,
   ),
   Pokemon(
     id: 957,
@@ -6699,6 +7655,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 9, imageId: 957, types: ['fairy', 'steel'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 190,
   ),
   Pokemon(
     id: 958,
@@ -6706,6 +7663,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 9, imageId: 958, types: ['fairy', 'steel'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 90,
   ),
   Pokemon(
     id: 959,
@@ -6713,6 +7671,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 9, imageId: 959, types: ['fairy', 'steel'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 960,
@@ -6720,6 +7679,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 9, imageId: 960, types: ['water'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 255,
   ),
   Pokemon(
     id: 961,
@@ -6727,6 +7687,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 9, imageId: 961, types: ['water'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 50,
   ),
   Pokemon(
     id: 962,
@@ -6734,6 +7695,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 9, imageId: 962, types: ['flying', 'dark'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 25,
   ),
   Pokemon(
     id: 963,
@@ -6741,6 +7703,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 9, imageId: 963, types: ['water'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 200,
   ),
   Pokemon(
     id: 964,
@@ -6748,6 +7711,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'zero', formType: 'other', minGen: 9, imageId: 964, types: ['water'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'hero', formType: 'other', minGen: 9, imageId: 10256, types: ['water'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 965,
@@ -6755,6 +7719,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 9, imageId: 965, types: ['steel', 'poison'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 190,
   ),
   Pokemon(
     id: 966,
@@ -6762,6 +7727,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 9, imageId: 966, types: ['steel', 'poison'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 75,
   ),
   Pokemon(
     id: 967,
@@ -6769,6 +7735,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 9, imageId: 967, types: ['dragon', 'normal'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 190,
   ),
   Pokemon(
     id: 968,
@@ -6776,6 +7743,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 9, imageId: 968, types: ['steel'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 25,
   ),
   Pokemon(
     id: 969,
@@ -6783,6 +7751,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 9, imageId: 969, types: ['rock', 'poison'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 70,
   ),
   Pokemon(
     id: 970,
@@ -6790,6 +7759,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 9, imageId: 970, types: ['rock', 'poison'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 9, imageId: 10321, types: ['rock', 'poison'], exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'lumiose_dimensions_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 25,
   ),
   Pokemon(
     id: 971,
@@ -6797,6 +7767,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 9, imageId: 971, types: ['ghost'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 120,
   ),
   Pokemon(
     id: 972,
@@ -6804,6 +7775,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 9, imageId: 972, types: ['ghost'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 60,
   ),
   Pokemon(
     id: 973,
@@ -6811,6 +7783,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 9, imageId: 973, types: ['flying', 'fighting'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 100,
   ),
   Pokemon(
     id: 974,
@@ -6818,6 +7791,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 9, imageId: 974, types: ['ice'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 150,
   ),
   Pokemon(
     id: 975,
@@ -6825,6 +7799,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 9, imageId: 975, types: ['ice'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 50,
   ),
   Pokemon(
     id: 976,
@@ -6832,6 +7807,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 9, imageId: 976, types: ['water', 'psychic'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 100,
   ),
   Pokemon(
     id: 977,
@@ -6839,6 +7815,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 9, imageId: 977, types: ['water'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 25,
   ),
   Pokemon(
     id: 978,
@@ -6846,6 +7823,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'curly', formType: 'other', minGen: 9, imageId: 978, types: ['dragon', 'water'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'droopy', formType: 'other', minGen: 9, imageId: 10258, types: ['dragon', 'water'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'stretchy', formType: 'other', minGen: 9, imageId: 10259, types: ['dragon', 'water'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'curly-mega', formType: 'mega', minGen: 9, imageId: 10322, types: ['dragon', 'water'], exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'lumiose_dimensions_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null), PokemonForm(name: 'droopy-mega', formType: 'mega', minGen: 9, imageId: 10323, types: ['dragon', 'water'], exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'lumiose_dimensions_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null), PokemonForm(name: 'stretchy-mega', formType: 'mega', minGen: 9, imageId: 10324, types: ['dragon', 'water'], exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'lumiose_dimensions_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 100,
   ),
   Pokemon(
     id: 979,
@@ -6853,6 +7831,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 9, imageId: 979, types: ['fighting', 'ghost'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 980,
@@ -6860,6 +7839,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 9, imageId: 980, types: ['poison', 'ground'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 90,
   ),
   Pokemon(
     id: 981,
@@ -6867,6 +7847,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 9, imageId: 981, types: ['normal', 'psychic'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 982,
@@ -6874,6 +7855,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'two-segment', formType: 'other', minGen: 9, imageId: 982, types: ['normal'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'three-segment', formType: 'other', minGen: 9, imageId: 10255, types: ['normal'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 983,
@@ -6881,6 +7863,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 9, imageId: 983, types: ['dark', 'steel'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 25,
   ),
   Pokemon(
     id: 984,
@@ -6888,6 +7871,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 9, imageId: 984, types: ['ground', 'fighting'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 30,
   ),
   Pokemon(
     id: 985,
@@ -6895,6 +7879,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 9, imageId: 985, types: ['fairy', 'psychic'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 50,
   ),
   Pokemon(
     id: 986,
@@ -6902,6 +7887,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 9, imageId: 986, types: ['grass', 'dark'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 50,
   ),
   Pokemon(
     id: 987,
@@ -6909,6 +7895,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 9, imageId: 987, types: ['ghost', 'fairy'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 30,
   ),
   Pokemon(
     id: 988,
@@ -6916,6 +7903,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 9, imageId: 988, types: ['bug', 'fighting'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 30,
   ),
   Pokemon(
     id: 989,
@@ -6923,6 +7911,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 9, imageId: 989, types: ['electric', 'ground'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 30,
   ),
   Pokemon(
     id: 990,
@@ -6930,6 +7919,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 9, imageId: 990, types: ['ground', 'steel'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 30,
   ),
   Pokemon(
     id: 991,
@@ -6937,6 +7927,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 9, imageId: 991, types: ['ice', 'water'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 50,
   ),
   Pokemon(
     id: 992,
@@ -6944,6 +7935,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 9, imageId: 992, types: ['fighting', 'electric'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 50,
   ),
   Pokemon(
     id: 993,
@@ -6951,6 +7943,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 9, imageId: 993, types: ['dark', 'flying'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 30,
   ),
   Pokemon(
     id: 994,
@@ -6958,6 +7951,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 9, imageId: 994, types: ['fire', 'poison'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 30,
   ),
   Pokemon(
     id: 995,
@@ -6965,6 +7959,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 9, imageId: 995, types: ['rock', 'electric'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 30,
   ),
   Pokemon(
     id: 996,
@@ -6972,6 +7967,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 9, imageId: 996, types: ['dragon', 'ice'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 997,
@@ -6979,6 +7975,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 9, imageId: 997, types: ['dragon', 'ice'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 25,
   ),
   Pokemon(
     id: 998,
@@ -6986,6 +7983,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 9, imageId: 998, types: ['dragon', 'ice'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'mega', formType: 'mega', minGen: 9, imageId: 10325, types: ['dragon', 'ice'], exclusiveRegions: ['kalos_central_regional', 'kalos_coastal_regional', 'kalos_mountain_regional', 'lumiose_regional', 'lumiose_dimensions_regional', 'updated_hoenn_regional', 'letsgo_kanto_regional', 'mega_dex'], extraInfo: null)],
     extraInfo: null,
+    captureRate: 10,
   ),
   Pokemon(
     id: 999,
@@ -6993,6 +7991,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'chest', formType: 'other', minGen: 9, imageId: 999, types: ['ghost'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'roaming', formType: 'other', minGen: 9, imageId: 10263, types: ['ghost'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 1000,
@@ -7000,6 +7999,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 9, imageId: 1000, types: ['steel', 'ghost'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 1001,
@@ -7007,6 +8007,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 9, imageId: 1001, types: ['dark', 'grass'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 6,
   ),
   Pokemon(
     id: 1002,
@@ -7014,6 +8015,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 9, imageId: 1002, types: ['dark', 'ice'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 6,
   ),
   Pokemon(
     id: 1003,
@@ -7021,6 +8023,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 9, imageId: 1003, types: ['dark', 'ground'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 6,
   ),
   Pokemon(
     id: 1004,
@@ -7028,6 +8031,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 9, imageId: 1004, types: ['dark', 'fire'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 6,
   ),
   Pokemon(
     id: 1005,
@@ -7035,6 +8039,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 9, imageId: 1005, types: ['dragon', 'dark'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 10,
   ),
   Pokemon(
     id: 1006,
@@ -7042,6 +8047,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 9, imageId: 1006, types: ['fairy', 'fighting'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 10,
   ),
   Pokemon(
     id: 1007,
@@ -7049,6 +8055,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'apex-build', formType: 'other', minGen: 9, imageId: 1007, types: ['fighting', 'dragon'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'limited-build', formType: 'other', minGen: 9, imageId: 10264, types: ['fighting', 'dragon'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'sprinting-build', formType: 'other', minGen: 9, imageId: 10265, types: ['fighting', 'dragon'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'swimming-build', formType: 'other', minGen: 9, imageId: 10266, types: ['fighting', 'dragon'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'gliding-build', formType: 'other', minGen: 9, imageId: 10267, types: ['fighting', 'dragon'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 3,
   ),
   Pokemon(
     id: 1008,
@@ -7056,6 +8063,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'ultimate-mode', formType: 'other', minGen: 9, imageId: 1008, types: ['electric', 'dragon'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'low-power-mode', formType: 'other', minGen: 9, imageId: 10268, types: ['electric', 'dragon'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'drive-mode', formType: 'other', minGen: 9, imageId: 10269, types: ['electric', 'dragon'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'aquatic-mode', formType: 'other', minGen: 9, imageId: 10270, types: ['electric', 'dragon'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'glide-mode', formType: 'other', minGen: 9, imageId: 10271, types: ['electric', 'dragon'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 3,
   ),
   Pokemon(
     id: 1009,
@@ -7063,6 +8071,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 9, imageId: 1009, types: ['water', 'dragon'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 5,
   ),
   Pokemon(
     id: 1010,
@@ -7070,6 +8079,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 9, imageId: 1010, types: ['grass', 'psychic'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 5,
   ),
   Pokemon(
     id: 1011,
@@ -7077,6 +8087,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 9, imageId: 1011, types: ['grass', 'dragon'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 45,
   ),
   Pokemon(
     id: 1012,
@@ -7084,6 +8095,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'counterfeit', formType: 'other', minGen: 9, imageId: 1012, types: ['grass', 'ghost'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'artisan', formType: 'other', minGen: 9, imageId: 1012, types: ['grass', 'ghost'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 120,
   ),
   Pokemon(
     id: 1013,
@@ -7091,6 +8103,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'unremarkable', formType: 'other', minGen: 9, imageId: 1013, types: ['grass', 'ghost'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'masterpiece', formType: 'other', minGen: 9, imageId: 1013, types: ['grass', 'ghost'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 60,
   ),
   Pokemon(
     id: 1014,
@@ -7098,6 +8111,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 9, imageId: 1014, types: ['poison', 'fighting'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 3,
   ),
   Pokemon(
     id: 1015,
@@ -7105,6 +8119,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 9, imageId: 1015, types: ['poison', 'psychic'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 3,
   ),
   Pokemon(
     id: 1016,
@@ -7112,6 +8127,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 9, imageId: 1016, types: ['poison', 'fairy'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 3,
   ),
   Pokemon(
     id: 1017,
@@ -7119,6 +8135,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 9, imageId: 1017, types: ['grass'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'wellspring-mask', formType: 'other', minGen: 9, imageId: 10273, types: ['grass', 'water'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'hearthflame-mask', formType: 'other', minGen: 9, imageId: 10274, types: ['grass', 'fire'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'cornerstone-mask', formType: 'other', minGen: 9, imageId: 10275, types: ['grass', 'rock'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 5,
   ),
   Pokemon(
     id: 1018,
@@ -7126,6 +8143,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 9, imageId: 1018, types: ['steel', 'dragon'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 10,
   ),
   Pokemon(
     id: 1019,
@@ -7133,6 +8151,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 9, imageId: 1019, types: ['grass', 'dragon'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 10,
   ),
   Pokemon(
     id: 1020,
@@ -7140,6 +8159,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 9, imageId: 1020, types: ['fire', 'dragon'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 10,
   ),
   Pokemon(
     id: 1021,
@@ -7147,6 +8167,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 9, imageId: 1021, types: ['electric', 'dragon'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 10,
   ),
   Pokemon(
     id: 1022,
@@ -7154,6 +8175,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 9, imageId: 1022, types: ['rock', 'psychic'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 10,
   ),
   Pokemon(
     id: 1023,
@@ -7161,6 +8183,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 9, imageId: 1023, types: ['steel', 'psychic'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 10,
   ),
   Pokemon(
     id: 1024,
@@ -7168,6 +8191,7 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 9, imageId: 1024, types: ['normal'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'terastal', formType: 'other', minGen: 9, imageId: 10276, types: ['normal'], exclusiveRegions: [], extraInfo: null), PokemonForm(name: 'stellar', formType: 'other', minGen: 9, imageId: 10277, types: ['normal'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 255,
   ),
   Pokemon(
     id: 1025,
@@ -7175,5 +8199,6 @@ final List<Pokemon> nationalPokemonDatabase = [
     hasGenderDifferences: false,
     forms: const [PokemonForm(name: 'normal', formType: 'normal', minGen: 9, imageId: 1025, types: ['poison', 'ghost'], exclusiveRegions: [], extraInfo: null)],
     extraInfo: null,
+    captureRate: 3,
   ),
 ];

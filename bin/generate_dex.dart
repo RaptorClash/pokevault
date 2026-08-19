@@ -43,7 +43,7 @@ final Map<String, int> _versionToGen = {
 };
 
 void main() async {
-  print('Start Download (inkl. Whitelist & korrekter Form-Typen-Logik)...');
+  print('Start Download (inkl. Whitelist, Typen & sicherer Fangrate)...');
   final code = await generateMasterDex(1, 1025);
   File('lib/data/national_dex_data.dart').writeAsStringSync(code);
   print('Fertig!');
@@ -89,13 +89,23 @@ Future<String> generateMasterDex(int startId, int endId) async {
 
       bool hasGenderDiff = speciesData['has_gender_differences'] ?? false;
       String speciesName = speciesData['name'];
+
+      int captureRate = 255;
+      if (speciesData['capture_rate'] != null) {
+        captureRate =
+            int.tryParse(speciesData['capture_rate'].toString()) ?? 255;
+      }
+
       List<String> formObjects = [];
 
       for (var variety in speciesData['varieties']) {
         final pokeData = await _fetchJson(client, variety['pokemon']['url']);
         if (pokeData == null) continue;
 
-        int varietyId = pokeData['id'];
+        int varietyId = i;
+        if (pokeData['id'] != null) {
+          varietyId = int.tryParse(pokeData['id'].toString()) ?? i;
+        }
 
         for (var formObj in pokeData['forms']) {
           final formData = await _fetchJson(client, formObj['url']);
@@ -207,6 +217,7 @@ Future<String> generateMasterDex(int startId, int endId) async {
     hasGenderDifferences: $hasGenderDiff,
     forms: const [${formObjects.join(', ')}],
     extraInfo: null,
+    captureRate: $captureRate,
   ),""";
       pokemonEntries.add(entry);
       print('Gezogen: #$i $nameDe');
