@@ -1128,7 +1128,6 @@ const Map<String, String> translationsDe = {
   "folder_name_hint": "Ordnername",
   "folder_rename_title": "Ordner umbenennen",
   "folder_move_title": "Verschieben nach...",
-  "folder_root": "Hauptbildschirm",
   "folder_empty": "Hier ist es noch leer.",
   "action_rename": "Umbenennen",
   "action_move": "Verschieben...",
@@ -1143,4 +1142,12 @@ const Map<String, String> translationsDe = {
   "delete_folder_title": "Ordner löschen",
   "delete_folder_text":
       "Möchtest du diesen Ordner wirklich löschen? Der Inhalt wird sicher auf den Hauptbildschirm verschoben.",
+
+  'folder_root': 'Hauptverzeichnis',
+  'success_delete_folder': 'Ordner erfolgreich gelöscht.',
+  'error_delete_folder': 'Fehler beim Löschen des Ordners:',
+  'success_delete_dex': 'Pokédex erfolgreich gelöscht.',
+  'error_delete_dex': 'Fehler beim Löschen des Pokédex:',
+  'error_move_item': 'Fehler beim Verschieben:',
+  'success_move_item': 'Erfolgreich verschoben.',
 };

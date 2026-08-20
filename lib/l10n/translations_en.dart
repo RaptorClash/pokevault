@@ -840,7 +840,6 @@ const Map<String, String> translationsEn = {
   "folder_name_hint": "Folder name",
   "folder_rename_title": "Rename folder",
   "folder_move_title": "Move to...",
-  "folder_root": "Main Screen",
   "folder_empty": "It's empty here.",
   "action_rename": "Rename",
   "action_move": "Move...",
@@ -855,4 +854,12 @@ const Map<String, String> translationsEn = {
   "delete_folder_title": "Delete Folder",
   "delete_folder_text":
       "Do you really want to delete this folder? The contents will safely be moved to the main screen.",
+
+  'folder_root': 'Root Directory',
+  'success_delete_folder': 'Folder deleted successfully.',
+  'error_delete_folder': 'Error deleting folder:',
+  'success_delete_dex': 'Pokédex deleted successfully.',
+  'error_delete_dex': 'Error deleting Pokédex:',
+  'error_move_item': 'Error moving item:',
+  'success_move_item': 'Moved successfully.',
 };
