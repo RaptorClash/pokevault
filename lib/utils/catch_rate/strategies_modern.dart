@@ -244,6 +244,28 @@ abstract class ModernStrategyBase extends CatchRateStrategy {
     return BallEffectResult(ballBonus, modifiedBaseRate);
   }
 
+  double getDifficultyModifier(CatchRateParams params) {
+    if (gen == 8.0 &&
+        params.missingBadges > 0 &&
+        params.enemyLevel > params.ownLevel) {
+      return 410.0 / 4096.0;
+    }
+    if (gen == 9.0) {
+      return pow(0.8, params.missingBadges).toDouble();
+    }
+    return 1.0;
+  }
+
+  double getLevelModifier(CatchRateParams params) {
+    if (gen == 8.0) {
+      return max((30.0 - params.enemyLevel) / 10.0, 1.0);
+    }
+    if (gen == 9.0 && params.enemyLevel < 13) {
+      return max((36.0 - 2.0 * params.enemyLevel) / 10.0, 1.0);
+    }
+    return 1.0;
+  }
+
   @override
   CatchRateResult calculate(CatchRateParams params) {
     if (params.ballId == 'master' ||
@@ -273,8 +295,7 @@ abstract class ModernStrategyBase extends CatchRateStrategy {
     ].contains(params.ballId);
     if (gen <= 4.0 && isAprikoko) {
       modifiedBaseRate = min(255, (modifiedBaseRate * ballBonus).floor());
-      ballBonus =
-          1.0;
+      ballBonus = 1.0;
     }
 
     double grassModifier = 1.0;
@@ -301,6 +322,14 @@ abstract class ModernStrategyBase extends CatchRateStrategy {
           ? 2.0
           : (params.statusType == 1 ? 1.5 : 1.0);
 
+    double diffMod = getDifficultyModifier(params);
+    double lvlMod = getLevelModifier(params);
+
+    double miscBonus = params.powerBonus;
+    if (gen == 9.0 && params.isBackstrike) {
+      miscBonus *= 2.0;
+    }
+
     double x =
         (((300.0 - 2.0 * params.hpPercent) *
                 modifiedBaseRate *
@@ -308,7 +337,9 @@ abstract class ModernStrategyBase extends CatchRateStrategy {
                 grassModifier) /
             300.0) *
         sBonus *
-        params.powerBonus;
+        miscBonus *
+        diffMod *
+        lvlMod;
 
     if (gen >= 8.0 && params.ownLevel < params.enemyLevel) {
       x *= (410.0 / 4096.0);
@@ -437,6 +468,47 @@ class Gen8Strategy extends ModernStrategyBase {
   Gen8Strategy() : super(8.0);
   @override
   bool get showCritSettings => true;
+  @override
+  bool get showMaxRaid => true;
+  @override
+  bool get showMissingBadges => true;
+
+  @override
+  CatchRateResult calculate(CatchRateParams params) {
+    if (params.isMaxRaid) {
+      if (!params.isGuest) {
+        return CatchRateResult(
+          catchChance: 100.0,
+          critChance: 0.0,
+          bonus: 1.0,
+          baseRate: params.pokemon.captureRate,
+        );
+      }
+      double difficulty = params.isGigantamax ? (291.0 / 4096.0) : 2.0;
+      double ballBonus = applyBallEffects(params).bonus;
+
+      if (params.ballId == 'quick') {
+        ballBonus = 1.0;
+      }
+
+      double x = params.pokemon.captureRate * ballBonus * difficulty;
+      double catchChance = 0.0;
+      if (x >= 255.0)
+        catchChance = 100.0;
+      else {
+        double y = 1048560.0 / sqrt(sqrt(16711680.0 / x));
+        double chancePerShake = y / 65536.0;
+        catchChance = pow(chancePerShake, 4) * 100;
+      }
+      return CatchRateResult(
+        catchChance: catchChance.clamp(0.0, 100.0),
+        critChance: 0.0,
+        bonus: ballBonus,
+        baseRate: params.pokemon.captureRate,
+      );
+    }
+    return super.calculate(params);
+  }
 }
 
 class Gen9Strategy extends ModernStrategyBase {
@@ -445,6 +517,10 @@ class Gen9Strategy extends ModernStrategyBase {
   bool get showPowerOptions => true;
   @override
   bool get showCritSettings => true;
+  @override
+  bool get showBackstrike => true;
+  @override
+  bool get showMissingBadges => true;
 
   @override
   List<DropdownMenuItem<double>> getPowerOptions() => [

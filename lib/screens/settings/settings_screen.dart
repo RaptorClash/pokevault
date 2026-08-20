@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
+
 import 'downgrade_screen.dart';
 import '../../providers/theme_provider.dart';
 import '../../providers/dex_provider.dart';
@@ -336,6 +337,18 @@ class SettingsScreen extends StatelessWidget {
                 ),
                 const Divider(height: 1),
                 ListTile(
+                  leading: const Icon(Icons.menu_book_rounded),
+                  title: const Text('Bulbapedia (Catch Rates)'),
+                  subtitle: const Text(
+                    'Mechaniken für Legends Z-A und Max Raids',
+                  ),
+                  trailing: const Icon(Icons.open_in_new, size: 16),
+                  onTap: () => _launchURL(
+                    'https://bulbapedia.bulbagarden.net/wiki/Catch_rate',
+                  ),
+                ),
+                const Divider(height: 1),
+                ListTile(
                   leading: const Icon(Icons.memory),
                   title: Text(Translator.get('credit_ai_title')),
                   subtitle: Text(Translator.get('credit_ai_sub')),
@@ -522,14 +535,14 @@ class SettingsScreen extends StatelessWidget {
                   provider.setLanguage('de');
                   Navigator.pop(context);
                 },
-                child: const Text('  Deutsch (DE)'),
+                child: const Text('🇩🇪 Deutsch (DE)'),
               ),
               SimpleDialogOption(
                 onPressed: () {
                   provider.setLanguage('en');
                   Navigator.pop(context);
                 },
-                child: const Text('  English (EN)'),
+                child: const Text('🇺🇸 English (EN)'),
               ),
             ],
           );

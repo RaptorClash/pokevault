@@ -1,5 +1,6 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
+
 import '../../../l10n/app_translations.dart';
 import '../../../models/pokemon.dart';
 import '../../../data/encounters_data.dart';
@@ -18,7 +19,9 @@ class CatchRateCalculator extends StatefulWidget {
 
 class _CatchRateCalculatorState extends State<CatchRateCalculator> {
   late double _minGen;
+  List<double> _availableGens = [];
   double _selectedGen = 9.0;
+
   double _hpPercent = 100.0;
   String _selectedBallId = 'poke';
   int _statusType = 0;
@@ -37,6 +40,19 @@ class _CatchRateCalculatorState extends State<CatchRateCalculator> {
   double _dexMultiplier = 0.0;
   bool _hasCatchingCharm = false;
 
+  bool _isMaxRaid = false;
+  bool _isGigantamax = false;
+  bool _isGuest = false;
+  bool _isBackstrike = false;
+  bool _isCatchWindow = false;
+  bool _isAlpha = false;
+  bool _isUnnoticed = false;
+  int _zaRank = 10;
+  int _plushLevel = 0;
+  int _donutPenalty = 0;
+  int _missingBadges = 0;
+  bool _isTargetShiny = false;
+
   late CatchRateResult _currentResult;
   late CatchRateStrategy _currentStrategy;
 
@@ -50,6 +66,7 @@ class _CatchRateCalculatorState extends State<CatchRateCalculator> {
     8.0: 'Gen 8 (Schwert/Schild)',
     8.5: 'Gen 8.5 (Legenden: Arceus)',
     9.0: 'Gen 9 (Karmesin/Purpur)',
+    9.5: 'Gen 9.5 (Legenden: Z-A)',
   };
 
   final Map<double, String> _dexMultipliers = {
@@ -65,16 +82,17 @@ class _CatchRateCalculatorState extends State<CatchRateCalculator> {
   void initState() {
     super.initState();
     _minGen = _getMinGenForPokemon(widget.pokemon.id);
-    List<double> availableGens = _genNames.keys
+
+    _availableGens = _genNames.keys
         .where((g) => _canShowGen(g, widget.pokemon.id))
         .toList();
 
-    if (availableGens.isNotEmpty) {
-      _selectedGen = availableGens.last;
-    } else {
-      _selectedGen = max(_minGen, 9.0);
+    if (_availableGens.isEmpty) {
+      _availableGens.add(max(_minGen, 9.0));
     }
-    
+
+    _selectedGen = _availableGens.last;
+
     _initStrategyAndCalculate();
   }
 
@@ -83,7 +101,9 @@ class _CatchRateCalculatorState extends State<CatchRateCalculator> {
       _currentStrategy = CatchRateStrategyFactory.getStrategy(_selectedGen);
       _updateResult();
     } catch (e) {
-      NotificationHelper.showError("${Translator.get('error_calc_catch_rate')} $e");
+      NotificationHelper.showError(
+        "${Translator.get('error_calc_catch_rate')} $e",
+      );
     }
   }
 
@@ -108,13 +128,27 @@ class _CatchRateCalculatorState extends State<CatchRateCalculator> {
         powerBonus: _powerBonus,
         dexMultiplier: _dexMultiplier,
         hasCatchingCharm: _hasCatchingCharm,
+        isMaxRaid: _isMaxRaid,
+        isGigantamax: _isGigantamax,
+        isGuest: _isGuest,
+        isBackstrike: _isBackstrike,
+        isCatchWindow: _isCatchWindow,
+        isAlpha: _isAlpha,
+        isUnnoticed: _isUnnoticed,
+        zaRank: _zaRank,
+        plushLevel: _plushLevel,
+        donutPenalty: _donutPenalty,
+        missingBadges: _missingBadges,
+        isTargetShiny: _isTargetShiny,
       );
 
       setState(() {
         _currentResult = _currentStrategy.calculate(params);
       });
     } catch (e) {
-      NotificationHelper.showError("${Translator.get('error_calc_catch_rate')} $e");
+      NotificationHelper.showError(
+        "${Translator.get('error_calc_catch_rate')} $e",
+      );
     }
   }
 
@@ -134,29 +168,36 @@ class _CatchRateCalculatorState extends State<CatchRateCalculator> {
     if (gen == 7.5) {
       return pokeId <= 151 || pokeId == 808 || pokeId == 809;
     }
+    if (gen == 9.5) return true;
+
     String genKey = 'gen_${gen.toInt()}';
     final encMap = encountersDatabase[pokeId];
     bool hasEncounter = false;
 
     if (encMap != null && encMap.containsKey(genKey)) {
       if (gen == 8.5) {
-        hasEncounter = encMap[genKey]!.keys.any((k) => k.contains('legends-arceus'));
+        hasEncounter = encMap[genKey]!.keys.any(
+          (k) => k.contains('legends-arceus'),
+        );
       } else if (gen == 8.0) {
-        hasEncounter = encMap[genKey]!.keys.any((k) => !k.contains('legends-arceus'));
+        hasEncounter = encMap[genKey]!.keys.any(
+          (k) => !k.contains('legends-arceus'),
+        );
       } else {
         hasEncounter = true;
       }
     }
+
     bool isStatic = ShinyLogicHelper.isStaticEncounter(pokeId, genKey);
-    return hasEncounter || isStatic || gen == _minGen;
+    return hasEncounter || isStatic;
   }
 
   @override
   Widget build(BuildContext context) {
     bool isGuaranteed = _currentResult.catchChance >= 100.0;
     final currentBalls = _currentStrategy.getAvailableBalls();
-
-    bool hasBattleConditions = _currentStrategy.showPowerOptions ||
+    bool hasBattleConditions =
+        _currentStrategy.showPowerOptions ||
         _currentStrategy.showEnemyLevel ||
         _currentStrategy.showOwnLevel ||
         _currentStrategy.showTurnCount ||
@@ -167,7 +208,17 @@ class _CatchRateCalculatorState extends State<CatchRateCalculator> {
         _currentStrategy.showRepeatCondition ||
         _currentStrategy.showDarkGrass ||
         _currentStrategy.isArceus ||
-        _currentStrategy.showFlying;
+        _currentStrategy.showFlying ||
+        _currentStrategy.showMaxRaid ||
+        _currentStrategy.showBackstrike ||
+        _currentStrategy.showCatchWindow ||
+        _currentStrategy.showAlpha ||
+        _currentStrategy.showZaRank ||
+        _currentStrategy.showPlushLevel ||
+        _currentStrategy.showDonutPenalty ||
+        _currentStrategy.showMissingBadges ||
+        _currentStrategy.showTargetShiny ||
+        _currentStrategy.showUnnoticed;
 
     return Padding(
       padding: const EdgeInsets.all(16.0),
@@ -176,11 +227,17 @@ class _CatchRateCalculatorState extends State<CatchRateCalculator> {
         children: [
           Row(
             children: [
-              Icon(Icons.analytics, color: Theme.of(context).colorScheme.primary),
+              Icon(
+                Icons.analytics,
+                color: Theme.of(context).colorScheme.primary,
+              ),
               const SizedBox(width: 8),
               Text(
                 '${Translator.get('calc_base_rate')}: ${_currentResult.baseRate}',
-                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                ),
               ),
             ],
           ),
@@ -188,33 +245,44 @@ class _CatchRateCalculatorState extends State<CatchRateCalculator> {
             Padding(
               padding: const EdgeInsets.only(top: 4.0, left: 32.0),
               child: Text(
-                Translator.get('calc_modified_rate').replaceAll('{0}', widget.pokemon.captureRate.toString()),
-                style: const TextStyle(fontSize: 12, color: Colors.grey, fontStyle: FontStyle.italic),
+                Translator.get(
+                  'calc_modified_rate',
+                ).replaceAll('{0}', widget.pokemon.captureRate.toString()),
+                style: const TextStyle(
+                  fontSize: 12,
+                  color: Colors.grey,
+                  fontStyle: FontStyle.italic,
+                ),
               ),
             ),
           const SizedBox(height: 16),
-          
+
           DropdownButtonFormField<double>(
             value: _selectedGen,
             decoration: InputDecoration(
               labelText: Translator.get('generation'),
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
               filled: true,
-              fillColor: Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(0.3),
+              fillColor: Theme.of(
+                context,
+              ).colorScheme.surfaceContainerHighest.withOpacity(0.3),
             ),
-            items: _genNames.entries
-                .where((entry) => _canShowGen(entry.key, widget.pokemon.id))
-                .map((entry) => DropdownMenuItem<double>(
-                      value: entry.key,
-                      child: Text(entry.value),
-                    ))
-                .toList(),
+            items: _availableGens.map((gen) {
+              return DropdownMenuItem<double>(
+                value: gen,
+                child: Text(_genNames[gen] ?? 'Gen $gen'),
+              );
+            }).toList(),
             onChanged: (val) {
               try {
                 if (val != null) {
                   _selectedGen = val;
                   _powerBonus = 1.0;
-                  _currentStrategy = CatchRateStrategyFactory.getStrategy(_selectedGen);
+                  _currentStrategy = CatchRateStrategyFactory.getStrategy(
+                    _selectedGen,
+                  );
                   final newBalls = _currentStrategy.getAvailableBalls();
                   if (!newBalls.any((b) => b.id == _selectedBallId)) {
                     _selectedBallId = newBalls.first.id;
@@ -222,23 +290,36 @@ class _CatchRateCalculatorState extends State<CatchRateCalculator> {
                   _updateResult();
                 }
               } catch (e) {
-                NotificationHelper.showError("${Translator.get('error_calc_catch_rate_ui')} $e");
+                NotificationHelper.showError(
+                  "${Translator.get('error_calc_catch_rate_ui')} $e",
+                );
               }
             },
           ),
-          const SizedBox(height: 12),
 
+          const SizedBox(height: 12),
           DropdownButtonFormField<String>(
-            value: currentBalls.any((b) => b.id == _selectedBallId) ? _selectedBallId : currentBalls.first.id,
+            value: currentBalls.any((b) => b.id == _selectedBallId)
+                ? _selectedBallId
+                : currentBalls.first.id,
             isExpanded: true,
             decoration: InputDecoration(
-              labelText: Translator.get('pokeball_bonus') +
-                  (_selectedBallId != 'master' && _selectedBallId != 'origin' && _selectedBallId != 'heavy' && _selectedBallId != 'safari' && _selectedBallId != 'cherish'
+              labelText:
+                  Translator.get('pokeball_bonus') +
+                  (_selectedBallId != 'master' &&
+                          _selectedBallId != 'origin' &&
+                          _selectedBallId != 'heavy' &&
+                          _selectedBallId != 'safari' &&
+                          _selectedBallId != 'cherish'
                       ? ' (Bonus: ${_currentResult.bonus.toStringAsFixed(2)}x)'
                       : ''),
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
               filled: true,
-              fillColor: Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(0.3),
+              fillColor: Theme.of(
+                context,
+              ).colorScheme.surfaceContainerHighest.withOpacity(0.3),
             ),
             items: currentBalls.map((ball) {
               return DropdownMenuItem<String>(
@@ -247,11 +328,17 @@ class _CatchRateCalculatorState extends State<CatchRateCalculator> {
                   children: [
                     Image.network(
                       'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/${ball.spriteId}.png',
-                      width: 24, height: 24,
-                      errorBuilder: (c, e, s) => const Icon(Icons.catching_pokemon, size: 24),
+                      width: 24,
+                      height: 24,
+                      errorBuilder: (c, e, s) =>
+                          const Icon(Icons.catching_pokemon, size: 24),
                     ),
                     const SizedBox(width: 12),
-                    Text(ball.nameKey != 'ball_${ball.id}' ? ball.nameKey : ball.nameKey.replaceAll('ball_', '').toUpperCase()),
+                    Text(
+                      ball.nameKey != 'ball_${ball.id}'
+                          ? ball.nameKey
+                          : ball.nameKey.replaceAll('ball_', '').toUpperCase(),
+                    ),
                   ],
                 ),
               );
@@ -263,11 +350,12 @@ class _CatchRateCalculatorState extends State<CatchRateCalculator> {
                   _updateResult();
                 }
               } catch (e) {
-                NotificationHelper.showError("${Translator.get('error_calc_catch_rate_ui')} $e");
+                NotificationHelper.showError(
+                  "${Translator.get('error_calc_catch_rate_ui')} $e",
+                );
               }
             },
           ),
-
           if (hasBattleConditions) ...[
             const SizedBox(height: 12),
             Card(
@@ -295,8 +383,12 @@ class _CatchRateCalculatorState extends State<CatchRateCalculator> {
                             value: _powerBonus,
                             isExpanded: true,
                             decoration: InputDecoration(
-                              labelText: _selectedGen == 7.5 ? Translator.get('calc_berry_let_go') : Translator.get('calc_bonus_power'),
-                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                              labelText: _selectedGen == 7.5
+                                  ? Translator.get('calc_berry_let_go')
+                                  : Translator.get('calc_bonus_power'),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
                               filled: true,
                             ),
                             items: _currentStrategy.getPowerOptions(),
@@ -309,19 +401,66 @@ class _CatchRateCalculatorState extends State<CatchRateCalculator> {
                           ),
                           const SizedBox(height: 16),
                         ],
+                        if (_currentStrategy.showMaxRaid) ...[
+                          SwitchListTile(
+                            contentPadding: EdgeInsets.zero,
+                            title: Text(Translator.get('calc_max_raid')),
+                            value: _isMaxRaid,
+                            onChanged: (val) {
+                              _isMaxRaid = val;
+                              _updateResult();
+                            },
+                          ),
+                          if (_isMaxRaid) ...[
+                            SwitchListTile(
+                              contentPadding: EdgeInsets.zero,
+                              title: Text(
+                                Translator.get('calc_max_raid_guest'),
+                              ),
+                              value: _isGuest,
+                              onChanged: (val) {
+                                _isGuest = val;
+                                _updateResult();
+                              },
+                            ),
+                            SwitchListTile(
+                              contentPadding: EdgeInsets.zero,
+                              title: Text(Translator.get('calc_max_raid_gmax')),
+                              value: _isGigantamax,
+                              onChanged: (val) {
+                                _isGigantamax = val;
+                                _updateResult();
+                              },
+                            ),
+                          ],
+                        ],
                         if (_currentStrategy.isArceus) ...[
                           DropdownButtonFormField<int>(
                             value: _hisuiCatchStatus,
                             decoration: InputDecoration(
                               labelText: Translator.get('calc_hisui_status'),
-                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
                               filled: true,
                             ),
                             items: [
-                              DropdownMenuItem(value: 0, child: Text(Translator.get('hisui_status_0'))),
-                              DropdownMenuItem(value: 1, child: Text(Translator.get('hisui_status_1'))),
-                              DropdownMenuItem(value: 2, child: Text(Translator.get('hisui_status_2'))),
-                              DropdownMenuItem(value: 3, child: Text(Translator.get('hisui_status_3'))),
+                              DropdownMenuItem(
+                                value: 0,
+                                child: Text(Translator.get('hisui_status_0')),
+                              ),
+                              DropdownMenuItem(
+                                value: 1,
+                                child: Text(Translator.get('hisui_status_1')),
+                              ),
+                              DropdownMenuItem(
+                                value: 2,
+                                child: Text(Translator.get('hisui_status_2')),
+                              ),
+                              DropdownMenuItem(
+                                value: 3,
+                                child: Text(Translator.get('hisui_status_3')),
+                              ),
                             ],
                             onChanged: (val) {
                               if (val != null) {
@@ -343,6 +482,85 @@ class _CatchRateCalculatorState extends State<CatchRateCalculator> {
                             },
                           ),
                         ],
+                        if (_currentStrategy.showUnnoticed) ...[
+                          SwitchListTile(
+                            contentPadding: EdgeInsets.zero,
+                            title: Text(
+                              Translator.get('calc_unnoticed') !=
+                                      'calc_unnoticed'
+                                  ? Translator.get('calc_unnoticed')
+                                  : 'Unbemerkt',
+                            ),
+                            value: _isUnnoticed,
+                            onChanged: (val) {
+                              _isUnnoticed = val;
+                              _updateResult();
+                            },
+                          ),
+                        ],
+                        if (_currentStrategy.showBackstrike) ...[
+                          SwitchListTile(
+                            contentPadding: EdgeInsets.zero,
+                            title: Text(
+                              Translator.get('calc_backstrike') !=
+                                      'calc_backstrike'
+                                  ? Translator.get('calc_backstrike')
+                                  : 'Rückenangriff',
+                            ),
+                            value: _isBackstrike,
+                            onChanged: (val) {
+                              _isBackstrike = val;
+                              _updateResult();
+                            },
+                          ),
+                        ],
+                        if (_currentStrategy.showTargetShiny) ...[
+                          SwitchListTile(
+                            contentPadding: EdgeInsets.zero,
+                            title: Text(
+                              Translator.get('calc_target_shiny') !=
+                                      'calc_target_shiny'
+                                  ? Translator.get('calc_target_shiny')
+                                  : 'Ziel ist Shiny',
+                            ),
+                            value: _isTargetShiny,
+                            onChanged: (val) {
+                              _isTargetShiny = val;
+                              _updateResult();
+                            },
+                          ),
+                        ],
+                        if (_currentStrategy.showCatchWindow) ...[
+                          SwitchListTile(
+                            contentPadding: EdgeInsets.zero,
+                            title: Text(
+                              Translator.get('calc_catch_window') !=
+                                      'calc_catch_window'
+                                  ? Translator.get('calc_catch_window')
+                                  : 'Fangfenster (betäubt)',
+                            ),
+                            value: _isCatchWindow,
+                            onChanged: (val) {
+                              _isCatchWindow = val;
+                              _updateResult();
+                            },
+                          ),
+                        ],
+                        if (_currentStrategy.showAlpha) ...[
+                          SwitchListTile(
+                            contentPadding: EdgeInsets.zero,
+                            title: Text(
+                              Translator.get('calc_alpha') != 'calc_alpha'
+                                  ? Translator.get('calc_alpha')
+                                  : 'Alpha Pokémon',
+                            ),
+                            value: _isAlpha,
+                            onChanged: (val) {
+                              _isAlpha = val;
+                              _updateResult();
+                            },
+                          ),
+                        ],
                         if (_currentStrategy.showDarkGrass) ...[
                           SwitchListTile(
                             contentPadding: EdgeInsets.zero,
@@ -355,10 +573,16 @@ class _CatchRateCalculatorState extends State<CatchRateCalculator> {
                           ),
                         ],
                         if (_currentStrategy.showEnemyLevel) ...[
-                          Text(Translator.get('calc_enemy_level').replaceAll('{0}', '$_enemyLevel')),
+                          Text(
+                            Translator.get(
+                              'calc_enemy_level',
+                            ).replaceAll('{0}', '$_enemyLevel'),
+                          ),
                           Slider(
                             value: _enemyLevel.toDouble(),
-                            min: 1, max: 100, divisions: 99,
+                            min: 1,
+                            max: 100,
+                            divisions: 99,
                             activeColor: Colors.redAccent,
                             label: '$_enemyLevel',
                             onChanged: (val) {
@@ -368,10 +592,16 @@ class _CatchRateCalculatorState extends State<CatchRateCalculator> {
                           ),
                         ],
                         if (_currentStrategy.showOwnLevel) ...[
-                          Text(Translator.get('calc_own_level').replaceAll('{0}', '$_ownLevel')),
+                          Text(
+                            Translator.get(
+                              'calc_own_level',
+                            ).replaceAll('{0}', '$_ownLevel'),
+                          ),
                           Slider(
                             value: _ownLevel.toDouble(),
-                            min: 1, max: 100, divisions: 99,
+                            min: 1,
+                            max: 100,
+                            divisions: 99,
                             activeColor: Colors.blueAccent,
                             label: '$_ownLevel',
                             onChanged: (val) {
@@ -382,16 +612,184 @@ class _CatchRateCalculatorState extends State<CatchRateCalculator> {
                         ],
                         if (_currentStrategy.showTurnCount) ...[
                           const SizedBox(height: 8),
-                          Text(Translator.get('calc_turn_count').replaceAll('{0}', '$_turnCount')),
+                          Text(
+                            Translator.get(
+                              'calc_turn_count',
+                            ).replaceAll('{0}', '$_turnCount'),
+                          ),
                           Slider(
                             value: _turnCount.toDouble(),
-                            min: 1, max: 30, divisions: 29,
+                            min: 1,
+                            max: 30,
+                            divisions: 29,
                             label: '$_turnCount',
                             onChanged: (val) {
                               _turnCount = val.toInt();
                               _updateResult();
                             },
                           ),
+                        ],
+                        if (_currentStrategy.showMissingBadges) ...[
+                          DropdownButtonFormField<int>(
+                            value: _missingBadges,
+                            decoration: InputDecoration(
+                              labelText:
+                                  Translator.get('calc_missing_badges') !=
+                                      'calc_missing_badges'
+                                  ? Translator.get('calc_missing_badges')
+                                  : 'Fehlende Orden',
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              filled: true,
+                            ),
+                            items: List.generate(
+                              9,
+                              (i) =>
+                                  DropdownMenuItem(value: i, child: Text('$i')),
+                            ),
+                            onChanged: (val) {
+                              if (val != null) {
+                                _missingBadges = val;
+                                _updateResult();
+                              }
+                            },
+                          ),
+                          const SizedBox(height: 16),
+                        ],
+                        if (_currentStrategy.showZaRank) ...[
+                          DropdownButtonFormField<int>(
+                            value: _zaRank,
+                            decoration: InputDecoration(
+                              labelText:
+                                  Translator.get('calc_za_rank') !=
+                                      'calc_za_rank'
+                                  ? Translator.get('calc_za_rank')
+                                  : 'Z-A Royale Rang',
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              filled: true,
+                            ),
+                            items: [
+                              DropdownMenuItem(value: 0, child: Text('Z')),
+                              DropdownMenuItem(value: 1, child: Text('Y')),
+                              DropdownMenuItem(value: 2, child: Text('X')),
+                              DropdownMenuItem(value: 3, child: Text('W')),
+                              DropdownMenuItem(value: 4, child: Text('V')),
+                              DropdownMenuItem(value: 5, child: Text('F')),
+                              DropdownMenuItem(value: 6, child: Text('E')),
+                              DropdownMenuItem(value: 7, child: Text('D')),
+                              DropdownMenuItem(value: 8, child: Text('C')),
+                              DropdownMenuItem(value: 9, child: Text('B')),
+                              DropdownMenuItem(value: 10, child: Text('A')),
+                            ],
+                            onChanged: (val) {
+                              if (val != null) {
+                                _zaRank = val;
+                                _updateResult();
+                              }
+                            },
+                          ),
+                          const SizedBox(height: 16),
+                        ],
+                        if (_currentStrategy.showPlushLevel) ...[
+                          DropdownButtonFormField<int>(
+                            value: _plushLevel,
+                            decoration: InputDecoration(
+                              labelText:
+                                  Translator.get('calc_plush_level') !=
+                                      'calc_plush_level'
+                                  ? Translator.get('calc_plush_level')
+                                  : 'Plüsch Level',
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              filled: true,
+                            ),
+                            items: [
+                              DropdownMenuItem(
+                                value: 0,
+                                child: Text(
+                                  Translator.get('calc_plush_none') !=
+                                          'calc_plush_none'
+                                      ? Translator.get('calc_plush_none')
+                                      : 'Keins',
+                                ),
+                              ),
+                              DropdownMenuItem(
+                                value: 1,
+                                child: Text('Level 1 (+10%)'),
+                              ),
+                              DropdownMenuItem(
+                                value: 2,
+                                child: Text('Level 2 (+20%)'),
+                              ),
+                              DropdownMenuItem(
+                                value: 3,
+                                child: Text('Level 3 (+35%)'),
+                              ),
+                            ],
+                            onChanged: (val) {
+                              if (val != null) {
+                                _plushLevel = val;
+                                _updateResult();
+                              }
+                            },
+                          ),
+                          const SizedBox(height: 16),
+                        ],
+                        if (_currentStrategy.showDonutPenalty) ...[
+                          DropdownButtonFormField<int>(
+                            value: _donutPenalty,
+                            decoration: InputDecoration(
+                              labelText:
+                                  Translator.get('calc_donut_penalty') !=
+                                      'calc_donut_penalty'
+                                  ? Translator.get('calc_donut_penalty')
+                                  : 'Donut Malus',
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              filled: true,
+                            ),
+                            items: [
+                              DropdownMenuItem(
+                                value: 0,
+                                child: Text(
+                                  Translator.get('calc_donut_none') !=
+                                          'calc_donut_none'
+                                      ? Translator.get('calc_donut_none')
+                                      : 'Keiner',
+                                ),
+                              ),
+                              DropdownMenuItem(
+                                value: 1,
+                                child: Text(
+                                  Translator.get('calc_donut_minus1') !=
+                                          'calc_donut_minus1'
+                                      ? Translator.get('calc_donut_minus1')
+                                      : '-1 Stern',
+                                ),
+                              ),
+                              DropdownMenuItem(
+                                value: 2,
+                                child: Text(
+                                  Translator.get('calc_donut_minus2') !=
+                                          'calc_donut_minus2'
+                                      ? Translator.get('calc_donut_minus2')
+                                      : '-2 Sterne',
+                                ),
+                              ),
+                            ],
+                            onChanged: (val) {
+                              if (val != null) {
+                                _donutPenalty = val;
+                                _updateResult();
+                              }
+                            },
+                          ),
+                          const SizedBox(height: 16),
                         ],
                         if (_currentStrategy.showFishing)
                           SwitchListTile(
@@ -450,21 +848,33 @@ class _CatchRateCalculatorState extends State<CatchRateCalculator> {
               ),
             ),
           ],
-
-          if (_currentStrategy.showHpAndStatus) ...[
+          if (_currentStrategy.showHpAndStatus && !_isMaxRaid) ...[
             const SizedBox(height: 12),
             DropdownButtonFormField<int>(
               value: _statusType,
               decoration: InputDecoration(
                 labelText: Translator.get('status_condition'),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
                 filled: true,
-                fillColor: Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(0.3),
+                fillColor: Theme.of(
+                  context,
+                ).colorScheme.surfaceContainerHighest.withOpacity(0.3),
               ),
               items: [
-                DropdownMenuItem(value: 0, child: Text(Translator.get('status_none'))),
-                DropdownMenuItem(value: 1, child: Text(Translator.get('status_par_psn_brn'))),
-                DropdownMenuItem(value: 2, child: Text(Translator.get('status_slp_frz'))),
+                DropdownMenuItem(
+                  value: 0,
+                  child: Text(Translator.get('status_none')),
+                ),
+                DropdownMenuItem(
+                  value: 1,
+                  child: Text(Translator.get('status_par_psn_brn')),
+                ),
+                DropdownMenuItem(
+                  value: 2,
+                  child: Text(Translator.get('status_slp_frz')),
+                ),
               ],
               onChanged: (val) {
                 if (val != null) {
@@ -477,8 +887,12 @@ class _CatchRateCalculatorState extends State<CatchRateCalculator> {
             Text('${Translator.get('hp_percent')}: ${_hpPercent.toInt()}%'),
             Slider(
               value: _hpPercent,
-              min: 1.0, max: 100.0, divisions: 99,
-              activeColor: _hpPercent > 50 ? Colors.green : (_hpPercent > 20 ? Colors.orange : Colors.red),
+              min: 1.0,
+              max: 100.0,
+              divisions: 99,
+              activeColor: _hpPercent > 50
+                  ? Colors.green
+                  : (_hpPercent > 20 ? Colors.orange : Colors.red),
               label: '${_hpPercent.toInt()}%',
               onChanged: (val) {
                 _hpPercent = val;
@@ -486,7 +900,6 @@ class _CatchRateCalculatorState extends State<CatchRateCalculator> {
               },
             ),
           ],
-
           if (_currentStrategy.showCritSettings) ...[
             const SizedBox(height: 8),
             Card(
@@ -511,14 +924,19 @@ class _CatchRateCalculatorState extends State<CatchRateCalculator> {
                           value: _dexMultiplier,
                           decoration: InputDecoration(
                             labelText: Translator.get('dex_caught'),
-                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
                             filled: true,
                             prefixIcon: const Icon(Icons.menu_book),
                           ),
                           items: _dexMultipliers.entries.map((entry) {
                             return DropdownMenuItem<double>(
                               value: entry.key,
-                              child: Text(entry.value, style: const TextStyle(fontSize: 13)),
+                              child: Text(
+                                entry.value,
+                                style: const TextStyle(fontSize: 13),
+                              ),
                             );
                           }).toList(),
                           onChanged: (val) {
@@ -548,17 +966,22 @@ class _CatchRateCalculatorState extends State<CatchRateCalculator> {
               ),
             ),
           ],
-
           const SizedBox(height: 24),
-          
+
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: isGuaranteed ? Colors.green.withOpacity(0.2) : Theme.of(context).colorScheme.primaryContainer.withOpacity(0.4),
+              color: isGuaranteed
+                  ? Colors.green.withOpacity(0.2)
+                  : Theme.of(
+                      context,
+                    ).colorScheme.primaryContainer.withOpacity(0.4),
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
-                color: isGuaranteed ? Colors.green : Theme.of(context).colorScheme.primary.withOpacity(0.5),
+                color: isGuaranteed
+                    ? Colors.green
+                    : Theme.of(context).colorScheme.primary.withOpacity(0.5),
                 width: 2,
               ),
             ),
@@ -568,36 +991,60 @@ class _CatchRateCalculatorState extends State<CatchRateCalculator> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Icon(Icons.bug_report, color: Colors.orange, size: 16),
+                      const Icon(
+                        Icons.bug_report,
+                        color: Colors.orange,
+                        size: 16,
+                      ),
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
                           _currentResult.glitchText!,
-                          style: const TextStyle(color: Colors.orange, fontSize: 12, fontWeight: FontWeight.bold),
+                          style: const TextStyle(
+                            color: Colors.orange,
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
                     ],
                   ),
                   const SizedBox(height: 8),
                 ],
-                Text(Translator.get('catch_chance'), style: const TextStyle(fontSize: 14)),
+                Text(
+                  Translator.get('catch_chance'),
+                  style: const TextStyle(fontSize: 14),
+                ),
                 const SizedBox(height: 4),
                 Text(
-                  isGuaranteed ? Translator.get('guaranteed_catch') : '~ ${_currentResult.catchChance.toStringAsFixed(1)} %',
+                  isGuaranteed
+                      ? Translator.get('guaranteed_catch')
+                      : '~ ${_currentResult.catchChance.toStringAsFixed(1)} %',
                   style: TextStyle(
                     fontSize: 28,
                     fontWeight: FontWeight.bold,
-                    color: isGuaranteed ? Colors.green : Theme.of(context).colorScheme.primary,
+                    color: isGuaranteed
+                        ? Colors.green
+                        : Theme.of(context).colorScheme.primary,
                   ),
                 ),
-                if (_currentStrategy.showCritSettings && _currentResult.critChance > 0 && !isGuaranteed) ...[
+                if (_currentStrategy.showCritSettings &&
+                    _currentResult.critChance > 0 &&
+                    !isGuaranteed) ...[
                   const SizedBox(height: 12),
                   const Divider(height: 1),
                   const SizedBox(height: 12),
-                  Text(Translator.get('critical_catch_chance'), style: const TextStyle(fontSize: 12)),
+                  Text(
+                    Translator.get('critical_catch_chance'),
+                    style: const TextStyle(fontSize: 12),
+                  ),
                   Text(
                     '~ ${_currentResult.critChance.toStringAsFixed(2)} %',
-                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.orange),
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.orange,
+                    ),
                   ),
                 ],
               ],

@@ -36,6 +36,19 @@ class CatchRateParams {
   final double dexMultiplier;
   final bool hasCatchingCharm;
 
+  final bool isMaxRaid;
+  final bool isGigantamax;
+  final bool isGuest;
+  final bool isBackstrike;
+  final bool isCatchWindow;
+  final bool isAlpha;
+  final bool isUnnoticed;
+  final int zaRank;
+  final int plushLevel;
+  final int donutPenalty;
+  final int missingBadges;
+  final bool isTargetShiny;
+
   CatchRateParams({
     required this.pokemon,
     required this.ballId,
@@ -55,6 +68,18 @@ class CatchRateParams {
     required this.powerBonus,
     required this.dexMultiplier,
     required this.hasCatchingCharm,
+    this.isMaxRaid = false,
+    this.isGigantamax = false,
+    this.isGuest = false,
+    this.isBackstrike = false,
+    this.isCatchWindow = false,
+    this.isAlpha = false,
+    this.isUnnoticed = false,
+    this.zaRank = 10,
+    this.plushLevel = 0,
+    this.donutPenalty = 0,
+    this.missingBadges = 0,
+    this.isTargetShiny = false,
   });
 }
 
@@ -69,5 +94,6 @@ class BallOption {
 class BallEffectResult {
   final double bonus;
   final int baseRate;
+
   BallEffectResult(this.bonus, this.baseRate);
 }
