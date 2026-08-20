@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:path_provider/path_provider.dart';
 import '../models/user_dex.dart';
@@ -19,7 +20,9 @@ class DexStorageService {
           .toList();
       final String jsonString = jsonEncode(jsonList);
       final String dateString = DateTime.now().toIso8601String().split('T')[0];
-      final String fileName = 'pokevault_backup_$dateString.json';
+
+      final String timestamp = DateTime.now().millisecondsSinceEpoch.toString();
+      final String fileName = 'pokevault_backup_${dateString}_$timestamp.json';
 
       bool isDesktop =
           Platform.isWindows || Platform.isLinux || Platform.isMacOS;
@@ -36,14 +39,21 @@ class DexStorageService {
         try {
           final directory = Directory('/storage/emulated/0/Download');
           if (!await directory.exists()) {
-            await directory.create(recursive: true);
+            try {
+              await directory.create();
+            } catch (e) {
+              debugPrint('Konnte Download-Ordner nicht erstellen: $e');
+            }
           }
           final file = File('${directory.path}/$fileName');
           await file.writeAsString(jsonString);
           NotificationHelper.showSuccess(
-            "${Translator.get('backup_success')}\n${file.path}",
+            "${Translator.get('backup_success_android')}\n${file.path}",
           );
         } catch (e) {
+          NotificationHelper.showWarning(
+            "${Translator.get('backup_fallback_android')}\n$e",
+          );
           final directory = await getTemporaryDirectory();
           final file = File('${directory.path}/$fileName');
           await file.writeAsString(jsonString);
@@ -70,15 +80,12 @@ class DexStorageService {
         label: Translator.get('json_files'),
         extensions: const <String>['json'],
       );
-
       final XFile? file = await openFile(
         acceptedTypeGroups: <XTypeGroup>[typeGroup],
       );
-
       if (file != null) {
         final String jsonString = await file.readAsString();
         final List<dynamic> decoded = jsonDecode(jsonString);
-
         return decoded.map((item) => UserDex.fromJson(item)).toList();
       }
     } catch (e) {

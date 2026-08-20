@@ -1118,4 +1118,9 @@ const Map<String, String> translationsDe = {
 
   'shiny_form': 'Shiny Form',
   'normal_form': 'Normale Form',
+
+  'backup_success_android':
+      'Backup erfolgreich im Downloads-Ordner gespeichert!',
+  'backup_fallback_android':
+      'Direktes Speichern fehlgeschlagen. Bitte wähle einen Speicherort manuell aus.',
 };
