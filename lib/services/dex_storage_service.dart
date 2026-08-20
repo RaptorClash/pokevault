@@ -15,12 +15,14 @@ class DexStorageService {
     DexProvider provider,
   ) async {
     try {
-      final List<Map<String, dynamic>> jsonList = dexes
-          .map((d) => d.toJson())
-          .toList();
-      final String jsonString = jsonEncode(jsonList);
-      final String dateString = DateTime.now().toIso8601String().split('T')[0];
+      final Map<String, dynamic> exportData = {
+        'dexes': dexes.map((d) => d.toJson()).toList(),
+        'folders': provider.folders.map((f) => f.toJson()).toList(),
+        'structure': provider.structure,
+      };
 
+      final String jsonString = jsonEncode(exportData);
+      final String dateString = DateTime.now().toIso8601String().split('T')[0];
       final String timestamp = DateTime.now().millisecondsSinceEpoch.toString();
       final String fileName = 'pokevault_backup_${dateString}_$timestamp.json';
 
@@ -74,7 +76,7 @@ class DexStorageService {
     }
   }
 
-  static Future<List<UserDex>?> importDexes(DexProvider provider) async {
+  static Future<dynamic> importDexes(DexProvider provider) async {
     try {
       final XTypeGroup typeGroup = XTypeGroup(
         label: Translator.get('json_files'),
@@ -85,8 +87,7 @@ class DexStorageService {
       );
       if (file != null) {
         final String jsonString = await file.readAsString();
-        final List<dynamic> decoded = jsonDecode(jsonString);
-        return decoded.map((item) => UserDex.fromJson(item)).toList();
+        return jsonDecode(jsonString);
       }
     } catch (e) {
       NotificationHelper.showError("${Translator.get('error_import')} $e");

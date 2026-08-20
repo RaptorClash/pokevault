@@ -5,8 +5,13 @@ import '../../providers/dex_provider.dart';
 
 class CreateDexBottomSheet extends StatefulWidget {
   final DexProvider provider;
+  final String currentFolderId;
 
-  const CreateDexBottomSheet({super.key, required this.provider});
+  const CreateDexBottomSheet({
+    super.key,
+    required this.provider,
+    required this.currentFolderId,
+  });
 
   @override
   State<CreateDexBottomSheet> createState() => _CreateDexBottomSheetState();
@@ -368,6 +373,7 @@ class _CreateDexBottomSheetState extends State<CreateDexBottomSheet> {
                           includeGMax,
                           includeOther,
                           isShinyDex,
+                          widget.currentFolderId,
                         );
                         Navigator.pop(context);
                       }

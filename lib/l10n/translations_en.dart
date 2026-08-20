@@ -835,4 +835,24 @@ const Map<String, String> translationsEn = {
   'backup_success_android': 'Backup successfully saved to Downloads folder!',
   'backup_fallback_android':
       'Direct saving failed. Please choose a location manually.',
+
+  "folder_create_title": "New Folder",
+  "folder_name_hint": "Folder name",
+  "folder_rename_title": "Rename folder",
+  "folder_move_title": "Move to...",
+  "folder_root": "Main Screen",
+  "folder_empty": "It's empty here.",
+  "action_rename": "Rename",
+  "action_move": "Move...",
+  "action_delete_keep": "Delete (keep contents)",
+  "action_open": "Open folder",
+  "sort_manual": "Manual",
+  "sort_az": "A-Z",
+  "sort_progress": "Progress",
+  "sort_region": "Region",
+  "error_cyclic_move":
+      "Error: A folder cannot be moved into itself or its own subfolders!",
+  "delete_folder_title": "Delete Folder",
+  "delete_folder_text":
+      "Do you really want to delete this folder? The contents will safely be moved to the main screen.",
 };

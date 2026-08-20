@@ -1123,4 +1123,24 @@ const Map<String, String> translationsDe = {
       'Backup erfolgreich im Downloads-Ordner gespeichert!',
   'backup_fallback_android':
       'Direktes Speichern fehlgeschlagen. Bitte wähle einen Speicherort manuell aus.',
+
+  "folder_create_title": "Neuer Ordner",
+  "folder_name_hint": "Ordnername",
+  "folder_rename_title": "Ordner umbenennen",
+  "folder_move_title": "Verschieben nach...",
+  "folder_root": "Hauptbildschirm",
+  "folder_empty": "Hier ist es noch leer.",
+  "action_rename": "Umbenennen",
+  "action_move": "Verschieben...",
+  "action_delete_keep": "Löschen (Inhalt bleibt erhalten)",
+  "action_open": "Ordner öffnen",
+  "sort_manual": "Manuell",
+  "sort_az": "A-Z",
+  "sort_progress": "Fortschritt",
+  "sort_region": "Region",
+  "error_cyclic_move":
+      "Fehler: Ein Ordner kann nicht in sich selbst oder seine eigenen Unterordner verschoben werden!",
+  "delete_folder_title": "Ordner löschen",
+  "delete_folder_text":
+      "Möchtest du diesen Ordner wirklich löschen? Der Inhalt wird sicher auf den Hauptbildschirm verschoben.",
 };
