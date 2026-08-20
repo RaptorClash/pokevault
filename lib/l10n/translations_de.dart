@@ -1096,4 +1096,7 @@ const Map<String, String> translationsDe = {
   'hisui_status_1': 'Ahnungslos / Im Gras versteckt (1.5x)',
   'hisui_status_2': 'Rückangriff (2.0x)',
   'hisui_status_3': 'Betäubt durch Items (1.25x / Alphas 3.0x)',
+
+  'error_calc_catch_rate': 'Fehler bei der Berechnung der Fangrate:',
+  'error_calc_catch_rate_ui': 'Fehler bei der UI-Eingabe (Fangrate):',
 };

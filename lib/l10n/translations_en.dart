@@ -809,4 +809,7 @@ const Map<String, String> translationsEn = {
   'hisui_status_1': 'Unaware / Hidden in Grass (1.5x)',
   'hisui_status_2': 'Back Strike (2.0x)',
   'hisui_status_3': 'Stunned by Items (1.25x / Alphas 3.0x)',
+
+  'error_calc_catch_rate': 'Error calculating catch rate:',
+  'error_calc_catch_rate_ui': 'Error in UI input (catch rate):',
 };
