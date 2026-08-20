@@ -11,6 +11,7 @@ import '../../utils/notification_helper.dart';
 import 'shiny_guide_widget.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'widgets/catch_rate_calculator.dart';
+import 'widgets/breeding_info_widget.dart';
 
 class GameVersion {
   final Color bgColor;
@@ -128,7 +129,6 @@ class _PokemonInfoScreenState extends State<PokemonInfoScreen> {
   String _getImageUrl(DexDisplayEntry entry, bool wantShiny) {
     String url = entry.imageUrl;
     bool isCurrentlyShiny = url.contains('/shiny/');
-
     if (wantShiny && !isCurrentlyShiny) {
       if (url.contains('official-artwork/')) {
         return url.replaceFirst('official-artwork/', 'official-artwork/shiny/');
@@ -230,6 +230,7 @@ class _PokemonInfoScreenState extends State<PokemonInfoScreen> {
 
     bool wantShiny = _manualShinyToggle ?? liveDex.isShinyDex;
     String currentImageUrl = _getImageUrl(entry, wantShiny);
+
     String fallbackUrl =
         'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${wantShiny ? 'shiny/' : ''}${entry.pokemon.id}.png';
 
@@ -449,6 +450,9 @@ class _PokemonInfoScreenState extends State<PokemonInfoScreen> {
             ),
           ),
           const SizedBox(height: 16),
+
+          BreedingInfoWidget(pokemon: entry.pokemon),
+
           Card(
             margin: const EdgeInsets.symmetric(vertical: 8),
             elevation: 2,
@@ -558,7 +562,6 @@ class _PokemonInfoScreenState extends State<PokemonInfoScreen> {
 
   Widget _buildVersionBadge(List<String> versions) {
     if (versions.isEmpty) return const SizedBox.shrink();
-
     return Wrap(
       spacing: 2,
       runSpacing: 4,
@@ -641,14 +644,15 @@ class _PokemonInfoScreenState extends State<PokemonInfoScreen> {
 
       for (var gen in sortedGens) {
         final versionsMap = encounters[gen]!;
-
         Map<String, List<String>> groupedEncounters = {};
+
         versionsMap.forEach((ver, locs) {
           String key = locs.join('|||||');
           groupedEncounters.putIfAbsent(key, () => []).add(ver);
         });
 
         List<Widget> versionWidgets = [];
+
         groupedEncounters.forEach((locationsStr, versions) {
           final locations = locationsStr.split('|||||');
 
@@ -721,6 +725,7 @@ class _PokemonInfoScreenState extends State<PokemonInfoScreen> {
             } else {
               String base = loc;
               String method = '';
+
               if (loc.contains(' (')) {
                 int bracketIndex = loc.indexOf(' (');
                 base = loc.substring(0, bracketIndex);
@@ -735,7 +740,7 @@ class _PokemonInfoScreenState extends State<PokemonInfoScreen> {
               return Padding(
                 padding: const EdgeInsets.symmetric(vertical: 4.0),
                 child: Text(
-                  '  $transBase$transMethod',
+                  '• $transBase$transMethod',
                   style: const TextStyle(fontSize: 13),
                 ),
               );
@@ -793,6 +798,7 @@ class _PokemonInfoScreenState extends State<PokemonInfoScreen> {
             ),
           );
         }
+
         if (gen == 'gen_1' && pokemonId == 151) {
           versionWidgets.add(
             _buildGlitchNote(
@@ -834,7 +840,7 @@ class _PokemonInfoScreenState extends State<PokemonInfoScreen> {
                   Translator.get('encounter_missing_note') !=
                           'encounter_missing_note'
                       ? Translator.get('encounter_missing_note')
-                      : 'Hinweis: Wenn eine Edition nicht aufgef hrt ist, ist das Pok mon dort in der Regel nur durch Entwicklung, Tausch oder Transfer erh ltlich.',
+                      : 'Hinweis: Wenn eine Edition nicht aufgeführt ist, ist das Pokémon dort in der Regel nur durch Entwicklung, Tausch oder Transfer erhältlich.',
                   style: const TextStyle(
                     fontSize: 12,
                     fontStyle: FontStyle.italic,
@@ -1016,12 +1022,12 @@ class _PokemonInfoScreenState extends State<PokemonInfoScreen> {
         title: Text(
           Translator.get('ignore_confirm_title') != 'ignore_confirm_title'
               ? Translator.get('ignore_confirm_title')
-              : 'Pok mon entfernen?',
+              : 'Pokémon entfernen?',
         ),
         content: Text(
           Translator.get('ignore_confirm_text') != 'ignore_confirm_text'
               ? Translator.get('ignore_confirm_text')
-              : 'M chtest du dieses Pok mon ausblenden? Du kannst es im Men  jederzeit wiederherstellen.',
+              : 'Möchtest du dieses Pokémon ausblenden? Du kannst es im Menü jederzeit wiederherstellen.',
         ),
         actions: [
           TextButton(

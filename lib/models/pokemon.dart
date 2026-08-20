@@ -12,8 +12,8 @@ class PokemonForm {
     required this.formType,
     required this.minGen,
     required this.imageId,
-    this.types = const [],
-    this.exclusiveRegions = const [],
+    required this.types,
+    required this.exclusiveRegions,
     this.extraInfo,
   });
 }
@@ -22,6 +22,9 @@ class Pokemon {
   final int id;
   final Map<String, String> names;
   final bool hasGenderDifferences;
+  final int genderRate;
+  final List<String> eggGroups;
+  final int evolutionChainId;
   final List<PokemonForm> forms;
   final String? extraInfo;
   final int captureRate;
@@ -29,16 +32,16 @@ class Pokemon {
   const Pokemon({
     required this.id,
     required this.names,
-    this.hasGenderDifferences = false,
-    this.forms = const [],
+    required this.hasGenderDifferences,
+    required this.genderRate,
+    required this.eggGroups,
+    required this.evolutionChainId,
+    required this.forms,
     this.extraInfo,
-    this.captureRate = 255,
+    required this.captureRate,
   });
 
-  String getName([String lang = 'de']) {
-    return names[lang] ?? names['de'] ?? 'Unbekannt';
+  String getName(String languageCode) {
+    return names[languageCode] ?? names['en'] ?? 'Unknown';
   }
-
-  String get imageUrl =>
-      'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/$id.png';
 }

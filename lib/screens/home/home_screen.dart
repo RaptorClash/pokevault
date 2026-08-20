@@ -59,7 +59,8 @@ class _HomeScreenState extends State<HomeScreen> {
           builder: (context) => UpdateDialog(updateInfo: updateInfo),
         );
       }
-    } catch (e) {}
+    } catch (e) {
+    }
   }
 
   String _getParentId(DexProvider provider, String id) {
@@ -535,7 +536,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
         widgets.add(
           Card(
-            key: ValueKey('${item.id}_$q'),
+            key: ValueKey('${item.id}_${q}_$_isSelectionMode'),
             elevation: isSelected ? 4 : 1,
             margin: EdgeInsets.symmetric(
               horizontal: isRootLevel ? 16 : 0,
@@ -558,7 +559,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         _selectedItemIds.add(item.id);
                       });
                     }
-                  : null,
+                  : () {},
               onTap: (_isSelectionMode && isRootLevel)
                   ? () {
                       setState(() {
@@ -569,11 +570,12 @@ class _HomeScreenState extends State<HomeScreen> {
                         }
                       });
                     }
-                  : null,
+                  : (_isSelectionMode ? () {} : null),
               child: IgnorePointer(
                 ignoring: _isSelectionMode,
                 child: ExpansionTile(
-                  initiallyExpanded: q.isNotEmpty && hasMatchInChildren,
+                  initiallyExpanded:
+                      !_isSelectionMode && q.isNotEmpty && hasMatchInChildren,
                   leading: IconButton(
                     icon: const Icon(
                       Icons.folder,
@@ -711,7 +713,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         _selectedItemIds.add(item.id);
                       });
                     }
-                  : null,
+                  : () {},
               onTap: () {
                 if (_isSelectionMode) {
                   if (isRootLevel) {
@@ -735,7 +737,11 @@ class _HomeScreenState extends State<HomeScreen> {
                             id: id,
                             names: {'de': 'Unbekannt', 'en': 'Unknown'},
                             hasGenderDifferences: false,
+                            genderRate: -1,
+                            eggGroups: [],
+                            evolutionChainId: -1,
                             forms: [],
+                            captureRate: 255,
                           ),
                     )
                     .toList();

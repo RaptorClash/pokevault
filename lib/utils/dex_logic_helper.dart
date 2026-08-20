@@ -120,7 +120,6 @@ class DexLogicHelper {
       isBaseForm = true;
     } else {
       String formName = uniqueId.substring(uniqueId.indexOf('_') + 1);
-      // BUGFIX für Icognito M: 'm' wird nur für Geschlecht interpretiert, wenn die ID nicht 201 ist.
       if (formName == 'normal' ||
           formName == 'male' ||
           (formName == 'm' && id != 201)) {
@@ -138,7 +137,6 @@ class DexLogicHelper {
     if (id == 666) return 'vivillon';
     if (id == 869) return 'alcremie';
 
-    // BUGFIX für Icognito F: Endet auf 'f', ist aber Form 'f' statt Geschlecht 'female', wenn ID 201.
     if ((uniqueId.endsWith('_f') || uniqueId.endsWith('_female')) &&
         id != 201) {
       return 'females';

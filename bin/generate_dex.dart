@@ -43,7 +43,9 @@ final Map<String, int> _versionToGen = {
 };
 
 void main() async {
-  print('Start Download (inkl. Whitelist, Typen & sicherer Fangrate)...');
+  print(
+    'Start Download (inkl. Whitelist, Typen, Fangrate, Zucht & Evolutionen)...',
+  );
   final code = await generateMasterDex(1, 1025);
   File('lib/data/national_dex_data.dart').writeAsStringSync(code);
   print('Fertig!');
@@ -96,16 +98,30 @@ Future<String> generateMasterDex(int startId, int endId) async {
             int.tryParse(speciesData['capture_rate'].toString()) ?? 255;
       }
 
-      List<String> formObjects = [];
+      int genderRate = speciesData['gender_rate'] ?? -1;
 
+      List<String> eggGroups = [];
+      if (speciesData['egg_groups'] != null) {
+        for (var eg in speciesData['egg_groups']) {
+          eggGroups.add(eg['name']);
+        }
+      }
+
+      int evoChainId = -1;
+      if (speciesData['evolution_chain'] != null) {
+        String url = speciesData['evolution_chain']['url'];
+        List<String> segments = url.split('/');
+        evoChainId = int.tryParse(segments[segments.length - 2]) ?? -1;
+      }
+
+      List<String> formObjects = [];
       for (var variety in speciesData['varieties']) {
         final pokeData = await _fetchJson(client, variety['pokemon']['url']);
         if (pokeData == null) continue;
 
         int varietyId = i;
-        if (pokeData['id'] != null) {
+        if (pokeData['id'] != null)
           varietyId = int.tryParse(pokeData['id'].toString()) ?? i;
-        }
 
         for (var formObj in pokeData['forms']) {
           final formData = await _fetchJson(client, formObj['url']);
@@ -114,16 +130,12 @@ Future<String> generateMasterDex(int startId, int endId) async {
           List<String> types = [];
           if (formData['types'] != null &&
               (formData['types'] as List).isNotEmpty) {
-            for (var t in formData['types']) {
-              types.add(t['type']['name']);
-            }
+            for (var t in formData['types']) types.add(t['type']['name']);
           } else {
-            for (var t in pokeData['types']) {
-              types.add(t['type']['name']);
-            }
+            for (var t in pokeData['types']) types.add(t['type']['name']);
           }
-          String typesString = "['${types.join("', '")}']";
 
+          String typesString = "['${types.join("', '")}']";
           String rawFormName = formData['name'];
           String cleanForm = rawFormName
               .replaceFirst(speciesName, '')
@@ -151,54 +163,6 @@ Future<String> generateMasterDex(int startId, int endId) async {
 
           Set<String> exclusives = (_formWhitelist["${i}_$cleanForm"] ?? [])
               .toSet();
-
-          if (cleanForm.contains('alola')) {
-            exclusives.addAll([
-              'alola_regional',
-              'melemele_regional',
-              'akala_regional',
-              'ulaula_regional',
-              'poni_regional',
-              'updated_alola_regional',
-              'updated_melemele_regional',
-              'updated_akala_regional',
-              'updated_ulaula_regional',
-              'updated_poni_regional',
-            ]);
-          } else if (cleanForm.contains('galar')) {
-            exclusives.addAll([
-              'galar_regional',
-              'isle_of_armor_regional',
-              'crown_tundra_regional',
-            ]);
-          } else if (cleanForm.contains('hisui')) {
-            exclusives.addAll(['hisui_regional']);
-          } else if (cleanForm.contains('paldea')) {
-            exclusives.addAll([
-              'paldea_regional',
-              'kitakami_regional',
-              'blueberry_regional',
-            ]);
-          } else if (cleanForm.contains('mega') ||
-              cleanForm.contains('primal')) {
-            exclusives.addAll([
-              'kalos_central_regional',
-              'kalos_coastal_regional',
-              'kalos_mountain_regional',
-              'lumiose_regional',
-              'lumiose_dimensions_regional',
-              'updated_hoenn_regional',
-              'letsgo_kanto_regional',
-              'mega_dex',
-            ]);
-          } else if (cleanForm.contains('gmax')) {
-            exclusives.addAll([
-              'galar_regional',
-              'isle_of_armor_regional',
-              'crown_tundra_regional',
-            ]);
-          }
-
           String exclusiveString = exclusives.isEmpty
               ? "[]"
               : "[${exclusives.map((e) => "'$e'").join(', ')}]";
@@ -210,11 +174,13 @@ Future<String> generateMasterDex(int startId, int endId) async {
       }
 
       String entry =
-          """
-  Pokemon(
+          """  Pokemon(
     id: $i,
     names: {'de': "${nameDe.replaceAll('"', '\\"')}", 'en': "${nameEn.replaceAll('"', '\\"')}"},
     hasGenderDifferences: $hasGenderDiff,
+    genderRate: $genderRate,
+    eggGroups: const [${eggGroups.map((e) => "'$e'").join(', ')}],
+    evolutionChainId: $evoChainId,
     forms: const [${formObjects.join(', ')}],
     extraInfo: null,
     captureRate: $captureRate,
