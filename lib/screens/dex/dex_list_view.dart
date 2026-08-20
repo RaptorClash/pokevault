@@ -31,8 +31,7 @@ class DexListView extends StatelessWidget {
         : (screenWidth > 900 ? 6 : (screenWidth > 600 ? 5 : 3));
 
     return GridView.builder(
-      keyboardDismissBehavior:
-          ScrollViewKeyboardDismissBehavior.onDrag,
+      keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
       padding: const EdgeInsets.all(8),
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: listColumns,
@@ -53,8 +52,12 @@ class DexListView extends StatelessWidget {
               context,
               MaterialPageRoute(
                 fullscreenDialog: true,
-                builder: (context) =>
-                    PokemonInfoScreen(entry: entry, dexId: liveDex.id),
+                builder: (context) => PokemonInfoScreen(
+                  entries: displayList,
+                  initialIndex: index,
+                  dexId: liveDex.id,
+                  isBoxView: false,
+                ),
               ),
             );
           },

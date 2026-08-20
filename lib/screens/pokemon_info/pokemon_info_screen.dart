@@ -73,13 +73,21 @@ final Map<String, GameVersion> _versionColors = {
 };
 
 class PokemonInfoScreen extends StatefulWidget {
-  final DexDisplayEntry entry;
+  final List<DexDisplayEntry> entries;
+  final int initialIndex;
   final String dexId;
+  final List<BoxData>? boxes;
+  final bool isBoxView;
+  final ValueChanged<int>? onPageChanged;
 
   const PokemonInfoScreen({
     super.key,
-    required this.entry,
+    required this.entries,
+    required this.initialIndex,
     required this.dexId,
+    this.boxes,
+    this.isBoxView = false,
+    this.onPageChanged,
   });
 
   @override
@@ -87,7 +95,22 @@ class PokemonInfoScreen extends StatefulWidget {
 }
 
 class _PokemonInfoScreenState extends State<PokemonInfoScreen> {
+  late PageController _pageController;
+  int _currentIndex = 0;
   bool? _manualShinyToggle;
+
+  @override
+  void initState() {
+    super.initState();
+    _currentIndex = widget.initialIndex;
+    _pageController = PageController(initialPage: widget.initialIndex);
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
 
   Future<void> _launchURL(String urlString) async {
     try {
@@ -102,8 +125,8 @@ class _PokemonInfoScreenState extends State<PokemonInfoScreen> {
     }
   }
 
-  String _getImageUrl(bool wantShiny) {
-    String url = widget.entry.imageUrl;
+  String _getImageUrl(DexDisplayEntry entry, bool wantShiny) {
+    String url = entry.imageUrl;
     bool isCurrentlyShiny = url.contains('/shiny/');
 
     if (wantShiny && !isCurrentlyShiny) {
@@ -122,37 +145,111 @@ class _PokemonInfoScreenState extends State<PokemonInfoScreen> {
 
   @override
   Widget build(BuildContext context) {
+    String? boxTitle;
+    int indexInBox = 0;
+    int boxTotal = 0;
+
+    if (widget.isBoxView && widget.boxes != null) {
+      final currentEntry = widget.entries[_currentIndex];
+      try {
+        final box = widget.boxes!.firstWhere(
+          (b) => b.entries.contains(currentEntry),
+        );
+        boxTitle = box.title;
+        indexInBox = box.entries.indexOf(currentEntry) + 1;
+        boxTotal = box.entries.length;
+      } catch (_) {}
+    }
+
+    return Scaffold(
+      appBar: AppBar(
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              Translator.get('extra_info') != 'extra_info'
+                  ? Translator.get('extra_info')
+                  : 'Zusatzinformationen',
+              style: TextStyle(fontSize: boxTitle != null ? 16 : 20),
+            ),
+            if (boxTitle != null)
+              Text(
+                '$boxTitle - $indexInBox / $boxTotal',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.normal,
+                  color:
+                      Theme.of(
+                        context,
+                      ).textTheme.bodySmall?.color?.withOpacity(0.7) ??
+                      Colors.white70,
+                ),
+              ),
+          ],
+        ),
+        leading: const CloseButton(),
+        actions: [
+          Center(
+            child: Padding(
+              padding: const EdgeInsets.only(right: 16.0),
+              child: Text(
+                '${_currentIndex + 1} / ${widget.entries.length}',
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+      body: PageView.builder(
+        controller: _pageController,
+        onPageChanged: (index) {
+          setState(() {
+            _currentIndex = index;
+            _manualShinyToggle = null;
+          });
+          if (widget.onPageChanged != null) {
+            widget.onPageChanged!(index);
+          }
+        },
+        itemCount: widget.entries.length,
+        itemBuilder: (context, index) {
+          return _buildPokemonPage(context, widget.entries[index]);
+        },
+      ),
+    );
+  }
+
+  Widget _buildPokemonPage(BuildContext context, DexDisplayEntry entry) {
     final provider = context.watch<DexProvider>();
     final liveDex = provider.userDexes.firstWhere((d) => d.id == widget.dexId);
-    final isCaught = liveDex.caughtIds.contains(widget.entry.uniqueId);
-    final isShiny = liveDex.shinyIds.contains(widget.entry.uniqueId);
+    final isCaught = liveDex.caughtIds.contains(entry.uniqueId);
+    final isShiny = liveDex.shinyIds.contains(entry.uniqueId);
 
     bool wantShiny = _manualShinyToggle ?? liveDex.isShinyDex;
-    String currentImageUrl = _getImageUrl(wantShiny);
+    String currentImageUrl = _getImageUrl(entry, wantShiny);
     String fallbackUrl =
-        'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${wantShiny ? 'shiny/' : ''}${widget.entry.pokemon.id}.png';
+        'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${wantShiny ? 'shiny/' : ''}${entry.pokemon.id}.png';
 
     final matchingBalls =
-        matchingBallsDatabase[widget.entry.uniqueId] ??
-        matchingBallsDatabase['${widget.entry.pokemon.id}_normal'];
+        matchingBallsDatabase[entry.uniqueId] ??
+        matchingBallsDatabase['${entry.pokemon.id}_normal'];
     final List<String> normalBalls = matchingBalls?['normal'] ?? [];
     final List<String> shinyBalls = matchingBalls?['shiny'] ?? [];
 
     String formName = 'normal';
-    if (widget.entry.uniqueId.contains('_')) {
-      formName = widget.entry.uniqueId.substring(
-        widget.entry.uniqueId.indexOf('_') + 1,
-      );
+    if (entry.uniqueId.contains('_')) {
+      formName = entry.uniqueId.substring(entry.uniqueId.indexOf('_') + 1);
       if (formName == 'm' || formName == 'f') formName = 'normal';
     }
     PokemonForm? currentForm;
     try {
-      currentForm = widget.entry.pokemon.forms.firstWhere(
-        (f) => f.name == formName,
-      );
+      currentForm = entry.pokemon.forms.firstWhere((f) => f.name == formName);
     } catch (_) {
-      if (widget.entry.pokemon.forms.isNotEmpty) {
-        currentForm = widget.entry.pokemon.forms.first;
+      if (entry.pokemon.forms.isNotEmpty) {
+        currentForm = entry.pokemon.forms.first;
       }
     }
 
@@ -184,300 +281,277 @@ class _PokemonInfoScreenState extends State<PokemonInfoScreen> {
         ? typeColors[currentForm.types[1]] ?? typeColor1
         : typeColor1;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          Translator.get('extra_info') != 'extra_info'
-              ? Translator.get('extra_info')
-              : 'Zusatzinformationen',
-        ),
-        leading: const CloseButton(),
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Container(
-              height: 240,
-              width: double.infinity,
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    typeColor1.withOpacity(0.5),
-                    typeColor2.withOpacity(0.5),
-                  ],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                borderRadius: BorderRadius.circular(24),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
-                    blurRadius: 8,
-                    offset: const Offset(0, 4),
-                  ),
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Container(
+            height: 240,
+            width: double.infinity,
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  typeColor1.withOpacity(0.5),
+                  typeColor2.withOpacity(0.5),
                 ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
               ),
-              child: Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  Center(
-                    child: Image.network(
-                      currentImageUrl,
+              borderRadius: BorderRadius.circular(24),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 8,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Stack(
+              clipBehavior: Clip.none,
+              children: [
+                Center(
+                  child: Image.network(
+                    currentImageUrl,
+                    fit: BoxFit.contain,
+                    errorBuilder: (context, error, stackTrace) => Image.network(
+                      fallbackUrl,
                       fit: BoxFit.contain,
-                      errorBuilder: (context, error, stackTrace) =>
-                          Image.network(
-                            fallbackUrl,
-                            fit: BoxFit.contain,
-                            errorBuilder: (c, e, s) =>
-                                const Icon(Icons.catching_pokemon, size: 60),
-                          ),
+                      errorBuilder: (c, e, s) =>
+                          const Icon(Icons.catching_pokemon, size: 60),
                     ),
                   ),
-                  Positioned(
-                    bottom: -4,
-                    right: -4,
-                    child: FloatingActionButton.small(
-                      heroTag: 'shiny_toggle',
-                      backgroundColor: wantShiny
-                          ? Colors.amber
-                          : Theme.of(context).colorScheme.surface,
-                      tooltip: wantShiny
-                          ? Translator.get('normal_form') != 'normal_form'
-                                ? Translator.get('normal_form')
-                                : 'Normale Form'
-                          : Translator.get('shiny_form') != 'shiny_form'
-                          ? Translator.get('shiny_form')
-                          : 'Shiny Form',
-                      onPressed: () {
-                        setState(() {
-                          _manualShinyToggle = !wantShiny;
-                        });
-                      },
-                      child: Icon(
-                        wantShiny
-                            ? Icons.auto_awesome
-                            : Icons.auto_awesome_outlined,
-                        color: wantShiny ? Colors.white : Colors.grey,
-                      ),
+                ),
+                Positioned(
+                  bottom: -4,
+                  right: -4,
+                  child: FloatingActionButton.small(
+                    heroTag: 'shiny_toggle_${entry.uniqueId}',
+                    backgroundColor: wantShiny
+                        ? Colors.amber
+                        : Theme.of(context).colorScheme.surface,
+                    tooltip: wantShiny
+                        ? Translator.get('normal_form') != 'normal_form'
+                              ? Translator.get('normal_form')
+                              : 'Normale Form'
+                        : Translator.get('shiny_form') != 'shiny_form'
+                        ? Translator.get('shiny_form')
+                        : 'Shiny Form',
+                    onPressed: () {
+                      setState(() {
+                        _manualShinyToggle = !wantShiny;
+                      });
+                    },
+                    child: Icon(
+                      wantShiny
+                          ? Icons.auto_awesome
+                          : Icons.auto_awesome_outlined,
+                      color: wantShiny ? Colors.white : Colors.grey,
                     ),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
-            const SizedBox(height: 24),
-            Text(
-              '#${widget.entry.pokemon.id.toString().padLeft(3, '0')}',
-              style: TextStyle(
-                fontSize: 20,
-                color: Theme.of(context).hintColor,
-                fontWeight: FontWeight.bold,
-              ),
+          ),
+          const SizedBox(height: 24),
+          Text(
+            '#${entry.pokemon.id.toString().padLeft(3, '0')}',
+            style: TextStyle(
+              fontSize: 20,
+              color: Theme.of(context).hintColor,
+              fontWeight: FontWeight.bold,
             ),
-            Text(
-              widget.entry.pokemon.getName(provider.currentLanguage),
-              style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
-              textAlign: TextAlign.center,
-            ),
-            if (currentForm != null && currentForm.types.isNotEmpty) ...[
-              const SizedBox(height: 8),
-              Wrap(
-                spacing: 8,
-                children: currentForm.types.map((type) {
-                  return Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: typeColors[type] ?? Colors.grey,
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: Colors.black26),
-                    ),
-                    child: Text(
-                      Translator.get('type_$type').toUpperCase(),
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 12,
-                        shadows: [Shadow(color: Colors.black45, blurRadius: 2)],
-                      ),
-                    ),
-                  );
-                }).toList(),
-              ),
-            ],
-            if (widget.entry.displaySuffix.trim().isNotEmpty) ...[
-              const SizedBox(height: 8),
-              Text(
-                '${Translator.get('form') != 'form' ? Translator.get('form') : 'Form'}: ${widget.entry.displaySuffix.replaceAll('(', '').replaceAll(')', '').trim()}',
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontStyle: FontStyle.italic,
-                ),
-              ),
-            ],
-            const SizedBox(height: 32),
-            Card(
-              margin: const EdgeInsets.symmetric(vertical: 4),
-              child: SwitchListTile(
-                title: Text(
-                  Translator.get('caught_status') != 'caught_status'
-                      ? Translator.get('caught_status')
-                      : 'Gefangen Status',
-                  style: const TextStyle(fontWeight: FontWeight.bold),
-                ),
-                subtitle: Text(
-                  Translator.get('mark_as_caught') != 'mark_as_caught'
-                      ? Translator.get('mark_as_caught')
-                      : 'Als gefangen markieren',
-                ),
-                secondary: Icon(
-                  Icons.catching_pokemon,
-                  color: isCaught ? Colors.green : Colors.grey,
-                ),
-                value: isCaught,
-                activeColor: Colors.green,
-                onChanged: (val) {
-                  provider.togglePokemon(widget.dexId, widget.entry.uniqueId);
-                },
-              ),
-            ),
-            Card(
-              margin: const EdgeInsets.symmetric(vertical: 4),
-              child: SwitchListTile(
-                title: const Text(
-                  'Shiny Status',
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-                subtitle: const Text('Als schillernd markieren'),
-                secondary: Icon(
-                  Icons.star,
-                  color: isShiny ? Colors.amber : Colors.grey,
-                ),
-                value: isShiny,
-                activeColor: Colors.amber,
-                onChanged: (val) {
-                  provider.toggleShiny(widget.dexId, widget.entry.uniqueId);
-                },
-              ),
-            ),
-            const SizedBox(height: 16),
-            Card(
-              margin: const EdgeInsets.symmetric(vertical: 8),
-              elevation: 2,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: ExpansionTile(
-                leading: const Icon(
-                  Icons.calculate_outlined,
-                  color: Colors.purple,
-                ),
-                title: Text(
-                  Translator.get('catch_calculator_title') !=
-                          'catch_calculator_title'
-                      ? Translator.get('catch_calculator_title')
-                      : 'Ultimativer Fangratenrechner',
-                  style: const TextStyle(fontWeight: FontWeight.bold),
-                ),
-                children: [CatchRateCalculator(pokemon: widget.entry.pokemon)],
-              ),
-            ),
-            const SizedBox(height: 16),
-            Card(
-              margin: const EdgeInsets.symmetric(vertical: 8),
-              elevation: 2,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: ExpansionTile(
-                leading: const Icon(
-                  Icons.catching_pokemon,
-                  color: Colors.redAccent,
-                ),
-                title: Text(
-                  Translator.get('matching_balls') != 'matching_balls'
-                      ? Translator.get('matching_balls')
-                      : 'Matching Balls',
-                  style: const TextStyle(fontWeight: FontWeight.bold),
-                ),
-                children: [
-                  _buildBallCard(
-                    context,
-                    Icons.catching_pokemon,
-                    Translator.get('matching_ball_normal') !=
-                            'matching_ball_normal'
-                        ? Translator.get('matching_ball_normal')
-                        : 'Matching Ball (Normal)',
-                    normalBalls,
-                    Theme.of(context).colorScheme.primary,
+          ),
+          Text(
+            entry.pokemon.getName(provider.currentLanguage),
+            style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
+            textAlign: TextAlign.center,
+          ),
+          if (currentForm != null && currentForm.types.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 8,
+              children: currentForm.types.map((type) {
+                return Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 4,
                   ),
-                  _buildBallCard(
-                    context,
-                    Icons.star,
-                    Translator.get('matching_ball_shiny') !=
-                            'matching_ball_shiny'
-                        ? Translator.get('matching_ball_shiny')
-                        : 'Matching Ball (Shiny)',
-                    shinyBalls,
-                    Colors.amber,
+                  decoration: BoxDecoration(
+                    color: typeColors[type] ?? Colors.grey,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: Colors.black26),
                   ),
-                ],
-              ),
+                  child: Text(
+                    Translator.get('type_$type').toUpperCase(),
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 12,
+                      shadows: [Shadow(color: Colors.black45, blurRadius: 2)],
+                    ),
+                  ),
+                );
+              }).toList(),
             ),
-            Card(
-              margin: const EdgeInsets.symmetric(vertical: 8),
-              elevation: 2,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: ExpansionTile(
-                leading: const Icon(Icons.map, color: Colors.blue),
-                title: Text(
-                  Translator.get('encounters_title') != 'encounters_title'
-                      ? Translator.get('encounters_title')
-                      : 'Fundorte & Begegnungen',
-                  style: const TextStyle(fontWeight: FontWeight.bold),
-                ),
-                children: _buildEncountersList(
-                  context,
-                  widget.entry.pokemon.id,
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            ShinyGuideWidget(
-              entry: widget.entry,
-              dexId: widget.dexId,
-            ),
-            const SizedBox(height: 32),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Theme.of(context).colorScheme.errorContainer,
-                  foregroundColor: Theme.of(
-                    context,
-                  ).colorScheme.onErrorContainer,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                ),
-                icon: const Icon(Icons.delete_outline),
-                label: Text(
-                  Translator.get('ignore_pokemon') != 'ignore_pokemon'
-                      ? Translator.get('ignore_pokemon')
-                      : 'Aus Dex entfernen',
-                ),
-                onPressed: () {
-                  _confirmIgnore(context, provider);
-                },
-              ),
-            ),
-            const SizedBox(height: 32),
           ],
-        ),
+          if (entry.displaySuffix.trim().isNotEmpty) ...[
+            const SizedBox(height: 8),
+            Text(
+              '${Translator.get('form') != 'form' ? Translator.get('form') : 'Form'}: ${entry.displaySuffix.replaceAll('(', '').replaceAll(')', '').trim()}',
+              style: const TextStyle(fontSize: 18, fontStyle: FontStyle.italic),
+            ),
+          ],
+          const SizedBox(height: 32),
+          Card(
+            margin: const EdgeInsets.symmetric(vertical: 4),
+            child: SwitchListTile(
+              title: Text(
+                Translator.get('caught_status') != 'caught_status'
+                    ? Translator.get('caught_status')
+                    : 'Gefangen Status',
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
+              subtitle: Text(
+                Translator.get('mark_as_caught') != 'mark_as_caught'
+                    ? Translator.get('mark_as_caught')
+                    : 'Als gefangen markieren',
+              ),
+              secondary: Icon(
+                Icons.catching_pokemon,
+                color: isCaught ? Colors.green : Colors.grey,
+              ),
+              value: isCaught,
+              activeColor: Colors.green,
+              onChanged: (val) {
+                provider.togglePokemon(widget.dexId, entry.uniqueId);
+              },
+            ),
+          ),
+          Card(
+            margin: const EdgeInsets.symmetric(vertical: 4),
+            child: SwitchListTile(
+              title: const Text(
+                'Shiny Status',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              subtitle: const Text('Als schillernd markieren'),
+              secondary: Icon(
+                Icons.star,
+                color: isShiny ? Colors.amber : Colors.grey,
+              ),
+              value: isShiny,
+              activeColor: Colors.amber,
+              onChanged: (val) {
+                provider.toggleShiny(widget.dexId, entry.uniqueId);
+              },
+            ),
+          ),
+          const SizedBox(height: 16),
+          Card(
+            margin: const EdgeInsets.symmetric(vertical: 8),
+            elevation: 2,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: ExpansionTile(
+              leading: const Icon(
+                Icons.calculate_outlined,
+                color: Colors.purple,
+              ),
+              title: Text(
+                Translator.get('catch_calculator_title') !=
+                        'catch_calculator_title'
+                    ? Translator.get('catch_calculator_title')
+                    : 'Ultimativer Fangratenrechner',
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
+              children: [CatchRateCalculator(pokemon: entry.pokemon)],
+            ),
+          ),
+          const SizedBox(height: 16),
+          Card(
+            margin: const EdgeInsets.symmetric(vertical: 8),
+            elevation: 2,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: ExpansionTile(
+              leading: const Icon(
+                Icons.catching_pokemon,
+                color: Colors.redAccent,
+              ),
+              title: Text(
+                Translator.get('matching_balls') != 'matching_balls'
+                    ? Translator.get('matching_balls')
+                    : 'Matching Balls',
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
+              children: [
+                _buildBallCard(
+                  context,
+                  Icons.catching_pokemon,
+                  Translator.get('matching_ball_normal') !=
+                          'matching_ball_normal'
+                      ? Translator.get('matching_ball_normal')
+                      : 'Matching Ball (Normal)',
+                  normalBalls,
+                  Theme.of(context).colorScheme.primary,
+                ),
+                _buildBallCard(
+                  context,
+                  Icons.star,
+                  Translator.get('matching_ball_shiny') != 'matching_ball_shiny'
+                      ? Translator.get('matching_ball_shiny')
+                      : 'Matching Ball (Shiny)',
+                  shinyBalls,
+                  Colors.amber,
+                ),
+              ],
+            ),
+          ),
+          Card(
+            margin: const EdgeInsets.symmetric(vertical: 8),
+            elevation: 2,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: ExpansionTile(
+              leading: const Icon(Icons.map, color: Colors.blue),
+              title: Text(
+                Translator.get('encounters_title') != 'encounters_title'
+                    ? Translator.get('encounters_title')
+                    : 'Fundorte & Begegnungen',
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
+              children: _buildEncountersList(context, entry.pokemon.id),
+            ),
+          ),
+          const SizedBox(height: 16),
+          ShinyGuideWidget(entry: entry, dexId: widget.dexId),
+          const SizedBox(height: 32),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Theme.of(context).colorScheme.errorContainer,
+                foregroundColor: Theme.of(context).colorScheme.onErrorContainer,
+                padding: const EdgeInsets.symmetric(vertical: 16),
+              ),
+              icon: const Icon(Icons.delete_outline),
+              label: Text(
+                Translator.get('ignore_pokemon') != 'ignore_pokemon'
+                    ? Translator.get('ignore_pokemon')
+                    : 'Aus Dex entfernen',
+              ),
+              onPressed: () {
+                _confirmIgnore(context, provider, entry);
+              },
+            ),
+          ),
+          const SizedBox(height: 32),
+        ],
       ),
     );
   }
@@ -931,7 +1005,11 @@ class _PokemonInfoScreenState extends State<PokemonInfoScreen> {
     );
   }
 
-  void _confirmIgnore(BuildContext context, DexProvider provider) {
+  void _confirmIgnore(
+    BuildContext context,
+    DexProvider provider,
+    DexDisplayEntry entry,
+  ) {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -956,7 +1034,7 @@ class _PokemonInfoScreenState extends State<PokemonInfoScreen> {
               foregroundColor: Theme.of(context).colorScheme.onError,
             ),
             onPressed: () {
-              provider.ignorePokemon(widget.dexId, widget.entry.uniqueId);
+              provider.ignorePokemon(widget.dexId, entry.uniqueId);
               Navigator.pop(ctx);
               Navigator.pop(context);
             },

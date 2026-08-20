@@ -87,6 +87,10 @@ class DexBoxView extends StatelessWidget {
         ? 1100
         : (screenWidth > 800 ? 800 : double.infinity);
 
+    final List<DexDisplayEntry> boxOrderedEntries = boxes
+        .expand((b) => b.entries)
+        .toList();
+
     return Center(
       child: ConstrainedBox(
         constraints: BoxConstraints(maxWidth: boxMaxWidth),
@@ -96,8 +100,7 @@ class DexBoxView extends StatelessWidget {
           itemBuilder: (context, boxIndex) {
             final box = boxes[boxIndex];
             return CustomScrollView(
-              keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior
-                  .onDrag,
+              keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
               slivers: [
                 SliverToBoxAdapter(
                   child: Padding(
@@ -205,13 +208,33 @@ class DexBoxView extends StatelessWidget {
                         onTap: () =>
                             provider.togglePokemon(liveDex.id, entry.uniqueId),
                         onLongPress: () {
+                          int initialIndex = boxOrderedEntries.indexOf(entry);
                           Navigator.push(
                             context,
                             MaterialPageRoute(
                               fullscreenDialog: true,
                               builder: (context) => PokemonInfoScreen(
-                                entry: entry,
+                                entries: boxOrderedEntries,
+                                initialIndex: initialIndex != -1
+                                    ? initialIndex
+                                    : 0,
                                 dexId: liveDex.id,
+                                boxes: boxes,
+                                isBoxView: true,
+                                onPageChanged: (newIndex) {
+                                  final currentEntry =
+                                      boxOrderedEntries[newIndex];
+                                  int targetBoxIndex = boxes.indexWhere(
+                                    (b) => b.entries.contains(currentEntry),
+                                  );
+                                  if (targetBoxIndex != -1 &&
+                                      pageController.hasClients) {
+                                    if (pageController.page?.round() !=
+                                        targetBoxIndex) {
+                                      pageController.jumpToPage(targetBoxIndex);
+                                    }
+                                  }
+                                },
                               ),
                             ),
                           );
