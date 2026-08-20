@@ -254,4 +254,16 @@ class DexProvider extends ChangeNotifier {
       NotificationHelper.showError("${Translator.get('error_save')} $e");
     }
   }
+
+  void reorderDexes(int oldIndex, int newIndex) {
+    if (oldIndex < newIndex) {
+      newIndex -= 1;
+    }
+    final dex = userDexes.removeAt(oldIndex);
+    userDexes.insert(newIndex, dex);
+
+    _saveToPrefs();
+
+    notifyListeners();
+  }
 }

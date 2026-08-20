@@ -48,8 +48,7 @@ class _HomeScreenState extends State<HomeScreen> {
           builder: (context) => UpdateDialog(updateInfo: updateInfo),
         );
       }
-    } catch (e) {
-    }
+    } catch (e) {}
   }
 
   void _toggleSelection(String id) {
@@ -64,6 +63,16 @@ class _HomeScreenState extends State<HomeScreen> {
     } catch (e) {
       NotificationHelper.showError("${Translator.get('error')} $e");
     }
+  }
+
+  void _toggleSelectAll(List<UserDex> allDexes) {
+    setState(() {
+      if (_selectedDexIds.length == allDexes.length) {
+        _selectedDexIds.clear();
+      } else {
+        _selectedDexIds.addAll(allDexes.map((d) => d.id));
+      }
+    });
   }
 
   void _clearSelection() => setState(() => _selectedDexIds.clear());
@@ -140,6 +149,9 @@ class _HomeScreenState extends State<HomeScreen> {
     final provider = context.watch<DexProvider>();
     final dexes = provider.userDexes;
 
+    bool allSelected =
+        _selectedDexIds.length == dexes.length && dexes.isNotEmpty;
+
     return Scaffold(
       appBar: _isSelectionMode
           ? AppBar(
@@ -152,6 +164,11 @@ class _HomeScreenState extends State<HomeScreen> {
                 '${_selectedDexIds.length} ${Translator.get('selected')}',
               ),
               actions: [
+                Checkbox(
+                  value: allSelected,
+                  activeColor: Theme.of(context).colorScheme.primary,
+                  onChanged: (val) => _toggleSelectAll(dexes),
+                ),
                 IconButton(
                   icon: const Icon(Icons.upload),
                   tooltip: Translator.get('export_tooltip'),
@@ -212,18 +229,24 @@ class _HomeScreenState extends State<HomeScreen> {
                 ],
               ),
             )
-          : ListView.builder(
+          : ReorderableListView.builder(
+              buildDefaultDragHandles: false,
+              padding: const EdgeInsets.only(bottom: 88, top: 8),
               itemCount: dexes.length,
+              onReorder: (oldIndex, newIndex) {
+                provider.reorderDexes(oldIndex, newIndex);
+              },
               itemBuilder: (context, index) {
                 final dex = dexes[index];
                 String regionName = Translator.get('region_${dex.region}');
                 bool isSelected = _selectedDexIds.contains(dex.id);
 
                 return Card(
+                  key: ValueKey(dex.id),
                   elevation: isSelected ? 4 : 1,
                   margin: const EdgeInsets.symmetric(
                     horizontal: 16,
-                    vertical: 8,
+                    vertical: 6,
                   ),
                   clipBehavior: Clip.antiAlias,
                   shape: RoundedRectangleBorder(
@@ -261,47 +284,67 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                     trailing: _isSelectionMode
                         ? null
-                        : PopupMenuButton<String>(
-                            icon: const Icon(Icons.more_vert),
-                            onSelected: (value) {
-                              if (value == 'edit') {
-                                showDialog(
-                                  context: context,
-                                  builder: (context) => EditDexDialog(
-                                    provider: provider,
-                                    dex: dex,
+                        : Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              PopupMenuButton<String>(
+                                icon: const Icon(Icons.more_vert),
+                                onSelected: (value) {
+                                  if (value == 'edit') {
+                                    showDialog(
+                                      context: context,
+                                      builder: (context) => EditDexDialog(
+                                        provider: provider,
+                                        dex: dex,
+                                      ),
+                                    );
+                                  } else if (value == 'delete') {
+                                    _confirmDelete(context, provider, dex);
+                                  }
+                                },
+                                itemBuilder: (context) => [
+                                  PopupMenuItem(
+                                    value: 'edit',
+                                    child: Row(
+                                      children: [
+                                        const Icon(Icons.edit, size: 20),
+                                        const SizedBox(width: 8),
+                                        Text(Translator.get('edit')),
+                                      ],
+                                    ),
                                   ),
-                                );
-                              } else if (value == 'delete') {
-                                _confirmDelete(context, provider, dex);
-                              }
-                            },
-                            itemBuilder: (context) => [
-                              PopupMenuItem(
-                                value: 'edit',
-                                child: Row(
-                                  children: [
-                                    const Icon(Icons.edit, size: 20),
-                                    const SizedBox(width: 8),
-                                    Text(Translator.get('edit')),
-                                  ],
-                                ),
+                                  PopupMenuItem(
+                                    value: 'delete',
+                                    child: Row(
+                                      children: [
+                                        const Icon(
+                                          Icons.delete,
+                                          size: 20,
+                                          color: Colors.red,
+                                        ),
+                                        const SizedBox(width: 8),
+                                        Text(
+                                          Translator.get('delete'),
+                                          style: const TextStyle(
+                                            color: Colors.red,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
                               ),
-                              PopupMenuItem(
-                                value: 'delete',
-                                child: Row(
-                                  children: [
-                                    const Icon(
-                                      Icons.delete,
-                                      size: 20,
-                                      color: Colors.red,
-                                    ),
-                                    const SizedBox(width: 8),
-                                    Text(
-                                      Translator.get('delete'),
-                                      style: const TextStyle(color: Colors.red),
-                                    ),
-                                  ],
+                              ReorderableDragStartListener(
+                                index: index,
+                                child: const Padding(
+                                  padding: EdgeInsets.only(
+                                    left: 4.0,
+                                    right: 4.0,
+                                  ),
+                                  child: Icon(
+                                    Icons.drag_indicator,
+                                    color: Colors.grey,
+                                  ),
                                 ),
                               ),
                             ],
