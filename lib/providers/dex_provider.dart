@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -34,9 +35,41 @@ class DexProvider extends ChangeNotifier {
       final dexJson = prefs.getString('saved_dexes');
       if (dexJson != null) {
         final List<dynamic> decoded = jsonDecode(dexJson);
-        _userDexes = decoded
-            .map((item) => UserDex.fromJson(item as Map<String, dynamic>))
-            .toList();
+        List<UserDex> loadedDexes = [];
+        Set<String> seenIds = {};
+        bool duplicatesFound = false;
+
+        for (var item in decoded) {
+          UserDex dex = UserDex.fromJson(item as Map<String, dynamic>);
+
+          if (seenIds.contains(dex.id)) {
+            duplicatesFound = true;
+            dex = UserDex(
+              id: '${DateTime.now().millisecondsSinceEpoch}_${Random().nextInt(10000)}',
+              title: dex.title,
+              region: dex.region,
+              caughtIds: Set.from(dex.caughtIds),
+              ignoredIds: Set.from(dex.ignoredIds),
+              shinyIds: Set.from(dex.shinyIds),
+              includeGenders: dex.includeGenders,
+              includeRegional: dex.includeRegional,
+              includeMega: dex.includeMega,
+              includeGMax: dex.includeGMax,
+              includeOther: dex.includeOther,
+              isShinyDex: dex.isShinyDex,
+            );
+          }
+
+          seenIds.add(dex.id);
+          loadedDexes.add(dex);
+        }
+
+        _userDexes = loadedDexes;
+
+        if (duplicatesFound) {
+          _saveToPrefs();
+          debugPrint('Hat unsichtbar doppelte Dex-IDs repariert!');
+        }
       }
       notifyListeners();
     } catch (e) {
@@ -91,8 +124,11 @@ class DexProvider extends ChangeNotifier {
     bool isShinyDex,
   ) {
     try {
+      final uniqueId =
+          '${DateTime.now().millisecondsSinceEpoch}_${Random().nextInt(10000)}';
+
       final newDex = UserDex(
-        id: DateTime.now().millisecondsSinceEpoch.toString(),
+        id: uniqueId,
         title: title,
         region: region,
         caughtIds: {},
@@ -188,7 +224,37 @@ class DexProvider extends ChangeNotifier {
     try {
       final imported = await DexStorageService.importDexes(this);
       if (imported != null) {
-        _userDexes.addAll(imported);
+        Set<String> existingIds = _userDexes.map((d) => d.id).toSet();
+        List<UserDex> safeImported = [];
+
+        for (var oldDex in imported) {
+          String newId = oldDex.id;
+
+          if (existingIds.contains(newId)) {
+            newId =
+                '${DateTime.now().millisecondsSinceEpoch}_${Random().nextInt(10000)}';
+          }
+
+          safeImported.add(
+            UserDex(
+              id: newId,
+              title: oldDex.title,
+              region: oldDex.region,
+              caughtIds: Set.from(oldDex.caughtIds),
+              ignoredIds: Set.from(oldDex.ignoredIds),
+              shinyIds: Set.from(oldDex.shinyIds),
+              includeGenders: oldDex.includeGenders,
+              includeRegional: oldDex.includeRegional,
+              includeMega: oldDex.includeMega,
+              includeGMax: oldDex.includeGMax,
+              includeOther: oldDex.includeOther,
+              isShinyDex: oldDex.isShinyDex,
+            ),
+          );
+          existingIds.add(newId);
+        }
+
+        _userDexes.addAll(safeImported);
         _saveToPrefs();
         notifyListeners();
         NotificationHelper.showSuccess(Translator.get('import_success'));
@@ -256,14 +322,17 @@ class DexProvider extends ChangeNotifier {
   }
 
   void reorderDexes(int oldIndex, int newIndex) {
-    if (oldIndex < newIndex) {
-      newIndex -= 1;
+    try {
+      final dex = _userDexes.removeAt(oldIndex);
+
+      _userDexes.insert(newIndex, dex);
+
+      _userDexes = List.from(_userDexes);
+
+      notifyListeners();
+      _saveToPrefs();
+    } catch (e) {
+      debugPrint('Reorder error: $e');
     }
-    final dex = userDexes.removeAt(oldIndex);
-    userDexes.insert(newIndex, dex);
-
-    _saveToPrefs();
-
-    notifyListeners();
   }
 }

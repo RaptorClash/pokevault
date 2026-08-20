@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
 import '../../l10n/app_translations.dart';
 import '../../providers/dex_provider.dart';
 import '../../services/dex_storage_service.dart';
@@ -18,7 +17,6 @@ import 'edit_dex_dialog.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
-
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
@@ -26,7 +24,6 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   final Set<String> _selectedDexIds = {};
   late final Map<int, Pokemon> _pokemonCache;
-
   bool get _isSelectionMode => _selectedDexIds.isNotEmpty;
 
   @override
@@ -148,7 +145,6 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     final provider = context.watch<DexProvider>();
     final dexes = provider.userDexes;
-
     bool allSelected =
         _selectedDexIds.length == dexes.length && dexes.isNotEmpty;
 
@@ -234,7 +230,11 @@ class _HomeScreenState extends State<HomeScreen> {
               padding: const EdgeInsets.only(bottom: 88, top: 8),
               itemCount: dexes.length,
               onReorder: (oldIndex, newIndex) {
-                provider.reorderDexes(oldIndex, newIndex);
+                int adjustedNewIndex = newIndex;
+                if (oldIndex < newIndex) {
+                  adjustedNewIndex -= 1;
+                }
+                provider.reorderDexes(oldIndex, adjustedNewIndex);
               },
               itemBuilder: (context, index) {
                 final dex = dexes[index];
@@ -242,7 +242,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 bool isSelected = _selectedDexIds.contains(dex.id);
 
                 return Card(
-                  key: ValueKey(dex.id),
+                  key: ValueKey('dex_card_${dex.id}'),
                   elevation: isSelected ? 4 : 1,
                   margin: const EdgeInsets.symmetric(
                     horizontal: 16,
@@ -336,12 +336,13 @@ class _HomeScreenState extends State<HomeScreen> {
                               ),
                               ReorderableDragStartListener(
                                 index: index,
-                                child: const Padding(
-                                  padding: EdgeInsets.only(
-                                    left: 4.0,
-                                    right: 4.0,
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 16.0,
+                                    vertical: 16.0,
                                   ),
-                                  child: Icon(
+                                  color: Colors.transparent,
+                                  child: const Icon(
                                     Icons.drag_indicator,
                                     color: Colors.grey,
                                   ),
@@ -369,7 +370,6 @@ class _HomeScreenState extends State<HomeScreen> {
                                 forms: [],
                               );
                         }).toList();
-
                         Navigator.push(
                           context,
                           MaterialPageRoute(
