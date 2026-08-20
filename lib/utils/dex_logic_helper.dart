@@ -120,7 +120,10 @@ class DexLogicHelper {
       isBaseForm = true;
     } else {
       String formName = uniqueId.substring(uniqueId.indexOf('_') + 1);
-      if (formName == 'normal' || formName == 'm' || formName == 'male') {
+      // BUGFIX für Icognito M: 'm' wird nur für Geschlecht interpretiert, wenn die ID nicht 201 ist.
+      if (formName == 'normal' ||
+          formName == 'male' ||
+          (formName == 'm' && id != 201)) {
         isBaseForm = true;
       } else if (entry.pokemon.forms.isNotEmpty &&
           formName == entry.pokemon.forms.first.name.toLowerCase()) {
@@ -129,12 +132,17 @@ class DexLogicHelper {
     }
 
     if (isBaseForm) return 'base';
+
     if (id == 25 && uniqueId.contains('cap')) return 'cap';
     if (id == 201) return 'unown';
     if (id == 666) return 'vivillon';
     if (id == 869) return 'alcremie';
-    if (uniqueId.endsWith('_f') || uniqueId.endsWith('_female'))
+
+    // BUGFIX für Icognito F: Endet auf 'f', ist aber Form 'f' statt Geschlecht 'female', wenn ID 201.
+    if ((uniqueId.endsWith('_f') || uniqueId.endsWith('_female')) &&
+        id != 201) {
       return 'females';
+    }
 
     if (uniqueId.contains('_')) {
       String formName = uniqueId.substring(uniqueId.indexOf('_') + 1);
@@ -243,8 +251,10 @@ class DexLogicHelper {
             form = entry.pokemon.forms.firstWhere((f) => f.name == formName);
           } catch (_) {}
         }
+
         String regionId = getPokemonRegionId(entry.pokemon, form);
         String catId = getEntryCategoryId(entry);
+
         structured.putIfAbsent(regionId, () => {});
         structured[regionId]!.putIfAbsent(catId, () => []).add(entry);
       }
@@ -282,7 +292,6 @@ class DexLogicHelper {
             String title = chunks.length == 1
                 ? baseTitle
                 : '$baseTitle ${i + 1}';
-
             boxes.add(BoxData(title, regionId, chunks[i], crossAxis));
           }
         }
@@ -307,11 +316,13 @@ class DexLogicHelper {
     List<Pokemon> pokemonList,
   ) {
     List<DexDisplayEntry> entries = [];
+
     try {
       int dexGen = getMaxGenForDex(liveDex.region);
       bool isNationalDex = liveDex.region == 'national_overall';
       bool isMegaDex = liveDex.region == 'mega_dex';
       bool isIcognitoDex = liveDex.region == 'icognito_dex';
+
       String shinyPath = liveDex.isShinyDex ? 'shiny/' : '';
 
       bool isNativeRegionalForm(PokemonForm f, String region) {
@@ -359,6 +370,7 @@ class DexLogicHelper {
             if ((p.id == 1007 || p.id == 1008 || p.id == 664 || p.id == 665) &&
                 !isBaseForm)
               continue;
+
             if (isMegaDex && form.formType != 'mega') continue;
 
             bool isNativeRegional = isNativeRegionalForm(form, liveDex.region);
@@ -376,9 +388,12 @@ class DexLogicHelper {
                 !liveDex.includeRegional &&
                 !isNativeRegional)
               continue;
+
             if (form.formType == 'mega' && !liveDex.includeMega && !isMegaDex)
               continue;
+
             if (form.formType == 'gmax' && !liveDex.includeGMax) continue;
+
             if (form.formType == 'other' &&
                 !liveDex.includeOther &&
                 !isIcognitoDex) {
@@ -388,10 +403,12 @@ class DexLogicHelper {
             bool isWhitelistedForThisDex = form.exclusiveRegions.contains(
               liveDex.region,
             );
+
             if (form.exclusiveRegions.isNotEmpty &&
                 !isNationalDex &&
                 !isWhitelistedForThisDex)
               continue;
+
             if (!isNationalDex &&
                 !isWhitelistedForThisDex &&
                 form.minGen > dexGen &&
@@ -405,7 +422,7 @@ class DexLogicHelper {
                 : ' (${getFormDisplayName(form.name, provider)})';
 
             if (form.name == 'male' || form.name == 'female') {
-              suffix = form.name == 'male' ? ' ♂ ' : ' ♀ ';
+              suffix = form.name == 'male' ? ' ♂' : ' ♀';
             }
 
             String specificImageUrl;
@@ -436,11 +453,12 @@ class DexLogicHelper {
               String homeFemalePath = liveDex.isShinyDex
                   ? 'shiny/female'
                   : 'female';
+
               entries.add(
                 DexDisplayEntry(
                   pokemon: p,
                   uniqueId: '${p.id}_m',
-                  displaySuffix: ' ♂ ',
+                  displaySuffix: ' ♂',
                   imageUrl:
                       'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/$shinyPath${p.id}.png',
                 ),
@@ -449,7 +467,7 @@ class DexLogicHelper {
                 DexDisplayEntry(
                   pokemon: p,
                   uniqueId: '${p.id}_f',
-                  displaySuffix: ' ♀ ',
+                  displaySuffix: ' ♀',
                   imageUrl:
                       'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/home/$homeFemalePath/${p.id}.png',
                 ),
@@ -471,11 +489,12 @@ class DexLogicHelper {
               String homeFemalePath = liveDex.isShinyDex
                   ? 'shiny/female'
                   : 'female';
+
               entries.add(
                 DexDisplayEntry(
                   pokemon: p,
                   uniqueId: '${p.id}_m',
-                  displaySuffix: ' ♂ ',
+                  displaySuffix: ' ♂',
                   imageUrl:
                       'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/$shinyPath${p.id}.png',
                 ),
@@ -484,7 +503,7 @@ class DexLogicHelper {
                 DexDisplayEntry(
                   pokemon: p,
                   uniqueId: '${p.id}_f',
-                  displaySuffix: ' ♀ ',
+                  displaySuffix: ' ♀',
                   imageUrl:
                       'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/home/$homeFemalePath/${p.id}.png',
                 ),
