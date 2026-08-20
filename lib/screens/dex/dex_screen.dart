@@ -1,6 +1,8 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
 import '../../models/user_dex.dart';
 import '../../models/pokemon.dart';
 import '../../models/dex_view_models.dart';
@@ -32,16 +34,15 @@ class _DexScreenState extends State<DexScreen> {
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
   String _filter = 'all';
-
   String _lastSearchQuery = '';
   String _lastFilter = 'all';
-
   bool _isBoxView = false;
   bool _separateForms = true;
   bool _isLoadingPrefs = true;
-
   final PageController _pageController = PageController();
   late List<DexDisplayEntry> _rawEntries;
+
+  Timer? _debounce;
 
   @override
   void initState() {
@@ -82,6 +83,7 @@ class _DexScreenState extends State<DexScreen> {
 
   @override
   void dispose() {
+    _debounce?.cancel();
     _pageController.dispose();
     _searchController.dispose();
     super.dispose();
@@ -99,14 +101,15 @@ class _DexScreenState extends State<DexScreen> {
       formName = entry.uniqueId.substring(entry.uniqueId.indexOf('_') + 1);
       if (formName == 'm' || formName == 'f') formName = 'normal';
     }
+
     PokemonForm? form;
     try {
       form = entry.pokemon.forms.firstWhere((f) => f.name == formName);
     } catch (_) {}
+
     String regionId = DexLogicHelper.getPokemonRegionId(entry.pokemon, form);
 
     final orTerms = _searchQuery.toLowerCase().split(',');
-
     for (String orTerm in orTerms) {
       if (orTerm.trim().isEmpty) continue;
 
@@ -127,20 +130,18 @@ class _DexScreenState extends State<DexScreen> {
         } else {
           final exactMatch = RegExp(r'^#?(\d+)$').firstMatch(term);
           if (exactMatch != null) {
-            if (entry.pokemon.id == int.parse(exactMatch.group(1)!))
+            if (entry.pokemon.id == int.parse(exactMatch.group(1)!)) {
               match = true;
-          }
-          else if (term == 'shiny') {
+            }
+          } else if (term == 'shiny') {
             if (liveDex.shinyIds.contains(entry.uniqueId)) match = true;
           } else if (term == 'caught') {
             if (liveDex.caughtIds.contains(entry.uniqueId)) match = true;
           } else if (term == 'uncaught' || term == 'missing') {
             if (!liveDex.caughtIds.contains(entry.uniqueId)) match = true;
-          }
-          else if (term == 'mega' || term == 'gmax') {
+          } else if (term == 'mega' || term == 'gmax') {
             if (entry.uniqueId.contains(term)) match = true;
-          }
-          else {
+          } else {
             final regionKeys = [
               'kanto',
               'johto',
@@ -162,10 +163,10 @@ class _DexScreenState extends State<DexScreen> {
                 break;
               }
             }
+
             if (matchedRegion != null) {
               if (regionId == matchedRegion) match = true;
-            }
-            else if (term.startsWith('+')) {
+            } else if (term.startsWith('+')) {
               String familyTarget = term.substring(1).trim();
               if (familyTarget.isNotEmpty) {
                 final targetPoke = widget.pokemonList
@@ -175,6 +176,7 @@ class _DexScreenState extends State<DexScreen> {
                           familyTarget,
                     )
                     .firstOrNull;
+
                 if (targetPoke != null) {
                   final family = BreedingData.getFullFamily(targetPoke.id);
                   if (family.contains(
@@ -186,8 +188,7 @@ class _DexScreenState extends State<DexScreen> {
                   }
                 }
               }
-            }
-            else {
+            } else {
               final types = form?.types ?? [];
               bool typeMatch = types.any(
                 (t) =>
@@ -236,7 +237,6 @@ class _DexScreenState extends State<DexScreen> {
 
       if (allAndsMatch) return true;
     }
-
     return false;
   }
 
@@ -263,7 +263,7 @@ class _DexScreenState extends State<DexScreen> {
                 '1-151',
                 Translator.get('search_help_range') != 'search_help_range'
                     ? Translator.get('search_help_range')
-                    : 'Zeigt Pokémon im ID-Bereich.',
+                    : 'Zeigt Pok mon im ID-Bereich.',
               ),
               _helpItem(
                 'shiny, caught, missing',
@@ -293,7 +293,7 @@ class _DexScreenState extends State<DexScreen> {
                 'shiny & kanto',
                 Translator.get('search_help_and') != 'search_help_and'
                     ? Translator.get('search_help_and')
-                    : 'Mit "&" müssen beide Begriffe zutreffen.',
+                    : 'Mit "&" m ssen beide Begriffe zutreffen.',
               ),
               _helpItem(
                 '1-9, Evoli',
@@ -348,15 +348,14 @@ class _DexScreenState extends State<DexScreen> {
       (d) => d.id == widget.initialDex.id,
       orElse: () => widget.initialDex,
     );
-    final caughtCount = liveDex.caughtIds.length;
 
+    final caughtCount = liveDex.caughtIds.length;
     final baseList = _rawEntries
         .where((e) => !liveDex.ignoredIds.contains(e.uniqueId))
         .toList();
 
     final filteredList = baseList.where((entry) {
       final isCaught = liveDex.caughtIds.contains(entry.uniqueId);
-
       if (_filter == 'caught' && !isCaught) return false;
       if (_filter == 'uncaught' && isCaught) return false;
 
@@ -389,7 +388,6 @@ class _DexScreenState extends State<DexScreen> {
             bool currentHasMatch = boxes[currentPage].entries.any(
               (e) => highlightedIds.contains(e.uniqueId),
             );
-
             if (!currentHasMatch) {
               int firstMatchIndex = boxes.indexWhere(
                 (box) =>
@@ -526,6 +524,7 @@ class _DexScreenState extends State<DexScreen> {
                             IconButton(
                               icon: const Icon(Icons.clear),
                               onPressed: () {
+                                _debounce?.cancel();
                                 _searchController.clear();
                                 setState(() => _searchQuery = '');
                               },
@@ -541,7 +540,12 @@ class _DexScreenState extends State<DexScreen> {
                       ),
                       contentPadding: const EdgeInsets.symmetric(vertical: 0),
                     ),
-                    onChanged: (val) => setState(() => _searchQuery = val),
+                    onChanged: (val) {
+                      if (_debounce?.isActive ?? false) _debounce!.cancel();
+                      _debounce = Timer(const Duration(milliseconds: 300), () {
+                        setState(() => _searchQuery = val);
+                      });
+                    },
                   ),
                 ),
                 const SizedBox(width: 8),

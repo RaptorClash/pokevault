@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+
 import '../../models/user_dex.dart';
 import '../../models/dex_view_models.dart';
 import '../../providers/dex_provider.dart';
@@ -28,7 +29,6 @@ class DexBoxView extends StatelessWidget {
 
   void _showQuickNavDialog(BuildContext context) {
     final Map<String, int> regionFirstIndices = {};
-
     for (int i = 0; i < boxes.length; i++) {
       if (!regionFirstIndices.containsKey(boxes[i].regionKey)) {
         regionFirstIndices[boxes[i].regionKey] = i;
@@ -50,7 +50,6 @@ class DexBoxView extends StatelessWidget {
                 children: regionFirstIndices.entries.map((entry) {
                   String regionKey = entry.key;
                   int boxIndex = entry.value;
-
                   String regionName = Translator.get('region_name_$regionKey');
                   if (regionName == 'region_name_$regionKey') {
                     regionName =
@@ -96,8 +95,9 @@ class DexBoxView extends StatelessWidget {
           itemCount: boxes.length,
           itemBuilder: (context, boxIndex) {
             final box = boxes[boxIndex];
-
             return CustomScrollView(
+              keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior
+                  .onDrag,
               slivers: [
                 SliverToBoxAdapter(
                   child: Padding(

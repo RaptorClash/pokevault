@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
+
 import '../../models/pokemon.dart';
+import '../../models/dex_view_models.dart';
 import '../../utils/shiny_logic_helper.dart';
 import '../../l10n/app_translations.dart';
 import '../../data/encounters_data.dart';
@@ -8,14 +10,10 @@ import 'breeding_calculator_widget.dart';
 import '../../utils/notification_helper.dart';
 
 class ShinyGuideWidget extends StatefulWidget {
-  final Pokemon pokemon;
+  final DexDisplayEntry entry;
   final String dexId;
 
-  const ShinyGuideWidget({
-    super.key,
-    required this.pokemon,
-    required this.dexId,
-  });
+  const ShinyGuideWidget({super.key, required this.entry, required this.dexId});
 
   @override
   State<ShinyGuideWidget> createState() => _ShinyGuideWidgetState();
@@ -27,7 +25,7 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
   @override
   void initState() {
     super.initState();
-    _selectedLevel = ShinyLogicHelper.getDefaultLevel(widget.pokemon.id);
+    _selectedLevel = ShinyLogicHelper.getDefaultLevel(widget.entry.pokemon.id);
   }
 
   Future<void> _launchURL(String urlString) async {
@@ -75,22 +73,32 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
   }
 
   bool _shouldShowGen(int gen) {
-    if (gen == 2 && widget.pokemon.id >= 252 && widget.pokemon.id <= 257) {
+    if (gen == 2 &&
+        widget.entry.pokemon.id >= 252 &&
+        widget.entry.pokemon.id <= 257) {
       return true;
     }
+    if (widget.entry.pokemon.id > _getMaxIdForGen(gen)) return false;
 
-    if (widget.pokemon.id > _getMaxIdForGen(gen)) return false;
+    bool isBaseForm =
+        widget.entry.uniqueId == '${widget.entry.pokemon.id}_normal' ||
+        !widget.entry.uniqueId.contains('_') ||
+        widget.entry.uniqueId.endsWith('_m') ||
+        widget.entry.uniqueId.endsWith('_f');
+
+    if ((gen == 1 || gen == 2) && !isBaseForm) return false;
 
     if (gen == 1) {
-      if (widget.pokemon.id <= 151) return true;
+      if (widget.entry.pokemon.id <= 151) return true;
       return false;
     }
 
     bool hasEncounters =
-        encountersDatabase[widget.pokemon.id]?.containsKey('gen_$gen') ?? false;
-    bool isBreedable = ShinyLogicHelper.isBreedable(widget.pokemon.id);
+        encountersDatabase[widget.entry.pokemon.id]?.containsKey('gen_$gen') ??
+        false;
+    bool isBreedable = ShinyLogicHelper.isBreedable(widget.entry.pokemon.id);
     bool isStatic = ShinyLogicHelper.isStaticEncounter(
-      widget.pokemon.id,
+      widget.entry.pokemon.id,
       'gen_$gen',
     );
 
@@ -100,11 +108,11 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
   Widget _buildGenContent(BuildContext context, int gen) {
     List<Widget> content = [];
     String genKey = 'gen_$gen';
+
     bool isStatic = ShinyLogicHelper.isStaticEncounter(
-      widget.pokemon.id,
+      widget.entry.pokemon.id,
       genKey,
     );
-
     if (isStatic) {
       String combo = ShinyLogicHelper.getSoftResetCombo(genKey);
       content.add(
@@ -134,7 +142,9 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
 
   Widget _buildGen1Specific(BuildContext context) {
     try {
-      final isHuntable = ShinyLogicHelper.isHuntableInGen1(widget.pokemon.id);
+      final isHuntable = ShinyLogicHelper.isHuntableInGen1(
+        widget.entry.pokemon.id,
+      );
       final statusWidget = Text(
         isHuntable
             ? Translator.get('shiny_huntable_yes')
@@ -146,10 +156,10 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
       );
 
       bool canGetInGen2 =
-          ShinyLogicHelper.isBreedable(widget.pokemon.id) ||
-          (encountersDatabase[widget.pokemon.id]?.containsKey('gen_2') ??
+          ShinyLogicHelper.isBreedable(widget.entry.pokemon.id) ||
+          (encountersDatabase[widget.entry.pokemon.id]?.containsKey('gen_2') ??
               false) ||
-          ShinyLogicHelper.isStaticEncounter(widget.pokemon.id, 'gen_2');
+          ShinyLogicHelper.isStaticEncounter(widget.entry.pokemon.id, 'gen_2');
 
       final tipWidget = Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -188,7 +198,7 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
                 ],
               ),
             ),
-          if (widget.pokemon.id == 151) ...[
+          if (widget.entry.pokemon.id == 151) ...[
             const SizedBox(height: 8),
             Text(
               Translator.get('tutorials_mew'),
@@ -243,8 +253,10 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
       );
 
       Widget calculatorWidget = const SizedBox.shrink();
-      if (isHuntable && widget.pokemon.id != 151) {
-        final baseStats = ShinyLogicHelper.gen1BaseStats[widget.pokemon.id];
+      if (isHuntable && widget.entry.pokemon.id != 151) {
+        final baseStats =
+            ShinyLogicHelper.gen1BaseStats[widget.entry.pokemon.id];
+
         if (baseStats != null) {
           calculatorWidget = Column(
             children: [
@@ -342,7 +354,8 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
 
   Widget _buildGen2Specific(BuildContext context) {
     List<Widget> content = [];
-    if (widget.pokemon.id >= 243 && widget.pokemon.id <= 245) {
+
+    if (widget.entry.pokemon.id >= 243 && widget.entry.pokemon.id <= 245) {
       content.add(
         Text(
           Translator.get('shiny_roamer_gen2_title'),
@@ -373,7 +386,7 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  widget.pokemon.id == 245
+                  widget.entry.pokemon.id == 245
                       ? Translator.get('shiny_roamer_gen2_suicune_note')
                       : Translator.get('shiny_roamer_gen2_beasts_note'),
                   style: TextStyle(
@@ -389,7 +402,7 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
       content.add(const SizedBox(height: 16));
     }
 
-    if (widget.pokemon.id >= 252 && widget.pokemon.id <= 257) {
+    if (widget.entry.pokemon.id >= 252 && widget.entry.pokemon.id <= 257) {
       content.add(
         Text(
           Translator.get('shiny_mail_writer_title'),
@@ -460,8 +473,8 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
       content.add(const SizedBox(height: 24));
     }
 
-    if (widget.pokemon.id <= 251 &&
-        ShinyLogicHelper.isBaby(widget.pokemon.id)) {
+    if (widget.entry.pokemon.id <= 251 &&
+        ShinyLogicHelper.isBaby(widget.entry.pokemon.id)) {
       content.add(
         Container(
           padding: const EdgeInsets.all(12),
@@ -502,9 +515,9 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
       content.add(const SizedBox(height: 16));
     }
 
-    if (widget.pokemon.id <= 251 &&
-        (ShinyLogicHelper.isBreedable(widget.pokemon.id) ||
-            ShinyLogicHelper.isBaby(widget.pokemon.id))) {
+    if (widget.entry.pokemon.id <= 251 &&
+        (ShinyLogicHelper.isBreedable(widget.entry.pokemon.id) ||
+            ShinyLogicHelper.isBaby(widget.entry.pokemon.id))) {
       content.add(
         Text(
           Translator.get('shiny_ditto_guide'),
@@ -538,14 +551,14 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
         ),
       );
       content.add(const SizedBox(height: 24));
-
       content.add(
         BreedingCalculatorWidget(
-          initialTargetId: widget.pokemon.id,
+          initialTargetId: widget.entry.pokemon.id,
           dexId: widget.dexId,
         ),
       );
     }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: content,
@@ -676,7 +689,6 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
   @override
   Widget build(BuildContext context) {
     List<Widget> genTiles = [];
-
     for (int gen = 1; gen <= 2; gen++) {
       if (_shouldShowGen(gen)) {
         Widget content = _buildGenContent(context, gen);

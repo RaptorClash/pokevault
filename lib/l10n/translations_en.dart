@@ -828,4 +828,7 @@ const Map<String, String> translationsEn = {
   'calc_donut_minus2': '2+ Stars lower (-70%)',
   'calc_missing_badges': 'Missing Badges (Obedience)',
   'calc_unnoticed': 'Unnoticed (Stealth)',
+
+  'shiny_form': 'Shiny Form',
+  'normal_form': 'Normal Form',
 };

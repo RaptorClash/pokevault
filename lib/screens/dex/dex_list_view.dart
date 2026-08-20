@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+
 import '../../models/user_dex.dart';
 import '../../models/dex_view_models.dart';
 import '../../providers/dex_provider.dart';
@@ -30,6 +31,8 @@ class DexListView extends StatelessWidget {
         : (screenWidth > 900 ? 6 : (screenWidth > 600 ? 5 : 3));
 
     return GridView.builder(
+      keyboardDismissBehavior:
+          ScrollViewKeyboardDismissBehavior.onDrag,
       padding: const EdgeInsets.all(8),
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: listColumns,

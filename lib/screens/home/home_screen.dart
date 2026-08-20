@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
 import '../../l10n/app_translations.dart';
 import '../../providers/dex_provider.dart';
 import '../../services/dex_storage_service.dart';
@@ -12,7 +13,6 @@ import '../settings/settings_screen.dart';
 import '../../utils/notification_helper.dart';
 import '../../utils/update_helper.dart';
 import '../../widgets/dialogs/update_dialog.dart';
-
 import 'create_dex_bottom_sheet.dart';
 import 'edit_dex_dialog.dart';
 
@@ -190,9 +190,26 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
       body: dexes.isEmpty
           ? Center(
-              child: Text(
-                Translator.get('no_dex'),
-                textAlign: TextAlign.center,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.catching_pokemon,
+                    size: 80,
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.primary.withOpacity(0.3),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    Translator.get('no_dex'),
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 18,
+                      color: Theme.of(context).hintColor,
+                    ),
+                  ),
+                ],
               ),
             )
           : ListView.builder(
@@ -202,102 +219,126 @@ class _HomeScreenState extends State<HomeScreen> {
                 String regionName = Translator.get('region_${dex.region}');
                 bool isSelected = _selectedDexIds.contains(dex.id);
 
-                return ListTile(
-                  selected: isSelected,
-                  selectedTileColor: Theme.of(
-                    context,
-                  ).colorScheme.primaryContainer.withOpacity(0.3),
-                  leading: _isSelectionMode
-                      ? Checkbox(
-                          value: isSelected,
-                          onChanged: (val) => _toggleSelection(dex.id),
-                        )
-                      : const CircleAvatar(
-                          backgroundColor: Colors.red,
-                          child: Icon(
-                            Icons.catching_pokemon,
-                            color: Colors.white,
-                          ),
-                        ),
-                  title: Text(dex.title),
-                  subtitle: Text(
-                    '${Translator.get('region')}: $regionName | ${Translator.get('caught')}: ${dex.caughtIds.length}',
+                return Card(
+                  elevation: isSelected ? 4 : 1,
+                  margin: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
                   ),
-                  trailing: _isSelectionMode
-                      ? null
-                      : PopupMenuButton<String>(
-                          icon: const Icon(Icons.more_vert),
-                          onSelected: (value) {
-                            if (value == 'edit') {
-                              showDialog(
-                                context: context,
-                                builder: (context) =>
-                                    EditDexDialog(provider: provider, dex: dex),
-                              );
-                            } else if (value == 'delete') {
-                              _confirmDelete(context, provider, dex);
-                            }
-                          },
-                          itemBuilder: (context) => [
-                            PopupMenuItem(
-                              value: 'edit',
-                              child: Row(
-                                children: [
-                                  const Icon(Icons.edit, size: 20),
-                                  const SizedBox(width: 8),
-                                  Text(Translator.get('edit')),
-                                ],
-                              ),
+                  clipBehavior: Clip.antiAlias,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    side: BorderSide(
+                      color: isSelected
+                          ? Theme.of(context).colorScheme.primary
+                          : Colors.transparent,
+                      width: 2,
+                    ),
+                  ),
+                  child: ListTile(
+                    selected: isSelected,
+                    selectedTileColor: Theme.of(
+                      context,
+                    ).colorScheme.primaryContainer.withOpacity(0.3),
+                    leading: _isSelectionMode
+                        ? Checkbox(
+                            value: isSelected,
+                            onChanged: (val) => _toggleSelection(dex.id),
+                          )
+                        : const CircleAvatar(
+                            backgroundColor: Colors.red,
+                            child: Icon(
+                              Icons.catching_pokemon,
+                              color: Colors.white,
                             ),
-                            PopupMenuItem(
-                              value: 'delete',
-                              child: Row(
-                                children: [
-                                  const Icon(
-                                    Icons.delete,
-                                    size: 20,
-                                    color: Colors.red,
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Text(
-                                    Translator.get('delete'),
-                                    style: const TextStyle(color: Colors.red),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                  onLongPress: () {
-                    if (!_isSelectionMode) _toggleSelection(dex.id);
-                  },
-                  onTap: () {
-                    if (_isSelectionMode) {
-                      _toggleSelection(dex.id);
-                    } else {
-                      List<int> selectedOrder =
-                          allAvailableDexes[dex.region] ?? [];
-                      List<Pokemon> selectedDatabase = selectedOrder.map((id) {
-                        return _pokemonCache[id] ??
-                            Pokemon(
-                              id: id,
-                              names: {'de': 'Unbekannt', 'en': 'Unknown'},
-                              hasGenderDifferences: false,
-                              forms: [],
-                            );
-                      }).toList();
-
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => DexScreen(
-                            initialDex: dex,
-                            pokemonList: selectedDatabase,
                           ),
-                        ),
-                      );
-                    }
-                  },
+                    title: Text(
+                      dex.title,
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    subtitle: Text(
+                      '${Translator.get('region')}: $regionName | ${Translator.get('caught')}: ${dex.caughtIds.length}',
+                    ),
+                    trailing: _isSelectionMode
+                        ? null
+                        : PopupMenuButton<String>(
+                            icon: const Icon(Icons.more_vert),
+                            onSelected: (value) {
+                              if (value == 'edit') {
+                                showDialog(
+                                  context: context,
+                                  builder: (context) => EditDexDialog(
+                                    provider: provider,
+                                    dex: dex,
+                                  ),
+                                );
+                              } else if (value == 'delete') {
+                                _confirmDelete(context, provider, dex);
+                              }
+                            },
+                            itemBuilder: (context) => [
+                              PopupMenuItem(
+                                value: 'edit',
+                                child: Row(
+                                  children: [
+                                    const Icon(Icons.edit, size: 20),
+                                    const SizedBox(width: 8),
+                                    Text(Translator.get('edit')),
+                                  ],
+                                ),
+                              ),
+                              PopupMenuItem(
+                                value: 'delete',
+                                child: Row(
+                                  children: [
+                                    const Icon(
+                                      Icons.delete,
+                                      size: 20,
+                                      color: Colors.red,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      Translator.get('delete'),
+                                      style: const TextStyle(color: Colors.red),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                    onLongPress: () {
+                      if (!_isSelectionMode) _toggleSelection(dex.id);
+                    },
+                    onTap: () {
+                      if (_isSelectionMode) {
+                        _toggleSelection(dex.id);
+                      } else {
+                        List<int> selectedOrder =
+                            allAvailableDexes[dex.region] ?? [];
+                        List<Pokemon> selectedDatabase = selectedOrder.map((
+                          id,
+                        ) {
+                          return _pokemonCache[id] ??
+                              Pokemon(
+                                id: id,
+                                names: {'de': 'Unbekannt', 'en': 'Unknown'},
+                                hasGenderDifferences: false,
+                                forms: [],
+                              );
+                        }).toList();
+
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => DexScreen(
+                              initialDex: dex,
+                              pokemonList: selectedDatabase,
+                            ),
+                          ),
+                        );
+                      }
+                    },
+                  ),
                 );
               },
             ),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
 import '../../models/dex_view_models.dart';
 import '../../models/pokemon.dart';
 import '../../providers/dex_provider.dart';
@@ -144,15 +145,15 @@ class _PokemonInfoScreenState extends State<PokemonInfoScreen> {
       );
       if (formName == 'm' || formName == 'f') formName = 'normal';
     }
-
     PokemonForm? currentForm;
     try {
       currentForm = widget.entry.pokemon.forms.firstWhere(
         (f) => f.name == formName,
       );
     } catch (_) {
-      if (widget.entry.pokemon.forms.isNotEmpty)
+      if (widget.entry.pokemon.forms.isNotEmpty) {
         currentForm = widget.entry.pokemon.forms.first;
+      }
     }
 
     final Map<String, Color> typeColors = {
@@ -176,6 +177,13 @@ class _PokemonInfoScreenState extends State<PokemonInfoScreen> {
       'fairy': const Color(0xFFD685AD),
     };
 
+    final Color typeColor1 = currentForm != null && currentForm.types.isNotEmpty
+        ? typeColors[currentForm.types.first] ?? Colors.grey
+        : Colors.grey;
+    final Color typeColor2 = currentForm != null && currentForm.types.length > 1
+        ? typeColors[currentForm.types[1]] ?? typeColor1
+        : typeColor1;
+
     return Scaffold(
       appBar: AppBar(
         title: Text(
@@ -191,14 +199,26 @@ class _PokemonInfoScreenState extends State<PokemonInfoScreen> {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Container(
-              height: 200,
+              height: 240,
               width: double.infinity,
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Theme.of(
-                  context,
-                ).colorScheme.surfaceContainerHighest.withOpacity(0.3),
+                gradient: LinearGradient(
+                  colors: [
+                    typeColor1.withOpacity(0.5),
+                    typeColor2.withOpacity(0.5),
+                  ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
                 borderRadius: BorderRadius.circular(24),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 8,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
               ),
               child: Stack(
                 clipBehavior: Clip.none,
@@ -217,23 +237,31 @@ class _PokemonInfoScreenState extends State<PokemonInfoScreen> {
                     ),
                   ),
                   Positioned(
-                    top: -8,
-                    right: -8,
-                    child: IconButton(
-                      icon: Icon(
-                        wantShiny
-                            ? Icons.auto_awesome
-                            : Icons.auto_awesome_outlined,
-                        color: wantShiny ? Colors.amber : Colors.grey,
-                      ),
+                    bottom: -4,
+                    right: -4,
+                    child: FloatingActionButton.small(
+                      heroTag: 'shiny_toggle',
+                      backgroundColor: wantShiny
+                          ? Colors.amber
+                          : Theme.of(context).colorScheme.surface,
                       tooltip: wantShiny
-                          ? 'Normale Form anzeigen'
-                          : 'Shiny Form anzeigen',
+                          ? Translator.get('normal_form') != 'normal_form'
+                                ? Translator.get('normal_form')
+                                : 'Normale Form'
+                          : Translator.get('shiny_form') != 'shiny_form'
+                          ? Translator.get('shiny_form')
+                          : 'Shiny Form',
                       onPressed: () {
                         setState(() {
                           _manualShinyToggle = !wantShiny;
                         });
                       },
+                      child: Icon(
+                        wantShiny
+                            ? Icons.auto_awesome
+                            : Icons.auto_awesome_outlined,
+                        color: wantShiny ? Colors.white : Colors.grey,
+                      ),
                     ),
                   ),
                 ],
@@ -253,7 +281,6 @@ class _PokemonInfoScreenState extends State<PokemonInfoScreen> {
               style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
               textAlign: TextAlign.center,
             ),
-
             if (currentForm != null && currentForm.types.isNotEmpty) ...[
               const SizedBox(height: 8),
               Wrap(
@@ -282,7 +309,6 @@ class _PokemonInfoScreenState extends State<PokemonInfoScreen> {
                 }).toList(),
               ),
             ],
-
             if (widget.entry.displaySuffix.trim().isNotEmpty) ...[
               const SizedBox(height: 8),
               Text(
@@ -294,7 +320,6 @@ class _PokemonInfoScreenState extends State<PokemonInfoScreen> {
               ),
             ],
             const SizedBox(height: 32),
-
             Card(
               margin: const EdgeInsets.symmetric(vertical: 4),
               child: SwitchListTile(
@@ -320,7 +345,6 @@ class _PokemonInfoScreenState extends State<PokemonInfoScreen> {
                 },
               ),
             ),
-
             Card(
               margin: const EdgeInsets.symmetric(vertical: 4),
               child: SwitchListTile(
@@ -426,7 +450,7 @@ class _PokemonInfoScreenState extends State<PokemonInfoScreen> {
             ),
             const SizedBox(height: 16),
             ShinyGuideWidget(
-              pokemon: widget.entry.pokemon,
+              entry: widget.entry,
               dexId: widget.dexId,
             ),
             const SizedBox(height: 32),
@@ -467,12 +491,10 @@ class _PokemonInfoScreenState extends State<PokemonInfoScreen> {
       children: versions.map((ver) {
         GameVersion? gameVer = _versionColors[ver];
         if (gameVer == null) return const SizedBox.shrink();
-
         String shortText = Translator.get('badge_$ver');
         if (shortText == 'badge_$ver') {
           shortText = ver.substring(0, 1).toUpperCase();
         }
-
         return Container(
           padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
           decoration: BoxDecoration(
@@ -520,7 +542,6 @@ class _PokemonInfoScreenState extends State<PokemonInfoScreen> {
   List<Widget> _buildEncountersList(BuildContext context, int pokemonId) {
     try {
       final encounters = encountersDatabase[pokemonId];
-
       if (encounters == null || encounters.isEmpty) {
         return [
           Padding(
@@ -554,7 +575,6 @@ class _PokemonInfoScreenState extends State<PokemonInfoScreen> {
         });
 
         List<Widget> versionWidgets = [];
-
         groupedEncounters.forEach((locationsStr, versions) {
           final locations = locationsStr.split('|||||');
 
@@ -632,6 +652,7 @@ class _PokemonInfoScreenState extends State<PokemonInfoScreen> {
                 base = loc.substring(0, bracketIndex);
                 method = loc.substring(bracketIndex + 2, loc.length - 1);
               }
+
               String transBase = _translateLoc(base);
               String transMethod = method.isNotEmpty
                   ? ' (${_translateMethod(method)})'
@@ -640,7 +661,7 @@ class _PokemonInfoScreenState extends State<PokemonInfoScreen> {
               return Padding(
                 padding: const EdgeInsets.symmetric(vertical: 4.0),
                 child: Text(
-                  '• $transBase$transMethod',
+                  '  $transBase$transMethod',
                   style: const TextStyle(fontSize: 13),
                 ),
               );
@@ -698,7 +719,6 @@ class _PokemonInfoScreenState extends State<PokemonInfoScreen> {
             ),
           );
         }
-
         if (gen == 'gen_1' && pokemonId == 151) {
           versionWidgets.add(
             _buildGlitchNote(
@@ -740,7 +760,7 @@ class _PokemonInfoScreenState extends State<PokemonInfoScreen> {
                   Translator.get('encounter_missing_note') !=
                           'encounter_missing_note'
                       ? Translator.get('encounter_missing_note')
-                      : 'Hinweis: Wenn eine Edition nicht aufgeführt ist, ist das Pokémon dort in der Regel nur durch Entwicklung, Tausch oder Transfer erhältlich.',
+                      : 'Hinweis: Wenn eine Edition nicht aufgef hrt ist, ist das Pok mon dort in der Regel nur durch Entwicklung, Tausch oder Transfer erh ltlich.',
                   style: const TextStyle(
                     fontSize: 12,
                     fontStyle: FontStyle.italic,
@@ -918,12 +938,12 @@ class _PokemonInfoScreenState extends State<PokemonInfoScreen> {
         title: Text(
           Translator.get('ignore_confirm_title') != 'ignore_confirm_title'
               ? Translator.get('ignore_confirm_title')
-              : 'Pokémon entfernen?',
+              : 'Pok mon entfernen?',
         ),
         content: Text(
           Translator.get('ignore_confirm_text') != 'ignore_confirm_text'
               ? Translator.get('ignore_confirm_text')
-              : 'Möchtest du dieses Pokémon ausblenden? Du kannst es im Menü jederzeit wiederherstellen.',
+              : 'M chtest du dieses Pok mon ausblenden? Du kannst es im Men  jederzeit wiederherstellen.',
         ),
         actions: [
           TextButton(
