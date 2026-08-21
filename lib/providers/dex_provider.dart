@@ -466,4 +466,12 @@ class DexProvider extends ChangeNotifier {
     _saveToPrefs();
     notifyListeners();
   }
+
+  void updateStructureOrder(String folderId, List<String> newOrder) {
+    structure[folderId] = newOrder;
+
+    notifyListeners();
+
+    _saveToPrefs();
+  }
 }

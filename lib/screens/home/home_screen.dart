@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
 import '../../l10n/app_translations.dart';
 import '../../providers/dex_provider.dart';
+import '../../providers/tutorial_provider.dart';
 import '../../services/dex_storage_service.dart';
 import '../../models/pokemon.dart';
 import '../../models/user_dex.dart';
+import '../../models/tutorial_step.dart';
+import '../../widgets/tutorial/tutorial_overlay.dart';
 import '../../data/national_dex_data.dart';
 import '../../data/dex_orders.dart';
 import '../dex/dex_screen.dart';
@@ -27,11 +29,11 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  final GlobalKey _fabKey = GlobalKey();
   final Set<String> _selectedItemIds = {};
   late final Map<int, Pokemon> _pokemonCache;
   String _searchQuery = '';
   String _currentSort = 'manual';
-
   late String _currentFolderId;
 
   bool get _isSelectionMode => _selectedItemIds.isNotEmpty;
@@ -45,8 +47,55 @@ class _HomeScreenState extends State<HomeScreen> {
     if (_currentFolderId == 'root') {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _checkForUpdates();
+        _showTutorialIfNeeded();
       });
     }
+  }
+
+  void _showTutorialIfNeeded() {
+    final tutProvider = Provider.of<TutorialProvider>(context, listen: false);
+    if (!tutProvider.hasSeenFeature('home_screen')) {
+      TutorialOverlay.show(
+        context,
+        TutorialFeature(
+          id: 'home_screen',
+          nameKey: 'tutorial_feature_home',
+          steps: [
+            TutorialStep(
+              targetKey: null,
+              titleKey: 'tutorial_home_intro_title',
+              textKey: 'tutorial_home_intro_text',
+            ),
+            TutorialStep(
+              targetKey: _fabKey,
+              titleKey: 'tutorial_home_fab_title',
+              textKey: 'tutorial_home_fab_text',
+              requireTargetTap: true,
+              onTargetTap: () {
+                tutProvider.markFeatureAsSeen('home_screen');
+                _openCreateBottomSheet();
+              },
+            ),
+          ],
+        ),
+        () => tutProvider.markFeatureAsSeen('home_screen'),
+      );
+    }
+  }
+
+  void _openCreateBottomSheet() {
+    final provider = Provider.of<DexProvider>(context, listen: false);
+    showModalBottomSheet(
+      context: context,
+      builder: (ctx) => _HomeBottomSheetContent(
+        provider: provider,
+        currentFolderId: _currentFolderId,
+        onFolderCreate: () {
+          Navigator.pop(ctx);
+          _showCreateFolderDialog(provider);
+        },
+      ),
+    );
   }
 
   Future<void> _checkForUpdates() async {
@@ -59,8 +108,7 @@ class _HomeScreenState extends State<HomeScreen> {
           builder: (context) => UpdateDialog(updateInfo: updateInfo),
         );
       }
-    } catch (e) {
-    }
+    } catch (e) {}
   }
 
   String _getParentId(DexProvider provider, String id) {
@@ -68,16 +116,6 @@ class _HomeScreenState extends State<HomeScreen> {
       if (entry.value.contains(id)) return entry.key;
     }
     return 'root';
-  }
-
-  int _getDepth(DexProvider provider, String folderId) {
-    int depth = 0;
-    String curr = folderId;
-    while (curr != 'root') {
-      curr = _getParentId(provider, curr);
-      depth++;
-    }
-    return depth;
   }
 
   void _recursiveDelete(DexProvider provider, String itemId) {
@@ -97,7 +135,6 @@ class _HomeScreenState extends State<HomeScreen> {
     Set<String> selectedIds,
   ) {
     Set<String> dexIdsToExport = {};
-
     void gather(String id) {
       if (id.startsWith('folder_')) {
         final children = provider.structure[id] ?? [];
@@ -112,7 +149,6 @@ class _HomeScreenState extends State<HomeScreen> {
     for (var id in selectedIds) {
       gather(id);
     }
-
     return provider.userDexes
         .where((d) => dexIdsToExport.contains(d.id))
         .toList();
@@ -150,11 +186,7 @@ class _HomeScreenState extends State<HomeScreen> {
               try {
                 provider.deleteDex(dex.id);
                 Navigator.pop(context);
-                NotificationHelper.showSuccess(
-                  Translator.get('success_delete_dex') != 'success_delete_dex'
-                      ? Translator.get('success_delete_dex')
-                      : 'Erfolgreich gelöscht.',
-                );
+                NotificationHelper.showSuccess('Erfolgreich gelöscht.');
               } catch (e) {
                 Navigator.pop(context);
                 NotificationHelper.showError(
@@ -175,7 +207,6 @@ class _HomeScreenState extends State<HomeScreen> {
     DexFolder folder,
   ) {
     bool recursiveDelete = false;
-
     showDialog(
       context: context,
       builder: (context) => StatefulBuilder(
@@ -193,7 +224,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 Text(
                   Translator.get('delete_folder_text') != 'delete_folder_text'
                       ? Translator.get('delete_folder_text')
-                      : 'Möchtest du diesen Ordner wirklich löschen? Der Inhalt wird standardmäßig auf den Hauptbildschirm verschoben.',
+                      : 'Möchtest du diesen Ordner wirklich löschen?',
                 ),
                 const SizedBox(height: 16),
                 CheckboxListTile(
@@ -211,15 +242,6 @@ class _HomeScreenState extends State<HomeScreen> {
                     setStateSB(() => recursiveDelete = val ?? false);
                   },
                 ),
-                if (recursiveDelete)
-                  const Text(
-                    'Achtung: Alle Dexe und Unterordner in diesem Ordner werden unwiderruflich gelöscht!',
-                    style: TextStyle(
-                      color: Colors.red,
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
               ],
             ),
             actions: [
@@ -240,12 +262,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       provider.deleteFolder(folder.id);
                     }
                     Navigator.pop(context);
-                    NotificationHelper.showSuccess(
-                      Translator.get('success_delete_folder') !=
-                              'success_delete_folder'
-                          ? Translator.get('success_delete_folder')
-                          : 'Erfolgreich gelöscht.',
-                    );
+                    NotificationHelper.showSuccess('Erfolgreich gelöscht.');
                   } catch (e) {
                     Navigator.pop(context);
                     NotificationHelper.showError(
@@ -267,18 +284,10 @@ class _HomeScreenState extends State<HomeScreen> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text(
-          Translator.get('folder_create_title') != 'folder_create_title'
-              ? Translator.get('folder_create_title')
-              : 'Neuer Ordner',
-        ),
+        title: const Text('Neuer Ordner'),
         content: TextField(
           controller: _ctrl,
-          decoration: InputDecoration(
-            hintText: Translator.get('folder_name_hint') != 'folder_name_hint'
-                ? Translator.get('folder_name_hint')
-                : 'Ordnername',
-          ),
+          decoration: const InputDecoration(hintText: 'Ordnername'),
           autofocus: true,
         ),
         actions: [
@@ -312,11 +321,7 @@ class _HomeScreenState extends State<HomeScreen> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text(
-          Translator.get('folder_rename_title') != 'folder_rename_title'
-              ? Translator.get('folder_rename_title')
-              : 'Ordner umbenennen',
-        ),
+        title: const Text('Ordner umbenennen'),
         content: TextField(controller: _ctrl, autofocus: true),
         actions: [
           TextButton(
@@ -344,70 +349,49 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void _showMoveDialog(DexProvider provider, Set<String> itemIds) {
     Set<String>? commonAllowed;
-
     for (String itemId in itemIds) {
       String currentParentId = _getParentId(provider, itemId);
       Set<String> allowed = {'root'};
-
       if (currentParentId != 'root') {
         allowed.add(_getParentId(provider, currentParentId));
       }
-
       final childrenOfParent = provider.structure[currentParentId] ?? [];
       for (var childId in childrenOfParent) {
         if (childId.startsWith('folder_')) {
           allowed.add(childId);
         }
       }
-
       allowed.remove(currentParentId);
-
       if (itemId.startsWith('folder_')) {
         allowed.removeWhere((id) => provider.isDescendant(itemId, id));
         allowed.remove(itemId);
       }
-
       if (commonAllowed == null) {
         commonAllowed = allowed;
       } else {
         commonAllowed = commonAllowed.intersection(allowed);
       }
     }
-
     if (commonAllowed == null || commonAllowed.isEmpty) {
       NotificationHelper.showInfo(
         'Kein gemeinsames gültiges Ziel zum Verschieben verfügbar.',
       );
       return;
     }
-
     List<MapEntry<String, String>> targets = [];
     if (commonAllowed.contains('root')) {
-      targets.add(
-        MapEntry(
-          'root',
-          Translator.get('folder_root') != 'folder_root'
-              ? Translator.get('folder_root')
-              : 'Hauptverzeichnis',
-        ),
-      );
+      targets.add(const MapEntry('root', 'Hauptverzeichnis'));
     }
-
     for (var folder in provider.folders) {
       if (commonAllowed.contains(folder.id)) {
         targets.add(MapEntry(folder.id, folder.title));
       }
     }
-
     showDialog(
       context: context,
       builder: (ctx) {
         return AlertDialog(
-          title: Text(
-            Translator.get('folder_move_title') != 'folder_move_title'
-                ? Translator.get('folder_move_title')
-                : 'Verschieben nach...',
-          ),
+          title: const Text('Verschieben nach...'),
           content: SizedBox(
             width: double.maxFinite,
             child: ListView.builder(
@@ -429,12 +413,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       }
                       _clearSelection();
                       Navigator.pop(ctx);
-                      NotificationHelper.showSuccess(
-                        Translator.get('success_move_item') !=
-                                'success_move_item'
-                            ? Translator.get('success_move_item')
-                            : 'Erfolgreich verschoben.',
-                      );
+                      NotificationHelper.showSuccess('Erfolgreich verschoben.');
                     } catch (e) {
                       Navigator.pop(ctx);
                       NotificationHelper.showError(
@@ -483,7 +462,6 @@ class _HomeScreenState extends State<HomeScreen> {
   List<dynamic> _getSortedItems(DexProvider provider, String folderId) {
     final itemIds = provider.structure[folderId] ?? [];
     List<dynamic> items = [];
-
     for (var id in itemIds) {
       if (id.startsWith('folder_')) {
         final f = provider.folders.where((x) => x.id == id).firstOrNull;
@@ -493,12 +471,10 @@ class _HomeScreenState extends State<HomeScreen> {
         if (d != null) items.add(d);
       }
     }
-
     if (_currentSort != 'manual') {
       items.sort((a, b) {
         if (a is DexFolder && b is UserDex) return -1;
         if (a is UserDex && b is DexFolder) return 1;
-
         if (a is UserDex && b is UserDex) {
           if (_currentSort == 'az') return a.title.compareTo(b.title);
           if (_currentSort == 'caught')
@@ -529,7 +505,6 @@ class _HomeScreenState extends State<HomeScreen> {
       if (item is DexFolder) {
         bool matchesSearch = item.title.toLowerCase().contains(q);
         bool hasMatchInChildren = _folderHasMatch(provider, item.id, q);
-
         if (q.isNotEmpty && !matchesSearch && !hasMatchInChildren) continue;
 
         bool isSelected = isRootLevel && _selectedItemIds.contains(item.id);
@@ -582,9 +557,6 @@ class _HomeScreenState extends State<HomeScreen> {
                       color: Colors.blueAccent,
                       size: 28,
                     ),
-                    tooltip: Translator.get('action_open') != 'action_open'
-                        ? Translator.get('action_open')
-                        : 'Ordner öffnen',
                     onPressed: () {
                       setState(() {
                         _currentFolderId = item.id;
@@ -611,30 +583,19 @@ class _HomeScreenState extends State<HomeScreen> {
                             _confirmDeleteFolder(context, provider, item);
                         },
                         itemBuilder: (context) => [
-                          PopupMenuItem(
+                          const PopupMenuItem(
                             value: 'rename',
-                            child: Text(
-                              Translator.get('action_rename') != 'action_rename'
-                                  ? Translator.get('action_rename')
-                                  : 'Umbenennen',
-                            ),
+                            child: Text('Umbenennen'),
                           ),
-                          PopupMenuItem(
+                          const PopupMenuItem(
                             value: 'move',
-                            child: Text(
-                              Translator.get('action_move') != 'action_move'
-                                  ? Translator.get('action_move')
-                                  : 'Verschieben...',
-                            ),
+                            child: Text('Verschieben...'),
                           ),
-                          PopupMenuItem(
+                          const PopupMenuItem(
                             value: 'delete',
                             child: Text(
-                              Translator.get('action_delete_keep') !=
-                                      'action_delete_keep'
-                                  ? Translator.get('action_delete_keep')
-                                  : 'Löschen',
-                              style: const TextStyle(color: Colors.red),
+                              'Löschen',
+                              style: TextStyle(color: Colors.red),
                             ),
                           ),
                         ],
@@ -646,11 +607,9 @@ class _HomeScreenState extends State<HomeScreen> {
                         ReorderableDragStartListener(
                           index: index,
                           child: Container(
-                            padding: const EdgeInsets.only(
-                              left: 8,
-                              right: 8,
-                              top: 16,
-                              bottom: 16,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 16,
                             ),
                             color: Colors.transparent,
                             child: const Icon(
@@ -683,7 +642,6 @@ class _HomeScreenState extends State<HomeScreen> {
         bool matchesSearch =
             item.title.toLowerCase().contains(q) ||
             regionName.toLowerCase().contains(q);
-
         if (q.isNotEmpty && !matchesSearch) continue;
 
         bool isSelected = isRootLevel && _selectedItemIds.contains(item.id);
@@ -727,7 +685,6 @@ class _HomeScreenState extends State<HomeScreen> {
                   }
                   return;
                 }
-
                 List<int> selectedOrder = allAvailableDexes[item.region] ?? [];
                 List<Pokemon> selectedDatabase = selectedOrder
                     .map(
@@ -745,7 +702,6 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                     )
                     .toList();
-
                 Navigator.push(
                   context,
                   MaterialPageRoute(
@@ -786,46 +742,35 @@ class _HomeScreenState extends State<HomeScreen> {
                           _confirmDeleteDex(context, provider, item);
                       },
                       itemBuilder: (context) => [
-                        PopupMenuItem(
+                        const PopupMenuItem(
                           value: 'edit',
                           child: Row(
                             children: [
-                              const Icon(Icons.edit, size: 20),
-                              const SizedBox(width: 8),
-                              Text(Translator.get('edit')),
+                              Icon(Icons.edit, size: 20),
+                              SizedBox(width: 8),
+                              Text('Bearbeiten'),
                             ],
                           ),
                         ),
-                        PopupMenuItem(
+                        const PopupMenuItem(
                           value: 'move',
                           child: Row(
                             children: [
-                              const Icon(
-                                Icons.drive_file_move_outline,
-                                size: 20,
-                              ),
-                              const SizedBox(width: 8),
-                              Text(
-                                Translator.get('action_move') != 'action_move'
-                                    ? Translator.get('action_move')
-                                    : 'Verschieben...',
-                              ),
+                              Icon(Icons.drive_file_move_outline, size: 20),
+                              SizedBox(width: 8),
+                              Text('Verschieben...'),
                             ],
                           ),
                         ),
-                        PopupMenuItem(
+                        const PopupMenuItem(
                           value: 'delete',
                           child: Row(
                             children: [
-                              const Icon(
-                                Icons.delete,
-                                size: 20,
-                                color: Colors.red,
-                              ),
-                              const SizedBox(width: 8),
+                              Icon(Icons.delete, size: 20, color: Colors.red),
+                              SizedBox(width: 8),
                               Text(
-                                Translator.get('delete'),
-                                style: const TextStyle(color: Colors.red),
+                                'Löschen',
+                                style: TextStyle(color: Colors.red),
                               ),
                             ],
                           ),
@@ -839,11 +784,9 @@ class _HomeScreenState extends State<HomeScreen> {
                       ReorderableDragStartListener(
                         index: index,
                         child: Container(
-                          padding: const EdgeInsets.only(
-                            left: 8,
-                            right: 8,
-                            top: 16,
-                            bottom: 16,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 16,
                           ),
                           color: Colors.transparent,
                           child: const Icon(
@@ -868,7 +811,6 @@ class _HomeScreenState extends State<HomeScreen> {
   void _confirmMultipleDelete(BuildContext context, DexProvider provider) {
     bool hasFolder = _selectedItemIds.any((id) => id.startsWith('folder_'));
     bool recursiveDelete = false;
-
     showDialog(
       context: context,
       builder: (context) => StatefulBuilder(
@@ -897,15 +839,6 @@ class _HomeScreenState extends State<HomeScreen> {
                       setStateSB(() => recursiveDelete = val ?? false);
                     },
                   ),
-                  if (recursiveDelete)
-                    const Text(
-                      'Achtung: Alle Dexe und Unterordner in den gewählten Ordnern werden unwiderruflich gelöscht!',
-                      style: TextStyle(
-                        color: Colors.red,
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
                 ],
               ],
             ),
@@ -921,7 +854,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 onPressed: () {
                   try {
-                    for (String id in _selectedItemIds.toList()) {
+                    for (String id in _selectedItemIds) {
                       if (id.startsWith('folder_')) {
                         if (recursiveDelete) {
                           _recursiveDelete(provider, id);
@@ -934,12 +867,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     }
                     _clearSelection();
                     Navigator.pop(context);
-                    NotificationHelper.showSuccess(
-                      Translator.get('success_delete_dex') !=
-                              'success_delete_dex'
-                          ? Translator.get('success_delete_dex')
-                          : 'Erfolgreich gelöscht.',
-                    );
+                    NotificationHelper.showSuccess('Elemente gelöscht.');
                   } catch (e) {
                     Navigator.pop(context);
                     NotificationHelper.showError(
@@ -956,326 +884,338 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildBreadcrumbs(DexProvider provider) {
-    List<MapEntry<String, String>> path = [];
-    String curr = _currentFolderId;
-
-    while (curr != 'root') {
-      final f = provider.folders.where((x) => x.id == curr).firstOrNull;
-      if (f != null) {
-        path.insert(0, MapEntry(f.id, f.title));
-      }
-      curr = _getParentId(provider, curr);
-    }
-
-    path.insert(0, const MapEntry('root', 'PokeVault'));
-
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: Row(
-        children: path.asMap().entries.map((entry) {
-          int idx = entry.key;
-          var node = entry.value;
-          bool isLast = idx == path.length - 1;
-
-          return Row(
-            children: [
-              InkWell(
-                borderRadius: BorderRadius.circular(8),
-                onTap: isLast
-                    ? null
-                    : () {
-                        setState(() {
-                          _currentFolderId = node.key;
-                          _searchQuery = '';
-                        });
-                      },
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 4.0,
-                    vertical: 6.0,
-                  ),
-                  child: Text(
-                    node.value,
-                    style: TextStyle(
-                      fontSize: isLast ? 20 : 16,
-                      fontWeight: isLast ? FontWeight.bold : FontWeight.w500,
-                      color: isLast
-                          ? Theme.of(context).colorScheme.onPrimary
-                          : Theme.of(
-                              context,
-                            ).colorScheme.onPrimary.withOpacity(0.6),
-                    ),
-                  ),
-                ),
-              ),
-              if (!isLast)
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 4.0),
-                  child: Icon(
-                    Icons.chevron_right,
-                    size: 20,
-                    color: Theme.of(
-                      context,
-                    ).colorScheme.onPrimary.withOpacity(0.6),
-                  ),
-                ),
-            ],
-          );
-        }).toList(),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<DexProvider>();
-    final itemsTreeWidgets = _buildTree(provider, _currentFolderId, true);
 
-    return PopScope(
-      canPop: _currentFolderId == 'root',
-      onPopInvokedWithResult: (didPop, result) {
-        if (didPop) return;
-        setState(() {
-          _currentFolderId = _getParentId(provider, _currentFolderId);
-          _searchQuery = '';
-        });
-      },
-      child: Scaffold(
-        appBar: _isSelectionMode
-            ? AppBar(
-                backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-                leading: IconButton(
-                  icon: const Icon(Icons.close),
-                  onPressed: _clearSelection,
+    return Scaffold(
+      appBar: AppBar(
+        leading: _isSelectionMode
+            ? IconButton(
+                icon: const Icon(Icons.close),
+                onPressed: _clearSelection,
+              )
+            : (_currentFolderId != 'root'
+                  ? IconButton(
+                      icon: const Icon(Icons.arrow_back),
+                      onPressed: () {
+                        setState(() {
+                          _currentFolderId = _getParentId(
+                            provider,
+                            _currentFolderId,
+                          );
+                          _searchQuery = '';
+                        });
+                      },
+                    )
+                  : null),
+        title: _isSelectionMode
+            ? Text('${_selectedItemIds.length} ausgewählt')
+            : Text(
+                _currentFolderId == 'root'
+                    ? 'PokeVault'
+                    : (provider.folders
+                              .where((f) => f.id == _currentFolderId)
+                              .firstOrNull
+                              ?.title ??
+                          'Ordner'),
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
+        actions: _isSelectionMode
+            ? [
+                IconButton(
+                  icon: const Icon(Icons.drive_file_move_outline),
+                  tooltip: 'Verschieben',
+                  onPressed: () => _showMoveDialog(provider, _selectedItemIds),
                 ),
-                title: Text(
-                  '${_selectedItemIds.length} ${Translator.get('selected')}',
-                ),
-                actions: [
-                  IconButton(
-                    icon: const Icon(Icons.drive_file_move_outline),
-                    tooltip: Translator.get('action_move') != 'action_move'
-                        ? Translator.get('action_move')
-                        : 'Verschieben',
-                    onPressed: () =>
-                        _showMoveDialog(provider, _selectedItemIds),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.upload),
-                    tooltip: Translator.get('export_tooltip'),
-                    onPressed: () async {
+                IconButton(
+                  icon: const Icon(Icons.upload),
+                  tooltip: 'Exportieren',
+                  onPressed: () async {
+                    try {
                       final dexesToExport = _getDexesToExport(
                         provider,
                         _selectedItemIds,
                       );
-                      if (dexesToExport.isEmpty) {
-                        NotificationHelper.showInfo(
-                          'Keine Dexe zum Exportieren gefunden.',
+                      if (dexesToExport.isNotEmpty) {
+                        await DexStorageService.exportDexes(
+                          dexesToExport,
+                          provider,
                         );
-                        return;
+                        _clearSelection();
+                      } else {
+                        NotificationHelper.showWarning(
+                          'Keine Dexe zum Exportieren in der Auswahl gefunden.',
+                        );
                       }
-                      await DexStorageService.exportDexes(
-                        dexesToExport,
-                        provider,
+                    } catch (e) {
+                      NotificationHelper.showError(
+                        '${Translator.get('error')} $e',
                       );
-                      _clearSelection();
-                    },
-                  ),
+                    }
+                  },
+                ),
+                IconButton(
+                  icon: const Icon(Icons.delete, color: Colors.red),
+                  tooltip: 'Löschen',
+                  onPressed: () => _confirmMultipleDelete(context, provider),
+                ),
+              ]
+            : [
+                if (_currentFolderId == 'root')
                   IconButton(
-                    icon: const Icon(Icons.delete),
-                    onPressed: () => _confirmMultipleDelete(context, provider),
-                  ),
-                ],
-              )
-            : AppBar(
-                title: _buildBreadcrumbs(provider),
-                backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-                actions: [
-                  if (_currentFolderId == 'root')
-                    IconButton(
-                      icon: const Icon(Icons.settings),
-                      tooltip: Translator.get('settings'),
-                      onPressed: () => Navigator.push(
+                    icon: const Icon(Icons.settings),
+                    onPressed: () {
+                      Navigator.push(
                         context,
                         MaterialPageRoute(
                           builder: (context) => const SettingsScreen(),
                         ),
-                      ),
-                    ),
-                ],
-              ),
-        body: Column(
-          children: [
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              color: Theme.of(
-                context,
-              ).colorScheme.surfaceContainerHighest.withOpacity(0.3),
+                      ).then((_) {
+                        _showTutorialIfNeeded();
+                      });
+                    },
+                  ),
+              ],
+      ),
+      body: Column(
+        children: [
+          if (!_isSelectionMode)
+            Padding(
+              padding: const EdgeInsets.all(16.0),
               child: Row(
                 children: [
                   Expanded(
                     child: TextField(
                       decoration: InputDecoration(
-                        hintText: Translator.get('search_hint') != 'search_hint'
-                            ? Translator.get('search_hint')
-                            : 'Suchen...',
+                        hintText: Translator.get('search_hint'),
                         prefixIcon: const Icon(Icons.search),
+                        filled: true,
+                        fillColor: Theme.of(
+                          context,
+                        ).colorScheme.surfaceContainerHighest.withOpacity(0.3),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: BorderSide.none,
                         ),
-                        filled: true,
-                        fillColor: Theme.of(context).colorScheme.surface,
-                        contentPadding: const EdgeInsets.symmetric(vertical: 0),
                       ),
-                      onChanged: (val) => setState(() => _searchQuery = val),
+                      onChanged: (value) =>
+                          setState(() => _searchQuery = value),
                     ),
                   ),
                   const SizedBox(width: 8),
                   Container(
                     decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.surface,
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.surfaceContainerHighest.withOpacity(0.3),
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    padding: const EdgeInsets.symmetric(horizontal: 8),
-                    child: DropdownButtonHideUnderline(
-                      child: DropdownButton<String>(
-                        value: _currentSort,
-                        icon: const Icon(Icons.sort),
-                        items: [
-                          DropdownMenuItem(
-                            value: 'manual',
-                            child: Text(
-                              Translator.get('sort_manual') != 'sort_manual'
-                                  ? Translator.get('sort_manual')
-                                  : 'Manuell',
+                    child: PopupMenuButton<String>(
+                      icon: const Icon(Icons.sort),
+                      onSelected: (value) =>
+                          setState(() => _currentSort = value),
+                      itemBuilder: (context) => [
+                        PopupMenuItem(
+                          value: 'manual',
+                          child: Text(
+                            'Manuell',
+                            style: TextStyle(
+                              fontWeight: _currentSort == 'manual'
+                                  ? FontWeight.bold
+                                  : FontWeight.normal,
                             ),
                           ),
-                          DropdownMenuItem(
-                            value: 'az',
-                            child: Text(
-                              Translator.get('sort_az') != 'sort_az'
-                                  ? Translator.get('sort_az')
-                                  : 'A-Z',
+                        ),
+                        PopupMenuItem(
+                          value: 'az',
+                          child: Text(
+                            'A-Z',
+                            style: TextStyle(
+                              fontWeight: _currentSort == 'az'
+                                  ? FontWeight.bold
+                                  : FontWeight.normal,
                             ),
                           ),
-                          DropdownMenuItem(
-                            value: 'caught',
-                            child: Text(
-                              Translator.get('sort_progress') != 'sort_progress'
-                                  ? Translator.get('sort_progress')
-                                  : 'Fortschritt',
+                        ),
+                        PopupMenuItem(
+                          value: 'caught',
+                          child: Text(
+                            'Meiste Gefangen',
+                            style: TextStyle(
+                              fontWeight: _currentSort == 'caught'
+                                  ? FontWeight.bold
+                                  : FontWeight.normal,
                             ),
                           ),
-                          DropdownMenuItem(
-                            value: 'region',
-                            child: Text(
-                              Translator.get('sort_region') != 'sort_region'
-                                  ? Translator.get('sort_region')
-                                  : 'Region',
+                        ),
+                        PopupMenuItem(
+                          value: 'region',
+                          child: Text(
+                            'Nach Region',
+                            style: TextStyle(
+                              fontWeight: _currentSort == 'region'
+                                  ? FontWeight.bold
+                                  : FontWeight.normal,
                             ),
                           ),
-                        ],
-                        onChanged: (val) => setState(() => _currentSort = val!),
-                      ),
+                        ),
+                      ],
                     ),
                   ),
                 ],
               ),
             ),
-            Expanded(
-              child: itemsTreeWidgets.isEmpty
-                  ? Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.folder_open,
-                            size: 80,
-                            color: Theme.of(
-                              context,
-                            ).colorScheme.primary.withOpacity(0.3),
+          Expanded(
+            child: provider.userDexes.isEmpty && provider.folders.isEmpty
+                ? Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.catching_pokemon,
+                          size: 64,
+                          color: Theme.of(context).hintColor.withOpacity(0.5),
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          Translator.get('no_dexes'),
+                          style: TextStyle(
+                            color: Theme.of(context).hintColor,
+                            fontSize: 16,
                           ),
-                          const SizedBox(height: 16),
-                          Text(
-                            Translator.get('folder_empty') != 'folder_empty'
-                                ? Translator.get('folder_empty')
-                                : 'Hier ist es noch leer.',
-                            style: TextStyle(
-                              fontSize: 18,
-                              color: Theme.of(context).hintColor,
-                            ),
-                          ),
-                        ],
-                      ),
-                    )
-                  : ReorderableListView(
-                      buildDefaultDragHandles: false,
-                      padding: const EdgeInsets.only(bottom: 88, top: 8),
-                      onReorder:
-                          (_currentSort == 'manual' && _searchQuery.isEmpty)
-                          ? (oldIndex, newIndex) {
-                              int adjustedNewIndex = newIndex;
-                              if (oldIndex < newIndex) adjustedNewIndex -= 1;
-                              provider.reorderItemsInFolder(
-                                _currentFolderId,
-                                oldIndex,
-                                adjustedNewIndex,
-                              );
-                            }
-                          : (o, n) {},
-                      children: itemsTreeWidgets,
+                        ),
+                      ],
                     ),
+                  )
+                : (_currentSort == 'manual' &&
+                      _searchQuery.isEmpty &&
+                      !_isSelectionMode)
+                ? ReorderableListView(
+                    padding: const EdgeInsets.only(bottom: 80),
+                    onReorder: (oldIndex, newIndex) {
+                      setState(() {
+                        if (oldIndex < newIndex) newIndex -= 1;
+                        final items = List<String>.from(
+                          provider.structure[_currentFolderId] ?? [],
+                        );
+                        final item = items.removeAt(oldIndex);
+                        items.insert(newIndex, item);
+                        provider.updateStructureOrder(_currentFolderId, items);
+                      });
+                    },
+                    children: _buildTree(provider, _currentFolderId, true),
+                  )
+                : ListView(
+                    padding: const EdgeInsets.only(bottom: 80),
+                    children: _buildTree(provider, _currentFolderId, true),
+                  ),
+          ),
+        ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        key: _fabKey,
+        onPressed: _openCreateBottomSheet,
+        backgroundColor: Theme.of(context).colorScheme.primary,
+        foregroundColor: Theme.of(context).colorScheme.onPrimary,
+        child: const Icon(Icons.add),
+      ),
+    );
+  }
+}
+
+class _HomeBottomSheetContent extends StatefulWidget {
+  final DexProvider provider;
+  final String currentFolderId;
+  final VoidCallback onFolderCreate;
+
+  const _HomeBottomSheetContent({
+    required this.provider,
+    required this.currentFolderId,
+    required this.onFolderCreate,
+  });
+
+  @override
+  State<_HomeBottomSheetContent> createState() =>
+      _HomeBottomSheetContentState();
+}
+
+class _HomeBottomSheetContentState extends State<_HomeBottomSheetContent> {
+  final GlobalKey _createDexKey = GlobalKey();
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final tutProvider = Provider.of<TutorialProvider>(context, listen: false);
+      if (!tutProvider.hasSeenFeature('home_bottom_sheet')) {
+        Future.delayed(const Duration(milliseconds: 400), () {
+          if (!mounted) return;
+          TutorialOverlay.show(
+            context,
+            TutorialFeature(
+              id: 'home_bottom_sheet',
+              nameKey: 'tutorial_home_sheet_title',
+              steps: [
+                TutorialStep(
+                  targetKey: _createDexKey,
+                  titleKey: 'tutorial_home_sheet_title',
+                  textKey: 'tutorial_home_sheet_text',
+                  requireTargetTap: true,
+                  onTargetTap: () {
+                    tutProvider.markFeatureAsSeen('home_bottom_sheet');
+                    Navigator.pop(context);
+                    showModalBottomSheet(
+                      context: context,
+                      isScrollControlled: true,
+                      builder: (context) => CreateDexBottomSheet(
+                        provider: widget.provider,
+                        currentFolderId: widget.currentFolderId,
+                      ),
+                    );
+                  },
+                ),
+              ],
             ),
-          ],
-        ),
-        floatingActionButton: FloatingActionButton(
-          onPressed: () {
+            () => tutProvider.markFeatureAsSeen('home_bottom_sheet'),
+          );
+        });
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        ListTile(
+          key: _createDexKey,
+          leading: const Icon(Icons.catching_pokemon, color: Colors.red),
+          title: const Text('Neuen Pokédex erstellen'),
+          onTap: () {
+            Navigator.pop(context);
             showModalBottomSheet(
               context: context,
-              builder: (ctx) => Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  ListTile(
-                    leading: const Icon(
-                      Icons.catching_pokemon,
-                      color: Colors.red,
-                    ),
-                    title: const Text('Neuen Pokédex erstellen'),
-                    onTap: () {
-                      Navigator.pop(ctx);
-                      showModalBottomSheet(
-                        context: context,
-                        isScrollControlled: true,
-                        builder: (context) => CreateDexBottomSheet(
-                          provider: provider,
-                          currentFolderId: _currentFolderId,
-                        ),
-                      );
-                    },
-                  ),
-                  ListTile(
-                    leading: const Icon(Icons.folder, color: Colors.blueAccent),
-                    title: Text(
-                      Translator.get('folder_create_title') !=
-                              'folder_create_title'
-                          ? Translator.get('folder_create_title')
-                          : 'Neuen Ordner erstellen',
-                    ),
-                    onTap: () {
-                      Navigator.pop(ctx);
-                      _showCreateFolderDialog(provider);
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                ],
+              isScrollControlled: true,
+              builder: (context) => CreateDexBottomSheet(
+                provider: widget.provider,
+                currentFolderId: widget.currentFolderId,
               ),
             );
           },
-          child: const Icon(Icons.add),
         ),
-      ),
+        ListTile(
+          leading: const Icon(Icons.folder, color: Colors.blueAccent),
+          title: Text(
+            Translator.get('folder_create_title') != 'folder_create_title'
+                ? Translator.get('folder_create_title')
+                : 'Neuen Ordner erstellen',
+          ),
+          onTap: widget.onFolderCreate,
+        ),
+        const SizedBox(height: 16),
+      ],
     );
   }
 }

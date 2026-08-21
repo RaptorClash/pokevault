@@ -1196,4 +1196,85 @@ const Map<String, String> translationsDe = {
   'item_dusk-stone': 'Finsterstein',
   'item_dawn-stone': 'Funkelstein',
   'item_ice-stone': 'Eisstein',
+
+  "tutorial_skip": "Überspringen",
+  "tutorial_next": "Weiter",
+  "tutorial_finish": "Verstanden!",
+  "tutorial_menu_title": "Tutorials & Hilfe",
+  "tutorial_replay_all": "Alle Tutorials zurücksetzen",
+  "tutorial_replay_all_success": "Alle Tutorials wurden zurückgesetzt!",
+  "tutorial_feature_home": "Hauptmenü & Dexe",
+  "tutorial_feature_details": "Pokémon Details & Fangrate",
+  "tutorial_error_widget_not_found":
+      "Ups! Rotom kann dieses Element gerade nicht finden.",
+
+  "tutorial_home_fab_title": "Dein erster Pokédex!",
+  "tutorial_home_fab_text":
+      "Tippe hier auf das Plus-Symbol, um einen neuen Pokédex oder einen Ordner zu erstellen.",
+  "tutorial_home_search_title": "Suchen & Sortieren",
+  "tutorial_home_search_text":
+      "Sobald deine Sammlung wächst, kannst du sie hier durchsuchen oder nach Fortschritt und Region sortieren.",
+
+  "tutorial_home_intro_title": "Bzzzt! Hallo!",
+  "tutorial_home_intro_text":
+      "Ich bin Rotom, dein smarter Pokédex-Assistent! Ich zeige dir kurz, wie hier alles funktioniert. Los geht's!",
+  "tutorial_create_name_title": "Dein Dex, dein Name",
+  "tutorial_create_name_text":
+      "Gib deinem Pokédex hier einen passenden Namen. (z.B. 'Kanto Living Dex')",
+
+  "tutorial_home_settings_title": "Verwaltung leicht gemacht",
+
+  "tutorial_home_sheet_title": "Neuer Pokédex",
+  "tutorial_home_sheet_text":
+      "Tippe hier, um das Menü zur Erstellung deines Dexes zu öffnen.",
+  "tutorial_create_group_title": "Spiele & Generationen",
+  "tutorial_create_group_text":
+      "Wische nach links und rechts, um die Region zu wählen. Bei manchen Regionen erscheint darunter ein Dropdown für einen noch genaueren Dex (z.B. Kalos Zentral).",
+  "tutorial_create_options_title": "Dein Dex, deine Regeln",
+  "tutorial_create_options_text":
+      "Möchtest du Shinys oder Geschlechter sammeln? Klappe 'Formen auswählen' auf, um Megas oder G-Max zu aktivieren. Aktiviere für den Anfang am besten alles!",
+  "tutorial_create_save_title": "Los geht's!",
+  "tutorial_create_save_text":
+      "Tippe auf Erstellen, um deinen ultimativen Dex anzulegen.",
+  "tutorial_reset_title": "Tutorial neustarten",
+  "tutorial_reset_sub": "Setzt alle Tutorial-Hinweise zurück",
+  "tutorial_reset_success": "Das Tutorial wurde erfolgreich zurückgesetzt!",
+
+  "tutorial_create_step1_title": "Spiele & Generationen",
+  "tutorial_create_step1_text":
+      "Dies ist die Regionsauswahl. Wische in der Liste nach rechts und tippe dann auf 'Weiter'.",
+  "tutorial_create_step2_title": "Region auswählen",
+  "tutorial_create_step2_text":
+      "Tippe jetzt auf 'Kalos & Z-A', um zu sehen, wie sich die Optionen anpassen.",
+  "tutorial_create_step3_title": "Spezifische Dexe",
+  "tutorial_create_step3_text":
+      "Einige Regionen bieten hier ein Dropdown (z.B. für Zentral-Kalos). Tippe auf das Feld, um fortzufahren.",
+  "tutorial_create_step4_title": "Zurück zum Start",
+  "tutorial_create_step4_text":
+      "Wir wollen für dieses Tutorial aber alles! Wische die Liste wieder ganz nach links und tippe auf 'Weiter'.",
+  "tutorial_create_step5_title": "Nationaldex",
+  "tutorial_create_step5_text":
+      "Tippe auf 'National', um wieder alle Pokémon auszuwählen.",
+  "tutorial_create_step6_title": "Shiny Dex",
+  "tutorial_create_step6_text":
+      "Sammelst du Shinys? Tippe auf den Schalter, um ihn zu aktivieren.",
+  "tutorial_create_step7_title": "Geschlechter",
+  "tutorial_create_step7_text":
+      "Aktiviere auch die Geschlechter-Unterschiede durch einen Tipp auf den Schalter.",
+  "tutorial_create_step8_title": "Spezielle Formen",
+  "tutorial_create_step8_text":
+      "Tippe hier, um das Menü für spezielle Formen aufzuklappen.",
+  "tutorial_create_step9_title": "Regionalformen",
+  "tutorial_create_step9_text":
+      "Tippe, um Regionalformen (Alola, Galar...) zu aktivieren.",
+  "tutorial_create_step10_title": "Mega-Entwicklungen",
+  "tutorial_create_step10_text": "Tippe, um Mega-Entwicklungen zu aktivieren.",
+  "tutorial_create_step11_title": "Gigadynamax",
+  "tutorial_create_step11_text": "Tippe, um G-Max Formen zu aktivieren.",
+  "tutorial_create_step12_title": "Sonstige Formen",
+  "tutorial_create_step12_text":
+      "Tippe, um die restlichen Formen (Kostüme, Pokusan...) zu aktivieren.",
+  "tutorial_create_step13_title": "Los geht's!",
+  "tutorial_create_step13_text":
+      "Perfekt, du hast alles ausgewählt! Tippe jetzt auf 'Erstellen'.",
 };

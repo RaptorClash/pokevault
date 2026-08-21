@@ -3,10 +3,10 @@ import 'package:provider/provider.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
-
 import 'downgrade_screen.dart';
 import '../../providers/theme_provider.dart';
 import '../../providers/dex_provider.dart';
+import '../../providers/tutorial_provider.dart';
 import '../../services/dex_storage_service.dart';
 import '../../l10n/app_translations.dart';
 import '../../utils/notification_helper.dart';
@@ -196,11 +196,52 @@ class SettingsScreen extends StatelessWidget {
             Icons.language,
           ),
           Card(
-            child: ListTile(
-              title: Text(Translator.get('language')),
-              subtitle: Text(Translator.get('current_language')),
-              trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-              onTap: () => _showLanguageDialog(context, dexProvider),
+            child: Column(
+              children: [
+                ListTile(
+                  title: Text(Translator.get('language')),
+                  subtitle: Text(Translator.get('current_language')),
+                  trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                  onTap: () => _showLanguageDialog(context, dexProvider),
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  leading: const Icon(
+                    Icons.lightbulb_outline,
+                    color: Colors.amber,
+                  ),
+                  title: Text(
+                    Translator.get('tutorial_reset_title') !=
+                            'tutorial_reset_title'
+                        ? Translator.get('tutorial_reset_title')
+                        : 'Tutorial neustarten',
+                  ),
+                  subtitle: Text(
+                    Translator.get('tutorial_reset_sub') != 'tutorial_reset_sub'
+                        ? Translator.get('tutorial_reset_sub')
+                        : 'Setzt alle Hilfen zurück',
+                  ),
+                  onTap: () async {
+                    try {
+                      final tutProvider = Provider.of<TutorialProvider>(
+                        context,
+                        listen: false,
+                      );
+                      await tutProvider.resetAllTutorials();
+                      NotificationHelper.showSuccess(
+                        Translator.get('tutorial_reset_success') !=
+                                'tutorial_reset_success'
+                            ? Translator.get('tutorial_reset_success')
+                            : 'Tutorial wurde zurückgesetzt!',
+                      );
+                    } catch (e) {
+                      NotificationHelper.showError(
+                        '${Translator.get('error')} $e',
+                      );
+                    }
+                  },
+                ),
+              ],
             ),
           ),
           const SizedBox(height: 24),
@@ -542,7 +583,7 @@ class SettingsScreen extends StatelessWidget {
                   provider.setLanguage('en');
                   Navigator.pop(context);
                 },
-                child: const Text('🇺🇸 English (EN)'),
+                child: const Text('🇬🇧 English (EN)'),
               ),
             ],
           );

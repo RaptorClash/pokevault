@@ -908,4 +908,83 @@ const Map<String, String> translationsEn = {
   'item_dusk-stone': 'Dusk Stone',
   'item_dawn-stone': 'Dawn Stone',
   'item_ice-stone': 'Ice Stone',
+
+  "tutorial_skip": "Skip",
+  "tutorial_next": "Next",
+  "tutorial_finish": "Got it!",
+  "tutorial_menu_title": "Tutorials & Help",
+  "tutorial_replay_all": "Reset all tutorials",
+  "tutorial_replay_all_success": "All tutorials have been reset!",
+  "tutorial_feature_home": "Main Menu & Dexes",
+  "tutorial_feature_details": "Pokémon Details & Catch Rate",
+  "tutorial_error_widget_not_found":
+      "Oops! Rotom can't find this element right now.",
+
+  "tutorial_home_fab_title": "Your first Pokédex!",
+  "tutorial_home_fab_text":
+      "Tap the plus icon here to create a new Pokédex or a folder.",
+  "tutorial_home_search_title": "Search & Sort",
+  "tutorial_home_search_text":
+      "Once your collection grows, you can search or sort it by progress and region right here.",
+  "tutorial_home_settings_title": "Easy Management",
+  "tutorial_home_intro_title": "Bzzzt! Hello!",
+  "tutorial_home_intro_text":
+      "I'm Rotom, your smart Pokédex assistant! Let me show you how everything works here. Let's go!",
+  "tutorial_create_name_title": "Your Dex, your name",
+  "tutorial_create_name_text":
+      "Give your Pokédex a fitting name here (e.g., 'Kanto Living Dex').",
+  "tutorial_home_settings_text":
+      "Here are the settings. You can adjust things like the language or the design here at any time.",
+
+  "tutorial_home_sheet_title": "New Pokédex",
+  "tutorial_home_sheet_text":
+      "Tap here to open the menu for creating your Dex.",
+  "tutorial_create_group_title": "Games & Generations",
+  "tutorial_create_group_text":
+      "Swipe left or right to select the region. For some regions, a dropdown menu appears below for a more specific Dex (e.g., Central Kalos).",
+  "tutorial_create_options_title": "Your Dex, Your Rules",
+  "tutorial_create_options_text":
+      "Do you want to collect Shinies or different genders? Expand 'Select Forms' to enable Mega Evolutions or Gigantamax forms. It's best to enable everything to start with!",
+  "tutorial_create_save_title": "Let's Go!",
+  "tutorial_create_save_text": "Tap 'Create' to set up your ultimate Dex.",
+  "tutorial_reset_title": "Restart Tutorial",
+  "tutorial_reset_sub": "Resets all tutorial hints",
+  "tutorial_reset_success": "The tutorial has been successfully reset!",
+
+  "tutorial_create_step1_title": "Games & Generations",
+  "tutorial_create_step1_text":
+      "This is the region selection. Swipe right in the list, then tap 'Next'.",
+  "tutorial_create_step2_title": "Select Region",
+  "tutorial_create_step2_text":
+      "Now tap on 'Kalos & Z-A' to see how the options adapt.",
+  "tutorial_create_step3_title": "Specific Dexes",
+  "tutorial_create_step3_text":
+      "Some regions offer a dropdown here (e.g., Central Kalos). Tap the field to continue.",
+  "tutorial_create_step4_title": "Back to Start",
+  "tutorial_create_step4_text":
+      "We want everything for this tutorial! Swipe the list all the way to the left and tap 'Next'.",
+  "tutorial_create_step5_title": "National Dex",
+  "tutorial_create_step5_text": "Tap 'National' to select all Pokémon again.",
+  "tutorial_create_step6_title": "Shiny Dex",
+  "tutorial_create_step6_text":
+      "Are you hunting shinies? Tap the switch to activate it.",
+  "tutorial_create_step7_title": "Genders",
+  "tutorial_create_step7_text":
+      "Enable gender differences by tapping the switch.",
+  "tutorial_create_step8_title": "Special Forms",
+  "tutorial_create_step8_text":
+      "Tap here to expand the menu for special forms.",
+  "tutorial_create_step9_title": "Regional Forms",
+  "tutorial_create_step9_text":
+      "Tap to enable regional forms (Alola, Galar...).",
+  "tutorial_create_step10_title": "Mega Evolutions",
+  "tutorial_create_step10_text": "Tap to enable Mega Evolutions.",
+  "tutorial_create_step11_title": "Gigantamax",
+  "tutorial_create_step11_text": "Tap to enable G-Max forms.",
+  "tutorial_create_step12_title": "Other Forms",
+  "tutorial_create_step12_text":
+      "Tap to enable the remaining forms (Costumes, Alcremie...).",
+  "tutorial_create_step13_title": "Let's Go!",
+  "tutorial_create_step13_text":
+      "Perfect, you've selected everything! Now tap 'Create'.",
 };

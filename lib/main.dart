@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'dart:ui';
 import 'providers/theme_provider.dart';
 import 'providers/dex_provider.dart';
+import 'providers/tutorial_provider.dart';
 import 'screens/home/home_screen.dart';
 import 'utils/notification_helper.dart';
 import 'l10n/app_translations.dart';
@@ -17,6 +18,7 @@ void main() {
         providers: [
           ChangeNotifierProvider(create: (_) => ThemeProvider()),
           ChangeNotifierProvider(create: (context) => DexProvider()),
+          ChangeNotifierProvider(create: (_) => TutorialProvider()),
         ],
         child: const PokedexApp(),
       ),
