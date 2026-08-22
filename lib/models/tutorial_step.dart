@@ -5,26 +5,34 @@ enum RotomMood { happy, explaining, thinking, alert }
 enum ContentAlign { top, bottom, left, right }
 
 class TutorialStep {
+  final String? id;
   final GlobalKey? targetKey;
   final String titleKey;
   final String textKey;
   final bool requireTargetTap;
-  final bool hideNextButton;
   final VoidCallback? onTargetTap;
-  final bool Function(double)? checkScroll;
+  final int preCalculateDelayMilliseconds;
   final int tapDelayMilliseconds;
-  final int preCalculateDelayMilliseconds; // NEU: Wartet auf UI-Animationen
+  final bool hideNextButton;
+  final bool Function(double)? checkScroll;
+  final bool disableScroll;
+  final bool showHighlight;
+  final double scrollAlignment;
 
   TutorialStep({
+    this.id,
     this.targetKey,
     required this.titleKey,
     required this.textKey,
     this.requireTargetTap = false,
-    this.hideNextButton = false,
     this.onTargetTap,
-    this.checkScroll,
-    this.tapDelayMilliseconds = 250,
     this.preCalculateDelayMilliseconds = 0,
+    this.tapDelayMilliseconds = 0,
+    this.hideNextButton = false,
+    this.checkScroll,
+    this.disableScroll = false,
+    this.showHighlight = true,
+    this.scrollAlignment = 0.5,
   });
 }
 

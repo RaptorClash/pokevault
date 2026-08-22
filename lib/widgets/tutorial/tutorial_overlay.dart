@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../../models/tutorial_step.dart';
 import '../../l10n/app_translations.dart';
+import '../../utils/notification_helper.dart';
 
 class TutorialOverlay extends StatefulWidget {
   final TutorialFeature feature;
@@ -48,16 +49,19 @@ class _TutorialOverlayState extends State<TutorialOverlay>
   Offset? _newRotomPos;
   bool _isAdvancing = false;
 
+  int _wrongSwipeCount = 0;
+  bool _isEasterEggActive = false;
+  String? _overrideText;
+  Offset? _easterEggPos;
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-
     _pulseController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1500),
     )..repeat(reverse: true);
-
     _lightningController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 400),
@@ -91,45 +95,60 @@ class _TutorialOverlayState extends State<TutorialOverlay>
     });
   }
 
+  ScrollableState? _findScrollable(BuildContext? targetContext) {
+    if (targetContext == null) return null;
+    ScrollableState? scrollable;
+    void visitor(Element element) {
+      if (scrollable != null) return;
+      if (element.widget is Scrollable) {
+        scrollable = (element as StatefulElement).state as ScrollableState;
+      } else {
+        element.visitChildren(visitor);
+      }
+    }
+
+    targetContext.visitChildElements(visitor);
+    return scrollable ?? Scrollable.maybeOf(targetContext);
+  }
+
   Future<void> _scrollToTarget(GlobalKey? key) async {
     if (key == null) return;
-    final context = key.currentContext;
-    if (context == null) return;
+    try {
+      final step = widget.feature.steps[_currentIndex];
+      final targetContext = key.currentContext;
 
-    final scrollable = Scrollable.maybeOf(context);
-    bool isHorizontal =
-        scrollable != null &&
-        (scrollable.axisDirection == AxisDirection.right ||
-            scrollable.axisDirection == AxisDirection.left);
+      final activeScrollable = _findScrollable(targetContext);
+      if (activeScrollable == null) return;
 
-    if (isHorizontal)
-      return; // Horizontales Scrollen machen wir nicht automatisch
+      bool isHorizontal =
+          activeScrollable.axisDirection == AxisDirection.right ||
+          activeScrollable.axisDirection == AxisDirection.left;
 
-    await Scrollable.ensureVisible(
-      context,
-      duration: const Duration(milliseconds: 300),
-      curve: Curves.easeInOut,
-      alignment: 0.5,
-    ).catchError((_) {});
+      if (isHorizontal) return;
+
+      await Scrollable.ensureVisible(
+        targetContext!,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+        alignment: step.scrollAlignment,
+      ).catchError((_) {});
+    } catch (e) {
+    }
   }
 
   void _calculateTargetRect() {
     if (!mounted) return;
-
     try {
       final step = widget.feature.steps[_currentIndex];
-
       if (step.targetKey == null) {
         _updatePositions(null);
         return;
       }
-
       final currentContext = step.targetKey!.currentContext;
       if (currentContext == null) {
         setState(() => _targetRect = null);
         return;
       }
-
       final renderBox = currentContext.findRenderObject() as RenderBox?;
       final overlay =
           Overlay.of(context).context.findRenderObject() as RenderBox?;
@@ -137,38 +156,37 @@ class _TutorialOverlayState extends State<TutorialOverlay>
       if (renderBox != null && overlay != null && renderBox.attached) {
         final size = renderBox.size;
         final offset = renderBox.localToGlobal(Offset.zero, ancestor: overlay);
-        final screenWidth = MediaQuery.of(context).size.width;
 
         double left = offset.dx - 4;
         double right = offset.dx + size.width + 4;
+        double top = offset.dy - 4;
+        double bottom = offset.dy + size.height + 4;
 
-        if (left < 4) left = 4;
-        if (right > screenWidth - 4) right = screenWidth - 4;
+        if (right < left) right = left;
+        if (bottom < top) bottom = top;
 
-        final newRect = Rect.fromLTRB(
-          left,
-          offset.dy - 4,
-          right,
-          offset.dy + size.height + 4,
-        );
-
+        final newRect = Rect.fromLTRB(left, top, right, bottom);
         _updatePositions(newRect);
       } else {
         setState(() => _targetRect = null);
       }
-    } catch (e) {}
+    } catch (e) {
+      NotificationHelper.showError(
+        "${Translator.get('tutorial_error_rect')} $e",
+      );
+    }
   }
 
   void _updatePositions(Rect? newRect) {
+    if (_isEasterEggActive) return;
+
     setState(() {
       _targetRect = newRect;
     });
-
     final screenHeight = MediaQuery.of(context).size.height;
     final screenWidth = MediaQuery.of(context).size.width;
 
     Offset calculatedNewPos;
-
     if (newRect == null) {
       calculatedNewPos = Offset(screenWidth / 2, screenHeight / 2);
     } else {
@@ -186,42 +204,127 @@ class _TutorialOverlayState extends State<TutorialOverlay>
     _newRotomPos = calculatedNewPos;
   }
 
-  void _handleScroll(double dx, double dy) {
-    final step = widget.feature.steps[_currentIndex];
-    final context = step.targetKey?.currentContext;
-    if (context == null) return;
+  void _handleWrongSwipe() {
+    if (_isAdvancing || _isEasterEggActive) return;
+    _wrongSwipeCount++;
 
-    final scrollable = Scrollable.maybeOf(context);
-    if (scrollable == null) return;
+    if (_wrongSwipeCount >= 3) {
+      _triggerRotomAutoSwipe();
+    } else {
+      setState(() {
+        _overrideText =
+            Translator.get('tutorial_wrong_swipe') != 'tutorial_wrong_swipe'
+            ? Translator.get('tutorial_wrong_swipe')
+            : 'Halt, falsche Richtung! Wir wollen zurück zum Nationaldex (nach rechts wischen)!';
+      });
+
+      Future.delayed(const Duration(seconds: 3), () {
+        if (mounted && !_isEasterEggActive) {
+          setState(() => _overrideText = null);
+        }
+      });
+    }
+  }
+
+  void _triggerRotomAutoSwipe() async {
+    setState(() {
+      _isEasterEggActive = true;
+      _overrideText =
+          Translator.get('tutorial_rotom_angry') != 'tutorial_rotom_angry'
+          ? Translator.get('tutorial_rotom_angry')
+          : 'Na gut, wenn du nicht willst... dann mach ich das eben selbst! ZZZZZZT!';
+    });
+
+    final step = widget.feature.steps[_currentIndex];
+    final renderBox =
+        step.targetKey?.currentContext?.findRenderObject() as RenderBox?;
+
+    if (renderBox != null) {
+      final offset = renderBox.localToGlobal(Offset.zero);
+      setState(() {
+        _easterEggPos = Offset(
+          MediaQuery.of(context).size.width / 4,
+          offset.dy - 50,
+        );
+      });
+    }
+
+    await Future.delayed(const Duration(milliseconds: 1200));
+
+    ScrollableState? scrollable = _findScrollable(
+      step.targetKey?.currentContext,
+    );
+    if (scrollable != null) {
+      setState(() {
+        _easterEggPos = Offset(
+          -MediaQuery.of(context).size.width,
+          _easterEggPos?.dy ?? 0,
+        );
+      });
+
+      await scrollable.position.animateTo(
+        0,
+        duration: const Duration(milliseconds: 800),
+        curve: Curves.easeInOutBack,
+      );
+    } else {
+      await Future.delayed(const Duration(milliseconds: 800));
+    }
+
+    setState(() {
+      _isEasterEggActive = false;
+      _easterEggPos = null;
+      _overrideText = null;
+      _wrongSwipeCount = 0;
+    });
+
+    _calculateTargetRect();
+    if (scrollable != null && scrollable.position.pixels <= 5) {
+      _nextStep();
+    }
+  }
+
+  void _handleScroll(double dx, double dy) {
+    if (_isAdvancing || _isEasterEggActive) return;
 
     try {
+      final step = widget.feature.steps[_currentIndex];
+      if (step.disableScroll) return;
+
+      final activeScrollable = _findScrollable(step.targetKey?.currentContext);
+      if (activeScrollable == null) return;
+
       bool isHorizontal =
-          scrollable.axisDirection == AxisDirection.right ||
-          scrollable.axisDirection == AxisDirection.left;
+          activeScrollable.axisDirection == AxisDirection.right ||
+          activeScrollable.axisDirection == AxisDirection.left;
 
       double delta = isHorizontal ? dx : dy;
       if (isHorizontal && delta == 0 && dy != 0) {
         delta = dy;
       }
 
-      scrollable.position.jumpTo(
-        (scrollable.position.pixels + delta).clamp(
-          scrollable.position.minScrollExtent,
-          scrollable.position.maxScrollExtent,
+      if (step.id == 'swipe_back_national' && isHorizontal && delta > 2) {
+        _handleWrongSwipe();
+        return;
+      }
+
+      activeScrollable.position.jumpTo(
+        (activeScrollable.position.pixels + delta).clamp(
+          activeScrollable.position.minScrollExtent,
+          activeScrollable.position.maxScrollExtent,
         ),
       );
 
       _calculateTargetRect();
 
       if (step.checkScroll != null) {
-        bool met = step.checkScroll!(scrollable.position.pixels);
+        bool met = step.checkScroll!(activeScrollable.position.pixels);
         bool maxR =
-            scrollable.position.pixels >=
-            scrollable.position.maxScrollExtent - 2;
+            activeScrollable.position.pixels >=
+            activeScrollable.position.maxScrollExtent - 2;
         bool minR =
-            scrollable.position.pixels <=
-            scrollable.position.minScrollExtent + 2;
-
+            activeScrollable.position.pixels <=
+            activeScrollable.position.minScrollExtent + 2;
         if (!met && step.checkScroll!(10000) && maxR) met = true;
         if (!met && step.checkScroll!(0) && minR) met = true;
 
@@ -229,33 +332,41 @@ class _TutorialOverlayState extends State<TutorialOverlay>
           _nextStep();
         }
       }
-    } catch (_) {}
+    } catch (e) {
+      NotificationHelper.showError(
+        "${Translator.get('tutorial_error_scroll')} $e",
+      );
+    }
   }
 
   void _nextStep() {
     if (_isAdvancing) return;
+    try {
+      if (_currentIndex < widget.feature.steps.length - 1) {
+        setState(() {
+          _isAdvancing = true;
+          _currentIndex++;
+        });
+        final step = widget.feature.steps[_currentIndex];
 
-    if (_currentIndex < widget.feature.steps.length - 1) {
-      setState(() {
-        _isAdvancing = true;
-        _currentIndex++;
-      });
-
-      final step = widget.feature.steps[_currentIndex];
-
-      // Delay für Tap, Scroll und Vorberechnung bündeln
-      Future.delayed(
-        Duration(milliseconds: 200 + step.preCalculateDelayMilliseconds),
-        () async {
-          if (!mounted) return;
-          await _scrollToTarget(step.targetKey);
-          if (!mounted) return;
-          _calculateTargetRect();
-          _isAdvancing = false;
-        },
+        Future.delayed(
+          Duration(milliseconds: step.preCalculateDelayMilliseconds),
+          () async {
+            if (!mounted) return;
+            await _scrollToTarget(step.targetKey);
+            if (!mounted) return;
+            _calculateTargetRect();
+            setState(() => _isAdvancing = false);
+          },
+        );
+      } else {
+        _skipTutorial();
+      }
+    } catch (e) {
+      NotificationHelper.showError(
+        "${Translator.get('tutorial_error_next')} $e",
       );
-    } else {
-      _skipTutorial();
+      setState(() => _isAdvancing = false);
     }
   }
 
@@ -303,7 +414,6 @@ class _TutorialOverlayState extends State<TutorialOverlay>
     final step = widget.feature.steps[_currentIndex];
     final isLast = _currentIndex == widget.feature.steps.length - 1;
     final screenHeight = MediaQuery.of(context).size.height;
-
     bool showBubbleTop =
         _targetRect != null && _targetRect!.top > screenHeight / 2;
     bool isIntro = _targetRect == null;
@@ -311,9 +421,23 @@ class _TutorialOverlayState extends State<TutorialOverlay>
     return Material(
       type: MaterialType.transparency,
       child: Listener(
-        onPointerSignal: (event) {
-          if (event is PointerScrollEvent) {
-            _handleScroll(event.scrollDelta.dx, event.scrollDelta.dy);
+        onPointerUp: (event) {
+          if (_isAdvancing || _isEasterEggActive) return;
+
+          if (step.requireTargetTap && _targetRect != null) {
+            if (_targetRect!.contains(event.localPosition)) {
+              setState(() => _isAdvancing = true);
+
+              if (isLast) {
+                _skipTutorial();
+                if (step.onTargetTap != null) step.onTargetTap!();
+              } else {
+                if (step.onTargetTap != null) step.onTargetTap!();
+
+                _isAdvancing = false;
+                _nextStep();
+              }
+            }
           }
         },
         child: GestureDetector(
@@ -321,32 +445,13 @@ class _TutorialOverlayState extends State<TutorialOverlay>
           onPanUpdate: (details) {
             _handleScroll(-details.delta.dx, -details.delta.dy);
           },
-          onTapUp: (details) {
-            if (step.requireTargetTap && _targetRect != null) {
-              if (_targetRect!.contains(details.localPosition)) {
-                if (isLast) {
-                  _skipTutorial();
-                  if (step.onTargetTap != null) step.onTargetTap!();
-                } else {
-                  if (step.onTargetTap != null) step.onTargetTap!();
-                  Future.delayed(
-                    Duration(milliseconds: step.tapDelayMilliseconds),
-                    () {
-                      if (!mounted) return;
-                      _nextStep();
-                    },
-                  );
-                }
-              }
-            }
-          },
           child: Stack(
             children: [
               CustomPaint(
                 size: MediaQuery.of(context).size,
                 painter: HolePainter(rect: _targetRect),
               ),
-              if (_targetRect != null)
+              if (_targetRect != null && step.showHighlight)
                 Positioned.fromRect(
                   rect: _targetRect!,
                   child: IgnorePointer(
@@ -387,16 +492,18 @@ class _TutorialOverlayState extends State<TutorialOverlay>
               AnimatedPositioned(
                 duration: const Duration(milliseconds: 400),
                 curve: Curves.easeInOutBack,
-                top: isIntro
-                    ? (screenHeight / 2) - 100
-                    : (showBubbleTop ? null : _targetRect!.bottom + 30),
-                bottom: isIntro
+                top: _easterEggPos != null
+                    ? _easterEggPos!.dy
+                    : (isIntro
+                          ? (screenHeight / 2) - 100
+                          : (showBubbleTop ? null : _targetRect!.bottom + 30)),
+                bottom: _easterEggPos != null || isIntro
                     ? null
                     : (showBubbleTop
                           ? screenHeight - _targetRect!.top + 30
                           : null),
-                left: 20,
-                right: 20,
+                left: _easterEggPos != null ? _easterEggPos!.dx : 20,
+                right: _easterEggPos != null ? null : 20,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
@@ -457,45 +564,54 @@ class _TutorialOverlayState extends State<TutorialOverlay>
                                 ),
                                 const SizedBox(height: 8),
                                 Text(
-                                  Translator.get(step.textKey),
-                                  style: const TextStyle(fontSize: 14),
+                                  _overrideText ?? Translator.get(step.textKey),
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: _overrideText != null
+                                        ? FontWeight.bold
+                                        : FontWeight.normal,
+                                    color: _overrideText != null
+                                        ? Colors.redAccent
+                                        : null,
+                                  ),
                                 ),
                                 const SizedBox(height: 16),
-                                Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    TextButton(
-                                      onPressed: _skipTutorial,
-                                      child: Text(
-                                        Translator.get('tutorial_skip'),
-                                        style: const TextStyle(
-                                          color: Colors.grey,
-                                        ),
-                                      ),
-                                    ),
-                                    if (!step.requireTargetTap &&
-                                        !step.hideNextButton)
-                                      ElevatedButton(
-                                        style: ElevatedButton.styleFrom(
-                                          backgroundColor: Theme.of(
-                                            context,
-                                          ).colorScheme.primary,
-                                          foregroundColor: Theme.of(
-                                            context,
-                                          ).colorScheme.onPrimary,
-                                        ),
-                                        onPressed: _nextStep,
+                                if (!_isEasterEggActive)
+                                  Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      TextButton(
+                                        onPressed: _skipTutorial,
                                         child: Text(
-                                          Translator.get(
-                                            isLast
-                                                ? 'tutorial_finish'
-                                                : 'tutorial_next',
+                                          Translator.get('tutorial_skip'),
+                                          style: const TextStyle(
+                                            color: Colors.grey,
                                           ),
                                         ),
                                       ),
-                                  ],
-                                ),
+                                      if (!step.requireTargetTap &&
+                                          !step.hideNextButton)
+                                        ElevatedButton(
+                                          style: ElevatedButton.styleFrom(
+                                            backgroundColor: Theme.of(
+                                              context,
+                                            ).colorScheme.primary,
+                                            foregroundColor: Theme.of(
+                                              context,
+                                            ).colorScheme.onPrimary,
+                                          ),
+                                          onPressed: _nextStep,
+                                          child: Text(
+                                            Translator.get(
+                                              isLast
+                                                  ? 'tutorial_finish'
+                                                  : 'tutorial_next',
+                                            ),
+                                          ),
+                                        ),
+                                    ],
+                                  ),
                               ],
                             ),
                           ),
@@ -515,7 +631,6 @@ class _TutorialOverlayState extends State<TutorialOverlay>
 
 class HolePainter extends CustomPainter {
   final Rect? rect;
-
   HolePainter({required this.rect});
 
   @override
@@ -523,20 +638,17 @@ class HolePainter extends CustomPainter {
     final paint = Paint()
       ..color = Colors.black.withOpacity(0.8)
       ..style = PaintingStyle.fill;
-
     final screenPath = Path()
       ..addRect(Rect.fromLTWH(0, 0, size.width, size.height));
 
     if (rect != null) {
       final holePath = Path()
         ..addRRect(RRect.fromRectAndRadius(rect!, const Radius.circular(16)));
-
       final combinedPath = Path.combine(
         PathOperation.difference,
         screenPath,
         holePath,
       );
-
       canvas.drawPath(combinedPath, paint);
     } else {
       canvas.drawPath(screenPath, paint);
@@ -562,7 +674,6 @@ class LightningPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     if (progress >= 1.0 || progress <= 0.0) return;
-
     final paint = Paint()
       ..color = Colors.cyanAccent.withOpacity((1.0 - progress).clamp(0.0, 1.0))
       ..strokeWidth = 3 + (5 * (1 - progress))
@@ -578,14 +689,12 @@ class LightningPainter extends CustomPainter {
       double t = i / steps;
       double dx = lerpDouble(start.dx, end.dx, t)!;
       double dy = lerpDouble(start.dy, end.dy, t)!;
-
       if (i < steps) {
         dx += (i % 2 == 0 ? 30 : -30);
         dy += (i % 2 == 0 ? -30 : 30);
       }
       path.lineTo(dx, dy);
     }
-
     canvas.drawPath(path, paint);
   }
 

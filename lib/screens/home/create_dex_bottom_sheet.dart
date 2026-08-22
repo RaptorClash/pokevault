@@ -42,14 +42,12 @@ class _CreateDexBottomSheetState extends State<CreateDexBottomSheet> {
 
   late DexGroup selectedGroup;
   late String selectedSubDex;
-
   bool includeGenders = false;
   bool includeRegional = false;
   bool includeMega = false;
   bool includeGMax = false;
   bool includeOther = false;
   bool isShinyDex = false;
-
   late Map<String, bool> features;
 
   @override
@@ -69,7 +67,6 @@ class _CreateDexBottomSheetState extends State<CreateDexBottomSheet> {
 
   void _showTutorialIfNeeded() {
     final tutProvider = Provider.of<TutorialProvider>(context, listen: false);
-
     if (!tutProvider.hasSeenFeature('create_dex_sheet')) {
       TutorialOverlay.show(
         context,
@@ -83,13 +80,15 @@ class _CreateDexBottomSheetState extends State<CreateDexBottomSheet> {
               textKey: 'tutorial_create_step1_text',
               requireTargetTap: false,
               hideNextButton: true,
-              checkScroll: (pixels) => pixels >= 150,
+              showHighlight: true,
+              checkScroll: (pixels) => pixels >= 500,
             ),
             TutorialStep(
               targetKey: _kalosKey,
               titleKey: 'tutorial_create_step2_title',
               textKey: 'tutorial_create_step2_text',
               requireTargetTap: true,
+              disableScroll: true,
               onTargetTap: () {
                 try {
                   final kalosGroup = DexGroupsData.groups.firstWhere(
@@ -112,22 +111,26 @@ class _CreateDexBottomSheetState extends State<CreateDexBottomSheet> {
               targetKey: _dropdownKey,
               titleKey: 'tutorial_create_step3_title',
               textKey: 'tutorial_create_step3_text',
-              requireTargetTap: true,
-              tapDelayMilliseconds: 2000,
+              requireTargetTap:
+                  false, // WICHTIG: Auf false gesetzt! Dadurch kommt der "Weiter"-Button.
             ),
             TutorialStep(
+              id: 'swipe_back_national',
               targetKey: _groupListKey,
               titleKey: 'tutorial_create_step4_title',
               textKey: 'tutorial_create_step4_text',
               requireTargetTap: false,
               hideNextButton: true,
-              checkScroll: (pixels) => pixels <= 20,
+              showHighlight: true,
+              checkScroll: (pixels) => pixels <= 5,
             ),
             TutorialStep(
               targetKey: _nationalKey,
               titleKey: 'tutorial_create_step5_title',
               textKey: 'tutorial_create_step5_text',
               requireTargetTap: true,
+              disableScroll: true,
+              scrollAlignment: 0.0,
               onTargetTap: () {
                 try {
                   final natGroup = DexGroupsData.groups.firstWhere(
@@ -176,8 +179,7 @@ class _CreateDexBottomSheetState extends State<CreateDexBottomSheet> {
               titleKey: 'tutorial_create_step9_title',
               textKey: 'tutorial_create_step9_text',
               requireTargetTap: true,
-              preCalculateDelayMilliseconds:
-                  350, // NEU: Wartet auf ExpansionTile Animation
+              preCalculateDelayMilliseconds: 350,
               onTargetTap: () => setState(() => includeRegional = true),
             ),
             TutorialStep(
@@ -322,12 +324,12 @@ class _CreateDexBottomSheetState extends State<CreateDexBottomSheet> {
                 child: Row(
                   children: DexGroupsData.groups.map((group) {
                     final isSelected = selectedGroup == group;
-
                     Key? itemKey;
-                    if (group.dexKeys.first.contains('national'))
+                    if (group.dexKeys.first.contains('national')) {
                       itemKey = _nationalKey;
-                    else if (group.dexKeys.first.contains('kalos'))
+                    } else if (group.dexKeys.first.contains('kalos')) {
                       itemKey = _kalosKey;
+                    }
 
                     return Padding(
                       padding: const EdgeInsets.only(right: 12, bottom: 8),
@@ -349,8 +351,9 @@ class _CreateDexBottomSheetState extends State<CreateDexBottomSheet> {
 
                             if (!features['regional']!) includeRegional = false;
                             if (!features['mega']! &&
-                                selectedSubDex != 'mega_dex')
+                                selectedSubDex != 'mega_dex') {
                               includeMega = false;
+                            }
                             if (!features['gmax']!) includeGMax = false;
                           });
                         },
@@ -458,8 +461,9 @@ class _CreateDexBottomSheetState extends State<CreateDexBottomSheet> {
                       includeOther = selectedSubDex == 'icognito_dex';
 
                       if (!features['regional']!) includeRegional = false;
-                      if (!features['mega']! && selectedSubDex != 'mega_dex')
+                      if (!features['mega']! && selectedSubDex != 'mega_dex') {
                         includeMega = false;
+                      }
                       if (!features['gmax']!) includeGMax = false;
                     });
                   }

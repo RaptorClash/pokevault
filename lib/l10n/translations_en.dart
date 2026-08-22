@@ -987,4 +987,12 @@ const Map<String, String> translationsEn = {
   "tutorial_create_step13_title": "Let's Go!",
   "tutorial_create_step13_text":
       "Perfect, you've selected everything! Now tap 'Create'.",
+
+  "tutorial_error_scroll": "Error scrolling in tutorial:",
+  "tutorial_error_rect": "Error calculating tutorial overlay frame:",
+  "tutorial_error_next": "Error changing tutorial step:",
+  "tutorial_wrong_swipe":
+      "Wait, wrong direction! We want to go back to the National Dex (swipe right)!",
+  "tutorial_rotom_angry":
+      "Fine, if you won't do it... I'll do it myself! ZZZZZZT!",
 };

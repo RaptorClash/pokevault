@@ -1277,4 +1277,12 @@ const Map<String, String> translationsDe = {
   "tutorial_create_step13_title": "Los geht's!",
   "tutorial_create_step13_text":
       "Perfekt, du hast alles ausgewählt! Tippe jetzt auf 'Erstellen'.",
+
+  "tutorial_error_scroll": "Fehler beim Scrollen im Tutorial:",
+  "tutorial_error_rect": "Fehler beim Berechnen des Tutorial-Rahmens:",
+  "tutorial_error_next": "Fehler beim Wechseln des Tutorial-Schritts:",
+  "tutorial_wrong_swipe":
+      "Halt, falsche Richtung! Wir wollen zurück zum Nationaldex (nach rechts wischen)!",
+  "tutorial_rotom_angry":
+      "Na gut, wenn du nicht willst... dann mach ich das eben selbst! ZZZZZZT!",
 };
