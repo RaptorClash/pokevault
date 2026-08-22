@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
 import '../../data/dex_groups_data.dart';
 import '../../l10n/app_translations.dart';
 import '../../providers/dex_provider.dart';
@@ -48,6 +49,7 @@ class _CreateDexBottomSheetState extends State<CreateDexBottomSheet> {
   bool includeGMax = false;
   bool includeOther = false;
   bool isShinyDex = false;
+
   late Map<String, bool> features;
 
   @override
@@ -67,6 +69,7 @@ class _CreateDexBottomSheetState extends State<CreateDexBottomSheet> {
 
   void _showTutorialIfNeeded() {
     final tutProvider = Provider.of<TutorialProvider>(context, listen: false);
+
     if (!tutProvider.hasSeenFeature('create_dex_sheet')) {
       TutorialOverlay.show(
         context,
@@ -79,6 +82,8 @@ class _CreateDexBottomSheetState extends State<CreateDexBottomSheet> {
               titleKey: 'tutorial_create_step1_title',
               textKey: 'tutorial_create_step1_text',
               requireTargetTap: false,
+              hideNextButton: true,
+              checkScroll: (pixels) => pixels >= 150,
             ),
             TutorialStep(
               targetKey: _kalosKey,
@@ -108,12 +113,15 @@ class _CreateDexBottomSheetState extends State<CreateDexBottomSheet> {
               titleKey: 'tutorial_create_step3_title',
               textKey: 'tutorial_create_step3_text',
               requireTargetTap: true,
+              tapDelayMilliseconds: 2000,
             ),
             TutorialStep(
               targetKey: _groupListKey,
               titleKey: 'tutorial_create_step4_title',
               textKey: 'tutorial_create_step4_text',
               requireTargetTap: false,
+              hideNextButton: true,
+              checkScroll: (pixels) => pixels <= 20,
             ),
             TutorialStep(
               targetKey: _nationalKey,
@@ -168,6 +176,8 @@ class _CreateDexBottomSheetState extends State<CreateDexBottomSheet> {
               titleKey: 'tutorial_create_step9_title',
               textKey: 'tutorial_create_step9_text',
               requireTargetTap: true,
+              preCalculateDelayMilliseconds:
+                  350, // NEU: Wartet auf ExpansionTile Animation
               onTargetTap: () => setState(() => includeRegional = true),
             ),
             TutorialStep(
@@ -234,6 +244,7 @@ class _CreateDexBottomSheetState extends State<CreateDexBottomSheet> {
   Widget _buildCollage(List<int> ids) {
     const String baseUrl =
         'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/';
+
     return Column(
       children: [
         Expanded(
@@ -303,13 +314,12 @@ class _CreateDexBottomSheetState extends State<CreateDexBottomSheet> {
               style: TextStyle(color: Theme.of(context).hintColor),
             ),
             const SizedBox(height: 16),
-
             SizedBox(
               height: 160,
+              key: _groupListKey,
               child: SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
                 child: Row(
-                  key: _groupListKey,
                   children: DexGroupsData.groups.map((group) {
                     final isSelected = selectedGroup == group;
 
@@ -333,8 +343,10 @@ class _CreateDexBottomSheetState extends State<CreateDexBottomSheet> {
                             features = DexGroupsData.getAvailableFeatures(
                               selectedSubDex,
                             );
+
                             includeMega = selectedSubDex == 'mega_dex';
                             includeOther = selectedSubDex == 'icognito_dex';
+
                             if (!features['regional']!) includeRegional = false;
                             if (!features['mega']! &&
                                 selectedSubDex != 'mega_dex')
@@ -406,7 +418,6 @@ class _CreateDexBottomSheetState extends State<CreateDexBottomSheet> {
               ),
             ),
             const SizedBox(height: 16),
-
             if (selectedGroup.dexKeys.length > 1) ...[
               DropdownButtonFormField<String>(
                 key: _dropdownKey,
@@ -442,8 +453,10 @@ class _CreateDexBottomSheetState extends State<CreateDexBottomSheet> {
                       features = DexGroupsData.getAvailableFeatures(
                         selectedSubDex,
                       );
+
                       includeMega = selectedSubDex == 'mega_dex';
                       includeOther = selectedSubDex == 'icognito_dex';
+
                       if (!features['regional']!) includeRegional = false;
                       if (!features['mega']! && selectedSubDex != 'mega_dex')
                         includeMega = false;
@@ -454,7 +467,6 @@ class _CreateDexBottomSheetState extends State<CreateDexBottomSheet> {
               ),
               const SizedBox(height: 16),
             ],
-
             TextField(
               controller: nameController,
               decoration: InputDecoration(
@@ -471,7 +483,6 @@ class _CreateDexBottomSheetState extends State<CreateDexBottomSheet> {
               ),
             ),
             const SizedBox(height: 16),
-
             Container(
               decoration: BoxDecoration(
                 color: Theme.of(
@@ -579,7 +590,6 @@ class _CreateDexBottomSheetState extends State<CreateDexBottomSheet> {
                   ),
                 ),
                 const SizedBox(width: 16),
-
                 Expanded(
                   child: ElevatedButton(
                     key: _saveKey,

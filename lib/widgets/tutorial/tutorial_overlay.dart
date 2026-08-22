@@ -1,4 +1,5 @@
 import 'dart:ui';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../../models/tutorial_step.dart';
@@ -43,9 +44,9 @@ class _TutorialOverlayState extends State<TutorialOverlay>
   Rect? _targetRect;
   late AnimationController _pulseController;
   late AnimationController _lightningController;
-
   Offset? _oldRotomPos;
   Offset? _newRotomPos;
+  bool _isAdvancing = false;
 
   @override
   void initState() {
@@ -62,9 +63,15 @@ class _TutorialOverlayState extends State<TutorialOverlay>
       duration: const Duration(milliseconds: 400),
     );
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _scrollToTarget(widget.feature.steps[_currentIndex].targetKey);
-      _calculateTargetRect();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final step = widget.feature.steps[_currentIndex];
+      if (step.preCalculateDelayMilliseconds > 0) {
+        await Future.delayed(
+          Duration(milliseconds: step.preCalculateDelayMilliseconds),
+        );
+      }
+      await _scrollToTarget(step.targetKey);
+      if (mounted) _calculateTargetRect();
     });
   }
 
@@ -84,7 +91,7 @@ class _TutorialOverlayState extends State<TutorialOverlay>
     });
   }
 
-  void _scrollToTarget(GlobalKey? key) {
+  Future<void> _scrollToTarget(GlobalKey? key) async {
     if (key == null) return;
     final context = key.currentContext;
     if (context == null) return;
@@ -95,9 +102,10 @@ class _TutorialOverlayState extends State<TutorialOverlay>
         (scrollable.axisDirection == AxisDirection.right ||
             scrollable.axisDirection == AxisDirection.left);
 
-    if (isHorizontal) return;
+    if (isHorizontal)
+      return; // Horizontales Scrollen machen wir nicht automatisch
 
-    Scrollable.ensureVisible(
+    await Scrollable.ensureVisible(
       context,
       duration: const Duration(milliseconds: 300),
       curve: Curves.easeInOut,
@@ -107,6 +115,7 @@ class _TutorialOverlayState extends State<TutorialOverlay>
 
   void _calculateTargetRect() {
     if (!mounted) return;
+
     try {
       final step = widget.feature.steps[_currentIndex];
 
@@ -128,13 +137,21 @@ class _TutorialOverlayState extends State<TutorialOverlay>
       if (renderBox != null && overlay != null && renderBox.attached) {
         final size = renderBox.size;
         final offset = renderBox.localToGlobal(Offset.zero, ancestor: overlay);
+        final screenWidth = MediaQuery.of(context).size.width;
 
-        final newRect = Rect.fromLTWH(
-          offset.dx - 4,
+        double left = offset.dx - 4;
+        double right = offset.dx + size.width + 4;
+
+        if (left < 4) left = 4;
+        if (right > screenWidth - 4) right = screenWidth - 4;
+
+        final newRect = Rect.fromLTRB(
+          left,
           offset.dy - 4,
-          size.width + 8,
-          size.height + 8,
+          right,
+          offset.dy + size.height + 4,
         );
+
         _updatePositions(newRect);
       } else {
         setState(() => _targetRect = null);
@@ -151,13 +168,14 @@ class _TutorialOverlayState extends State<TutorialOverlay>
     final screenWidth = MediaQuery.of(context).size.width;
 
     Offset calculatedNewPos;
+
     if (newRect == null) {
       calculatedNewPos = Offset(screenWidth / 2, screenHeight / 2);
     } else {
       bool showBubbleTop = newRect.top > screenHeight / 2;
       calculatedNewPos = Offset(
         screenWidth / 2,
-        showBubbleTop ? newRect.top - 80 : newRect.bottom + 80,
+        showBubbleTop ? newRect.top - 150 : newRect.bottom + 150,
       );
     }
 
@@ -168,17 +186,74 @@ class _TutorialOverlayState extends State<TutorialOverlay>
     _newRotomPos = calculatedNewPos;
   }
 
+  void _handleScroll(double dx, double dy) {
+    final step = widget.feature.steps[_currentIndex];
+    final context = step.targetKey?.currentContext;
+    if (context == null) return;
+
+    final scrollable = Scrollable.maybeOf(context);
+    if (scrollable == null) return;
+
+    try {
+      bool isHorizontal =
+          scrollable.axisDirection == AxisDirection.right ||
+          scrollable.axisDirection == AxisDirection.left;
+
+      double delta = isHorizontal ? dx : dy;
+      if (isHorizontal && delta == 0 && dy != 0) {
+        delta = dy;
+      }
+
+      scrollable.position.jumpTo(
+        (scrollable.position.pixels + delta).clamp(
+          scrollable.position.minScrollExtent,
+          scrollable.position.maxScrollExtent,
+        ),
+      );
+
+      _calculateTargetRect();
+
+      if (step.checkScroll != null) {
+        bool met = step.checkScroll!(scrollable.position.pixels);
+        bool maxR =
+            scrollable.position.pixels >=
+            scrollable.position.maxScrollExtent - 2;
+        bool minR =
+            scrollable.position.pixels <=
+            scrollable.position.minScrollExtent + 2;
+
+        if (!met && step.checkScroll!(10000) && maxR) met = true;
+        if (!met && step.checkScroll!(0) && minR) met = true;
+
+        if (met) {
+          _nextStep();
+        }
+      }
+    } catch (_) {}
+  }
+
   void _nextStep() {
+    if (_isAdvancing) return;
+
     if (_currentIndex < widget.feature.steps.length - 1) {
       setState(() {
+        _isAdvancing = true;
         _currentIndex++;
       });
-      Future.delayed(const Duration(milliseconds: 200), () {
-        if (!mounted) return;
-        final step = widget.feature.steps[_currentIndex];
-        _scrollToTarget(step.targetKey);
-        _calculateTargetRect();
-      });
+
+      final step = widget.feature.steps[_currentIndex];
+
+      // Delay für Tap, Scroll und Vorberechnung bündeln
+      Future.delayed(
+        Duration(milliseconds: 200 + step.preCalculateDelayMilliseconds),
+        () async {
+          if (!mounted) return;
+          await _scrollToTarget(step.targetKey);
+          if (!mounted) return;
+          _calculateTargetRect();
+          _isAdvancing = false;
+        },
+      );
     } else {
       _skipTutorial();
     }
@@ -235,203 +310,204 @@ class _TutorialOverlayState extends State<TutorialOverlay>
 
     return Material(
       type: MaterialType.transparency,
-      child: Stack(
-        children: [
-          CustomPaint(
-            size: MediaQuery.of(context).size,
-            painter: HolePainter(rect: _targetRect),
-          ),
-          if (_targetRect != null)
-            Positioned.fromRect(
-              rect: _targetRect!,
-              child: GestureDetector(
-                behavior: HitTestBehavior.opaque,
-                onPanUpdate: (details) {
-                  final context = step.targetKey?.currentContext;
-                  if (context != null) {
-                    final scrollable = Scrollable.maybeOf(context);
-                    if (scrollable != null) {
-                      try {
-                        bool isHorizontal =
-                            scrollable.axisDirection == AxisDirection.right ||
-                            scrollable.axisDirection == AxisDirection.left;
-                        double delta = isHorizontal
-                            ? details.delta.dx
-                            : details.delta.dy;
-                        scrollable.position.jumpTo(
-                          (scrollable.position.pixels - delta).clamp(
-                            scrollable.position.minScrollExtent,
-                            scrollable.position.maxScrollExtent,
-                          ),
-                        );
-                        _calculateTargetRect();
-                      } catch (_) {}
-                    }
-                  }
-                },
-                onTap: step.requireTargetTap
-                    ? () {
-                        if (isLast) {
-                          _skipTutorial();
-                          if (step.onTargetTap != null) step.onTargetTap!();
-                        } else {
-                          if (step.onTargetTap != null) step.onTargetTap!();
-                          Future.delayed(const Duration(milliseconds: 250), () {
-                            if (!mounted) return;
-                            _nextStep();
-                          });
-                        }
-                      }
-                    : null,
-                child: AnimatedBuilder(
-                  animation: _pulseController,
-                  builder: (context, child) {
-                    return Container(
-                      color: Colors.transparent,
-                      child: Container(
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(
-                            color: Colors.amber.withOpacity(
-                              0.5 + (_pulseController.value * 0.5),
-                            ),
-                            width: 4,
-                          ),
-                        ),
-                      ),
-                    );
-                  },
-                ),
-              ),
-            ),
-
-          if (_oldRotomPos != null && _newRotomPos != null)
-            IgnorePointer(
-              child: AnimatedBuilder(
-                animation: _lightningController,
-                builder: (context, child) {
-                  return CustomPaint(
-                    size: MediaQuery.of(context).size,
-                    painter: LightningPainter(
-                      start: _oldRotomPos!,
-                      end: _newRotomPos!,
-                      progress: _lightningController.value,
-                    ),
+      child: Listener(
+        onPointerSignal: (event) {
+          if (event is PointerScrollEvent) {
+            _handleScroll(event.scrollDelta.dx, event.scrollDelta.dy);
+          }
+        },
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onPanUpdate: (details) {
+            _handleScroll(-details.delta.dx, -details.delta.dy);
+          },
+          onTapUp: (details) {
+            if (step.requireTargetTap && _targetRect != null) {
+              if (_targetRect!.contains(details.localPosition)) {
+                if (isLast) {
+                  _skipTutorial();
+                  if (step.onTargetTap != null) step.onTargetTap!();
+                } else {
+                  if (step.onTargetTap != null) step.onTargetTap!();
+                  Future.delayed(
+                    Duration(milliseconds: step.tapDelayMilliseconds),
+                    () {
+                      if (!mounted) return;
+                      _nextStep();
+                    },
                   );
-                },
+                }
+              }
+            }
+          },
+          child: Stack(
+            children: [
+              CustomPaint(
+                size: MediaQuery.of(context).size,
+                painter: HolePainter(rect: _targetRect),
               ),
-            ),
-
-          AnimatedPositioned(
-            duration: const Duration(milliseconds: 400),
-            curve: Curves.easeInOutBack,
-            top: isIntro
-                ? (screenHeight / 2) - 100
-                : (showBubbleTop ? null : _targetRect!.bottom + 20),
-            bottom: isIntro
-                ? null
-                : (showBubbleTop ? screenHeight - _targetRect!.top + 20 : null),
-            left: 20,
-            right: 20,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Row(
-                  crossAxisAlignment: showBubbleTop && !isIntro
-                      ? CrossAxisAlignment.start
-                      : CrossAxisAlignment.end,
-                  children: [
-                    AnimatedBuilder(
+              if (_targetRect != null)
+                Positioned.fromRect(
+                  rect: _targetRect!,
+                  child: IgnorePointer(
+                    child: AnimatedBuilder(
                       animation: _pulseController,
                       builder: (context, child) {
-                        return Transform.translate(
-                          offset: Offset(0, -10 * _pulseController.value),
-                          child: child,
+                        return Container(
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(
+                              color: Colors.amber.withOpacity(
+                                0.5 + (_pulseController.value * 0.5),
+                              ),
+                              width: 4,
+                            ),
+                          ),
                         );
                       },
-                      child: SvgPicture.string(rotomSvg, width: 90, height: 90),
                     ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Container(
-                        padding: const EdgeInsets.all(20),
-                        decoration: BoxDecoration(
-                          color: Theme.of(context).colorScheme.surface,
-                          borderRadius: BorderRadius.circular(20).copyWith(
-                            bottomLeft: showBubbleTop && !isIntro
-                                ? const Radius.circular(20)
-                                : const Radius.circular(0),
-                            topLeft: showBubbleTop && !isIntro
-                                ? const Radius.circular(0)
-                                : const Radius.circular(20),
-                          ),
-                          boxShadow: const [
-                            BoxShadow(
-                              color: Colors.black26,
-                              blurRadius: 10,
-                              offset: Offset(0, 5),
-                            ),
-                          ],
+                  ),
+                ),
+              if (_oldRotomPos != null && _newRotomPos != null)
+                IgnorePointer(
+                  child: AnimatedBuilder(
+                    animation: _lightningController,
+                    builder: (context, child) {
+                      return CustomPaint(
+                        size: MediaQuery.of(context).size,
+                        painter: LightningPainter(
+                          start: _oldRotomPos!,
+                          end: _newRotomPos!,
+                          progress: _lightningController.value,
                         ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              Translator.get(step.titleKey),
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                                color: Theme.of(context).colorScheme.primary,
+                      );
+                    },
+                  ),
+                ),
+              AnimatedPositioned(
+                duration: const Duration(milliseconds: 400),
+                curve: Curves.easeInOutBack,
+                top: isIntro
+                    ? (screenHeight / 2) - 100
+                    : (showBubbleTop ? null : _targetRect!.bottom + 30),
+                bottom: isIntro
+                    ? null
+                    : (showBubbleTop
+                          ? screenHeight - _targetRect!.top + 30
+                          : null),
+                left: 20,
+                right: 20,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Row(
+                      crossAxisAlignment: showBubbleTop && !isIntro
+                          ? CrossAxisAlignment.start
+                          : CrossAxisAlignment.end,
+                      children: [
+                        AnimatedBuilder(
+                          animation: _pulseController,
+                          builder: (context, child) {
+                            return Transform.translate(
+                              offset: Offset(0, -10 * _pulseController.value),
+                              child: child,
+                            );
+                          },
+                          child: SvgPicture.string(
+                            rotomSvg,
+                            width: 90,
+                            height: 90,
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Container(
+                            padding: const EdgeInsets.all(20),
+                            decoration: BoxDecoration(
+                              color: Theme.of(context).colorScheme.surface,
+                              borderRadius: BorderRadius.circular(20).copyWith(
+                                bottomLeft: showBubbleTop && !isIntro
+                                    ? const Radius.circular(20)
+                                    : const Radius.circular(0),
+                                topLeft: showBubbleTop && !isIntro
+                                    ? const Radius.circular(0)
+                                    : const Radius.circular(20),
                               ),
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              Translator.get(step.textKey),
-                              style: const TextStyle(fontSize: 14),
-                            ),
-                            const SizedBox(height: 16),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                TextButton(
-                                  onPressed: _skipTutorial,
-                                  child: Text(
-                                    Translator.get('tutorial_skip'),
-                                    style: const TextStyle(color: Colors.grey),
-                                  ),
+                              boxShadow: const [
+                                BoxShadow(
+                                  color: Colors.black26,
+                                  blurRadius: 10,
+                                  offset: Offset(0, 5),
                                 ),
-                                if (!step.requireTargetTap)
-                                  ElevatedButton(
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: Theme.of(
-                                        context,
-                                      ).colorScheme.primary,
-                                      foregroundColor: Theme.of(
-                                        context,
-                                      ).colorScheme.onPrimary,
-                                    ),
-                                    onPressed: _nextStep,
-                                    child: Text(
-                                      Translator.get(
-                                        isLast
-                                            ? 'tutorial_finish'
-                                            : 'tutorial_next',
-                                      ),
-                                    ),
-                                  ),
                               ],
                             ),
-                          ],
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  Translator.get(step.titleKey),
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.primary,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  Translator.get(step.textKey),
+                                  style: const TextStyle(fontSize: 14),
+                                ),
+                                const SizedBox(height: 16),
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    TextButton(
+                                      onPressed: _skipTutorial,
+                                      child: Text(
+                                        Translator.get('tutorial_skip'),
+                                        style: const TextStyle(
+                                          color: Colors.grey,
+                                        ),
+                                      ),
+                                    ),
+                                    if (!step.requireTargetTap &&
+                                        !step.hideNextButton)
+                                      ElevatedButton(
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: Theme.of(
+                                            context,
+                                          ).colorScheme.primary,
+                                          foregroundColor: Theme.of(
+                                            context,
+                                          ).colorScheme.onPrimary,
+                                        ),
+                                        onPressed: _nextStep,
+                                        child: Text(
+                                          Translator.get(
+                                            isLast
+                                                ? 'tutorial_finish'
+                                                : 'tutorial_next',
+                                          ),
+                                        ),
+                                      ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
                         ),
-                      ),
+                      ],
                     ),
                   ],
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
@@ -439,6 +515,7 @@ class _TutorialOverlayState extends State<TutorialOverlay>
 
 class HolePainter extends CustomPainter {
   final Rect? rect;
+
   HolePainter({required this.rect});
 
   @override
@@ -446,17 +523,20 @@ class HolePainter extends CustomPainter {
     final paint = Paint()
       ..color = Colors.black.withOpacity(0.8)
       ..style = PaintingStyle.fill;
+
     final screenPath = Path()
       ..addRect(Rect.fromLTWH(0, 0, size.width, size.height));
 
     if (rect != null) {
       final holePath = Path()
         ..addRRect(RRect.fromRectAndRadius(rect!, const Radius.circular(16)));
+
       final combinedPath = Path.combine(
         PathOperation.difference,
         screenPath,
         holePath,
       );
+
       canvas.drawPath(combinedPath, paint);
     } else {
       canvas.drawPath(screenPath, paint);
@@ -482,25 +562,30 @@ class LightningPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     if (progress >= 1.0 || progress <= 0.0) return;
+
     final paint = Paint()
       ..color = Colors.cyanAccent.withOpacity((1.0 - progress).clamp(0.0, 1.0))
       ..strokeWidth = 3 + (5 * (1 - progress))
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round
       ..strokeJoin = StrokeJoin.round;
+
     final path = Path();
     path.moveTo(start.dx, start.dy);
+
     int steps = 6;
     for (int i = 1; i <= steps; i++) {
       double t = i / steps;
       double dx = lerpDouble(start.dx, end.dx, t)!;
       double dy = lerpDouble(start.dy, end.dy, t)!;
+
       if (i < steps) {
         dx += (i % 2 == 0 ? 30 : -30);
         dy += (i % 2 == 0 ? -30 : 30);
       }
       path.lineTo(dx, dy);
     }
+
     canvas.drawPath(path, paint);
   }
 

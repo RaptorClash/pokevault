@@ -8,20 +8,23 @@ class TutorialStep {
   final GlobalKey? targetKey;
   final String titleKey;
   final String textKey;
-  final RotomMood mood;
-  final ContentAlign alignment;
-
   final bool requireTargetTap;
+  final bool hideNextButton;
   final VoidCallback? onTargetTap;
+  final bool Function(double)? checkScroll;
+  final int tapDelayMilliseconds;
+  final int preCalculateDelayMilliseconds; // NEU: Wartet auf UI-Animationen
 
   TutorialStep({
     this.targetKey,
     required this.titleKey,
     required this.textKey,
-    this.mood = RotomMood.explaining,
-    this.alignment = ContentAlign.bottom,
     this.requireTargetTap = false,
+    this.hideNextButton = false,
     this.onTargetTap,
+    this.checkScroll,
+    this.tapDelayMilliseconds = 250,
+    this.preCalculateDelayMilliseconds = 0,
   });
 }
 

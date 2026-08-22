@@ -1241,8 +1241,8 @@ const Map<String, String> translationsDe = {
   "tutorial_reset_success": "Das Tutorial wurde erfolgreich zurückgesetzt!",
 
   "tutorial_create_step1_title": "Spiele & Generationen",
-  "tutorial_create_step1_text":
-      "Dies ist die Regionsauswahl. Wische in der Liste nach rechts und tippe dann auf 'Weiter'.",
+  'tutorial_create_step1_text':
+      'Dies ist die Regionsauswahl. Wische in der Liste nach rechts.',
   "tutorial_create_step2_title": "Region auswählen",
   "tutorial_create_step2_text":
       "Tippe jetzt auf 'Kalos & Z-A', um zu sehen, wie sich die Optionen anpassen.",
@@ -1250,8 +1250,8 @@ const Map<String, String> translationsDe = {
   "tutorial_create_step3_text":
       "Einige Regionen bieten hier ein Dropdown (z.B. für Zentral-Kalos). Tippe auf das Feld, um fortzufahren.",
   "tutorial_create_step4_title": "Zurück zum Start",
-  "tutorial_create_step4_text":
-      "Wir wollen für dieses Tutorial aber alles! Wische die Liste wieder ganz nach links und tippe auf 'Weiter'.",
+  'tutorial_create_step4_text':
+      'Wir wollen für dieses Tutorial aber alles! Wische die Liste wieder ganz nach links.',
   "tutorial_create_step5_title": "Nationaldex",
   "tutorial_create_step5_text":
       "Tippe auf 'National', um wieder alle Pokémon auszuwählen.",
