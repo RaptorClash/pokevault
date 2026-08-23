@@ -1246,9 +1246,12 @@ const Map<String, String> translationsDe = {
   "tutorial_create_step2_title": "Region auswählen",
   "tutorial_create_step2_text":
       "Tippe jetzt auf 'Kalos & Z-A', um zu sehen, wie sich die Optionen anpassen.",
-  "tutorial_create_step3_title": "Spezifische Dexe",
-  "tutorial_create_step3_text":
-      "Einige Regionen bieten hier ein Dropdown (z.B. für Zentral-Kalos). Tippe auf das Feld, um fortzufahren.",
+  'tutorial_create_step3_title': 'Spezifische Dexe',
+  'tutorial_create_step3_text':
+      'Einige Regionen bieten hier ein Dropdown (z.B. für Zentral-Kalos). Tippe auf das Feld, um fortzufahren.',
+  'tutorial_create_step3_5_title': 'Die volle Auswahl',
+  'tutorial_create_step3_5_text':
+      'Hier kannst du genau wählen, welchen Teil der Region du spielen möchtest! Tippe auf die Liste, um sie wieder zu schließen.',
   "tutorial_create_step4_title": "Zurück zum Start",
   'tutorial_create_step4_text':
       'Wir wollen für dieses Tutorial aber alles! Wische die Liste wieder ganz nach links.',

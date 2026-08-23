@@ -1,7 +1,9 @@
 import 'dart:ui';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+
 import '../../models/tutorial_step.dart';
 import '../../l10n/app_translations.dart';
 import '../../utils/notification_helper.dart';
@@ -9,6 +11,9 @@ import '../../utils/notification_helper.dart';
 class TutorialOverlay extends StatefulWidget {
   final TutorialFeature feature;
   final VoidCallback onFinish;
+
+  static Offset? lastTapPosition;
+  static bool _isShowing = false;
 
   const TutorialOverlay({
     super.key,
@@ -21,6 +26,9 @@ class TutorialOverlay extends StatefulWidget {
     TutorialFeature feature,
     VoidCallback onFinish,
   ) {
+    if (_isShowing) return;
+    _isShowing = true;
+
     showGeneralDialog(
       context: context,
       barrierColor: Colors.transparent,
@@ -32,7 +40,10 @@ class TutorialOverlay extends StatefulWidget {
           child: TutorialOverlay(feature: feature, onFinish: onFinish),
         );
       },
-    );
+    ).then((_) {
+      _isShowing = false;
+      onFinish();
+    });
   }
 
   @override
@@ -45,12 +56,16 @@ class _TutorialOverlayState extends State<TutorialOverlay>
   Rect? _targetRect;
   late AnimationController _pulseController;
   late AnimationController _lightningController;
+
   Offset? _oldRotomPos;
   Offset? _newRotomPos;
   bool _isAdvancing = false;
 
   int _wrongSwipeCount = 0;
+  DateTime? _lastWrongSwipeTime;
+
   bool _isEasterEggActive = false;
+  bool _easterEggTriggered = false;
   String? _overrideText;
   Offset? _easterEggPos;
 
@@ -62,6 +77,7 @@ class _TutorialOverlayState extends State<TutorialOverlay>
       vsync: this,
       duration: const Duration(milliseconds: 1500),
     )..repeat(reverse: true);
+
     _lightningController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 400),
@@ -116,14 +132,12 @@ class _TutorialOverlayState extends State<TutorialOverlay>
     try {
       final step = widget.feature.steps[_currentIndex];
       final targetContext = key.currentContext;
-
       final activeScrollable = _findScrollable(targetContext);
       if (activeScrollable == null) return;
 
       bool isHorizontal =
           activeScrollable.axisDirection == AxisDirection.right ||
           activeScrollable.axisDirection == AxisDirection.left;
-
       if (isHorizontal) return;
 
       await Scrollable.ensureVisible(
@@ -132,8 +146,7 @@ class _TutorialOverlayState extends State<TutorialOverlay>
         curve: Curves.easeInOut,
         alignment: step.scrollAlignment,
       ).catchError((_) {});
-    } catch (e) {
-    }
+    } catch (e) {}
   }
 
   void _calculateTargetRect() {
@@ -146,7 +159,7 @@ class _TutorialOverlayState extends State<TutorialOverlay>
       }
       final currentContext = step.targetKey!.currentContext;
       if (currentContext == null) {
-        setState(() => _targetRect = null);
+        _updatePositions(null);
         return;
       }
       final renderBox = currentContext.findRenderObject() as RenderBox?;
@@ -156,7 +169,6 @@ class _TutorialOverlayState extends State<TutorialOverlay>
       if (renderBox != null && overlay != null && renderBox.attached) {
         final size = renderBox.size;
         final offset = renderBox.localToGlobal(Offset.zero, ancestor: overlay);
-
         double left = offset.dx - 4;
         double right = offset.dx + size.width + 4;
         double top = offset.dy - 4;
@@ -168,7 +180,7 @@ class _TutorialOverlayState extends State<TutorialOverlay>
         final newRect = Rect.fromLTRB(left, top, right, bottom);
         _updatePositions(newRect);
       } else {
-        setState(() => _targetRect = null);
+        _updatePositions(null);
       }
     } catch (e) {
       NotificationHelper.showError(
@@ -180,32 +192,52 @@ class _TutorialOverlayState extends State<TutorialOverlay>
   void _updatePositions(Rect? newRect) {
     if (_isEasterEggActive) return;
 
-    setState(() {
-      _targetRect = newRect;
-    });
-    final screenHeight = MediaQuery.of(context).size.height;
-    final screenWidth = MediaQuery.of(context).size.width;
+    if (_targetRect == newRect) return;
 
-    Offset calculatedNewPos;
-    if (newRect == null) {
-      calculatedNewPos = Offset(screenWidth / 2, screenHeight / 2);
+    void updateState() {
+      if (!mounted) return;
+      setState(() {
+        _targetRect = newRect;
+      });
+
+      final screenHeight = MediaQuery.of(context).size.height;
+      final screenWidth = MediaQuery.of(context).size.width;
+
+      Offset calculatedNewPos;
+      if (newRect == null) {
+        calculatedNewPos = Offset(screenWidth / 2, screenHeight / 2);
+      } else {
+        bool showBubbleTop = newRect.top > screenHeight / 2;
+        calculatedNewPos = Offset(
+          screenWidth / 2,
+          showBubbleTop ? newRect.top - 150 : newRect.bottom + 150,
+        );
+      }
+
+      if (_newRotomPos != null && _newRotomPos != calculatedNewPos) {
+        _oldRotomPos = _newRotomPos;
+        _lightningController.forward(from: 0.0);
+      }
+      _newRotomPos = calculatedNewPos;
+    }
+
+    if (SchedulerBinding.instance.schedulerPhase ==
+        SchedulerPhase.persistentCallbacks) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => updateState());
     } else {
-      bool showBubbleTop = newRect.top > screenHeight / 2;
-      calculatedNewPos = Offset(
-        screenWidth / 2,
-        showBubbleTop ? newRect.top - 150 : newRect.bottom + 150,
-      );
+      updateState();
     }
-
-    if (_newRotomPos != null && _newRotomPos != calculatedNewPos) {
-      _oldRotomPos = _newRotomPos;
-      _lightningController.forward(from: 0.0);
-    }
-    _newRotomPos = calculatedNewPos;
   }
 
   void _handleWrongSwipe() {
     if (_isAdvancing || _isEasterEggActive) return;
+
+    final now = DateTime.now();
+    if (_lastWrongSwipeTime != null &&
+        now.difference(_lastWrongSwipeTime!).inMilliseconds < 600) {
+      return;
+    }
+    _lastWrongSwipeTime = now;
     _wrongSwipeCount++;
 
     if (_wrongSwipeCount >= 3) {
@@ -227,8 +259,11 @@ class _TutorialOverlayState extends State<TutorialOverlay>
   }
 
   void _triggerRotomAutoSwipe() async {
+    if (_isAdvancing) return;
+
     setState(() {
       _isEasterEggActive = true;
+      _easterEggTriggered = true;
       _overrideText =
           Translator.get('tutorial_rotom_angry') != 'tutorial_rotom_angry'
           ? Translator.get('tutorial_rotom_angry')
@@ -241,19 +276,23 @@ class _TutorialOverlayState extends State<TutorialOverlay>
 
     if (renderBox != null) {
       final offset = renderBox.localToGlobal(Offset.zero);
+      double safeY = (offset.dy - 150).clamp(
+        50.0,
+        MediaQuery.of(context).size.height - 350.0,
+      );
+
       setState(() {
-        _easterEggPos = Offset(
-          MediaQuery.of(context).size.width / 4,
-          offset.dy - 50,
-        );
+        _easterEggPos = Offset(MediaQuery.of(context).size.width / 4, safeY);
       });
     }
 
-    await Future.delayed(const Duration(milliseconds: 1200));
+    await Future.delayed(const Duration(milliseconds: 1500));
+    if (!mounted) return;
 
     ScrollableState? scrollable = _findScrollable(
       step.targetKey?.currentContext,
     );
+
     if (scrollable != null) {
       setState(() {
         _easterEggPos = Offset(
@@ -262,26 +301,27 @@ class _TutorialOverlayState extends State<TutorialOverlay>
         );
       });
 
-      await scrollable.position.animateTo(
-        0,
-        duration: const Duration(milliseconds: 800),
-        curve: Curves.easeInOutBack,
-      );
+      try {
+        await scrollable.position.animateTo(
+          0,
+          duration: const Duration(milliseconds: 800),
+          curve: Curves.easeInOut,
+        );
+      } catch (e) {
+        NotificationHelper.showError("Fehler beim Autoscroll: $e");
+      }
     } else {
       await Future.delayed(const Duration(milliseconds: 800));
     }
 
+    if (!mounted) return;
+
     setState(() {
       _isEasterEggActive = false;
       _easterEggPos = null;
-      _overrideText = null;
       _wrongSwipeCount = 0;
     });
-
     _calculateTargetRect();
-    if (scrollable != null && scrollable.position.pixels <= 5) {
-      _nextStep();
-    }
   }
 
   void _handleScroll(double dx, double dy) {
@@ -297,8 +337,8 @@ class _TutorialOverlayState extends State<TutorialOverlay>
       bool isHorizontal =
           activeScrollable.axisDirection == AxisDirection.right ||
           activeScrollable.axisDirection == AxisDirection.left;
-
       double delta = isHorizontal ? dx : dy;
+
       if (isHorizontal && delta == 0 && dy != 0) {
         delta = dy;
       }
@@ -314,7 +354,6 @@ class _TutorialOverlayState extends State<TutorialOverlay>
           activeScrollable.position.maxScrollExtent,
         ),
       );
-
       _calculateTargetRect();
 
       if (step.checkScroll != null) {
@@ -325,9 +364,9 @@ class _TutorialOverlayState extends State<TutorialOverlay>
         bool minR =
             activeScrollable.position.pixels <=
             activeScrollable.position.minScrollExtent + 2;
+
         if (!met && step.checkScroll!(10000) && maxR) met = true;
         if (!met && step.checkScroll!(0) && minR) met = true;
-
         if (met) {
           _nextStep();
         }
@@ -346,9 +385,15 @@ class _TutorialOverlayState extends State<TutorialOverlay>
         setState(() {
           _isAdvancing = true;
           _currentIndex++;
+          _overrideText = null;
+          _easterEggTriggered = false;
         });
-        final step = widget.feature.steps[_currentIndex];
 
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) _calculateTargetRect();
+        });
+
+        final step = widget.feature.steps[_currentIndex];
         Future.delayed(
           Duration(milliseconds: step.preCalculateDelayMilliseconds),
           () async {
@@ -373,7 +418,6 @@ class _TutorialOverlayState extends State<TutorialOverlay>
   void _skipTutorial() {
     if (mounted) {
       Navigator.of(context).pop();
-      widget.onFinish();
     }
   }
 
@@ -409,11 +453,107 @@ class _TutorialOverlayState extends State<TutorialOverlay>
     </svg>
   ''';
 
+  Widget _buildRotomIcon() {
+    return AnimatedBuilder(
+      animation: _pulseController,
+      builder: (context, child) {
+        return Transform.translate(
+          offset: Offset(0, -10 * _pulseController.value),
+          child: child,
+        );
+      },
+      child: SvgPicture.string(rotomSvg, width: 90, height: 90),
+    );
+  }
+
+  Widget _buildBubbleContent(
+    TutorialStep step,
+    bool showBubbleTop,
+    bool isIntro,
+    bool isLast,
+  ) {
+    bool showNextBtn =
+        (!step.requireTargetTap && !step.hideNextButton) || _easterEggTriggered;
+
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
+        borderRadius: BorderRadius.circular(20).copyWith(
+          bottomLeft: (showBubbleTop && !isIntro) || _isEasterEggActive
+              ? const Radius.circular(20)
+              : const Radius.circular(0),
+          topLeft: (showBubbleTop && !isIntro) && !_isEasterEggActive
+              ? const Radius.circular(0)
+              : const Radius.circular(20),
+        ),
+        boxShadow: const [
+          BoxShadow(
+            color: Colors.black26,
+            blurRadius: 10,
+            offset: Offset(0, 5),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            Translator.get(step.titleKey),
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Theme.of(context).colorScheme.primary,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            _overrideText ?? Translator.get(step.textKey),
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: _overrideText != null
+                  ? FontWeight.bold
+                  : FontWeight.normal,
+              color: _overrideText != null ? Colors.redAccent : null,
+            ),
+          ),
+          const SizedBox(height: 16),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              TextButton(
+                onPressed: _isEasterEggActive ? null : _skipTutorial,
+                child: Text(
+                  Translator.get('tutorial_skip'),
+                  style: const TextStyle(color: Colors.grey),
+                ),
+              ),
+              if (showNextBtn)
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Theme.of(context).colorScheme.primary,
+                    foregroundColor: Theme.of(context).colorScheme.onPrimary,
+                  ),
+                  onPressed: _isEasterEggActive ? null : _nextStep,
+                  child: Text(
+                    Translator.get(
+                      isLast ? 'tutorial_finish' : 'tutorial_next',
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final step = widget.feature.steps[_currentIndex];
     final isLast = _currentIndex == widget.feature.steps.length - 1;
     final screenHeight = MediaQuery.of(context).size.height;
+
     bool showBubbleTop =
         _targetRect != null && _targetRect!.top > screenHeight / 2;
     bool isIntro = _targetRect == null;
@@ -422,18 +562,19 @@ class _TutorialOverlayState extends State<TutorialOverlay>
       type: MaterialType.transparency,
       child: Listener(
         onPointerUp: (event) {
-          if (_isAdvancing || _isEasterEggActive) return;
+          TutorialOverlay.lastTapPosition = event.position;
+          if (_isAdvancing) return;
 
-          if (step.requireTargetTap && _targetRect != null) {
+          if (step.requireTargetTap &&
+              _targetRect != null &&
+              !_isEasterEggActive) {
             if (_targetRect!.contains(event.localPosition)) {
               setState(() => _isAdvancing = true);
-
               if (isLast) {
                 _skipTutorial();
                 if (step.onTargetTap != null) step.onTargetTap!();
               } else {
                 if (step.onTargetTap != null) step.onTargetTap!();
-
                 _isAdvancing = false;
                 _nextStep();
               }
@@ -442,6 +583,7 @@ class _TutorialOverlayState extends State<TutorialOverlay>
         },
         child: GestureDetector(
           behavior: HitTestBehavior.opaque,
+          onTap: () {},
           onPanUpdate: (details) {
             _handleScroll(-details.delta.dx, -details.delta.dy);
           },
@@ -449,9 +591,13 @@ class _TutorialOverlayState extends State<TutorialOverlay>
             children: [
               CustomPaint(
                 size: MediaQuery.of(context).size,
-                painter: HolePainter(rect: _targetRect),
+                painter: HolePainter(
+                  rect: _isEasterEggActive ? null : _targetRect,
+                ),
               ),
-              if (_targetRect != null && step.showHighlight)
+              if (_targetRect != null &&
+                  step.showHighlight &&
+                  !_isEasterEggActive)
                 Positioned.fromRect(
                   rect: _targetRect!,
                   child: IgnorePointer(
@@ -503,123 +649,42 @@ class _TutorialOverlayState extends State<TutorialOverlay>
                           ? screenHeight - _targetRect!.top + 30
                           : null),
                 left: _easterEggPos != null ? _easterEggPos!.dx : 20,
-                right: _easterEggPos != null ? null : 20,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Row(
-                      crossAxisAlignment: showBubbleTop && !isIntro
-                          ? CrossAxisAlignment.start
-                          : CrossAxisAlignment.end,
-                      children: [
-                        AnimatedBuilder(
-                          animation: _pulseController,
-                          builder: (context, child) {
-                            return Transform.translate(
-                              offset: Offset(0, -10 * _pulseController.value),
-                              child: child,
-                            );
-                          },
-                          child: SvgPicture.string(
-                            rotomSvg,
-                            width: 90,
-                            height: 90,
+                width: MediaQuery.of(context).size.width - 40,
+                child: _isEasterEggActive
+                    ? Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          _buildBubbleContent(
+                            step,
+                            showBubbleTop,
+                            isIntro,
+                            isLast,
                           ),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: Container(
-                            padding: const EdgeInsets.all(20),
-                            decoration: BoxDecoration(
-                              color: Theme.of(context).colorScheme.surface,
-                              borderRadius: BorderRadius.circular(20).copyWith(
-                                bottomLeft: showBubbleTop && !isIntro
-                                    ? const Radius.circular(20)
-                                    : const Radius.circular(0),
-                                topLeft: showBubbleTop && !isIntro
-                                    ? const Radius.circular(0)
-                                    : const Radius.circular(20),
-                              ),
-                              boxShadow: const [
-                                BoxShadow(
-                                  color: Colors.black26,
-                                  blurRadius: 10,
-                                  offset: Offset(0, 5),
-                                ),
-                              ],
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  Translator.get(step.titleKey),
-                                  style: TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold,
-                                    color: Theme.of(
-                                      context,
-                                    ).colorScheme.primary,
-                                  ),
-                                ),
-                                const SizedBox(height: 8),
-                                Text(
-                                  _overrideText ?? Translator.get(step.textKey),
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: _overrideText != null
-                                        ? FontWeight.bold
-                                        : FontWeight.normal,
-                                    color: _overrideText != null
-                                        ? Colors.redAccent
-                                        : null,
-                                  ),
-                                ),
-                                const SizedBox(height: 16),
-                                if (!_isEasterEggActive)
-                                  Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      TextButton(
-                                        onPressed: _skipTutorial,
-                                        child: Text(
-                                          Translator.get('tutorial_skip'),
-                                          style: const TextStyle(
-                                            color: Colors.grey,
-                                          ),
-                                        ),
-                                      ),
-                                      if (!step.requireTargetTap &&
-                                          !step.hideNextButton)
-                                        ElevatedButton(
-                                          style: ElevatedButton.styleFrom(
-                                            backgroundColor: Theme.of(
-                                              context,
-                                            ).colorScheme.primary,
-                                            foregroundColor: Theme.of(
-                                              context,
-                                            ).colorScheme.onPrimary,
-                                          ),
-                                          onPressed: _nextStep,
-                                          child: Text(
-                                            Translator.get(
-                                              isLast
-                                                  ? 'tutorial_finish'
-                                                  : 'tutorial_next',
-                                            ),
-                                          ),
-                                        ),
-                                    ],
-                                  ),
-                              ],
+                          const SizedBox(height: 16),
+                          Align(
+                            alignment: Alignment.centerLeft,
+                            child: _buildRotomIcon(),
+                          ),
+                        ],
+                      )
+                    : Row(
+                        crossAxisAlignment: showBubbleTop && !isIntro
+                            ? CrossAxisAlignment.start
+                            : CrossAxisAlignment.end,
+                        children: [
+                          _buildRotomIcon(),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: _buildBubbleContent(
+                              step,
+                              showBubbleTop,
+                              isIntro,
+                              isLast,
                             ),
                           ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
+                        ],
+                      ),
               ),
             ],
           ),
@@ -689,6 +754,7 @@ class LightningPainter extends CustomPainter {
       double t = i / steps;
       double dx = lerpDouble(start.dx, end.dx, t)!;
       double dy = lerpDouble(start.dy, end.dy, t)!;
+
       if (i < steps) {
         dx += (i % 2 == 0 ? 30 : -30);
         dy += (i % 2 == 0 ? -30 : 30);

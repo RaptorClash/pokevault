@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
 import '../../data/dex_groups_data.dart';
 import '../../l10n/app_translations.dart';
 import '../../providers/dex_provider.dart';
 import '../../providers/tutorial_provider.dart';
 import '../../models/tutorial_step.dart';
 import '../../widgets/tutorial/tutorial_overlay.dart';
+import '../../utils/notification_helper.dart';
 
 class CreateDexBottomSheet extends StatefulWidget {
   final DexProvider provider;
@@ -26,6 +26,7 @@ class _CreateDexBottomSheetState extends State<CreateDexBottomSheet> {
   final GlobalKey _groupListKey = GlobalKey();
   final GlobalKey _kalosKey = GlobalKey();
   final GlobalKey _dropdownKey = GlobalKey();
+  final GlobalKey _fakeDropdownKey = GlobalKey(); 
   final GlobalKey _nationalKey = GlobalKey();
   final GlobalKey _shinyKey = GlobalKey();
   final GlobalKey _genderKey = GlobalKey();
@@ -36,204 +37,277 @@ class _CreateDexBottomSheetState extends State<CreateDexBottomSheet> {
   final GlobalKey _otherKey = GlobalKey();
   final GlobalKey _saveKey = GlobalKey();
 
-  final ExpansionTileController _expansionController =
-      ExpansionTileController();
+  final ExpansionTileController _expansionController = ExpansionTileController();
   final TextEditingController nameController = TextEditingController();
 
   late DexGroup selectedGroup;
   late String selectedSubDex;
+
   bool includeGenders = false;
   bool includeRegional = false;
   bool includeMega = false;
   bool includeGMax = false;
   bool includeOther = false;
   bool isShinyDex = false;
+  
+  bool _showFakeDropdown = false;
+
   late Map<String, bool> features;
 
   @override
   void initState() {
     super.initState();
-    selectedGroup = DexGroupsData.groups.first;
-    selectedSubDex = selectedGroup.dexKeys.first;
-    features = DexGroupsData.getAvailableFeatures(selectedSubDex);
-    nameController.text = Translator.get('region_$selectedSubDex');
+    try {
+      selectedGroup = DexGroupsData.groups.first;
+      selectedSubDex = selectedGroup.dexKeys.first;
+      features = DexGroupsData.getAvailableFeatures(selectedSubDex);
+      nameController.text = Translator.get('region_$selectedSubDex');
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      Future.delayed(const Duration(milliseconds: 700), () {
-        if (mounted) _showTutorialIfNeeded();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        Future.delayed(const Duration(milliseconds: 700), () {
+          if (mounted) _showTutorialIfNeeded();
+        });
       });
-    });
+    } catch (e) {
+      NotificationHelper.showError('${Translator.get('error')} $e');
+    }
   }
 
   void _showTutorialIfNeeded() {
-    final tutProvider = Provider.of<TutorialProvider>(context, listen: false);
-    if (!tutProvider.hasSeenFeature('create_dex_sheet')) {
-      TutorialOverlay.show(
-        context,
-        TutorialFeature(
-          id: 'create_dex_sheet',
-          nameKey: 'tutorial_feature_home',
-          steps: [
-            TutorialStep(
-              targetKey: _groupListKey,
-              titleKey: 'tutorial_create_step1_title',
-              textKey: 'tutorial_create_step1_text',
-              requireTargetTap: false,
-              hideNextButton: true,
-              showHighlight: true,
-              checkScroll: (pixels) => pixels >= 500,
-            ),
-            TutorialStep(
-              targetKey: _kalosKey,
-              titleKey: 'tutorial_create_step2_title',
-              textKey: 'tutorial_create_step2_text',
-              requireTargetTap: true,
-              disableScroll: true,
-              onTargetTap: () {
-                try {
-                  final kalosGroup = DexGroupsData.groups.firstWhere(
-                    (g) => g.dexKeys.first.contains('kalos'),
-                  );
+    try {
+      final tutProvider = Provider.of<TutorialProvider>(context, listen: false);
+
+      if (!tutProvider.hasSeenFeature('create_dex_sheet')) {
+        TutorialOverlay.show(
+          context,
+          TutorialFeature(
+            id: 'create_dex_sheet',
+            nameKey: 'tutorial_feature_home',
+            steps: [
+              TutorialStep(
+                targetKey: _groupListKey,
+                titleKey: 'tutorial_create_step1_title',
+                textKey: 'tutorial_create_step1_text',
+                requireTargetTap: false,
+                hideNextButton: true,
+                showHighlight: true,
+                checkScroll: (pixels) => pixels >= 500,
+              ),
+              TutorialStep(
+                targetKey: _kalosKey,
+                titleKey: 'tutorial_create_step2_title',
+                textKey: 'tutorial_create_step2_text',
+                requireTargetTap: true,
+                disableScroll: true,
+                scrollAlignment: 0.5,
+                onTargetTap: () {
+                  try {
+                    final kalosGroup = DexGroupsData.groups.firstWhere(
+                      (g) => g.dexKeys.first.contains('kalos'),
+                    );
+                    setState(() {
+                      selectedGroup = kalosGroup;
+                      selectedSubDex = kalosGroup.dexKeys.first;
+                      nameController.text = Translator.get('region_$selectedSubDex');
+                      features = DexGroupsData.getAvailableFeatures(selectedSubDex);
+                    });
+                  } catch (e) {
+                    NotificationHelper.showError('${Translator.get('error')} $e');
+                  }
+                },
+              ),
+              TutorialStep(
+                targetKey: _dropdownKey,
+                titleKey: 'tutorial_create_step3_title',
+                textKey: 'tutorial_create_step3_text',
+                requireTargetTap: true,
+                preCalculateDelayMilliseconds: 400,
+                onTargetTap: () {
                   setState(() {
-                    selectedGroup = kalosGroup;
-                    selectedSubDex = kalosGroup.dexKeys.first;
-                    nameController.text = Translator.get(
-                      'region_$selectedSubDex',
-                    );
-                    features = DexGroupsData.getAvailableFeatures(
-                      selectedSubDex,
-                    );
+                    _showFakeDropdown = true;
                   });
-                } catch (_) {}
-              },
-            ),
-            TutorialStep(
-              targetKey: _dropdownKey,
-              titleKey: 'tutorial_create_step3_title',
-              textKey: 'tutorial_create_step3_text',
-              requireTargetTap:
-                  false, // WICHTIG: Auf false gesetzt! Dadurch kommt der "Weiter"-Button.
-            ),
-            TutorialStep(
-              id: 'swipe_back_national',
-              targetKey: _groupListKey,
-              titleKey: 'tutorial_create_step4_title',
-              textKey: 'tutorial_create_step4_text',
-              requireTargetTap: false,
-              hideNextButton: true,
-              showHighlight: true,
-              checkScroll: (pixels) => pixels <= 5,
-            ),
-            TutorialStep(
-              targetKey: _nationalKey,
-              titleKey: 'tutorial_create_step5_title',
-              textKey: 'tutorial_create_step5_text',
-              requireTargetTap: true,
-              disableScroll: true,
-              scrollAlignment: 0.0,
-              onTargetTap: () {
-                try {
-                  final natGroup = DexGroupsData.groups.firstWhere(
-                    (g) => g.dexKeys.first.contains('national'),
-                  );
-                  setState(() {
-                    selectedGroup = natGroup;
-                    selectedSubDex = natGroup.dexKeys.first;
-                    nameController.text = Translator.get(
-                      'region_$selectedSubDex',
+                },
+              ),
+              TutorialStep(
+                targetKey: _fakeDropdownKey,
+                titleKey: 'tutorial_create_step3_5_title',
+                textKey: 'tutorial_create_step3_5_text',
+                requireTargetTap: true, 
+                preCalculateDelayMilliseconds: 300,
+                onTargetTap: () {
+                  try {
+                    final tapPos = TutorialOverlay.lastTapPosition;
+                    int tappedIndex = 1; 
+                    
+                    if (tapPos != null && selectedGroup.dexKeys.length > 1) {
+                      final renderBox = _fakeDropdownKey.currentContext?.findRenderObject() as RenderBox?;
+                      if (renderBox != null) {
+                        final localPos = renderBox.globalToLocal(tapPos);
+                        final itemHeight = renderBox.size.height / selectedGroup.dexKeys.length;
+                        tappedIndex = (localPos.dy / itemHeight).floor().clamp(0, selectedGroup.dexKeys.length - 1);
+                      }
+                    }
+
+                    setState(() {
+                      _showFakeDropdown = false;
+                      
+                      if (selectedGroup.dexKeys.length > 1) {
+                        selectedSubDex = selectedGroup.dexKeys[tappedIndex]; 
+                        nameController.text = Translator.get('region_$selectedSubDex');
+                        features = DexGroupsData.getAvailableFeatures(selectedSubDex);
+                        
+                        includeMega = selectedSubDex == 'mega_dex';
+                        includeOther = selectedSubDex == 'icognito_dex';
+                        if (!features['regional']!) includeRegional = false;
+                        if (!features['mega']! && selectedSubDex != 'mega_dex') {
+                          includeMega = false;
+                        }
+                        if (!features['gmax']!) includeGMax = false;
+                      }
+                    });
+                  } catch (e) {
+                    NotificationHelper.showError('${Translator.get('error')} $e');
+                  }
+                },
+              ),
+              TutorialStep(
+                id: 'swipe_back_national',
+                targetKey: _groupListKey,
+                titleKey: 'tutorial_create_step4_title',
+                textKey: 'tutorial_create_step4_text',
+                requireTargetTap: false,
+                hideNextButton: true,
+                showHighlight: true,
+                preCalculateDelayMilliseconds: 500, 
+                checkScroll: (pixels) => pixels <= 5,
+              ),
+              TutorialStep(
+                targetKey: _nationalKey,
+                titleKey: 'tutorial_create_step5_title',
+                textKey: 'tutorial_create_step5_text',
+                requireTargetTap: true,
+                disableScroll: true,
+                scrollAlignment: 0.0,
+                preCalculateDelayMilliseconds: 300, 
+                onTargetTap: () {
+                  try {
+                    final natGroup = DexGroupsData.groups.firstWhere(
+                      (g) => g.dexKeys.first.contains('national'),
                     );
-                    features = DexGroupsData.getAvailableFeatures(
-                      selectedSubDex,
-                    );
-                  });
-                } catch (_) {}
-              },
-            ),
-            TutorialStep(
-              targetKey: _shinyKey,
-              titleKey: 'tutorial_create_step6_title',
-              textKey: 'tutorial_create_step6_text',
-              requireTargetTap: true,
-              onTargetTap: () => setState(() => isShinyDex = true),
-            ),
-            TutorialStep(
-              targetKey: _genderKey,
-              titleKey: 'tutorial_create_step7_title',
-              textKey: 'tutorial_create_step7_text',
-              requireTargetTap: true,
-              onTargetTap: () => setState(() => includeGenders = true),
-            ),
-            TutorialStep(
-              targetKey: _formsExpansionKey,
-              titleKey: 'tutorial_create_step8_title',
-              textKey: 'tutorial_create_step8_text',
-              requireTargetTap: true,
-              onTargetTap: () {
-                if (!_expansionController.isExpanded) {
-                  _expansionController.expand();
-                }
-              },
-            ),
-            TutorialStep(
-              targetKey: _regionalKey,
-              titleKey: 'tutorial_create_step9_title',
-              textKey: 'tutorial_create_step9_text',
-              requireTargetTap: true,
-              preCalculateDelayMilliseconds: 350,
-              onTargetTap: () => setState(() => includeRegional = true),
-            ),
-            TutorialStep(
-              targetKey: _megaKey,
-              titleKey: 'tutorial_create_step10_title',
-              textKey: 'tutorial_create_step10_text',
-              requireTargetTap: true,
-              onTargetTap: () => setState(() => includeMega = true),
-            ),
-            TutorialStep(
-              targetKey: _gmaxKey,
-              titleKey: 'tutorial_create_step11_title',
-              textKey: 'tutorial_create_step11_text',
-              requireTargetTap: true,
-              onTargetTap: () => setState(() => includeGMax = true),
-            ),
-            TutorialStep(
-              targetKey: _otherKey,
-              titleKey: 'tutorial_create_step12_title',
-              textKey: 'tutorial_create_step12_text',
-              requireTargetTap: true,
-              onTargetTap: () => setState(() => includeOther = true),
-            ),
-            TutorialStep(
-              targetKey: _saveKey,
-              titleKey: 'tutorial_create_step13_title',
-              textKey: 'tutorial_create_step13_text',
-              requireTargetTap: true,
-              onTargetTap: () {
-                tutProvider.markFeatureAsSeen('create_dex_sheet');
-                _createDex();
-              },
-            ),
-          ],
-        ),
-        () => tutProvider.markFeatureAsSeen('create_dex_sheet'),
-      );
+                    setState(() {
+                      selectedGroup = natGroup;
+                      selectedSubDex = natGroup.dexKeys.first;
+                      nameController.text = Translator.get('region_$selectedSubDex');
+                      features = DexGroupsData.getAvailableFeatures(selectedSubDex);
+                    });
+                  } catch (e) {
+                    NotificationHelper.showError('${Translator.get('error')} $e');
+                  }
+                },
+              ),
+              TutorialStep(
+                targetKey: _shinyKey,
+                titleKey: 'tutorial_create_step6_title',
+                textKey: 'tutorial_create_step6_text',
+                requireTargetTap: true,
+                onTargetTap: () => setState(() => isShinyDex = true),
+              ),
+              TutorialStep(
+                targetKey: _genderKey,
+                titleKey: 'tutorial_create_step7_title',
+                textKey: 'tutorial_create_step7_text',
+                requireTargetTap: true,
+                onTargetTap: () => setState(() => includeGenders = true),
+              ),
+              TutorialStep(
+                targetKey: _formsExpansionKey,
+                titleKey: 'tutorial_create_step8_title',
+                textKey: 'tutorial_create_step8_text',
+                requireTargetTap: true,
+                onTargetTap: () {
+                  try {
+                    if (!_expansionController.isExpanded) {
+                      _expansionController.expand();
+                    }
+                  } catch (e) {
+                    NotificationHelper.showError('${Translator.get('error')} $e');
+                  }
+                },
+              ),
+              TutorialStep(
+                targetKey: _regionalKey,
+                titleKey: 'tutorial_create_step9_title',
+                textKey: 'tutorial_create_step9_text',
+                requireTargetTap: true,
+                preCalculateDelayMilliseconds: 350,
+                onTargetTap: () => setState(() => includeRegional = true),
+              ),
+              TutorialStep(
+                targetKey: _megaKey,
+                titleKey: 'tutorial_create_step10_title',
+                textKey: 'tutorial_create_step10_text',
+                requireTargetTap: true,
+                onTargetTap: () => setState(() => includeMega = true),
+              ),
+              TutorialStep(
+                targetKey: _gmaxKey,
+                titleKey: 'tutorial_create_step11_title',
+                textKey: 'tutorial_create_step11_text',
+                requireTargetTap: true,
+                onTargetTap: () => setState(() => includeGMax = true),
+              ),
+              TutorialStep(
+                targetKey: _otherKey,
+                titleKey: 'tutorial_create_step12_title',
+                textKey: 'tutorial_create_step12_text',
+                requireTargetTap: true,
+                onTargetTap: () => setState(() => includeOther = true),
+              ),
+              TutorialStep(
+                targetKey: _saveKey,
+                titleKey: 'tutorial_create_step13_title',
+                textKey: 'tutorial_create_step13_text',
+                requireTargetTap: true,
+                onTargetTap: () {
+                  try {
+                    Future.delayed(const Duration(milliseconds: 350), () {
+                      if (mounted) _createDex();
+                    });
+                  } catch (e) {
+                    NotificationHelper.showError('${Translator.get('error')} $e');
+                  }
+                },
+              ),
+            ],
+          ),
+          () {
+            tutProvider.markFeatureAsSeen('create_dex_sheet');
+          },
+        );
+      }
+    } catch (e) {
+      NotificationHelper.showError('${Translator.get('error')} $e');
     }
   }
 
   void _createDex() {
-    if (nameController.text.isNotEmpty) {
-      widget.provider.createDex(
-        nameController.text,
-        selectedSubDex,
-        includeGenders,
-        includeRegional,
-        includeMega,
-        includeGMax,
-        includeOther,
-        isShinyDex,
-        widget.currentFolderId,
-      );
-      Navigator.pop(context);
+    try {
+      if (nameController.text.isNotEmpty) {
+        widget.provider.createDex(
+          nameController.text,
+          selectedSubDex,
+          includeGenders,
+          includeRegional,
+          includeMega,
+          includeGMax,
+          includeOther,
+          isShinyDex,
+          widget.currentFolderId,
+        );
+        if (mounted) Navigator.pop(context);
+      }
+    } catch (e) {
+      NotificationHelper.showError('${Translator.get('error')} $e');
     }
   }
 
@@ -246,7 +320,6 @@ class _CreateDexBottomSheetState extends State<CreateDexBottomSheet> {
   Widget _buildCollage(List<int> ids) {
     const String baseUrl =
         'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/';
-
     return Column(
       children: [
         Expanded(
@@ -336,26 +409,28 @@ class _CreateDexBottomSheetState extends State<CreateDexBottomSheet> {
                       child: GestureDetector(
                         key: itemKey,
                         onTap: () {
-                          setState(() {
-                            selectedGroup = group;
-                            selectedSubDex = group.dexKeys.first;
-                            nameController.text = Translator.get(
-                              'region_$selectedSubDex',
-                            );
-                            features = DexGroupsData.getAvailableFeatures(
-                              selectedSubDex,
-                            );
-
-                            includeMega = selectedSubDex == 'mega_dex';
-                            includeOther = selectedSubDex == 'icognito_dex';
-
-                            if (!features['regional']!) includeRegional = false;
-                            if (!features['mega']! &&
-                                selectedSubDex != 'mega_dex') {
-                              includeMega = false;
-                            }
-                            if (!features['gmax']!) includeGMax = false;
-                          });
+                          try {
+                            setState(() {
+                              selectedGroup = group;
+                              selectedSubDex = group.dexKeys.first;
+                              nameController.text = Translator.get(
+                                'region_$selectedSubDex',
+                              );
+                              features = DexGroupsData.getAvailableFeatures(
+                                selectedSubDex,
+                              );
+                              includeMega = selectedSubDex == 'mega_dex';
+                              includeOther = selectedSubDex == 'icognito_dex';
+                              if (!features['regional']!) includeRegional = false;
+                              if (!features['mega']! &&
+                                  selectedSubDex != 'mega_dex') {
+                                includeMega = false;
+                              }
+                              if (!features['gmax']!) includeGMax = false;
+                            });
+                          } catch (e) {
+                            NotificationHelper.showError('${Translator.get('error')} $e');
+                          }
                         },
                         child: AnimatedContainer(
                           duration: const Duration(milliseconds: 200),
@@ -395,7 +470,7 @@ class _CreateDexBottomSheetState extends State<CreateDexBottomSheet> {
                                     borderRadius: const BorderRadius.vertical(
                                       bottom: Radius.circular(14),
                                     ),
-                                  ),
+                                 ),
                                   alignment: Alignment.center,
                                   child: Text(
                                     Translator.get(group.nameKey),
@@ -447,28 +522,67 @@ class _CreateDexBottomSheetState extends State<CreateDexBottomSheet> {
                   );
                 }).toList(),
                 onChanged: (val) {
-                  if (val != null) {
-                    setState(() {
-                      selectedSubDex = val;
-                      nameController.text = Translator.get(
-                        'region_$selectedSubDex',
-                      );
-                      features = DexGroupsData.getAvailableFeatures(
-                        selectedSubDex,
-                      );
-
-                      includeMega = selectedSubDex == 'mega_dex';
-                      includeOther = selectedSubDex == 'icognito_dex';
-
-                      if (!features['regional']!) includeRegional = false;
-                      if (!features['mega']! && selectedSubDex != 'mega_dex') {
-                        includeMega = false;
-                      }
-                      if (!features['gmax']!) includeGMax = false;
-                    });
+                  try {
+                    if (val != null) {
+                      setState(() {
+                        selectedSubDex = val;
+                        nameController.text = Translator.get(
+                          'region_$selectedSubDex',
+                        );
+                        features = DexGroupsData.getAvailableFeatures(
+                          selectedSubDex,
+                        );
+                        includeMega = selectedSubDex == 'mega_dex';
+                        includeOther = selectedSubDex == 'icognito_dex';
+                        if (!features['regional']!) includeRegional = false;
+                        if (!features['mega']! && selectedSubDex != 'mega_dex') {
+                          includeMega = false;
+                        }
+                        if (!features['gmax']!) includeGMax = false;
+                      });
+                    }
+                  } catch (e) {
+                    NotificationHelper.showError('${Translator.get('error')} $e');
                   }
                 },
               ),
+              
+              if (_showFakeDropdown)
+                Container(
+                  key: _fakeDropdownKey,
+                  margin: const EdgeInsets.only(top: 4),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                    borderRadius: BorderRadius.circular(8),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.5),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: selectedGroup.dexKeys.map((key) {
+                      final isSelected = key == selectedSubDex;
+                      return Container(
+                        color: isSelected
+                            ? Theme.of(context).colorScheme.primary.withOpacity(0.2)
+                            : Colors.transparent,
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                        child: Text(
+                          Translator.get('region_$key') != 'region_$key'
+                              ? Translator.get('region_$key')
+                              : key,
+                          style: TextStyle(
+                            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                ),
               const SizedBox(height: 16),
             ],
             TextField(

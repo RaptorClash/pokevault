@@ -957,9 +957,12 @@ const Map<String, String> translationsEn = {
   "tutorial_create_step2_title": "Select Region",
   "tutorial_create_step2_text":
       "Now tap on 'Kalos & Z-A' to see how the options adapt.",
-  "tutorial_create_step3_title": "Specific Dexes",
-  "tutorial_create_step3_text":
-      "Some regions offer a dropdown here (e.g., Central Kalos). Tap the field to continue.",
+  'tutorial_create_step3_title': 'Specific Dexes',
+  'tutorial_create_step3_text':
+      'Some regions offer a dropdown here (e.g., for Central Kalos). Tap the field to continue.',
+  'tutorial_create_step3_5_title': 'The Full Choice',
+  'tutorial_create_step3_5_text':
+      'Here you can choose exactly which part of the region you want to play! Tap the list to close it again.',
   "tutorial_create_step4_title": "Back to Start",
   'tutorial_create_step4_text':
       'For this tutorial, we want everything! Swipe the list all the way back to the left.',
