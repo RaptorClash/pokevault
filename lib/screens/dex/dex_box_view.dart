@@ -15,6 +15,8 @@ class DexBoxView extends StatelessWidget {
   final bool separateForms;
   final Set<String> highlightedIds;
   final bool isSearchActive;
+  final GlobalKey? firstItemKey;
+  final String? tutorialTargetId;
 
   const DexBoxView({
     super.key,
@@ -25,6 +27,8 @@ class DexBoxView extends StatelessWidget {
     required this.separateForms,
     required this.highlightedIds,
     required this.isSearchActive,
+    this.firstItemKey,
+    this.tutorialTargetId,
   });
 
   void _showQuickNavDialog(BuildContext context) {
@@ -205,6 +209,9 @@ class DexBoxView extends StatelessWidget {
                           !highlightedIds.contains(entry.uniqueId);
 
                       return GestureDetector(
+                        key: entry.uniqueId == tutorialTargetId
+                            ? firstItemKey
+                            : null,
                         onTap: () =>
                             provider.togglePokemon(liveDex.id, entry.uniqueId),
                         onLongPress: () {

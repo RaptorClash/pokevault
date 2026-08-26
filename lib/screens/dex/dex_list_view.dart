@@ -11,12 +11,16 @@ class DexListView extends StatelessWidget {
   final List<DexDisplayEntry> displayList;
   final UserDex liveDex;
   final DexProvider provider;
+  final GlobalKey? firstItemKey;
+  final String? tutorialTargetId;
 
   const DexListView({
     super.key,
     required this.displayList,
     required this.liveDex,
     required this.provider,
+    this.firstItemKey,
+    this.tutorialTargetId,
   });
 
   @override
@@ -46,6 +50,7 @@ class DexListView extends StatelessWidget {
         final isShiny = liveDex.shinyIds.contains(entry.uniqueId);
 
         return GestureDetector(
+          key: entry.uniqueId == tutorialTargetId ? firstItemKey : null,
           onTap: () => provider.togglePokemon(liveDex.id, entry.uniqueId),
           onLongPress: () {
             Navigator.push(

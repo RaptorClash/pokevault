@@ -998,4 +998,82 @@ const Map<String, String> translationsEn = {
       "Wait, wrong direction! We want to go back to the National Dex (swipe right)!",
   "tutorial_rotom_angry":
       "Fine, if you won't do it... I'll do it myself! ZZZZZZT!",
+
+  'tutorial_open_dex_title': 'Your first Pokédex!',
+  'tutorial_open_dex_text':
+      'Click on your newly created Pokédex here to open it!',
+  'tutorial_dex_intro_title': 'The Core!',
+  'tutorial_dex_intro_text':
+      'Welcome to the main view! Here you can see all Pokémon belonging to this dex.',
+  'tutorial_dex_tap_title': 'Catch \'em all!',
+  'tutorial_dex_tap_text': 'Tap on a Pokémon once to mark it as caught.',
+  'tutorial_dex_menu_title': 'Menu & Sorting',
+  'tutorial_dex_menu_text':
+      'Tap the sort icon in the top right to adjust your view.',
+  'tutorial_dex_menu_forms_title': 'By Pokédex (Normal)',
+  'tutorial_dex_menu_forms_text':
+      'Tap on "By Pokédex (Normal)". Now all regular Pokémon appear first, with special forms grouped at the end!',
+  'tutorial_dex_menu_box_title': 'PC-Box View',
+  'tutorial_dex_menu_box_text':
+      'Tap on "To PC-Box View" to sort Pokémon into boxes just like in the games. That\'s it for here!',
+
+  'tutorial_dex_search_title': 'The Search Function!',
+  'tutorial_dex_search_text':
+      'Here you can search for names, IDs, or types. Tap the search bar, Rotom will type "Machamp" for you as a test!',
+  'tutorial_longpress_title': 'Open Details',
+  'tutorial_longpress_text':
+      'There it is! Long press a Pokémon (or tap here) to open its detailed view.',
+
+  'tutorial_info_appbar_title': 'Extra Information',
+  'tutorial_info_appbar_text':
+      'Up here you can always see exactly which box and position you are currently looking at.',
+  'tutorial_info_shiny_toggle_title': 'Shiny View',
+  'tutorial_info_shiny_toggle_text':
+      'Tap this icon on the bottom right of the image to see what the Pokémon looks like in its Shiny form!',
+  'tutorial_info_basic_title': 'Basic Info',
+  'tutorial_info_basic_text':
+      'Below that, you will find the basic data: ID, name, and the types of the Pokémon.',
+  'tutorial_info_caught_title': 'Caught Status',
+  'tutorial_info_caught_text':
+      'Use this switch to easily check off whether you have already caught this Pokémon.',
+  'tutorial_info_shiny_title': 'Shiny Status',
+  'tutorial_info_shiny_text':
+      'And here you can mark if you caught its Shiny version!',
+  'tutorial_info_breeding_title': 'Breeding & Evolution',
+  'tutorial_info_breeding_text':
+      'Expand this section to learn everything about egg groups, genders, and exact evolution conditions.',
+  'tutorial_info_catchcalc_title': 'Catch Rate Calculator',
+  'tutorial_info_catchcalc_text':
+      'A highly useful tool! Calculate your exact catch chance here. Options adapt dynamically based on the generation.',
+  'tutorial_info_matchingballs_title': 'Matching Balls',
+  'tutorial_info_matchingballs_text':
+      'Here you can see which Poké Balls color-match the normal and Shiny Pokémon best.',
+  'tutorial_info_encounters_title': 'Locations & Encounters',
+  'tutorial_info_encounters_text':
+      'Shows you exactly where and how to find the Pokémon in the games for each version.',
+  'tutorial_info_shinyguide_title': 'Shiny Guide',
+  'tutorial_info_shinyguide_text':
+      'Special tips and mechanics to specifically hunt this Pokémon as a Shiny!',
+  'tutorial_info_ignore_title': 'Remove Pokémon',
+  'tutorial_info_ignore_text':
+      'If a Pokémon doesn\'t belong in your Dex, you can hide it here. Go ahead and try it out by pressing the button!',
+  'tutorial_info_ignore_confirm_title': 'Really remove?',
+  'tutorial_info_ignore_confirm_text':
+      'Now tap "Remove from Dex" to hide Machamp for now.',
+
+  'tutorial_dex_menu_ignored_title': 'Find hidden Pokémon',
+  'tutorial_dex_menu_ignored_text':
+      'Oh no, Machamp is gone! But don\'t worry. Open the menu up here again.',
+  'tutorial_dex_menu_ignored_btn_title': 'Ignored Pokémon',
+  'tutorial_dex_menu_ignored_btn_text':
+      'Tap on "Ignored Pokémon" to see your hidden friends.',
+
+  'tutorial_ignored_restore_title': 'Restore',
+  'tutorial_ignored_restore_text':
+      'Here are all the Pokémon you have hidden. Click "Restore" to bring Machamp back to your Dex. Now you are a true PokéVault pro!',
+
+  'tutorial_dex_search_easteregg':
+      'Alright, if you don\'t know how to type... I\'ll take over! ZZZZZZT!',
+  'tutorial_longpress_error':
+      'That was a normal tap! Press and HOLD the Pokémon!',
 };

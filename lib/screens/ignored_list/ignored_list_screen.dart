@@ -2,9 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../models/dex_view_models.dart';
 import '../../providers/dex_provider.dart';
+import '../../providers/tutorial_provider.dart';
+import '../../models/tutorial_step.dart';
+import '../../widgets/tutorial/tutorial_overlay.dart';
 import '../../l10n/app_translations.dart';
 
-class IgnoredListScreen extends StatelessWidget {
+class IgnoredListScreen extends StatefulWidget {
   final String dexId;
   final List<DexDisplayEntry> allRawEntries;
 
@@ -15,11 +18,69 @@ class IgnoredListScreen extends StatelessWidget {
   });
 
   @override
+  State<IgnoredListScreen> createState() => _IgnoredListScreenState();
+}
+
+class _IgnoredListScreenState extends State<IgnoredListScreen> {
+  final GlobalKey _restoreBtnKey = GlobalKey();
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _showTutorialIfNeeded();
+    });
+  }
+
+  void _showTutorialIfNeeded() {
+    final tutProvider = Provider.of<TutorialProvider>(context, listen: false);
+
+    if (!tutProvider.hasSeenFeature('ignored_restore')) {
+      TutorialOverlay.show(
+        context,
+        TutorialFeature(
+          id: 'ignored_restore',
+          nameKey: 'tutorial_feature_details',
+          steps: [
+            TutorialStep(
+              targetKey: _restoreBtnKey,
+              titleKey: 'tutorial_ignored_restore_title',
+              textKey: 'tutorial_ignored_restore_text',
+              requireTargetTap: true,
+              onTargetTap: () {
+                final provider = context.read<DexProvider>();
+                final liveDex = provider.userDexes.firstWhere(
+                  (d) => d.id == widget.dexId,
+                );
+                final ignoredEntries = widget.allRawEntries
+                    .where(
+                      (entry) => liveDex.ignoredIds.contains(entry.uniqueId),
+                    )
+                    .toList();
+
+                if (ignoredEntries.isNotEmpty) {
+                  provider.restorePokemon(
+                    widget.dexId,
+                    ignoredEntries.first.uniqueId,
+                  );
+                }
+
+                tutProvider.markFeatureAsSeen('ignored_restore');
+                Navigator.pop(context);
+              },
+            ),
+          ],
+        ),
+        () => tutProvider.markFeatureAsSeen('ignored_restore'),
+      );
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     final provider = context.watch<DexProvider>();
-    final liveDex = provider.userDexes.firstWhere((d) => d.id == dexId);
-
-    final ignoredEntries = allRawEntries
+    final liveDex = provider.userDexes.firstWhere((d) => d.id == widget.dexId);
+    final ignoredEntries = widget.allRawEntries
         .where((entry) => liveDex.ignoredIds.contains(entry.uniqueId))
         .toList();
 
@@ -41,10 +102,13 @@ class IgnoredListScreen extends StatelessWidget {
                     '#${entry.pokemon.id.toString().padLeft(3, '0')}',
                   ),
                   trailing: ElevatedButton.icon(
+                    key: index == 0
+                        ? _restoreBtnKey
+                        : null,
                     icon: const Icon(Icons.restore),
                     label: Text(Translator.get('restore_pokemon')),
                     onPressed: () {
-                      provider.restorePokemon(dexId, entry.uniqueId);
+                      provider.restorePokemon(widget.dexId, entry.uniqueId);
                     },
                   ),
                 );

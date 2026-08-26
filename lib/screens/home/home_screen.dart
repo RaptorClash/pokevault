@@ -30,6 +30,9 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final GlobalKey _fabKey = GlobalKey();
+
+  final Map<String, GlobalKey> _dexKeys = {};
+
   final Set<String> _selectedItemIds = {};
   late final Map<int, Pokemon> _pokemonCache;
   String _searchQuery = '';
@@ -54,6 +57,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void _showTutorialIfNeeded() {
     final tutProvider = Provider.of<TutorialProvider>(context, listen: false);
+    final dexProvider = Provider.of<DexProvider>(context, listen: false);
+
     if (!tutProvider.hasSeenFeature('home_screen')) {
       TutorialOverlay.show(
         context,
@@ -72,8 +77,12 @@ class _HomeScreenState extends State<HomeScreen> {
               textKey: 'tutorial_home_fab_text',
               requireTargetTap: true,
               onTargetTap: () {
-                tutProvider.markFeatureAsSeen('home_screen');
-                _openCreateBottomSheet();
+                try {
+                  tutProvider.markFeatureAsSeen('home_screen');
+                  _openCreateBottomSheet();
+                } catch (e) {
+                  NotificationHelper.showError('${Translator.get('error')} $e');
+                }
               },
             ),
           ],
@@ -82,6 +91,64 @@ class _HomeScreenState extends State<HomeScreen> {
         initialIndex: tutProvider.getFeatureStep('home_screen'),
         onStepChanged: (step) =>
             tutProvider.updateFatureStep('home_screen', step),
+      );
+    } else if (dexProvider.userDexes.isNotEmpty &&
+        !tutProvider.hasSeenFeature('open_dex')) {
+      final newestDex = dexProvider.userDexes.last;
+
+      if (!_dexKeys.containsKey(newestDex.id)) {
+        _dexKeys[newestDex.id] = GlobalKey();
+      }
+
+      TutorialOverlay.show(
+        context,
+        TutorialFeature(
+          id: 'open_dex',
+          nameKey: 'tutorial_feature_home',
+          steps: [
+            TutorialStep(
+              targetKey: _dexKeys[newestDex.id],
+              titleKey: 'tutorial_open_dex_title',
+              textKey: 'tutorial_open_dex_text',
+              requireTargetTap: true,
+              onTargetTap: () {
+                tutProvider.markFeatureAsSeen('open_dex');
+
+                List<int> selectedOrder =
+                    allAvailableDexes[newestDex.region] ?? [];
+                List<Pokemon> selectedDatabase = selectedOrder
+                    .map(
+                      (id) =>
+                          _pokemonCache[id] ??
+                          Pokemon(
+                            id: id,
+                            names: {'de': 'Unbekannt', 'en': 'Unknown'},
+                            hasGenderDifferences: false,
+                            genderRate: -1,
+                            eggGroups: [],
+                            evolutionChainId: -1,
+                            forms: [],
+                            captureRate: 255,
+                          ),
+                    )
+                    .toList();
+
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => DexScreen(
+                      initialDex: newestDex,
+                      pokemonList: selectedDatabase,
+                    ),
+                  ),
+                ).then((_) {
+                  if (mounted) _showTutorialIfNeeded();
+                });
+              },
+            ),
+          ],
+        ),
+        () => tutProvider.markFeatureAsSeen('open_dex'),
       );
     }
   }
@@ -649,9 +716,14 @@ class _HomeScreenState extends State<HomeScreen> {
 
         bool isSelected = isRootLevel && _selectedItemIds.contains(item.id);
 
+        if (!_dexKeys.containsKey(item.id)) {
+          _dexKeys[item.id] = GlobalKey();
+        }
+        Key currentKey = _dexKeys[item.id]!;
+
         widgets.add(
           Card(
-            key: ValueKey('${item.id}_$q'),
+            key: currentKey,
             elevation: isSelected ? 4 : 1,
             margin: EdgeInsets.symmetric(
               horizontal: isRootLevel ? 16 : 0,
@@ -688,6 +760,15 @@ class _HomeScreenState extends State<HomeScreen> {
                   }
                   return;
                 }
+
+                final tutProvider = Provider.of<TutorialProvider>(
+                  context,
+                  listen: false,
+                );
+                if (!tutProvider.hasSeenFeature('open_dex')) {
+                  tutProvider.markFeatureAsSeen('open_dex');
+                }
+
                 List<int> selectedOrder = allAvailableDexes[item.region] ?? [];
                 List<Pokemon> selectedDatabase = selectedOrder
                     .map(
@@ -713,7 +794,9 @@ class _HomeScreenState extends State<HomeScreen> {
                       pokemonList: selectedDatabase,
                     ),
                   ),
-                );
+                ).then((_) {
+                  if (mounted) _showTutorialIfNeeded();
+                });
               },
               child: ListTile(
                 leading: const CircleAvatar(
@@ -890,6 +973,10 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<DexProvider>();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted && _currentFolderId == 'root') _showTutorialIfNeeded();
+    });
 
     return Scaffold(
       appBar: AppBar(
@@ -1166,16 +1253,22 @@ class _HomeBottomSheetContentState extends State<_HomeBottomSheetContent> {
                   textKey: 'tutorial_home_sheet_text',
                   requireTargetTap: true,
                   onTargetTap: () {
-                    tutProvider.markFeatureAsSeen('home_bottom_sheet');
-                    Navigator.pop(context);
-                    showModalBottomSheet(
-                      context: context,
-                      isScrollControlled: true,
-                      builder: (context) => CreateDexBottomSheet(
-                        provider: widget.provider,
-                        currentFolderId: widget.currentFolderId,
-                      ),
-                    );
+                    try {
+                      tutProvider.markFeatureAsSeen('home_bottom_sheet');
+                      Navigator.pop(context);
+                      showModalBottomSheet(
+                        context: context,
+                        isScrollControlled: true,
+                        builder: (context) => CreateDexBottomSheet(
+                          provider: widget.provider,
+                          currentFolderId: widget.currentFolderId,
+                        ),
+                      );
+                    } catch (e) {
+                      NotificationHelper.showError(
+                        '${Translator.get('error')} $e',
+                      );
+                    }
                   },
                 ),
               ],

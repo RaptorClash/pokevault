@@ -7,14 +7,19 @@ import '../../models/user_dex.dart';
 import '../../models/pokemon.dart';
 import '../../models/dex_view_models.dart';
 import '../../providers/dex_provider.dart';
+import '../../providers/tutorial_provider.dart';
+import '../../models/tutorial_step.dart';
+import '../../widgets/tutorial/tutorial_overlay.dart';
 import '../../l10n/app_translations.dart';
 import '../../utils/dex_logic_helper.dart';
+import '../../utils/notification_helper.dart';
 import '../../screens/pokemon_info/widgets/breeding_data.dart';
 import '../../utils/shiny_logic_helper.dart';
 import '../ignored_list/ignored_list_screen.dart';
 import 'dex_box_view.dart';
 import 'dex_list_view.dart';
 import 'route_tracker_screen.dart';
+import '../pokemon_info/pokemon_info_screen.dart';
 
 class DexScreen extends StatefulWidget {
   final UserDex initialDex;
@@ -44,6 +49,16 @@ class _DexScreenState extends State<DexScreen> {
 
   Timer? _debounce;
 
+  final GlobalKey _firstPokemonKey = GlobalKey();
+  final GlobalKey _sortMenuKey = GlobalKey();
+  final GlobalKey _fakeMenuBoxKey = GlobalKey();
+  final GlobalKey _fakeMenuFormsKey = GlobalKey();
+  final GlobalKey _fakeMenuIgnoredKey = GlobalKey();
+  final GlobalKey _searchBarKey = GlobalKey();
+
+  bool _showFakeMenu = false;
+  String? _tutorialTargetId;
+
   @override
   void initState() {
     super.initState();
@@ -52,6 +67,217 @@ class _DexScreenState extends State<DexScreen> {
       widget.initialDex,
       context.read<DexProvider>(),
       widget.pokemonList,
+    );
+
+    final baseList = _rawEntries
+        .where((e) => !widget.initialDex.ignoredIds.contains(e.uniqueId))
+        .toList();
+    if (baseList.isNotEmpty) {
+      _tutorialTargetId = baseList.first.uniqueId;
+    }
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _showTutorialIfNeeded();
+    });
+  }
+
+  void _showTutorialIfNeeded() {
+    final tutProvider = Provider.of<TutorialProvider>(context, listen: false);
+    final dexProvider = Provider.of<DexProvider>(context, listen: false);
+
+    if (!tutProvider.hasSeenFeature('dex_screen')) {
+      TutorialOverlay.show(
+        context,
+        TutorialFeature(
+          id: 'dex_screen',
+          nameKey: 'tutorial_feature_details',
+          steps: [
+            TutorialStep(
+              targetKey: null,
+              titleKey: 'tutorial_dex_intro_title',
+              textKey: 'tutorial_dex_intro_text',
+            ),
+            TutorialStep(
+              targetKey: _firstPokemonKey,
+              titleKey: 'tutorial_dex_tap_title',
+              textKey: 'tutorial_dex_tap_text',
+              requireTargetTap: true,
+              onTargetTap: () {
+                try {
+                  final baseList = _rawEntries
+                      .where(
+                        (e) =>
+                            !widget.initialDex.ignoredIds.contains(e.uniqueId),
+                      )
+                      .toList();
+                  if (baseList.isNotEmpty) {
+                    dexProvider.togglePokemon(
+                      widget.initialDex.id,
+                      baseList.first.uniqueId,
+                    );
+                  }
+                } catch (e) {
+                  NotificationHelper.showError('${Translator.get('error')} $e');
+                }
+              },
+            ),
+            TutorialStep(
+              targetKey: _sortMenuKey,
+              titleKey: 'tutorial_dex_menu_title',
+              textKey: 'tutorial_dex_menu_text',
+              requireTargetTap: true,
+              onTargetTap: () {
+                try {
+                  setState(() => _showFakeMenu = true);
+                } catch (e) {
+                  NotificationHelper.showError('${Translator.get('error')} $e');
+                }
+              },
+            ),
+            TutorialStep(
+              targetKey: _fakeMenuFormsKey,
+              titleKey: 'tutorial_dex_menu_forms_title',
+              textKey: 'tutorial_dex_menu_forms_text',
+              requireTargetTap: true,
+              onTargetTap: () {
+                try {
+                  _toggleSeparateForms();
+                } catch (e) {
+                  NotificationHelper.showError('${Translator.get('error')} $e');
+                }
+              },
+            ),
+            TutorialStep(
+              targetKey: _fakeMenuBoxKey,
+              titleKey: 'tutorial_dex_menu_box_title',
+              textKey: 'tutorial_dex_menu_box_text',
+              requireTargetTap: true,
+              onTargetTap: () {
+                try {
+                  setState(() => _showFakeMenu = false);
+                  _toggleBoxView();
+                } catch (e) {
+                  NotificationHelper.showError('${Translator.get('error')} $e');
+                }
+              },
+            ),
+            TutorialStep(
+              targetKey: _searchBarKey,
+              titleKey: 'tutorial_dex_search_title',
+              textKey: 'tutorial_dex_search_text',
+              requireTargetTap: false,
+            ),
+          ],
+        ),
+        () => tutProvider.markFeatureAsSeen('dex_screen'),
+      );
+    } else if (tutProvider.hasSeenFeature('pokemon_details') &&
+        !tutProvider.hasSeenFeature('ignored_pokemon')) {
+      TutorialOverlay.show(
+        context,
+        TutorialFeature(
+          id: 'ignored_pokemon',
+          nameKey: 'tutorial_feature_details',
+          steps: [
+            TutorialStep(
+              targetKey: _sortMenuKey,
+              titleKey: 'tutorial_dex_menu_ignored_title',
+              textKey: 'tutorial_dex_menu_ignored_text',
+              requireTargetTap: true,
+              onTargetTap: () {
+                setState(() => _showFakeMenu = true);
+              },
+            ),
+            TutorialStep(
+              targetKey: _fakeMenuIgnoredKey,
+              titleKey: 'tutorial_dex_menu_ignored_btn_title',
+              textKey: 'tutorial_dex_menu_ignored_btn_text',
+              requireTargetTap: true,
+              onTargetTap: () {
+                setState(() => _showFakeMenu = false);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => IgnoredListScreen(
+                      dexId: widget.initialDex.id,
+                      allRawEntries: _rawEntries,
+                    ),
+                  ),
+                ).then((_) {
+                  if (mounted) _showTutorialIfNeeded();
+                });
+              },
+            ),
+          ],
+        ),
+        () => tutProvider.markFeatureAsSeen('ignored_pokemon'),
+      );
+    }
+  }
+
+  void _showMachomeiFoundTutorial() {
+    final tutProvider = Provider.of<TutorialProvider>(context, listen: false);
+    final dexProvider = Provider.of<DexProvider>(context, listen: false);
+
+    final baseList = _rawEntries
+        .where((e) => !widget.initialDex.ignoredIds.contains(e.uniqueId))
+        .toList();
+    final filtered = baseList
+        .where((e) => _matchesSearch(e, widget.initialDex, dexProvider))
+        .toList();
+
+    if (filtered.isNotEmpty) {
+      setState(() {
+        _tutorialTargetId = filtered.first.uniqueId;
+      });
+    }
+
+    TutorialOverlay.show(
+      context,
+      TutorialFeature(
+        id: 'dex_machomei_found',
+        nameKey: 'tutorial_feature_details',
+        steps: [
+          TutorialStep(
+            targetKey: _firstPokemonKey,
+            titleKey: 'tutorial_longpress_title',
+            textKey: 'tutorial_longpress_text',
+            requireTargetTap: true,
+            preCalculateDelayMilliseconds: 800,
+            onTargetTap: () {
+              try {
+                final listToUse = filtered.isNotEmpty ? filtered : baseList;
+                if (listToUse.isNotEmpty) {
+                  int targetIndex = listToUse.indexWhere(
+                    (e) => e.uniqueId == _tutorialTargetId,
+                  );
+                  if (targetIndex == -1) targetIndex = 0;
+
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      fullscreenDialog: true,
+                      builder: (context) => PokemonInfoScreen(
+                        entries: listToUse,
+                        initialIndex: targetIndex,
+                        dexId: widget.initialDex.id,
+                        isBoxView: _isBoxView,
+                      ),
+                    ),
+                  ).then((_) {
+                    _searchController.clear();
+                    setState(() => _searchQuery = "");
+                    if (mounted) _showTutorialIfNeeded();
+                  });
+                }
+              } catch (e) {
+                NotificationHelper.showError('${Translator.get('error')} $e');
+              }
+            },
+          ),
+        ],
+      ),
+      () => tutProvider.markFeatureAsSeen('dex_machomei_found'),
     );
   }
 
@@ -394,7 +620,11 @@ class _DexScreenState extends State<DexScreen> {
                     box.entries.any((e) => highlightedIds.contains(e.uniqueId)),
               );
               if (firstMatchIndex != -1) {
-                _pageController.jumpToPage(firstMatchIndex);
+                _pageController.animateToPage(
+                  firstMatchIndex,
+                  duration: const Duration(milliseconds: 600),
+                  curve: Curves.easeInOut,
+                );
               }
             }
           }
@@ -404,6 +634,112 @@ class _DexScreenState extends State<DexScreen> {
       _lastSearchQuery = _searchQuery;
       _lastFilter = _filter;
     }
+
+    Widget bodyContent = Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  key: _searchBarKey,
+                  controller: _searchController,
+                  decoration: InputDecoration(
+                    hintText: Translator.get('search_hint'),
+                    prefixIcon: const Icon(Icons.search),
+                    suffixIcon: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (_searchQuery.isNotEmpty)
+                          IconButton(
+                            icon: const Icon(Icons.clear),
+                            onPressed: () {
+                              _debounce?.cancel();
+                              _searchController.clear();
+                              setState(() => _searchQuery = '');
+                            },
+                          ),
+                        IconButton(
+                          icon: const Icon(Icons.help_outline),
+                          onPressed: () => _showSearchHelpDialog(context),
+                        ),
+                      ],
+                    ),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(vertical: 0),
+                  ),
+                  onChanged: (val) {
+                    if (_debounce?.isActive ?? false) _debounce!.cancel();
+                    _debounce = Timer(const Duration(milliseconds: 300), () {
+                      setState(() => _searchQuery = val);
+
+                      final tutProvider = Provider.of<TutorialProvider>(
+                        context,
+                        listen: false,
+                      );
+                      if (tutProvider.hasSeenFeature('dex_screen') &&
+                          !tutProvider.hasSeenFeature('dex_machomei_found')) {
+                        final q = val.toLowerCase().trim();
+                        if (q == 'machomei' ||
+                            q == 'machamp' ||
+                            q == '068' ||
+                            q == '68' ||
+                            q == '#068') {
+                          _showMachomeiFoundTutorial();
+                        }
+                      }
+                    });
+                  },
+                ),
+              ),
+              const SizedBox(width: 8),
+              DropdownButton<String>(
+                value: _filter,
+                items: [
+                  DropdownMenuItem(
+                    value: 'all',
+                    child: Text(Translator.get('filter_all')),
+                  ),
+                  DropdownMenuItem(
+                    value: 'caught',
+                    child: Text(Translator.get('filter_caught')),
+                  ),
+                  DropdownMenuItem(
+                    value: 'uncaught',
+                    child: Text(Translator.get('filter_missing')),
+                  ),
+                ],
+                onChanged: (val) => setState(() => _filter = val ?? 'all'),
+              ),
+            ],
+          ),
+        ),
+        Expanded(
+          child: _isBoxView
+              ? DexBoxView(
+                  firstItemKey: _firstPokemonKey,
+                  tutorialTargetId: _tutorialTargetId,
+                  boxes: boxes,
+                  liveDex: liveDex,
+                  provider: provider,
+                  pageController: _pageController,
+                  separateForms: _separateForms,
+                  highlightedIds: highlightedIds,
+                  isSearchActive: isSearchActive,
+                )
+              : DexListView(
+                  firstItemKey: _firstPokemonKey,
+                  tutorialTargetId: _tutorialTargetId,
+                  displayList: filteredList,
+                  liveDex: liveDex,
+                  provider: provider,
+                ),
+        ),
+      ],
+    );
 
     return Scaffold(
       appBar: AppBar(
@@ -434,6 +770,7 @@ class _DexScreenState extends State<DexScreen> {
             },
           ),
           PopupMenuButton<String>(
+            key: _sortMenuKey,
             icon: const Icon(Icons.sort),
             tooltip: Translator.get('tooltip_view_sort'),
             onSelected: (value) {
@@ -505,88 +842,112 @@ class _DexScreenState extends State<DexScreen> {
           ),
         ],
       ),
-      body: Column(
+      body: Stack(
         children: [
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: _searchController,
-                    decoration: InputDecoration(
-                      hintText: Translator.get('search_hint'),
-                      prefixIcon: const Icon(Icons.search),
-                      suffixIcon: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          if (_searchQuery.isNotEmpty)
-                            IconButton(
-                              icon: const Icon(Icons.clear),
-                              onPressed: () {
-                                _debounce?.cancel();
-                                _searchController.clear();
-                                setState(() => _searchQuery = '');
-                              },
-                            ),
-                          IconButton(
-                            icon: const Icon(Icons.help_outline),
-                            onPressed: () => _showSearchHelpDialog(context),
+          bodyContent,
+          if (_showFakeMenu)
+            Positioned(
+              top: 0,
+              right: 8,
+              child: Material(
+                elevation: 8,
+                borderRadius: BorderRadius.circular(8),
+                child: Container(
+                  width: 250,
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).cardColor,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      InkWell(
+                        key: _fakeMenuBoxKey,
+                        onTap: () {
+                          setState(() => _showFakeMenu = false);
+                          _toggleBoxView();
+                        },
+                        child: Padding(
+                          padding: const EdgeInsets.all(12),
+                          child: Row(
+                            children: [
+                              Icon(
+                                _isBoxView ? Icons.list : Icons.grid_view,
+                                size: 20,
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                _isBoxView
+                                    ? Translator.get('view_list')
+                                    : Translator.get('view_box'),
+                              ),
+                            ],
                           ),
-                        ],
+                        ),
                       ),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
+                      InkWell(
+                        key: _fakeMenuFormsKey,
+                        onTap: () {
+                          _toggleSeparateForms();
+                        },
+                        child: Padding(
+                          padding: const EdgeInsets.all(12),
+                          child: Row(
+                            children: [
+                              Icon(
+                                _separateForms
+                                    ? Icons.format_list_numbered
+                                    : Icons.category,
+                                size: 20,
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                _separateForms
+                                    ? Translator.get('sort_dex')
+                                    : Translator.get('sort_forms'),
+                              ),
+                            ],
+                          ),
+                        ),
                       ),
-                      contentPadding: const EdgeInsets.symmetric(vertical: 0),
-                    ),
-                    onChanged: (val) {
-                      if (_debounce?.isActive ?? false) _debounce!.cancel();
-                      _debounce = Timer(const Duration(milliseconds: 300), () {
-                        setState(() => _searchQuery = val);
-                      });
-                    },
+                      const Divider(height: 1),
+                      InkWell(
+                        key: _fakeMenuIgnoredKey,
+                        onTap: () {
+                          setState(() => _showFakeMenu = false);
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => IgnoredListScreen(
+                                dexId: liveDex.id,
+                                allRawEntries: _rawEntries,
+                              ),
+                            ),
+                          ).then((_) {
+                            if (mounted) _showTutorialIfNeeded();
+                          });
+                        },
+                        child: Padding(
+                          padding: const EdgeInsets.all(12),
+                          child: Row(
+                            children: [
+                              const Icon(Icons.visibility_off, size: 20),
+                              const SizedBox(width: 8),
+                              Text(
+                                Translator.get('ignored_list_title') !=
+                                        'ignored_list_title'
+                                    ? Translator.get('ignored_list_title')
+                                    : 'Ausgeblendete Pokemon',
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-                const SizedBox(width: 8),
-                DropdownButton<String>(
-                  value: _filter,
-                  items: [
-                    DropdownMenuItem(
-                      value: 'all',
-                      child: Text(Translator.get('filter_all')),
-                    ),
-                    DropdownMenuItem(
-                      value: 'caught',
-                      child: Text(Translator.get('filter_caught')),
-                    ),
-                    DropdownMenuItem(
-                      value: 'uncaught',
-                      child: Text(Translator.get('filter_missing')),
-                    ),
-                  ],
-                  onChanged: (val) => setState(() => _filter = val ?? 'all'),
-                ),
-              ],
+              ),
             ),
-          ),
-          Expanded(
-            child: _isBoxView
-                ? DexBoxView(
-                    boxes: boxes,
-                    liveDex: liveDex,
-                    provider: provider,
-                    pageController: _pageController,
-                    separateForms: _separateForms,
-                    highlightedIds: highlightedIds,
-                    isSearchActive: isSearchActive,
-                  )
-                : DexListView(
-                    displayList: filteredList,
-                    liveDex: liveDex,
-                    provider: provider,
-                  ),
-          ),
         ],
       ),
     );

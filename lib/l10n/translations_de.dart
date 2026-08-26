@@ -1288,4 +1288,83 @@ const Map<String, String> translationsDe = {
       "Halt, falsche Richtung! Wir wollen zurück zum Nationaldex (nach rechts wischen)!",
   "tutorial_rotom_angry":
       "Na gut, wenn du nicht willst... dann mach ich das eben selbst! ZZZZZZT!",
+
+  'tutorial_open_dex_title': 'Dein erster Pokédex!',
+  'tutorial_open_dex_text':
+      'Klicke hier auf deinen neu erstellten Pokédex, um ihn zu öffnen!',
+  'tutorial_dex_intro_title': 'Das Herzstück!',
+  'tutorial_dex_intro_text':
+      'Willkommen in der Hauptansicht! Hier siehst du alle Pokémon, die zu diesem Dex gehören.',
+  'tutorial_dex_tap_title': 'Pokémon fangen!',
+  'tutorial_dex_tap_text':
+      'Tippe einmal kurz auf ein Pokémon, um es als gefangen zu markieren.',
+  'tutorial_dex_menu_title': 'Menü & Sortierung',
+  'tutorial_dex_menu_text':
+      'Tippe hier oben rechts auf das Sortierzeichen, um die Ansicht anzupassen.',
+  'tutorial_dex_menu_forms_title': 'Nach Pokédex (Normal)',
+  'tutorial_dex_menu_forms_text':
+      'Tippe auf "Nach Pokédex (Normal)". Nun stehen alle regulären Pokémon der Region zuerst und die Sonderformen am Ende!',
+  'tutorial_dex_menu_box_title': 'PC-Box Ansicht',
+  'tutorial_dex_menu_box_text':
+      'Tippe auf "Zur PC-Box Ansicht", um die Pokémon wie im echten Spiel in praktische Boxen zu sortieren. Das war\'s für hier!',
+
+  'tutorial_dex_search_title': 'Die Suchfunktion!',
+  'tutorial_dex_search_text':
+      'Hier kannst du nach Namen, IDs oder Typen suchen. Tippe auf die Suchleiste, Rotom tippt mal testweise "Machomei" für dich ein!',
+  'tutorial_longpress_title': 'Detailansicht öffnen',
+  'tutorial_longpress_text':
+      'Da ist es! Halte ein Pokémon lange gedrückt (oder tippe einfach hier), um in seine Detailansicht zu wechseln.',
+
+  'tutorial_info_appbar_title': 'Zusatzinformationen',
+  'tutorial_info_appbar_text':
+      'Hier oben siehst du immer, in welcher Box und an welcher Position du dich gerade befindest.',
+  'tutorial_info_shiny_toggle_title': 'Shiny Ansicht',
+  'tutorial_info_shiny_toggle_text':
+      'Tippe auf dieses Icon unten rechts am Bild, um dir das Pokémon in seiner schillernden Form (Shiny) anzusehen!',
+  'tutorial_info_basic_title': 'Basis-Infos',
+  'tutorial_info_basic_text':
+      'Darunter findest du die grundlegenden Daten: ID, Name und die Typen des Pokémon.',
+  'tutorial_info_caught_title': 'Gefangen Status',
+  'tutorial_info_caught_text':
+      'Mit diesem Schalter kannst du jederzeit abhaken, ob du das Pokémon bereits besitzt.',
+  'tutorial_info_shiny_title': 'Shiny Status',
+  'tutorial_info_shiny_text':
+      'Und hier markierst du, ob du es sogar als Shiny gefangen hast!',
+  'tutorial_info_breeding_title': 'Zucht und Entwicklung',
+  'tutorial_info_breeding_text':
+      'Klappe diesen Bereich aus, um alles über Ei-Gruppen, Geschlechter und die genauen Entwicklungsbedingungen zu erfahren.',
+  'tutorial_info_catchcalc_title': 'Fangratenrechner',
+  'tutorial_info_catchcalc_text':
+      'Ein extrem nützliches Tool! Berechne hier deine genaue Fangchance. Die Optionen passen sich je nach Generation dynamisch an.',
+  'tutorial_info_matchingballs_title': 'Matching Balls',
+  'tutorial_info_matchingballs_text':
+      'Hier siehst du, welche Pokébälle farblich am besten zum normalen und zum Shiny-Pokémon passen.',
+  'tutorial_info_encounters_title': 'Fundorte & Begegnungen',
+  'tutorial_info_encounters_text':
+      'Zeigt dir für jede Edition genau an, wo und wie du das Pokémon im Spiel finden kannst.',
+  'tutorial_info_shinyguide_title': 'Shiny Guide',
+  'tutorial_info_shinyguide_text':
+      'Spezielle Tipps und Mechaniken, um dieses Pokémon gezielt als Shiny zu jagen!',
+  'tutorial_info_ignore_title': 'Pokémon entfernen',
+  'tutorial_info_ignore_text':
+      'Sollte ein Pokémon mal nicht in deinen Dex gehören, kannst du es hier ausblenden. Probier es zum Abschluss einmal aus und drücke den Button!',
+  'tutorial_info_ignore_confirm_title': 'Wirklich entfernen?',
+  'tutorial_info_ignore_confirm_text':
+      'Klicke jetzt auf "Aus Dex entfernen", um Machomei vorerst zu verstecken.',
+
+  'tutorial_dex_menu_ignored_title': 'Versteckte Pokémon finden',
+  'tutorial_dex_menu_ignored_text':
+      'Oh nein, Machomei ist weg! Aber keine Sorge. Öffne wieder das Menü hier oben.',
+  'tutorial_dex_menu_ignored_btn_title': 'Ausgeblendete Pokémon',
+  'tutorial_dex_menu_ignored_btn_text':
+      'Tippe hier auf "Ausgeblendete Pokémon", um deine versteckten Freunde zu sehen.',
+
+  'tutorial_ignored_restore_title': 'Wiederherstellen',
+  'tutorial_ignored_restore_text':
+      'Hier sind alle Pokémon, die du ausgeblendet hast. Klicke auf "Wiederherstellen", um Machomei zurück in deinen Dex zu holen. Damit bist du ein echter PokéVault-Profi!',
+
+  'tutorial_dex_search_easteregg':
+      'Na gut, wenn du nicht weißt wie man tippt... ich übernehme das! ZZZZZZT!',
+  'tutorial_longpress_error':
+      'Das war ein normaler Klick! Halte das Pokémon LANGE gedrückt!',
 };
