@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
 import '../../data/dex_groups_data.dart';
 import '../../l10n/app_translations.dart';
 import '../../providers/dex_provider.dart';
@@ -39,6 +40,7 @@ class _CreateDexBottomSheetState extends State<CreateDexBottomSheet> {
 
   final ExpansionTileController _expansionController =
       ExpansionTileController();
+
   final TextEditingController nameController = TextEditingController();
 
   late DexGroup selectedGroup;
@@ -52,7 +54,6 @@ class _CreateDexBottomSheetState extends State<CreateDexBottomSheet> {
   bool isShinyDex = false;
 
   bool _showFakeDropdown = false;
-
   late Map<String, bool> features;
 
   @override
@@ -77,7 +78,6 @@ class _CreateDexBottomSheetState extends State<CreateDexBottomSheet> {
   void _showTutorialIfNeeded() {
     try {
       final tutProvider = Provider.of<TutorialProvider>(context, listen: false);
-
       if (!tutProvider.hasSeenFeature('create_dex_sheet')) {
         TutorialOverlay.show(
           context,
@@ -130,9 +130,15 @@ class _CreateDexBottomSheetState extends State<CreateDexBottomSheet> {
                 requireTargetTap: true,
                 preCalculateDelayMilliseconds: 400,
                 onTargetTap: () {
-                  setState(() {
-                    _showFakeDropdown = true;
-                  });
+                  try {
+                    setState(() {
+                      _showFakeDropdown = true;
+                    });
+                  } catch (e) {
+                    NotificationHelper.showError(
+                      '${Translator.get('error')} $e',
+                    );
+                  }
                 },
               ),
               TutorialStep(
@@ -144,7 +150,7 @@ class _CreateDexBottomSheetState extends State<CreateDexBottomSheet> {
                 onTargetTap: () {
                   try {
                     final tapPos = TutorialOverlay.lastTapPosition;
-                    int tappedIndex = 1;
+                    int tappedIndex = 0; 
 
                     if (tapPos != null && selectedGroup.dexKeys.length > 1) {
                       final renderBox =
@@ -164,7 +170,6 @@ class _CreateDexBottomSheetState extends State<CreateDexBottomSheet> {
 
                     setState(() {
                       _showFakeDropdown = false;
-
                       if (selectedGroup.dexKeys.length > 1) {
                         selectedSubDex = selectedGroup.dexKeys[tappedIndex];
                         nameController.text = Translator.get(
@@ -173,7 +178,6 @@ class _CreateDexBottomSheetState extends State<CreateDexBottomSheet> {
                         features = DexGroupsData.getAvailableFeatures(
                           selectedSubDex,
                         );
-
                         includeMega = selectedSubDex == 'mega_dex';
                         includeOther = selectedSubDex == 'icognito_dex';
                         if (!features['regional']!) includeRegional = false;
@@ -354,6 +358,7 @@ class _CreateDexBottomSheetState extends State<CreateDexBottomSheet> {
   Widget _buildCollage(List<int> ids) {
     const String baseUrl =
         'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/';
+
     return Column(
       children: [
         Expanded(
@@ -455,8 +460,9 @@ class _CreateDexBottomSheetState extends State<CreateDexBottomSheet> {
                               );
                               includeMega = selectedSubDex == 'mega_dex';
                               includeOther = selectedSubDex == 'icognito_dex';
-                              if (!features['regional']!)
+                              if (!features['regional']!) {
                                 includeRegional = false;
+                              }
                               if (!features['mega']! &&
                                   selectedSubDex != 'mega_dex') {
                                 includeMega = false;
@@ -586,10 +592,10 @@ class _CreateDexBottomSheetState extends State<CreateDexBottomSheet> {
                   }
                 },
               ),
-
               if (_showFakeDropdown)
                 Container(
-                  key: _fakeDropdownKey,
+                  key:
+                      _fakeDropdownKey,
                   margin: const EdgeInsets.only(top: 4),
                   decoration: BoxDecoration(
                     color: Theme.of(
@@ -608,24 +614,55 @@ class _CreateDexBottomSheetState extends State<CreateDexBottomSheet> {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: selectedGroup.dexKeys.map((key) {
                       final isSelected = key == selectedSubDex;
-                      return Container(
-                        color: isSelected
-                            ? Theme.of(
-                                context,
-                              ).colorScheme.primary.withOpacity(0.2)
-                            : Colors.transparent,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 14,
-                        ),
-                        child: Text(
-                          Translator.get('region_$key') != 'region_$key'
-                              ? Translator.get('region_$key')
-                              : key,
-                          style: TextStyle(
-                            fontWeight: isSelected
-                                ? FontWeight.bold
-                                : FontWeight.normal,
+
+                      return GestureDetector(
+                        behavior: HitTestBehavior.opaque,
+                        onTap: () {
+                          try {
+                            setState(() {
+                              _showFakeDropdown = false;
+                              selectedSubDex = key;
+                              nameController.text = Translator.get(
+                                'region_$selectedSubDex',
+                              );
+                              features = DexGroupsData.getAvailableFeatures(
+                                selectedSubDex,
+                              );
+                              includeMega = selectedSubDex == 'mega_dex';
+                              includeOther = selectedSubDex == 'icognito_dex';
+                              if (!features['regional']!)
+                                includeRegional = false;
+                              if (!features['mega']! &&
+                                  selectedSubDex != 'mega_dex') {
+                                includeMega = false;
+                              }
+                              if (!features['gmax']!) includeGMax = false;
+                            });
+                          } catch (e) {
+                            NotificationHelper.showError(
+                              '${Translator.get('error')} $e',
+                            );
+                          }
+                        },
+                        child: Container(
+                          color: isSelected
+                              ? Theme.of(
+                                  context,
+                                ).colorScheme.primary.withOpacity(0.2)
+                              : Colors.transparent,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 14,
+                          ),
+                          child: Text(
+                            Translator.get('region_$key') != 'region_$key'
+                                ? Translator.get('region_$key')
+                                : key,
+                            style: TextStyle(
+                              fontWeight: isSelected
+                                  ? FontWeight.bold
+                                  : FontWeight.normal,
+                            ),
                           ),
                         ),
                       );

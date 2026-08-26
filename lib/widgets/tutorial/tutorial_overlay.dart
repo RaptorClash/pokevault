@@ -1,4 +1,5 @@
 import 'dart:ui';
+
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
@@ -11,8 +12,8 @@ import '../../utils/notification_helper.dart';
 class TutorialOverlay extends StatefulWidget {
   final TutorialFeature feature;
   final VoidCallback onFinish;
-  final int initialIndex; // NEU: Start-Index
-  final Function(int)? onStepChanged; // NEU: Callback bei Schritt-Wechsel
+  final int initialIndex;
+  final Function(int)? onStepChanged;
 
   static Offset? lastTapPosition;
   static bool _isShowing = false;
@@ -34,6 +35,7 @@ class TutorialOverlay extends StatefulWidget {
   }) {
     if (_isShowing) return;
     _isShowing = true;
+
     showGeneralDialog(
       context: context,
       barrierColor: Colors.transparent,
@@ -45,8 +47,8 @@ class TutorialOverlay extends StatefulWidget {
           child: TutorialOverlay(
             feature: feature,
             onFinish: onFinish,
-            initialIndex: initialIndex, // Übergeben
-            onStepChanged: onStepChanged, // Übergeben
+            initialIndex: initialIndex,
+            onStepChanged: onStepChanged,
           ),
         );
       },
@@ -64,13 +66,14 @@ class _TutorialOverlayState extends State<TutorialOverlay>
     with TickerProviderStateMixin, WidgetsBindingObserver {
   late int _currentIndex;
   Rect? _targetRect;
+
   late AnimationController _pulseController;
   late AnimationController _lightningController;
 
   Offset? _oldRotomPos;
   Offset? _newRotomPos;
-  bool _isAdvancing = false;
 
+  bool _isAdvancing = false;
   int _wrongSwipeCount = 0;
   DateTime? _lastWrongSwipeTime;
 
@@ -86,8 +89,8 @@ class _TutorialOverlayState extends State<TutorialOverlay>
     if (_currentIndex >= widget.initialIndex) {
       _currentIndex = 0;
     }
-
     WidgetsBinding.instance.addObserver(this);
+
     _pulseController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1500),
@@ -129,6 +132,7 @@ class _TutorialOverlayState extends State<TutorialOverlay>
   ScrollableState? _findScrollable(BuildContext? targetContext) {
     if (targetContext == null) return null;
     ScrollableState? scrollable;
+
     void visitor(Element element) {
       if (scrollable != null) return;
       if (element.widget is Scrollable) {
@@ -150,18 +154,21 @@ class _TutorialOverlayState extends State<TutorialOverlay>
       final activeScrollable = _findScrollable(targetContext);
       if (activeScrollable == null) return;
 
-      bool isHorizontal =
-          activeScrollable.axisDirection == AxisDirection.right ||
-          activeScrollable.axisDirection == AxisDirection.left;
-      if (isHorizontal) return;
-
       await Scrollable.ensureVisible(
         targetContext!,
         duration: const Duration(milliseconds: 300),
         curve: Curves.easeInOut,
         alignment: step.scrollAlignment,
-      ).catchError((_) {});
-    } catch (e) {}
+      ).catchError((e) {
+        NotificationHelper.showError(
+          "${Translator.get('tutorial_error_scroll')} $e",
+        );
+      });
+    } catch (e) {
+      NotificationHelper.showError(
+        "${Translator.get('tutorial_error_scroll')} $e",
+      );
+    }
   }
 
   void _calculateTargetRect() {
@@ -177,6 +184,7 @@ class _TutorialOverlayState extends State<TutorialOverlay>
         _updatePositions(null);
         return;
       }
+
       final renderBox = currentContext.findRenderObject() as RenderBox?;
       final overlay =
           Overlay.of(context).context.findRenderObject() as RenderBox?;
@@ -184,6 +192,7 @@ class _TutorialOverlayState extends State<TutorialOverlay>
       if (renderBox != null && overlay != null && renderBox.attached) {
         final size = renderBox.size;
         final offset = renderBox.localToGlobal(Offset.zero, ancestor: overlay);
+
         double left = offset.dx - 4;
         double right = offset.dx + size.width + 4;
         double top = offset.dy - 4;
@@ -206,7 +215,6 @@ class _TutorialOverlayState extends State<TutorialOverlay>
 
   void _updatePositions(Rect? newRect) {
     if (_isEasterEggActive) return;
-
     if (_targetRect == newRect) return;
 
     void updateState() {
@@ -295,7 +303,6 @@ class _TutorialOverlayState extends State<TutorialOverlay>
         50.0,
         MediaQuery.of(context).size.height - 350.0,
       );
-
       setState(() {
         _easterEggPos = Offset(MediaQuery.of(context).size.width / 4, safeY);
       });
@@ -336,6 +343,7 @@ class _TutorialOverlayState extends State<TutorialOverlay>
       _easterEggPos = null;
       _wrongSwipeCount = 0;
     });
+
     _calculateTargetRect();
   }
 
@@ -352,6 +360,7 @@ class _TutorialOverlayState extends State<TutorialOverlay>
       bool isHorizontal =
           activeScrollable.axisDirection == AxisDirection.right ||
           activeScrollable.axisDirection == AxisDirection.left;
+
       double delta = isHorizontal ? dx : dy;
 
       if (isHorizontal && delta == 0 && dy != 0) {
@@ -369,6 +378,7 @@ class _TutorialOverlayState extends State<TutorialOverlay>
           activeScrollable.position.maxScrollExtent,
         ),
       );
+
       _calculateTargetRect();
 
       if (step.checkScroll != null) {
@@ -382,6 +392,7 @@ class _TutorialOverlayState extends State<TutorialOverlay>
 
         if (!met && step.checkScroll!(10000) && maxR) met = true;
         if (!met && step.checkScroll!(0) && minR) met = true;
+
         if (met) {
           _nextStep();
         }
@@ -395,6 +406,7 @@ class _TutorialOverlayState extends State<TutorialOverlay>
 
   void _nextStep() {
     if (_isAdvancing) return;
+
     try {
       if (_currentIndex < widget.feature.steps.length - 1) {
         setState(() {
@@ -715,6 +727,7 @@ class _TutorialOverlayState extends State<TutorialOverlay>
 
 class HolePainter extends CustomPainter {
   final Rect? rect;
+
   HolePainter({required this.rect});
 
   @override
@@ -722,17 +735,20 @@ class HolePainter extends CustomPainter {
     final paint = Paint()
       ..color = Colors.black.withOpacity(0.8)
       ..style = PaintingStyle.fill;
+
     final screenPath = Path()
       ..addRect(Rect.fromLTWH(0, 0, size.width, size.height));
 
     if (rect != null) {
       final holePath = Path()
         ..addRRect(RRect.fromRectAndRadius(rect!, const Radius.circular(16)));
+
       final combinedPath = Path.combine(
         PathOperation.difference,
         screenPath,
         holePath,
       );
+
       canvas.drawPath(combinedPath, paint);
     } else {
       canvas.drawPath(screenPath, paint);
@@ -758,6 +774,7 @@ class LightningPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     if (progress >= 1.0 || progress <= 0.0) return;
+
     final paint = Paint()
       ..color = Colors.cyanAccent.withOpacity((1.0 - progress).clamp(0.0, 1.0))
       ..strokeWidth = 3 + (5 * (1 - progress))
@@ -778,8 +795,10 @@ class LightningPainter extends CustomPainter {
         dx += (i % 2 == 0 ? 30 : -30);
         dy += (i % 2 == 0 ? -30 : 30);
       }
+
       path.lineTo(dx, dy);
     }
+
     canvas.drawPath(path, paint);
   }
 
