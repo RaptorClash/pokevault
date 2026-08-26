@@ -62,4 +62,13 @@ class TutorialProvider extends ChangeNotifier {
       NotificationHelper.showError("${Translator.get('error')} $e");
     }
   }
+
+  int getFeatureStep(String featureId) {
+    return _prefs.getInt('tutorial_step_$featureId') ?? 0;
+  }
+
+  Future<void> updateFatureStep(String featureId, int step) async {
+    await _prefs.setInt('tutorial_step_$featureId', step);
+    notifyListeners();
+  }
 }

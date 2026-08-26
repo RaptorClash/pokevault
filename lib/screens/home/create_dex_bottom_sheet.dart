@@ -26,7 +26,7 @@ class _CreateDexBottomSheetState extends State<CreateDexBottomSheet> {
   final GlobalKey _groupListKey = GlobalKey();
   final GlobalKey _kalosKey = GlobalKey();
   final GlobalKey _dropdownKey = GlobalKey();
-  final GlobalKey _fakeDropdownKey = GlobalKey(); 
+  final GlobalKey _fakeDropdownKey = GlobalKey();
   final GlobalKey _nationalKey = GlobalKey();
   final GlobalKey _shinyKey = GlobalKey();
   final GlobalKey _genderKey = GlobalKey();
@@ -37,7 +37,8 @@ class _CreateDexBottomSheetState extends State<CreateDexBottomSheet> {
   final GlobalKey _otherKey = GlobalKey();
   final GlobalKey _saveKey = GlobalKey();
 
-  final ExpansionTileController _expansionController = ExpansionTileController();
+  final ExpansionTileController _expansionController =
+      ExpansionTileController();
   final TextEditingController nameController = TextEditingController();
 
   late DexGroup selectedGroup;
@@ -49,7 +50,7 @@ class _CreateDexBottomSheetState extends State<CreateDexBottomSheet> {
   bool includeGMax = false;
   bool includeOther = false;
   bool isShinyDex = false;
-  
+
   bool _showFakeDropdown = false;
 
   late Map<String, bool> features;
@@ -108,11 +109,17 @@ class _CreateDexBottomSheetState extends State<CreateDexBottomSheet> {
                     setState(() {
                       selectedGroup = kalosGroup;
                       selectedSubDex = kalosGroup.dexKeys.first;
-                      nameController.text = Translator.get('region_$selectedSubDex');
-                      features = DexGroupsData.getAvailableFeatures(selectedSubDex);
+                      nameController.text = Translator.get(
+                        'region_$selectedSubDex',
+                      );
+                      features = DexGroupsData.getAvailableFeatures(
+                        selectedSubDex,
+                      );
                     });
                   } catch (e) {
-                    NotificationHelper.showError('${Translator.get('error')} $e');
+                    NotificationHelper.showError(
+                      '${Translator.get('error')} $e',
+                    );
                   }
                 },
               ),
@@ -132,41 +139,55 @@ class _CreateDexBottomSheetState extends State<CreateDexBottomSheet> {
                 targetKey: _fakeDropdownKey,
                 titleKey: 'tutorial_create_step3_5_title',
                 textKey: 'tutorial_create_step3_5_text',
-                requireTargetTap: true, 
+                requireTargetTap: true,
                 preCalculateDelayMilliseconds: 300,
                 onTargetTap: () {
                   try {
                     final tapPos = TutorialOverlay.lastTapPosition;
-                    int tappedIndex = 1; 
-                    
+                    int tappedIndex = 1;
+
                     if (tapPos != null && selectedGroup.dexKeys.length > 1) {
-                      final renderBox = _fakeDropdownKey.currentContext?.findRenderObject() as RenderBox?;
+                      final renderBox =
+                          _fakeDropdownKey.currentContext?.findRenderObject()
+                              as RenderBox?;
                       if (renderBox != null) {
                         final localPos = renderBox.globalToLocal(tapPos);
-                        final itemHeight = renderBox.size.height / selectedGroup.dexKeys.length;
-                        tappedIndex = (localPos.dy / itemHeight).floor().clamp(0, selectedGroup.dexKeys.length - 1);
+                        final itemHeight =
+                            renderBox.size.height /
+                            selectedGroup.dexKeys.length;
+                        tappedIndex = (localPos.dy / itemHeight).floor().clamp(
+                          0,
+                          selectedGroup.dexKeys.length - 1,
+                        );
                       }
                     }
 
                     setState(() {
                       _showFakeDropdown = false;
-                      
+
                       if (selectedGroup.dexKeys.length > 1) {
-                        selectedSubDex = selectedGroup.dexKeys[tappedIndex]; 
-                        nameController.text = Translator.get('region_$selectedSubDex');
-                        features = DexGroupsData.getAvailableFeatures(selectedSubDex);
-                        
+                        selectedSubDex = selectedGroup.dexKeys[tappedIndex];
+                        nameController.text = Translator.get(
+                          'region_$selectedSubDex',
+                        );
+                        features = DexGroupsData.getAvailableFeatures(
+                          selectedSubDex,
+                        );
+
                         includeMega = selectedSubDex == 'mega_dex';
                         includeOther = selectedSubDex == 'icognito_dex';
                         if (!features['regional']!) includeRegional = false;
-                        if (!features['mega']! && selectedSubDex != 'mega_dex') {
+                        if (!features['mega']! &&
+                            selectedSubDex != 'mega_dex') {
                           includeMega = false;
                         }
                         if (!features['gmax']!) includeGMax = false;
                       }
                     });
                   } catch (e) {
-                    NotificationHelper.showError('${Translator.get('error')} $e');
+                    NotificationHelper.showError(
+                      '${Translator.get('error')} $e',
+                    );
                   }
                 },
               ),
@@ -178,7 +199,7 @@ class _CreateDexBottomSheetState extends State<CreateDexBottomSheet> {
                 requireTargetTap: false,
                 hideNextButton: true,
                 showHighlight: true,
-                preCalculateDelayMilliseconds: 500, 
+                preCalculateDelayMilliseconds: 500,
                 checkScroll: (pixels) => pixels <= 5,
               ),
               TutorialStep(
@@ -188,7 +209,7 @@ class _CreateDexBottomSheetState extends State<CreateDexBottomSheet> {
                 requireTargetTap: true,
                 disableScroll: true,
                 scrollAlignment: 0.0,
-                preCalculateDelayMilliseconds: 300, 
+                preCalculateDelayMilliseconds: 300,
                 onTargetTap: () {
                   try {
                     final natGroup = DexGroupsData.groups.firstWhere(
@@ -197,11 +218,17 @@ class _CreateDexBottomSheetState extends State<CreateDexBottomSheet> {
                     setState(() {
                       selectedGroup = natGroup;
                       selectedSubDex = natGroup.dexKeys.first;
-                      nameController.text = Translator.get('region_$selectedSubDex');
-                      features = DexGroupsData.getAvailableFeatures(selectedSubDex);
+                      nameController.text = Translator.get(
+                        'region_$selectedSubDex',
+                      );
+                      features = DexGroupsData.getAvailableFeatures(
+                        selectedSubDex,
+                      );
                     });
                   } catch (e) {
-                    NotificationHelper.showError('${Translator.get('error')} $e');
+                    NotificationHelper.showError(
+                      '${Translator.get('error')} $e',
+                    );
                   }
                 },
               ),
@@ -230,7 +257,9 @@ class _CreateDexBottomSheetState extends State<CreateDexBottomSheet> {
                       _expansionController.expand();
                     }
                   } catch (e) {
-                    NotificationHelper.showError('${Translator.get('error')} $e');
+                    NotificationHelper.showError(
+                      '${Translator.get('error')} $e',
+                    );
                   }
                 },
               ),
@@ -274,7 +303,9 @@ class _CreateDexBottomSheetState extends State<CreateDexBottomSheet> {
                       if (mounted) _createDex();
                     });
                   } catch (e) {
-                    NotificationHelper.showError('${Translator.get('error')} $e');
+                    NotificationHelper.showError(
+                      '${Translator.get('error')} $e',
+                    );
                   }
                 },
               ),
@@ -283,6 +314,9 @@ class _CreateDexBottomSheetState extends State<CreateDexBottomSheet> {
           () {
             tutProvider.markFeatureAsSeen('create_dex_sheet');
           },
+          initialIndex: tutProvider.getFeatureStep('create_dex_sheet'),
+          onStepChanged: (step) =>
+              tutProvider.updateFatureStep('create_dex_sheet', step),
         );
       }
     } catch (e) {
@@ -421,7 +455,8 @@ class _CreateDexBottomSheetState extends State<CreateDexBottomSheet> {
                               );
                               includeMega = selectedSubDex == 'mega_dex';
                               includeOther = selectedSubDex == 'icognito_dex';
-                              if (!features['regional']!) includeRegional = false;
+                              if (!features['regional']!)
+                                includeRegional = false;
                               if (!features['mega']! &&
                                   selectedSubDex != 'mega_dex') {
                                 includeMega = false;
@@ -429,7 +464,9 @@ class _CreateDexBottomSheetState extends State<CreateDexBottomSheet> {
                               if (!features['gmax']!) includeGMax = false;
                             });
                           } catch (e) {
-                            NotificationHelper.showError('${Translator.get('error')} $e');
+                            NotificationHelper.showError(
+                              '${Translator.get('error')} $e',
+                            );
                           }
                         },
                         child: AnimatedContainer(
@@ -470,7 +507,7 @@ class _CreateDexBottomSheetState extends State<CreateDexBottomSheet> {
                                     borderRadius: const BorderRadius.vertical(
                                       bottom: Radius.circular(14),
                                     ),
-                                 ),
+                                  ),
                                   alignment: Alignment.center,
                                   child: Text(
                                     Translator.get(group.nameKey),
@@ -535,24 +572,29 @@ class _CreateDexBottomSheetState extends State<CreateDexBottomSheet> {
                         includeMega = selectedSubDex == 'mega_dex';
                         includeOther = selectedSubDex == 'icognito_dex';
                         if (!features['regional']!) includeRegional = false;
-                        if (!features['mega']! && selectedSubDex != 'mega_dex') {
+                        if (!features['mega']! &&
+                            selectedSubDex != 'mega_dex') {
                           includeMega = false;
                         }
                         if (!features['gmax']!) includeGMax = false;
                       });
                     }
                   } catch (e) {
-                    NotificationHelper.showError('${Translator.get('error')} $e');
+                    NotificationHelper.showError(
+                      '${Translator.get('error')} $e',
+                    );
                   }
                 },
               ),
-              
+
               if (_showFakeDropdown)
                 Container(
                   key: _fakeDropdownKey,
                   margin: const EdgeInsets.only(top: 4),
                   decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.surfaceContainerHighest,
                     borderRadius: BorderRadius.circular(8),
                     boxShadow: [
                       BoxShadow(
@@ -568,15 +610,22 @@ class _CreateDexBottomSheetState extends State<CreateDexBottomSheet> {
                       final isSelected = key == selectedSubDex;
                       return Container(
                         color: isSelected
-                            ? Theme.of(context).colorScheme.primary.withOpacity(0.2)
+                            ? Theme.of(
+                                context,
+                              ).colorScheme.primary.withOpacity(0.2)
                             : Colors.transparent,
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 14,
+                        ),
                         child: Text(
                           Translator.get('region_$key') != 'region_$key'
                               ? Translator.get('region_$key')
                               : key,
                           style: TextStyle(
-                            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                            fontWeight: isSelected
+                                ? FontWeight.bold
+                                : FontWeight.normal,
                           ),
                         ),
                       );

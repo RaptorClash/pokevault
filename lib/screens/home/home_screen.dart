@@ -79,6 +79,9 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
         ),
         () => tutProvider.markFeatureAsSeen('home_screen'),
+        initialIndex: tutProvider.getFeatureStep('home_screen'),
+        onStepChanged: (step) =>
+            tutProvider.updateFatureStep('home_screen', step),
       );
     }
   }

@@ -11,6 +11,8 @@ import '../../utils/notification_helper.dart';
 class TutorialOverlay extends StatefulWidget {
   final TutorialFeature feature;
   final VoidCallback onFinish;
+  final int initialIndex; // NEU: Start-Index
+  final Function(int)? onStepChanged; // NEU: Callback bei Schritt-Wechsel
 
   static Offset? lastTapPosition;
   static bool _isShowing = false;
@@ -19,16 +21,19 @@ class TutorialOverlay extends StatefulWidget {
     super.key,
     required this.feature,
     required this.onFinish,
+    this.initialIndex = 0,
+    this.onStepChanged,
   });
 
   static void show(
     BuildContext context,
     TutorialFeature feature,
-    VoidCallback onFinish,
-  ) {
+    VoidCallback onFinish, {
+    int initialIndex = 0,
+    Function(int)? onStepChanged,
+  }) {
     if (_isShowing) return;
     _isShowing = true;
-
     showGeneralDialog(
       context: context,
       barrierColor: Colors.transparent,
@@ -37,7 +42,12 @@ class TutorialOverlay extends StatefulWidget {
       pageBuilder: (context, animation, secondaryAnimation) {
         return FadeTransition(
           opacity: animation,
-          child: TutorialOverlay(feature: feature, onFinish: onFinish),
+          child: TutorialOverlay(
+            feature: feature,
+            onFinish: onFinish,
+            initialIndex: initialIndex, // Übergeben
+            onStepChanged: onStepChanged, // Übergeben
+          ),
         );
       },
     ).then((_) {
@@ -52,7 +62,7 @@ class TutorialOverlay extends StatefulWidget {
 
 class _TutorialOverlayState extends State<TutorialOverlay>
     with TickerProviderStateMixin, WidgetsBindingObserver {
-  int _currentIndex = 0;
+  late int _currentIndex;
   Rect? _targetRect;
   late AnimationController _pulseController;
   late AnimationController _lightningController;
@@ -72,6 +82,11 @@ class _TutorialOverlayState extends State<TutorialOverlay>
   @override
   void initState() {
     super.initState();
+    _currentIndex = widget.initialIndex;
+    if (_currentIndex >= widget.initialIndex) {
+      _currentIndex = 0;
+    }
+
     WidgetsBinding.instance.addObserver(this);
     _pulseController = AnimationController(
       vsync: this,
@@ -389,6 +404,8 @@ class _TutorialOverlayState extends State<TutorialOverlay>
           _easterEggTriggered = false;
         });
 
+        widget.onStepChanged?.call(_currentIndex);
+
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (mounted) _calculateTargetRect();
         });
@@ -473,7 +490,9 @@ class _TutorialOverlayState extends State<TutorialOverlay>
     bool isLast,
   ) {
     bool showNextBtn =
-        (!step.requireTargetTap && !step.hideNextButton) || _easterEggTriggered;
+        (!step.requireTargetTap && !step.hideNextButton) ||
+        _easterEggTriggered ||
+        _targetRect == null;
 
     return Container(
       padding: const EdgeInsets.all(20),
