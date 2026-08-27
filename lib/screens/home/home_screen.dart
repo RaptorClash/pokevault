@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
 import '../../l10n/app_translations.dart';
 import '../../providers/dex_provider.dart';
 import '../../providers/tutorial_provider.dart';
@@ -10,16 +9,11 @@ import '../../models/pokemon.dart';
 import '../../models/user_dex.dart';
 import '../../models/tutorial_step.dart';
 import '../../widgets/tutorial/tutorial_overlay.dart';
-import '../../data/national_dex_data.dart';
-import '../../data/dex_orders.dart';
 import '../dex/dex_screen.dart';
 import '../settings/settings_screen.dart';
 import '../../utils/update_helper.dart';
 import '../../widgets/dialogs/update_dialog.dart';
 import '../../utils/notification_helper.dart';
-import '../../utils/dex_logic_helper.dart';
-import '../../screens/pokemon_info/widgets/breeding_data.dart';
-import '../../utils/shiny_logic_helper.dart';
 import 'edit_dex_dialog.dart';
 import 'widgets/home_dialogs.dart';
 import 'widgets/home_ui_components.dart';
@@ -38,8 +32,6 @@ class _HomeScreenState extends State<HomeScreen> {
   final GlobalKey _fabKey = GlobalKey();
   final Map<String, GlobalKey> _dexKeys = {};
   final Set<String> _selectedItemIds = {};
-
-  late final Map<int, Pokemon> _pokemonCache;
   String _searchQuery = '';
   String _currentSort = 'manual';
   late String _currentFolderId;
@@ -50,8 +42,6 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     _currentFolderId = widget.currentFolderId;
-    _pokemonCache = {for (var p in nationalPokemonDatabase) p.id: p};
-
     if (_currentFolderId == 'root') {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _checkForUpdates();
@@ -103,7 +93,6 @@ class _HomeScreenState extends State<HomeScreen> {
       if (!_dexKeys.containsKey(newestDex.id)) {
         _dexKeys[newestDex.id] = GlobalKey();
       }
-
       TutorialOverlay.show(
         context,
         TutorialFeature(
@@ -128,20 +117,26 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _openDex(UserDex dex) {
-    List<int> selectedOrder = allAvailableDexes[dex.region] ?? [];
+    final provider = Provider.of<DexProvider>(context, listen: false);
+    List<int> selectedOrder = provider.allAvailableDexes[dex.region] ?? [];
+    Map<int, Pokemon> pokemonMap = {for (var p in provider.allPokemon) p.id: p};
+
     List<Pokemon> selectedDatabase = selectedOrder
         .map(
           (id) =>
-              _pokemonCache[id] ??
+              pokemonMap[id] ??
               Pokemon(
                 id: id,
-                names: {'de': 'Unbekannt', 'en': 'Unknown'},
+                nameDe: 'Unbekannt',
+                nameEn: 'Unknown',
                 hasGenderDifferences: false,
                 genderRate: -1,
-                eggGroups: [],
-                evolutionChainId: -1,
-                forms: [],
                 captureRate: 255,
+                evolutionChainId: -1,
+                eggGroups: [],
+                weight: 0.0,
+                speed: 0,
+                forms: [],
               ),
         )
         .toList();
@@ -207,8 +202,9 @@ class _HomeScreenState extends State<HomeScreen> {
             'region_${d.region}',
           ).toLowerCase();
           if (d.title.toLowerCase().contains(query) ||
-              regionName.contains(query))
+              regionName.contains(query)) {
             return true;
+          }
         }
       }
     }
@@ -233,8 +229,9 @@ class _HomeScreenState extends State<HomeScreen> {
         if (a is UserDex && b is DexFolder) return 1;
         if (a is UserDex && b is UserDex) {
           if (_currentSort == 'az') return a.title.compareTo(b.title);
-          if (_currentSort == 'caught')
+          if (_currentSort == 'caught') {
             return b.caughtIds.length.compareTo(a.caughtIds.length);
+          }
           if (_currentSort == 'region') return a.region.compareTo(b.region);
         }
         if (a is DexFolder && b is DexFolder) return a.title.compareTo(b.title);
@@ -255,12 +252,10 @@ class _HomeScreenState extends State<HomeScreen> {
 
     for (int index = 0; index < items.length; index++) {
       final item = items[index];
-
       if (item is DexFolder) {
         bool matchesSearch = item.title.toLowerCase().contains(q);
         bool hasMatchInChildren = _folderHasMatch(provider, item.id, q);
         if (q.isNotEmpty && !matchesSearch && !hasMatchInChildren) continue;
-
         bool isSelected = isRootLevel && _selectedItemIds.contains(item.id);
 
         widgets.add(
@@ -312,7 +307,6 @@ class _HomeScreenState extends State<HomeScreen> {
             item.title.toLowerCase().contains(q) ||
             regionName.toLowerCase().contains(q);
         if (q.isNotEmpty && !matchesSearch) continue;
-
         bool isSelected = isRootLevel && _selectedItemIds.contains(item.id);
 
         if (!_dexKeys.containsKey(item.id)) {
@@ -377,6 +371,35 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<DexProvider>();
+
+    if (!provider.isInitialized) {
+      if (provider.isMigrating) {
+        return Scaffold(
+          body: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const CircularProgressIndicator(),
+                const SizedBox(height: 24),
+                Text(
+                  Translator.get('migration_loading_text') !=
+                          'migration_loading_text'
+                      ? Translator.get('migration_loading_text')
+                      : 'Daten werden für die neuste Version optimiert...\nBitte App nicht schließen.',
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      } else {
+        return const Scaffold();
+      }
+    }
 
     return Scaffold(
       appBar: AppBar(
@@ -491,9 +514,10 @@ class _HomeScreenState extends State<HomeScreen> {
                         hintText: Translator.get('search_hint'),
                         prefixIcon: const Icon(Icons.search),
                         filled: true,
-                        fillColor: Theme.of(
-                          context,
-                        ).colorScheme.surfaceContainerHighest.withOpacity(0.3),
+                        fillColor: Theme.of(context)
+                            .colorScheme
+                            .surfaceContainerHighest
+                            .withValues(alpha: 0.3),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: BorderSide.none,
@@ -506,9 +530,10 @@ class _HomeScreenState extends State<HomeScreen> {
                   const SizedBox(width: 8),
                   Container(
                     decoration: BoxDecoration(
-                      color: Theme.of(
-                        context,
-                      ).colorScheme.surfaceContainerHighest.withOpacity(0.3),
+                      color: Theme.of(context)
+                          .colorScheme
+                          .surfaceContainerHighest
+                          .withValues(alpha: 0.3),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: PopupMenuButton<String>(
@@ -575,7 +600,9 @@ class _HomeScreenState extends State<HomeScreen> {
                         Icon(
                           Icons.catching_pokemon,
                           size: 64,
-                          color: Theme.of(context).hintColor.withOpacity(0.5),
+                          color: Theme.of(
+                            context,
+                          ).hintColor.withValues(alpha: 0.5),
                         ),
                         const SizedBox(height: 16),
                         Text(

@@ -46,7 +46,6 @@ class _EditDexDialogState extends State<EditDexDialog> {
   @override
   Widget build(BuildContext context) {
     bool isMegaDex = widget.dex.region == 'mega_dex';
-
     return AlertDialog(
       title: Text(Translator.get('edit')),
       content: SingleChildScrollView(
@@ -92,7 +91,7 @@ class _EditDexDialogState extends State<EditDexDialog> {
                   title: Text(Translator.get('form_regional_short')),
                   value: includeRegional,
                   activeColor: Colors.red,
-                  enabled: (features['regional'] ?? false), // SICHER
+                  enabled: (features['regional'] ?? false),
                   onChanged: (features['regional'] ?? false)
                       ? (val) => setState(() => includeRegional = val ?? false)
                       : null,
@@ -101,7 +100,7 @@ class _EditDexDialogState extends State<EditDexDialog> {
                   title: Text(Translator.get('form_mega')),
                   value: isMegaDex ? true : includeMega,
                   activeColor: Colors.red,
-                  enabled: !isMegaDex && (features['mega'] ?? false), // SICHER
+                  enabled: !isMegaDex && (features['mega'] ?? false),
                   onChanged: (!isMegaDex && (features['mega'] ?? false))
                       ? (val) => setState(() => includeMega = val ?? false)
                       : null,
@@ -110,7 +109,7 @@ class _EditDexDialogState extends State<EditDexDialog> {
                   title: Text(Translator.get('form_gmax')),
                   value: includeGMax,
                   activeColor: Colors.red,
-                  enabled: (features['gmax'] ?? false), // SICHER
+                  enabled: (features['gmax'] ?? false),
                   onChanged: (features['gmax'] ?? false)
                       ? (val) => setState(() => includeGMax = val ?? false)
                       : null,
@@ -119,7 +118,7 @@ class _EditDexDialogState extends State<EditDexDialog> {
                   title: Text(Translator.get('form_other_short')),
                   value: includeOther,
                   activeColor: Colors.red,
-                  enabled: (features['other'] ?? false), // SICHER
+                  enabled: (features['other'] ?? false),
                   onChanged: (features['other'] ?? false)
                       ? (val) => setState(() => includeOther = val ?? false)
                       : null,

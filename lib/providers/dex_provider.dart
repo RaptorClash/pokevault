@@ -1,214 +1,169 @@
 import 'dart:convert';
-import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:uuid/uuid.dart';
 
+import '../models/pokemon.dart';
 import '../models/user_dex.dart';
+import '../services/database_service.dart';
 import '../services/dex_storage_service.dart';
-import '../l10n/app_translations.dart';
 import '../utils/notification_helper.dart';
+import '../l10n/app_translations.dart';
 
-class DexFolder {
-  final String id;
-  String title;
+class DexProvider with ChangeNotifier {
+  List<UserDex> userDexes = [];
+  List<DexFolder> folders = [];
+  Map<String, List<String>> structure = {'root': []};
 
-  DexFolder({required this.id, required this.title});
+  List<Pokemon> allPokemon = [];
+  Map<String, List<int>> allAvailableDexes = {};
+  Map<String, String> ballUrls = {};
 
-  Map<String, dynamic> toJson() => {'id': id, 'title': title};
-  factory DexFolder.fromJson(Map<String, dynamic> json) =>
-      DexFolder(id: json['id'], title: json['title']);
-}
+  ThemeMode themeMode = ThemeMode.system;
+  String currentLanguage = 'de';
 
-class DexProvider extends ChangeNotifier {
-  List<UserDex> _userDexes = [];
-  List<DexFolder> _folders = [];
-  Map<String, List<String>> _structure = {'root': []};
+  bool _isInitialized = false;
+  bool get isInitialized => _isInitialized;
 
-  String _currentLanguage = 'de';
-  ThemeMode _themeMode = ThemeMode.system;
-
-  List<UserDex> get userDexes => _userDexes;
-  List<DexFolder> get folders => _folders;
-  Map<String, List<String>> get structure => _structure;
-  String get currentLanguage => _currentLanguage;
-  ThemeMode get themeMode => _themeMode;
+  bool isMigrating = false;
 
   DexProvider() {
-    _loadFromPrefs();
+    _init();
   }
 
-  Future<void> _loadFromPrefs() async {
+  Future<void> _init() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      _currentLanguage = prefs.getString('language') ?? 'de';
-      Translator.currentLanguage = _currentLanguage;
 
-      final themeIndex = prefs.getInt('themeMode');
-      if (themeIndex != null) {
-        _themeMode = ThemeMode.values[themeIndex];
+      currentLanguage = prefs.getString('language') ?? 'de';
+      Translator.currentLanguage = currentLanguage;
+
+      String tm = 'system';
+      try {
+        tm = prefs.getString('themeMode') ?? 'system';
+      } catch (_) {
+        int oldTheme = prefs.getInt('themeMode') ?? 0;
+        if (oldTheme == 1)
+          tm = 'light';
+        else if (oldTheme == 2)
+          tm = 'dark';
+        await prefs.setString('themeMode', tm);
       }
 
-      final folderJson = prefs.getString('saved_folders');
-      if (folderJson != null) {
-        final List<dynamic> decodedF = jsonDecode(folderJson);
-        _folders = decodedF.map((item) => DexFolder.fromJson(item)).toList();
-      }
+      if (tm == 'light')
+        themeMode = ThemeMode.light;
+      else if (tm == 'dark')
+        themeMode = ThemeMode.dark;
 
-      final structureJson = prefs.getString('saved_structure');
-      if (structureJson != null) {
-        final Map<String, dynamic> decodedS = jsonDecode(structureJson);
-        _structure = decodedS.map(
-          (key, value) => MapEntry(key, List<String>.from(value)),
-        );
-      } else {
-        _structure = {'root': []};
-      }
+      bool isMigrated = prefs.getBool('migrated_to_sqlite_v2') ?? false;
+      if (!isMigrated) {
+        if (prefs.getString('saved_dexes') != null ||
+            prefs.getString('saved_folders') != null) {
+          isMigrating = true;
+          notifyListeners();
 
-      final dexJson = prefs.getString('saved_dexes');
-      if (dexJson != null) {
-        final List<dynamic> decoded = jsonDecode(dexJson);
-        List<UserDex> loadedDexes = [];
-        Set<String> seenIds = {};
-        bool needsSave = false;
-
-        for (var item in decoded) {
-          UserDex dex = UserDex.fromJson(item as Map<String, dynamic>);
-
-          if (seenIds.contains(dex.id)) {
-            needsSave = true;
-            dex = UserDex(
-              id: 'dex_${DateTime.now().millisecondsSinceEpoch}_${Random().nextInt(10000)}',
-              title: dex.title,
-              region: dex.region,
-              caughtIds: Set.from(dex.caughtIds),
-              ignoredIds: Set.from(dex.ignoredIds),
-              shinyIds: Set.from(dex.shinyIds),
-              includeGenders: dex.includeGenders,
-              includeRegional: dex.includeRegional,
-              includeMega: dex.includeMega,
-              includeGMax: dex.includeGMax,
-              includeOther: dex.includeOther,
-              isShinyDex: dex.isShinyDex,
-            );
-          }
-          seenIds.add(dex.id);
-          loadedDexes.add(dex);
-
-          bool inStructure = _structure.values.any(
-            (list) => list.contains(dex.id),
-          );
-          if (!inStructure) {
-            _structure['root']!.add(dex.id);
-            needsSave = true;
-          }
+          await _migrateOldData(prefs);
         }
-        _userDexes = loadedDexes;
-        if (needsSave) _saveToPrefs();
+
+        await prefs.setBool('migrated_to_sqlite_v2', true);
+        isMigrating = false;
       }
+      allPokemon = await DatabaseService.instance.getAllPokemon();
+      allAvailableDexes = await DatabaseService.instance.getAllDexOrders();
+      ballUrls = await DatabaseService.instance.getBallUrls();
+
+      userDexes = await DatabaseService.instance.getAllUserDexes();
+      folders = await DatabaseService.instance.getAllFolders();
+      structure = await DatabaseService.instance.getStructure();
+
+      _isInitialized = true;
       notifyListeners();
-    } catch (e) {
-      NotificationHelper.showError("${Translator.get('error_load')} $e");
+    } catch (e, stacktrace) {
+      NotificationHelper.showError("Fehler beim Laden der App-Daten: $e");
+      debugPrint("Init Error: $e\n$stacktrace");
     }
   }
 
-  Future<void> _saveToPrefs() async {
+  Future<void> _migrateOldData(SharedPreferences prefs) async {
     try {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('language', _currentLanguage);
-      await prefs.setInt('themeMode', _themeMode.index);
-      await prefs.setString(
-        'saved_dexes',
-        jsonEncode(_userDexes.map((d) => d.toJson()).toList()),
-      );
-      await prefs.setString(
-        'saved_folders',
-        jsonEncode(_folders.map((f) => f.toJson()).toList()),
-      );
-      await prefs.setString('saved_structure', jsonEncode(_structure));
+      debugPrint("Starte Daten-Migration in die SQLite-Datenbank...");
+
+      String? oldDexesJson = prefs.getString('saved_dexes');
+      String? oldFoldersJson = prefs.getString('saved_folders');
+      String? oldStructureJson = prefs.getString('saved_structure');
+
+      if (oldDexesJson != null) {
+        List<dynamic> decodedDexes = jsonDecode(oldDexesJson);
+        for (var d in decodedDexes) {
+          UserDex dex = UserDex.fromJson(d as Map<String, dynamic>);
+          await DatabaseService.instance.saveUserDex(dex);
+          for (var uid in dex.caughtIds)
+            await DatabaseService.instance.savePokemonStatus(
+              dex.id,
+              uid,
+              isCaught: true,
+            );
+          for (var uid in dex.shinyIds)
+            await DatabaseService.instance.savePokemonStatus(
+              dex.id,
+              uid,
+              isShiny: true,
+            );
+          for (var uid in dex.ignoredIds)
+            await DatabaseService.instance.savePokemonStatus(
+              dex.id,
+              uid,
+              isIgnored: true,
+            );
+        }
+      }
+
+      if (oldFoldersJson != null) {
+        List<dynamic> decodedFolders = jsonDecode(oldFoldersJson);
+        for (var f in decodedFolders) {
+          DexFolder folder = DexFolder.fromMap(f as Map<String, dynamic>);
+          await DatabaseService.instance.saveFolder(folder);
+        }
+      }
+
+      if (oldStructureJson != null) {
+        Map<String, dynamic> decodedStruct = jsonDecode(oldStructureJson);
+        Map<String, List<String>> newStruct = {};
+        decodedStruct.forEach((key, value) {
+          newStruct[key] = List<String>.from(value);
+        });
+        await DatabaseService.instance.saveStructure(newStruct);
+      }
+
+      await prefs.remove('saved_dexes');
+      await prefs.remove('saved_folders');
+      await prefs.remove('saved_structure');
+
+      debugPrint("Migration erfolgreich abgeschlossen und Cache aufgeräumt!");
     } catch (e) {
-      NotificationHelper.showError("${Translator.get('error_save')} $e");
+      debugPrint("Fehler bei der automatischen Migration: $e");
     }
   }
 
-  bool isDescendant(String folderId, String targetId) {
-    if (folderId == targetId) return true;
-    final children = _structure[folderId] ?? [];
-    for (var child in children) {
-      if (child == targetId) return true;
-      if (child.startsWith('folder_') && isDescendant(child, targetId)) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  String? getParentFolder(String itemId) {
-    for (var entry in _structure.entries) {
-      if (entry.value.contains(itemId)) return entry.key;
-    }
-    return null;
-  }
-
-  void createFolder(String title, String currentFolderId) {
-    final uniqueId =
-        'folder_${DateTime.now().millisecondsSinceEpoch}_${Random().nextInt(10000)}';
-    _folders.add(DexFolder(id: uniqueId, title: title));
-    _structure[uniqueId] = [];
-    _structure[currentFolderId]?.add(uniqueId);
-    _saveToPrefs();
+  void setLanguage(String lang) async {
+    currentLanguage = lang;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('language', lang);
+    Translator.currentLanguage = lang;
     notifyListeners();
   }
 
-  bool moveItem(String itemId, String newParentId) {
-    if (itemId.startsWith('folder_') && isDescendant(itemId, newParentId)) {
-      NotificationHelper.showError(
-        Translator.get('error_cyclic_move') != 'error_cyclic_move'
-            ? Translator.get('error_cyclic_move')
-            : 'Ein Ordner kann nicht in sich selbst verschoben werden!',
-      );
-      return false;
+  void toggleTheme() async {
+    if (themeMode == ThemeMode.dark) {
+      themeMode = ThemeMode.light;
+    } else {
+      themeMode = ThemeMode.dark;
     }
-
-    for (var key in _structure.keys) {
-      if (_structure[key]!.contains(itemId)) {
-        _structure[key]!.remove(itemId);
-        break;
-      }
-    }
-    _structure[newParentId]?.add(itemId);
-    _saveToPrefs();
-    notifyListeners();
-    return true;
-  }
-
-  void deleteFolder(String folderId) {
-    final contents = _structure[folderId] ?? [];
-    _structure['root']!.addAll(contents);
-    _structure.remove(folderId);
-    _folders.removeWhere((f) => f.id == folderId);
-    for (var key in _structure.keys) {
-      _structure[key]!.remove(folderId);
-    }
-    _saveToPrefs();
-    notifyListeners();
-  }
-
-  void renameFolder(String folderId, String newTitle) {
-    final folder = _folders.firstWhere((f) => f.id == folderId);
-    folder.title = newTitle;
-    _saveToPrefs();
-    notifyListeners();
-  }
-
-  void reorderItemsInFolder(String folderId, int oldIndex, int newIndex) {
-    final list = _structure[folderId];
-    if (list == null) return;
-
-    final item = list.removeAt(oldIndex);
-    list.insert(newIndex, item);
-    _structure[folderId] = List.from(list);
-
-    _saveToPrefs();
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(
+      'themeMode',
+      themeMode == ThemeMode.dark ? 'dark' : 'light',
+    );
     notifyListeners();
   }
 
@@ -221,17 +176,12 @@ class DexProvider extends ChangeNotifier {
     bool includeGMax,
     bool includeOther,
     bool isShinyDex,
-    String currentFolderId,
+    String folderId,
   ) {
-    final uniqueId =
-        'dex_${DateTime.now().millisecondsSinceEpoch}_${Random().nextInt(10000)}';
     final newDex = UserDex(
-      id: uniqueId,
+      id: const Uuid().v4(),
       title: title,
       region: region,
-      caughtIds: {},
-      ignoredIds: {},
-      shinyIds: {},
       includeGenders: includeGenders,
       includeRegional: includeRegional,
       includeMega: includeMega,
@@ -239,133 +189,12 @@ class DexProvider extends ChangeNotifier {
       includeOther: includeOther,
       isShinyDex: isShinyDex,
     );
-    _userDexes.add(newDex);
-    _structure[currentFolderId]?.add(uniqueId);
-    _saveToPrefs();
+    userDexes.add(newDex);
+    structure.putIfAbsent(folderId, () => []).add(newDex.id);
+
+    DatabaseService.instance.saveUserDex(newDex);
+    DatabaseService.instance.saveStructure(structure);
     notifyListeners();
-  }
-
-  void deleteDex(String dexId) {
-    _userDexes.removeWhere((d) => d.id == dexId);
-    for (var key in _structure.keys) {
-      _structure[key]!.remove(dexId);
-    }
-    _saveToPrefs();
-    notifyListeners();
-  }
-
-  void deleteMultipleDexes(Set<String> dexIds) {
-    _userDexes.removeWhere((d) => dexIds.contains(d.id));
-    for (var key in _structure.keys) {
-      _structure[key]!.removeWhere((id) => dexIds.contains(id));
-    }
-    _saveToPrefs();
-    notifyListeners();
-  }
-
-  Future<void> importJsonData() async {
-    try {
-      final imported = await DexStorageService.importDexes(this);
-      if (imported != null) {
-        Set<String> existingIds = _userDexes.map((d) => d.id).toSet();
-        Map<String, String> idMap = {};
-        String getNewId(String oldId) => idMap[oldId] ?? oldId;
-
-        if (imported is List) {
-          for (var oldDex in imported) {
-            UserDex dex = UserDex.fromJson(oldDex as Map<String, dynamic>);
-            String newId = dex.id;
-            if (existingIds.contains(newId)) {
-              newId =
-                  'dex_${DateTime.now().millisecondsSinceEpoch}_${Random().nextInt(10000)}';
-            }
-            dex = UserDex(
-              id: newId,
-              title: dex.title,
-              region: dex.region,
-              caughtIds: dex.caughtIds,
-              ignoredIds: dex.ignoredIds,
-              shinyIds: dex.shinyIds,
-              includeGenders: dex.includeGenders,
-              includeRegional: dex.includeRegional,
-              includeMega: dex.includeMega,
-              includeGMax: dex.includeGMax,
-              includeOther: dex.includeOther,
-              isShinyDex: dex.isShinyDex,
-            );
-            existingIds.add(newId);
-            _userDexes.add(dex);
-            _structure['root']!.add(newId);
-          }
-        } else if (imported is Map) {
-          if (imported['folders'] != null) {
-            for (var fJson in imported['folders']) {
-              DexFolder f = DexFolder.fromJson(fJson);
-              if (_folders.any((existing) => existing.id == f.id)) {
-                String newId =
-                    'folder_${DateTime.now().millisecondsSinceEpoch}_${Random().nextInt(10000)}';
-                idMap[f.id] = newId;
-                _folders.add(DexFolder(id: newId, title: f.title));
-              } else {
-                _folders.add(f);
-              }
-            }
-          }
-
-          if (imported['dexes'] != null) {
-            for (var dJson in imported['dexes']) {
-              UserDex d = UserDex.fromJson(dJson);
-              if (existingIds.contains(d.id)) {
-                String newId =
-                    'dex_${DateTime.now().millisecondsSinceEpoch}_${Random().nextInt(10000)}';
-                idMap[d.id] = newId;
-                _userDexes.add(
-                  UserDex(
-                    id: newId,
-                    title: d.title,
-                    region: d.region,
-                    caughtIds: d.caughtIds,
-                    ignoredIds: d.ignoredIds,
-                    shinyIds: d.shinyIds,
-                    includeGenders: d.includeGenders,
-                    includeRegional: d.includeRegional,
-                    includeMega: d.includeMega,
-                    includeGMax: d.includeGMax,
-                    includeOther: d.includeOther,
-                    isShinyDex: d.isShinyDex,
-                  ),
-                );
-              } else {
-                _userDexes.add(d);
-                existingIds.add(d.id);
-              }
-            }
-          }
-
-          if (imported['structure'] != null) {
-            Map<String, dynamic> struct = imported['structure'];
-            struct.forEach((oldParentId, children) {
-              String parentId = oldParentId == 'root'
-                  ? 'root'
-                  : getNewId(oldParentId);
-              _structure.putIfAbsent(parentId, () => []);
-              for (var oldChildId in children) {
-                String childId = getNewId(oldChildId);
-                if (!_structure[parentId]!.contains(childId)) {
-                  _structure[parentId]!.add(childId);
-                }
-              }
-            });
-          }
-        }
-
-        _saveToPrefs();
-        notifyListeners();
-        NotificationHelper.showSuccess(Translator.get('import_success'));
-      }
-    } catch (e) {
-      NotificationHelper.showError("${Translator.get('error_import')} $e");
-    }
   }
 
   void updateDex(
@@ -378,99 +207,207 @@ class DexProvider extends ChangeNotifier {
     bool includeOther,
     bool isShinyDex,
   ) {
-    final dexIndex = _userDexes.indexWhere((d) => d.id == id);
-    if (dexIndex != -1) {
-      final oldDex = _userDexes[dexIndex];
-      _userDexes[dexIndex] = UserDex(
-        id: oldDex.id,
+    final index = userDexes.indexWhere((d) => d.id == id);
+    if (index != -1) {
+      final old = userDexes[index];
+      final updated = UserDex(
+        id: old.id,
         title: title,
-        region: oldDex.region,
-        caughtIds: oldDex.caughtIds,
-        ignoredIds: oldDex.ignoredIds,
-        shinyIds: oldDex.shinyIds,
+        region: old.region,
         includeGenders: includeGenders,
         includeRegional: includeRegional,
         includeMega: includeMega,
         includeGMax: includeGMax,
         includeOther: includeOther,
         isShinyDex: isShinyDex,
+        caughtIds: old.caughtIds,
+        shinyIds: old.shinyIds,
+        ignoredIds: old.ignoredIds,
       );
-      _saveToPrefs();
+      userDexes[index] = updated;
+      DatabaseService.instance.saveUserDex(updated);
       notifyListeners();
     }
   }
 
-  void togglePokemon(String dexId, String entryId) {
-    final dexIndex = _userDexes.indexWhere((d) => d.id == dexId);
-    if (dexIndex != -1) {
-      final dex = _userDexes[dexIndex];
-      if (dex.caughtIds.contains(entryId)) {
-        dex.caughtIds.remove(entryId);
-        dex.shinyIds.remove(entryId);
-      } else {
-        dex.caughtIds.add(entryId);
-        if (dex.isShinyDex) dex.shinyIds.add(entryId);
+  void deleteDex(String id) {
+    userDexes.removeWhere((d) => d.id == id);
+    for (var key in structure.keys) {
+      structure[key]?.remove(id);
+    }
+    DatabaseService.instance.deleteUserDex(id);
+    DatabaseService.instance.saveStructure(structure);
+    notifyListeners();
+  }
+
+  void createFolder(String title, String currentFolderId) {
+    final folder = DexFolder(id: 'folder_${const Uuid().v4()}', title: title);
+    folders.add(folder);
+    structure.putIfAbsent(currentFolderId, () => []).add(folder.id);
+
+    DatabaseService.instance.saveFolder(folder);
+    DatabaseService.instance.saveStructure(structure);
+    notifyListeners();
+  }
+
+  void renameFolder(String id, String newTitle) {
+    final idx = folders.indexWhere((f) => f.id == id);
+    if (idx != -1) {
+      folders[idx] = DexFolder(id: id, title: newTitle);
+      DatabaseService.instance.saveFolder(folders[idx]);
+      notifyListeners();
+    }
+  }
+
+  void deleteFolder(String id) {
+    folders.removeWhere((f) => f.id == id);
+    for (var key in structure.keys) {
+      structure[key]?.remove(id);
+    }
+    structure.remove(id);
+    DatabaseService.instance.deleteFolder(id);
+    DatabaseService.instance.saveStructure(structure);
+    notifyListeners();
+  }
+
+  void moveItem(String itemId, String newParentId) {
+    for (var key in structure.keys) {
+      structure[key]?.remove(itemId);
+    }
+    structure.putIfAbsent(newParentId, () => []).add(itemId);
+    DatabaseService.instance.saveStructure(structure);
+    notifyListeners();
+  }
+
+  void updateStructureOrder(String parentId, List<String> newOrder) {
+    structure[parentId] = newOrder;
+    DatabaseService.instance.saveStructure(structure);
+    notifyListeners();
+  }
+
+  bool isDescendant(String parentId, String potentialChildId) {
+    if (parentId == potentialChildId) return true;
+    final children = structure[parentId] ?? [];
+    for (String child in children) {
+      if (child.startsWith('folder_') && isDescendant(child, potentialChildId))
+        return true;
+    }
+    return false;
+  }
+
+  void togglePokemon(String dexId, String pokemonUniqueId) {
+    final dex = userDexes.firstWhere((d) => d.id == dexId);
+    bool isCaught = !dex.caughtIds.contains(pokemonUniqueId);
+    if (isCaught) {
+      dex.caughtIds.add(pokemonUniqueId);
+    } else {
+      dex.caughtIds.remove(pokemonUniqueId);
+    }
+    DatabaseService.instance.savePokemonStatus(
+      dexId,
+      pokemonUniqueId,
+      isCaught: isCaught,
+    );
+    notifyListeners();
+  }
+
+  void toggleShiny(String dexId, String pokemonUniqueId) {
+    final dex = userDexes.firstWhere((d) => d.id == dexId);
+    bool isShiny = !dex.shinyIds.contains(pokemonUniqueId);
+    if (isShiny) {
+      dex.shinyIds.add(pokemonUniqueId);
+    } else {
+      dex.shinyIds.remove(pokemonUniqueId);
+    }
+    DatabaseService.instance.savePokemonStatus(
+      dexId,
+      pokemonUniqueId,
+      isShiny: isShiny,
+    );
+    notifyListeners();
+  }
+
+  void ignorePokemon(String dexId, String pokemonUniqueId) {
+    final dex = userDexes.firstWhere((d) => d.id == dexId);
+    if (!dex.ignoredIds.contains(pokemonUniqueId)) {
+      dex.ignoredIds.add(pokemonUniqueId);
+      DatabaseService.instance.savePokemonStatus(
+        dexId,
+        pokemonUniqueId,
+        isIgnored: true,
+      );
+      notifyListeners();
+    }
+  }
+
+  void restorePokemon(String dexId, String pokemonUniqueId) {
+    final dex = userDexes.firstWhere((d) => d.id == dexId);
+    dex.ignoredIds.remove(pokemonUniqueId);
+    DatabaseService.instance.savePokemonStatus(
+      dexId,
+      pokemonUniqueId,
+      isIgnored: false,
+    );
+    notifyListeners();
+  }
+
+  Future<void> importJsonData() async {
+    final data = await DexStorageService.importDexes(this);
+    if (data != null) {
+      await DatabaseService.instance.clearUserData();
+
+      folders.clear();
+      userDexes.clear();
+      structure.clear();
+
+      if (data['folders'] != null) {
+        for (var fData in data['folders']) {
+          final f = DexFolder.fromJson(fData);
+          folders.add(f);
+          await DatabaseService.instance.saveFolder(f);
+        }
       }
-      _saveToPrefs();
-      notifyListeners();
-    }
-  }
 
-  void toggleShiny(String dexId, String entryId) {
-    final dexIndex = _userDexes.indexWhere((d) => d.id == dexId);
-    if (dexIndex != -1) {
-      final dex = _userDexes[dexIndex];
-      if (dex.shinyIds.contains(entryId)) {
-        dex.shinyIds.remove(entryId);
-      } else {
-        dex.shinyIds.add(entryId);
-        dex.caughtIds.add(entryId);
+      if (data['dexes'] != null) {
+        for (var dData in data['dexes']) {
+          final d = UserDex.fromJson(dData);
+          userDexes.add(d);
+          await DatabaseService.instance.saveUserDex(d);
+
+          for (var uid in d.caughtIds)
+            await DatabaseService.instance.savePokemonStatus(
+              d.id,
+              uid,
+              isCaught: true,
+            );
+          for (var uid in d.shinyIds)
+            await DatabaseService.instance.savePokemonStatus(
+              d.id,
+              uid,
+              isShiny: true,
+            );
+          for (var uid in d.ignoredIds)
+            await DatabaseService.instance.savePokemonStatus(
+              d.id,
+              uid,
+              isIgnored: true,
+            );
+        }
       }
-      _saveToPrefs();
+
+      if (data['structure'] != null) {
+        final Map<String, dynamic> structData = data['structure'];
+        structData.forEach((key, value) {
+          structure[key] = List<String>.from(value);
+        });
+        await DatabaseService.instance.saveStructure(structure);
+      } else {
+        structure['root'] = userDexes.map((d) => d.id).toList();
+        await DatabaseService.instance.saveStructure(structure);
+      }
+
       notifyListeners();
+      NotificationHelper.showSuccess('Import erfolgreich!');
     }
-  }
-
-  void ignorePokemon(String dexId, String entryId) {
-    final dexIndex = _userDexes.indexWhere((d) => d.id == dexId);
-    if (dexIndex != -1) {
-      final dex = _userDexes[dexIndex];
-      dex.ignoredIds.add(entryId);
-      dex.caughtIds.remove(entryId);
-      dex.shinyIds.remove(entryId);
-      _saveToPrefs();
-      notifyListeners();
-    }
-  }
-
-  void restorePokemon(String dexId, String entryId) {
-    final dexIndex = _userDexes.indexWhere((d) => d.id == dexId);
-    if (dexIndex != -1) {
-      final dex = _userDexes[dexIndex];
-      dex.ignoredIds.remove(entryId);
-      _saveToPrefs();
-      notifyListeners();
-    }
-  }
-
-  void toggleTheme() {
-    _themeMode = _themeMode == ThemeMode.light
-        ? ThemeMode.dark
-        : ThemeMode.light;
-    _saveToPrefs();
-    notifyListeners();
-  }
-
-  void setLanguage(String langCode) {
-    _currentLanguage = langCode;
-    Translator.currentLanguage = langCode;
-    _saveToPrefs();
-    notifyListeners();
-  }
-
-  void updateStructureOrder(String folderId, List<String> newOrder) {
-    structure[folderId] = newOrder;
-    notifyListeners();
-    _saveToPrefs();
   }
 }

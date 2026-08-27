@@ -1,155 +1,128 @@
-import '../l10n/app_translations.dart';
-import '../utils/notification_helper.dart';
-
 class DexGroup {
   final String nameKey;
-  final List<int> displayPokemonIds;
   final List<String> dexKeys;
+  final List<int> displayPokemonIds;
 
-  DexGroup(this.nameKey, this.displayPokemonIds, this.dexKeys);
+  DexGroup({
+    required this.nameKey,
+    required this.dexKeys,
+    required this.displayPokemonIds,
+  });
 }
 
 class DexGroupsData {
   static final List<DexGroup> groups = [
-    DexGroup('group_national', [151, 251, 385, 493], ['national_overall']),
     DexGroup(
-      'group_kanto',
-      [3, 6, 9, 25],
-      ['kanto_regional', 'letsgo_kanto_regional'],
+      nameKey: 'group_national',
+      dexKeys: ['national_overall'],
+      displayPokemonIds: [1, 152, 252, 387],
     ),
     DexGroup(
-      'group_johto',
-      [250, 249, 245, 251],
-      ['johto_regional', 'updated_johto_regional'],
+      nameKey: 'group_kanto',
+      dexKeys: ['kanto', 'letsgo-kanto'],
+      displayPokemonIds: [1, 4, 7, 25],
     ),
     DexGroup(
-      'group_hoenn',
-      [382, 383, 384, 386],
-      ['hoenn_regional', 'updated_hoenn_regional'],
+      nameKey: 'group_johto',
+      dexKeys: ['original-johto', 'updated-johto'],
+      displayPokemonIds: [152, 155, 158, 175],
     ),
     DexGroup(
-      'group_sinnoh',
-      [483, 484, 487, 448],
-      ['sinnoh_regional', 'extended_sinnoh_regional'],
+      nameKey: 'group_hoenn',
+      dexKeys: ['hoenn', 'updated-hoenn'],
+      displayPokemonIds: [252, 255, 258, 280],
     ),
     DexGroup(
-      'group_unova',
-      [643, 644, 646, 494],
-      ['unova_regional', 'updated_unova_regional'],
+      nameKey: 'group_sinnoh',
+      dexKeys: ['original-sinnoh', 'extended-sinnoh'],
+      displayPokemonIds: [387, 390, 393, 396],
     ),
     DexGroup(
-      'group_kalos',
-      [716, 717, 718, 719],
-      [
-        'kalos_central_regional',
-        'kalos_coastal_regional',
-        'kalos_mountain_regional',
-        'lumiose_regional',
-        'lumiose_dimensions_regional',
+      nameKey: 'group_unova',
+      dexKeys: ['original-unova', 'updated-unova'],
+      displayPokemonIds: [495, 498, 501, 504],
+    ),
+    DexGroup(
+      nameKey: 'group_kalos',
+      dexKeys: ['kalos-central', 'kalos-coastal', 'kalos-mountain'],
+      displayPokemonIds: [650, 653, 656, 659],
+    ),
+    DexGroup(
+      nameKey: 'group_alola',
+      dexKeys: [
+        'original-alola',
+        'updated-alola',
+        'original-melemele',
+        'original-akala',
+        'original-ulaula',
+        'original-poni',
+        'updated-melemele',
+        'updated-akala',
+        'updated-ulaula',
+        'updated-poni',
       ],
+      displayPokemonIds: [722, 725, 728, 731],
     ),
     DexGroup(
-      'group_alola',
-      [791, 792, 800, 773],
-      [
-        'alola_regional',
-        'melemele_regional',
-        'akala_regional',
-        'ulaula_regional',
-        'poni_regional',
-        'updated_alola_regional',
-        'updated_melemele_regional',
-        'updated_akala_regional',
-        'updated_ulaula_regional',
-        'updated_poni_regional',
-      ],
+      nameKey: 'group_galar',
+      dexKeys: ['galar', 'isle-of-armor', 'crown-tundra'],
+      displayPokemonIds: [810, 813, 816, 821],
     ),
     DexGroup(
-      'group_galar',
-      [888, 889, 890, 493],
-      [
-        'galar_regional',
-        'isle_of_armor_regional',
-        'crown_tundra_regional',
-        'hisui_regional',
-      ],
+      nameKey: 'group_hisui',
+      dexKeys: ['hisui'],
+      displayPokemonIds: [722, 155, 501, 899],
     ),
     DexGroup(
-      'group_paldea',
-      [1007, 1008, 1017, 1024],
-      ['paldea_regional', 'kitakami_regional', 'blueberry_regional'],
+      nameKey: 'group_paldea',
+      dexKeys: ['paldea', 'kitakami', 'blueberry'],
+      displayPokemonIds: [906, 909, 912, 915],
     ),
     DexGroup(
-      'region_special_dex',
-      [150, 201, 719, 448],
-      ['mega_dex', 'icognito_dex', 'legendary_dex', 'mythical_dex'],
+      nameKey: 'group_lumiose',
+      dexKeys: ['lumiose', 'lumiose-dimensions'],
+      displayPokemonIds: [650, 653, 656, 150],
     ),
     DexGroup(
-      'group_egg_groups',
-      [132, 175, 440, 113],
-      [
-        'egg_monster',
-        'egg_water1',
-        'egg_water2',
-        'egg_water3',
-        'egg_bug',
-        'egg_flying',
-        'egg_ground',
-        'egg_fairy',
-        'egg_plant',
-        'egg_humanshape',
-        'egg_mineral',
-        'egg_indeterminate',
-        'egg_ditto',
-        'egg_dragon',
-        'egg_no_eggs',
-      ],
+      nameKey: 'group_special',
+      dexKeys: ['mega-dex', 'icognito-dex'],
+      displayPokemonIds: [3, 6, 9, 201],
     ),
   ];
 
   static Map<String, bool> getAvailableFeatures(String dexKey) {
-    try {
-      if (dexKey == 'national_overall') {
-        return {'regional': true, 'mega': true, 'gmax': true};
-      }
-      if (dexKey == 'letsgo_kanto_regional') {
-        return {'regional': true, 'mega': true, 'gmax': false};
-      }
-      if (dexKey == 'updated_hoenn_regional') {
-        return {'regional': false, 'mega': true, 'gmax': false};
-      }
-      if (dexKey.contains('kalos') || dexKey.contains('lumiose')) {
-        return {'regional': false, 'mega': true, 'gmax': false};
-      }
-      if (dexKey.contains('alola') ||
-          dexKey.contains('melemele') ||
-          dexKey.contains('akala') ||
-          dexKey.contains('ulaula') ||
-          dexKey.contains('poni')) {
-        return {'regional': true, 'mega': true, 'gmax': false};
-      }
-      if (dexKey.contains('galar') ||
-          dexKey.contains('armor') ||
-          dexKey.contains('tundra')) {
-        return {'regional': true, 'mega': false, 'gmax': true};
-      }
-      if (dexKey.contains('hisui') ||
-          dexKey.contains('paldea') ||
-          dexKey.contains('kitakami') ||
-          dexKey.contains('blueberry')) {
-        return {'regional': true, 'mega': false, 'gmax': false};
-      }
-      if (dexKey == 'mega_dex') {
-        return {'regional': false, 'mega': true, 'gmax': false};
-      }
-      if (dexKey == 'icognito_dex') {
-        return {'regional': false, 'mega': false, 'gmax': false};
-      }
-    } catch (e) {
-      NotificationHelper.showError(
-        "${Translator.get('error_getting_available_features')} $e",
-      );
-    }
-    return {'regional': false, 'mega': false, 'gmax': false};
+    return {
+      'regional': [
+        'alola',
+        'updated-alola',
+        'galar',
+        'isle-of-armor',
+        'crown-tundra',
+        'hisui',
+        'paldea',
+        'kitakami',
+        'blueberry',
+        'national_overall',
+      ].contains(dexKey),
+      'mega': [
+        'kalos-central',
+        'kalos-coastal',
+        'kalos-mountain',
+        'hoenn',
+        'updated-hoenn',
+        'lumiose',
+        'lumiose-dimensions',
+        'national_overall',
+        'mega-dex',
+        'letsgo-kanto',
+      ].contains(dexKey),
+      'gmax': [
+        'galar',
+        'isle-of-armor',
+        'crown-tundra',
+        'national_overall',
+      ].contains(dexKey),
+      'other': true,
+    };
   }
 }

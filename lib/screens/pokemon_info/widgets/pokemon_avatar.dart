@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import '../../../data/national_dex_data.dart';
+import 'package:provider/provider.dart';
+import '../../../providers/dex_provider.dart';
 import '../../../l10n/app_translations.dart';
 import '../../../utils/notification_helper.dart';
 
@@ -25,16 +26,16 @@ class PokemonAvatar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     try {
+      final provider = context.read<DexProvider>();
+      final p = provider.allPokemon.firstWhere((p) => p.id == id);
+
       bool showAsShiny = isShiny && !isCarrier;
       final String imgUrl =
           'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${showAsShiny ? "shiny/" : ""}$id.png';
-
-      final p = nationalPokemonDatabase.firstWhere((p) => p.id == id);
       final String name = p.getName(Translator.currentLanguage);
 
       IconData genderIcon = Icons.transgender;
       Color genderColor = Colors.grey;
-
       if (gender == 'm') {
         genderIcon = Icons.male;
         genderColor = Colors.blueAccent;

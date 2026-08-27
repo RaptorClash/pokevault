@@ -1,5 +1,5 @@
-import '../data/encounters_data.dart';
-import '../data/dex_orders.dart';
+import '../services/database_service.dart';
+import '../models/pokemon.dart';
 
 class ShinyLogicHelper {
   static final Set<int> _huntableInGen1 = {
@@ -97,8 +97,8 @@ class ShinyLogicHelper {
     return _huntableInGen1.contains(dexId);
   }
 
-  static bool isStaticEncounter(int dexId, String gen) {
-    final encounters = encountersDatabase[dexId];
+  static Future<bool> isStaticEncounter(int dexId, String gen) async {
+    final encounters = await DatabaseService.instance.getEncounters(dexId);
     if (encounters != null && encounters.containsKey(gen)) {
       for (var locs in encounters[gen]!.values) {
         for (var loc in locs) {
@@ -112,14 +112,11 @@ class ShinyLogicHelper {
         }
       }
     }
-    if (gen == 'gen_1' && [143, 144, 145, 146, 150].contains(dexId)) {
+    if (gen == 'gen_1' && [143, 144, 145, 146, 150].contains(dexId))
       return true;
-    }
     if (gen == 'gen_2' &&
-        [130, 131, 143, 185, 243, 244, 245, 249, 250, 251].contains(dexId)) {
+        [130, 131, 143, 185, 243, 244, 245, 249, 250, 251].contains(dexId))
       return true;
-    }
-
     return false;
   }
 
@@ -142,9 +139,9 @@ class ShinyLogicHelper {
     }
   }
 
-  static bool isBreedable(int dexId) {
-    if (ordereggnoeggs.contains(dexId)) return false;
-    if (ordereggditto.contains(dexId)) return false;
+  static bool isBreedable(Pokemon pokemon) {
+    if (pokemon.eggGroups.contains('No Eggs Discovered')) return false;
+    if (pokemon.eggGroups.contains('Ditto')) return false;
     return true;
   }
 
@@ -304,24 +301,38 @@ class ShinyLogicHelper {
 
   static int getDefaultLevel(int dexId) {
     const Map<int, int> levels = {
-      1: 5, 4: 5, 7: 5, 25: 5, // Starter
-      129: 5, // Karpador (Geschenk)
-      63: 9, // Abra (Game Corner Red)
-      35: 8, // Piepi (Game Corner Red)
-      30: 22, 33: 22, 37: 18, 40: 22, // Nidorina, Nidorino, Vulpix, Knuddeluff
-      137: 26, // Porygon
-      147: 18, 148: 30, // Dratini, Dragonair
-      123: 25, 127: 25, // Sichlor, Pinsir
-      36: 23, // Pixi (Game Corner Jap. Blue)
-      116: 18, // Seeper (Game Corner Jap. Blue)
-      131: 15, // Lapras
-      133: 25, // Evoli
-      138: 30, 140: 30, 142: 30, // Fossilien
-      106: 30, 107: 30, // Kicklee, Nockchan
-      100: 40, 101: 40, // Voltobal, Lektrobal
-      143: 30, // Relaxo
-      144: 50, 145: 50, 146: 50, // Legendäre Vögel
-      150: 70, // Mewtu
+      1: 5,
+      4: 5,
+      7: 5,
+      25: 5,
+      129: 5,
+      63: 9,
+      35: 8,
+      30: 22,
+      33: 22,
+      37: 18,
+      40: 22,
+      137: 26,
+      147: 18,
+      148: 30,
+      123: 25,
+      127: 25,
+      36: 23,
+      116: 18,
+      131: 15,
+      133: 25,
+      138: 30,
+      140: 30,
+      142: 30,
+      106: 30,
+      107: 30,
+      100: 40,
+      101: 40,
+      143: 30,
+      144: 50,
+      145: 50,
+      146: 50,
+      150: 70,
     };
     return levels[dexId] ?? 15;
   }

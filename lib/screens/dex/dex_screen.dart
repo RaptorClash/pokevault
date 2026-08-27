@@ -463,7 +463,10 @@ class _DexScreenState extends State<DexScreen> {
                     .firstOrNull;
 
                 if (targetPoke != null) {
-                  final family = BreedingData.getFullFamily(targetPoke.id);
+                  final family = BreedingData.getFullFamily(
+                    targetPoke.id,
+                    provider,
+                  );
                   if (family.contains(
                     ShinyLogicHelper.getBaseForm(entry.pokemon.id),
                   )) {
@@ -826,8 +829,9 @@ class _DexScreenState extends State<DexScreen> {
                 context,
                 MaterialPageRoute(
                   builder: (context) => RouteTrackerScreen(
-                    dexId: liveDex.id,
-                    rawEntries: _rawEntries,
+                    liveDex: liveDex,
+                    displayEntries:
+                        _rawEntries,
                   ),
                 ),
               );

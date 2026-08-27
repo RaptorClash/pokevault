@@ -57,7 +57,6 @@ class _PokemonInfoScreenState extends State<PokemonInfoScreen> {
     super.initState();
     _currentIndex = widget.initialIndex;
     _pageController = PageController(initialPage: widget.initialIndex);
-
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _showTutorialIfNeeded();
     });
@@ -331,6 +330,7 @@ class _PokemonInfoScreenState extends State<PokemonInfoScreen> {
       formName = entry.uniqueId.substring(entry.uniqueId.indexOf('_') + 1);
       if (formName == 'm' || formName == 'f') formName = 'normal';
     }
+
     PokemonForm? currentForm;
     try {
       currentForm = entry.pokemon.forms.firstWhere((f) => f.name == formName);

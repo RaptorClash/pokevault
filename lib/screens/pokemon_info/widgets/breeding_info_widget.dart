@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
 import '../../../l10n/app_translations.dart';
 import '../../../models/pokemon.dart';
 import '../../../providers/dex_provider.dart';
-import '../../../data/national_dex_data.dart';
-import '../../../data/evolution_data.dart';
+import '../../../services/database_service.dart';
 import 'pokemon_avatar.dart';
 
 class BreedingInfoWidget extends StatelessWidget {
@@ -13,11 +11,10 @@ class BreedingInfoWidget extends StatelessWidget {
 
   const BreedingInfoWidget({super.key, required this.pokemon});
 
-  String _getPokeName(int id, String lang) {
+  String _getPokeName(int id, String lang, DexProvider provider) {
     try {
-      return nationalPokemonDatabase
-          .firstWhere((p) => p.id == id)
-          .getName(lang);
+      final p = provider.allPokemon.firstWhere((p) => p.id == id);
+      return p.getName(lang);
     } catch (_) {
       return '???';
     }
@@ -60,7 +57,6 @@ class BreedingInfoWidget extends StatelessWidget {
           ? Translator.get('evo_base_form')
           : 'Basisform / Ei';
     }
-
     String trigger = detail['trigger'] ?? '';
     List<String> conditions = [];
 
@@ -107,12 +103,13 @@ class BreedingInfoWidget extends StatelessWidget {
     if (triggerText == 'trigger_$trigger') {
       if (trigger == 'level-up') {
         triggerText = 'Levelaufstieg';
-      } else if (trigger == 'use-item')
+      } else if (trigger == 'use-item') {
         triggerText = 'Item anwenden';
-      else if (trigger == 'trade')
+      } else if (trigger == 'trade') {
         triggerText = 'Tausch';
-      else
+      } else {
         triggerText = trigger;
+      }
     }
 
     if (conditions.isEmpty) return triggerText;
@@ -124,6 +121,7 @@ class BreedingInfoWidget extends StatelessWidget {
     Map<String, dynamic> node,
     int depth,
     String lang,
+    DexProvider provider,
   ) {
     int speciesId = node['species_id'];
     List details = node['details'] ?? [];
@@ -135,9 +133,7 @@ class BreedingInfoWidget extends StatelessWidget {
               : (Translator.get('evo_base_form') != 'evo_base_form'
                     ? Translator.get('evo_base_form')
                     : 'Basisform / Ei'))
-        : _formatEvoDetails(
-            details.first,
-          );
+        : _formatEvoDetails(details.first);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -172,7 +168,7 @@ class BreedingInfoWidget extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      '#$speciesId ${_getPokeName(speciesId, lang)}',
+                      '#$speciesId ${_getPokeName(speciesId, lang, provider)}',
                       style: TextStyle(
                         fontWeight: speciesId == pokemon.id
                             ? FontWeight.bold
@@ -195,7 +191,7 @@ class BreedingInfoWidget extends StatelessWidget {
           ),
         ),
         for (var childNode in evolvesTo)
-          _buildEvolutionNode(context, childNode, depth + 1, lang),
+          _buildEvolutionNode(context, childNode, depth + 1, lang, provider),
       ],
     );
   }
@@ -212,6 +208,7 @@ class BreedingInfoWidget extends StatelessWidget {
     String eggGroupsText = Translator.get('unknown') != 'unknown'
         ? Translator.get('unknown')
         : 'Unbekannt';
+
     if (pokemon.eggGroups.isNotEmpty) {
       eggGroupsText = pokemon.eggGroups
           .map((g) {
@@ -220,11 +217,6 @@ class BreedingInfoWidget extends StatelessWidget {
             return t == tKey ? g : t;
           })
           .join(', ');
-    }
-
-    Map<String, dynamic>? chainData;
-    if (pokemon.evolutionChainId != -1) {
-      chainData = evolutionDatabase[pokemon.evolutionChainId.toString()];
     }
 
     return Card(
@@ -272,14 +264,39 @@ class BreedingInfoWidget extends StatelessWidget {
                   genderText,
                   iconColor: genderColor,
                 ),
-
-                if (chainData != null) ...[
-                  const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 12.0),
-                    child: Divider(height: 1),
+                if (pokemon.evolutionChainId != -1)
+                  FutureBuilder<Map<String, dynamic>?>(
+                    future: DatabaseService.instance.getEvolutionChain(
+                      pokemon.evolutionChainId,
+                    ),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return const Padding(
+                          padding: EdgeInsets.all(16.0),
+                          child: Center(child: CircularProgressIndicator()),
+                        );
+                      }
+                      if (snapshot.hasData && snapshot.data != null) {
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Padding(
+                              padding: EdgeInsets.symmetric(vertical: 12.0),
+                              child: Divider(height: 1),
+                            ),
+                            _buildEvolutionNode(
+                              context,
+                              snapshot.data!,
+                              0,
+                              lang,
+                              provider,
+                            ),
+                          ],
+                        );
+                      }
+                      return const SizedBox.shrink();
+                    },
                   ),
-                  _buildEvolutionNode(context, chainData, 0, lang),
-                ],
               ],
             ),
           ),

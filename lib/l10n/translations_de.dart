@@ -1379,4 +1379,11 @@ const Map<String, String> translationsDe = {
   'error_calc_ui_hp': 'Fehler im HP/Status-Widget:',
   'error_calc_ui_crit': 'Fehler im Crit-Widget:',
   'create_dex_btn': 'Pokédex erstellen',
+
+  'error_db_init': 'Datenbank konnte nicht initialisiert werden:',
+  'error_db_create': 'Benutzertabellen konnten nicht erstellt werden:',
+  'error_db_write': 'Fehler beim Speichern deiner Daten:',
+
+  'migration_loading_text':
+      'Daten werden für die neuste Version optimiert...\nBitte App nicht schließen.',
 };

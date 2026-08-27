@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../l10n/app_translations.dart';
-import '../../../data/encounters_data.dart';
+import '../../../services/database_service.dart';
 import '../../../utils/notification_helper.dart';
 
 class GameVersion {
@@ -212,247 +212,236 @@ class EncountersWidget extends StatelessWidget {
     );
   }
 
-  List<Widget> _buildEncountersList(BuildContext context) {
-    try {
-      final encounters = encountersDatabase[pokemonId];
-      if (encounters == null || encounters.isEmpty) {
-        return [
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Text(
-              Translator.get('no_encounters_found') != 'no_encounters_found'
-                  ? Translator.get('no_encounters_found')
-                  : 'Keine Fundorte bekannt.',
-              style: TextStyle(color: Theme.of(context).hintColor),
-              textAlign: TextAlign.center,
-            ),
+  List<Widget> _buildEncountersList(
+    BuildContext context,
+    Map<String, Map<String, List<String>>> encounters,
+  ) {
+    if (encounters.isEmpty) {
+      return [
+        Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Text(
+            Translator.get('no_encounters_found') != 'no_encounters_found'
+                ? Translator.get('no_encounters_found')
+                : 'Keine Fundorte bekannt.',
+            style: TextStyle(color: Theme.of(context).hintColor),
+            textAlign: TextAlign.center,
           ),
-        ];
-      }
+        ),
+      ];
+    }
 
-      List<Widget> genWidgets = [];
-      final sortedGens = encounters.keys.toList()
-        ..sort((a, b) {
-          int aNum = int.tryParse(a.replaceAll(RegExp(r'[^0-9]'), '')) ?? 0;
-          int bNum = int.tryParse(b.replaceAll(RegExp(r'[^0-9]'), '')) ?? 0;
-          return aNum.compareTo(bNum);
-        });
+    List<Widget> genWidgets = [];
+    final sortedGens = encounters.keys.toList()
+      ..sort((a, b) {
+        int aNum = int.tryParse(a.replaceAll(RegExp(r'[^0-9]'), '')) ?? 0;
+        int bNum = int.tryParse(b.replaceAll(RegExp(r'[^0-9]'), '')) ?? 0;
+        return aNum.compareTo(bNum);
+      });
 
-      for (var gen in sortedGens) {
-        final versionsMap = encounters[gen]!;
-        Map<String, List<String>> groupedEncounters = {};
+    for (var gen in sortedGens) {
+      final versionsMap = encounters[gen]!;
+      Map<String, List<String>> groupedEncounters = {};
+      versionsMap.forEach((ver, locs) {
+        String key = locs.join('|||||');
+        groupedEncounters.putIfAbsent(key, () => []).add(ver);
+      });
 
-        versionsMap.forEach((ver, locs) {
-          String key = locs.join('|||||');
-          groupedEncounters.putIfAbsent(key, () => []).add(ver);
-        });
+      List<Widget> versionWidgets = [];
+      groupedEncounters.forEach((locationsStr, versions) {
+        final locations = locationsStr.split('|||||');
+        List<Widget> locationRows = locations.map((loc) {
+          if (loc.contains('|||')) {
+            final parts = loc.split('|||');
+            final baseLoc = _translateLoc(parts[0]);
+            final method = _translateMethod(parts.length > 1 ? parts[1] : '');
+            final lvl = parts.length > 2 ? parts[2] : '';
+            final chance = parts.length > 3 ? '${parts[3]} %' : '';
 
-        List<Widget> versionWidgets = [];
-
-        groupedEncounters.forEach((locationsStr, versions) {
-          final locations = locationsStr.split('|||||');
-
-          List<Widget> locationRows = locations.map((loc) {
-            if (loc.contains('|||')) {
-              final parts = loc.split('|||');
-              final baseLoc = _translateLoc(parts[0]);
-              final method = _translateMethod(parts.length > 1 ? parts[1] : '');
-              final lvl = parts.length > 2 ? parts[2] : '';
-              final chance = parts.length > 3 ? '${parts[3]} %' : '';
-
-              return Padding(
-                padding: const EdgeInsets.symmetric(vertical: 4.0),
-                child: Row(
-                  children: [
-                    Expanded(
-                      flex: 3,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            baseLoc,
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 13,
-                            ),
+            return Padding(
+              padding: const EdgeInsets.symmetric(vertical: 4.0),
+              child: Row(
+                children: [
+                  Expanded(
+                    flex: 3,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          baseLoc,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 13,
                           ),
-                          if (method.isNotEmpty)
-                            Row(
-                              children: [
-                                Icon(
-                                  Icons.grass,
-                                  size: 12,
+                        ),
+                        if (method.isNotEmpty)
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.grass,
+                                size: 12,
+                                color: Theme.of(context).colorScheme.primary,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                method,
+                                style: TextStyle(
+                                  fontSize: 11,
                                   color: Theme.of(context).colorScheme.primary,
                                 ),
-                                const SizedBox(width: 4),
-                                Text(
-                                  method,
-                                  style: TextStyle(
-                                    fontSize: 11,
-                                    color: Theme.of(
-                                      context,
-                                    ).colorScheme.primary,
-                                  ),
-                                ),
-                              ],
-                            ),
-                        ],
-                      ),
+                              ),
+                            ],
+                          ),
+                      ],
                     ),
-                    Expanded(
-                      flex: 1,
-                      child: Text(
-                        lvl.isNotEmpty ? 'Lv. $lvl' : '',
-                        style: const TextStyle(fontSize: 12),
-                        textAlign: TextAlign.center,
-                      ),
+                  ),
+                  Expanded(
+                    flex: 1,
+                    child: Text(
+                      lvl.isNotEmpty ? 'Lv. $lvl' : '',
+                      style: const TextStyle(fontSize: 12),
+                      textAlign: TextAlign.center,
                     ),
-                    Expanded(
-                      flex: 1,
-                      child: Text(
-                        chance,
-                        style: const TextStyle(fontSize: 12),
-                        textAlign: TextAlign.end,
-                      ),
+                  ),
+                  Expanded(
+                    flex: 1,
+                    child: Text(
+                      chance,
+                      style: const TextStyle(fontSize: 12),
+                      textAlign: TextAlign.end,
                     ),
-                  ],
-                ),
-              );
-            } else {
-              String base = loc;
-              String method = '';
-              if (loc.contains(' (')) {
-                int bracketIndex = loc.indexOf(' (');
-                base = loc.substring(0, bracketIndex);
-                method = loc.substring(bracketIndex + 2, loc.length - 1);
-              }
-              String transBase = _translateLoc(base);
-              String transMethod = method.isNotEmpty
-                  ? ' (${_translateMethod(method)})'
-                  : '';
-              return Padding(
-                padding: const EdgeInsets.symmetric(vertical: 4.0),
-                child: Text(
-                  '  $transBase$transMethod',
-                  style: const TextStyle(fontSize: 13),
-                ),
-              );
+                  ),
+                ],
+              ),
+            );
+          } else {
+            String base = loc;
+            String method = '';
+            if (loc.contains(' (')) {
+              int bracketIndex = loc.indexOf(' (');
+              base = loc.substring(0, bracketIndex);
+              method = loc.substring(bracketIndex + 2, loc.length - 1);
             }
-          }).toList();
+            String transBase = _translateLoc(base);
+            String transMethod = method.isNotEmpty
+                ? ' (${_translateMethod(method)})'
+                : '';
+            return Padding(
+              padding: const EdgeInsets.symmetric(vertical: 4.0),
+              child: Text(
+                '• $transBase$transMethod',
+                style: const TextStyle(fontSize: 13),
+              ),
+            );
+          }
+        }).toList();
 
-          versionWidgets.add(
-            Card(
-              elevation: 0,
-              color: Theme.of(
+        versionWidgets.add(
+          Card(
+            elevation: 0,
+            color: Theme.of(
+              context,
+            ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+            clipBehavior: Clip.antiAlias,
+            child: Theme(
+              data: Theme.of(
                 context,
-              ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
-              margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-              clipBehavior: Clip.antiAlias,
-              child: Theme(
-                data: Theme.of(
-                  context,
-                ).copyWith(dividerColor: Colors.transparent),
-                child: ExpansionTile(
-                  tilePadding: const EdgeInsets.symmetric(horizontal: 12),
-                  title: _buildVersionBadge(versions),
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.only(
-                        left: 12,
-                        right: 12,
-                        bottom: 12,
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Divider(height: 1),
-                          const SizedBox(height: 8),
-                          ...locationRows,
-                        ],
-                      ),
+              ).copyWith(dividerColor: Colors.transparent),
+              child: ExpansionTile(
+                tilePadding: const EdgeInsets.symmetric(horizontal: 12),
+                title: _buildVersionBadge(versions),
+                children: [
+                  Container(
+                    padding: const EdgeInsets.only(
+                      left: 12,
+                      right: 12,
+                      bottom: 12,
                     ),
-                  ],
-                ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Divider(height: 1),
+                        const SizedBox(height: 8),
+                        ...locationRows,
+                      ],
+                    ),
+                  ),
+                ],
               ),
             ),
-          );
-        });
+          ),
+        );
+      });
 
-        if (gen == 'gen_2' && pokemonId >= 252 && pokemonId <= 257) {
-          versionWidgets.add(
-            _buildGlitchNote(
-              context,
-              'shiny_mail_writer_note',
-              'tutorial_mail_writer_main',
-              'https://glitchcity.wiki/wiki/Guides:Mail_Writer_Codes',
-              secondBtnTitle: 'tutorial_mail_writer_scripts',
-              secondBtnUrl:
-                  'https://glitchcity.wiki/wiki/Guides:Mail_Writer_Codes#Gen3Giver_scripts',
-            ),
-          );
-        }
-        if (gen == 'gen_1' && pokemonId == 151) {
-          versionWidgets.add(
-            _buildGlitchNote(
-              context,
-              'mew_glitch_note',
-              'tutorial_mew_normal_link',
-              'https://www.reddit.com/r/gaming/comments/47uono/heres_a_guide_on_catching_a_level_7_mew_on_the/',
-            ),
-          );
-        }
+      if (gen == 'gen_2' && pokemonId >= 252 && pokemonId <= 257) {
+        versionWidgets.add(
+          _buildGlitchNote(
+            context,
+            'shiny_mail_writer_note',
+            'tutorial_mail_writer_main',
+            'https://glitchcity.wiki/wiki/Guides:Mail_Writer_Codes',
+            secondBtnTitle: 'tutorial_mail_writer_scripts',
+            secondBtnUrl:
+                'https://glitchcity.wiki/wiki/Guides:Mail_Writer_Codes#Gen3Giver_scripts',
+          ),
+        );
+      }
 
-        genWidgets.add(
-          ExpansionTile(
-            title: Text(
-              Translator.get(gen) != gen
-                  ? Translator.get(gen)
-                  : gen.toUpperCase(),
-              style: const TextStyle(fontWeight: FontWeight.w600),
-            ),
-            children: versionWidgets,
+      if (gen == 'gen_1' && pokemonId == 151) {
+        versionWidgets.add(
+          _buildGlitchNote(
+            context,
+            'mew_glitch_note',
+            'tutorial_mew_normal_link',
+            'https://www.reddit.com/r/gaming/comments/47uono/heres_a_guide_on_catching_a_level_7_mew_on_the/',
           ),
         );
       }
 
       genWidgets.add(
-        Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Icon(
-                Icons.info_outline,
-                size: 18,
-                color: Theme.of(context).colorScheme.primary,
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  Translator.get('encounter_missing_note') !=
-                          'encounter_missing_note'
-                      ? Translator.get('encounter_missing_note')
-                      : 'Hinweis: Wenn eine Edition nicht aufgeführt ist, ist das Pokémon dort in der Regel nur durch Entwicklung, Tausch oder Transfer erhältlich.',
-                  style: const TextStyle(
-                    fontSize: 12,
-                    fontStyle: FontStyle.italic,
-                  ),
-                ),
-              ),
-            ],
+        ExpansionTile(
+          title: Text(
+            Translator.get(gen) != gen
+                ? Translator.get(gen)
+                : gen.toUpperCase(),
+            style: const TextStyle(fontWeight: FontWeight.w600),
           ),
+          children: versionWidgets,
         ),
       );
-
-      return genWidgets;
-    } catch (e) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        NotificationHelper.showError(
-          '${Translator.get('error_encounters')} $e',
-        );
-      });
-      return [const SizedBox.shrink()];
     }
+
+    genWidgets.add(
+      Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(
+              Icons.info_outline,
+              size: 18,
+              color: Theme.of(context).colorScheme.primary,
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                Translator.get('encounter_missing_note') !=
+                        'encounter_missing_note'
+                    ? Translator.get('encounter_missing_note')
+                    : 'Hinweis: Wenn eine Edition nicht aufgeführt ist, ist das Pokémon dort in der Regel nur durch Entwicklung, Tausch oder Transfer erhältlich.',
+                style: const TextStyle(
+                  fontSize: 12,
+                  fontStyle: FontStyle.italic,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    return genWidgets;
   }
 
   @override
@@ -470,7 +459,21 @@ class EncountersWidget extends StatelessWidget {
               : 'Fundorte & Begegnungen',
           style: const TextStyle(fontWeight: FontWeight.bold),
         ),
-        children: _buildEncountersList(context),
+        children: [
+          FutureBuilder<Map<String, Map<String, List<String>>>?>(
+            future: DatabaseService.instance.getEncounters(pokemonId),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Padding(
+                  padding: EdgeInsets.all(16.0),
+                  child: Center(child: CircularProgressIndicator()),
+                );
+              }
+              final data = snapshot.data ?? {};
+              return Column(children: _buildEncountersList(context, data));
+            },
+          ),
+        ],
       ),
     );
   }

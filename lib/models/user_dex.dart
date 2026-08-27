@@ -2,9 +2,6 @@ class UserDex {
   final String id;
   final String title;
   final String region;
-  final Set<String> caughtIds;
-  final Set<String> ignoredIds;
-  final Set<String> shinyIds;
   final bool includeGenders;
   final bool includeRegional;
   final bool includeMega;
@@ -12,66 +9,116 @@ class UserDex {
   final bool includeOther;
   final bool isShinyDex;
 
+  List<String> caughtIds;
+  List<String> shinyIds;
+  List<String> ignoredIds;
+
   UserDex({
     required this.id,
     required this.title,
     required this.region,
-    required this.caughtIds,
-    this.ignoredIds = const {},
-    this.shinyIds = const {},
-    this.includeGenders = false,
+    required this.includeGenders,
     required this.includeRegional,
     required this.includeMega,
     required this.includeGMax,
     required this.includeOther,
-    this.isShinyDex = false,
+    required this.isShinyDex,
+    this.caughtIds = const [],
+    this.shinyIds = const [],
+    this.ignoredIds = const [],
   });
+
+  factory UserDex.fromMap(Map<String, dynamic> map) {
+    return UserDex(
+      id: map['id']?.toString() ?? '',
+      title: map['title']?.toString() ?? '',
+      region: map['region']?.toString() ?? '',
+      includeGenders: (map['include_genders'] as num?)?.toInt() == 1,
+      includeRegional: (map['include_regional'] as num?)?.toInt() == 1,
+      includeMega: (map['include_mega'] as num?)?.toInt() == 1,
+      includeGMax: (map['include_gmax'] as num?)?.toInt() == 1,
+      includeOther: (map['include_other'] as num?)?.toInt() == 1,
+      isShinyDex: (map['is_shiny_dex'] as num?)?.toInt() == 1,
+      caughtIds: [],
+      shinyIds: [],
+      ignoredIds: [],
+    );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'title': title,
+      'region': region,
+      'include_genders': includeGenders ? 1 : 0,
+      'include_regional': includeRegional ? 1 : 0,
+      'include_mega': includeMega ? 1 : 0,
+      'include_gmax': includeGMax ? 1 : 0,
+      'include_other': includeOther ? 1 : 0,
+      'is_shiny_dex': isShinyDex ? 1 : 0,
+    };
+  }
 
   Map<String, dynamic> toJson() {
     return {
       'id': id,
       'title': title,
       'region': region,
-      'caughtIds': caughtIds.toList(),
-      'ignoredIds': ignoredIds.toList(),
-      'shinyIds': shinyIds.toList(),
+      'includeGenders': includeGenders,
       'includeRegional': includeRegional,
       'includeMega': includeMega,
       'includeGMax': includeGMax,
       'includeOther': includeOther,
-      'includeGenders': includeGenders,
       'isShinyDex': isShinyDex,
+      'caughtIds': caughtIds,
+      'shinyIds': shinyIds,
+      'ignoredIds': ignoredIds,
     };
   }
 
   factory UserDex.fromJson(Map<String, dynamic> json) {
     return UserDex(
-      id: json['id'] as String,
-      title: json['title'] as String,
-      region: json['region'] as String,
-      caughtIds:
-          (json['caughtIds'] as List<dynamic>?)
-              ?.map((e) => e.toString())
-              .toSet() ??
-          {},
-      ignoredIds:
-          (json['ignoredIds'] as List<dynamic>?)
-              ?.map((e) => e.toString())
-              .toSet() ??
-          {},
-      shinyIds:
-          (json['shinyIds'] as List<dynamic>?)
-              ?.map((e) => e.toString())
-              .toSet() ??
-          {},
-      includeGenders: json['includeGenders'] as bool? ?? false,
-      includeRegional: json['includeRegional'] as bool? ?? false,
-      includeMega: json['includeMega'] as bool? ?? false,
-      includeGMax: json['includeGMax'] as bool? ?? false,
-      includeOther: json['includeOther'] as bool? ?? false,
-      isShinyDex:
-          json['isShinyDex'] as bool? ??
-          false,
+      id: json['id']?.toString() ?? '',
+      title: json['title']?.toString() ?? '',
+      region: json['region']?.toString() ?? '',
+      includeGenders: json['includeGenders'] ?? false,
+      includeRegional: json['includeRegional'] ?? false,
+      includeMega: json['includeMega'] ?? false,
+      includeGMax: json['includeGMax'] ?? false,
+      includeOther: json['includeOther'] ?? false,
+      isShinyDex: json['isShinyDex'] ?? false,
+      caughtIds: List<String>.from(json['caughtIds'] ?? []),
+      shinyIds: List<String>.from(json['shinyIds'] ?? []),
+      ignoredIds: List<String>.from(json['ignoredIds'] ?? []),
+    );
+  }
+}
+
+class DexFolder {
+  final String id;
+  final String title;
+
+  DexFolder({required this.id, required this.title});
+
+  factory DexFolder.fromMap(Map<String, dynamic> map) {
+    return DexFolder(
+      id: map['id']?.toString() ?? '',
+      title: map['title']?.toString() ?? '',
+    );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {'id': id, 'title': title};
+  }
+
+  Map<String, dynamic> toJson() {
+    return {'id': id, 'title': title};
+  }
+
+  factory DexFolder.fromJson(Map<String, dynamic> json) {
+    return DexFolder(
+      id: json['id']?.toString() ?? '',
+      title: json['title']?.toString() ?? '',
     );
   }
 }

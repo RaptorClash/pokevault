@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../../l10n/app_translations.dart';
 import '../../../utils/shiny_logic_helper.dart';
+import '../../../providers/dex_provider.dart';
 import 'breeding_data.dart';
 import 'pokemon_avatar.dart';
 
@@ -47,7 +49,8 @@ class BreedingStepCard extends StatelessWidget {
     String gender, {
     bool isCarrier = false,
   }) {
-    List<int> family = BreedingData.getFullFamily(id);
+    final provider = context.read<DexProvider>();
+    List<int> family = BreedingData.getFullFamily(id, provider);
     if (family.length <= 1) {
       return PokemonAvatar(
         id: family.first,
@@ -213,6 +216,7 @@ class BreedingStepCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final provider = context.watch<DexProvider>();
     String stepText = Translator.currentLanguage == 'de' ? 'Schritt' : 'Step';
     int baseChildId = ShinyLogicHelper.getBaseForm(childId);
     bool needsEvolution =
@@ -221,26 +225,34 @@ class BreedingStepCard extends StatelessWidget {
     bool isMobile = MediaQuery.of(context).size.width < 600;
 
     var g1 =
-        BreedingData.getEggGroups()[ShinyLogicHelper.getBaseForm(parent1Id)] ??
+        BreedingData.getEggGroups(provider)[ShinyLogicHelper.getBaseForm(
+          parent1Id,
+        )] ??
         [];
     var g2 =
-        BreedingData.getEggGroups()[ShinyLogicHelper.getBaseForm(parent2Id)] ??
+        BreedingData.getEggGroups(provider)[ShinyLogicHelper.getBaseForm(
+          parent2Id,
+        )] ??
         [];
     String sharedGroup = g1.firstWhere(
       (g) => g2.contains(g),
       orElse: () => 'Unbekannt',
     );
-
     String transGroup = Translator.get(
       'region_egg_${sharedGroup.toLowerCase()}',
     );
     if (transGroup.startsWith('region_egg_')) transGroup = sharedGroup;
 
+    final targetPoke = provider.allPokemon
+        .where((p) => p.id == childId)
+        .firstOrNull;
     String realOdds = cCarrier
         ? (Translator.get('chance_carrier') != 'chance_carrier'
               ? Translator.get('chance_carrier')
               : 'Chance: 1:2 (Gen-Trägerin)')
-        : BreedingData.getRealOdds(childId, cGender);
+        : (targetPoke != null
+              ? BreedingData.getRealOdds(targetPoke, cGender)
+              : '1:128');
 
     Widget p1Widget = p1Shiny || p1Carrier
         ? PokemonAvatar(
@@ -413,7 +425,9 @@ class BreedingStepCard extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: Colors.blue.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.blue.withValues(alpha: 0.3)),
+                    border: Border.all(
+                      color: Colors.blue.withValues(alpha: 0.3),
+                    ),
                   ),
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -453,10 +467,8 @@ class BreedingStepCard extends StatelessWidget {
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
                     color: cCarrier
-                        ? Colors.blue.withValues(alpha: 0.5)
-                        : (realOdds.contains('1:')
-                              ? Colors.amber.withValues(alpha: 0.5)
-                              : Colors.red),
+                        ? Colors.blue
+                        : (realOdds.contains('1:') ? Colors.amber : Colors.red),
                   ),
                 ),
                 child: Text(

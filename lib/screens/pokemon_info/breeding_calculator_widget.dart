@@ -1,13 +1,10 @@
 import 'dart:collection';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
-import '../../data/national_dex_data.dart';
 import '../../l10n/app_translations.dart';
 import '../../utils/notification_helper.dart';
 import '../../utils/shiny_logic_helper.dart';
 import '../../providers/dex_provider.dart';
-
 import 'widgets/breeding_data.dart';
 import 'widgets/breeding_step_card.dart';
 
@@ -38,45 +35,54 @@ class _BreedingCalculatorWidgetState extends State<BreedingCalculatorWidget> {
   void initState() {
     super.initState();
     _targetId = widget.initialTargetId;
-
-    if (_targetId > 251 ||
-        (!ShinyLogicHelper.isBreedable(_targetId) &&
-            !ShinyLogicHelper.isBaby(_targetId))) {
-      _targetId = 1;
-    }
-
-    if (_targetId == _startId) {
-      _startId = 4;
-    }
   }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+    final provider = Provider.of<DexProvider>(context, listen: false);
+    final targetPoke = provider.allPokemon
+        .where((p) => p.id == _targetId)
+        .firstOrNull;
+    if (_targetId > 251 ||
+        (targetPoke != null &&
+            !ShinyLogicHelper.isBreedable(targetPoke) &&
+            !ShinyLogicHelper.isBaby(_targetId))) {
+      _targetId = 1;
+    }
+    if (_targetId == _startId) {
+      _startId = 4;
+    }
     if (_allPaths == null) {
       _calculatePath();
     }
   }
 
   List<int> get _validStartIds {
+    final provider = Provider.of<DexProvider>(context, listen: false);
     List<int> ids = [];
-    for (int i = 1; i <= 251; i++) {
-      if (ShinyLogicHelper.isBreedable(i) ||
-          ShinyLogicHelper.isBaby(i) ||
-          i == 132) {
-        ids.add(i);
+    for (var p in provider.allPokemon) {
+      if (p.id <= 251 &&
+          (ShinyLogicHelper.isBreedable(p) ||
+              ShinyLogicHelper.isBaby(p.id) ||
+              p.id == 132)) {
+        ids.add(p.id);
       }
     }
     return ids;
   }
 
   String _getPokemonDisplayName(int id) {
-    final p = nationalPokemonDatabase.firstWhere((p) => p.id == id);
+    final provider = Provider.of<DexProvider>(context, listen: false);
+    final p = provider.allPokemon.where((p) => p.id == id).firstOrNull;
+    if (p == null) return '#${id.toString().padLeft(3, '0')} ???';
     return '#${id.toString().padLeft(3, '0')} ${p.getName(Translator.currentLanguage)}';
   }
 
   String _getPokemonNameOnly(int id) {
-    final p = nationalPokemonDatabase.firstWhere((p) => p.id == id);
+    final provider = Provider.of<DexProvider>(context, listen: false);
+    final p = provider.allPokemon.where((p) => p.id == id).firstOrNull;
+    if (p == null) return '???';
     return p.getName(Translator.currentLanguage);
   }
 
@@ -92,7 +98,6 @@ class _BreedingCalculatorWidgetState extends State<BreedingCalculatorWidget> {
         });
         return;
       }
-
       if (_startId == 132) {
         setState(() {
           _allPaths = [
@@ -120,17 +125,14 @@ class _BreedingCalculatorWidgetState extends State<BreedingCalculatorWidget> {
         }
       }
 
-      var eggGroups = BreedingData.getEggGroups();
-
+      var eggGroups = BreedingData.getEggGroups(dexProvider);
       Map<int, List<List<int>>> pathsToNode = {
         _startId: [
           [_startId],
         ],
       };
-
       Queue<int> queue = Queue();
       queue.add(_startId);
-
       int? targetDepth;
 
       while (queue.isNotEmpty) {
@@ -143,12 +145,19 @@ class _BreedingCalculatorWidgetState extends State<BreedingCalculatorWidget> {
         var currentGroups = eggGroups[current] ?? [];
 
         for (int nextId = 1; nextId <= 251; nextId++) {
-          if (!ShinyLogicHelper.isBreedable(nextId) &&
+          final nextPoke = dexProvider.allPokemon
+              .where((p) => p.id == nextId)
+              .firstOrNull;
+          if (nextPoke == null) continue;
+          if (!ShinyLogicHelper.isBreedable(nextPoke) &&
               !ShinyLogicHelper.isBaby(nextId)) {
             continue;
           }
 
           int baseNextId = ShinyLogicHelper.getBaseForm(nextId);
+          final baseNextPoke = dexProvider.allPokemon
+              .where((p) => p.id == baseNextId)
+              .firstOrNull;
 
           if (_useOnlyCaught &&
               nextId != _targetId &&
@@ -156,17 +165,19 @@ class _BreedingCalculatorWidgetState extends State<BreedingCalculatorWidget> {
             continue;
           }
 
-          if (nextId == _targetId) {
-            if (_startId != 132 &&
-                (BreedingData.genderless.contains(baseNextId) ||
-                    BreedingData.onlyMale.contains(baseNextId))) {
-              continue;
-            }
-          } else {
-            if (BreedingData.genderless.contains(baseNextId) ||
-                BreedingData.onlyMale.contains(baseNextId) ||
-                BreedingData.onlyFemale.contains(baseNextId)) {
-              continue;
+          if (baseNextPoke != null) {
+            if (nextId == _targetId) {
+              if (_startId != 132 &&
+                  (baseNextPoke.genderRate == -1 ||
+                      baseNextPoke.genderRate == 0)) {
+                continue;
+              }
+            } else {
+              if (baseNextPoke.genderRate == -1 ||
+                  baseNextPoke.genderRate == 0 ||
+                  baseNextPoke.genderRate == 8) {
+                continue;
+              }
             }
           }
 
@@ -181,7 +192,6 @@ class _BreedingCalculatorWidgetState extends State<BreedingCalculatorWidget> {
 
             if (isNewNode || isSameDepth) {
               if (isNewNode) pathsToNode[nextId] = [];
-
               for (var p in pathsToNode[current]!) {
                 if (!p.contains(nextId)) {
                   pathsToNode[nextId]!.add(List<int>.from(p)..add(nextId));
@@ -202,14 +212,12 @@ class _BreedingCalculatorWidgetState extends State<BreedingCalculatorWidget> {
 
       List<List<int>> validPaths = pathsToNode[_targetId] ?? [];
       Map<String, List<int>> uniquePathsMap = {};
-
       for (var p in validPaths) {
         String routeKey = 'direct';
         if (p.length > 2) {
           int intermediateBase = ShinyLogicHelper.getBaseForm(p[1]);
           routeKey = 'via_$intermediateBase';
         }
-
         if (!uniquePathsMap.containsKey(routeKey) ||
             p.length < uniquePathsMap[routeKey]!.length) {
           uniquePathsMap[routeKey] = p;
@@ -218,7 +226,6 @@ class _BreedingCalculatorWidgetState extends State<BreedingCalculatorWidget> {
 
       List<List<int>> finalPaths = uniquePathsMap.values.toList();
       finalPaths.sort((a, b) => a.length.compareTo(b.length));
-
       if (finalPaths.length > 5) finalPaths = finalPaths.sublist(0, 5);
 
       setState(() {
@@ -291,9 +298,11 @@ class _BreedingCalculatorWidgetState extends State<BreedingCalculatorWidget> {
       int nextId = _path![i + 1];
       bool isFinalNode = (i == _path!.length - 2);
 
-      bool isFemaleShiny = !BreedingData.lowFemaleRatio.contains(
-        ShinyLogicHelper.getBaseForm(nextId),
-      );
+      final dexProvider = Provider.of<DexProvider>(context, listen: false);
+      final baseNextPoke = dexProvider.allPokemon
+          .where((p) => p.id == ShinyLogicHelper.getBaseForm(nextId))
+          .firstOrNull;
+      bool isFemaleShiny = baseNextPoke != null && baseNextPoke.genderRate != 1;
 
       int p1Id;
       if (i == 0) {
@@ -349,15 +358,15 @@ class _BreedingCalculatorWidgetState extends State<BreedingCalculatorWidget> {
         );
       }
     }
-
     return steps;
   }
 
   @override
   Widget build(BuildContext context) {
-    final targetPoke = nationalPokemonDatabase.firstWhere(
-      (p) => p.id == _targetId,
-    );
+    final provider = context.watch<DexProvider>();
+    final targetPoke = provider.allPokemon
+        .where((p) => p.id == _targetId)
+        .firstOrNull;
 
     return ExpansionTile(
       tilePadding: EdgeInsets.zero,
@@ -449,10 +458,14 @@ class _BreedingCalculatorWidgetState extends State<BreedingCalculatorWidget> {
                                     Container(
                                       padding: const EdgeInsets.all(4),
                                       decoration: BoxDecoration(
-                                        color: Colors.amber.withValues(alpha: 0.15),
+                                        color: Colors.amber.withValues(
+                                          alpha: 0.15,
+                                        ),
                                         shape: BoxShape.circle,
                                         border: Border.all(
-                                          color: Colors.amber.withValues(alpha: 0.5),
+                                          color: Colors.amber.withValues(
+                                            alpha: 0.5,
+                                          ),
                                         ),
                                       ),
                                       child: Image.network(
@@ -584,7 +597,7 @@ class _BreedingCalculatorWidgetState extends State<BreedingCalculatorWidget> {
                     const SizedBox(width: 16),
                     Expanded(
                       child: Text(
-                        '#${_targetId.toString().padLeft(3, '0')} ${targetPoke.getName(Translator.currentLanguage)}',
+                        '#${_targetId.toString().padLeft(3, '0')} ${targetPoke != null ? targetPoke.getName(Translator.currentLanguage) : '???'}',
                         style: const TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 18,
@@ -731,7 +744,6 @@ class _BreedingCalculatorWidgetState extends State<BreedingCalculatorWidget> {
                       String routeName = Translator.currentLanguage == 'de'
                           ? 'Direkt'
                           : 'Direct';
-
                       if (p.length > 2) {
                         int intermediateBase = ShinyLogicHelper.getBaseForm(
                           p[1],
@@ -739,7 +751,6 @@ class _BreedingCalculatorWidgetState extends State<BreedingCalculatorWidget> {
                         String pokeName = _getPokemonNameOnly(intermediateBase);
                         routeName = 'Via $pokeName';
                       }
-
                       return Padding(
                         padding: const EdgeInsets.only(right: 8.0),
                         child: ChoiceChip(

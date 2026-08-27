@@ -2,8 +2,6 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import '../../../l10n/app_translations.dart';
 import '../../../models/pokemon.dart';
-import '../../../data/encounters_data.dart';
-import '../../../utils/shiny_logic_helper.dart';
 import '../../../utils/notification_helper.dart';
 import '../../../utils/catch_rate/models.dart';
 import '../../../utils/catch_rate/strategy_base.dart';
@@ -162,24 +160,7 @@ class _CatchRateCalculatorState extends State<CatchRateCalculator> {
       return pokeId <= 151 || pokeId == 808 || pokeId == 809;
     }
     if (gen == 9.5) return true;
-    String genKey = 'gen_${gen.toInt()}';
-    final encMap = encountersDatabase[pokeId];
-    bool hasEncounter = false;
-    if (encMap != null && encMap.containsKey(genKey)) {
-      if (gen == 8.5) {
-        hasEncounter = encMap[genKey]!.keys.any(
-          (k) => k.contains('legends-arceus'),
-        );
-      } else if (gen == 8.0) {
-        hasEncounter = encMap[genKey]!.keys.any(
-          (k) => !k.contains('legends-arceus'),
-        );
-      } else {
-        hasEncounter = true;
-      }
-    }
-    bool isStatic = ShinyLogicHelper.isStaticEncounter(pokeId, genKey);
-    return hasEncounter || isStatic || gen == _minGen;
+    return gen >= _minGen;
   }
 
   Widget _buildSwitch(String title, bool value, ValueChanged<bool> onChanged) {

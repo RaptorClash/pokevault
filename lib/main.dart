@@ -1,6 +1,9 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'dart:ui';
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
+
 import 'providers/theme_provider.dart';
 import 'providers/dex_provider.dart';
 import 'providers/tutorial_provider.dart';
@@ -11,8 +14,15 @@ import 'l10n/app_translations.dart';
 void main() {
   try {
     WidgetsFlutterBinding.ensureInitialized();
+
+    if (Platform.isWindows || Platform.isLinux) {
+      sqfliteFfiInit();
+      databaseFactory = databaseFactoryFfi;
+    }
+
     PaintingBinding.instance.imageCache.maximumSize = 150;
     PaintingBinding.instance.imageCache.maximumSizeBytes = 1024 * 1024 * 40;
+
     runApp(
       MultiProvider(
         providers: [

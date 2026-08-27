@@ -1,9 +1,7 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
-
 import 'models.dart';
 import 'strategy_base.dart';
-import '../../data/catch_data.dart';
 import '../../l10n/app_translations.dart';
 
 abstract class ModernStrategyBase extends CatchRateStrategy {
@@ -54,7 +52,6 @@ abstract class ModernStrategyBase extends CatchRateStrategy {
       BallOption('repeat', Translator.get('ball_repeat_ball'), 'repeat-ball'),
       BallOption('luxury', Translator.get('ball_luxury_ball'), 'luxury-ball'),
     ];
-
     if (gen >= 4.0) {
       balls.addAll([
         BallOption('dusk', Translator.get('ball_dusk_ball'), 'dusk-ball'),
@@ -83,8 +80,8 @@ abstract class ModernStrategyBase extends CatchRateStrategy {
   BallEffectResult applyBallEffects(CatchRateParams params) {
     double ballBonus = 1.0;
     int modifiedBaseRate = params.pokemon.captureRate;
-    double weight = catchDataDatabase[params.pokemon.id]?['weight'] ?? 50.0;
-    int speed = catchDataDatabase[params.pokemon.id]?['speed'] ?? 50;
+    double weight = params.pokemon.weight;
+    int speed = params.pokemon.speed;
     List<String> types = params.pokemon.forms.isNotEmpty
         ? params.pokemon.forms.first.types
         : [];
@@ -127,18 +124,18 @@ abstract class ModernStrategyBase extends CatchRateStrategy {
       case 'heavy':
         int modifier = 0;
         if (gen >= 7.0) {
-          if (weight < 100.0) {
+          if (weight < 100.0)
             modifier = -20;
-          } else if (weight < 200.0)
+          else if (weight < 200.0)
             modifier = 0;
           else if (weight < 300.0)
             modifier = 20;
           else
             modifier = 30;
         } else {
-          if (weight < 102.4) {
+          if (weight < 102.4)
             modifier = -20;
-          } else if (weight < 204.8)
+          else if (weight < 204.8)
             modifier = 0;
           else if (weight < 307.2)
             modifier = 20;
@@ -151,47 +148,45 @@ abstract class ModernStrategyBase extends CatchRateStrategy {
         break;
       case 'lure':
         if (params.isFishing) {
-          if (gen >= 8.0) {
+          if (gen >= 8.0)
             ballBonus = 4.0;
-          } else if (gen == 7.0)
+          else if (gen == 7.0)
             ballBonus = 5.0;
           else
             ballBonus = 3.0;
         }
         break;
       case 'level':
-        if ((params.ownLevel ~/ 4) > params.enemyLevel) {
+        if ((params.ownLevel ~/ 4) > params.enemyLevel)
           ballBonus = 8.0;
-        } else if ((params.ownLevel ~/ 2) > params.enemyLevel)
+        else if ((params.ownLevel ~/ 2) > params.enemyLevel)
           ballBonus = 4.0;
         else if (params.ownLevel > params.enemyLevel)
           ballBonus = 2.0;
         break;
       case 'net':
-        if (types.contains('water') || types.contains('bug')) {
+        if (types.contains('water') || types.contains('bug'))
           ballBonus = (gen >= 7.0) ? 3.5 : 3.0;
-        }
         break;
       case 'dive':
         if (params.isSurfingOrDiving) ballBonus = 3.5;
         break;
       case 'nest':
-        if (gen >= 7.0) {
+        if (gen >= 7.0)
           ballBonus = max(
             1.0,
             8.0 - (810.0 / 4096.0) * (params.enemyLevel - 1),
           );
-        } else if (gen >= 5.0)
+        else if (gen >= 5.0)
           ballBonus = max(1.0, (41.0 - params.enemyLevel) / 10.0);
         else
           ballBonus = max(1.0, (40.0 - params.enemyLevel) / 10.0);
         break;
       case 'timer':
-        if (gen >= 5.0) {
+        if (gen >= 5.0)
           ballBonus = min(4.0, 1.0 + (params.turnCount * (1229.0 / 4096.0)));
-        } else {
+        else
           ballBonus = min(4.0, (params.turnCount + 10.0) / 10.0);
-        }
         break;
       case 'quick':
         if (params.turnCount == 1) ballBonus = (gen >= 5.0) ? 5.0 : 4.0;
@@ -249,22 +244,16 @@ abstract class ModernStrategyBase extends CatchRateStrategy {
   double getDifficultyModifier(CatchRateParams params) {
     if (gen == 8.0 &&
         params.missingBadges > 0 &&
-        params.enemyLevel > params.ownLevel) {
+        params.enemyLevel > params.ownLevel)
       return 410.0 / 4096.0;
-    }
-    if (gen == 9.0) {
-      return pow(0.8, params.missingBadges).toDouble();
-    }
+    if (gen == 9.0) return pow(0.8, params.missingBadges).toDouble();
     return 1.0;
   }
 
   double getLevelModifier(CatchRateParams params) {
-    if (gen == 8.0) {
-      return max((30.0 - params.enemyLevel) / 10.0, 1.0);
-    }
-    if (gen == 9.0 && params.enemyLevel < 13) {
+    if (gen == 8.0) return max((30.0 - params.enemyLevel) / 10.0, 1.0);
+    if (gen == 9.0 && params.enemyLevel < 13)
       return max((36.0 - 2.0 * params.enemyLevel) / 10.0, 1.0);
-    }
     return 1.0;
   }
 
@@ -302,9 +291,9 @@ abstract class ModernStrategyBase extends CatchRateStrategy {
 
     double grassModifier = 1.0;
     if (gen == 5.0 && params.isDarkGrass) {
-      if (params.dexMultiplier >= 2.5) {
+      if (params.dexMultiplier >= 2.5)
         grassModifier = 1.0;
-      } else if (params.dexMultiplier >= 2.0)
+      else if (params.dexMultiplier >= 2.0)
         grassModifier = 3686.0 / 4096.0;
       else if (params.dexMultiplier >= 1.5)
         grassModifier = 3277.0 / 4096.0;
@@ -319,19 +308,16 @@ abstract class ModernStrategyBase extends CatchRateStrategy {
     double sBonus = params.statusType == 2
         ? 2.5
         : (params.statusType == 1 ? 1.5 : 1.0);
-    if (gen <= 4.0) {
+    if (gen <= 4.0)
       sBonus = params.statusType == 2
           ? 2.0
           : (params.statusType == 1 ? 1.5 : 1.0);
-    }
 
     double diffMod = getDifficultyModifier(params);
     double lvlMod = getLevelModifier(params);
-
     double miscBonus = params.powerBonus;
-    if (gen == 9.0 && params.isBackstrike) {
-      miscBonus *= 2.0;
-    }
+
+    if (gen == 9.0 && params.isBackstrike) miscBonus *= 2.0;
 
     double x =
         (((300.0 - 2.0 * params.hpPercent) *
@@ -489,16 +475,14 @@ class Gen8Strategy extends ModernStrategyBase {
       }
       double difficulty = params.isGigantamax ? (291.0 / 4096.0) : 2.0;
       double ballBonus = applyBallEffects(params).bonus;
-
-      if (params.ballId == 'quick') {
-        ballBonus = 1.0;
-      }
+      if (params.ballId == 'quick') ballBonus = 1.0;
 
       double x = params.pokemon.captureRate * ballBonus * difficulty;
       double catchChance = 0.0;
-      if (x >= 255.0) {
+
+      if (x >= 255.0)
         catchChance = 100.0;
-      } else {
+      else {
         double y = 1048560.0 / sqrt(sqrt(16711680.0 / x));
         double chancePerShake = y / 65536.0;
         catchChance = pow(chancePerShake, 4) * 100;

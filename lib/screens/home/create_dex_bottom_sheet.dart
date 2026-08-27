@@ -36,11 +36,14 @@ class _CreateDexBottomSheetState extends State<CreateDexBottomSheet> {
   final GlobalKey _gmaxKey = GlobalKey();
   final GlobalKey _otherKey = GlobalKey();
   final GlobalKey _saveKey = GlobalKey();
-  final ExpansibleController _expansionController = ExpansibleController();
+
+  final ExpansionTileController _expansionController =
+      ExpansionTileController();
   final TextEditingController nameController = TextEditingController();
 
   late DexGroup selectedGroup;
   late String selectedSubDex;
+
   bool includeGenders = false;
   bool includeRegional = false;
   bool includeMega = false;
@@ -48,6 +51,7 @@ class _CreateDexBottomSheetState extends State<CreateDexBottomSheet> {
   bool includeOther = false;
   bool isShinyDex = false;
   bool _showFakeDropdown = false;
+
   late Map<String, bool> features;
 
   @override
@@ -58,6 +62,7 @@ class _CreateDexBottomSheetState extends State<CreateDexBottomSheet> {
       selectedSubDex = selectedGroup.dexKeys.first;
       features = DexGroupsData.getAvailableFeatures(selectedSubDex);
       nameController.text = Translator.get('region_$selectedSubDex');
+
       WidgetsBinding.instance.addPostFrameCallback((_) {
         Future.delayed(const Duration(milliseconds: 700), () {
           if (mounted) _showTutorialIfNeeded();
@@ -263,13 +268,14 @@ class _CreateDexBottomSheetState extends State<CreateDexBottomSheet> {
     features = DexGroupsData.getAvailableFeatures(selectedSubDex);
     includeMega = selectedSubDex == 'mega_dex';
     includeOther = selectedSubDex == 'icognito_dex';
-
     if (!(features['regional'] ?? false)) includeRegional = false;
-    if (!(features['mega'] ?? false) && selectedSubDex != 'mega_dex')
+    if (!(features['mega'] ?? false) && selectedSubDex != 'mega_dex') {
       includeMega = false;
+    }
     if (!(features['gmax'] ?? false)) includeGMax = false;
-    if (!(features['other'] ?? false) && selectedSubDex != 'icognito_dex')
+    if (!(features['other'] ?? false) && selectedSubDex != 'icognito_dex') {
       includeOther = false;
+    }
   }
 
   void _createDex() {
@@ -353,7 +359,6 @@ class _CreateDexBottomSheetState extends State<CreateDexBottomSheet> {
             } else if (group.dexKeys.first.contains('kalos')) {
               itemKey = _kalosKey;
             }
-
             return Padding(
               padding: const EdgeInsets.only(right: 12, bottom: 8),
               child: GestureDetector(
@@ -422,7 +427,6 @@ class _CreateDexBottomSheetState extends State<CreateDexBottomSheet> {
 
   Widget _buildDexDropdown() {
     if (selectedGroup.dexKeys.length <= 1) return const SizedBox.shrink();
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -461,11 +465,11 @@ class _CreateDexBottomSheetState extends State<CreateDexBottomSheet> {
             decoration: BoxDecoration(
               color: Theme.of(context).colorScheme.surfaceContainerHighest,
               borderRadius: BorderRadius.circular(8),
-              boxShadow: [
+              boxShadow: const [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.5),
+                  color: Colors.black54,
                   blurRadius: 10,
-                  offset: const Offset(0, 4),
+                  offset: Offset(0, 4),
                 ),
               ],
             ),
@@ -571,8 +575,7 @@ class _CreateDexBottomSheetState extends State<CreateDexBottomSheet> {
                 value: includeMega,
                 activeColor: Colors.red,
                 enabled:
-                    (features['mega'] ?? false) &&
-                    selectedSubDex != 'mega_dex',
+                    (features['mega'] ?? false) && selectedSubDex != 'mega_dex',
                 onChanged:
                     (features['mega'] ?? false) && selectedSubDex != 'mega_dex'
                     ? (val) => setState(() => includeMega = val ?? false)
@@ -612,7 +615,6 @@ class _CreateDexBottomSheetState extends State<CreateDexBottomSheet> {
   @override
   Widget build(BuildContext context) {
     final bottomPadding = MediaQuery.of(context).viewInsets.bottom;
-
     return Padding(
       padding: EdgeInsets.only(
         bottom: bottomPadding,

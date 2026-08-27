@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:provider/provider.dart';
 import '../../../models/dex_view_models.dart';
 import '../../../models/pokemon.dart';
 import '../../../providers/dex_provider.dart';
+import '../../../services/database_service.dart';
 import '../../../l10n/app_translations.dart';
-import '../../../data/matching_balls_data.dart';
 import '../../../utils/notification_helper.dart';
 
 const Map<String, Color> pokemonTypeColors = {
@@ -345,6 +346,7 @@ class MatchingBallsWidget extends StatelessWidget {
     String title,
     List<String> ballKeys,
     Color iconColor,
+    Map<String, String> ballUrls,
   ) {
     bool isAny = ballKeys.isEmpty || ballKeys.contains('any_ball');
     return Padding(
@@ -375,6 +377,7 @@ class MatchingBallsWidget extends StatelessWidget {
                   spacing: 10,
                   runSpacing: 10,
                   children: ballKeys.map((key) {
+                    final imgUrl = ballUrls[key];
                     return Container(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 12,
@@ -395,16 +398,15 @@ class MatchingBallsWidget extends StatelessWidget {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          if (ballImageUrls.containsKey(key))
+                          if (imgUrl != null)
                             CachedNetworkImage(
-                              imageUrl: ballImageUrls[key]!,
+                              imageUrl: imgUrl,
                               width: 24,
                               height: 24,
                               errorWidget: (_, _, _) =>
                                   const Icon(Icons.catching_pokemon, size: 24),
                             ),
-                          if (ballImageUrls.containsKey(key))
-                            const SizedBox(width: 8),
+                          if (imgUrl != null) const SizedBox(width: 8),
                           Text(
                             Translator.get('ball_$key'),
                             style: const TextStyle(fontWeight: FontWeight.w600),
@@ -421,56 +423,70 @@ class MatchingBallsWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    try {
-      final matchingBalls =
-          matchingBallsDatabase[entry.uniqueId] ??
-          matchingBallsDatabase['${entry.pokemon.id}_normal'];
-      final List<String> normalBalls = matchingBalls?['normal'] ?? [];
-      final List<String> shinyBalls = matchingBalls?['shiny'] ?? [];
+    final provider = context.watch<DexProvider>();
 
-      return Card(
-        key: matchingBallsKey,
-        margin: const EdgeInsets.symmetric(vertical: 8),
-        elevation: 2,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        child: ExpansionTile(
-          leading: const Icon(Icons.catching_pokemon, color: Colors.redAccent),
-          title: Text(
-            Translator.get('matching_balls') != 'matching_balls'
-                ? Translator.get('matching_balls')
-                : 'Matching Balls',
-            style: const TextStyle(fontWeight: FontWeight.bold),
-          ),
-          children: [
-            _buildBallCard(
-              context,
-              Icons.catching_pokemon,
-              Translator.get('matching_ball_normal') != 'matching_ball_normal'
-                  ? Translator.get('matching_ball_normal')
-                  : 'Matching Ball (Normal)',
-              normalBalls,
-              Theme.of(context).colorScheme.primary,
-            ),
-            _buildBallCard(
-              context,
-              Icons.star,
-              Translator.get('matching_ball_shiny') != 'matching_ball_shiny'
-                  ? Translator.get('matching_ball_shiny')
-                  : 'Matching Ball (Shiny)',
-              shinyBalls,
-              Colors.amber,
-            ),
-          ],
+    return Card(
+      key: matchingBallsKey,
+      margin: const EdgeInsets.symmetric(vertical: 8),
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: ExpansionTile(
+        leading: const Icon(Icons.catching_pokemon, color: Colors.redAccent),
+        title: Text(
+          Translator.get('matching_balls') != 'matching_balls'
+              ? Translator.get('matching_balls')
+              : 'Matching Balls',
+          style: const TextStyle(fontWeight: FontWeight.bold),
         ),
-      );
-    } catch (e) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        NotificationHelper.showError(
-          "${Translator.get('error_matching_balls')} $e",
-        );
-      });
-      return const SizedBox.shrink();
-    }
+        children: [
+          FutureBuilder<Map<String, dynamic>?>(
+            future: DatabaseService.instance.getMatchingBalls(entry.uniqueId),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Padding(
+                  padding: EdgeInsets.all(16.0),
+                  child: Center(child: CircularProgressIndicator()),
+                );
+              }
+              final matchingBalls = snapshot.data;
+              final List<String> normalBalls = List<String>.from(
+                matchingBalls?['normal'] ?? [],
+              );
+              final List<String> shinyBalls = List<String>.from(
+                matchingBalls?['shiny'] ?? [],
+              );
+
+              return Column(
+                children: [
+                  _buildBallCard(
+                    context,
+                    Icons.catching_pokemon,
+                    Translator.get('matching_ball_normal') !=
+                            'matching_ball_normal'
+                        ? Translator.get('matching_ball_normal')
+                        : 'Matching Ball (Normal)',
+                    normalBalls,
+                    Theme.of(context).colorScheme.primary,
+                    provider.ballUrls,
+                  ),
+                  _buildBallCard(
+                    context,
+                    Icons.star,
+                    Translator.get('matching_ball_shiny') !=
+                            'matching_ball_shiny'
+                        ? Translator.get('matching_ball_shiny')
+                        : 'Matching Ball (Shiny)',
+                    shinyBalls,
+                    Colors.amber,
+                    provider.ballUrls,
+                  ),
+                ],
+              );
+            },
+          ),
+        ],
+      ),
+    );
   }
 }
 

@@ -1088,4 +1088,10 @@ const Map<String, String> translationsEn = {
   'error_calc_ui_hp': 'Error in HP/status widget:',
   'error_calc_ui_crit': 'Error in crit widget:',
   'create_dex_btn': 'Create Pokédex',
+
+  'error_db_init': 'Failed to initialize database:',
+  'error_db_create': 'Failed to create user tables:',
+  'error_db_write': 'Error saving your data:',
+  'migration_loading_text':
+      'Optimizing data for the latest update...\nPlease do not close the app.',
 };
