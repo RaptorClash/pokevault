@@ -1386,4 +1386,5 @@ const Map<String, String> translationsDe = {
 
   'migration_loading_text':
       'Daten werden für die neuste Version optimiert...\nBitte App nicht schließen.',
+  "error_page_load": "Fehler beim Laden der Seite:",
 };

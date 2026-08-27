@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
 import '../../models/dex_view_models.dart';
 import '../../models/pokemon.dart';
 import '../../providers/dex_provider.dart';
@@ -7,6 +8,8 @@ import '../../providers/tutorial_provider.dart';
 import '../../models/tutorial_step.dart';
 import '../../widgets/tutorial/tutorial_overlay.dart';
 import '../../l10n/app_translations.dart';
+import '../../utils/notification_helper.dart';
+
 import 'shiny_guide_widget.dart';
 import 'widgets/catch_rate_calculator.dart';
 import 'widgets/breeding_info_widget.dart';
@@ -41,29 +44,39 @@ class _PokemonInfoScreenState extends State<PokemonInfoScreen> {
   bool? _manualShinyToggle;
 
   final GlobalKey _appBarKey = GlobalKey();
-  final GlobalKey _shinyToggleKey = GlobalKey();
-  final GlobalKey _basicInfoKey = GlobalKey();
-  final GlobalKey _caughtStatusKey = GlobalKey();
-  final GlobalKey _shinyStatusKey = GlobalKey();
-  final GlobalKey _breedingKey = GlobalKey();
-  final GlobalKey _catchCalcKey = GlobalKey();
-  final GlobalKey _matchingBallsKey = GlobalKey();
-  final GlobalKey _encountersKey = GlobalKey();
-  final GlobalKey _shinyGuideKey = GlobalKey();
-  final GlobalKey _ignoreBtnKey = GlobalKey();
+
+  final Map<String, GlobalKey> _shinyToggleKeys = {};
+  final Map<String, GlobalKey> _basicInfoKeys = {};
+  final Map<String, GlobalKey> _caughtStatusKeys = {};
+  final Map<String, GlobalKey> _shinyStatusKeys = {};
+  final Map<String, GlobalKey> _breedingKeys = {};
+  final Map<String, GlobalKey> _catchCalcKeys = {};
+  final Map<String, GlobalKey> _matchingBallsKeys = {};
+  final Map<String, GlobalKey> _encountersKeys = {};
+  final Map<String, GlobalKey> _shinyGuideKeys = {};
+  final Map<String, GlobalKey> _ignoreBtnKeys = {};
+
+  GlobalKey _getKey(Map<String, GlobalKey> map, String id) {
+    return map.putIfAbsent(id, () => GlobalKey());
+  }
 
   @override
   void initState() {
     super.initState();
     _currentIndex = widget.initialIndex;
     _pageController = PageController(initialPage: widget.initialIndex);
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _showTutorialIfNeeded();
     });
   }
 
   void _showTutorialIfNeeded() {
+    if (widget.entries.isEmpty) return;
+
     final tutProvider = Provider.of<TutorialProvider>(context, listen: false);
+    final currentId = widget.entries[_currentIndex].uniqueId;
+
     if (!tutProvider.hasSeenFeature('pokemon_details')) {
       TutorialOverlay.show(
         context,
@@ -78,61 +91,61 @@ class _PokemonInfoScreenState extends State<PokemonInfoScreen> {
               requireTargetTap: false,
             ),
             TutorialStep(
-              targetKey: _shinyToggleKey,
+              targetKey: _getKey(_shinyToggleKeys, currentId),
               titleKey: 'tutorial_info_shiny_toggle_title',
               textKey: 'tutorial_info_shiny_toggle_text',
               requireTargetTap: false,
             ),
             TutorialStep(
-              targetKey: _basicInfoKey,
+              targetKey: _getKey(_basicInfoKeys, currentId),
               titleKey: 'tutorial_info_basic_title',
               textKey: 'tutorial_info_basic_text',
               requireTargetTap: false,
             ),
             TutorialStep(
-              targetKey: _caughtStatusKey,
+              targetKey: _getKey(_caughtStatusKeys, currentId),
               titleKey: 'tutorial_info_caught_title',
               textKey: 'tutorial_info_caught_text',
               requireTargetTap: false,
             ),
             TutorialStep(
-              targetKey: _shinyStatusKey,
+              targetKey: _getKey(_shinyStatusKeys, currentId),
               titleKey: 'tutorial_info_shiny_title',
               textKey: 'tutorial_info_shiny_text',
               requireTargetTap: false,
             ),
             TutorialStep(
-              targetKey: _breedingKey,
+              targetKey: _getKey(_breedingKeys, currentId),
               titleKey: 'tutorial_info_breeding_title',
               textKey: 'tutorial_info_breeding_text',
               requireTargetTap: false,
             ),
             TutorialStep(
-              targetKey: _catchCalcKey,
+              targetKey: _getKey(_catchCalcKeys, currentId),
               titleKey: 'tutorial_info_catchcalc_title',
               textKey: 'tutorial_info_catchcalc_text',
               requireTargetTap: false,
             ),
             TutorialStep(
-              targetKey: _matchingBallsKey,
+              targetKey: _getKey(_matchingBallsKeys, currentId),
               titleKey: 'tutorial_info_matchingballs_title',
               textKey: 'tutorial_info_matchingballs_text',
               requireTargetTap: false,
             ),
             TutorialStep(
-              targetKey: _encountersKey,
+              targetKey: _getKey(_encountersKeys, currentId),
               titleKey: 'tutorial_info_encounters_title',
               textKey: 'tutorial_info_encounters_text',
               requireTargetTap: false,
             ),
             TutorialStep(
-              targetKey: _shinyGuideKey,
+              targetKey: _getKey(_shinyGuideKeys, currentId),
               titleKey: 'tutorial_info_shinyguide_title',
               textKey: 'tutorial_info_shinyguide_text',
               requireTargetTap: false,
             ),
             TutorialStep(
-              targetKey: _ignoreBtnKey,
+              targetKey: _getKey(_ignoreBtnKeys, currentId),
               titleKey: 'tutorial_info_ignore_title',
               textKey: 'tutorial_info_ignore_text',
               requireTargetTap: true,
@@ -165,6 +178,7 @@ class _PokemonInfoScreenState extends State<PokemonInfoScreen> {
     bool showTutorial = false,
   }) {
     final GlobalKey confirmKey = GlobalKey();
+
     showDialog(
       context: context,
       builder: (ctx) {
@@ -318,110 +332,125 @@ class _PokemonInfoScreenState extends State<PokemonInfoScreen> {
   }
 
   Widget _buildPokemonPage(BuildContext context, DexDisplayEntry entry) {
-    final provider = context.watch<DexProvider>();
-    final liveDex = provider.userDexes.firstWhere((d) => d.id == widget.dexId);
-
-    final isCaught = liveDex.caughtIds.contains(entry.uniqueId);
-    final isShiny = liveDex.shinyIds.contains(entry.uniqueId);
-    bool wantShiny = _manualShinyToggle ?? liveDex.isShinyDex;
-
-    String formName = 'normal';
-    if (entry.uniqueId.contains('_')) {
-      formName = entry.uniqueId.substring(entry.uniqueId.indexOf('_') + 1);
-      if (formName == 'm' || formName == 'f') formName = 'normal';
-    }
-
-    PokemonForm? currentForm;
     try {
-      currentForm = entry.pokemon.forms.firstWhere((f) => f.name == formName);
-    } catch (_) {
-      if (entry.pokemon.forms.isNotEmpty) {
-        currentForm = entry.pokemon.forms.first;
-      }
-    }
+      final provider = context.watch<DexProvider>();
+      final liveDex = provider.userDexes.firstWhere(
+        (d) => d.id == widget.dexId,
+      );
+      final isCaught = liveDex.caughtIds.contains(entry.uniqueId);
+      final isShiny = liveDex.shinyIds.contains(entry.uniqueId);
+      bool wantShiny = _manualShinyToggle ?? liveDex.isShinyDex;
 
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          PokemonHeaderWidget(
-            entry: entry,
-            wantShiny: wantShiny,
-            currentForm: currentForm,
-            shinyToggleKey: _shinyToggleKey,
-            onShinyToggled: () {
-              setState(() {
-                _manualShinyToggle = !wantShiny;
-              });
-            },
-          ),
-          const SizedBox(height: 24),
-          PokemonBasicInfoWidget(
-            entry: entry,
-            provider: provider,
-            basicInfoKey: _basicInfoKey,
-            currentForm: currentForm,
-          ),
-          const SizedBox(height: 32),
-          PokemonStatusTogglesWidget(
-            dexId: widget.dexId,
-            entry: entry,
-            isCaught: isCaught,
-            isShiny: isShiny,
-            provider: provider,
-            caughtStatusKey: _caughtStatusKey,
-            shinyStatusKey: _shinyStatusKey,
-          ),
-          const SizedBox(height: 16),
-          Container(
-            key: _breedingKey,
-            child: BreedingInfoWidget(pokemon: entry.pokemon),
-          ),
-          Card(
-            key: _catchCalcKey,
-            margin: const EdgeInsets.symmetric(vertical: 8),
-            elevation: 2,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
+      String formName = 'normal';
+      if (entry.uniqueId.contains('_')) {
+        formName = entry.uniqueId.substring(entry.uniqueId.indexOf('_') + 1);
+        if (formName == 'm' || formName == 'f') formName = 'normal';
+      }
+
+      PokemonForm? currentForm;
+      try {
+        currentForm = entry.pokemon.forms.firstWhere((f) => f.name == formName);
+      } catch (_) {
+        if (entry.pokemon.forms.isNotEmpty) {
+          currentForm = entry.pokemon.forms.first;
+        }
+      }
+
+      return SingleChildScrollView(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            PokemonHeaderWidget(
+              entry: entry,
+              wantShiny: wantShiny,
+              currentForm: currentForm,
+              shinyToggleKey: _getKey(_shinyToggleKeys, entry.uniqueId),
+              onShinyToggled: () {
+                setState(() {
+                  _manualShinyToggle = !wantShiny;
+                });
+              },
             ),
-            child: ExpansionTile(
-              leading: const Icon(
-                Icons.calculate_outlined,
-                color: Colors.purple,
-              ),
-              title: Text(
-                Translator.get('catch_calculator_title') !=
-                        'catch_calculator_title'
-                    ? Translator.get('catch_calculator_title')
-                    : 'Ultimativer Fangratenrechner',
-                style: const TextStyle(fontWeight: FontWeight.bold),
-              ),
-              children: [CatchRateCalculator(pokemon: entry.pokemon)],
+            const SizedBox(height: 24),
+            PokemonBasicInfoWidget(
+              entry: entry,
+              provider: provider,
+              basicInfoKey: _getKey(_basicInfoKeys, entry.uniqueId),
+              currentForm: currentForm,
             ),
-          ),
-          const SizedBox(height: 16),
-          MatchingBallsWidget(
-            entry: entry,
-            matchingBallsKey: _matchingBallsKey,
-          ),
-          EncountersWidget(
-            pokemonId: entry.pokemon.id,
-            encountersKey: _encountersKey,
-          ),
-          const SizedBox(height: 16),
-          Container(
-            key: _shinyGuideKey,
-            child: ShinyGuideWidget(entry: entry, dexId: widget.dexId),
-          ),
-          const SizedBox(height: 32),
-          IgnorePokemonButton(
-            ignoreBtnKey: _ignoreBtnKey,
-            onIgnore: () => _confirmIgnore(context, provider, entry),
-          ),
-          const SizedBox(height: 32),
-        ],
-      ),
-    );
+            const SizedBox(height: 32),
+            PokemonStatusTogglesWidget(
+              dexId: widget.dexId,
+              entry: entry,
+              isCaught: isCaught,
+              isShiny: isShiny,
+              provider: provider,
+              caughtStatusKey: _getKey(_caughtStatusKeys, entry.uniqueId),
+              shinyStatusKey: _getKey(_shinyStatusKeys, entry.uniqueId),
+            ),
+            const SizedBox(height: 16),
+            Container(
+              key: _getKey(_breedingKeys, entry.uniqueId),
+              child: BreedingInfoWidget(pokemon: entry.pokemon),
+            ),
+            Card(
+              key: _getKey(_catchCalcKeys, entry.uniqueId),
+              margin: const EdgeInsets.symmetric(vertical: 8),
+              elevation: 2,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: ExpansionTile(
+                leading: const Icon(
+                  Icons.calculate_outlined,
+                  color: Colors.purple,
+                ),
+                title: Text(
+                  Translator.get('catch_calculator_title') !=
+                          'catch_calculator_title'
+                      ? Translator.get('catch_calculator_title')
+                      : 'Ultimativer Fangratenrechner',
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+                children: [CatchRateCalculator(pokemon: entry.pokemon)],
+              ),
+            ),
+            const SizedBox(height: 16),
+            MatchingBallsWidget(
+              entry: entry,
+              matchingBallsKey: _getKey(_matchingBallsKeys, entry.uniqueId),
+            ),
+            EncountersWidget(
+              pokemonId: entry.pokemon.id,
+              encountersKey: _getKey(_encountersKeys, entry.uniqueId),
+            ),
+            const SizedBox(height: 16),
+            Container(
+              key: _getKey(_shinyGuideKeys, entry.uniqueId),
+              child: ShinyGuideWidget(entry: entry, dexId: widget.dexId),
+            ),
+            const SizedBox(height: 32),
+            IgnorePokemonButton(
+              ignoreBtnKey: _getKey(_ignoreBtnKeys, entry.uniqueId),
+              onIgnore: () => _confirmIgnore(context, provider, entry),
+            ),
+            const SizedBox(height: 32),
+          ],
+        ),
+      );
+    } catch (e) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        NotificationHelper.showError(
+          "${Translator.get('error_page_load') != 'error_page_load' ? Translator.get('error_page_load') : 'Fehler beim Laden der Seite:'} $e",
+        );
+      });
+      return const Center(
+        child: Padding(
+          padding: EdgeInsets.all(16.0),
+          child: Icon(Icons.error_outline, color: Colors.red, size: 50),
+        ),
+      );
+    }
   }
 }

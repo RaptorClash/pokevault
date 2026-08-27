@@ -1094,4 +1094,6 @@ const Map<String, String> translationsEn = {
   'error_db_write': 'Error saving your data:',
   'migration_loading_text':
       'Optimizing data for the latest update...\nPlease do not close the app.',
+
+  "error_page_load": "Error loading page:",
 };
