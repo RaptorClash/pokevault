@@ -75,7 +75,7 @@ class _DowngradeScreenState extends State<DowngradeScreen> {
                 elevation: 0,
                 color: Theme.of(
                   context,
-                ).colorScheme.surfaceContainerHighest.withOpacity(0.3),
+                ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
                 child: ListTile(
                   leading: const Icon(Icons.history, color: Colors.redAccent),
                   title: Text(

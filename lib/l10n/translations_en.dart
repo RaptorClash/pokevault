@@ -1076,4 +1076,16 @@ const Map<String, String> translationsEn = {
       'Alright, if you don\'t know how to type... I\'ll take over! ZZZZZZT!',
   'tutorial_longpress_error':
       'That was a normal tap! Press and HOLD the Pokémon!',
+  'error_avatar_load': 'Error loading avatar:',
+
+  'error_header_load': 'Error loading header:',
+  'error_basic_info': 'Error loading basic info:',
+  'error_status_toggles': 'Error loading status buttons:',
+  'error_matching_balls': 'Error loading matching balls:',
+  'error_encounters': 'Error loading encounters:',
+
+  'error_calc_ui_result': 'Error in result widget:',
+  'error_calc_ui_hp': 'Error in HP/status widget:',
+  'error_calc_ui_crit': 'Error in crit widget:',
+  'create_dex_btn': 'Create Pokédex',
 };

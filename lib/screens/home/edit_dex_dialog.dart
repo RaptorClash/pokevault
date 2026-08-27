@@ -72,7 +72,7 @@ class _EditDexDialogState extends State<EditDexDialog> {
               ),
               secondary: const Icon(Icons.star, color: Colors.amber),
               value: isShinyDex,
-              activeColor: Colors.amber,
+              activeThumbColor: Colors.amber,
               onChanged: (val) => setState(() => isShinyDex = val),
             ),
             const Divider(height: 1),
@@ -80,7 +80,7 @@ class _EditDexDialogState extends State<EditDexDialog> {
               title: Text(Translator.get('include_genders')),
               secondary: const Icon(Icons.wc),
               value: includeGenders,
-              activeColor: Colors.red,
+              activeThumbColor: Colors.red,
               onChanged: (val) => setState(() => includeGenders = val),
             ),
             const Divider(height: 1),
@@ -92,8 +92,8 @@ class _EditDexDialogState extends State<EditDexDialog> {
                   title: Text(Translator.get('form_regional_short')),
                   value: includeRegional,
                   activeColor: Colors.red,
-                  enabled: features['regional']!,
-                  onChanged: features['regional']!
+                  enabled: (features['regional'] ?? false), // SICHER
+                  onChanged: (features['regional'] ?? false)
                       ? (val) => setState(() => includeRegional = val ?? false)
                       : null,
                 ),
@@ -101,8 +101,8 @@ class _EditDexDialogState extends State<EditDexDialog> {
                   title: Text(Translator.get('form_mega')),
                   value: isMegaDex ? true : includeMega,
                   activeColor: Colors.red,
-                  enabled: !isMegaDex && features['mega']!,
-                  onChanged: (!isMegaDex && features['mega']!)
+                  enabled: !isMegaDex && (features['mega'] ?? false), // SICHER
+                  onChanged: (!isMegaDex && (features['mega'] ?? false))
                       ? (val) => setState(() => includeMega = val ?? false)
                       : null,
                 ),
@@ -110,8 +110,8 @@ class _EditDexDialogState extends State<EditDexDialog> {
                   title: Text(Translator.get('form_gmax')),
                   value: includeGMax,
                   activeColor: Colors.red,
-                  enabled: features['gmax']!,
-                  onChanged: features['gmax']!
+                  enabled: (features['gmax'] ?? false), // SICHER
+                  onChanged: (features['gmax'] ?? false)
                       ? (val) => setState(() => includeGMax = val ?? false)
                       : null,
                 ),
@@ -119,8 +119,10 @@ class _EditDexDialogState extends State<EditDexDialog> {
                   title: Text(Translator.get('form_other_short')),
                   value: includeOther,
                   activeColor: Colors.red,
-                  onChanged: (val) =>
-                      setState(() => includeOther = val ?? false),
+                  enabled: (features['other'] ?? false), // SICHER
+                  onChanged: (features['other'] ?? false)
+                      ? (val) => setState(() => includeOther = val ?? false)
+                      : null,
                 ),
               ],
             ),

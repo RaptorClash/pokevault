@@ -28,8 +28,9 @@ class Gen1Strategy extends CatchRateStrategy {
     }
 
     String? glitchWarning;
-    if (params.ballId == 'great')
+    if (params.ballId == 'great') {
       glitchWarning = Translator.get('glitch_gen1_great');
+    }
 
     int statusS = params.statusType == 2
         ? 25
@@ -102,12 +103,15 @@ class Gen2Strategy extends CatchRateStrategy {
     }
 
     String? glitchWarning;
-    if (params.ballId == 'love')
+    if (params.ballId == 'love') {
       glitchWarning = Translator.get('glitch_gen2_love');
-    if (params.ballId == 'moon')
+    }
+    if (params.ballId == 'moon') {
       glitchWarning = Translator.get('glitch_gen2_moon');
-    if (params.ballId == 'fast')
+    }
+    if (params.ballId == 'fast') {
       glitchWarning = Translator.get('glitch_gen2_fast');
+    }
 
     double ballBonus = 1.0;
     int baseRate = params.pokemon.captureRate;
@@ -135,9 +139,9 @@ class Gen2Strategy extends CatchRateStrategy {
         if (params.isFishing) ballBonus = 3.0;
         break;
       case 'level':
-        if (params.ownLevel > params.enemyLevel * 4)
+        if (params.ownLevel > params.enemyLevel * 4) {
           ballBonus = 8.0;
-        else if (params.ownLevel > params.enemyLevel * 2)
+        } else if (params.ownLevel > params.enemyLevel * 2)
           ballBonus = 4.0;
         else if (params.ownLevel > params.enemyLevel)
           ballBonus = 2.0;
@@ -145,9 +149,9 @@ class Gen2Strategy extends CatchRateStrategy {
       case 'heavy':
         double weight = catchDataDatabase[params.pokemon.id]?['weight'] ?? 50.0;
         int modifier = 0;
-        if (weight < 102.4)
+        if (weight < 102.4) {
           modifier = -20;
-        else if (weight < 204.8)
+        } else if (weight < 204.8)
           modifier = 0;
         else if (weight < 307.2)
           modifier = 20;

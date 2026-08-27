@@ -109,33 +109,42 @@ class DexGroupsData {
 
   static Map<String, bool> getAvailableFeatures(String dexKey) {
     try {
-      if (dexKey == 'national_overall')
+      if (dexKey == 'national_overall') {
         return {'regional': true, 'mega': true, 'gmax': true};
-      if (dexKey == 'letsgo_kanto_regional')
+      }
+      if (dexKey == 'letsgo_kanto_regional') {
         return {'regional': true, 'mega': true, 'gmax': false};
-      if (dexKey == 'updated_hoenn_regional')
+      }
+      if (dexKey == 'updated_hoenn_regional') {
         return {'regional': false, 'mega': true, 'gmax': false};
-      if (dexKey.contains('kalos') || dexKey.contains('lumiose'))
+      }
+      if (dexKey.contains('kalos') || dexKey.contains('lumiose')) {
         return {'regional': false, 'mega': true, 'gmax': false};
+      }
       if (dexKey.contains('alola') ||
           dexKey.contains('melemele') ||
           dexKey.contains('akala') ||
           dexKey.contains('ulaula') ||
-          dexKey.contains('poni'))
+          dexKey.contains('poni')) {
         return {'regional': true, 'mega': true, 'gmax': false};
+      }
       if (dexKey.contains('galar') ||
           dexKey.contains('armor') ||
-          dexKey.contains('tundra'))
+          dexKey.contains('tundra')) {
         return {'regional': true, 'mega': false, 'gmax': true};
+      }
       if (dexKey.contains('hisui') ||
           dexKey.contains('paldea') ||
           dexKey.contains('kitakami') ||
-          dexKey.contains('blueberry'))
+          dexKey.contains('blueberry')) {
         return {'regional': true, 'mega': false, 'gmax': false};
-      if (dexKey == 'mega_dex')
+      }
+      if (dexKey == 'mega_dex') {
         return {'regional': false, 'mega': true, 'gmax': false};
-      if (dexKey == 'icognito_dex')
+      }
+      if (dexKey == 'icognito_dex') {
         return {'regional': false, 'mega': false, 'gmax': false};
+      }
     } catch (e) {
       NotificationHelper.showError(
         "${Translator.get('error_getting_available_features')} $e",

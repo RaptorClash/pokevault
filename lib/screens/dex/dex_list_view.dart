@@ -45,140 +45,155 @@ class DexListView extends StatelessWidget {
       ),
       itemCount: displayList.length,
       itemBuilder: (context, index) {
-        final entry = displayList[index];
-        final isCaught = liveDex.caughtIds.contains(entry.uniqueId);
-        final isShiny = liveDex.shinyIds.contains(entry.uniqueId);
+        try {
+          final entry = displayList[index];
+          final isCaught = liveDex.caughtIds.contains(entry.uniqueId);
+          final isShiny = liveDex.shinyIds.contains(entry.uniqueId);
 
-        return GestureDetector(
-          key: entry.uniqueId == tutorialTargetId ? firstItemKey : null,
-          onTap: () => provider.togglePokemon(liveDex.id, entry.uniqueId),
-          onLongPress: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                fullscreenDialog: true,
-                builder: (context) => PokemonInfoScreen(
-                  entries: displayList,
-                  initialIndex: index,
-                  dexId: liveDex.id,
-                  isBoxView: false,
+          return GestureDetector(
+            key: entry.uniqueId == tutorialTargetId ? firstItemKey : null,
+            onTap: () => provider.togglePokemon(liveDex.id, entry.uniqueId),
+            onLongPress: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  fullscreenDialog: true,
+                  builder: (context) => PokemonInfoScreen(
+                    entries: displayList,
+                    initialIndex: index,
+                    dexId: liveDex.id,
+                    isBoxView: false,
+                  ),
+                ),
+              );
+            },
+            child: Card(
+              color: isCaught
+                  ? Colors.green.withValues(alpha: 0.15)
+                  : Theme.of(context).cardColor,
+              elevation: isCaught ? 4 : 1,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+                side: BorderSide(
+                  color: isCaught ? Colors.green : Colors.transparent,
+                  width: 2,
                 ),
               ),
-            );
-          },
-          child: Card(
-            color: isCaught
-                ? Colors.green.withOpacity(0.15)
-                : Theme.of(context).cardColor,
-            elevation: isCaught ? 4 : 1,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-              side: BorderSide(
-                color: isCaught ? Colors.green : Colors.transparent,
-                width: 2,
-              ),
-            ),
-            child: Stack(
-              children: [
-                Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      '#${entry.pokemon.id.toString().padLeft(3, '0')}',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Theme.of(context).hintColor,
-                        fontWeight: FontWeight.bold,
+              child: Stack(
+                children: [
+                  Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        '#${entry.pokemon.id.toString().padLeft(3, '0')}',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Theme.of(context).hintColor,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
-                    ),
-                    Expanded(
-                      child: ColorFiltered(
-                        colorFilter: isCaught
-                            ? const ColorFilter.mode(
-                                Colors.transparent,
-                                BlendMode.dst,
-                              )
-                            : const ColorFilter.matrix(<double>[
-                                0.2126,
-                                0.7152,
-                                0.0722,
-                                0,
-                                0,
-                                0.2126,
-                                0.7152,
-                                0.0722,
-                                0,
-                                0,
-                                0.2126,
-                                0.7152,
-                                0.0722,
-                                0,
-                                0,
-                                0,
-                                0,
-                                0,
-                                1,
-                                0,
-                              ]),
-                        child: CachedNetworkImage(
-                          imageUrl: entry.imageUrl,
-                          memCacheWidth: 200,
-                          fit: BoxFit.contain,
-                          placeholder: (context, url) => const Center(
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          ),
-                          errorWidget: (context, url, error) => CachedNetworkImage(
-                            imageUrl:
-                                'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${liveDex.isShinyDex ? 'shiny/' : ''}${entry.pokemon.id}.png',
+                      Expanded(
+                        child: ColorFiltered(
+                          colorFilter: isCaught
+                              ? const ColorFilter.mode(
+                                  Colors.transparent,
+                                  BlendMode.dst,
+                                )
+                              : const ColorFilter.matrix(<double>[
+                                  0.2126,
+                                  0.7152,
+                                  0.0722,
+                                  0,
+                                  0,
+                                  0.2126,
+                                  0.7152,
+                                  0.0722,
+                                  0,
+                                  0,
+                                  0.2126,
+                                  0.7152,
+                                  0.0722,
+                                  0,
+                                  0,
+                                  0,
+                                  0,
+                                  0,
+                                  1,
+                                  0,
+                                ]),
+                          child: CachedNetworkImage(
+                            imageUrl: entry.imageUrl,
                             memCacheWidth: 200,
                             fit: BoxFit.contain,
-                            errorWidget: (c, e, s) =>
-                                const Icon(Icons.catching_pokemon, size: 24),
+                            fadeInDuration: const Duration(milliseconds: 150),
+                            placeholder: (context, url) => const Center(
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            ),
+                            errorWidget: (context, url, error) =>
+                                CachedNetworkImage(
+                                  imageUrl:
+                                      'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${liveDex.isShinyDex ? 'shiny/' : ''}${entry.pokemon.id}.png',
+                                  memCacheWidth: 200,
+                                  fit: BoxFit.contain,
+                                  errorWidget: (c, e, s) => const Icon(
+                                    Icons.catching_pokemon,
+                                    size: 24,
+                                  ),
+                                ),
                           ),
                         ),
                       ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 4.0,
-                        vertical: 4.0,
-                      ),
-                      child: FittedBox(
-                        fit: BoxFit.scaleDown,
-                        child: Text(
-                          entry.pokemon.getName(provider.currentLanguage) +
-                              entry.displaySuffix,
-                          style: TextStyle(
-                            fontWeight: isCaught
-                                ? FontWeight.bold
-                                : FontWeight.normal,
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 4.0,
+                          vertical: 4.0,
+                        ),
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Text(
+                            entry.pokemon.getName(provider.currentLanguage) +
+                                entry.displaySuffix,
+                            style: TextStyle(
+                              fontWeight: isCaught
+                                  ? FontWeight.bold
+                                  : FontWeight.normal,
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                  ],
-                ),
-                if (isCaught || isShiny)
-                  Positioned(
-                    top: 6,
-                    right: 6,
-                    child: Column(
-                      children: [
-                        if (isCaught)
-                          const Icon(
-                            Icons.catching_pokemon,
-                            color: Colors.green,
-                            size: 20,
-                          ),
-                        if (isShiny)
-                          const Icon(Icons.star, color: Colors.amber, size: 20),
-                      ],
-                    ),
+                    ],
                   ),
-              ],
+                  if (isCaught || isShiny)
+                    Positioned(
+                      top: 6,
+                      right: 6,
+                      child: Column(
+                        children: [
+                          if (isCaught)
+                            const Icon(
+                              Icons.catching_pokemon,
+                              color: Colors.green,
+                              size: 20,
+                            ),
+                          if (isShiny)
+                            const Icon(
+                              Icons.star,
+                              color: Colors.amber,
+                              size: 20,
+                            ),
+                        ],
+                      ),
+                    ),
+                ],
+              ),
             ),
-          ),
-        );
+          );
+        } catch (e) {
+          debugPrint('Fehler beim Rendern in DexListView: $e');
+          return const Card(
+            child: Center(child: Icon(Icons.error_outline, color: Colors.red)),
+          );
+        }
       },
     );
   }

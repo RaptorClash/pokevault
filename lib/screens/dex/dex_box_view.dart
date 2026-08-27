@@ -116,7 +116,7 @@ class DexBoxView extends StatelessWidget {
                           icon: const Icon(Icons.chevron_left),
                           onPressed: () {
                             if (pageController.hasClients &&
-                                pageController.page! > 0) {
+                                (pageController.page ?? 0) > 0) {
                               pageController.previousPage(
                                 duration: const Duration(milliseconds: 300),
                                 curve: Curves.easeInOut,
@@ -173,7 +173,7 @@ class DexBoxView extends StatelessWidget {
                           icon: const Icon(Icons.chevron_right),
                           onPressed: () {
                             if (pageController.hasClients &&
-                                pageController.page! < boxes.length - 1) {
+                                (pageController.page ?? 0) < boxes.length - 1) {
                               pageController.nextPage(
                                 duration: const Duration(milliseconds: 300),
                                 curve: Curves.easeInOut,
@@ -195,177 +195,201 @@ class DexBoxView extends StatelessWidget {
                       mainAxisSpacing: 4,
                     ),
                     delegate: SliverChildBuilderDelegate((context, index) {
-                      final entry = box.entries[index];
-                      final isCaught = liveDex.caughtIds.contains(
-                        entry.uniqueId,
-                      );
-                      final isShiny = liveDex.shinyIds.contains(entry.uniqueId);
+                      try {
+                        final entry = box.entries[index];
+                        final isCaught = liveDex.caughtIds.contains(
+                          entry.uniqueId,
+                        );
+                        final isShiny = liveDex.shinyIds.contains(
+                          entry.uniqueId,
+                        );
 
-                      final bool isMatched =
-                          isSearchActive &&
-                          highlightedIds.contains(entry.uniqueId);
-                      final bool isDimmed =
-                          isSearchActive &&
-                          !highlightedIds.contains(entry.uniqueId);
+                        final bool isMatched =
+                            isSearchActive &&
+                            highlightedIds.contains(entry.uniqueId);
+                        final bool isDimmed =
+                            isSearchActive &&
+                            !highlightedIds.contains(entry.uniqueId);
 
-                      return GestureDetector(
-                        key: entry.uniqueId == tutorialTargetId
-                            ? firstItemKey
-                            : null,
-                        onTap: () =>
-                            provider.togglePokemon(liveDex.id, entry.uniqueId),
-                        onLongPress: () {
-                          int initialIndex = boxOrderedEntries.indexOf(entry);
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              fullscreenDialog: true,
-                              builder: (context) => PokemonInfoScreen(
-                                entries: boxOrderedEntries,
-                                initialIndex: initialIndex != -1
-                                    ? initialIndex
-                                    : 0,
-                                dexId: liveDex.id,
-                                boxes: boxes,
-                                isBoxView: true,
-                                onPageChanged: (newIndex) {
-                                  final currentEntry =
-                                      boxOrderedEntries[newIndex];
-                                  int targetBoxIndex = boxes.indexWhere(
-                                    (b) => b.entries.contains(currentEntry),
-                                  );
-                                  if (targetBoxIndex != -1 &&
-                                      pageController.hasClients) {
-                                    if (pageController.page?.round() !=
-                                        targetBoxIndex) {
-                                      pageController.jumpToPage(targetBoxIndex);
+                        return GestureDetector(
+                          key: entry.uniqueId == tutorialTargetId
+                              ? firstItemKey
+                              : null,
+                          onTap: () => provider.togglePokemon(
+                            liveDex.id,
+                            entry.uniqueId,
+                          ),
+                          onLongPress: () {
+                            int initialIndex = boxOrderedEntries.indexOf(entry);
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                fullscreenDialog: true,
+                                builder: (context) => PokemonInfoScreen(
+                                  entries: boxOrderedEntries,
+                                  initialIndex: initialIndex != -1
+                                      ? initialIndex
+                                      : 0,
+                                  dexId: liveDex.id,
+                                  boxes: boxes,
+                                  isBoxView: true,
+                                  onPageChanged: (newIndex) {
+                                    final currentEntry =
+                                        boxOrderedEntries[newIndex];
+                                    int targetBoxIndex = boxes.indexWhere(
+                                      (b) => b.entries.contains(currentEntry),
+                                    );
+                                    if (targetBoxIndex != -1 &&
+                                        pageController.hasClients) {
+                                      if (pageController.page?.round() !=
+                                          targetBoxIndex) {
+                                        pageController.jumpToPage(
+                                          targetBoxIndex,
+                                        );
+                                      }
                                     }
-                                  }
-                                },
-                              ),
-                            ),
-                          );
-                        },
-                        child: AnimatedOpacity(
-                          duration: const Duration(milliseconds: 200),
-                          opacity: isDimmed ? 0.2 : 1.0,
-                          child: Container(
-                            decoration: BoxDecoration(
-                              color: isCaught
-                                  ? Colors.green.withOpacity(0.15)
-                                  : Theme.of(context).cardColor,
-                              borderRadius: BorderRadius.circular(8),
-                              border: Border.all(
-                                color: isMatched
-                                    ? Theme.of(context).colorScheme.primary
-                                    : (isCaught
-                                          ? Colors.green
-                                          : Theme.of(
-                                              context,
-                                            ).dividerColor.withOpacity(0.3)),
-                                width: (isMatched || isCaught) ? 2 : 1,
-                              ),
-                              boxShadow: isMatched
-                                  ? [
-                                      BoxShadow(
-                                        color: Theme.of(
-                                          context,
-                                        ).colorScheme.primary.withOpacity(0.4),
-                                        blurRadius: 8,
-                                        spreadRadius: 2,
-                                      ),
-                                    ]
-                                  : null,
-                            ),
-                            child: Stack(
-                              children: [
-                                Center(
-                                  child: ColorFiltered(
-                                    colorFilter: isCaught
-                                        ? const ColorFilter.mode(
-                                            Colors.transparent,
-                                            BlendMode.dst,
-                                          )
-                                        : const ColorFilter.matrix(<double>[
-                                            0.2126,
-                                            0.7152,
-                                            0.0722,
-                                            0,
-                                            0,
-                                            0.2126,
-                                            0.7152,
-                                            0.0722,
-                                            0,
-                                            0,
-                                            0.2126,
-                                            0.7152,
-                                            0.0722,
-                                            0,
-                                            0,
-                                            0,
-                                            0,
-                                            0,
-                                            1,
-                                            0,
-                                          ]),
-                                    child: Padding(
-                                      padding: const EdgeInsets.all(4.0),
-                                      child: CachedNetworkImage(
-                                        imageUrl: entry.imageUrl,
-                                        memCacheWidth: 200,
-                                        fit: BoxFit.contain,
-                                        placeholder: (context, url) =>
-                                            const Center(
-                                              child: CircularProgressIndicator(
-                                                strokeWidth: 2,
-                                              ),
-                                            ),
-                                        errorWidget:
-                                            (
-                                              context,
-                                              error,
-                                              stackTrace,
-                                            ) => CachedNetworkImage(
-                                              imageUrl:
-                                                  'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${liveDex.isShinyDex ? 'shiny/' : ''}${entry.pokemon.id}.png',
-                                              memCacheWidth: 200,
-                                              fit: BoxFit.contain,
-                                              errorWidget: (c, e, s) =>
-                                                  const Icon(
-                                                    Icons.catching_pokemon,
-                                                    size: 24,
-                                                  ),
-                                            ),
-                                      ),
-                                    ),
-                                  ),
+                                  },
                                 ),
-                                if (isCaught || isShiny)
-                                  Positioned(
-                                    top: 2,
-                                    right: 2,
-                                    child: Column(
-                                      children: [
-                                        if (isCaught)
-                                          const Icon(
-                                            Icons.catching_pokemon,
-                                            color: Colors.green,
-                                            size: 14,
+                              ),
+                            );
+                          },
+                          child: AnimatedOpacity(
+                            duration: const Duration(milliseconds: 200),
+                            opacity: isDimmed ? 0.2 : 1.0,
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: isCaught
+                                    ? Colors.green.withOpacity(0.15)
+                                    : Theme.of(context).cardColor,
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(
+                                  color: isMatched
+                                      ? Theme.of(context).colorScheme.primary
+                                      : (isCaught
+                                            ? Colors.green
+                                            : Theme.of(
+                                                context,
+                                              ).dividerColor.withOpacity(0.3)),
+                                  width: (isMatched || isCaught) ? 2 : 1,
+                                ),
+                                boxShadow: isMatched
+                                    ? [
+                                        BoxShadow(
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .primary
+                                              .withOpacity(0.4),
+                                          blurRadius: 8,
+                                          spreadRadius: 2,
+                                        ),
+                                      ]
+                                    : null,
+                              ),
+                              child: Stack(
+                                children: [
+                                  Center(
+                                    child: ColorFiltered(
+                                      colorFilter: isCaught
+                                          ? const ColorFilter.mode(
+                                              Colors.transparent,
+                                              BlendMode.dst,
+                                            )
+                                          : const ColorFilter.matrix(<double>[
+                                              0.2126,
+                                              0.7152,
+                                              0.0722,
+                                              0,
+                                              0,
+                                              0.2126,
+                                              0.7152,
+                                              0.0722,
+                                              0,
+                                              0,
+                                              0.2126,
+                                              0.7152,
+                                              0.0722,
+                                              0,
+                                              0,
+                                              0,
+                                              0,
+                                              0,
+                                              1,
+                                              0,
+                                            ]),
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(4.0),
+                                        child: CachedNetworkImage(
+                                          imageUrl: entry.imageUrl,
+                                          memCacheWidth: 200,
+                                          fit: BoxFit.contain,
+                                          fadeInDuration: const Duration(
+                                            milliseconds: 150,
                                           ),
-                                        if (isShiny)
-                                          const Icon(
-                                            Icons.star,
-                                            color: Colors.amber,
-                                            size: 14,
-                                          ),
-                                      ],
+                                          placeholder: (context, url) =>
+                                              const Center(
+                                                child:
+                                                    CircularProgressIndicator(
+                                                      strokeWidth: 2,
+                                                    ),
+                                              ),
+                                          errorWidget:
+                                              (
+                                                context,
+                                                error,
+                                                stackTrace,
+                                              ) => CachedNetworkImage(
+                                                imageUrl:
+                                                    'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${liveDex.isShinyDex ? 'shiny/' : ''}${entry.pokemon.id}.png',
+                                                memCacheWidth: 200,
+                                                fit: BoxFit.contain,
+                                                errorWidget: (c, e, s) =>
+                                                    const Icon(
+                                                      Icons.catching_pokemon,
+                                                      size: 24,
+                                                    ),
+                                              ),
+                                        ),
+                                      ),
                                     ),
                                   ),
-                              ],
+                                  if (isCaught || isShiny)
+                                    Positioned(
+                                      top: 2,
+                                      right: 2,
+                                      child: Column(
+                                        children: [
+                                          if (isCaught)
+                                            const Icon(
+                                              Icons.catching_pokemon,
+                                              color: Colors.green,
+                                              size: 14,
+                                            ),
+                                          if (isShiny)
+                                            const Icon(
+                                              Icons.star,
+                                              color: Colors.amber,
+                                              size: 14,
+                                            ),
+                                        ],
+                                      ),
+                                    ),
+                                ],
+                              ),
                             ),
                           ),
-                        ),
-                      );
+                        );
+                      } catch (e) {
+                        debugPrint('Fehler beim Rendern in DexBoxView: $e');
+                        return Container(
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).cardColor,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: const Center(
+                            child: Icon(Icons.error_outline, color: Colors.red),
+                          ),
+                        );
+                      }
                     }, childCount: box.entries.length),
                   ),
                 ),

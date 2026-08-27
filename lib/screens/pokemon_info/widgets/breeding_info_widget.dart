@@ -24,10 +24,11 @@ class BreedingInfoWidget extends StatelessWidget {
   }
 
   String _getGenderText(int rate) {
-    if (rate == -1)
+    if (rate == -1) {
       return Translator.get('gender_genderless') != 'gender_genderless'
           ? Translator.get('gender_genderless')
           : 'Geschlechtslos';
+    }
     if (rate == 0) return '100% ♂';
     if (rate == 1) return '87.5% ♂ / 12.5% ♀';
     if (rate == 2) return '75% ♂ / 25% ♀';
@@ -54,52 +55,59 @@ class BreedingInfoWidget extends StatelessWidget {
   }
 
   String _formatEvoDetails(Map<String, dynamic> detail) {
-    if (detail.isEmpty)
+    if (detail.isEmpty) {
       return Translator.get('evo_base_form') != 'evo_base_form'
           ? Translator.get('evo_base_form')
           : 'Basisform / Ei';
+    }
 
     String trigger = detail['trigger'] ?? '';
     List<String> conditions = [];
 
-    if (detail['min_level'] != null)
+    if (detail['min_level'] != null) {
       conditions.add(
         Translator.get(
           'evo_level',
         ).replaceAll('{0}', detail['min_level'].toString()),
       );
-    if (detail['item'] != null)
+    }
+    if (detail['item'] != null) {
       conditions.add(Translator.get('item_${detail['item']}'));
-    if (detail['held_item'] != null)
+    }
+    if (detail['held_item'] != null) {
       conditions.add(
         Translator.get(
           'evo_held_item',
         ).replaceAll('{0}', Translator.get('item_${detail['held_item']}')),
       );
-    if (detail['min_happiness'] != null)
+    }
+    if (detail['min_happiness'] != null) {
       conditions.add(Translator.get('evo_happiness'));
+    }
     if (detail['time_of_day'] != null &&
         detail['time_of_day'].toString().isNotEmpty) {
       conditions.add(Translator.get('evo_time_${detail['time_of_day']}'));
     }
-    if (detail['known_move'] != null)
+    if (detail['known_move'] != null) {
       conditions.add(
         Translator.get(
           'evo_move',
         ).replaceAll('{0}', Translator.get('move_${detail['known_move']}')),
       );
-    if (detail['location'] != null)
+    }
+    if (detail['location'] != null) {
       conditions.add(
         Translator.get(
           'evo_location',
         ).replaceAll('{0}', Translator.get('loc_${detail['location']}')),
       );
+    }
 
     String triggerText = Translator.get('trigger_$trigger');
     if (triggerText == 'trigger_$trigger') {
-      if (trigger == 'level-up')
+      if (trigger == 'level-up') {
         triggerText = 'Levelaufstieg';
-      else if (trigger == 'use-item')
+      } else if (trigger == 'use-item')
         triggerText = 'Item anwenden';
       else if (trigger == 'trade')
         triggerText = 'Tausch';
@@ -238,7 +246,7 @@ class BreedingInfoWidget extends StatelessWidget {
             decoration: BoxDecoration(
               color: Theme.of(
                 context,
-              ).colorScheme.surfaceContainerHighest.withOpacity(0.3),
+              ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
               borderRadius: const BorderRadius.vertical(
                 bottom: Radius.circular(12),
               ),

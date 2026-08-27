@@ -40,9 +40,9 @@ class _UpdateDialogState extends State<UpdateDialog> {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: Colors.orange.withOpacity(0.15),
+                  color: Colors.orange.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.orange.withOpacity(0.5)),
+                  border: Border.all(color: Colors.orange.withValues(alpha: 0.5)),
                 ),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,

@@ -59,10 +59,10 @@ class ThemeProvider extends ChangeNotifier {
       final prefs = await SharedPreferences.getInstance();
       if (isDarkMode) {
         _darkPrimaryColor = newColor;
-        await prefs.setInt('darkPrimary', newColor.value);
+        await prefs.setInt('darkPrimary', newColor.toARGB32());
       } else {
         _lightPrimaryColor = newColor;
-        await prefs.setInt('lightPrimary', newColor.value);
+        await prefs.setInt('lightPrimary', newColor.toARGB32());
       }
       notifyListeners();
     } catch (e) {
@@ -77,10 +77,10 @@ class ThemeProvider extends ChangeNotifier {
       final prefs = await SharedPreferences.getInstance();
       if (isDarkMode) {
         _darkBackgroundColor = newColor;
-        await prefs.setInt('darkBg', newColor.value);
+        await prefs.setInt('darkBg', newColor.toARGB32());
       } else {
         _lightBackgroundColor = newColor;
-        await prefs.setInt('lightBg', newColor.value);
+        await prefs.setInt('lightBg', newColor.toARGB32());
       }
       notifyListeners();
     } catch (e) {
@@ -96,7 +96,7 @@ class ThemeProvider extends ChangeNotifier {
         _customColors.add(color);
         final prefs = await SharedPreferences.getInstance();
         List<String> colorsString = _customColors
-            .map((c) => c.value.toString())
+            .map((c) => c.toARGB32().toString())
             .toList();
         await prefs.setStringList('customColors', colorsString);
         notifyListeners();

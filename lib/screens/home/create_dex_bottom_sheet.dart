@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
 import '../../data/dex_groups_data.dart';
 import '../../l10n/app_translations.dart';
 import '../../providers/dex_provider.dart';
@@ -37,22 +36,17 @@ class _CreateDexBottomSheetState extends State<CreateDexBottomSheet> {
   final GlobalKey _gmaxKey = GlobalKey();
   final GlobalKey _otherKey = GlobalKey();
   final GlobalKey _saveKey = GlobalKey();
-
-  final ExpansionTileController _expansionController =
-      ExpansionTileController();
-
+  final ExpansibleController _expansionController = ExpansibleController();
   final TextEditingController nameController = TextEditingController();
 
   late DexGroup selectedGroup;
   late String selectedSubDex;
-
   bool includeGenders = false;
   bool includeRegional = false;
   bool includeMega = false;
   bool includeGMax = false;
   bool includeOther = false;
   bool isShinyDex = false;
-
   bool _showFakeDropdown = false;
   late Map<String, bool> features;
 
@@ -64,7 +58,6 @@ class _CreateDexBottomSheetState extends State<CreateDexBottomSheet> {
       selectedSubDex = selectedGroup.dexKeys.first;
       features = DexGroupsData.getAvailableFeatures(selectedSubDex);
       nameController.text = Translator.get('region_$selectedSubDex');
-
       WidgetsBinding.instance.addPostFrameCallback((_) {
         Future.delayed(const Duration(milliseconds: 700), () {
           if (mounted) _showTutorialIfNeeded();
@@ -73,6 +66,12 @@ class _CreateDexBottomSheetState extends State<CreateDexBottomSheet> {
     } catch (e) {
       NotificationHelper.showError('${Translator.get('error')} $e');
     }
+  }
+
+  @override
+  void dispose() {
+    nameController.dispose();
+    super.dispose();
   }
 
   void _showTutorialIfNeeded() {
@@ -102,25 +101,10 @@ class _CreateDexBottomSheetState extends State<CreateDexBottomSheet> {
                 disableScroll: true,
                 scrollAlignment: 0.5,
                 onTargetTap: () {
-                  try {
-                    final kalosGroup = DexGroupsData.groups.firstWhere(
-                      (g) => g.dexKeys.first.contains('kalos'),
-                    );
-                    setState(() {
-                      selectedGroup = kalosGroup;
-                      selectedSubDex = kalosGroup.dexKeys.first;
-                      nameController.text = Translator.get(
-                        'region_$selectedSubDex',
-                      );
-                      features = DexGroupsData.getAvailableFeatures(
-                        selectedSubDex,
-                      );
-                    });
-                  } catch (e) {
-                    NotificationHelper.showError(
-                      '${Translator.get('error')} $e',
-                    );
-                  }
+                  final kalosGroup = DexGroupsData.groups.firstWhere(
+                    (g) => g.dexKeys.first.contains('kalos'),
+                  );
+                  _selectGroupAndDex(kalosGroup, kalosGroup.dexKeys.first);
                 },
               ),
               TutorialStep(
@@ -129,17 +113,7 @@ class _CreateDexBottomSheetState extends State<CreateDexBottomSheet> {
                 textKey: 'tutorial_create_step3_text',
                 requireTargetTap: true,
                 preCalculateDelayMilliseconds: 400,
-                onTargetTap: () {
-                  try {
-                    setState(() {
-                      _showFakeDropdown = true;
-                    });
-                  } catch (e) {
-                    NotificationHelper.showError(
-                      '${Translator.get('error')} $e',
-                    );
-                  }
-                },
+                onTargetTap: () => setState(() => _showFakeDropdown = true),
               ),
               TutorialStep(
                 targetKey: _fakeDropdownKey,
@@ -148,51 +122,28 @@ class _CreateDexBottomSheetState extends State<CreateDexBottomSheet> {
                 requireTargetTap: true,
                 preCalculateDelayMilliseconds: 300,
                 onTargetTap: () {
-                  try {
-                    final tapPos = TutorialOverlay.lastTapPosition;
-                    int tappedIndex = 0; 
-
-                    if (tapPos != null && selectedGroup.dexKeys.length > 1) {
-                      final renderBox =
-                          _fakeDropdownKey.currentContext?.findRenderObject()
-                              as RenderBox?;
-                      if (renderBox != null) {
-                        final localPos = renderBox.globalToLocal(tapPos);
-                        final itemHeight =
-                            renderBox.size.height /
-                            selectedGroup.dexKeys.length;
-                        tappedIndex = (localPos.dy / itemHeight).floor().clamp(
-                          0,
-                          selectedGroup.dexKeys.length - 1,
-                        );
-                      }
+                  final tapPos = TutorialOverlay.lastTapPosition;
+                  int tappedIndex = 0;
+                  if (tapPos != null && selectedGroup.dexKeys.length > 1) {
+                    final renderBox =
+                        _fakeDropdownKey.currentContext?.findRenderObject()
+                            as RenderBox?;
+                    if (renderBox != null) {
+                      final localPos = renderBox.globalToLocal(tapPos);
+                      final itemHeight =
+                          renderBox.size.height / selectedGroup.dexKeys.length;
+                      tappedIndex = (localPos.dy / itemHeight).floor().clamp(
+                        0,
+                        selectedGroup.dexKeys.length - 1,
+                      );
                     }
-
-                    setState(() {
-                      _showFakeDropdown = false;
-                      if (selectedGroup.dexKeys.length > 1) {
-                        selectedSubDex = selectedGroup.dexKeys[tappedIndex];
-                        nameController.text = Translator.get(
-                          'region_$selectedSubDex',
-                        );
-                        features = DexGroupsData.getAvailableFeatures(
-                          selectedSubDex,
-                        );
-                        includeMega = selectedSubDex == 'mega_dex';
-                        includeOther = selectedSubDex == 'icognito_dex';
-                        if (!features['regional']!) includeRegional = false;
-                        if (!features['mega']! &&
-                            selectedSubDex != 'mega_dex') {
-                          includeMega = false;
-                        }
-                        if (!features['gmax']!) includeGMax = false;
-                      }
-                    });
-                  } catch (e) {
-                    NotificationHelper.showError(
-                      '${Translator.get('error')} $e',
-                    );
                   }
+                  setState(() {
+                    _showFakeDropdown = false;
+                    if (selectedGroup.dexKeys.length > 1) {
+                      _selectSubDex(selectedGroup.dexKeys[tappedIndex]);
+                    }
+                  });
                 },
               ),
               TutorialStep(
@@ -215,25 +166,10 @@ class _CreateDexBottomSheetState extends State<CreateDexBottomSheet> {
                 scrollAlignment: 0.0,
                 preCalculateDelayMilliseconds: 300,
                 onTargetTap: () {
-                  try {
-                    final natGroup = DexGroupsData.groups.firstWhere(
-                      (g) => g.dexKeys.first.contains('national'),
-                    );
-                    setState(() {
-                      selectedGroup = natGroup;
-                      selectedSubDex = natGroup.dexKeys.first;
-                      nameController.text = Translator.get(
-                        'region_$selectedSubDex',
-                      );
-                      features = DexGroupsData.getAvailableFeatures(
-                        selectedSubDex,
-                      );
-                    });
-                  } catch (e) {
-                    NotificationHelper.showError(
-                      '${Translator.get('error')} $e',
-                    );
-                  }
+                  final natGroup = DexGroupsData.groups.firstWhere(
+                    (g) => g.dexKeys.first.contains('national'),
+                  );
+                  _selectGroupAndDex(natGroup, natGroup.dexKeys.first);
                 },
               ),
               TutorialStep(
@@ -256,14 +192,8 @@ class _CreateDexBottomSheetState extends State<CreateDexBottomSheet> {
                 textKey: 'tutorial_create_step8_text',
                 requireTargetTap: true,
                 onTargetTap: () {
-                  try {
-                    if (!_expansionController.isExpanded) {
-                      _expansionController.expand();
-                    }
-                  } catch (e) {
-                    NotificationHelper.showError(
-                      '${Translator.get('error')} $e',
-                    );
+                  if (!_expansionController.isExpanded) {
+                    _expansionController.expand();
                   }
                 },
               ),
@@ -302,22 +232,14 @@ class _CreateDexBottomSheetState extends State<CreateDexBottomSheet> {
                 textKey: 'tutorial_create_step13_text',
                 requireTargetTap: true,
                 onTargetTap: () {
-                  try {
-                    Future.delayed(const Duration(milliseconds: 350), () {
-                      if (mounted) _createDex();
-                    });
-                  } catch (e) {
-                    NotificationHelper.showError(
-                      '${Translator.get('error')} $e',
-                    );
-                  }
+                  Future.delayed(const Duration(milliseconds: 350), () {
+                    if (mounted) _createDex();
+                  });
                 },
               ),
             ],
           ),
-          () {
-            tutProvider.markFeatureAsSeen('create_dex_sheet');
-          },
+          () => tutProvider.markFeatureAsSeen('create_dex_sheet'),
           initialIndex: tutProvider.getFeatureStep('create_dex_sheet'),
           onStepChanged: (step) =>
               tutProvider.updateFatureStep('create_dex_sheet', step),
@@ -326,6 +248,28 @@ class _CreateDexBottomSheetState extends State<CreateDexBottomSheet> {
     } catch (e) {
       NotificationHelper.showError('${Translator.get('error')} $e');
     }
+  }
+
+  void _selectGroupAndDex(DexGroup group, String subDex) {
+    setState(() {
+      selectedGroup = group;
+      _selectSubDex(subDex);
+    });
+  }
+
+  void _selectSubDex(String subDex) {
+    selectedSubDex = subDex;
+    nameController.text = Translator.get('region_$selectedSubDex');
+    features = DexGroupsData.getAvailableFeatures(selectedSubDex);
+    includeMega = selectedSubDex == 'mega_dex';
+    includeOther = selectedSubDex == 'icognito_dex';
+
+    if (!(features['regional'] ?? false)) includeRegional = false;
+    if (!(features['mega'] ?? false) && selectedSubDex != 'mega_dex')
+      includeMega = false;
+    if (!(features['gmax'] ?? false)) includeGMax = false;
+    if (!(features['other'] ?? false) && selectedSubDex != 'icognito_dex')
+      includeOther = false;
   }
 
   void _createDex() {
@@ -349,16 +293,9 @@ class _CreateDexBottomSheetState extends State<CreateDexBottomSheet> {
     }
   }
 
-  @override
-  void dispose() {
-    nameController.dispose();
-    super.dispose();
-  }
-
   Widget _buildCollage(List<int> ids) {
     const String baseUrl =
         'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/';
-
     return Column(
       children: [
         Expanded(
@@ -401,10 +338,280 @@ class _CreateDexBottomSheetState extends State<CreateDexBottomSheet> {
     );
   }
 
+  Widget _buildGenerationSelector() {
+    return SizedBox(
+      height: 160,
+      key: _groupListKey,
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          children: DexGroupsData.groups.map((group) {
+            final isSelected = selectedGroup == group;
+            Key? itemKey;
+            if (group.dexKeys.first.contains('national')) {
+              itemKey = _nationalKey;
+            } else if (group.dexKeys.first.contains('kalos')) {
+              itemKey = _kalosKey;
+            }
+
+            return Padding(
+              padding: const EdgeInsets.only(right: 12, bottom: 8),
+              child: GestureDetector(
+                key: itemKey,
+                onTap: () => _selectGroupAndDex(group, group.dexKeys.first),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  width: 140,
+                  decoration: BoxDecoration(
+                    color: isSelected
+                        ? Colors.red.withValues(alpha: 0.15)
+                        : Theme.of(context).colorScheme.surfaceContainerHighest
+                              .withValues(alpha: 0.3),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: isSelected ? Colors.red : Colors.transparent,
+                      width: 2,
+                    ),
+                  ),
+                  child: Column(
+                    children: [
+                      Expanded(
+                        flex: 3,
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: _buildCollage(group.displayPokemonIds),
+                        ),
+                      ),
+                      Expanded(
+                        flex: 1,
+                        child: Container(
+                          width: double.infinity,
+                          decoration: BoxDecoration(
+                            color: isSelected
+                                ? Colors.red
+                                : Colors.black.withValues(alpha: 0.1),
+                            borderRadius: const BorderRadius.vertical(
+                              bottom: Radius.circular(14),
+                            ),
+                          ),
+                          alignment: Alignment.center,
+                          child: Text(
+                            Translator.get(group.nameKey),
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: isSelected
+                                  ? Colors.white
+                                  : Theme.of(
+                                      context,
+                                    ).textTheme.bodyMedium?.color,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          }).toList(),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDexDropdown() {
+    if (selectedGroup.dexKeys.length <= 1) return const SizedBox.shrink();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        DropdownButtonFormField<String>(
+          key: _dropdownKey,
+          initialValue: selectedSubDex,
+          decoration: InputDecoration(
+            labelText: Translator.get('exact_pokedex'),
+            filled: true,
+            fillColor: Theme.of(
+              context,
+            ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide.none,
+            ),
+          ),
+          items: selectedGroup.dexKeys.map((key) {
+            return DropdownMenuItem<String>(
+              value: key,
+              child: Text(
+                Translator.get('region_$key') != 'region_$key'
+                    ? Translator.get('region_$key')
+                    : key,
+              ),
+            );
+          }).toList(),
+          onChanged: (val) {
+            if (val != null) setState(() => _selectSubDex(val));
+          },
+        ),
+        if (_showFakeDropdown)
+          Container(
+            key: _fakeDropdownKey,
+            margin: const EdgeInsets.only(top: 4),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surfaceContainerHighest,
+              borderRadius: BorderRadius.circular(8),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.5),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: selectedGroup.dexKeys.map((key) {
+                final isSelected = key == selectedSubDex;
+                return GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: () => setState(() {
+                    _showFakeDropdown = false;
+                    _selectSubDex(key);
+                  }),
+                  child: Container(
+                    color: isSelected
+                        ? Theme.of(
+                            context,
+                          ).colorScheme.primary.withValues(alpha: 0.2)
+                        : Colors.transparent,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 14,
+                    ),
+                    child: Text(
+                      Translator.get('region_$key') != 'region_$key'
+                          ? Translator.get('region_$key')
+                          : key,
+                      style: TextStyle(
+                        fontWeight: isSelected
+                            ? FontWeight.bold
+                            : FontWeight.normal,
+                      ),
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
+          ),
+        const SizedBox(height: 16),
+      ],
+    );
+  }
+
+  Widget _buildSettingsToggles() {
+    return Container(
+      decoration: BoxDecoration(
+        color: Theme.of(
+          context,
+        ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Column(
+        children: [
+          SwitchListTile(
+            key: _shinyKey,
+            title: Text(
+              Translator.get('tutorial_create_step6_title') !=
+                      'tutorial_create_step6_title'
+                  ? Translator.get('tutorial_create_step6_title')
+                  : 'Shiny Dex',
+            ),
+            secondary: const Icon(Icons.star, color: Colors.amber),
+            value: isShinyDex,
+            activeThumbColor: Colors.amber,
+            onChanged: (val) => setState(() => isShinyDex = val),
+          ),
+          const Divider(height: 1),
+          SwitchListTile(
+            key: _genderKey,
+            title: Text(
+              Translator.get('tutorial_create_step7_title') !=
+                      'tutorial_create_step7_title'
+                  ? Translator.get('tutorial_create_step7_title')
+                  : 'Geschlechter',
+            ),
+            secondary: const Icon(Icons.wc),
+            value: includeGenders,
+            activeThumbColor: Colors.red,
+            onChanged: (val) => setState(() => includeGenders = val),
+          ),
+          const Divider(height: 1),
+          ExpansionTile(
+            key: _formsExpansionKey,
+            controller: _expansionController,
+            initiallyExpanded:
+                includeMega || includeRegional || includeGMax || includeOther,
+            leading: const Icon(Icons.auto_awesome),
+            title: Text(Translator.get('include_forms')),
+            children: [
+              CheckboxListTile(
+                key: _regionalKey,
+                title: Text(Translator.get('form_regional')),
+                value: includeRegional,
+                activeColor: Colors.red,
+                enabled: (features['regional'] ?? false),
+                onChanged: (features['regional'] ?? false)
+                    ? (val) => setState(() => includeRegional = val ?? false)
+                    : null,
+              ),
+              CheckboxListTile(
+                key: _megaKey,
+                title: Text(Translator.get('form_mega')),
+                value: includeMega,
+                activeColor: Colors.red,
+                enabled:
+                    (features['mega'] ?? false) &&
+                    selectedSubDex != 'mega_dex',
+                onChanged:
+                    (features['mega'] ?? false) && selectedSubDex != 'mega_dex'
+                    ? (val) => setState(() => includeMega = val ?? false)
+                    : null,
+              ),
+              CheckboxListTile(
+                key: _gmaxKey,
+                title: Text(Translator.get('form_gmax')),
+                value: includeGMax,
+                activeColor: Colors.red,
+                enabled: (features['gmax'] ?? false),
+                onChanged: (features['gmax'] ?? false)
+                    ? (val) => setState(() => includeGMax = val ?? false)
+                    : null,
+              ),
+              CheckboxListTile(
+                key: _otherKey,
+                title: Text(Translator.get('form_other')),
+                value: includeOther,
+                activeColor: Colors.red,
+                enabled:
+                    (features['other'] ?? false) &&
+                    selectedSubDex != 'icognito_dex',
+                onChanged:
+                    (features['other'] ?? false) &&
+                        selectedSubDex != 'icognito_dex'
+                    ? (val) => setState(() => includeOther = val ?? false)
+                    : null,
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final bottomPadding = MediaQuery.of(context).viewInsets.bottom;
-    bool isMegaDex = selectedSubDex == 'mega_dex';
 
     return Padding(
       padding: EdgeInsets.only(
@@ -428,249 +635,9 @@ class _CreateDexBottomSheetState extends State<CreateDexBottomSheet> {
               style: TextStyle(color: Theme.of(context).hintColor),
             ),
             const SizedBox(height: 16),
-            SizedBox(
-              height: 160,
-              key: _groupListKey,
-              child: SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Row(
-                  children: DexGroupsData.groups.map((group) {
-                    final isSelected = selectedGroup == group;
-                    Key? itemKey;
-                    if (group.dexKeys.first.contains('national')) {
-                      itemKey = _nationalKey;
-                    } else if (group.dexKeys.first.contains('kalos')) {
-                      itemKey = _kalosKey;
-                    }
-
-                    return Padding(
-                      padding: const EdgeInsets.only(right: 12, bottom: 8),
-                      child: GestureDetector(
-                        key: itemKey,
-                        onTap: () {
-                          try {
-                            setState(() {
-                              selectedGroup = group;
-                              selectedSubDex = group.dexKeys.first;
-                              nameController.text = Translator.get(
-                                'region_$selectedSubDex',
-                              );
-                              features = DexGroupsData.getAvailableFeatures(
-                                selectedSubDex,
-                              );
-                              includeMega = selectedSubDex == 'mega_dex';
-                              includeOther = selectedSubDex == 'icognito_dex';
-                              if (!features['regional']!) {
-                                includeRegional = false;
-                              }
-                              if (!features['mega']! &&
-                                  selectedSubDex != 'mega_dex') {
-                                includeMega = false;
-                              }
-                              if (!features['gmax']!) includeGMax = false;
-                            });
-                          } catch (e) {
-                            NotificationHelper.showError(
-                              '${Translator.get('error')} $e',
-                            );
-                          }
-                        },
-                        child: AnimatedContainer(
-                          duration: const Duration(milliseconds: 200),
-                          width: 140,
-                          decoration: BoxDecoration(
-                            color: isSelected
-                                ? Colors.red.withOpacity(0.15)
-                                : Theme.of(context)
-                                      .colorScheme
-                                      .surfaceContainerHighest
-                                      .withOpacity(0.3),
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(
-                              color: isSelected
-                                  ? Colors.red
-                                  : Colors.transparent,
-                              width: 2,
-                            ),
-                          ),
-                          child: Column(
-                            children: [
-                              Expanded(
-                                flex: 3,
-                                child: Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: _buildCollage(group.displayPokemonIds),
-                                ),
-                              ),
-                              Expanded(
-                                flex: 1,
-                                child: Container(
-                                  width: double.infinity,
-                                  decoration: BoxDecoration(
-                                    color: isSelected
-                                        ? Colors.red
-                                        : Colors.black.withOpacity(0.1),
-                                    borderRadius: const BorderRadius.vertical(
-                                      bottom: Radius.circular(14),
-                                    ),
-                                  ),
-                                  alignment: Alignment.center,
-                                  child: Text(
-                                    Translator.get(group.nameKey),
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.bold,
-                                      color: isSelected
-                                          ? Colors.white
-                                          : Theme.of(
-                                              context,
-                                            ).textTheme.bodyMedium?.color,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    );
-                  }).toList(),
-                ),
-              ),
-            ),
+            _buildGenerationSelector(),
             const SizedBox(height: 16),
-            if (selectedGroup.dexKeys.length > 1) ...[
-              DropdownButtonFormField<String>(
-                key: _dropdownKey,
-                value: selectedSubDex,
-                decoration: InputDecoration(
-                  labelText: Translator.get('exact_pokedex'),
-                  filled: true,
-                  fillColor: Theme.of(
-                    context,
-                  ).colorScheme.surfaceContainerHighest.withOpacity(0.3),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide.none,
-                  ),
-                ),
-                items: selectedGroup.dexKeys.map((key) {
-                  return DropdownMenuItem<String>(
-                    value: key,
-                    child: Text(
-                      Translator.get('region_$key') != 'region_$key'
-                          ? Translator.get('region_$key')
-                          : key,
-                    ),
-                  );
-                }).toList(),
-                onChanged: (val) {
-                  try {
-                    if (val != null) {
-                      setState(() {
-                        selectedSubDex = val;
-                        nameController.text = Translator.get(
-                          'region_$selectedSubDex',
-                        );
-                        features = DexGroupsData.getAvailableFeatures(
-                          selectedSubDex,
-                        );
-                        includeMega = selectedSubDex == 'mega_dex';
-                        includeOther = selectedSubDex == 'icognito_dex';
-                        if (!features['regional']!) includeRegional = false;
-                        if (!features['mega']! &&
-                            selectedSubDex != 'mega_dex') {
-                          includeMega = false;
-                        }
-                        if (!features['gmax']!) includeGMax = false;
-                      });
-                    }
-                  } catch (e) {
-                    NotificationHelper.showError(
-                      '${Translator.get('error')} $e',
-                    );
-                  }
-                },
-              ),
-              if (_showFakeDropdown)
-                Container(
-                  key:
-                      _fakeDropdownKey,
-                  margin: const EdgeInsets.only(top: 4),
-                  decoration: BoxDecoration(
-                    color: Theme.of(
-                      context,
-                    ).colorScheme.surfaceContainerHighest,
-                    borderRadius: BorderRadius.circular(8),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.5),
-                        blurRadius: 10,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: selectedGroup.dexKeys.map((key) {
-                      final isSelected = key == selectedSubDex;
-
-                      return GestureDetector(
-                        behavior: HitTestBehavior.opaque,
-                        onTap: () {
-                          try {
-                            setState(() {
-                              _showFakeDropdown = false;
-                              selectedSubDex = key;
-                              nameController.text = Translator.get(
-                                'region_$selectedSubDex',
-                              );
-                              features = DexGroupsData.getAvailableFeatures(
-                                selectedSubDex,
-                              );
-                              includeMega = selectedSubDex == 'mega_dex';
-                              includeOther = selectedSubDex == 'icognito_dex';
-                              if (!features['regional']!)
-                                includeRegional = false;
-                              if (!features['mega']! &&
-                                  selectedSubDex != 'mega_dex') {
-                                includeMega = false;
-                              }
-                              if (!features['gmax']!) includeGMax = false;
-                            });
-                          } catch (e) {
-                            NotificationHelper.showError(
-                              '${Translator.get('error')} $e',
-                            );
-                          }
-                        },
-                        child: Container(
-                          color: isSelected
-                              ? Theme.of(
-                                  context,
-                                ).colorScheme.primary.withOpacity(0.2)
-                              : Colors.transparent,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 14,
-                          ),
-                          child: Text(
-                            Translator.get('region_$key') != 'region_$key'
-                                ? Translator.get('region_$key')
-                                : key,
-                            style: TextStyle(
-                              fontWeight: isSelected
-                                  ? FontWeight.bold
-                                  : FontWeight.normal,
-                            ),
-                          ),
-                        ),
-                      );
-                    }).toList(),
-                  ),
-                ),
-              const SizedBox(height: 16),
-            ],
+            _buildDexDropdown(),
             TextField(
               controller: nameController,
               decoration: InputDecoration(
@@ -678,7 +645,7 @@ class _CreateDexBottomSheetState extends State<CreateDexBottomSheet> {
                 filled: true,
                 fillColor: Theme.of(
                   context,
-                ).colorScheme.surfaceContainerHighest.withOpacity(0.3),
+                ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                   borderSide: BorderSide.none,
@@ -687,137 +654,31 @@ class _CreateDexBottomSheetState extends State<CreateDexBottomSheet> {
               ),
             ),
             const SizedBox(height: 16),
-            Container(
-              decoration: BoxDecoration(
-                color: Theme.of(
-                  context,
-                ).colorScheme.surfaceContainerHighest.withOpacity(0.3),
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Column(
-                children: [
-                  SwitchListTile(
-                    key: _shinyKey,
-                    title: Text(
-                      Translator.get('tutorial_create_step6_title') !=
-                              'tutorial_create_step6_title'
-                          ? Translator.get('tutorial_create_step6_title')
-                          : 'Shiny Dex',
-                    ),
-                    secondary: const Icon(Icons.star, color: Colors.amber),
-                    value: isShinyDex,
-                    activeColor: Colors.amber,
-                    onChanged: (val) => setState(() => isShinyDex = val),
-                  ),
-                  const Divider(height: 1),
-                  SwitchListTile(
-                    key: _genderKey,
-                    title: Text(
-                      Translator.get('tutorial_create_step7_title') !=
-                              'tutorial_create_step7_title'
-                          ? Translator.get('tutorial_create_step7_title')
-                          : 'Geschlechter',
-                    ),
-                    secondary: const Icon(Icons.wc),
-                    value: includeGenders,
-                    activeColor: Colors.red,
-                    onChanged: (val) => setState(() => includeGenders = val),
-                  ),
-                  const Divider(height: 1),
-                  ExpansionTile(
-                    key: _formsExpansionKey,
-                    controller: _expansionController,
-                    initiallyExpanded:
-                        includeMega ||
-                        includeRegional ||
-                        includeGMax ||
-                        includeOther,
-                    leading: const Icon(Icons.auto_awesome),
-                    title: Text(Translator.get('include_forms')),
-                    children: [
-                      CheckboxListTile(
-                        key: _regionalKey,
-                        title: Text(Translator.get('form_regional')),
-                        value: includeRegional,
-                        activeColor: Colors.red,
-                        enabled: features['regional']!,
-                        onChanged: features['regional']!
-                            ? (val) =>
-                                  setState(() => includeRegional = val ?? false)
-                            : null,
-                      ),
-                      CheckboxListTile(
-                        key: _megaKey,
-                        title: Text(Translator.get('form_mega')),
-                        value: isMegaDex ? true : includeMega,
-                        activeColor: Colors.red,
-                        enabled: !isMegaDex && features['mega']!,
-                        onChanged: (!isMegaDex && features['mega']!)
-                            ? (val) =>
-                                  setState(() => includeMega = val ?? false)
-                            : null,
-                      ),
-                      CheckboxListTile(
-                        key: _gmaxKey,
-                        title: Text(Translator.get('form_gmax')),
-                        value: includeGMax,
-                        activeColor: Colors.red,
-                        enabled: features['gmax']!,
-                        onChanged: features['gmax']!
-                            ? (val) =>
-                                  setState(() => includeGMax = val ?? false)
-                            : null,
-                      ),
-                      CheckboxListTile(
-                        key: _otherKey,
-                        title: Text(Translator.get('form_other')),
-                        value: includeOther,
-                        activeColor: Colors.red,
-                        onChanged: (val) =>
-                            setState(() => includeOther = val ?? false),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
+            _buildSettingsToggles(),
             const SizedBox(height: 24),
-            Row(
-              children: [
-                Expanded(
-                  child: TextButton(
-                    onPressed: () => Navigator.pop(context),
-                    style: TextButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                    ),
-                    child: Text(Translator.get('cancel')),
+            SizedBox(
+              width: double.infinity,
+              height: 50,
+              child: ElevatedButton(
+                key: _saveKey,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.red,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
                   ),
                 ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: ElevatedButton(
-                    key: _saveKey,
-                    onPressed: _createDex,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.red,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    child: Text(
-                      Translator.get('create'),
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                      ),
-                    ),
+                onPressed: _createDex,
+                child: Text(
+                  Translator.get('create_dex_btn'),
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
-              ],
+              ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 32),
           ],
         ),
       ),

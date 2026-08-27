@@ -61,8 +61,9 @@ Future<dynamic> _fetchJson(HttpClient client, String url) async {
         await Future.delayed(const Duration(milliseconds: 60));
         return jsonDecode(responseBody);
       }
-      if (response.statusCode == 429)
+      if (response.statusCode == 429) {
         await Future.delayed(const Duration(seconds: 3));
+      }
     } catch (e) {
       await Future.delayed(const Duration(seconds: 1));
     }
@@ -120,8 +121,9 @@ Future<String> generateMasterDex(int startId, int endId) async {
         if (pokeData == null) continue;
 
         int varietyId = i;
-        if (pokeData['id'] != null)
+        if (pokeData['id'] != null) {
           varietyId = int.tryParse(pokeData['id'].toString()) ?? i;
+        }
 
         for (var formObj in pokeData['forms']) {
           final formData = await _fetchJson(client, formObj['url']);
@@ -130,9 +132,13 @@ Future<String> generateMasterDex(int startId, int endId) async {
           List<String> types = [];
           if (formData['types'] != null &&
               (formData['types'] as List).isNotEmpty) {
-            for (var t in formData['types']) types.add(t['type']['name']);
+            for (var t in formData['types']) {
+              types.add(t['type']['name']);
+            }
           } else {
-            for (var t in pokeData['types']) types.add(t['type']['name']);
+            for (var t in pokeData['types']) {
+              types.add(t['type']['name']);
+            }
           }
 
           String typesString = "['${types.join("', '")}']";

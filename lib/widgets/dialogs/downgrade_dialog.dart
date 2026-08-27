@@ -71,9 +71,9 @@ class _DowngradeDialogState extends State<DowngradeDialog> {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: Colors.blue.withOpacity(0.15),
+              color: Colors.blue.withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: Colors.blue.withOpacity(0.5)),
+              border: Border.all(color: Colors.blue.withValues(alpha: 0.5)),
             ),
             child: const Text(
               'Tipp: Es kann 1-2 Minuten dauern, bis die Datei in der "Dateien"-App deines Handys sichtbar wird.\n\nBitte deinstalliere diese App jetzt und öffne danach die APK, um die alte Version zu installieren.',
@@ -108,9 +108,9 @@ class _DowngradeDialogState extends State<DowngradeDialog> {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: Colors.red.withOpacity(0.15),
+              color: Colors.red.withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: Colors.red.withOpacity(0.5)),
+              border: Border.all(color: Colors.red.withValues(alpha: 0.5)),
             ),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -203,8 +203,9 @@ class _DowngradeDialogState extends State<DowngradeDialog> {
           onPressed: () async {
             final provider = Provider.of<DexProvider>(context, listen: false);
             await DexStorageService.exportDexes(provider.userDexes, provider);
-            if (mounted)
+            if (mounted) {
               setState(() => _currentStep = DowngradeStep.finalWarning);
+            }
           },
           style: ElevatedButton.styleFrom(
             backgroundColor: Theme.of(context).colorScheme.primary,

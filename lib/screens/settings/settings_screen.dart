@@ -463,7 +463,7 @@ class SettingsScreen extends StatelessWidget {
       runSpacing: 12.0,
       children: [
         ...allColorsToDisplay.map((color) {
-          final isActive = activeColor.value == color.value;
+          final isActive = activeColor.toARGB32() == color.toARGB32();
           return GestureDetector(
             onTap: () {
               if (isBackground) {
@@ -487,7 +487,7 @@ class SettingsScreen extends StatelessWidget {
                 boxShadow: [
                   if (isActive)
                     BoxShadow(
-                      color: color.withOpacity(0.4),
+                      color: color.withValues(alpha: 0.4),
                       blurRadius: 8,
                       spreadRadius: 2,
                     ),

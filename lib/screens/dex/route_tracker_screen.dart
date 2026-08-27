@@ -125,8 +125,9 @@ class _RouteTrackerScreenState extends State<RouteTrackerScreen> {
   }
 
   bool _isValidEncounterForVersion(DexDisplayEntry entry, String version) {
-    if (entry.uniqueId.contains('_mega') || entry.uniqueId.contains('_gmax'))
+    if (entry.uniqueId.contains('_mega') || entry.uniqueId.contains('_gmax')) {
       return false;
+    }
     if (entry.uniqueId == '670_eternal') return false;
 
     String genStr = _versionToGenMap[version] ?? 'Gen 9';
@@ -153,23 +154,27 @@ class _RouteTrackerScreenState extends State<RouteTrackerScreen> {
       if (formName.contains('alola') &&
           !(version.contains('sun') ||
               version.contains('moon') ||
-              version.contains('lets-go')))
+              version.contains('lets-go'))) {
         return false;
+      }
       if (formName.contains('galar') &&
-          !(version.contains('sword') || version.contains('shield')))
+          !(version.contains('sword') || version.contains('shield'))) {
         return false;
-      if (formName.contains('hisui') && !(version.contains('legends')))
+      }
+      if (formName.contains('hisui') && !(version.contains('legends'))) {
         return false;
+      }
       if (formName.contains('paldea') &&
-          !(version.contains('scarlet') || version.contains('violet')))
+          !(version.contains('scarlet') || version.contains('violet'))) {
         return false;
+      }
     }
 
     return true;
   }
 
   List<String> _getAllowedVersionsForDex(String region) {
-    if (region.contains('kanto'))
+    if (region.contains('kanto')) {
       return [
         'red',
         'blue',
@@ -179,11 +184,14 @@ class _RouteTrackerScreenState extends State<RouteTrackerScreen> {
         'lets-go-pikachu',
         'lets-go-eevee',
       ];
-    if (region.contains('johto'))
+    }
+    if (region.contains('johto')) {
       return ['gold', 'silver', 'crystal', 'heartgold', 'soulsilver'];
-    if (region.contains('hoenn'))
+    }
+    if (region.contains('hoenn')) {
       return ['ruby', 'sapphire', 'emerald', 'omega-ruby', 'alpha-sapphire'];
-    if (region.contains('sinnoh'))
+    }
+    if (region.contains('sinnoh')) {
       return [
         'diamond',
         'pearl',
@@ -191,15 +199,19 @@ class _RouteTrackerScreenState extends State<RouteTrackerScreen> {
         'brilliant-diamond',
         'shining-pearl',
       ];
-    if (region.contains('unova'))
+    }
+    if (region.contains('unova')) {
       return ['black', 'white', 'black-2', 'white-2'];
-    if (region.contains('kalos') || region.contains('lumiose'))
+    }
+    if (region.contains('kalos') || region.contains('lumiose')) {
       return ['x', 'y'];
-    if (region.contains('alola'))
+    }
+    if (region.contains('alola')) {
       return ['sun', 'moon', 'ultra-sun', 'ultra-moon'];
+    }
     if (region.contains('galar') ||
         region.contains('armor') ||
-        region.contains('tundra'))
+        region.contains('tundra')) {
       return [
         'sword',
         'shield',
@@ -208,10 +220,11 @@ class _RouteTrackerScreenState extends State<RouteTrackerScreen> {
         'the-crown-tundra-sword',
         'the-crown-tundra-shield',
       ];
+    }
     if (region.contains('hisui')) return ['legends-arceus'];
     if (region.contains('paldea') ||
         region.contains('kitakami') ||
-        region.contains('blueberry'))
+        region.contains('blueberry')) {
       return [
         'scarlet',
         'violet',
@@ -220,6 +233,7 @@ class _RouteTrackerScreenState extends State<RouteTrackerScreen> {
         'the-indigo-disk-scarlet',
         'the-indigo-disk-violet',
       ];
+    }
 
     return [];
   }
@@ -231,8 +245,9 @@ class _RouteTrackerScreenState extends State<RouteTrackerScreen> {
 
     Set<String> vSet = {};
     for (var entry in widget.rawEntries) {
-      if (entry.uniqueId.contains('_mega') || entry.uniqueId.contains('_gmax'))
+      if (entry.uniqueId.contains('_mega') || entry.uniqueId.contains('_gmax')) {
         continue;
+      }
 
       final encs = encountersDatabase[entry.pokemon.id];
       if (encs != null) {
@@ -357,8 +372,9 @@ class _RouteTrackerScreenState extends State<RouteTrackerScreen> {
     if (l.contains('roaming')) return 5;
     if (l.contains('friend safari') || l.contains('max lair')) return 4;
     if (l.contains('route')) return 1;
-    if (l.contains('city') || l.contains('town') || l.contains('island'))
+    if (l.contains('city') || l.contains('town') || l.contains('island')) {
       return 2;
+    }
     return 3;
   }
 
@@ -473,8 +489,9 @@ class _RouteTrackerScreenState extends State<RouteTrackerScreen> {
     String currentVersionName = _selectedVersion != null
         ? Translator.get('version_$_selectedVersion')
         : 'Keine';
-    if (currentVersionName == 'version_$_selectedVersion')
+    if (currentVersionName == 'version_$_selectedVersion') {
       currentVersionName = _selectedVersion!;
+    }
 
     return Scaffold(
       appBar: AppBar(title: Text(Translator.get('route_tracker'))),
@@ -484,7 +501,7 @@ class _RouteTrackerScreenState extends State<RouteTrackerScreen> {
             padding: const EdgeInsets.all(16.0),
             color: Theme.of(
               context,
-            ).colorScheme.surfaceContainerHighest.withOpacity(0.3),
+            ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
             child: Column(
               children: [
                 if (_availableVersions.isNotEmpty)
@@ -523,7 +540,7 @@ class _RouteTrackerScreenState extends State<RouteTrackerScreen> {
                     style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
                   value: _hideCaught,
-                  activeColor: Colors.green,
+                  activeThumbColor: Colors.green,
                   onChanged: (val) {
                     setState(() {
                       _hideCaught = val;
@@ -606,21 +623,23 @@ class _RouteTrackerScreenState extends State<RouteTrackerScreen> {
                                 String chanceText = enc.chanceText;
 
                                 List<String> subParts = [];
-                                if (methodText.isNotEmpty)
+                                if (methodText.isNotEmpty) {
                                   subParts.add(methodText);
+                                }
                                 if (lvlText.isNotEmpty) subParts.add(lvlText);
-                                if (chanceText.isNotEmpty)
+                                if (chanceText.isNotEmpty) {
                                   subParts.add(chanceText);
+                                }
 
                                 return ListTile(
                                   tileColor: rowAllCaught
-                                      ? Colors.green.withOpacity(0.1)
+                                      ? Colors.green.withValues(alpha: 0.1)
                                       : null,
                                   leading: Image.network(
                                     enc.targets.first.imageUrl,
                                     width: 48,
                                     height: 48,
-                                    errorBuilder: (_, __, ___) =>
+                                    errorBuilder: (_, _, _) =>
                                         const Icon(Icons.catching_pokemon),
                                   ),
                                   title: Text(
@@ -660,7 +679,7 @@ class _RouteTrackerScreenState extends State<RouteTrackerScreen> {
                                               selected: isTargetCaught,
                                               showCheckmark: false,
                                               selectedColor: Colors.green
-                                                  .withOpacity(0.3),
+                                                  .withValues(alpha: 0.3),
                                               side: BorderSide(
                                                 color: isTargetCaught
                                                     ? Colors.green

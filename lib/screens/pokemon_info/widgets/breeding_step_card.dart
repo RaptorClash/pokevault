@@ -64,10 +64,10 @@ class BreedingStepCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: Theme.of(
           context,
-        ).colorScheme.surfaceContainerHighest.withOpacity(0.5),
+        ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: Theme.of(context).dividerColor.withOpacity(0.3),
+          color: Theme.of(context).dividerColor.withValues(alpha: 0.3),
         ),
       ),
       child: Column(
@@ -285,11 +285,11 @@ class BreedingStepCard extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 12),
       color: Theme.of(
         context,
-      ).colorScheme.surfaceContainerHighest.withOpacity(0.3),
+      ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
         side: BorderSide(
-          color: Theme.of(context).dividerColor.withOpacity(0.5),
+          color: Theme.of(context).dividerColor.withValues(alpha: 0.5),
         ),
       ),
       child: Padding(
@@ -316,12 +316,12 @@ class BreedingStepCard extends StatelessWidget {
                     decoration: BoxDecoration(
                       color: Theme.of(
                         context,
-                      ).colorScheme.primary.withOpacity(0.1),
+                      ).colorScheme.primary.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(8),
                       border: Border.all(
                         color: Theme.of(
                           context,
-                        ).colorScheme.primary.withOpacity(0.3),
+                        ).colorScheme.primary.withValues(alpha: 0.3),
                       ),
                     ),
                     child: Text(
@@ -411,9 +411,9 @@ class BreedingStepCard extends StatelessWidget {
                 child: Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: Colors.blue.withOpacity(0.1),
+                    color: Colors.blue.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.blue.withOpacity(0.3)),
+                    border: Border.all(color: Colors.blue.withValues(alpha: 0.3)),
                   ),
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -446,16 +446,16 @@ class BreedingStepCard extends StatelessWidget {
                 ),
                 decoration: BoxDecoration(
                   color: cCarrier
-                      ? Colors.blue.withOpacity(0.15)
+                      ? Colors.blue.withValues(alpha: 0.15)
                       : (realOdds.contains('1:')
-                            ? Colors.amber.withOpacity(0.15)
-                            : Colors.red.withOpacity(0.15)),
+                            ? Colors.amber.withValues(alpha: 0.15)
+                            : Colors.red.withValues(alpha: 0.15)),
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
                     color: cCarrier
-                        ? Colors.blue.withOpacity(0.5)
+                        ? Colors.blue.withValues(alpha: 0.5)
                         : (realOdds.contains('1:')
-                              ? Colors.amber.withOpacity(0.5)
+                              ? Colors.amber.withValues(alpha: 0.5)
                               : Colors.red),
                   ),
                 ),

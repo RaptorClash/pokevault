@@ -112,11 +112,13 @@ class ShinyLogicHelper {
         }
       }
     }
-    if (gen == 'gen_1' && [143, 144, 145, 146, 150].contains(dexId))
+    if (gen == 'gen_1' && [143, 144, 145, 146, 150].contains(dexId)) {
       return true;
+    }
     if (gen == 'gen_2' &&
-        [130, 131, 143, 185, 243, 244, 245, 249, 250, 251].contains(dexId))
+        [130, 131, 143, 185, 243, 244, 245, 249, 250, 251].contains(dexId)) {
       return true;
+    }
 
     return false;
   }

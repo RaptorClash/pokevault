@@ -41,12 +41,17 @@ class _DexScreenState extends State<DexScreen> {
   String _filter = 'all';
   String _lastSearchQuery = '';
   String _lastFilter = 'all';
+
   bool _isBoxView = false;
   bool _separateForms = true;
-  bool _isLoadingPrefs = true;
-  final PageController _pageController = PageController();
-  late List<DexDisplayEntry> _rawEntries;
 
+  bool _isLoadingData = true;
+  bool _isCalculatingBoxes = false;
+  late int _lastIgnoredCount;
+  List<DexDisplayEntry> _rawEntries = [];
+  List<BoxData> _boxes = [];
+
+  final PageController _pageController = PageController();
   Timer? _debounce;
 
   final GlobalKey _firstPokemonKey = GlobalKey();
@@ -62,23 +67,87 @@ class _DexScreenState extends State<DexScreen> {
   @override
   void initState() {
     super.initState();
-    _loadPrefs();
-    _rawEntries = DexLogicHelper.buildDisplayEntries(
-      widget.initialDex,
-      context.read<DexProvider>(),
-      widget.pokemonList,
-    );
+    _lastIgnoredCount = widget.initialDex.ignoredIds.length;
+    _initializeDataAsync();
+  }
 
-    final baseList = _rawEntries
-        .where((e) => !widget.initialDex.ignoredIds.contains(e.uniqueId))
-        .toList();
-    if (baseList.isNotEmpty) {
-      _tutorialTargetId = baseList.first.uniqueId;
+  Future<void> _initializeDataAsync() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      _isBoxView = prefs.getBool('box_view_${widget.initialDex.id}') ?? false;
+      _separateForms =
+          prefs.getBool('separate_forms_${widget.initialDex.id}') ?? true;
+
+      final lang = context.read<DexProvider>().currentLanguage;
+
+      _rawEntries = await DexLogicHelper.buildEntriesInBackground(
+        widget.initialDex,
+        widget.pokemonList,
+        lang,
+      );
+
+      final baseList = _rawEntries
+          .where((e) => !widget.initialDex.ignoredIds.contains(e.uniqueId))
+          .toList();
+
+      _boxes = await DexLogicHelper.generateBoxesInBackground(
+        baseList,
+        _separateForms,
+        widget.initialDex,
+        lang,
+      );
+
+      if (mounted) {
+        setState(() {
+          _isLoadingData = false;
+        });
+
+        if (baseList.isNotEmpty) {
+          _tutorialTargetId = baseList.first.uniqueId;
+        }
+
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          _showTutorialIfNeeded();
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        NotificationHelper.showError('${Translator.get('error')} $e');
+        setState(() => _isLoadingData = false);
+      }
     }
+  }
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _showTutorialIfNeeded();
-    });
+  Future<void> _recalculateBoxesAsync(UserDex liveDex) async {
+    if (!mounted || _isCalculatingBoxes) return;
+    setState(() => _isCalculatingBoxes = true);
+
+    try {
+      final baseList = _rawEntries
+          .where((e) => !liveDex.ignoredIds.contains(e.uniqueId))
+          .toList();
+
+      final lang = context.read<DexProvider>().currentLanguage;
+
+      final newBoxes = await DexLogicHelper.generateBoxesInBackground(
+        baseList,
+        _separateForms,
+        liveDex,
+        lang,
+      );
+
+      if (mounted) {
+        setState(() {
+          _boxes = newBoxes;
+          _isCalculatingBoxes = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        NotificationHelper.showError('${Translator.get('error')} $e');
+        setState(() => _isCalculatingBoxes = false);
+      }
+    }
   }
 
   void _showTutorialIfNeeded() {
@@ -127,11 +196,7 @@ class _DexScreenState extends State<DexScreen> {
               textKey: 'tutorial_dex_menu_text',
               requireTargetTap: true,
               onTargetTap: () {
-                try {
-                  setState(() => _showFakeMenu = true);
-                } catch (e) {
-                  NotificationHelper.showError('${Translator.get('error')} $e');
-                }
+                setState(() => _showFakeMenu = true);
               },
             ),
             TutorialStep(
@@ -140,11 +205,7 @@ class _DexScreenState extends State<DexScreen> {
               textKey: 'tutorial_dex_menu_forms_text',
               requireTargetTap: true,
               onTargetTap: () {
-                try {
-                  _toggleSeparateForms();
-                } catch (e) {
-                  NotificationHelper.showError('${Translator.get('error')} $e');
-                }
+                _toggleSeparateForms();
               },
             ),
             TutorialStep(
@@ -153,12 +214,8 @@ class _DexScreenState extends State<DexScreen> {
               textKey: 'tutorial_dex_menu_box_text',
               requireTargetTap: true,
               onTargetTap: () {
-                try {
-                  setState(() => _showFakeMenu = false);
-                  _toggleBoxView();
-                } catch (e) {
-                  NotificationHelper.showError('${Translator.get('error')} $e');
-                }
+                setState(() => _showFakeMenu = false);
+                _toggleBoxView();
               },
             ),
             TutorialStep(
@@ -262,6 +319,7 @@ class _DexScreenState extends State<DexScreen> {
                         initialIndex: targetIndex,
                         dexId: widget.initialDex.id,
                         isBoxView: _isBoxView,
+                        boxes: _boxes,
                       ),
                     ),
                   ).then((_) {
@@ -281,16 +339,6 @@ class _DexScreenState extends State<DexScreen> {
     );
   }
 
-  Future<void> _loadPrefs() async {
-    final prefs = await SharedPreferences.getInstance();
-    setState(() {
-      _isBoxView = prefs.getBool('box_view_${widget.initialDex.id}') ?? false;
-      _separateForms =
-          prefs.getBool('separate_forms_${widget.initialDex.id}') ?? true;
-      _isLoadingPrefs = false;
-    });
-  }
-
   Future<void> _toggleBoxView() async {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
@@ -300,11 +348,22 @@ class _DexScreenState extends State<DexScreen> {
   }
 
   Future<void> _toggleSeparateForms() async {
+    if (_isCalculatingBoxes) return;
+
     final prefs = await SharedPreferences.getInstance();
+    final newVal = !_separateForms;
+    await prefs.setBool('separate_forms_${widget.initialDex.id}', newVal);
+
     setState(() {
-      _separateForms = !_separateForms;
-      prefs.setBool('separate_forms_${widget.initialDex.id}', _separateForms);
+      _separateForms = newVal;
     });
+
+    final provider = context.read<DexProvider>();
+    final liveDex = provider.userDexes.firstWhere(
+      (d) => d.id == widget.initialDex.id,
+      orElse: () => widget.initialDex,
+    );
+    await _recalculateBoxesAsync(liveDex);
   }
 
   @override
@@ -440,15 +499,17 @@ class _DexScreenState extends State<DexScreen> {
                             .join('.*') +
                         '\$';
                     if (RegExp(rStr).hasMatch(fullName) ||
-                        RegExp(rStr).hasMatch(baseName))
+                        RegExp(rStr).hasMatch(baseName)) {
                       match = true;
+                    }
                   } catch (_) {
                     if (fullName.contains(term)) match = true;
                   }
                 } else {
                   if (fullName.contains(term) ||
-                      entry.pokemon.id.toString() == term)
+                      entry.pokemon.id.toString() == term) {
                     match = true;
+                  }
                 }
               }
             }
@@ -489,7 +550,7 @@ class _DexScreenState extends State<DexScreen> {
                 '1-151',
                 Translator.get('search_help_range') != 'search_help_range'
                     ? Translator.get('search_help_range')
-                    : 'Zeigt Pok mon im ID-Bereich.',
+                    : 'Zeigt Pokémon im ID-Bereich.',
               ),
               _helpItem(
                 'shiny, caught, missing',
@@ -519,7 +580,7 @@ class _DexScreenState extends State<DexScreen> {
                 'shiny & kanto',
                 Translator.get('search_help_and') != 'search_help_and'
                     ? Translator.get('search_help_and')
-                    : 'Mit "&" m ssen beide Begriffe zutreffen.',
+                    : 'Mit "&" müssen beide Begriffe zutreffen.',
               ),
               _helpItem(
                 '1-9, Evoli',
@@ -565,7 +626,7 @@ class _DexScreenState extends State<DexScreen> {
 
   @override
   Widget build(BuildContext context) {
-    if (_isLoadingPrefs) {
+    if (_isLoadingData) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
@@ -574,6 +635,13 @@ class _DexScreenState extends State<DexScreen> {
       (d) => d.id == widget.initialDex.id,
       orElse: () => widget.initialDex,
     );
+
+    if (liveDex.ignoredIds.length != _lastIgnoredCount) {
+      _lastIgnoredCount = liveDex.ignoredIds.length;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _recalculateBoxesAsync(liveDex);
+      });
+    }
 
     final caughtCount = liveDex.caughtIds.length;
     final baseList = _rawEntries
@@ -590,12 +658,6 @@ class _DexScreenState extends State<DexScreen> {
 
     final totalCount = baseList.length;
 
-    final List<BoxData> boxes = DexLogicHelper.generateBoxes(
-      baseList,
-      _separateForms,
-      liveDex,
-    );
-
     final bool isSearchActive =
         _searchQuery.trim().isNotEmpty || _filter != 'all';
     final Set<String> highlightedIds = filteredList
@@ -610,12 +672,12 @@ class _DexScreenState extends State<DexScreen> {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (_isBoxView && _pageController.hasClients) {
           int currentPage = _pageController.page?.round() ?? 0;
-          if (boxes.isNotEmpty && currentPage < boxes.length) {
-            bool currentHasMatch = boxes[currentPage].entries.any(
+          if (_boxes.isNotEmpty && currentPage < _boxes.length) {
+            bool currentHasMatch = _boxes[currentPage].entries.any(
               (e) => highlightedIds.contains(e.uniqueId),
             );
             if (!currentHasMatch) {
-              int firstMatchIndex = boxes.indexWhere(
+              int firstMatchIndex = _boxes.indexWhere(
                 (box) =>
                     box.entries.any((e) => highlightedIds.contains(e.uniqueId)),
               );
@@ -718,25 +780,27 @@ class _DexScreenState extends State<DexScreen> {
           ),
         ),
         Expanded(
-          child: _isBoxView
-              ? DexBoxView(
-                  firstItemKey: _firstPokemonKey,
-                  tutorialTargetId: _tutorialTargetId,
-                  boxes: boxes,
-                  liveDex: liveDex,
-                  provider: provider,
-                  pageController: _pageController,
-                  separateForms: _separateForms,
-                  highlightedIds: highlightedIds,
-                  isSearchActive: isSearchActive,
-                )
-              : DexListView(
-                  firstItemKey: _firstPokemonKey,
-                  tutorialTargetId: _tutorialTargetId,
-                  displayList: filteredList,
-                  liveDex: liveDex,
-                  provider: provider,
-                ),
+          child: _isCalculatingBoxes
+              ? const Center(child: CircularProgressIndicator())
+              : (_isBoxView
+                    ? DexBoxView(
+                        firstItemKey: _firstPokemonKey,
+                        tutorialTargetId: _tutorialTargetId,
+                        boxes: _boxes,
+                        liveDex: liveDex,
+                        provider: provider,
+                        pageController: _pageController,
+                        separateForms: _separateForms,
+                        highlightedIds: highlightedIds,
+                        isSearchActive: isSearchActive,
+                      )
+                    : DexListView(
+                        firstItemKey: _firstPokemonKey,
+                        tutorialTargetId: _tutorialTargetId,
+                        displayList: filteredList,
+                        liveDex: liveDex,
+                        provider: provider,
+                      )),
         ),
       ],
     );

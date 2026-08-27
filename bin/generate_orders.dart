@@ -526,7 +526,7 @@ void main() async {
   sb.writeln('// 3. SPEZIELLE DEXE (Legi, Mythisch, Eigruppen)');
   sb.writeln('// ==========================================');
   specialDexes.forEach((key, list) {
-    String varName = 'order' + key.replaceAll('-', '');
+    String varName = 'order${key.replaceAll('-', '')}';
     sb.writeln('const List<int> $varName = [${list.join(', ')}];');
   });
 
@@ -550,7 +550,7 @@ void main() async {
 
   // Spezielle Dexe zur Map hinzufügen
   specialDexes.forEach((key, list) {
-    String varName = 'order' + key.replaceAll('-', '');
+    String varName = 'order${key.replaceAll('-', '')}';
     String mapKey = key.replaceAll('-', '_');
     sb.writeln("  '$mapKey': $varName,");
   });

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import '../../models/pokemon.dart';
 import '../../models/dex_view_models.dart';
 import '../../utils/shiny_logic_helper.dart';
 import '../../l10n/app_translations.dart';
@@ -171,10 +170,10 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
               decoration: BoxDecoration(
                 color: Theme.of(
                   context,
-                ).colorScheme.primaryContainer.withOpacity(0.3),
+                ).colorScheme.primaryContainer.withValues(alpha: 0.3),
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(
-                  color: Theme.of(context).colorScheme.primary.withOpacity(0.5),
+                  color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.5),
                 ),
               ),
               child: Row(
@@ -369,10 +368,10 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
           decoration: BoxDecoration(
             color: Theme.of(
               context,
-            ).colorScheme.tertiaryContainer.withOpacity(0.5),
+            ).colorScheme.tertiaryContainer.withValues(alpha: 0.5),
             borderRadius: BorderRadius.circular(8),
             border: Border.all(
-              color: Theme.of(context).colorScheme.tertiary.withOpacity(0.3),
+              color: Theme.of(context).colorScheme.tertiary.withValues(alpha: 0.3),
             ),
           ),
           child: Row(
@@ -416,10 +415,10 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
           decoration: BoxDecoration(
             color: Theme.of(
               context,
-            ).colorScheme.tertiaryContainer.withOpacity(0.5),
+            ).colorScheme.tertiaryContainer.withValues(alpha: 0.5),
             borderRadius: BorderRadius.circular(8),
             border: Border.all(
-              color: Theme.of(context).colorScheme.tertiary.withOpacity(0.3),
+              color: Theme.of(context).colorScheme.tertiary.withValues(alpha: 0.3),
             ),
           ),
           child: Row(
@@ -481,10 +480,10 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
           decoration: BoxDecoration(
             color: Theme.of(
               context,
-            ).colorScheme.tertiaryContainer.withOpacity(0.5),
+            ).colorScheme.tertiaryContainer.withValues(alpha: 0.5),
             borderRadius: BorderRadius.circular(8),
             border: Border.all(
-              color: Theme.of(context).colorScheme.tertiary.withOpacity(0.3),
+              color: Theme.of(context).colorScheme.tertiary.withValues(alpha: 0.3),
             ),
           ),
           child: Column(
@@ -580,7 +579,7 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
       decoration: BoxDecoration(
         color: Theme.of(
           context,
-        ).colorScheme.surfaceContainerHighest.withOpacity(0.3),
+        ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
         borderRadius: BorderRadius.circular(8),
       ),
       child: SingleChildScrollView(

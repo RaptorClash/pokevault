@@ -1367,4 +1367,16 @@ const Map<String, String> translationsDe = {
       'Na gut, wenn du nicht weißt wie man tippt... ich übernehme das! ZZZZZZT!',
   'tutorial_longpress_error':
       'Das war ein normaler Klick! Halte das Pokémon LANGE gedrückt!',
+  'error_avatar_load': 'Fehler beim Laden des Avatars:',
+
+  'error_header_load': 'Fehler beim Laden des Headers:',
+  'error_basic_info': 'Fehler beim Laden der Basis-Infos:',
+  'error_status_toggles': 'Fehler beim Laden der Status-Buttons:',
+  'error_matching_balls': 'Fehler beim Laden der Matching Balls:',
+  'error_encounters': 'Fehler beim Laden der Fundorte:',
+
+  'error_calc_ui_result': 'Fehler im Ergebnis-Widget:',
+  'error_calc_ui_hp': 'Fehler im HP/Status-Widget:',
+  'error_calc_ui_crit': 'Fehler im Crit-Widget:',
+  'create_dex_btn': 'Pokédex erstellen',
 };

@@ -144,26 +144,30 @@ class _BreedingCalculatorWidgetState extends State<BreedingCalculatorWidget> {
 
         for (int nextId = 1; nextId <= 251; nextId++) {
           if (!ShinyLogicHelper.isBreedable(nextId) &&
-              !ShinyLogicHelper.isBaby(nextId))
+              !ShinyLogicHelper.isBaby(nextId)) {
             continue;
+          }
 
           int baseNextId = ShinyLogicHelper.getBaseForm(nextId);
 
           if (_useOnlyCaught &&
               nextId != _targetId &&
-              !caughtBaseIds.contains(baseNextId))
+              !caughtBaseIds.contains(baseNextId)) {
             continue;
+          }
 
           if (nextId == _targetId) {
             if (_startId != 132 &&
                 (BreedingData.genderless.contains(baseNextId) ||
-                    BreedingData.onlyMale.contains(baseNextId)))
+                    BreedingData.onlyMale.contains(baseNextId))) {
               continue;
+            }
           } else {
             if (BreedingData.genderless.contains(baseNextId) ||
                 BreedingData.onlyMale.contains(baseNextId) ||
-                BreedingData.onlyFemale.contains(baseNextId))
+                BreedingData.onlyFemale.contains(baseNextId)) {
               continue;
+            }
           }
 
           var nextGroups = eggGroups[nextId] ?? [];
@@ -445,10 +449,10 @@ class _BreedingCalculatorWidgetState extends State<BreedingCalculatorWidget> {
                                     Container(
                                       padding: const EdgeInsets.all(4),
                                       decoration: BoxDecoration(
-                                        color: Colors.amber.withOpacity(0.15),
+                                        color: Colors.amber.withValues(alpha: 0.15),
                                         shape: BoxShape.circle,
                                         border: Border.all(
-                                          color: Colors.amber.withOpacity(0.5),
+                                          color: Colors.amber.withValues(alpha: 0.5),
                                         ),
                                       ),
                                       child: Image.network(
@@ -478,13 +482,13 @@ class _BreedingCalculatorWidgetState extends State<BreedingCalculatorWidget> {
                               fillColor: Theme.of(context)
                                   .colorScheme
                                   .surfaceContainerHighest
-                                  .withOpacity(0.3),
+                                  .withValues(alpha: 0.3),
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(16),
                                 borderSide: BorderSide(
                                   color: Theme.of(
                                     context,
-                                  ).colorScheme.primary.withOpacity(0.3),
+                                  ).colorScheme.primary.withValues(alpha: 0.3),
                                 ),
                               ),
                             ),
@@ -547,12 +551,12 @@ class _BreedingCalculatorWidgetState extends State<BreedingCalculatorWidget> {
                 decoration: BoxDecoration(
                   color: Theme.of(
                     context,
-                  ).colorScheme.surfaceContainerHighest.withOpacity(0.3),
+                  ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(
                     color: Theme.of(
                       context,
-                    ).colorScheme.primary.withOpacity(0.3),
+                    ).colorScheme.primary.withValues(alpha: 0.3),
                   ),
                 ),
                 child: Row(
@@ -560,10 +564,10 @@ class _BreedingCalculatorWidgetState extends State<BreedingCalculatorWidget> {
                     Container(
                       padding: const EdgeInsets.all(4),
                       decoration: BoxDecoration(
-                        color: Colors.amber.withOpacity(0.15),
+                        color: Colors.amber.withValues(alpha: 0.15),
                         shape: BoxShape.circle,
                         border: Border.all(
-                          color: Colors.amber.withOpacity(0.5),
+                          color: Colors.amber.withValues(alpha: 0.5),
                         ),
                       ),
                       child: Image.network(
@@ -596,13 +600,13 @@ class _BreedingCalculatorWidgetState extends State<BreedingCalculatorWidget> {
                 elevation: 0,
                 color: Theme.of(
                   context,
-                ).colorScheme.secondaryContainer.withOpacity(0.3),
+                ).colorScheme.secondaryContainer.withValues(alpha: 0.3),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16),
                   side: BorderSide(
                     color: Theme.of(
                       context,
-                    ).colorScheme.secondary.withOpacity(0.3),
+                    ).colorScheme.secondary.withValues(alpha: 0.3),
                   ),
                 ),
                 child: ExpansionTile(

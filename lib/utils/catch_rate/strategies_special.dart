@@ -157,9 +157,9 @@ class Gen85Strategy extends CatchRateStrategy {
     bool isUnnoticed = params.hisuiCatchStatus > 0;
 
     double hisuiModifier = 1.0;
-    if (params.hisuiCatchStatus == 1)
+    if (params.hisuiCatchStatus == 1) {
       hisuiModifier = 1.5;
-    else if (params.hisuiCatchStatus == 2)
+    } else if (params.hisuiCatchStatus == 2)
       hisuiModifier = 2.0;
     else if (params.hisuiCatchStatus == 3)
       hisuiModifier = 1.25;
@@ -292,9 +292,9 @@ class Gen95Strategy extends CatchRateStrategy {
         ballBonus = min(4.0, 1.0 + (params.turnCount * (1229.0 / 4096.0)));
         break;
       case 'level':
-        if ((params.ownLevel ~/ 4) > params.enemyLevel)
+        if ((params.ownLevel ~/ 4) > params.enemyLevel) {
           ballBonus = 8.0;
-        else if ((params.ownLevel ~/ 2) > params.enemyLevel)
+        } else if ((params.ownLevel ~/ 2) > params.enemyLevel)
           ballBonus = 4.0;
         else if (params.ownLevel > params.enemyLevel)
           ballBonus = 2.0;
@@ -308,9 +308,9 @@ class Gen95Strategy extends CatchRateStrategy {
     if (params.isCatchWindow) {
       statusBonus = params.isAlpha ? 3.0 : 1.2;
     } else {
-      if (params.statusType == 2)
+      if (params.statusType == 2) {
         statusBonus = 1.5;
-      else if (params.statusType == 1)
+      } else if (params.statusType == 1)
         statusBonus = 1.2;
     }
 
@@ -331,9 +331,9 @@ class Gen95Strategy extends CatchRateStrategy {
     if (rank < -5) rank = -5;
 
     double rankPenalty = 1.0;
-    if (rank == -1)
+    if (rank == -1) {
       rankPenalty = 0.7;
-    else if (rank == -2)
+    } else if (rank == -2)
       rankPenalty = 0.5;
     else if (rank == -3)
       rankPenalty = 0.3;
@@ -341,17 +341,17 @@ class Gen95Strategy extends CatchRateStrategy {
       rankPenalty = 0.1;
 
     double plushBonus = 1.0;
-    if (params.plushLevel == 1)
+    if (params.plushLevel == 1) {
       plushBonus = 1.1;
-    else if (params.plushLevel == 2)
+    } else if (params.plushLevel == 2)
       plushBonus = 1.2;
     else if (params.plushLevel == 3)
       plushBonus = 1.35;
 
     double donutPenaltyVal = 1.0;
-    if (params.donutPenalty == 1)
+    if (params.donutPenalty == 1) {
       donutPenaltyVal = 0.9;
-    else if (params.donutPenalty == 2)
+    } else if (params.donutPenalty == 2)
       donutPenaltyVal = 0.3;
 
     double hpFactor = (3.0 * 100.0 - 2.0 * params.hpPercent) / (3.0 * 100.0);

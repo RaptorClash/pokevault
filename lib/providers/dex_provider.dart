@@ -135,8 +135,9 @@ class DexProvider extends ChangeNotifier {
     final children = _structure[folderId] ?? [];
     for (var child in children) {
       if (child == targetId) return true;
-      if (child.startsWith('folder_') && isDescendant(child, targetId))
+      if (child.startsWith('folder_') && isDescendant(child, targetId)) {
         return true;
+      }
     }
     return false;
   }
@@ -419,9 +420,9 @@ class DexProvider extends ChangeNotifier {
     final dexIndex = _userDexes.indexWhere((d) => d.id == dexId);
     if (dexIndex != -1) {
       final dex = _userDexes[dexIndex];
-      if (dex.shinyIds.contains(entryId))
+      if (dex.shinyIds.contains(entryId)) {
         dex.shinyIds.remove(entryId);
-      else {
+      } else {
         dex.shinyIds.add(entryId);
         dex.caughtIds.add(entryId);
       }
@@ -469,9 +470,7 @@ class DexProvider extends ChangeNotifier {
 
   void updateStructureOrder(String folderId, List<String> newOrder) {
     structure[folderId] = newOrder;
-
     notifyListeners();
-
     _saveToPrefs();
   }
 }
