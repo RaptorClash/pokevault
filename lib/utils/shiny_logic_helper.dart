@@ -112,11 +112,13 @@ class ShinyLogicHelper {
         }
       }
     }
+
     if (gen == 'gen_1' && [143, 144, 145, 146, 150].contains(dexId))
       return true;
     if (gen == 'gen_2' &&
         [130, 131, 143, 185, 243, 244, 245, 249, 250, 251].contains(dexId))
       return true;
+
     return false;
   }
 
@@ -146,7 +148,21 @@ class ShinyLogicHelper {
   }
 
   static bool isBaby(int dexId) {
-    return [172, 173, 174, 236, 238, 239, 240].contains(dexId);
+    return [172, 173, 174, 175, 236, 238, 239, 240].contains(dexId);
+  }
+
+  static int getAdultForBaby(int babyId) {
+    const Map<int, int> babyToAdult = {
+      172: 25, // Pichu -> Pikachu
+      173: 35, // Cleffa -> Clefairy
+      174: 39, // Igglybuff -> Jigglypuff
+      175: 176, // Togepi -> Togetic
+      236: 106, // Tyrogue -> Hitmonlee
+      238: 124, // Smoochum -> Jynx
+      239: 125, // Elekid -> Electabuzz
+      240: 126, // Magby -> Magmar
+    };
+    return babyToAdult[babyId] ?? babyId;
   }
 
   static const Map<int, Map<String, dynamic>> gen12PreEvolutions = {
@@ -221,6 +237,8 @@ class ShinyLogicHelper {
     237: {'pre': 236, 'req': 'Level 20 (Atk = Def)'},
     110: {'pre': 109, 'req': 'Level 35'},
     112: {'pre': 111, 'req': 'Level 42'},
+    113: {'pre': 250, 'req': 'Level 5'},
+    114: {'pre': 113, 'req': 'Friendship'},
     117: {'pre': 116, 'req': 'Level 32'},
     230: {'pre': 117, 'req': 'Trade w/ Dragon Scale'},
     119: {'pre': 118, 'req': 'Level 33'},

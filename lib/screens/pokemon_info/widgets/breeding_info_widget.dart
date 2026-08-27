@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
 import '../../../l10n/app_translations.dart';
 import '../../../models/pokemon.dart';
 import '../../../providers/dex_provider.dart';
@@ -51,69 +52,79 @@ class BreedingInfoWidget extends StatelessWidget {
     return Icons.wc;
   }
 
-  String _formatEvoDetails(Map<String, dynamic> detail) {
-    if (detail.isEmpty) {
+  String _formatEvoDetails(List details) {
+    if (details.isEmpty) {
       return Translator.get('evo_base_form') != 'evo_base_form'
           ? Translator.get('evo_base_form')
           : 'Basisform / Ei';
     }
-    String trigger = detail['trigger'] ?? '';
-    List<String> conditions = [];
 
-    if (detail['min_level'] != null) {
-      conditions.add(
-        Translator.get(
-          'evo_level',
-        ).replaceAll('{0}', detail['min_level'].toString()),
-      );
-    }
-    if (detail['item'] != null) {
-      conditions.add(Translator.get('item_${detail['item']}'));
-    }
-    if (detail['held_item'] != null) {
-      conditions.add(
-        Translator.get(
-          'evo_held_item',
-        ).replaceAll('{0}', Translator.get('item_${detail['held_item']}')),
-      );
-    }
-    if (detail['min_happiness'] != null) {
-      conditions.add(Translator.get('evo_happiness'));
-    }
-    if (detail['time_of_day'] != null &&
-        detail['time_of_day'].toString().isNotEmpty) {
-      conditions.add(Translator.get('evo_time_${detail['time_of_day']}'));
-    }
-    if (detail['known_move'] != null) {
-      conditions.add(
-        Translator.get(
-          'evo_move',
-        ).replaceAll('{0}', Translator.get('move_${detail['known_move']}')),
-      );
-    }
-    if (detail['location'] != null) {
-      conditions.add(
-        Translator.get(
-          'evo_location',
-        ).replaceAll('{0}', Translator.get('loc_${detail['location']}')),
-      );
-    }
+    List<String> allMethods = [];
 
-    String triggerText = Translator.get('trigger_$trigger');
-    if (triggerText == 'trigger_$trigger') {
-      if (trigger == 'level-up') {
-        triggerText = 'Levelaufstieg';
-      } else if (trigger == 'use-item') {
-        triggerText = 'Item anwenden';
-      } else if (trigger == 'trade') {
-        triggerText = 'Tausch';
+    for (var detail in details) {
+      String trigger = detail['trigger'] ?? '';
+      List<String> conditions = [];
+
+      if (detail['min_level'] != null) {
+        conditions.add(
+          Translator.get(
+            'evo_level',
+          ).replaceAll('{0}', detail['min_level'].toString()),
+        );
+      }
+      if (detail['item'] != null) {
+        conditions.add(Translator.get('item_${detail['item']}'));
+      }
+      if (detail['held_item'] != null) {
+        conditions.add(
+          Translator.get(
+            'evo_held_item',
+          ).replaceAll('{0}', Translator.get('item_${detail['held_item']}')),
+        );
+      }
+      if (detail['min_happiness'] != null) {
+        conditions.add(Translator.get('evo_happiness'));
+      }
+      if (detail['time_of_day'] != null &&
+          detail['time_of_day'].toString().isNotEmpty) {
+        conditions.add(Translator.get('evo_time_${detail['time_of_day']}'));
+      }
+      if (detail['known_move'] != null) {
+        conditions.add(
+          Translator.get(
+            'evo_move',
+          ).replaceAll('{0}', Translator.get('move_${detail['known_move']}')),
+        );
+      }
+      if (detail['location'] != null) {
+        conditions.add(
+          Translator.get(
+            'evo_location',
+          ).replaceAll('{0}', Translator.get('loc_${detail['location']}')),
+        );
+      }
+
+      String triggerText = Translator.get('trigger_$trigger');
+      if (triggerText == 'trigger_$trigger') {
+        if (trigger == 'level-up') {
+          triggerText = 'Levelaufstieg';
+        } else if (trigger == 'use-item') {
+          triggerText = 'Item anwenden';
+        } else if (trigger == 'trade') {
+          triggerText = 'Tausch';
+        } else {
+          triggerText = trigger;
+        }
+      }
+
+      if (conditions.isEmpty) {
+        allMethods.add(triggerText);
       } else {
-        triggerText = trigger;
+        allMethods.add('$triggerText (${conditions.join(', ')})');
       }
     }
 
-    if (conditions.isEmpty) return triggerText;
-    return '$triggerText (${conditions.join(', ')})';
+    return allMethods.toSet().join(' ODER ');
   }
 
   Widget _buildEvolutionNode(
@@ -133,7 +144,7 @@ class BreedingInfoWidget extends StatelessWidget {
               : (Translator.get('evo_base_form') != 'evo_base_form'
                     ? Translator.get('evo_base_form')
                     : 'Basisform / Ei'))
-        : _formatEvoDetails(details.first);
+        : _formatEvoDetails(details);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -208,7 +219,6 @@ class BreedingInfoWidget extends StatelessWidget {
     String eggGroupsText = Translator.get('unknown') != 'unknown'
         ? Translator.get('unknown')
         : 'Unbekannt';
-
     if (pokemon.eggGroups.isNotEmpty) {
       eggGroupsText = pokemon.eggGroups
           .map((g) {
@@ -264,6 +274,45 @@ class BreedingInfoWidget extends StatelessWidget {
                   genderText,
                   iconColor: genderColor,
                 ),
+                if (pokemon.eggGroups.any(
+                  (g) =>
+                      g.toLowerCase().contains('no eggs') ||
+                      g.toLowerCase().contains('undiscovered'),
+                )) ...[
+                  const SizedBox(height: 16),
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.blue.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: Colors.blue.withValues(alpha: 0.5),
+                      ),
+                    ),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Icon(
+                          Icons.info_outline,
+                          color: Colors.blue,
+                          size: 20,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            Translator.currentLanguage == 'de'
+                                ? 'Pokémon dieser Ei-Gruppe können keine Eier legen. Handelt es sich um ein Baby-Pokémon, muss es zur Zucht erst entwickelt werden.'
+                                : 'Pokémon in this egg group cannot produce eggs. If this is a Baby Pokémon, you must evolve it first.',
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: Colors.blue,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
                 if (pokemon.evolutionChainId != -1)
                   FutureBuilder<Map<String, dynamic>?>(
                     future: DatabaseService.instance.getEvolutionChain(

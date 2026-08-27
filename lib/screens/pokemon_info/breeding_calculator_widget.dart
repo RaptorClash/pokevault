@@ -1,6 +1,7 @@
 import 'dart:collection';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
 import '../../l10n/app_translations.dart';
 import '../../utils/notification_helper.dart';
 import '../../utils/shiny_logic_helper.dart';
@@ -26,6 +27,7 @@ class BreedingCalculatorWidget extends StatefulWidget {
 class _BreedingCalculatorWidgetState extends State<BreedingCalculatorWidget> {
   int _startId = 130;
   late int _targetId;
+
   List<int>? _path;
   List<List<int>>? _allPaths;
   int _selectedPathIndex = 0;
@@ -41,18 +43,22 @@ class _BreedingCalculatorWidgetState extends State<BreedingCalculatorWidget> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     final provider = Provider.of<DexProvider>(context, listen: false);
+
     final targetPoke = provider.allPokemon
         .where((p) => p.id == _targetId)
         .firstOrNull;
+
     if (_targetId > 251 ||
         (targetPoke != null &&
             !ShinyLogicHelper.isBreedable(targetPoke) &&
             !ShinyLogicHelper.isBaby(_targetId))) {
       _targetId = 1;
     }
+
     if (_targetId == _startId) {
       _startId = 4;
     }
+
     if (_allPaths == null) {
       _calculatePath();
     }
@@ -98,6 +104,7 @@ class _BreedingCalculatorWidgetState extends State<BreedingCalculatorWidget> {
         });
         return;
       }
+
       if (_startId == 132) {
         setState(() {
           _allPaths = [
@@ -126,6 +133,7 @@ class _BreedingCalculatorWidgetState extends State<BreedingCalculatorWidget> {
       }
 
       var eggGroups = BreedingData.getEggGroups(dexProvider);
+
       Map<int, List<List<int>>> pathsToNode = {
         _startId: [
           [_startId],
@@ -133,6 +141,7 @@ class _BreedingCalculatorWidgetState extends State<BreedingCalculatorWidget> {
       };
       Queue<int> queue = Queue();
       queue.add(_startId);
+
       int? targetDepth;
 
       while (queue.isNotEmpty) {
@@ -140,6 +149,7 @@ class _BreedingCalculatorWidgetState extends State<BreedingCalculatorWidget> {
         int currentDepth = pathsToNode[current]!.first.length;
 
         if (targetDepth != null && currentDepth >= targetDepth) continue;
+
         if (ShinyLogicHelper.isBaby(current)) continue;
 
         var currentGroups = eggGroups[current] ?? [];
@@ -149,6 +159,7 @@ class _BreedingCalculatorWidgetState extends State<BreedingCalculatorWidget> {
               .where((p) => p.id == nextId)
               .firstOrNull;
           if (nextPoke == null) continue;
+
           if (!ShinyLogicHelper.isBreedable(nextPoke) &&
               !ShinyLogicHelper.isBaby(nextId)) {
             continue;
@@ -182,6 +193,11 @@ class _BreedingCalculatorWidgetState extends State<BreedingCalculatorWidget> {
           }
 
           var nextGroups = eggGroups[nextId] ?? [];
+          if (ShinyLogicHelper.isBaby(nextId)) {
+            int adultId = ShinyLogicHelper.getAdultForBaby(nextId);
+            nextGroups = eggGroups[adultId] ?? [];
+          }
+
           bool sharesGroup = currentGroups.any((g) => nextGroups.contains(g));
 
           if (sharesGroup) {
@@ -192,6 +208,7 @@ class _BreedingCalculatorWidgetState extends State<BreedingCalculatorWidget> {
 
             if (isNewNode || isSameDepth) {
               if (isNewNode) pathsToNode[nextId] = [];
+
               for (var p in pathsToNode[current]!) {
                 if (!p.contains(nextId)) {
                   pathsToNode[nextId]!.add(List<int>.from(p)..add(nextId));
@@ -211,6 +228,7 @@ class _BreedingCalculatorWidgetState extends State<BreedingCalculatorWidget> {
       }
 
       List<List<int>> validPaths = pathsToNode[_targetId] ?? [];
+
       Map<String, List<int>> uniquePathsMap = {};
       for (var p in validPaths) {
         String routeKey = 'direct';
@@ -218,6 +236,7 @@ class _BreedingCalculatorWidgetState extends State<BreedingCalculatorWidget> {
           int intermediateBase = ShinyLogicHelper.getBaseForm(p[1]);
           routeKey = 'via_$intermediateBase';
         }
+
         if (!uniquePathsMap.containsKey(routeKey) ||
             p.length < uniquePathsMap[routeKey]!.length) {
           uniquePathsMap[routeKey] = p;
@@ -267,6 +286,7 @@ class _BreedingCalculatorWidgetState extends State<BreedingCalculatorWidget> {
       String baseNextName = _getPokemonNameOnly(
         ShinyLogicHelper.getBaseForm(nextId),
       );
+
       String stepDitto = Translator.get(
         'shiny_breed_step_ditto',
       ).replaceAll('{0}', nextName).replaceAll('{1}', baseNextName);
@@ -302,6 +322,7 @@ class _BreedingCalculatorWidgetState extends State<BreedingCalculatorWidget> {
       final baseNextPoke = dexProvider.allPokemon
           .where((p) => p.id == ShinyLogicHelper.getBaseForm(nextId))
           .firstOrNull;
+
       bool isFemaleShiny = baseNextPoke != null && baseNextPoke.genderRate != 1;
 
       int p1Id;
@@ -313,6 +334,10 @@ class _BreedingCalculatorWidgetState extends State<BreedingCalculatorWidget> {
         p1Id = ShinyLogicHelper.isBaby(prevBase) ? prevId : prevBase;
       }
 
+      int breedNextId = ShinyLogicHelper.isBaby(nextId)
+          ? ShinyLogicHelper.getAdultForBaby(nextId)
+          : nextId;
+
       steps.add(
         BreedingStepCard(
           stepNumber: stepCounter++,
@@ -320,7 +345,7 @@ class _BreedingCalculatorWidgetState extends State<BreedingCalculatorWidget> {
           p1Shiny: true,
           p1Gender: 'm',
           p1Carrier: false,
-          parent2Id: nextId,
+          parent2Id: breedNextId,
           p2Shiny: false,
           p2Gender: 'f',
           p2Carrier: false,
@@ -335,7 +360,7 @@ class _BreedingCalculatorWidgetState extends State<BreedingCalculatorWidget> {
       if (!isFinalNode || !isFemaleShiny) {
         int carrierId =
             ShinyLogicHelper.isBaby(ShinyLogicHelper.getBaseForm(nextId))
-            ? nextId
+            ? breedNextId
             : ShinyLogicHelper.getBaseForm(nextId);
 
         steps.add(
@@ -345,7 +370,7 @@ class _BreedingCalculatorWidgetState extends State<BreedingCalculatorWidget> {
             p1Shiny: isFemaleShiny,
             p1Gender: 'f',
             p1Carrier: !isFemaleShiny,
-            parent2Id: nextId,
+            parent2Id: breedNextId,
             p2Shiny: false,
             p2Gender: 'm',
             p2Carrier: false,
@@ -358,6 +383,7 @@ class _BreedingCalculatorWidgetState extends State<BreedingCalculatorWidget> {
         );
       }
     }
+
     return steps;
   }
 
@@ -744,6 +770,7 @@ class _BreedingCalculatorWidgetState extends State<BreedingCalculatorWidget> {
                       String routeName = Translator.currentLanguage == 'de'
                           ? 'Direkt'
                           : 'Direct';
+
                       if (p.length > 2) {
                         int intermediateBase = ShinyLogicHelper.getBaseForm(
                           p[1],
