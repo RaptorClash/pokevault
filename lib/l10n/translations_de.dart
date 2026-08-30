@@ -422,7 +422,8 @@ const Map<String, String> translationsDe = {
   'group_unova': 'Einall',
   'group_kalos': 'Kalos & Z-A',
   'group_alola': 'Alola',
-  'group_galar': 'Galar & Hisui',
+  'group_galar': 'Galar',
+  'group_hisui': 'Hisui',
   'group_paldea': 'Paldea',
   // Form-Namen
   'form_name_alola': 'Alola',
@@ -1387,4 +1388,6 @@ const Map<String, String> translationsDe = {
   'migration_loading_text':
       'Daten werden für die neuste Version optimiert...\nBitte App nicht schließen.',
   "error_page_load": "Fehler beim Laden der Seite:",
+
+  'group_special': 'Spezial Dexe',
 };

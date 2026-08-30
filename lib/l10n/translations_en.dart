@@ -123,7 +123,8 @@ const Map<String, String> translationsEn = {
   'group_unova': 'Unova',
   'group_kalos': 'Kalos & Z-A',
   'group_alola': 'Alola',
-  'group_galar': 'Galar & Hisui',
+  'group_galar': 'Galar',
+  'group_hisui': 'Hisui',
   'group_paldea': 'Paldea',
   // Forms
   'form_name_alola': 'Alola',
@@ -1096,4 +1097,6 @@ const Map<String, String> translationsEn = {
       'Optimizing data for the latest update...\nPlease do not close the app.',
 
   "error_page_load": "Error loading page:",
+
+  'group_special': 'Special Dexes',
 };
