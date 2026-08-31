@@ -27,7 +27,10 @@ class DexProvider with ChangeNotifier {
 
   bool isMigrating = false;
 
-  DexProvider() {
+  final DatabaseService db;
+
+  DexProvider({DatabaseService? databaseService})
+    : db = databaseService ?? DatabaseService.instance {
     _init();
   }
 
@@ -68,13 +71,14 @@ class DexProvider with ChangeNotifier {
         await prefs.setBool('migrated_to_sqlite_v2', true);
         isMigrating = false;
       }
-      allPokemon = await DatabaseService.instance.getAllPokemon();
-      allAvailableDexes = await DatabaseService.instance.getAllDexOrders();
-      ballUrls = await DatabaseService.instance.getBallUrls();
 
-      userDexes = await DatabaseService.instance.getAllUserDexes();
-      folders = await DatabaseService.instance.getAllFolders();
-      structure = await DatabaseService.instance.getStructure();
+      allPokemon = await db.getAllPokemon();
+      allAvailableDexes = await db.getAllDexOrders();
+      ballUrls = await db.getBallUrls();
+
+      userDexes = await db.getAllUserDexes();
+      folders = await db.getAllFolders();
+      structure = await db.getStructure();
 
       _isInitialized = true;
       notifyListeners();
@@ -96,25 +100,13 @@ class DexProvider with ChangeNotifier {
         List<dynamic> decodedDexes = jsonDecode(oldDexesJson);
         for (var d in decodedDexes) {
           UserDex dex = UserDex.fromJson(d as Map<String, dynamic>);
-          await DatabaseService.instance.saveUserDex(dex);
+          await db.saveUserDex(dex);
           for (var uid in dex.caughtIds)
-            await DatabaseService.instance.savePokemonStatus(
-              dex.id,
-              uid,
-              isCaught: true,
-            );
+            await db.savePokemonStatus(dex.id, uid, isCaught: true);
           for (var uid in dex.shinyIds)
-            await DatabaseService.instance.savePokemonStatus(
-              dex.id,
-              uid,
-              isShiny: true,
-            );
+            await db.savePokemonStatus(dex.id, uid, isShiny: true);
           for (var uid in dex.ignoredIds)
-            await DatabaseService.instance.savePokemonStatus(
-              dex.id,
-              uid,
-              isIgnored: true,
-            );
+            await db.savePokemonStatus(dex.id, uid, isIgnored: true);
         }
       }
 
@@ -122,7 +114,7 @@ class DexProvider with ChangeNotifier {
         List<dynamic> decodedFolders = jsonDecode(oldFoldersJson);
         for (var f in decodedFolders) {
           DexFolder folder = DexFolder.fromMap(f as Map<String, dynamic>);
-          await DatabaseService.instance.saveFolder(folder);
+          await db.saveFolder(folder);
         }
       }
 
@@ -132,7 +124,7 @@ class DexProvider with ChangeNotifier {
         decodedStruct.forEach((key, value) {
           newStruct[key] = List<String>.from(value);
         });
-        await DatabaseService.instance.saveStructure(newStruct);
+        await db.saveStructure(newStruct);
       }
 
       await prefs.remove('saved_dexes');
@@ -192,8 +184,8 @@ class DexProvider with ChangeNotifier {
     userDexes.add(newDex);
     structure.putIfAbsent(folderId, () => []).add(newDex.id);
 
-    DatabaseService.instance.saveUserDex(newDex);
-    DatabaseService.instance.saveStructure(structure);
+    db.saveUserDex(newDex);
+    db.saveStructure(structure);
     notifyListeners();
   }
 
@@ -225,7 +217,7 @@ class DexProvider with ChangeNotifier {
         ignoredIds: old.ignoredIds,
       );
       userDexes[index] = updated;
-      DatabaseService.instance.saveUserDex(updated);
+      db.saveUserDex(updated);
       notifyListeners();
     }
   }
@@ -235,8 +227,8 @@ class DexProvider with ChangeNotifier {
     for (var key in structure.keys) {
       structure[key]?.remove(id);
     }
-    DatabaseService.instance.deleteUserDex(id);
-    DatabaseService.instance.saveStructure(structure);
+    db.deleteUserDex(id);
+    db.saveStructure(structure);
     notifyListeners();
   }
 
@@ -245,8 +237,8 @@ class DexProvider with ChangeNotifier {
     folders.add(folder);
     structure.putIfAbsent(currentFolderId, () => []).add(folder.id);
 
-    DatabaseService.instance.saveFolder(folder);
-    DatabaseService.instance.saveStructure(structure);
+    db.saveFolder(folder);
+    db.saveStructure(structure);
     notifyListeners();
   }
 
@@ -254,7 +246,7 @@ class DexProvider with ChangeNotifier {
     final idx = folders.indexWhere((f) => f.id == id);
     if (idx != -1) {
       folders[idx] = DexFolder(id: id, title: newTitle);
-      DatabaseService.instance.saveFolder(folders[idx]);
+      db.saveFolder(folders[idx]);
       notifyListeners();
     }
   }
@@ -265,8 +257,8 @@ class DexProvider with ChangeNotifier {
       structure[key]?.remove(id);
     }
     structure.remove(id);
-    DatabaseService.instance.deleteFolder(id);
-    DatabaseService.instance.saveStructure(structure);
+    db.deleteFolder(id);
+    db.saveStructure(structure);
     notifyListeners();
   }
 
@@ -275,13 +267,13 @@ class DexProvider with ChangeNotifier {
       structure[key]?.remove(itemId);
     }
     structure.putIfAbsent(newParentId, () => []).add(itemId);
-    DatabaseService.instance.saveStructure(structure);
+    db.saveStructure(structure);
     notifyListeners();
   }
 
   void updateStructureOrder(String parentId, List<String> newOrder) {
     structure[parentId] = newOrder;
-    DatabaseService.instance.saveStructure(structure);
+    db.saveStructure(structure);
     notifyListeners();
   }
 
@@ -303,11 +295,7 @@ class DexProvider with ChangeNotifier {
     } else {
       dex.caughtIds.remove(pokemonUniqueId);
     }
-    DatabaseService.instance.savePokemonStatus(
-      dexId,
-      pokemonUniqueId,
-      isCaught: isCaught,
-    );
+    db.savePokemonStatus(dexId, pokemonUniqueId, isCaught: isCaught);
     notifyListeners();
   }
 
@@ -319,11 +307,7 @@ class DexProvider with ChangeNotifier {
     } else {
       dex.shinyIds.remove(pokemonUniqueId);
     }
-    DatabaseService.instance.savePokemonStatus(
-      dexId,
-      pokemonUniqueId,
-      isShiny: isShiny,
-    );
+    db.savePokemonStatus(dexId, pokemonUniqueId, isShiny: isShiny);
     notifyListeners();
   }
 
@@ -331,11 +315,7 @@ class DexProvider with ChangeNotifier {
     final dex = userDexes.firstWhere((d) => d.id == dexId);
     if (!dex.ignoredIds.contains(pokemonUniqueId)) {
       dex.ignoredIds.add(pokemonUniqueId);
-      DatabaseService.instance.savePokemonStatus(
-        dexId,
-        pokemonUniqueId,
-        isIgnored: true,
-      );
+      db.savePokemonStatus(dexId, pokemonUniqueId, isIgnored: true);
       notifyListeners();
     }
   }
@@ -343,18 +323,14 @@ class DexProvider with ChangeNotifier {
   void restorePokemon(String dexId, String pokemonUniqueId) {
     final dex = userDexes.firstWhere((d) => d.id == dexId);
     dex.ignoredIds.remove(pokemonUniqueId);
-    DatabaseService.instance.savePokemonStatus(
-      dexId,
-      pokemonUniqueId,
-      isIgnored: false,
-    );
+    db.savePokemonStatus(dexId, pokemonUniqueId, isIgnored: false);
     notifyListeners();
   }
 
   Future<void> importJsonData() async {
     final data = await DexStorageService.importDexes(this);
     if (data != null) {
-      await DatabaseService.instance.clearUserData();
+      await db.clearUserData();
 
       folders.clear();
       userDexes.clear();
@@ -364,7 +340,7 @@ class DexProvider with ChangeNotifier {
         for (var fData in data['folders']) {
           final f = DexFolder.fromJson(fData);
           folders.add(f);
-          await DatabaseService.instance.saveFolder(f);
+          await db.saveFolder(f);
         }
       }
 
@@ -372,26 +348,14 @@ class DexProvider with ChangeNotifier {
         for (var dData in data['dexes']) {
           final d = UserDex.fromJson(dData);
           userDexes.add(d);
-          await DatabaseService.instance.saveUserDex(d);
+          await db.saveUserDex(d);
 
           for (var uid in d.caughtIds)
-            await DatabaseService.instance.savePokemonStatus(
-              d.id,
-              uid,
-              isCaught: true,
-            );
+            await db.savePokemonStatus(d.id, uid, isCaught: true);
           for (var uid in d.shinyIds)
-            await DatabaseService.instance.savePokemonStatus(
-              d.id,
-              uid,
-              isShiny: true,
-            );
+            await db.savePokemonStatus(d.id, uid, isShiny: true);
           for (var uid in d.ignoredIds)
-            await DatabaseService.instance.savePokemonStatus(
-              d.id,
-              uid,
-              isIgnored: true,
-            );
+            await db.savePokemonStatus(d.id, uid, isIgnored: true);
         }
       }
 
@@ -400,10 +364,10 @@ class DexProvider with ChangeNotifier {
         structData.forEach((key, value) {
           structure[key] = List<String>.from(value);
         });
-        await DatabaseService.instance.saveStructure(structure);
+        await db.saveStructure(structure);
       } else {
         structure['root'] = userDexes.map((d) => d.id).toList();
-        await DatabaseService.instance.saveStructure(structure);
+        await db.saveStructure(structure);
       }
 
       notifyListeners();
