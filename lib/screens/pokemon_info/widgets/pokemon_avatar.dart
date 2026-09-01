@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:provider/provider.dart';
 
 import '../../../providers/dex_provider.dart';
 import '../../../l10n/app_translations.dart';
 import '../../../utils/notification_helper.dart';
+import '../../../widgets/universal_poke_image.dart'; // NEU
 
 class PokemonAvatar extends StatelessWidget {
   final int id;
@@ -78,32 +77,14 @@ class PokemonAvatar extends StatelessWidget {
                   ),
                   child: Padding(
                     padding: EdgeInsets.all(4.0 * sizeScale),
-                    child: kIsWeb
-                        ? Image.network(
-                            imgUrl,
-                            fit: BoxFit.contain,
-                            errorBuilder: (context, error, stackTrace) => Icon(
-                              Icons.catching_pokemon,
-                              color: Colors.grey,
-                              size: 24 * sizeScale,
-                            ),
-                          )
-                        : CachedNetworkImage(
-                            imageUrl: imgUrl,
-                            fit: BoxFit.contain,
-                            fadeInDuration: const Duration(milliseconds: 200),
-                            placeholder: (context, url) => Padding(
-                              padding: EdgeInsets.all(8.0 * sizeScale),
-                              child: const CircularProgressIndicator(
-                                strokeWidth: 2,
-                              ),
-                            ),
-                            errorWidget: (context, url, error) => Icon(
-                              Icons.catching_pokemon,
-                              color: Colors.grey,
-                              size: 24 * sizeScale,
-                            ),
-                          ),
+                    child: UniversalPokeImage(
+                      imageUrl: imgUrl,
+                      errorIconSize: 24 * sizeScale,
+                      placeholder: (context, url) => Padding(
+                        padding: EdgeInsets.all(8.0 * sizeScale),
+                        child: const CircularProgressIndicator(strokeWidth: 2),
+                      ),
+                    ),
                   ),
                 ),
                 if (showAsShiny)

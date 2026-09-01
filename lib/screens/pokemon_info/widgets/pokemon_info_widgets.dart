@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:provider/provider.dart';
 
 import '../../../models/dex_view_models.dart';
@@ -9,6 +7,7 @@ import '../../../providers/dex_provider.dart';
 import '../../../services/database_service.dart';
 import '../../../l10n/app_translations.dart';
 import '../../../utils/notification_helper.dart';
+import '../../../widgets/universal_poke_image.dart'; // NEU
 
 const Map<String, Color> pokemonTypeColors = {
   'normal': Color(0xFFA8A77A),
@@ -108,39 +107,13 @@ class PokemonHeaderWidget extends StatelessWidget {
           clipBehavior: Clip.none,
           children: [
             Center(
-              child: kIsWeb
-                  ? Image.network(
-                      currentImageUrl,
-                      fit: BoxFit.contain,
-                      errorBuilder: (context, error, stackTrace) =>
-                          Image.network(
-                            fallbackUrl,
-                            fit: BoxFit.contain,
-                            errorBuilder: (c, e, s) => const Icon(
-                              Icons.catching_pokemon,
-                              size: 60,
-                              color: Colors.white54,
-                            ),
-                          ),
-                    )
-                  : CachedNetworkImage(
-                      imageUrl: currentImageUrl,
-                      fit: BoxFit.contain,
-                      fadeInDuration: const Duration(milliseconds: 200),
-                      placeholder: (context, url) =>
-                          const Center(child: CircularProgressIndicator()),
-                      errorWidget: (context, url, error) => CachedNetworkImage(
-                        imageUrl: fallbackUrl,
-                        fit: BoxFit.contain,
-                        placeholder: (context, url) =>
-                            const Center(child: CircularProgressIndicator()),
-                        errorWidget: (c, e, s) => const Icon(
-                          Icons.catching_pokemon,
-                          size: 60,
-                          color: Colors.white54,
-                        ),
-                      ),
-                    ),
+              child: UniversalPokeImage(
+                imageUrl: currentImageUrl,
+                fallbackUrl: fallbackUrl,
+                errorIconSize: 60,
+                placeholder: (context, url) =>
+                    const Center(child: CircularProgressIndicator()),
+              ),
             ),
             Positioned(
               bottom: -4,
@@ -419,25 +392,12 @@ class MatchingBallsWidget extends StatelessWidget {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           if (imgUrl != null)
-                            kIsWeb
-                                ? Image.network(
-                                    imgUrl,
-                                    width: 24,
-                                    height: 24,
-                                    errorBuilder: (_, __, ___) => const Icon(
-                                      Icons.catching_pokemon,
-                                      size: 24,
-                                    ),
-                                  )
-                                : CachedNetworkImage(
-                                    imageUrl: imgUrl,
-                                    width: 24,
-                                    height: 24,
-                                    errorWidget: (_, _, _) => const Icon(
-                                      Icons.catching_pokemon,
-                                      size: 24,
-                                    ),
-                                  ),
+                            UniversalPokeImage(
+                              imageUrl: imgUrl,
+                              width: 24,
+                              height: 24,
+                              errorIconSize: 24,
+                            ),
                           if (imgUrl != null) const SizedBox(width: 8),
                           Text(
                             Translator.get('ball_$key'),

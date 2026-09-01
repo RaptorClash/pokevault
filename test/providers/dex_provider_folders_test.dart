@@ -29,7 +29,6 @@ void main() {
       when(() => mockDb.getAllUserDexes()).thenAnswer((_) async => []);
       when(() => mockDb.getAllFolders()).thenAnswer((_) async => []);
       when(() => mockDb.getStructure()).thenAnswer((_) async => {'root': []});
-
       when(() => mockDb.saveFolder(any())).thenAnswer((_) async {});
       when(() => mockDb.deleteFolder(any())).thenAnswer((_) async {});
       when(() => mockDb.saveStructure(any())).thenAnswer((_) async {});
@@ -44,6 +43,7 @@ void main() {
       expect(provider.folders.length, equals(1));
       expect(provider.folders.first.title, equals('Shinies'));
       expect(provider.structure['root'], contains(provider.folders.first.id));
+
       verify(() => mockDb.saveFolder(any())).called(1);
     });
 
@@ -52,8 +52,8 @@ void main() {
       final folderId = provider.folders.first.id;
 
       provider.renameFolder(folderId, 'Neue Dexe');
-
       expect(provider.folders.first.title, equals('Neue Dexe'));
+
       verify(() => mockDb.saveFolder(any())).called(2);
     });
 
@@ -62,11 +62,11 @@ void main() {
       final folderId = provider.folders.first.id;
 
       provider.structure['root']!.add('dex_123');
-
       provider.moveItem('dex_123', folderId);
 
       expect(provider.structure['root'], isNot(contains('dex_123')));
       expect(provider.structure[folderId], contains('dex_123'));
+
       verify(() => mockDb.saveStructure(any())).called(greaterThan(0));
     });
 
@@ -79,6 +79,18 @@ void main() {
 
       expect(provider.isDescendant('folder_1', 'folder_3'), isTrue);
       expect(provider.isDescendant('folder_3', 'folder_1'), isFalse);
+    });
+
+    // NEUER TEST FÜR DRAG & DROP
+    test('reorderItem ändert die Reihenfolge in einem Ordner', () {
+      provider.structure['root'] = ['item1', 'item2', 'item3'];
+
+      // Verschiebe item1 (Index 0) nach hinten (Index 2)
+      provider.reorderItem('root', 0, 2);
+
+      // Nach dem Entfernen rücken die Elemente auf, daher landet item1 am Ende
+      expect(provider.structure['root'], equals(['item2', 'item3', 'item1']));
+      verify(() => mockDb.saveStructure(any())).called(greaterThan(0));
     });
   });
 }

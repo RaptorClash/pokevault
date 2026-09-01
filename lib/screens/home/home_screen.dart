@@ -1,6 +1,9 @@
 import 'dart:async';
+import 'package:flutter/foundation.dart'; // NEU
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart'; // NEU
+
 import '../../l10n/app_translations.dart';
 import '../../providers/dex_provider.dart';
 import '../../providers/tutorial_provider.dart';
@@ -42,11 +45,56 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     _currentFolderId = widget.currentFolderId;
+
     if (_currentFolderId == 'root') {
       WidgetsBinding.instance.addPostFrameCallback((_) {
+        _checkWebWarning(); // NEU
         _checkForUpdates();
         _showTutorialIfNeeded();
       });
+    }
+  }
+
+  // NEU: Web-Backup Warnung
+  Future<void> _checkWebWarning() async {
+    if (!kIsWeb) return;
+
+    final prefs = await SharedPreferences.getInstance();
+    final hasSeenWarning = prefs.getBool('web_backup_warning_seen') ?? false;
+
+    if (!hasSeenWarning && mounted) {
+      ScaffoldMessenger.of(context).showMaterialBanner(
+        MaterialBanner(
+          padding: const EdgeInsets.all(16),
+          backgroundColor: Colors.orange.shade100,
+          leading: const Icon(
+            Icons.warning_amber_rounded,
+            color: Colors.orange,
+          ),
+          content: Text(
+            Translator.get('web_backup_warning_text') !=
+                    'web_backup_warning_text'
+                ? Translator.get('web_backup_warning_text')
+                : 'Achtung: Im Web-Browser können deine Daten gelöscht werden, wenn der Browser-Cache geleert wird. Bitte erstelle regelmäßig Backups!',
+            style: const TextStyle(color: Colors.black87),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                prefs.setBool('web_backup_warning_seen', true);
+                ScaffoldMessenger.of(context).hideCurrentMaterialBanner();
+              },
+              child: Text(
+                Translator.get('web_backup_warning_action') !=
+                        'web_backup_warning_action'
+                    ? Translator.get('web_backup_warning_action')
+                    : 'Verstanden',
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ),
+          ],
+        ),
+      );
     }
   }
 
@@ -93,6 +141,7 @@ class _HomeScreenState extends State<HomeScreen> {
       if (!_dexKeys.containsKey(newestDex.id)) {
         _dexKeys[newestDex.id] = GlobalKey();
       }
+
       TutorialOverlay.show(
         context,
         TutorialFeature(
@@ -118,6 +167,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void _openDex(UserDex dex) {
     final provider = Provider.of<DexProvider>(context, listen: false);
+
     List<int> selectedOrder = provider.allAvailableDexes[dex.region] ?? [];
     Map<int, Pokemon> pokemonMap = {for (var p in provider.allPokemon) p.id: p};
 
@@ -214,6 +264,7 @@ class _HomeScreenState extends State<HomeScreen> {
   List<dynamic> _getSortedItems(DexProvider provider, String folderId) {
     final itemIds = provider.structure[folderId] ?? [];
     List<dynamic> items = [];
+
     for (var id in itemIds) {
       if (id.startsWith('folder_')) {
         final f = provider.folders.where((x) => x.id == id).firstOrNull;
@@ -223,6 +274,7 @@ class _HomeScreenState extends State<HomeScreen> {
         if (d != null) items.add(d);
       }
     }
+
     if (_currentSort != 'manual') {
       items.sort((a, b) {
         if (a is DexFolder && b is UserDex) return -1;
@@ -238,6 +290,7 @@ class _HomeScreenState extends State<HomeScreen> {
         return 0;
       });
     }
+
     return items;
   }
 
@@ -252,10 +305,13 @@ class _HomeScreenState extends State<HomeScreen> {
 
     for (int index = 0; index < items.length; index++) {
       final item = items[index];
+
       if (item is DexFolder) {
         bool matchesSearch = item.title.toLowerCase().contains(q);
         bool hasMatchInChildren = _folderHasMatch(provider, item.id, q);
+
         if (q.isNotEmpty && !matchesSearch && !hasMatchInChildren) continue;
+
         bool isSelected = isRootLevel && _selectedItemIds.contains(item.id);
 
         widgets.add(
@@ -306,7 +362,9 @@ class _HomeScreenState extends State<HomeScreen> {
         bool matchesSearch =
             item.title.toLowerCase().contains(q) ||
             regionName.toLowerCase().contains(q);
+
         if (q.isNotEmpty && !matchesSearch) continue;
+
         bool isSelected = isRootLevel && _selectedItemIds.contains(item.id);
 
         if (!_dexKeys.containsKey(item.id)) {
@@ -592,7 +650,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
           Expanded(
-            child: provider.userDexes.isEmpty && provider.folders.isEmpty
+            child: _getSortedItems(provider, _currentFolderId).isEmpty
                 ? Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -600,13 +658,13 @@ class _HomeScreenState extends State<HomeScreen> {
                         Icon(
                           Icons.catching_pokemon,
                           size: 64,
-                          color: Theme.of(
-                            context,
-                          ).hintColor.withValues(alpha: 0.5),
+                          color: Theme.of(context).dividerColor,
                         ),
                         const SizedBox(height: 16),
                         Text(
-                          Translator.get('no_dexes'),
+                          _searchQuery.isEmpty
+                              ? Translator.get('no_dex_created')
+                              : 'Keine Ergebnisse gefunden',
                           style: TextStyle(
                             color: Theme.of(context).hintColor,
                             fontSize: 16,
@@ -615,38 +673,43 @@ class _HomeScreenState extends State<HomeScreen> {
                       ],
                     ),
                   )
-                : (_currentSort == 'manual' &&
+                : _currentSort == 'manual' &&
                       _searchQuery.isEmpty &&
-                      !_isSelectionMode)
+                      !_isSelectionMode
                 ? ReorderableListView(
-                    padding: const EdgeInsets.only(bottom: 80),
+                    padding: const EdgeInsets.only(
+                      bottom: 80,
+                      left: 16,
+                      right: 16,
+                    ),
                     onReorder: (oldIndex, newIndex) {
-                      setState(() {
-                        if (oldIndex < newIndex) newIndex -= 1;
-                        final items = List<String>.from(
-                          provider.structure[_currentFolderId] ?? [],
-                        );
-                        final item = items.removeAt(oldIndex);
-                        items.insert(newIndex, item);
-                        provider.updateStructureOrder(_currentFolderId, items);
-                      });
+                      if (newIndex > oldIndex) newIndex -= 1;
+                      provider.reorderItem(
+                        _currentFolderId,
+                        oldIndex,
+                        newIndex,
+                      );
                     },
                     children: _buildTree(provider, _currentFolderId, true),
                   )
                 : ListView(
-                    padding: const EdgeInsets.only(bottom: 80),
+                    padding: const EdgeInsets.only(
+                      bottom: 80,
+                      left: 16,
+                      right: 16,
+                    ),
                     children: _buildTree(provider, _currentFolderId, true),
                   ),
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
-        key: _fabKey,
-        onPressed: _openCreateBottomSheet,
-        backgroundColor: Theme.of(context).colorScheme.primary,
-        foregroundColor: Theme.of(context).colorScheme.onPrimary,
-        child: const Icon(Icons.add),
-      ),
+      floatingActionButton: !_isSelectionMode
+          ? FloatingActionButton(
+              key: _fabKey,
+              onPressed: _openCreateBottomSheet,
+              child: const Icon(Icons.add),
+            )
+          : null,
     );
   }
 }

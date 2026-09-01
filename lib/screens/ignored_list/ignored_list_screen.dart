@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
 import '../../models/dex_view_models.dart';
 import '../../providers/dex_provider.dart';
 import '../../providers/tutorial_provider.dart';
 import '../../models/tutorial_step.dart';
 import '../../widgets/tutorial/tutorial_overlay.dart';
 import '../../l10n/app_translations.dart';
+import '../../widgets/universal_poke_image.dart'; // NEU
 
 class IgnoredListScreen extends StatefulWidget {
   final String dexId;
@@ -80,6 +82,7 @@ class _IgnoredListScreenState extends State<IgnoredListScreen> {
   Widget build(BuildContext context) {
     final provider = context.watch<DexProvider>();
     final liveDex = provider.userDexes.firstWhere((d) => d.id == widget.dexId);
+
     final ignoredEntries = widget.allRawEntries
         .where((entry) => liveDex.ignoredIds.contains(entry.uniqueId))
         .toList();
@@ -93,7 +96,11 @@ class _IgnoredListScreenState extends State<IgnoredListScreen> {
               itemBuilder: (context, index) {
                 final entry = ignoredEntries[index];
                 return ListTile(
-                  leading: Image.network(entry.imageUrl, width: 50, height: 50),
+                  leading: UniversalPokeImage(
+                    imageUrl: entry.imageUrl,
+                    width: 50,
+                    height: 50,
+                  ),
                   title: Text(
                     entry.pokemon.getName(provider.currentLanguage) +
                         entry.displaySuffix,
@@ -102,9 +109,7 @@ class _IgnoredListScreenState extends State<IgnoredListScreen> {
                     '#${entry.pokemon.id.toString().padLeft(3, '0')}',
                   ),
                   trailing: ElevatedButton.icon(
-                    key: index == 0
-                        ? _restoreBtnKey
-                        : null,
+                    key: index == 0 ? _restoreBtnKey : null,
                     icon: const Icon(Icons.restore),
                     label: Text(Translator.get('restore_pokemon')),
                     onPressed: () {

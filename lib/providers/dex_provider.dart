@@ -374,4 +374,24 @@ class DexProvider with ChangeNotifier {
       NotificationHelper.showSuccess('Import erfolgreich!');
     }
   }
+
+  void reorderItem(String folderId, int oldIndex, int newIndex) {
+    if (!structure.containsKey(folderId)) return;
+
+    final list = structure[folderId]!;
+    if (oldIndex < 0 ||
+        oldIndex >= list.length ||
+        newIndex < 0 ||
+        newIndex > list.length)
+      return;
+
+    // Element an der alten Position entfernen und an der neuen einfügen
+    final item = list.removeAt(oldIndex);
+    list.insert(newIndex, item);
+
+    // FIX: Die Variable heißt wahrscheinlich databaseService oder _databaseService
+    db.saveStructure(structure);
+
+    notifyListeners();
+  }
 }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart'; // NEU
 import 'package:pokevault/screens/home/home_screen.dart';
 import 'package:pokevault/providers/dex_provider.dart';
 import 'package:pokevault/providers/tutorial_provider.dart';
@@ -17,6 +18,9 @@ void main() {
     late MockTutorialProvider mockTutorialProvider;
 
     setUp(() {
+      // WICHTIG: Mock für SharedPreferences, damit _checkWebWarning() nicht crasht
+      SharedPreferences.setMockInitialValues({});
+
       Translator.currentLanguage = 'de';
       mockDexProvider = MockDexProvider();
       mockTutorialProvider = MockTutorialProvider();
@@ -63,7 +67,6 @@ void main() {
 
         expect(find.byIcon(Icons.search), findsOneWidget);
         expect(find.byIcon(Icons.sort), findsOneWidget);
-
         expect(find.byIcon(Icons.catching_pokemon), findsOneWidget);
       },
     );

@@ -1099,4 +1099,8 @@ const Map<String, String> translationsEn = {
   "error_page_load": "Error loading page:",
 
   'group_special': 'Special Dexes',
+
+  'web_backup_warning_text':
+      'Warning: Your data in the web browser might be lost if the browser cache is cleared. Please create regular backups!',
+  'web_backup_warning_action': 'Got it',
 };

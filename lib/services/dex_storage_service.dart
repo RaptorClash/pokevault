@@ -11,6 +11,11 @@ import 'package:file_selector/file_selector.dart';
 import '../providers/dex_provider.dart';
 import '../l10n/app_translations.dart';
 
+// Top-Level-Funktion für Isolate-Ausführung
+String _encodeJsonTask(Map<String, dynamic> data) {
+  return jsonEncode(data);
+}
+
 class DexStorageService {
   static Future<void> exportDexes(
     List<UserDex> dexes,
@@ -23,7 +28,9 @@ class DexStorageService {
         'structure': provider.structure,
       };
 
-      final String jsonString = jsonEncode(exportData);
+      // Schwere Arbeit in einen Hintergrund-Isolate auslagern
+      final String jsonString = await compute(_encodeJsonTask, exportData);
+
       final String dateString = DateTime.now().toIso8601String().split('T')[0];
       final String timestamp = DateTime.now().millisecondsSinceEpoch.toString();
       final String fileName = 'pokevault_backup_${dateString}_$timestamp.json';

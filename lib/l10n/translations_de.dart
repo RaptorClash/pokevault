@@ -1390,4 +1390,8 @@ const Map<String, String> translationsDe = {
   "error_page_load": "Fehler beim Laden der Seite:",
 
   'group_special': 'Spezial Dexe',
+
+  'web_backup_warning_text':
+      'Achtung: Im Web-Browser können deine Daten gelöscht werden, wenn der Browser-Cache geleert wird. Bitte erstelle regelmäßig Backups!',
+  'web_backup_warning_action': 'Verstanden',
 };
