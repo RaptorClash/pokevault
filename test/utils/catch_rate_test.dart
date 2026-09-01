@@ -4,7 +4,7 @@ import 'package:pokevault/utils/catch_rate/models.dart';
 import 'package:pokevault/utils/catch_rate/strategy_base.dart';
 
 void main() {
-  group('Catch Rate Calculator - Ausführliche Tests', () {
+  group('Catch Rate Calculator - Ausf hrliche Tests', () {
     final bulbasaur = Pokemon(
       id: 1,
       nameDe: 'Bisasam',
@@ -43,6 +43,11 @@ void main() {
       bool isSurfingOrDiving = false,
       int ownLevel = 50,
       int enemyLevel = 50,
+      bool isTargetShiny = false,
+      bool isUnnoticed = false,
+      bool isBackstrike = false,
+      int donutPenalty = 0,
+      int zaRank = 10,
     }) {
       return CatchRateParams(
         pokemon: poke,
@@ -63,20 +68,25 @@ void main() {
         powerBonus: 1.0,
         dexMultiplier: 1.0,
         hasCatchingCharm: false,
+        isTargetShiny: isTargetShiny,
+        isUnnoticed: isUnnoticed,
+        isBackstrike: isBackstrike,
+        donutPenalty: donutPenalty,
+        zaRank: zaRank,
       );
     }
 
     group('Gen 1 Mechaniken', () {
       final strategy = CatchRateStrategyFactory.getStrategy(1.0);
 
-      test('Meisterball fängt immer', () {
+      test('Meisterball f ngt immer', () {
         final result = strategy.calculate(
           buildParams(bulbasaur, ballId: 'master'),
         );
         expect(result.catchChance, equals(100.0));
       });
 
-      test('Statusprobleme erhöhen die Fangchance', () {
+      test('Statusprobleme erh hen die Fangchance', () {
         final healthy = strategy.calculate(
           buildParams(bulbasaur, ballId: 'poke', statusType: 0),
         );
@@ -91,7 +101,7 @@ void main() {
       final strategy = CatchRateStrategyFactory.getStrategy(2.0);
 
       test(
-        'Schwerball gibt Malus bei leichten und Bonus bei schweren Pokémon',
+        'Schwerball gibt Malus bei leichten und Bonus bei schweren Pok mon',
         () {
           final resultLight = strategy.calculate(
             buildParams(bulbasaur, ballId: 'heavy'),
@@ -99,7 +109,6 @@ void main() {
           final resultHeavy = strategy.calculate(
             buildParams(snorlax, ballId: 'heavy'),
           );
-
           expect(resultLight.baseRate, equals(25));
           expect(resultHeavy.baseRate, equals(65));
         },
@@ -137,7 +146,7 @@ void main() {
       final strategyGen5 = CatchRateStrategyFactory.getStrategy(5.0);
       final strategyGen9 = CatchRateStrategyFactory.getStrategy(9.0);
 
-      test('Flottball Bonus verfällt nach Runde 1', () {
+      test('Flottball Bonus verf llt nach Runde 1', () {
         expect(
           strategyGen9
               .calculate(buildParams(bulbasaur, ballId: 'quick', turnCount: 1))
@@ -167,7 +176,7 @@ void main() {
         expect(t30, equals(4.0));
       });
 
-      test('Wenig KP resultiert in höherer Fangchance', () {
+      test('Wenig KP resultiert in h herer Fangchance', () {
         final fullHp = strategyGen9.calculate(
           buildParams(bulbasaur, ballId: 'poke', hpPercent: 100.0),
         );
@@ -181,6 +190,7 @@ void main() {
 
     group('Spezial-Editionen (Arceus & Z-A)', () {
       final strategyArceus = CatchRateStrategyFactory.getStrategy(8.5);
+      final strategyZA = CatchRateStrategyFactory.getStrategy(9.5);
 
       test('Originball hat 100%', () {
         final result = strategyArceus.calculate(
@@ -212,6 +222,31 @@ void main() {
         );
         final result = strategyArceus.calculate(paramsFlying);
         expect(result.bonus, equals(1.25));
+      });
+
+      test('Z-A (Gen 9.5) - Shiny Ziel und Unbemerkt geben Boni', () {
+        final normalResult = strategyZA.calculate(
+          buildParams(bulbasaur, ballId: 'poke'),
+        );
+        final boostedResult = strategyZA.calculate(
+          buildParams(
+            bulbasaur,
+            ballId: 'poke',
+            isTargetShiny: true,
+            isUnnoticed: true,
+          ),
+        );
+        expect(boostedResult.catchChance > normalResult.catchChance, isTrue);
+      });
+
+      test('Z-A (Gen 9.5) - Donut-Malus verringert Fangchance', () {
+        final normalResult = strategyZA.calculate(
+          buildParams(bulbasaur, ballId: 'poke'),
+        );
+        final penaltyResult = strategyZA.calculate(
+          buildParams(bulbasaur, ballId: 'poke', donutPenalty: 2),
+        );
+        expect(penaltyResult.catchChance < normalResult.catchChance, isTrue);
       });
     });
   });

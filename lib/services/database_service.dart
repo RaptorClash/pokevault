@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path_provider/path_provider.dart';
+
 import '../models/pokemon.dart';
 import '../models/user_dex.dart';
 import '../utils/notification_helper.dart';
@@ -11,21 +12,31 @@ import '../l10n/app_translations.dart';
 
 class DatabaseService {
   static final DatabaseService instance = DatabaseService._init();
-  static Database? _database;
+
+  static Database? _appDatabase;
+  static Database? _userDatabase;
 
   DatabaseService._init();
 
-  Future<Database> get database async {
-    if (_database != null) return _database!;
-    _database = await _initDB('pokedex.sqlite');
-    return _database!;
+  Future<Database> get appDatabase async {
+    if (_appDatabase != null) return _appDatabase!;
+    _appDatabase = await _initAppDB('pokedex.sqlite');
+    return _appDatabase!;
   }
 
-  Future<Database> _initDB(String fileName) async {
+  Future<Database> _initAppDB(String fileName) async {
     Directory documentsDirectory = await getApplicationDocumentsDirectory();
     String path = join(documentsDirectory.path, fileName);
 
+    // HINWEIS für später: Wenn du ein App-Update veröffentlichst und willst,
+    // dass die Nutzer die neuen Pokébälle/Pokémon bekommen, musst du die alte
+    // Datei hier vorher löschen, z.B. wenn sich die Versionsnummer ändert.
+    // Für die Entwicklung kannst du folgende Zeile einkommentieren, um immer
+    // die aktuellste DB aus den Assets zu laden:
+    await File(path).delete();
+
     bool dbExists = await File(path).exists();
+
     if (!dbExists) {
       try {
         ByteData data = await rootBundle.load('assets/db/$fileName');
@@ -39,14 +50,24 @@ class DatabaseService {
       }
     }
 
-    final db = await openDatabase(
+    return await openDatabase(path, version: 1);
+  }
+
+  Future<Database> get userDatabase async {
+    if (_userDatabase != null) return _userDatabase!;
+    _userDatabase = await _initUserDB('user_data.sqlite');
+    return _userDatabase!;
+  }
+
+  Future<Database> _initUserDB(String fileName) async {
+    Directory documentsDirectory = await getApplicationDocumentsDirectory();
+    String path = join(documentsDirectory.path, fileName);
+
+    return await openDatabase(
       path,
       version: 1,
       onCreate: _createUserDataTables,
     );
-
-    await _createUserDataTables(db, 1);
-    return db;
   }
 
   Future<void> _createUserDataTables(Database db, int version) async {
@@ -94,7 +115,7 @@ class DatabaseService {
   }
 
   Future<List<Pokemon>> getAllPokemon() async {
-    final db = await instance.database;
+    final db = await instance.appDatabase;
     final pokeMaps = await db.query('pokemon');
     final formMaps = await db.query('forms');
 
@@ -115,11 +136,12 @@ class DatabaseService {
   }
 
   Future<Map<String, List<int>>> getAllDexOrders() async {
-    final db = await instance.database;
+    final db = await instance.appDatabase;
     final maps = await db.query(
       'dex_orders',
       orderBy: 'dex_name ASC, order_index ASC',
     );
+
     Map<String, List<int>> result = {};
     for (var m in maps) {
       String dexName = m['dex_name']?.toString() ?? '';
@@ -139,7 +161,7 @@ class DatabaseService {
   }
 
   Future<Map<String, String>> getBallUrls() async {
-    final db = await instance.database;
+    final db = await instance.appDatabase;
     final maps = await db.query('ball_urls');
     Map<String, String> result = {};
     for (var m in maps) {
@@ -152,12 +174,13 @@ class DatabaseService {
   Future<Map<String, Map<String, List<String>>>?> getEncounters(
     int pokemonId,
   ) async {
-    final db = await instance.database;
+    final db = await instance.appDatabase;
     final maps = await db.query(
       'encounters',
       where: 'pokemon_id = ?',
       whereArgs: [pokemonId],
     );
+
     if (maps.isEmpty) return null;
 
     Map<String, Map<String, List<String>>> result = {};
@@ -165,6 +188,7 @@ class DatabaseService {
       String gen = map['gen']?.toString() ?? '';
       String version = map['version']?.toString() ?? '';
       String locData = map['location_data']?.toString() ?? '';
+
       result.putIfAbsent(gen, () => {});
       result[gen]![version] = locData.split('|||||');
     }
@@ -173,12 +197,13 @@ class DatabaseService {
 
   Future<Map<String, dynamic>?> getEvolutionChain(int chainId) async {
     if (chainId == -1) return null;
-    final db = await instance.database;
+    final db = await instance.appDatabase;
     final maps = await db.query(
       'evolutions',
       where: 'chain_id = ?',
       whereArgs: [chainId],
     );
+
     if (maps.isNotEmpty) {
       return jsonDecode(maps.first['chain_json']?.toString() ?? '{}');
     }
@@ -186,12 +211,13 @@ class DatabaseService {
   }
 
   Future<Map<String, dynamic>?> getMatchingBalls(String uniqueId) async {
-    final db = await instance.database;
+    final db = await instance.appDatabase;
     final maps = await db.query(
       'matching_balls',
       where: 'unique_id = ?',
       whereArgs: [uniqueId],
     );
+
     if (maps.isNotEmpty) {
       String nb = maps.first['normal_balls']?.toString() ?? 'any_ball';
       String sb = maps.first['shiny_balls']?.toString() ?? 'any_ball';
@@ -204,7 +230,7 @@ class DatabaseService {
   }
 
   Future<List<UserDex>> getAllUserDexes() async {
-    final db = await instance.database;
+    final db = await instance.userDatabase;
     final dexMaps = await db.query('user_dexes');
     List<UserDex> dexes = [];
 
@@ -215,6 +241,7 @@ class DatabaseService {
         where: 'dex_id = ?',
         whereArgs: [dex.id],
       );
+
       for (var p in pMaps) {
         String uId = p['unique_id']?.toString() ?? '';
         if ((p['is_caught'] as num?)?.toInt() == 1) dex.caughtIds.add(uId);
@@ -227,7 +254,7 @@ class DatabaseService {
   }
 
   Future<void> saveUserDex(UserDex dex) async {
-    final db = await instance.database;
+    final db = await instance.userDatabase;
     await db.insert(
       'user_dexes',
       dex.toMap(),
@@ -236,7 +263,7 @@ class DatabaseService {
   }
 
   Future<void> deleteUserDex(String dexId) async {
-    final db = await instance.database;
+    final db = await instance.userDatabase;
     await db.delete('user_dexes', where: 'id = ?', whereArgs: [dexId]);
     await db.delete('user_pokemon', where: 'dex_id = ?', whereArgs: [dexId]);
     await db.delete(
@@ -253,15 +280,14 @@ class DatabaseService {
     bool? isShiny,
     bool? isIgnored,
   }) async {
-    final db = await instance.database;
-
+    final db = await instance.userDatabase;
     final maps = await db.query(
       'user_pokemon',
       where: 'dex_id = ? AND unique_id = ?',
       whereArgs: [dexId, uniqueId],
     );
-    int caught = 0, shiny = 0, ignored = 0;
 
+    int caught = 0, shiny = 0, ignored = 0;
     if (maps.isNotEmpty) {
       caught = (maps.first['is_caught'] as num?)?.toInt() ?? 0;
       shiny = (maps.first['is_shiny'] as num?)?.toInt() ?? 0;
@@ -282,13 +308,13 @@ class DatabaseService {
   }
 
   Future<List<DexFolder>> getAllFolders() async {
-    final db = await instance.database;
+    final db = await instance.userDatabase;
     final maps = await db.query('folders');
     return maps.map((m) => DexFolder.fromMap(m)).toList();
   }
 
   Future<void> saveFolder(DexFolder folder) async {
-    final db = await instance.database;
+    final db = await instance.userDatabase;
     await db.insert(
       'folders',
       folder.toMap(),
@@ -297,7 +323,7 @@ class DatabaseService {
   }
 
   Future<void> deleteFolder(String folderId) async {
-    final db = await instance.database;
+    final db = await instance.userDatabase;
     await db.delete('folders', where: 'id = ?', whereArgs: [folderId]);
     await db.delete(
       'folder_structure',
@@ -307,8 +333,9 @@ class DatabaseService {
   }
 
   Future<Map<String, List<String>>> getStructure() async {
-    final db = await instance.database;
+    final db = await instance.userDatabase;
     final maps = await db.query('folder_structure', orderBy: 'order_index ASC');
+
     Map<String, List<String>> structure = {};
     for (var m in maps) {
       String pId = m['parent_id']?.toString() ?? 'root';
@@ -320,8 +347,9 @@ class DatabaseService {
   }
 
   Future<void> saveStructure(Map<String, List<String>> structure) async {
-    final db = await instance.database;
+    final db = await instance.userDatabase;
     await db.delete('folder_structure');
+
     Batch batch = db.batch();
     structure.forEach((parentId, children) {
       for (int i = 0; i < children.length; i++) {
@@ -336,7 +364,7 @@ class DatabaseService {
   }
 
   Future<void> clearUserData() async {
-    final db = await instance.database;
+    final db = await instance.userDatabase;
     await db.delete('user_dexes');
     await db.delete('folders');
     await db.delete('folder_structure');
