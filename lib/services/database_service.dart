@@ -1,18 +1,19 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path_provider/path_provider.dart';
-
 import '../models/pokemon.dart';
 import '../models/user_dex.dart';
 import '../utils/notification_helper.dart';
 import '../l10n/app_translations.dart';
+import 'dart:typed_data';
+import 'package:sqflite_common_ffi_web/sqflite_ffi_web.dart';
 
 class DatabaseService {
   static final DatabaseService instance = DatabaseService._init();
-
   static Database? _appDatabase;
   static Database? _userDatabase;
 
@@ -25,32 +26,34 @@ class DatabaseService {
   }
 
   Future<Database> _initAppDB(String fileName) async {
-    Directory documentsDirectory = await getApplicationDocumentsDirectory();
-    String path = join(documentsDirectory.path, fileName);
+    String path = fileName;
 
-    // HINWEIS für später: Wenn du ein App-Update veröffentlichst und willst,
-    // dass die Nutzer die neuen Pokébälle/Pokémon bekommen, musst du die alte
-    // Datei hier vorher löschen, z.B. wenn sich die Versionsnummer ändert.
-    // Für die Entwicklung kannst du folgende Zeile einkommentieren, um immer
-    // die aktuellste DB aus den Assets zu laden:
-    await File(path).delete();
+    DatabaseFactory factory = kIsWeb ? databaseFactoryFfiWeb : databaseFactory;
 
-    bool dbExists = await File(path).exists();
+    if (!kIsWeb) {
+      Directory documentsDirectory = await getApplicationDocumentsDirectory();
+      path = join(documentsDirectory.path, fileName);
+    }
+
+    bool dbExists = await factory.databaseExists(path);
 
     if (!dbExists) {
       try {
         ByteData data = await rootBundle.load('assets/db/$fileName');
-        List<int> bytes = data.buffer.asUint8List(
+        Uint8List bytes = data.buffer.asUint8List(
           data.offsetInBytes,
           data.lengthInBytes,
         );
-        await File(path).writeAsBytes(bytes, flush: true);
+        await factory.writeDatabaseBytes(path, bytes);
       } catch (e) {
         NotificationHelper.showError('${Translator.get('error_db_init')} $e');
       }
     }
 
-    return await openDatabase(path, version: 1);
+    return await factory.openDatabase(
+      path,
+      options: OpenDatabaseOptions(version: 1),
+    );
   }
 
   Future<Database> get userDatabase async {
@@ -60,13 +63,18 @@ class DatabaseService {
   }
 
   Future<Database> _initUserDB(String fileName) async {
-    Directory documentsDirectory = await getApplicationDocumentsDirectory();
-    String path = join(documentsDirectory.path, fileName);
+    String path = fileName;
 
-    return await openDatabase(
+    DatabaseFactory factory = kIsWeb ? databaseFactoryFfiWeb : databaseFactory;
+
+    if (!kIsWeb) {
+      Directory documentsDirectory = await getApplicationDocumentsDirectory();
+      path = join(documentsDirectory.path, fileName);
+    }
+
+    return await factory.openDatabase(
       path,
-      version: 1,
-      onCreate: _createUserDataTables,
+      options: OpenDatabaseOptions(version: 1, onCreate: _createUserDataTables),
     );
   }
 
@@ -180,7 +188,6 @@ class DatabaseService {
       where: 'pokemon_id = ?',
       whereArgs: [pokemonId],
     );
-
     if (maps.isEmpty) return null;
 
     Map<String, Map<String, List<String>>> result = {};
@@ -188,7 +195,6 @@ class DatabaseService {
       String gen = map['gen']?.toString() ?? '';
       String version = map['version']?.toString() ?? '';
       String locData = map['location_data']?.toString() ?? '';
-
       result.putIfAbsent(gen, () => {});
       result[gen]![version] = locData.split('|||||');
     }
@@ -203,7 +209,6 @@ class DatabaseService {
       where: 'chain_id = ?',
       whereArgs: [chainId],
     );
-
     if (maps.isNotEmpty) {
       return jsonDecode(maps.first['chain_json']?.toString() ?? '{}');
     }
@@ -217,7 +222,6 @@ class DatabaseService {
       where: 'unique_id = ?',
       whereArgs: [uniqueId],
     );
-
     if (maps.isNotEmpty) {
       String nb = maps.first['normal_balls']?.toString() ?? 'any_ball';
       String sb = maps.first['shiny_balls']?.toString() ?? 'any_ball';
@@ -335,7 +339,6 @@ class DatabaseService {
   Future<Map<String, List<String>>> getStructure() async {
     final db = await instance.userDatabase;
     final maps = await db.query('folder_structure', orderBy: 'order_index ASC');
-
     Map<String, List<String>> structure = {};
     for (var m in maps) {
       String pId = m['parent_id']?.toString() ?? 'root';
@@ -349,8 +352,8 @@ class DatabaseService {
   Future<void> saveStructure(Map<String, List<String>> structure) async {
     final db = await instance.userDatabase;
     await db.delete('folder_structure');
-
     Batch batch = db.batch();
+
     structure.forEach((parentId, children) {
       for (int i = 0; i < children.length; i++) {
         batch.insert('folder_structure', {

@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:path_provider/path_provider.dart';
@@ -20,15 +21,30 @@ class DexStorageService {
         'folders': provider.folders.map((f) => f.toJson()).toList(),
         'structure': provider.structure,
       };
-
       final String jsonString = jsonEncode(exportData);
       final String dateString = DateTime.now().toIso8601String().split('T')[0];
       final String timestamp = DateTime.now().millisecondsSinceEpoch.toString();
       final String fileName = 'pokevault_backup_${dateString}_$timestamp.json';
 
+      if (kIsWeb) {
+        final bytes = utf8.encode(jsonString);
+        final xFile = XFile.fromData(
+          Uint8List.fromList(bytes),
+          name: fileName,
+          mimeType: 'application/json',
+        );
+        await Share.shareXFiles([xFile], text: Translator.get('share_text'));
+
+        NotificationHelper.showSuccess(
+          Translator.get('backup_success') != 'backup_success'
+              ? Translator.get('backup_success')
+              : 'Backup heruntergeladen!',
+        );
+        return;
+      }
+
       bool isDesktop =
           Platform.isWindows || Platform.isLinux || Platform.isMacOS;
-
       if (isDesktop) {
         Directory? directory = await getDownloadsDirectory();
         directory ??= await getApplicationDocumentsDirectory();

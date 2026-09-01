@@ -1,9 +1,10 @@
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'dart:ui';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
-
+import 'package:sqflite_common_ffi_web/sqflite_ffi_web.dart';
 import 'providers/theme_provider.dart';
 import 'providers/dex_provider.dart';
 import 'providers/tutorial_provider.dart';
@@ -15,7 +16,9 @@ void main() {
   try {
     WidgetsFlutterBinding.ensureInitialized();
 
-    if (Platform.isWindows || Platform.isLinux) {
+    if (kIsWeb) {
+      databaseFactory = databaseFactoryFfiWeb;
+    } else if (Platform.isWindows || Platform.isLinux) {
       sqfliteFfiInit();
       databaseFactory = databaseFactoryFfi;
     }

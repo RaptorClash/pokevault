@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:package_info_plus/package_info_plus.dart';
@@ -27,19 +28,24 @@ class UpdateHelper {
   static const String _repoName = 'pokevault';
 
   static Future<List<UpdateInfo>> getAllReleases() async {
+    if (kIsWeb) return [];
+
     try {
       final response = await http.get(
         Uri.parse(
           'https://api.github.com/repos/$_repoOwner/$_repoName/releases',
         ),
       );
+
       if (response.statusCode == 200) {
         final List<dynamic> data = jsonDecode(response.body);
         List<UpdateInfo> releases = [];
+
         for (var release in data) {
           String tagName = release['tag_name'] ?? '';
           String downloadUrl = '';
           String fileExtension = '';
+
           List assets = release['assets'] ?? [];
           for (var asset in assets) {
             String assetName = asset['name'].toString().toLowerCase();
@@ -56,6 +62,7 @@ class UpdateHelper {
               break;
             }
           }
+
           if (downloadUrl.isNotEmpty) {
             releases.add(
               UpdateInfo(
@@ -77,16 +84,20 @@ class UpdateHelper {
   }
 
   static Future<UpdateInfo?> checkForUpdate() async {
+    if (kIsWeb) return null;
+
     try {
       final response = await http.get(
         Uri.parse(
           'https://api.github.com/repos/$_repoOwner/$_repoName/releases/latest',
         ),
       );
+
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         String tagName = data['tag_name'] ?? '';
         String latestVersion = tagName.replaceAll(RegExp(r'[^0-9.]'), '');
+
         PackageInfo packageInfo = await PackageInfo.fromPlatform();
         String currentVersion = packageInfo.version;
 
@@ -131,6 +142,7 @@ class UpdateHelper {
   static bool _isNewerVersion(String current, String latest) {
     String c = current.split('+')[0];
     String l = latest.split('+')[0];
+
     List<int> currentParts = c
         .split('.')
         .map((e) => int.tryParse(e.replaceAll(RegExp(r'[^0-9]'), '')) ?? 0)
@@ -155,6 +167,7 @@ class UpdateHelper {
     String extension,
     Function(double) onProgress,
   ) async {
+    if (kIsWeb) throw Exception("Nicht im Web unterstützt");
     int maxRetries = 3;
     for (int attempt = 1; attempt <= maxRetries; attempt++) {
       try {
@@ -191,7 +204,6 @@ class UpdateHelper {
           }
           await sink.flush();
           await sink.close();
-
           return savePath;
         } else {
           throw Exception('HTTP Status Code: ${response.statusCode}');
@@ -213,6 +225,7 @@ class UpdateHelper {
     String extension,
     Function(double) onProgress,
   ) async {
+    if (kIsWeb) return;
     String savePath = await downloadOnly(url, version, extension, onProgress);
     if (Platform.isWindows && extension == '.zip') {
       await _installWindowsUpdate(savePath);
@@ -224,9 +237,11 @@ class UpdateHelper {
   static Future<void> _installWindowsUpdate(String zipPath) async {
     String exePath = Platform.resolvedExecutable;
     String appDir = File(exePath).parent.path;
+
     Directory tempDir = await getTemporaryDirectory();
     String batPath = '${tempDir.path}\\update_pokevault.bat';
     String vbsPath = '${tempDir.path}\\run_hidden.vbs';
+
     String zipW = zipPath.replaceAll('/', '\\');
     String appW = appDir.replaceAll('/', '\\');
     String exeW = exePath.replaceAll('/', '\\');
@@ -237,14 +252,17 @@ class UpdateHelper {
 @echo off
 set RETRIES=0
 timeout /t 3 /nobreak > NUL
+
 :Extract
 powershell -Command "try { Expand-Archive -Path '$zipW' -DestinationPath '$appW' -Force } catch { exit 1 }" > NUL 2>&1
 if %errorlevel% equ 0 goto Success
+
 :Fail
 set /a RETRIES+=1
 if %RETRIES% geq 5 goto Success
 timeout /t 2 /nobreak > NUL
 goto Extract
+
 :Success
 start "" "$exeW"
 del "$zipW"
