@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:provider/provider.dart';
+
 import '../../../models/dex_view_models.dart';
 import '../../../models/pokemon.dart';
 import '../../../providers/dex_provider.dart';
@@ -48,6 +50,7 @@ class PokemonHeaderWidget extends StatelessWidget {
   String _getImageUrl(DexDisplayEntry entry, bool wantShiny) {
     String url = entry.imageUrl;
     bool isCurrentlyShiny = url.contains('/shiny/');
+
     if (wantShiny && !isCurrentlyShiny) {
       if (url.contains('official-artwork/')) {
         return url.replaceFirst('official-artwork/', 'official-artwork/shiny/');
@@ -69,6 +72,7 @@ class PokemonHeaderWidget extends StatelessWidget {
           currentForm != null && currentForm!.types.isNotEmpty
           ? pokemonTypeColors[currentForm!.types.first] ?? Colors.grey
           : Colors.grey;
+
       final Color typeColor2 =
           currentForm != null && currentForm!.types.length > 1
           ? pokemonTypeColors[currentForm!.types[1]] ?? typeColor1
@@ -104,24 +108,39 @@ class PokemonHeaderWidget extends StatelessWidget {
           clipBehavior: Clip.none,
           children: [
             Center(
-              child: CachedNetworkImage(
-                imageUrl: currentImageUrl,
-                fit: BoxFit.contain,
-                fadeInDuration: const Duration(milliseconds: 200),
-                placeholder: (context, url) =>
-                    const Center(child: CircularProgressIndicator()),
-                errorWidget: (context, url, error) => CachedNetworkImage(
-                  imageUrl: fallbackUrl,
-                  fit: BoxFit.contain,
-                  placeholder: (context, url) =>
-                      const Center(child: CircularProgressIndicator()),
-                  errorWidget: (c, e, s) => const Icon(
-                    Icons.catching_pokemon,
-                    size: 60,
-                    color: Colors.white54,
-                  ),
-                ),
-              ),
+              child: kIsWeb
+                  ? Image.network(
+                      currentImageUrl,
+                      fit: BoxFit.contain,
+                      errorBuilder: (context, error, stackTrace) =>
+                          Image.network(
+                            fallbackUrl,
+                            fit: BoxFit.contain,
+                            errorBuilder: (c, e, s) => const Icon(
+                              Icons.catching_pokemon,
+                              size: 60,
+                              color: Colors.white54,
+                            ),
+                          ),
+                    )
+                  : CachedNetworkImage(
+                      imageUrl: currentImageUrl,
+                      fit: BoxFit.contain,
+                      fadeInDuration: const Duration(milliseconds: 200),
+                      placeholder: (context, url) =>
+                          const Center(child: CircularProgressIndicator()),
+                      errorWidget: (context, url, error) => CachedNetworkImage(
+                        imageUrl: fallbackUrl,
+                        fit: BoxFit.contain,
+                        placeholder: (context, url) =>
+                            const Center(child: CircularProgressIndicator()),
+                        errorWidget: (c, e, s) => const Icon(
+                          Icons.catching_pokemon,
+                          size: 60,
+                          color: Colors.white54,
+                        ),
+                      ),
+                    ),
             ),
             Positioned(
               bottom: -4,
@@ -349,6 +368,7 @@ class MatchingBallsWidget extends StatelessWidget {
     Map<String, String> ballUrls,
   ) {
     bool isAny = ballKeys.isEmpty || ballKeys.contains('any_ball');
+
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: Column(
@@ -399,13 +419,25 @@ class MatchingBallsWidget extends StatelessWidget {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           if (imgUrl != null)
-                            CachedNetworkImage(
-                              imageUrl: imgUrl,
-                              width: 24,
-                              height: 24,
-                              errorWidget: (_, _, _) =>
-                                  const Icon(Icons.catching_pokemon, size: 24),
-                            ),
+                            kIsWeb
+                                ? Image.network(
+                                    imgUrl,
+                                    width: 24,
+                                    height: 24,
+                                    errorBuilder: (_, __, ___) => const Icon(
+                                      Icons.catching_pokemon,
+                                      size: 24,
+                                    ),
+                                  )
+                                : CachedNetworkImage(
+                                    imageUrl: imgUrl,
+                                    width: 24,
+                                    height: 24,
+                                    errorWidget: (_, _, _) => const Icon(
+                                      Icons.catching_pokemon,
+                                      size: 24,
+                                    ),
+                                  ),
                           if (imgUrl != null) const SizedBox(width: 8),
                           Text(
                             Translator.get('ball_$key'),

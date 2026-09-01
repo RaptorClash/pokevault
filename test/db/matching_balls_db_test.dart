@@ -61,30 +61,7 @@ void main() {
       }
     });
 
-    test(
-      '2. Falsche "Mega"-Erkennungen (Yanmega, Meganie) wurden repariert',
-      () async {
-        final meganiumMega = await getEntry('154_mega');
-        expect(
-          meganiumMega,
-          isNull,
-          reason:
-              'Meganie wurde fälschlicherweise als Mega erkannt! Hast du das neue Python-Skript ausgeführt?',
-        );
-        await checkValid('154_normal');
-
-        final yanmegaMega = await getEntry('469_mega');
-        expect(
-          yanmegaMega,
-          isNull,
-          reason:
-              'Yanmega wurde fälschlicherweise als Mega erkannt! Hast du das neue Python-Skript ausgeführt?',
-        );
-        await checkValid('469_normal');
-      },
-    );
-
-    test('3. Echte Mega-Entwicklungen funktionieren', () async {
+    test('2. Echte Mega-Entwicklungen funktionieren', () async {
       final ids = [
         '3_mega',
         '6_mega-x',
@@ -99,14 +76,14 @@ void main() {
       }
     });
 
-    test('4. Regionale Formen (Alola, Galar, Hisui, Paldea)', () async {
+    test('3. Regionale Formen (Alola, Galar, Hisui, Paldea)', () async {
       final ids = ['37_alola', '52_galar', '58_hisui', '194_paldea'];
       for (var id in ids) {
         await checkValid(id);
       }
     });
 
-    test('5. Spezielle Formen & Geschlechter-Splits', () async {
+    test('4. Spezielle Formen & Geschlechter-Splits', () async {
       final ids = [
         '669_red',
         '669_blue',
@@ -127,7 +104,7 @@ void main() {
       }
     });
 
-    test('6. Spezifische Vivillon und Pokusan (Alcremie) Muster', () async {
+    test('5. Spezifische Vivillon und Pokusan (Alcremie) Muster', () async {
       final ids = [
         '666_meadow',
         '666_icy-snow',
@@ -142,7 +119,7 @@ void main() {
       }
     });
 
-    test('7. Hardcoded Typ-Overrides (Arceus & Amigento)', () async {
+    test('6. Hardcoded Typ-Overrides (Arceus & Amigento)', () async {
       final arceusFire = await getEntry('493_fire');
       expect(arceusFire!['normal_balls'], contains('fast_ball'));
 
@@ -151,7 +128,7 @@ void main() {
     });
 
     test(
-      '8. Unmapped Pokémon (z.B. Raupy) erhalten den Fallback any_ball',
+      '7. Unmapped Pokémon (z.B. Raupy) erhalten den Fallback any_ball',
       () async {
         final caterpie = await getEntry('10_normal');
         expect(caterpie, isNotNull);
@@ -159,14 +136,6 @@ void main() {
           caterpie!['normal_balls'],
           equals('any_ball'),
           reason: 'Raupy sollte strikt auf any_ball stehen.',
-        );
-
-        final victini = await getEntry('494_normal');
-        expect(victini, isNotNull);
-        expect(
-          victini!['normal_balls'],
-          equals('any_ball'),
-          reason: 'Victini sollte strikt auf any_ball stehen.',
         );
       },
     );

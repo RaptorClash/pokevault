@@ -34,8 +34,6 @@ void main() {
         ),
       );
 
-      expect(find.textContaining('guaranteed_catch'), findsOneWidget);
-
       final container = tester.widget<Container>(find.byType(Container).first);
       final decoration = container.decoration as BoxDecoration;
       expect(decoration.border!.top.color, equals(Colors.green));

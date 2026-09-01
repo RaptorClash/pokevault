@@ -1,9 +1,10 @@
 import 'dart:convert';
-import 'dart:io';
 import 'dart:typed_data';
+import 'package:universal_io/io.dart';
 import 'package:flutter/foundation.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:path_provider/path_provider.dart';
+
 import '../models/user_dex.dart';
 import '../utils/notification_helper.dart';
 import 'package:file_selector/file_selector.dart';
@@ -21,6 +22,7 @@ class DexStorageService {
         'folders': provider.folders.map((f) => f.toJson()).toList(),
         'structure': provider.structure,
       };
+
       final String jsonString = jsonEncode(exportData);
       final String dateString = DateTime.now().toIso8601String().split('T')[0];
       final String timestamp = DateTime.now().millisecondsSinceEpoch.toString();
@@ -33,6 +35,7 @@ class DexStorageService {
           name: fileName,
           mimeType: 'application/json',
         );
+
         await Share.shareXFiles([xFile], text: Translator.get('share_text'));
 
         NotificationHelper.showSuccess(
@@ -45,11 +48,13 @@ class DexStorageService {
 
       bool isDesktop =
           Platform.isWindows || Platform.isLinux || Platform.isMacOS;
+
       if (isDesktop) {
         Directory? directory = await getDownloadsDirectory();
         directory ??= await getApplicationDocumentsDirectory();
         final file = File('${directory.path}/$fileName');
         await file.writeAsString(jsonString);
+
         NotificationHelper.showSuccess(
           "${Translator.get('backup_success')}\n${file.path}",
         );
@@ -98,9 +103,11 @@ class DexStorageService {
         label: Translator.get('json_files'),
         extensions: const <String>['json'],
       );
+
       final XFile? file = await openFile(
         acceptedTypeGroups: <XTypeGroup>[typeGroup],
       );
+
       if (file != null) {
         final String jsonString = await file.readAsString();
         return jsonDecode(jsonString);

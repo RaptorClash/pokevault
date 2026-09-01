@@ -1,5 +1,5 @@
 import 'dart:convert';
-import 'dart:io';
+import 'package:universal_io/io.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -29,7 +29,6 @@ class UpdateHelper {
 
   static Future<List<UpdateInfo>> getAllReleases() async {
     if (kIsWeb) return [];
-
     try {
       final response = await http.get(
         Uri.parse(
@@ -49,6 +48,7 @@ class UpdateHelper {
           List assets = release['assets'] ?? [];
           for (var asset in assets) {
             String assetName = asset['name'].toString().toLowerCase();
+
             if (Platform.isAndroid && assetName.endsWith('.apk')) {
               downloadUrl = asset['browser_download_url'];
               fileExtension = '.apk';
@@ -85,7 +85,6 @@ class UpdateHelper {
 
   static Future<UpdateInfo?> checkForUpdate() async {
     if (kIsWeb) return null;
-
     try {
       final response = await http.get(
         Uri.parse(
@@ -104,10 +103,11 @@ class UpdateHelper {
         if (_isNewerVersion(currentVersion, latestVersion)) {
           String downloadUrl = '';
           String fileExtension = '';
-          List assets = data['assets'] ?? [];
 
+          List assets = data['assets'] ?? [];
           for (var asset in assets) {
             String assetName = asset['name'].toString().toLowerCase();
+
             if (Platform.isAndroid && assetName.endsWith('.apk')) {
               downloadUrl = asset['browser_download_url'];
               fileExtension = '.apk';
@@ -168,6 +168,7 @@ class UpdateHelper {
     Function(double) onProgress,
   ) async {
     if (kIsWeb) throw Exception("Nicht im Web unterstützt");
+
     int maxRetries = 3;
     for (int attempt = 1; attempt <= maxRetries; attempt++) {
       try {
@@ -202,6 +203,7 @@ class UpdateHelper {
               onProgress(downloaded / contentLength);
             }
           }
+
           await sink.flush();
           await sink.close();
           return savePath;
@@ -226,6 +228,7 @@ class UpdateHelper {
     Function(double) onProgress,
   ) async {
     if (kIsWeb) return;
+
     String savePath = await downloadOnly(url, version, extension, onProgress);
     if (Platform.isWindows && extension == '.zip') {
       await _installWindowsUpdate(savePath);
@@ -251,24 +254,20 @@ class UpdateHelper {
         '''
 @echo off
 set RETRIES=0
-timeout /t 3 /nobreak > NUL
-
 :Extract
+timeout /t 2 /nobreak > NUL
 powershell -Command "try { Expand-Archive -Path '$zipW' -DestinationPath '$appW' -Force } catch { exit 1 }" > NUL 2>&1
 if %errorlevel% equ 0 goto Success
-
-:Fail
 set /a RETRIES+=1
-if %RETRIES% geq 5 goto Success
-timeout /t 2 /nobreak > NUL
-goto Extract
-
+if %RETRIES% lss 5 goto Extract
+goto Success
 :Success
 start "" "$exeW"
 del "$zipW"
 del "$vbsW"
 del "%~f0"
 ''';
+
     File batFile = File(batPath);
     await batFile.writeAsString(batContent);
 
@@ -278,6 +277,7 @@ Set WshShell = CreateObject("WScript.Shell")
 WshShell.Run chr(34) & "$batPath" & chr(34), 0, False
 Set WshShell = Nothing
 ''';
+
     File vbsFile = File(vbsPath);
     await vbsFile.writeAsString(vbsContent);
 

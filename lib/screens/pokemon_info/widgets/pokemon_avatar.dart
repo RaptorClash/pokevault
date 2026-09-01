@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:provider/provider.dart';
+
 import '../../../providers/dex_provider.dart';
 import '../../../l10n/app_translations.dart';
 import '../../../utils/notification_helper.dart';
@@ -28,14 +30,15 @@ class PokemonAvatar extends StatelessWidget {
     try {
       final provider = context.read<DexProvider>();
       final p = provider.allPokemon.firstWhere((p) => p.id == id);
-
       bool showAsShiny = isShiny && !isCarrier;
+
       final String imgUrl =
           'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${showAsShiny ? "shiny/" : ""}$id.png';
       final String name = p.getName(Translator.currentLanguage);
 
       IconData genderIcon = Icons.transgender;
       Color genderColor = Colors.grey;
+
       if (gender == 'm') {
         genderIcon = Icons.male;
         genderColor = Colors.blueAccent;
@@ -75,20 +78,32 @@ class PokemonAvatar extends StatelessWidget {
                   ),
                   child: Padding(
                     padding: EdgeInsets.all(4.0 * sizeScale),
-                    child: CachedNetworkImage(
-                      imageUrl: imgUrl,
-                      fit: BoxFit.contain,
-                      fadeInDuration: const Duration(milliseconds: 200),
-                      placeholder: (context, url) => Padding(
-                        padding: EdgeInsets.all(8.0 * sizeScale),
-                        child: const CircularProgressIndicator(strokeWidth: 2),
-                      ),
-                      errorWidget: (context, url, error) => Icon(
-                        Icons.catching_pokemon,
-                        color: Colors.grey,
-                        size: 24 * sizeScale,
-                      ),
-                    ),
+                    child: kIsWeb
+                        ? Image.network(
+                            imgUrl,
+                            fit: BoxFit.contain,
+                            errorBuilder: (context, error, stackTrace) => Icon(
+                              Icons.catching_pokemon,
+                              color: Colors.grey,
+                              size: 24 * sizeScale,
+                            ),
+                          )
+                        : CachedNetworkImage(
+                            imageUrl: imgUrl,
+                            fit: BoxFit.contain,
+                            fadeInDuration: const Duration(milliseconds: 200),
+                            placeholder: (context, url) => Padding(
+                              padding: EdgeInsets.all(8.0 * sizeScale),
+                              child: const CircularProgressIndicator(
+                                strokeWidth: 2,
+                              ),
+                            ),
+                            errorWidget: (context, url, error) => Icon(
+                              Icons.catching_pokemon,
+                              color: Colors.grey,
+                              size: 24 * sizeScale,
+                            ),
+                          ),
                   ),
                 ),
                 if (showAsShiny)

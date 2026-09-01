@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter/foundation.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:pokevault/models/pokemon.dart';
 import 'package:pokevault/providers/dex_provider.dart';
 import 'package:pokevault/screens/pokemon_info/widgets/pokemon_avatar.dart';
@@ -29,10 +31,8 @@ void main() {
         speed: 90,
         forms: [],
       );
-
       when(() => mockProvider.allPokemon).thenReturn([dummyPokemon]);
       when(() => mockProvider.currentLanguage).thenReturn('de');
-
       Translator.currentLanguage = 'de';
     });
 
@@ -81,9 +81,20 @@ void main() {
       await tester.pumpWidget(
         buildAvatar(isShiny: true, gender: 'f', isCarrier: true),
       );
-
       expect(find.byIcon(Icons.star), findsNothing);
       expect(find.textContaining('Trägerin'), findsOneWidget);
+    });
+
+    testWidgets('Rendert das korrekte Image-Widget (Web vs. Native)', (
+      WidgetTester tester,
+    ) async {
+      await tester.pumpWidget(buildAvatar(isShiny: false, gender: 'any'));
+
+      if (kIsWeb) {
+        expect(find.byType(Image), findsWidgets);
+      } else {
+        expect(find.byType(CachedNetworkImage), findsOneWidget);
+      }
     });
   });
 }
