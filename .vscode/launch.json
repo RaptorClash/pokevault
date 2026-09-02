@@ -1,0 +1,32 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Pokevault (Android)",
+      "request": "launch",
+      "type": "dart"
+    },
+    {
+      "name": "Pokevault (Windows)",
+      "request": "launch",
+      "type": "dart",
+      "deviceId": "windows"
+    },
+    {
+      "name": "Pokevault (Web)",
+      "request": "launch",
+      "type": "dart",
+      "deviceId": "chrome"
+    }
+  ],
+  "compounds": [
+    {
+      "name": "Alle Plattformen starten",
+      "configurations": [
+        "Pokevault (Android)",
+        "Pokevault (Windows)",
+        "Pokevault (Web)"
+      ]
+    }
+  ]
+}

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 
 class HolePainter extends CustomPainter {
   final Rect? rect;
+
   HolePainter({required this.rect});
 
   @override
@@ -11,21 +12,15 @@ class HolePainter extends CustomPainter {
       ..color = Colors.black.withValues(alpha: 0.8)
       ..style = PaintingStyle.fill;
 
-    final screenPath = Path()
+    final path = Path()
+      ..fillType = PathFillType.evenOdd
       ..addRect(Rect.fromLTWH(0, 0, size.width, size.height));
 
     if (rect != null) {
-      final holePath = Path()
-        ..addRRect(RRect.fromRectAndRadius(rect!, const Radius.circular(16)));
-      final combinedPath = Path.combine(
-        PathOperation.difference,
-        screenPath,
-        holePath,
-      );
-      canvas.drawPath(combinedPath, paint);
-    } else {
-      canvas.drawPath(screenPath, paint);
+      path.addRRect(RRect.fromRectAndRadius(rect!, const Radius.circular(16)));
     }
+
+    canvas.drawPath(path, paint);
   }
 
   @override
@@ -70,8 +65,10 @@ class LightningPainter extends CustomPainter {
         dx += (i % 2 == 0 ? 30 : -30);
         dy += (i % 2 == 0 ? -30 : 30);
       }
+
       path.lineTo(dx, dy);
     }
+
     canvas.drawPath(path, paint);
   }
 
