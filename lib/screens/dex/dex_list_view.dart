@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-
+import 'package:provider/provider.dart';
 import '../../models/user_dex.dart';
 import '../../models/dex_view_models.dart';
 import '../../providers/dex_provider.dart';
+import '../../providers/settings_provider.dart';
 import '../../l10n/app_translations.dart';
 import '../pokemon_info/pokemon_info_screen.dart';
 
@@ -25,6 +26,8 @@ class DexListView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final currentLanguage = context.watch<SettingsProvider>().currentLanguage;
+
     if (displayList.isEmpty) {
       return Center(child: Text(Translator.get('empty_box')));
     }
@@ -151,7 +154,7 @@ class DexListView extends StatelessWidget {
                         child: FittedBox(
                           fit: BoxFit.scaleDown,
                           child: Text(
-                            entry.pokemon.getName(provider.currentLanguage) +
+                            entry.pokemon.getName(currentLanguage) +
                                 entry.displaySuffix,
                             style: TextStyle(
                               fontWeight: isCaught

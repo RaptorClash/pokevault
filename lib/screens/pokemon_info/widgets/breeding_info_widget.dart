@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../../l10n/app_translations.dart';
 import '../../../models/pokemon.dart';
 import '../../../providers/dex_provider.dart';
+import '../../../providers/settings_provider.dart';
 import '../../../services/database_service.dart';
 import 'pokemon_avatar.dart';
 
@@ -210,7 +211,8 @@ class BreedingInfoWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<DexProvider>();
-    final lang = provider.currentLanguage;
+    final settingsProvider = context.watch<SettingsProvider>();
+    final lang = settingsProvider.currentLanguage;
 
     String genderText = _getGenderText(pokemon.genderRate);
     IconData genderIcon = _getGenderIcon(pokemon.genderRate);

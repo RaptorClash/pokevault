@@ -10,6 +10,7 @@ import 'providers/tutorial_provider.dart';
 import 'screens/home/home_screen.dart';
 import 'utils/notification_helper.dart';
 import 'l10n/app_translations.dart';
+import 'providers/settings_provider.dart';
 
 void main() {
   try {
@@ -32,6 +33,7 @@ void main() {
           ChangeNotifierProvider(create: (_) => ThemeProvider()),
           ChangeNotifierProvider(create: (context) => DexProvider()),
           ChangeNotifierProvider(create: (_) => TutorialProvider()),
+          ChangeNotifierProvider(create: (_) => SettingsProvider()),
         ],
         child: const PokedexApp(),
       ),
@@ -48,6 +50,7 @@ class PokedexApp extends StatelessWidget {
   Widget build(BuildContext context) {
     final dexProvider = context.watch<DexProvider>();
     final themeProvider = Provider.of<ThemeProvider>(context);
+    final settingsProvider = context.watch<SettingsProvider>();
 
     return MaterialApp(
       title: 'Poke Vault',
@@ -70,7 +73,7 @@ class PokedexApp extends StatelessWidget {
         scaffoldBackgroundColor: themeProvider.darkBackgroundColor,
         useMaterial3: true,
       ),
-      themeMode: dexProvider.themeMode,
+      themeMode: settingsProvider.themeMode,
       home: const HomeScreen(),
     );
   }

@@ -3,11 +3,12 @@ import 'package:provider/provider.dart';
 
 import '../../models/dex_view_models.dart';
 import '../../providers/dex_provider.dart';
+import '../../providers/settings_provider.dart';
 import '../../providers/tutorial_provider.dart';
 import '../../models/tutorial_step.dart';
 import '../../widgets/tutorial/tutorial_overlay.dart';
 import '../../l10n/app_translations.dart';
-import '../../widgets/universal_poke_image.dart'; // NEU
+import '../../widgets/universal_poke_image.dart';
 
 class IgnoredListScreen extends StatefulWidget {
   final String dexId;
@@ -81,6 +82,7 @@ class _IgnoredListScreenState extends State<IgnoredListScreen> {
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<DexProvider>();
+    final settingsProvider = context.watch<SettingsProvider>();
     final liveDex = provider.userDexes.firstWhere((d) => d.id == widget.dexId);
 
     final ignoredEntries = widget.allRawEntries
@@ -102,7 +104,7 @@ class _IgnoredListScreenState extends State<IgnoredListScreen> {
                     height: 50,
                   ),
                   title: Text(
-                    entry.pokemon.getName(provider.currentLanguage) +
+                    entry.pokemon.getName(settingsProvider.currentLanguage) +
                         entry.displaySuffix,
                   ),
                   subtitle: Text(

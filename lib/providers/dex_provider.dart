@@ -1,14 +1,11 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
-
 import '../models/pokemon.dart';
 import '../models/user_dex.dart';
 import '../services/database_service.dart';
 import '../services/dex_storage_service.dart';
+import '../services/migration_service.dart';
 import '../utils/notification_helper.dart';
-import '../l10n/app_translations.dart';
 
 class DexProvider with ChangeNotifier {
   List<UserDex> userDexes = [];
@@ -18,9 +15,6 @@ class DexProvider with ChangeNotifier {
   List<Pokemon> allPokemon = [];
   Map<String, List<int>> allAvailableDexes = {};
   Map<String, String> ballUrls = {};
-
-  ThemeMode themeMode = ThemeMode.system;
-  String currentLanguage = 'de';
 
   bool _isInitialized = false;
   bool get isInitialized => _isInitialized;
@@ -36,41 +30,12 @@ class DexProvider with ChangeNotifier {
 
   Future<void> _init() async {
     try {
-      final prefs = await SharedPreferences.getInstance();
+      isMigrating = true;
+      notifyListeners();
 
-      currentLanguage = prefs.getString('language') ?? 'de';
-      Translator.currentLanguage = currentLanguage;
+      await MigrationService.migrateOldDataIfNeeded(db);
 
-      String tm = 'system';
-      try {
-        tm = prefs.getString('themeMode') ?? 'system';
-      } catch (_) {
-        int oldTheme = prefs.getInt('themeMode') ?? 0;
-        if (oldTheme == 1)
-          tm = 'light';
-        else if (oldTheme == 2)
-          tm = 'dark';
-        await prefs.setString('themeMode', tm);
-      }
-
-      if (tm == 'light')
-        themeMode = ThemeMode.light;
-      else if (tm == 'dark')
-        themeMode = ThemeMode.dark;
-
-      bool isMigrated = prefs.getBool('migrated_to_sqlite_v2') ?? false;
-      if (!isMigrated) {
-        if (prefs.getString('saved_dexes') != null ||
-            prefs.getString('saved_folders') != null) {
-          isMigrating = true;
-          notifyListeners();
-
-          await _migrateOldData(prefs);
-        }
-
-        await prefs.setBool('migrated_to_sqlite_v2', true);
-        isMigrating = false;
-      }
+      isMigrating = false;
 
       allPokemon = await db.getAllPokemon();
       allAvailableDexes = await db.getAllDexOrders();
@@ -86,77 +51,6 @@ class DexProvider with ChangeNotifier {
       NotificationHelper.showError("Fehler beim Laden der App-Daten: $e");
       debugPrint("Init Error: $e\n$stacktrace");
     }
-  }
-
-  Future<void> _migrateOldData(SharedPreferences prefs) async {
-    try {
-      debugPrint("Starte Daten-Migration in die SQLite-Datenbank...");
-
-      String? oldDexesJson = prefs.getString('saved_dexes');
-      String? oldFoldersJson = prefs.getString('saved_folders');
-      String? oldStructureJson = prefs.getString('saved_structure');
-
-      if (oldDexesJson != null) {
-        List<dynamic> decodedDexes = jsonDecode(oldDexesJson);
-        for (var d in decodedDexes) {
-          UserDex dex = UserDex.fromJson(d as Map<String, dynamic>);
-          await db.saveUserDex(dex);
-          for (var uid in dex.caughtIds)
-            await db.savePokemonStatus(dex.id, uid, isCaught: true);
-          for (var uid in dex.shinyIds)
-            await db.savePokemonStatus(dex.id, uid, isShiny: true);
-          for (var uid in dex.ignoredIds)
-            await db.savePokemonStatus(dex.id, uid, isIgnored: true);
-        }
-      }
-
-      if (oldFoldersJson != null) {
-        List<dynamic> decodedFolders = jsonDecode(oldFoldersJson);
-        for (var f in decodedFolders) {
-          DexFolder folder = DexFolder.fromMap(f as Map<String, dynamic>);
-          await db.saveFolder(folder);
-        }
-      }
-
-      if (oldStructureJson != null) {
-        Map<String, dynamic> decodedStruct = jsonDecode(oldStructureJson);
-        Map<String, List<String>> newStruct = {};
-        decodedStruct.forEach((key, value) {
-          newStruct[key] = List<String>.from(value);
-        });
-        await db.saveStructure(newStruct);
-      }
-
-      await prefs.remove('saved_dexes');
-      await prefs.remove('saved_folders');
-      await prefs.remove('saved_structure');
-
-      debugPrint("Migration erfolgreich abgeschlossen und Cache aufgeräumt!");
-    } catch (e) {
-      debugPrint("Fehler bei der automatischen Migration: $e");
-    }
-  }
-
-  void setLanguage(String lang) async {
-    currentLanguage = lang;
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('language', lang);
-    Translator.currentLanguage = lang;
-    notifyListeners();
-  }
-
-  void toggleTheme() async {
-    if (themeMode == ThemeMode.dark) {
-      themeMode = ThemeMode.light;
-    } else {
-      themeMode = ThemeMode.dark;
-    }
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(
-      'themeMode',
-      themeMode == ThemeMode.dark ? 'dark' : 'light',
-    );
-    notifyListeners();
   }
 
   void createDex(
@@ -277,6 +171,23 @@ class DexProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  void reorderItem(String folderId, int oldIndex, int newIndex) {
+    if (!structure.containsKey(folderId)) return;
+
+    final list = structure[folderId]!;
+    if (oldIndex < 0 ||
+        oldIndex >= list.length ||
+        newIndex < 0 ||
+        newIndex > list.length)
+      return;
+
+    final item = list.removeAt(oldIndex);
+    list.insert(newIndex, item);
+
+    db.saveStructure(structure);
+    notifyListeners();
+  }
+
   bool isDescendant(String parentId, String potentialChildId) {
     if (parentId == potentialChildId) return true;
     final children = structure[parentId] ?? [];
@@ -373,25 +284,5 @@ class DexProvider with ChangeNotifier {
       notifyListeners();
       NotificationHelper.showSuccess('Import erfolgreich!');
     }
-  }
-
-  void reorderItem(String folderId, int oldIndex, int newIndex) {
-    if (!structure.containsKey(folderId)) return;
-
-    final list = structure[folderId]!;
-    if (oldIndex < 0 ||
-        oldIndex >= list.length ||
-        newIndex < 0 ||
-        newIndex > list.length)
-      return;
-
-    // Element an der alten Position entfernen und an der neuen einfügen
-    final item = list.removeAt(oldIndex);
-    list.insert(newIndex, item);
-
-    // FIX: Die Variable heißt wahrscheinlich databaseService oder _databaseService
-    db.saveStructure(structure);
-
-    notifyListeners();
   }
 }

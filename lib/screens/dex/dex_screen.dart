@@ -2,11 +2,11 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
 import '../../models/user_dex.dart';
 import '../../models/pokemon.dart';
 import '../../models/dex_view_models.dart';
 import '../../providers/dex_provider.dart';
+import '../../providers/settings_provider.dart';
 import '../../providers/tutorial_provider.dart';
 import '../../models/tutorial_step.dart';
 import '../../widgets/tutorial/tutorial_overlay.dart';
@@ -78,7 +78,7 @@ class _DexScreenState extends State<DexScreen> {
       _separateForms =
           prefs.getBool('separate_forms_${widget.initialDex.id}') ?? true;
 
-      final lang = context.read<DexProvider>().currentLanguage;
+      final lang = context.read<SettingsProvider>().currentLanguage;
 
       _rawEntries = await DexLogicHelper.buildEntriesInBackground(
         widget.initialDex,
@@ -127,7 +127,7 @@ class _DexScreenState extends State<DexScreen> {
           .where((e) => !liveDex.ignoredIds.contains(e.uniqueId))
           .toList();
 
-      final lang = context.read<DexProvider>().currentLanguage;
+      final lang = context.read<SettingsProvider>().currentLanguage;
 
       final newBoxes = await DexLogicHelper.generateBoxesInBackground(
         baseList,
@@ -275,12 +275,17 @@ class _DexScreenState extends State<DexScreen> {
   void _showMachomeiFoundTutorial() {
     final tutProvider = Provider.of<TutorialProvider>(context, listen: false);
     final dexProvider = Provider.of<DexProvider>(context, listen: false);
+    final settingsProvider = Provider.of<SettingsProvider>(
+      context,
+      listen: false,
+    );
+    final lang = settingsProvider.currentLanguage;
 
     final baseList = _rawEntries
         .where((e) => !widget.initialDex.ignoredIds.contains(e.uniqueId))
         .toList();
     final filtered = baseList
-        .where((e) => _matchesSearch(e, widget.initialDex, dexProvider))
+        .where((e) => _matchesSearch(e, widget.initialDex, dexProvider, lang))
         .toList();
 
     if (filtered.isNotEmpty) {
@@ -378,6 +383,7 @@ class _DexScreenState extends State<DexScreen> {
     DexDisplayEntry entry,
     UserDex liveDex,
     DexProvider provider,
+    String currentLanguage,
   ) {
     if (_searchQuery.trim().isEmpty) return true;
 
@@ -457,7 +463,7 @@ class _DexScreenState extends State<DexScreen> {
                 final targetPoke = widget.pokemonList
                     .where(
                       (p) =>
-                          p.getName(provider.currentLanguage).toLowerCase() ==
+                          p.getName(currentLanguage).toLowerCase() ==
                           familyTarget,
                     )
                     .firstOrNull;
@@ -488,7 +494,7 @@ class _DexScreenState extends State<DexScreen> {
                 match = true;
               } else {
                 final baseName = entry.pokemon
-                    .getName(provider.currentLanguage)
+                    .getName(currentLanguage)
                     .toLowerCase();
                 final fullName = (baseName + entry.displaySuffix).toLowerCase();
 
@@ -634,6 +640,8 @@ class _DexScreenState extends State<DexScreen> {
     }
 
     final provider = context.watch<DexProvider>();
+    final settingsProvider = context.watch<SettingsProvider>();
+
     final liveDex = provider.userDexes.firstWhere(
       (d) => d.id == widget.initialDex.id,
       orElse: () => widget.initialDex,
@@ -656,7 +664,12 @@ class _DexScreenState extends State<DexScreen> {
       if (_filter == 'caught' && !isCaught) return false;
       if (_filter == 'uncaught' && isCaught) return false;
 
-      return _matchesSearch(entry, liveDex, provider);
+      return _matchesSearch(
+        entry,
+        liveDex,
+        provider,
+        settingsProvider.currentLanguage,
+      );
     }).toList();
 
     final totalCount = baseList.length;
@@ -830,8 +843,7 @@ class _DexScreenState extends State<DexScreen> {
                 MaterialPageRoute(
                   builder: (context) => RouteTrackerScreen(
                     liveDex: liveDex,
-                    displayEntries:
-                        _rawEntries,
+                    displayEntries: _rawEntries,
                   ),
                 ),
               );

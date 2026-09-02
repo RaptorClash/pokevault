@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
+
 import 'downgrade_screen.dart';
 import '../../providers/theme_provider.dart';
 import '../../providers/dex_provider.dart';
@@ -12,6 +13,7 @@ import '../../l10n/app_translations.dart';
 import '../../utils/notification_helper.dart';
 import '../../utils/update_helper.dart';
 import '../../widgets/dialogs/update_dialog.dart';
+import '../../providers/settings_provider.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -30,6 +32,7 @@ class SettingsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final dexProvider = context.watch<DexProvider>();
     final themeProvider = context.watch<ThemeProvider>();
+    final settingsProvider = context.watch<SettingsProvider>();
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
@@ -48,9 +51,9 @@ class SettingsScreen extends StatelessWidget {
               children: [
                 SwitchListTile(
                   title: Text(Translator.get('dark_mode')),
-                  value: dexProvider.themeMode == ThemeMode.dark,
+                  value: settingsProvider.themeMode == ThemeMode.dark,
                   onChanged: (bool value) {
-                    dexProvider.toggleTheme();
+                    settingsProvider.toggleTheme();
                   },
                 ),
                 const Divider(height: 1),
@@ -202,7 +205,7 @@ class SettingsScreen extends StatelessWidget {
                   title: Text(Translator.get('language')),
                   subtitle: Text(Translator.get('current_language')),
                   trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-                  onTap: () => _showLanguageDialog(context, dexProvider),
+                  onTap: () => _showLanguageDialog(context, settingsProvider),
                 ),
                 const Divider(height: 1),
                 ListTile(
@@ -506,14 +509,9 @@ class SettingsScreen extends StatelessWidget {
         }),
         GestureDetector(
           onTap: () {
-            final dexProvider = Provider.of<DexProvider>(
-              context,
-              listen: false,
-            );
             _showColorPickerDialog(
               context,
               themeProvider,
-              dexProvider,
               isDarkMode,
               isBackground,
             );
@@ -563,7 +561,7 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 
-  void _showLanguageDialog(BuildContext context, DexProvider provider) {
+  void _showLanguageDialog(BuildContext context, SettingsProvider provider) {
     try {
       showDialog(
         context: context,
@@ -599,7 +597,6 @@ class SettingsScreen extends StatelessWidget {
   void _showColorPickerDialog(
     BuildContext context,
     ThemeProvider themeProvider,
-    DexProvider dexProvider,
     bool isDarkMode,
     bool isBackground,
   ) {

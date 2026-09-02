@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
 import '../../../models/dex_view_models.dart';
 import '../../../models/pokemon.dart';
 import '../../../providers/dex_provider.dart';
+import '../../../providers/settings_provider.dart';
 import '../../../services/database_service.dart';
 import '../../../l10n/app_translations.dart';
 import '../../../utils/notification_helper.dart';
-import '../../../widgets/universal_poke_image.dart'; // NEU
+import '../../../widgets/universal_poke_image.dart';
 
 const Map<String, Color> pokemonTypeColors = {
   'normal': Color(0xFFA8A77A),
@@ -168,6 +168,8 @@ class PokemonBasicInfoWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final settingsProvider = context.watch<SettingsProvider>();
+
     try {
       return Container(
         key: basicInfoKey,
@@ -182,7 +184,7 @@ class PokemonBasicInfoWidget extends StatelessWidget {
               ),
             ),
             Text(
-              entry.pokemon.getName(provider.currentLanguage),
+              entry.pokemon.getName(settingsProvider.currentLanguage),
               style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
               textAlign: TextAlign.center,
             ),

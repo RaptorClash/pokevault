@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../models/dex_view_models.dart';
 import '../../models/user_dex.dart';
 import '../../providers/dex_provider.dart';
+import '../../providers/settings_provider.dart';
 import '../../services/database_service.dart';
 import '../../l10n/app_translations.dart';
 
@@ -70,6 +71,7 @@ class _RouteTrackerScreenState extends State<RouteTrackerScreen> {
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<DexProvider>();
+    final settingsProvider = context.watch<SettingsProvider>();
 
     return Scaffold(
       appBar: AppBar(
@@ -126,7 +128,9 @@ class _RouteTrackerScreenState extends State<RouteTrackerScreen> {
                           height: 40,
                         ),
                         title: Text(
-                          entry.pokemon.getName(provider.currentLanguage) +
+                          entry.pokemon.getName(
+                                settingsProvider.currentLanguage,
+                              ) +
                               entry.displaySuffix,
                         ),
                         subtitle: Text(
