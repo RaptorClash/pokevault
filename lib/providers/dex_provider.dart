@@ -74,6 +74,9 @@ class DexProvider with ChangeNotifier {
       includeGMax: includeGMax,
       includeOther: includeOther,
       isShinyDex: isShinyDex,
+      caughtIds: [],
+      shinyIds: [],
+      ignoredIds: [],
     );
     userDexes.add(newDex);
     structure.putIfAbsent(folderId, () => []).add(newDex.id);
@@ -201,24 +204,62 @@ class DexProvider with ChangeNotifier {
   void togglePokemon(String dexId, String pokemonUniqueId) {
     final dex = userDexes.firstWhere((d) => d.id == dexId);
     bool isCaught = !dex.caughtIds.contains(pokemonUniqueId);
+
     if (isCaught) {
       dex.caughtIds.add(pokemonUniqueId);
     } else {
       dex.caughtIds.remove(pokemonUniqueId);
     }
-    db.savePokemonStatus(dexId, pokemonUniqueId, isCaught: isCaught);
+
+    bool isCurrentlyShiny = dex.shinyIds.contains(pokemonUniqueId);
+
+    if (dex.isShinyDex && isCurrentlyShiny != isCaught) {
+      if (isCaught) {
+        dex.shinyIds.add(pokemonUniqueId);
+      } else {
+        dex.shinyIds.remove(pokemonUniqueId);
+      }
+      db.savePokemonStatus(
+        dexId,
+        pokemonUniqueId,
+        isCaught: isCaught,
+        isShiny: isCaught,
+      );
+    } else {
+      db.savePokemonStatus(dexId, pokemonUniqueId, isCaught: isCaught);
+    }
+
     notifyListeners();
   }
 
   void toggleShiny(String dexId, String pokemonUniqueId) {
     final dex = userDexes.firstWhere((d) => d.id == dexId);
     bool isShiny = !dex.shinyIds.contains(pokemonUniqueId);
+
     if (isShiny) {
       dex.shinyIds.add(pokemonUniqueId);
     } else {
       dex.shinyIds.remove(pokemonUniqueId);
     }
-    db.savePokemonStatus(dexId, pokemonUniqueId, isShiny: isShiny);
+
+    bool isCurrentlyCaught = dex.caughtIds.contains(pokemonUniqueId);
+
+    if (dex.isShinyDex && isCurrentlyCaught != isShiny) {
+      if (isShiny) {
+        dex.caughtIds.add(pokemonUniqueId);
+      } else {
+        dex.caughtIds.remove(pokemonUniqueId);
+      }
+      db.savePokemonStatus(
+        dexId,
+        pokemonUniqueId,
+        isShiny: isShiny,
+        isCaught: isShiny,
+      );
+    } else {
+      db.savePokemonStatus(dexId, pokemonUniqueId, isShiny: isShiny);
+    }
+
     notifyListeners();
   }
 

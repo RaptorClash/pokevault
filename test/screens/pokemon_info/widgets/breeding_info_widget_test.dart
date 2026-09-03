@@ -4,19 +4,24 @@ import 'package:mocktail/mocktail.dart';
 import 'package:provider/provider.dart';
 import 'package:pokevault/models/pokemon.dart';
 import 'package:pokevault/providers/dex_provider.dart';
+import 'package:pokevault/providers/settings_provider.dart';
 import 'package:pokevault/screens/pokemon_info/widgets/breeding_info_widget.dart';
 import 'package:pokevault/l10n/app_translations.dart';
 
 class MockDexProvider extends Mock implements DexProvider {}
 
+class MockSettingsProvider extends Mock implements SettingsProvider {}
+
 void main() {
   group('BreedingInfoWidget UI Tests', () {
     late MockDexProvider mockProvider;
+    late MockSettingsProvider mockSettingsProvider;
 
     setUp(() {
       Translator.currentLanguage = 'de';
       mockProvider = MockDexProvider();
-      when(() => mockProvider.currentLanguage).thenReturn('de');
+      mockSettingsProvider = MockSettingsProvider();
+      when(() => mockSettingsProvider.currentLanguage).thenReturn('de');
     });
 
     Widget buildWidget(int genderRate) {
@@ -36,8 +41,13 @@ void main() {
 
       return MaterialApp(
         home: Scaffold(
-          body: ChangeNotifierProvider<DexProvider>.value(
-            value: mockProvider,
+          body: MultiProvider(
+            providers: [
+              ChangeNotifierProvider<DexProvider>.value(value: mockProvider),
+              ChangeNotifierProvider<SettingsProvider>.value(
+                value: mockSettingsProvider,
+              ),
+            ],
             child: BreedingInfoWidget(pokemon: testPokemon),
           ),
         ),

@@ -75,12 +75,14 @@ class _TutorialOverlayState extends State<TutorialOverlay>
   bool _easterEggTriggered = false;
   String? _overrideText;
   Offset? _easterEggPos;
+  int _wrongTapCount = 0;
+  DateTime? _lastWrongTapTime;
 
   @override
   void initState() {
     super.initState();
     _currentIndex = widget.initialIndex;
-    if (_currentIndex >= widget.initialIndex) {
+    if (_currentIndex >= widget.feature.steps.length) {
       _currentIndex = 0;
     }
 
@@ -273,6 +275,7 @@ class _TutorialOverlayState extends State<TutorialOverlay>
 
   void _triggerRotomAutoSwipe() async {
     if (_isAdvancing) return;
+
     setState(() {
       _isEasterEggActive = true;
       _easterEggTriggered = true;
@@ -297,19 +300,23 @@ class _TutorialOverlayState extends State<TutorialOverlay>
       });
     }
 
-    await Future.delayed(const Duration(milliseconds: 1500));
+    await Future.delayed(const Duration(milliseconds: 2000));
     if (!mounted) return;
 
     ScrollableState? scrollable = _findScrollable(
       step.targetKey?.currentContext,
     );
+
+    setState(() => _isAdvancing = true);
+
     if (scrollable != null) {
       setState(() {
         _easterEggPos = Offset(
-          -MediaQuery.of(context).size.width,
+          MediaQuery.of(context).size.width + 100,
           _easterEggPos?.dy ?? 0,
         );
       });
+
       try {
         await scrollable.position.animateTo(
           0,
@@ -324,12 +331,95 @@ class _TutorialOverlayState extends State<TutorialOverlay>
     }
 
     if (!mounted) return;
+
+    _isAdvancing = false;
+    _nextStep();
+
     setState(() {
       _isEasterEggActive = false;
       _easterEggPos = null;
       _wrongSwipeCount = 0;
     });
+
     _calculateTargetRect();
+  }
+
+  void _handleWrongTap() {
+    if (_isAdvancing || _isEasterEggActive) return;
+
+    final now = DateTime.now();
+    if (_lastWrongTapTime != null &&
+        now.difference(_lastWrongTapTime!).inMilliseconds < 600) {
+      return;
+    }
+    _lastWrongTapTime = now;
+    _wrongTapCount++;
+
+    if (_wrongTapCount >= 3) {
+      _triggerRotomAutoTap();
+    } else {
+      setState(() {
+        _overrideText =
+            Translator.get('tutorial_wrong_tap') != 'tutorial_wrong_tap'
+            ? Translator.get('tutorial_wrong_tap')
+            : 'Klick direkt auf den markierten Bereich!';
+      });
+      Future.delayed(const Duration(seconds: 3), () {
+        if (mounted && !_isEasterEggActive) {
+          setState(() => _overrideText = null);
+        }
+      });
+    }
+  }
+
+  void _triggerRotomAutoTap() async {
+    if (_isAdvancing) return;
+
+    setState(() {
+      _isEasterEggActive = true;
+      _easterEggTriggered = true;
+      _overrideText =
+          Translator.get('tutorial_rotom_angry') != 'tutorial_rotom_angry'
+          ? Translator.get('tutorial_rotom_angry')
+          : 'Na gut, wenn du nicht willst... dann mach ich das eben selbst! ZZZZZZT!';
+    });
+
+    if (_targetRect != null) {
+      setState(() {
+        _easterEggPos = Offset(
+          MediaQuery.of(context).size.width / 4,
+          (_targetRect!.top - 150).clamp(
+            50.0,
+            MediaQuery.of(context).size.height - 300.0,
+          ),
+        );
+      });
+    }
+
+    await Future.delayed(const Duration(milliseconds: 2000));
+    if (!mounted) return;
+
+    final step = widget.feature.steps[_currentIndex];
+    final isLast = _currentIndex == widget.feature.steps.length - 1;
+
+    setState(() => _isAdvancing = true);
+
+    if (isLast) {
+      _skipTutorial();
+      if (step.onTargetTap != null) step.onTargetTap!();
+    } else {
+      if (step.onTargetTap != null) step.onTargetTap!();
+      _isAdvancing = false;
+      _nextStep();
+    }
+
+    if (mounted) {
+      setState(() {
+        _isEasterEggActive = false;
+        _easterEggPos = null;
+        _wrongTapCount = 0;
+      });
+    }
   }
 
   void _handleScroll(double dx, double dy) {
@@ -395,6 +485,7 @@ class _TutorialOverlayState extends State<TutorialOverlay>
           _currentIndex++;
           _overrideText = null;
           _easterEggTriggered = false;
+          _wrongTapCount = 0;
         });
         widget.onStepChanged?.call(_currentIndex);
 
@@ -500,23 +591,33 @@ class _TutorialOverlayState extends State<TutorialOverlay>
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              TextButton(
-                onPressed: _isEasterEggActive ? null : _skipTutorial,
-                child: Text(
-                  Translator.get('tutorial_skip'),
-                  style: const TextStyle(color: Colors.grey),
+              Flexible(
+                child: TextButton(
+                  onPressed: _isEasterEggActive ? null : _skipTutorial,
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(
+                      Translator.get('tutorial_skip'),
+                      style: const TextStyle(color: Colors.grey),
+                    ),
+                  ),
                 ),
               ),
               if (showNextBtn)
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Theme.of(context).colorScheme.primary,
-                    foregroundColor: Theme.of(context).colorScheme.onPrimary,
-                  ),
-                  onPressed: _isEasterEggActive ? null : _nextStep,
-                  child: Text(
-                    Translator.get(
-                      isLast ? 'tutorial_finish' : 'tutorial_next',
+                Flexible(
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Theme.of(context).colorScheme.primary,
+                      foregroundColor: Theme.of(context).colorScheme.onPrimary,
+                    ),
+                    onPressed: _isEasterEggActive ? null : _nextStep,
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(
+                        Translator.get(
+                          isLast ? 'tutorial_finish' : 'tutorial_next',
+                        ),
+                      ),
                     ),
                   ),
                 ),
@@ -548,6 +649,7 @@ class _TutorialOverlayState extends State<TutorialOverlay>
               _targetRect != null &&
               !_isEasterEggActive) {
             if (_targetRect!.contains(event.localPosition)) {
+              _wrongTapCount = 0;
               setState(() => _isAdvancing = true);
               if (isLast) {
                 _skipTutorial();
@@ -557,6 +659,8 @@ class _TutorialOverlayState extends State<TutorialOverlay>
                 _isAdvancing = false;
                 _nextStep();
               }
+            } else {
+              _handleWrongTap();
             }
           }
         },

@@ -6,18 +6,23 @@ import 'package:flutter/foundation.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:pokevault/models/pokemon.dart';
 import 'package:pokevault/providers/dex_provider.dart';
+import 'package:pokevault/providers/settings_provider.dart';
 import 'package:pokevault/screens/pokemon_info/widgets/pokemon_avatar.dart';
 import 'package:pokevault/l10n/app_translations.dart';
 
 class MockDexProvider extends Mock implements DexProvider {}
 
+class MockSettingsProvider extends Mock implements SettingsProvider {}
+
 void main() {
   group('PokemonAvatar Widget Tests', () {
     late MockDexProvider mockProvider;
+    late MockSettingsProvider mockSettingsProvider;
     late Pokemon dummyPokemon;
 
     setUp(() {
       mockProvider = MockDexProvider();
+      mockSettingsProvider = MockSettingsProvider();
       dummyPokemon = Pokemon(
         id: 25,
         nameDe: 'Pikachu',
@@ -32,7 +37,7 @@ void main() {
         forms: [],
       );
       when(() => mockProvider.allPokemon).thenReturn([dummyPokemon]);
-      when(() => mockProvider.currentLanguage).thenReturn('de');
+      when(() => mockSettingsProvider.currentLanguage).thenReturn('de');
       Translator.currentLanguage = 'de';
     });
 
@@ -43,8 +48,13 @@ void main() {
     }) {
       return MaterialApp(
         home: Scaffold(
-          body: ChangeNotifierProvider<DexProvider>.value(
-            value: mockProvider,
+          body: MultiProvider(
+            providers: [
+              ChangeNotifierProvider<DexProvider>.value(value: mockProvider),
+              ChangeNotifierProvider<SettingsProvider>.value(
+                value: mockSettingsProvider,
+              ),
+            ],
             child: PokemonAvatar(
               id: 25,
               isShiny: isShiny,

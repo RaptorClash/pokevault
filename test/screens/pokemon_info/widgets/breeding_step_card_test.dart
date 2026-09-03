@@ -4,17 +4,22 @@ import 'package:mocktail/mocktail.dart';
 import 'package:provider/provider.dart';
 import 'package:pokevault/models/pokemon.dart';
 import 'package:pokevault/providers/dex_provider.dart';
+import 'package:pokevault/providers/settings_provider.dart';
 import 'package:pokevault/screens/pokemon_info/widgets/breeding_step_card.dart';
 import 'package:pokevault/l10n/app_translations.dart';
 
 class MockDexProvider extends Mock implements DexProvider {}
 
+class MockSettingsProvider extends Mock implements SettingsProvider {}
+
 void main() {
   group('BreedingStepCard Widget Tests', () {
     late MockDexProvider mockProvider;
+    late MockSettingsProvider mockSettingsProvider;
 
     setUp(() {
       mockProvider = MockDexProvider();
+      mockSettingsProvider = MockSettingsProvider();
 
       final dummyPikachu = Pokemon(
         id: 25,
@@ -31,14 +36,19 @@ void main() {
       );
 
       when(() => mockProvider.allPokemon).thenReturn([dummyPikachu]);
-      when(() => mockProvider.currentLanguage).thenReturn('de');
+      when(() => mockSettingsProvider.currentLanguage).thenReturn('de');
     });
 
     Widget buildCard({required bool p1Shiny, required bool cCarrier}) {
       return MaterialApp(
         home: Scaffold(
-          body: ChangeNotifierProvider<DexProvider>.value(
-            value: mockProvider,
+          body: MultiProvider(
+            providers: [
+              ChangeNotifierProvider<DexProvider>.value(value: mockProvider),
+              ChangeNotifierProvider<SettingsProvider>.value(
+                value: mockSettingsProvider,
+              ),
+            ],
             child: BreedingStepCard(
               stepNumber: 1,
               parent1Id: 25,

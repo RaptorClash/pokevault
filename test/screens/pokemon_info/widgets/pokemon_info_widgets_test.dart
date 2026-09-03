@@ -8,10 +8,13 @@ import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:pokevault/models/pokemon.dart';
 import 'package:pokevault/models/dex_view_models.dart';
 import 'package:pokevault/providers/dex_provider.dart';
+import 'package:pokevault/providers/settings_provider.dart';
 import 'package:pokevault/screens/pokemon_info/widgets/pokemon_info_widgets.dart';
 import 'package:pokevault/l10n/app_translations.dart';
 
 class MockDexProvider extends Mock implements DexProvider {}
+
+class MockSettingsProvider extends Mock implements SettingsProvider {}
 
 void main() {
   setUpAll(() {
@@ -21,11 +24,14 @@ void main() {
 
   group('PokemonInfoWidgets Tests (Header & Matching Balls)', () {
     late MockDexProvider mockProvider;
+    late MockSettingsProvider mockSettingsProvider;
     late Pokemon dummyPokemon;
     late DexDisplayEntry dummyEntry;
 
     setUp(() {
       mockProvider = MockDexProvider();
+      mockSettingsProvider = MockSettingsProvider();
+
       dummyPokemon = Pokemon(
         id: 25,
         nameDe: 'Pikachu',
@@ -49,7 +55,7 @@ void main() {
       );
 
       when(() => mockProvider.allPokemon).thenReturn([dummyPokemon]);
-      when(() => mockProvider.currentLanguage).thenReturn('de');
+      when(() => mockSettingsProvider.currentLanguage).thenReturn('de');
       when(() => mockProvider.ballUrls).thenReturn({'poke': 'https://url'});
       Translator.currentLanguage = 'de';
     });
@@ -60,8 +66,15 @@ void main() {
         await tester.pumpWidget(
           MaterialApp(
             home: Scaffold(
-              body: ChangeNotifierProvider<DexProvider>.value(
-                value: mockProvider,
+              body: MultiProvider(
+                providers: [
+                  ChangeNotifierProvider<DexProvider>.value(
+                    value: mockProvider,
+                  ),
+                  ChangeNotifierProvider<SettingsProvider>.value(
+                    value: mockSettingsProvider,
+                  ),
+                ],
                 child: PokemonHeaderWidget(
                   entry: dummyEntry,
                   wantShiny: false,
@@ -88,8 +101,13 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: ChangeNotifierProvider<DexProvider>.value(
-              value: mockProvider,
+            body: MultiProvider(
+              providers: [
+                ChangeNotifierProvider<DexProvider>.value(value: mockProvider),
+                ChangeNotifierProvider<SettingsProvider>.value(
+                  value: mockSettingsProvider,
+                ),
+              ],
               child: MatchingBallsWidget(
                 entry: dummyEntry,
                 matchingBallsKey: GlobalKey(),

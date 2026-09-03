@@ -104,26 +104,5 @@ void main() {
 
       verify(() => mockDb.deleteUserDex(dexId)).called(1);
     });
-
-    test('toggleTheme wechselt zwischen Light und Dark Mode', () async {
-      dexProvider.themeMode = ThemeMode.light;
-
-      dexProvider.toggleTheme();
-      await Future.delayed(const Duration(milliseconds: 50));
-      expect(dexProvider.themeMode, equals(ThemeMode.dark));
-
-      dexProvider.toggleTheme();
-      await Future.delayed(const Duration(milliseconds: 50));
-      expect(dexProvider.themeMode, equals(ThemeMode.light));
-    });
-
-    test('setLanguage ändert die Sprache', () async {
-      expect(dexProvider.currentLanguage, equals('de'));
-
-      dexProvider.setLanguage('en');
-      await Future.delayed(const Duration(milliseconds: 50));
-
-      expect(dexProvider.currentLanguage, equals('en'));
-    });
   });
 }
