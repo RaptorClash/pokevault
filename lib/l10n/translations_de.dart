@@ -1394,4 +1394,47 @@ const Map<String, String> translationsDe = {
   'web_backup_warning_text':
       'Achtung: Im Web-Browser können deine Daten gelöscht werden, wenn der Browser-Cache geleert wird. Bitte erstelle regelmäßig Backups!',
   'web_backup_warning_action': 'Verstanden',
+
+  'cloud_sync': 'Cloud-Synchronisation',
+  'google_client_id': 'Google OAuth Client-ID',
+  'google_client_id_help':
+      'Erstelle eine Client-ID in der Google Cloud Console, um Drive zu nutzen.',
+  'auto_sync': 'Automatische Synchronisation',
+  'auto_sync_desc': 'Synchronisiert im Hintergrund beim Schließen der App',
+  'login_drive': 'Drive Login',
+  'logout_drive': 'Drive Logout',
+  'sync_now': 'Jetzt synchronisieren',
+  'sync_success': 'Erfolgreich mit Google Drive synchronisiert!',
+  'tutorial_sync_title': 'Cloud-Speicher einrichten',
+  'tutorial_sync_text':
+      'Trage hier deine eigene Google Client-ID ein, um deine Dexe sicher und kostenlos in deinem versteckten Google Drive App-Ordner zu speichern.',
+  'google_client_secret': 'Google Client-Secret',
+
+  'cloud_tut_title': 'Eigene Cloud einrichten',
+  'cloud_tut_intro':
+      'Da PokeVault völlig kostenlos ist, nutzt du einfach deinen eigenen (kostenlosen) Google-Schlüssel. Deine Daten landen sicher und unsichtbar in deinem eigenen Google Drive.',
+  'cloud_tut_step1':
+      'Gehe in die Google Cloud Console und erstelle ein "Neues Projekt" (du kannst es z.B. "PokeVault" nennen).',
+  'cloud_tut_step2':
+      'Suche in der Leiste oben nach "Google Drive API" und klicke auf "Aktivieren". Suche danach nach der "Google People API" und aktiviere diese ebenfalls.',
+  'cloud_tut_step3':
+      'Gehe links auf "OAuth-Zustimmungsbildschirm" -> "Zielgruppe". Klicke unter "Testnutzer" auf "Add users" und trage die E-Mail-Adresse deines Google Drive-Kontos ein.',
+  'cloud_tut_step4':
+      'Gehe zurück zur Google Drive API-Übersicht, wähle links "Anmeldedaten" und klicke oben auf "+ Anmeldedaten erstellen".',
+  'cloud_tut_step5':
+      'Wähle "OAuth-Client-ID" und als Anwendungstyp zwingend "Desktopanwendung" (bzw. Desktop-App). Als Name kannst du z.B. deinen Gerätenamen eintragen. Klicke auf "Erstellen".',
+  'cloud_tut_step5_web':
+      'Wähle "OAuth-Client-ID" und als Anwendungstyp zwingend "Webanwendung". Trage unter "Autorisierte JavaScript-Quellen" die genaue URL dieser Seite ein. Klicke auf "Erstellen".',
+  'cloud_tut_step6':
+      'Kopiere die angezeigte "Client-ID" und den "Clientschlüssel" (Client-Secret) und füge sie hier in der App ein (oder lade die JSON-Datei herunter, um sie daraus zu kopieren).',
+  'cloud_tut_step6_web':
+      'Kopiere die angezeigte "Client-ID" und füge sie hier in der App ein. Ein Client-Secret wird für die Web-Version nicht benötigt!',
+  'cloud_tut_step7': 'Tippe hier in der App auf "Drive Login".',
+  'cloud_tut_step8':
+      'Wähle im Browserfenster exakt die E-Mail-Adresse aus, die du vorher als Testnutzer eingetragen hast.',
+  'cloud_tut_step9':
+      'Bestätige die Zugriffsanfrage, indem du zweimal auf "Weiter" klickst.',
+  'cloud_tut_step10':
+      'Der Login sollte nun erfolgreich sein! Du kannst das Browserfenster schließen und zur App zurückkehren.',
+  'close': 'Schließen',
 };

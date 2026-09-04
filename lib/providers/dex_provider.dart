@@ -6,8 +6,12 @@ import '../services/database_service.dart';
 import '../services/dex_storage_service.dart';
 import '../services/migration_service.dart';
 import '../utils/notification_helper.dart';
+import 'dart:async';
+import 'package:flutter/widgets.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../services/google_drive_sync_service.dart';
 
-class DexProvider with ChangeNotifier {
+class DexProvider extends ChangeNotifier with WidgetsBindingObserver {
   List<UserDex> userDexes = [];
   List<DexFolder> folders = [];
   Map<String, List<String>> structure = {'root': []};
@@ -23,9 +27,91 @@ class DexProvider with ChangeNotifier {
 
   final DatabaseService db;
 
+  Timer? _uploadDebouncer;
+  Timer? _downloadTimer;
+  DateTime? _lastSyncTime;
+  bool _isSyncing = false;
+  bool _hasPendingChanges = false;
+
   DexProvider({DatabaseService? databaseService})
     : db = databaseService ?? DatabaseService.instance {
     _init();
+    WidgetsBinding.instance.addObserver(this);
+    _downloadTimer = Timer.periodic(const Duration(seconds: 60), (_) {
+      _checkForRemoteUpdates();
+    });
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _uploadDebouncer?.cancel();
+    _downloadTimer?.cancel();
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      if (_hasPendingChanges) {
+        _executeSilentUpload();
+      } else {
+        _checkForRemoteUpdates();
+      }
+    } else if (state == AppLifecycleState.paused) {
+      if (_uploadDebouncer?.isActive ?? false) {
+        _uploadDebouncer!.cancel();
+        _executeSilentUpload();
+      }
+    }
+  }
+
+  void startAutoSyncIfEnabled() async {
+    final prefs = await SharedPreferences.getInstance();
+    bool isAutoSync = prefs.getBool('autoSyncEnabled') ?? false;
+
+    if (isAutoSync && GoogleDriveSyncService.instance.isSignedIn) {
+      await _checkForRemoteUpdates();
+
+      _downloadTimer?.cancel();
+      _downloadTimer = Timer.periodic(const Duration(seconds: 60), (_) {
+        _checkForRemoteUpdates();
+      });
+    }
+  }
+
+  Future<void> _checkForRemoteUpdates() async {
+    if (!GoogleDriveSyncService.instance.isSignedIn || _isSyncing) return;
+
+    final remoteTime = await GoogleDriveSyncService.instance
+        .getRemoteModifiedTime();
+    if (remoteTime == null) return;
+
+    if (_lastSyncTime == null || remoteTime.isAfter(_lastSyncTime!)) {
+      _isSyncing = true;
+      try {
+        debugPrint("Neue Daten in der Cloud gefunden! Lade herunter...");
+        final cloudData = await GoogleDriveSyncService.instance
+            .downloadBackup();
+        if (cloudData != null) {
+          await mergeCloudData(cloudData);
+          _lastSyncTime = DateTime.now().toUtc();
+        }
+      } finally {
+        _isSyncing = false;
+      }
+    }
+  }
+
+  void triggerAutoUpload() {
+    if (!GoogleDriveSyncService.instance.isSignedIn) return;
+
+    _uploadDebouncer?.cancel();
+    _hasPendingChanges = true;
+
+    _uploadDebouncer = Timer(const Duration(seconds: 3), () {
+      _executeSilentUpload();
+    });
   }
 
   Future<void> _init() async {
@@ -83,6 +169,7 @@ class DexProvider with ChangeNotifier {
 
     db.saveUserDex(newDex);
     db.saveStructure(structure);
+    triggerAutoUpload();
     notifyListeners();
   }
 
@@ -114,6 +201,7 @@ class DexProvider with ChangeNotifier {
         ignoredIds: old.ignoredIds,
       );
       userDexes[index] = updated;
+      triggerAutoUpload();
       db.saveUserDex(updated);
       notifyListeners();
     }
@@ -125,6 +213,7 @@ class DexProvider with ChangeNotifier {
       structure[key]?.remove(id);
     }
     db.deleteUserDex(id);
+    triggerAutoUpload();
     db.saveStructure(structure);
     notifyListeners();
   }
@@ -136,6 +225,7 @@ class DexProvider with ChangeNotifier {
 
     db.saveFolder(folder);
     db.saveStructure(structure);
+    triggerAutoUpload();
     notifyListeners();
   }
 
@@ -144,6 +234,7 @@ class DexProvider with ChangeNotifier {
     if (idx != -1) {
       folders[idx] = DexFolder(id: id, title: newTitle);
       db.saveFolder(folders[idx]);
+      triggerAutoUpload();
       notifyListeners();
     }
   }
@@ -156,6 +247,7 @@ class DexProvider with ChangeNotifier {
     structure.remove(id);
     db.deleteFolder(id);
     db.saveStructure(structure);
+    triggerAutoUpload();
     notifyListeners();
   }
 
@@ -165,12 +257,14 @@ class DexProvider with ChangeNotifier {
     }
     structure.putIfAbsent(newParentId, () => []).add(itemId);
     db.saveStructure(structure);
+    triggerAutoUpload();
     notifyListeners();
   }
 
   void updateStructureOrder(String parentId, List<String> newOrder) {
     structure[parentId] = newOrder;
     db.saveStructure(structure);
+    triggerAutoUpload();
     notifyListeners();
   }
 
@@ -188,6 +282,7 @@ class DexProvider with ChangeNotifier {
     list.insert(newIndex, item);
 
     db.saveStructure(structure);
+    triggerAutoUpload();
     notifyListeners();
   }
 
@@ -207,8 +302,10 @@ class DexProvider with ChangeNotifier {
 
     if (isCaught) {
       dex.caughtIds.add(pokemonUniqueId);
+      triggerAutoUpload();
     } else {
       dex.caughtIds.remove(pokemonUniqueId);
+      triggerAutoUpload();
     }
 
     bool isCurrentlyShiny = dex.shinyIds.contains(pokemonUniqueId);
@@ -216,8 +313,10 @@ class DexProvider with ChangeNotifier {
     if (dex.isShinyDex && isCurrentlyShiny != isCaught) {
       if (isCaught) {
         dex.shinyIds.add(pokemonUniqueId);
+        triggerAutoUpload();
       } else {
         dex.shinyIds.remove(pokemonUniqueId);
+        triggerAutoUpload();
       }
       db.savePokemonStatus(
         dexId,
@@ -238,8 +337,10 @@ class DexProvider with ChangeNotifier {
 
     if (isShiny) {
       dex.shinyIds.add(pokemonUniqueId);
+      triggerAutoUpload();
     } else {
       dex.shinyIds.remove(pokemonUniqueId);
+      triggerAutoUpload();
     }
 
     bool isCurrentlyCaught = dex.caughtIds.contains(pokemonUniqueId);
@@ -247,8 +348,10 @@ class DexProvider with ChangeNotifier {
     if (dex.isShinyDex && isCurrentlyCaught != isShiny) {
       if (isShiny) {
         dex.caughtIds.add(pokemonUniqueId);
+        triggerAutoUpload();
       } else {
         dex.caughtIds.remove(pokemonUniqueId);
+        triggerAutoUpload();
       }
       db.savePokemonStatus(
         dexId,
@@ -258,6 +361,7 @@ class DexProvider with ChangeNotifier {
       );
     } else {
       db.savePokemonStatus(dexId, pokemonUniqueId, isShiny: isShiny);
+      triggerAutoUpload();
     }
 
     notifyListeners();
@@ -268,6 +372,7 @@ class DexProvider with ChangeNotifier {
     if (!dex.ignoredIds.contains(pokemonUniqueId)) {
       dex.ignoredIds.add(pokemonUniqueId);
       db.savePokemonStatus(dexId, pokemonUniqueId, isIgnored: true);
+      triggerAutoUpload();
       notifyListeners();
     }
   }
@@ -276,6 +381,7 @@ class DexProvider with ChangeNotifier {
     final dex = userDexes.firstWhere((d) => d.id == dexId);
     dex.ignoredIds.remove(pokemonUniqueId);
     db.savePokemonStatus(dexId, pokemonUniqueId, isIgnored: false);
+    triggerAutoUpload();
     notifyListeners();
   }
 
@@ -324,6 +430,121 @@ class DexProvider with ChangeNotifier {
 
       notifyListeners();
       NotificationHelper.showSuccess('Import erfolgreich!');
+      triggerAutoUpload();
+    }
+  }
+
+  Future<void> reloadFromDatabase() async {
+    userDexes = await db.getAllUserDexes();
+    folders = await db.getAllFolders();
+    structure = await db.getStructure();
+    notifyListeners();
+  }
+
+  Future<void> mergeCloudData(Map<String, dynamic> cloudData) async {
+    try {
+      if (cloudData.containsKey('format_version') &&
+          cloudData['format_version'] == 2) {
+        await db.mergeCloudSyncData(cloudData);
+      } else {
+        if (userDexes.isEmpty && folders.isEmpty) {
+          debugPrint("Lade altes Backup-Format herunter...");
+          await _mergeOldFormat(cloudData);
+        } else {
+          debugPrint(
+            "Veraltetes Cloud-Backup blockiert! (Verhindert Zombie-Dexe)",
+          );
+          _executeSilentUpload();
+        }
+      }
+
+      await reloadFromDatabase();
+    } catch (e) {
+      debugPrint("Merge Error: $e");
+      rethrow;
+    }
+  }
+
+  Future<void> _mergeOldFormat(Map<String, dynamic> cloudData) async {
+    final remoteDexes = (cloudData['dexes'] as List)
+        .map((d) => UserDex.fromJson(d))
+        .toList();
+    for (var rDex in remoteDexes) {
+      final localIndex = userDexes.indexWhere((d) => d.id == rDex.id);
+      if (localIndex != -1) {
+        final localDex = userDexes[localIndex];
+        localDex.caughtIds = {
+          ...localDex.caughtIds,
+          ...rDex.caughtIds,
+        }.toList();
+        localDex.shinyIds = {...localDex.shinyIds, ...rDex.shinyIds}.toList();
+        localDex.ignoredIds = {
+          ...localDex.ignoredIds,
+          ...rDex.ignoredIds,
+        }.toList();
+        await db.saveUserDex(localDex);
+        for (var uid in rDex.caughtIds)
+          await db.savePokemonStatus(localDex.id, uid, isCaught: true);
+        for (var uid in rDex.shinyIds)
+          await db.savePokemonStatus(localDex.id, uid, isShiny: true);
+        for (var uid in rDex.ignoredIds)
+          await db.savePokemonStatus(localDex.id, uid, isIgnored: true);
+      } else {
+        userDexes.add(rDex);
+        await db.saveUserDex(rDex);
+        for (var uid in rDex.caughtIds)
+          await db.savePokemonStatus(rDex.id, uid, isCaught: true);
+        for (var uid in rDex.shinyIds)
+          await db.savePokemonStatus(rDex.id, uid, isShiny: true);
+        for (var uid in rDex.ignoredIds)
+          await db.savePokemonStatus(rDex.id, uid, isIgnored: true);
+      }
+    }
+    final remoteFolders = (cloudData['folders'] as List)
+        .map((f) => DexFolder.fromMap(f))
+        .toList();
+    for (var rFolder in remoteFolders) {
+      if (!folders.any((f) => f.id == rFolder.id)) {
+        folders.add(rFolder);
+        await db.saveFolder(rFolder);
+      }
+    }
+    final remoteStructure = Map<String, List<String>>.from(
+      (cloudData['structure'] as Map).map(
+        (k, v) => MapEntry(k.toString(), List<String>.from(v)),
+      ),
+    );
+    structure.forEach((key, value) {
+      if (!remoteStructure.containsKey(key)) {
+        remoteStructure[key] = value;
+      } else {
+        final missing = value.where(
+          (item) => !remoteStructure[key]!.contains(item),
+        );
+        remoteStructure[key]!.addAll(missing);
+      }
+    });
+    structure = remoteStructure;
+    await db.saveStructure(structure);
+  }
+
+  Future<void> _executeSilentUpload() async {
+    if (!GoogleDriveSyncService.instance.isSignedIn || _isSyncing) return;
+
+    _isSyncing = true;
+    try {
+      final Map<String, dynamic> exportData = await db.exportCloudSyncData();
+      bool success = await GoogleDriveSyncService.instance.uploadBackup(
+        exportData,
+      );
+
+      if (success) {
+        debugPrint("Lautloser Upload erfolgreich.");
+        _lastSyncTime = DateTime.now().toUtc();
+        _hasPendingChanges = false;
+      }
+    } finally {
+      _isSyncing = false;
     }
   }
 }

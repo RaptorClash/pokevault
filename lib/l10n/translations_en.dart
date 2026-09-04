@@ -1103,4 +1103,46 @@ const Map<String, String> translationsEn = {
   'web_backup_warning_text':
       'Warning: Your data in the web browser might be lost if the browser cache is cleared. Please create regular backups!',
   'web_backup_warning_action': 'Got it',
+
+  'cloud_sync': 'Cloud Synchronization',
+  'google_client_id': 'Google OAuth Client ID',
+  'google_client_id_help':
+      'Create a Client ID in the Google Cloud Console to use Drive.',
+  'auto_sync': 'Auto-Sync',
+  'auto_sync_desc': 'Syncs in the background when closing the app',
+  'login_drive': 'Drive Login',
+  'logout_drive': 'Drive Logout',
+  'sync_now': 'Sync Now',
+  'sync_success': 'Successfully synced with Google Drive!',
+  'tutorial_sync_title': 'Setup Cloud Storage',
+  'tutorial_sync_text':
+      'Enter your own Google Client ID here to safely and freely store your Dexes in your hidden Google Drive app folder.',
+  'google_client_secret': 'Google Client Secret',
+
+  'cloud_tut_title': 'Setup Custom Cloud',
+  'cloud_tut_intro':
+      'Since PokeVault is completely free, you simply use your own (free) Google key. Your data is stored safely and invisibly in your own Google Drive.',
+  'cloud_tut_step1':
+      'Go to the Google Cloud Console and create a "New Project" (you can name it "PokeVault", for example).',
+  'cloud_tut_step2':
+      'Search for "Google Drive API" in the top bar and click "Enable". Then search for the "Google People API" and enable it as well.',
+  'cloud_tut_step3':
+      'Go to "OAuth consent screen" -> "Audience" on the left. Click "Add users" under "Test users" and enter your Google Drive email address.',
+  'cloud_tut_step4':
+      'Go back to the Google Drive API overview, select "Credentials" on the left, and click "+ Create credentials" at the top.',
+  'cloud_tut_step5':
+      'Select "OAuth client ID" and strictly choose "Desktop app" as the application type. You can use your device name as the name. Click "Create".',
+  'cloud_tut_step5_web':
+      'Select "OAuth client ID" and strictly choose "Web application" as the application type. Add the exact URL of this page under "Authorized JavaScript origins". Click "Create".',
+  'cloud_tut_step6':
+      'Copy the displayed "Client ID" and "Client secret" and paste them here in the app (or download the JSON file to copy them from there).',
+  'cloud_tut_step6_web':
+      'Copy the displayed "Client ID" and paste it here in the app. A Client Secret is not needed for the web version!',
+  'cloud_tut_step7': 'Tap "Drive Login" here in the app.',
+  'cloud_tut_step8':
+      'In the browser window, select the exact email address you added as a test user.',
+  'cloud_tut_step9': 'Confirm the access request by clicking "Continue" twice.',
+  'cloud_tut_step10':
+      'The login should now be successful! You can close the browser window and return to the app.',
+  'close': 'Close',
 };
