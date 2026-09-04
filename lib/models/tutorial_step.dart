@@ -18,6 +18,7 @@ class TutorialStep {
   final bool disableScroll;
   final bool showHighlight;
   final double scrollAlignment;
+  final bool requireLongPress;
 
   TutorialStep({
     this.id,
@@ -33,6 +34,7 @@ class TutorialStep {
     this.disableScroll = false,
     this.showHighlight = true,
     this.scrollAlignment = 0.5,
+    this.requireLongPress = false,
   });
 }
 

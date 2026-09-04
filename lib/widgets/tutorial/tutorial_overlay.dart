@@ -77,6 +77,7 @@ class _TutorialOverlayState extends State<TutorialOverlay>
   Offset? _easterEggPos;
   int _wrongTapCount = 0;
   DateTime? _lastWrongTapTime;
+  DateTime? _pointerDownTime;
 
   @override
   void initState() {
@@ -372,6 +373,24 @@ class _TutorialOverlayState extends State<TutorialOverlay>
     }
   }
 
+  void _handleShortTapError() {
+    if (_isAdvancing || _isEasterEggActive) return;
+
+    setState(() {
+      _overrideText =
+          Translator.get('tutorial_longpress_error') !=
+              'tutorial_longpress_error'
+          ? Translator.get('tutorial_longpress_error')
+          : 'Das war ein normaler Klick! Halte das Pokémon LANGE gedrückt!';
+    });
+
+    Future.delayed(const Duration(seconds: 3), () {
+      if (mounted && !_isEasterEggActive) {
+        setState(() => _overrideText = null);
+      }
+    });
+  }
+
   void _triggerRotomAutoTap() async {
     if (_isAdvancing) return;
 
@@ -641,6 +660,9 @@ class _TutorialOverlayState extends State<TutorialOverlay>
     return Material(
       type: MaterialType.transparency,
       child: Listener(
+        onPointerDown: (event) {
+          _pointerDownTime = DateTime.now();
+        },
         onPointerUp: (event) {
           TutorialOverlay.lastTapPosition = event.position;
           if (_isAdvancing) return;
@@ -649,6 +671,20 @@ class _TutorialOverlayState extends State<TutorialOverlay>
               _targetRect != null &&
               !_isEasterEggActive) {
             if (_targetRect!.contains(event.localPosition)) {
+              if (step.requireLongPress) {
+                bool isLong = false;
+                if (_pointerDownTime != null) {
+                  final duration = DateTime.now().difference(_pointerDownTime!);
+                  // Wenn der Klick länger als 400ms war, ist es ein Long-Press
+                  if (duration.inMilliseconds >= 400) {
+                    isLong = true;
+                  }
+                }
+                if (!isLong) {
+                  _handleShortTapError();
+                  return; // Bricht ab, es geht nicht zum nächsten Schritt!
+                }
+              }
               _wrongTapCount = 0;
               setState(() => _isAdvancing = true);
               if (isLast) {

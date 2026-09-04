@@ -11,10 +11,15 @@ import 'screens/home/home_screen.dart';
 import 'utils/notification_helper.dart';
 import 'l10n/app_translations.dart';
 import 'providers/settings_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-void main() {
+void main() async {
+  // <--- async hinzufügen
   try {
     WidgetsFlutterBinding.ensureInitialized();
+
+    // Speicher VOR dem App-Start laden
+    final prefs = await SharedPreferences.getInstance();
 
     if (kIsWeb) {
       databaseFactory = databaseFactoryFfiWeb;
@@ -23,7 +28,6 @@ void main() {
       sqfliteFfiInit();
       databaseFactory = databaseFactoryFfi;
     }
-
     PaintingBinding.instance.imageCache.maximumSize = 150;
     PaintingBinding.instance.imageCache.maximumSizeBytes = 1024 * 1024 * 40;
 
@@ -32,7 +36,8 @@ void main() {
         providers: [
           ChangeNotifierProvider(create: (_) => ThemeProvider()),
           ChangeNotifierProvider(create: (context) => DexProvider()),
-          ChangeNotifierProvider(create: (_) => TutorialProvider()),
+          // Hier übergeben wir die geladenen Prefs an den TutorialProvider:
+          ChangeNotifierProvider(create: (_) => TutorialProvider(prefs)),
           ChangeNotifierProvider(create: (_) => SettingsProvider()),
         ],
         child: const PokedexApp(),

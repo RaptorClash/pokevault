@@ -305,6 +305,7 @@ class _DexScreenState extends State<DexScreen> {
             titleKey: 'tutorial_longpress_title',
             textKey: 'tutorial_longpress_text',
             requireTargetTap: true,
+            requireLongPress: true,
             preCalculateDelayMilliseconds: 800,
             onTargetTap: () {
               try {
