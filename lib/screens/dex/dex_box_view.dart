@@ -219,6 +219,40 @@ class DexBoxView extends StatelessWidget {
                             liveDex.id,
                             entry.uniqueId,
                           ),
+                          onSecondaryTap: () {
+                            int initialIndex = boxOrderedEntries.indexOf(entry);
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                fullscreenDialog: true,
+                                builder: (context) => PokemonInfoScreen(
+                                  entries: boxOrderedEntries,
+                                  initialIndex: initialIndex != -1
+                                      ? initialIndex
+                                      : 0,
+                                  dexId: liveDex.id,
+                                  boxes: boxes,
+                                  isBoxView: true,
+                                  onPageChanged: (newIndex) {
+                                    final currentEntry =
+                                        boxOrderedEntries[newIndex];
+                                    int targetBoxIndex = boxes.indexWhere(
+                                      (b) => b.entries.contains(currentEntry),
+                                    );
+                                    if (targetBoxIndex != -1 &&
+                                        pageController.hasClients) {
+                                      if (pageController.page?.round() !=
+                                          targetBoxIndex) {
+                                        pageController.jumpToPage(
+                                          targetBoxIndex,
+                                        );
+                                      }
+                                    }
+                                  },
+                                ),
+                              ),
+                            );
+                          },
                           onLongPress: () {
                             int initialIndex = boxOrderedEntries.indexOf(entry);
                             Navigator.push(

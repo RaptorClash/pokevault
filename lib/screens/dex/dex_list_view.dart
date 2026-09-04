@@ -56,6 +56,20 @@ class DexListView extends StatelessWidget {
           return GestureDetector(
             key: entry.uniqueId == tutorialTargetId ? firstItemKey : null,
             onTap: () => provider.togglePokemon(liveDex.id, entry.uniqueId),
+            onSecondaryTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  fullscreenDialog: true,
+                  builder: (context) => PokemonInfoScreen(
+                    entries: displayList,
+                    initialIndex: index,
+                    dexId: liveDex.id,
+                    isBoxView: false,
+                  ),
+                ),
+              );
+            },
             onLongPress: () {
               Navigator.push(
                 context,
