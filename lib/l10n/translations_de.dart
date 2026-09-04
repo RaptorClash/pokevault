@@ -1362,7 +1362,7 @@ const Map<String, String> translationsDe = {
 
   'tutorial_ignored_restore_title': 'Wiederherstellen',
   'tutorial_ignored_restore_text':
-      'Hier sind alle Pokémon, die du ausgeblendet hast. Klicke auf "Wiederherstellen", um Machomei zurück in deinen Dex zu holen. Damit bist du ein echter PokéVault-Profi!',
+      'Hier sind alle Pokémon, die du ausgeblendet hast. Klicke auf "Wiederherstellen", um Machomei zurück in deinen Dex zu holen.',
 
   'tutorial_dex_search_easteregg':
       'Na gut, wenn du nicht weißt wie man tippt... ich übernehme das! ZZZZZZT!',

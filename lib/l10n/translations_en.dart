@@ -1071,7 +1071,7 @@ const Map<String, String> translationsEn = {
 
   'tutorial_ignored_restore_title': 'Restore',
   'tutorial_ignored_restore_text':
-      'Here are all the Pokémon you have hidden. Click "Restore" to bring Machamp back to your Dex. Now you are a true PokéVault pro!',
+      'Here are all the Pokémon you have hidden. Click "Restore" to bring Machamp back to your Dex.',
 
   'tutorial_dex_search_easteregg':
       'Alright, if you don\'t know how to type... I\'ll take over! ZZZZZZT!',

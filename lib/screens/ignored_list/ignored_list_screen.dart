@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
 import '../../models/dex_view_models.dart';
 import '../../providers/dex_provider.dart';
 import '../../providers/settings_provider.dart';
@@ -31,12 +30,22 @@ class _IgnoredListScreenState extends State<IgnoredListScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _showTutorialIfNeeded();
+      Future.delayed(const Duration(milliseconds: 500), () {
+        if (mounted) _showTutorialIfNeeded();
+      });
     });
   }
 
   void _showTutorialIfNeeded() {
     final tutProvider = Provider.of<TutorialProvider>(context, listen: false);
+
+    final provider = context.read<DexProvider>();
+    final liveDex = provider.userDexes.firstWhere((d) => d.id == widget.dexId);
+    final ignoredEntries = widget.allRawEntries
+        .where((entry) => liveDex.ignoredIds.contains(entry.uniqueId))
+        .toList();
+
+    if (ignoredEntries.isEmpty) return;
 
     if (!tutProvider.hasSeenFeature('ignored_restore')) {
       TutorialOverlay.show(

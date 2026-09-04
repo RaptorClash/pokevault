@@ -176,47 +176,51 @@ class _PokemonInfoScreenState extends State<PokemonInfoScreen> {
     }
 
     return Scaffold(
-      appBar: AppBar(
-        key: _keys.appBarKey,
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              Translator.get('extra_info') != 'extra_info'
-                  ? Translator.get('extra_info')
-                  : 'Zusatzinformationen',
-              style: TextStyle(fontSize: boxTitle != null ? 16 : 20),
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(kToolbarHeight),
+        child: Container(
+          key: _keys.appBarKey,
+          child: AppBar(
+            title: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  Translator.get('extra_info') != 'extra_info'
+                      ? Translator.get('extra_info')
+                      : 'Zusatzinformationen',
+                  style: TextStyle(fontSize: boxTitle != null ? 16 : 20),
+                ),
+                if (boxTitle != null)
+                  Text(
+                    '$boxTitle - $indexInBox / $boxTotal',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.normal,
+                      color:
+                          Theme.of(context).textTheme.bodySmall?.color
+                              ?.withValues(alpha: 0.7) ??
+                          Colors.white70,
+                    ),
+                  ),
+              ],
             ),
-            if (boxTitle != null)
-              Text(
-                '$boxTitle - $indexInBox / $boxTotal',
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.normal,
-                  color:
-                      Theme.of(
-                        context,
-                      ).textTheme.bodySmall?.color?.withValues(alpha: 0.7) ??
-                      Colors.white70,
+            leading: const CloseButton(),
+            actions: [
+              Center(
+                child: Padding(
+                  padding: const EdgeInsets.only(right: 16.0),
+                  child: Text(
+                    '${_currentIndex + 1} / ${widget.entries.length}',
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                    ),
+                  ),
                 ),
               ),
-          ],
-        ),
-        leading: const CloseButton(),
-        actions: [
-          Center(
-            child: Padding(
-              padding: const EdgeInsets.only(right: 16.0),
-              child: Text(
-                '${_currentIndex + 1} / ${widget.entries.length}',
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 14,
-                ),
-              ),
-            ),
+            ],
           ),
-        ],
+        ),
       ),
       body: PageView.builder(
         controller: _pageController,

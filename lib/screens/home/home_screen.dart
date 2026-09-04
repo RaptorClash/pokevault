@@ -1,9 +1,8 @@
 import 'dart:async';
-import 'package:flutter/foundation.dart'; // NEU
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart'; // NEU
-
 import '../../l10n/app_translations.dart';
 import '../../providers/dex_provider.dart';
 import '../../providers/tutorial_provider.dart';
@@ -38,6 +37,7 @@ class _HomeScreenState extends State<HomeScreen> {
   String _searchQuery = '';
   String _currentSort = 'manual';
   late String _currentFolderId;
+  int _previousDexCount = 0;
 
   bool get _isSelectionMode => _selectedItemIds.isNotEmpty;
 
@@ -46,16 +46,18 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
     _currentFolderId = widget.currentFolderId;
 
+    final provider = Provider.of<DexProvider>(context, listen: false);
+    _previousDexCount = provider.userDexes.length;
+
     if (_currentFolderId == 'root') {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        _checkWebWarning(); // NEU
+        _checkWebWarning();
         _checkForUpdates();
         _showTutorialIfNeeded();
       });
     }
   }
 
-  // NEU: Web-Backup Warnung
   Future<void> _checkWebWarning() async {
     if (!kIsWeb) return;
 
@@ -459,6 +461,19 @@ class _HomeScreenState extends State<HomeScreen> {
       }
     }
 
+    if (provider.userDexes.length != _previousDexCount) {
+      bool increased = provider.userDexes.length > _previousDexCount;
+      _previousDexCount = provider.userDexes.length;
+
+      if (increased) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          Future.delayed(const Duration(milliseconds: 800), () {
+            if (mounted) _showTutorialIfNeeded();
+          });
+        });
+      }
+    }
+
     return Scaffold(
       appBar: AppBar(
         leading: _isSelectionMode
@@ -663,7 +678,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         const SizedBox(height: 16),
                         Text(
                           _searchQuery.isEmpty
-                              ? Translator.get('no_dex_created')
+                              ? Translator.get('no_dex')
                               : 'Keine Ergebnisse gefunden',
                           style: TextStyle(
                             color: Theme.of(context).hintColor,
