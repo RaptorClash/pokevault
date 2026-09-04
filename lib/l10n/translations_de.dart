@@ -1223,8 +1223,6 @@ const Map<String, String> translationsDe = {
   "tutorial_create_name_text":
       "Gib deinem Pokédex hier einen passenden Namen. (z.B. 'Kanto Living Dex')",
 
-  "tutorial_home_settings_title": "Verwaltung leicht gemacht",
-
   "tutorial_home_sheet_title": "Neuer Pokédex",
   "tutorial_home_sheet_text":
       "Tippe hier, um das Menü zur Erstellung deines Dexes zu öffnen.",
@@ -1437,4 +1435,65 @@ const Map<String, String> translationsDe = {
   'cloud_tut_step10':
       'Der Login sollte nun erfolgreich sein! Du kannst das Browserfenster schließen und zur App zurückkehren.',
   'close': 'Schließen',
+
+  "tutorial_organize_intro_title": "Ordnung muss sein!",
+  "tutorial_organize_intro_text":
+      "Da du jetzt deinen ersten Dex hast, zeige ich dir kurz, wie du alles übersichtlich organisieren kannst.",
+  "tutorial_organize_folder_title": "Ordner erstellen",
+  "tutorial_organize_folder_text":
+      "Über dieses Plus-Symbol kannst du neben Dexen auch Ordner anlegen, um deine Sammlung zu gruppieren.",
+  "tutorial_organize_drag_title": "Drag & Drop",
+  "tutorial_organize_drag_text":
+      "Tipp: Wenn du oben rechts auf \"Manuell\" sortierst, kannst du Dexe und Ordner jederzeit an den rechten Griffen anfassen und verschieben.",
+  "tutorial_organize_longpress_title": "Auswahlmodus (Long-Press)",
+  "tutorial_organize_longpress_text":
+      "Halte deinen Dex jetzt LANGE gedrückt (ca. halbe Sekunde), um den Auswahlmodus zu starten!",
+  "tutorial_organize_move_title": "Elemente verschieben",
+  "tutorial_organize_move_text":
+      "Perfekt! Jetzt kannst du ihn verschieben, exportieren oder löschen. Klicke auf das Ordner-Symbol, um ihn zu verschieben!",
+
+  "tutorial_org1_intro_title": "Lass uns aufräumen!",
+  "tutorial_org1_intro_text":
+      "Ordnung ist das halbe Leben. Ich zeige dir kurz die wichtigsten Funktionen auf dem Homescreen.",
+  "tutorial_org1_sort_title": "Sortieren & Manuell",
+  "tutorial_org1_sort_text":
+      "Hier kannst du filtern und sortieren. Wählst du 'Manuell', kannst du Dexe und Ordner am rechten Rand anfassen und frei verschieben!",
+  "tutorial_org1_options_title": "Schnelle Aktionen (3 Punkte)",
+  "tutorial_org1_options_text":
+      "Über die 3 Punkte auf einer Dex-Karte kommst du sofort an wichtige Aktionen wie Umbenennen oder Löschen heran.",
+  "tutorial_org1_folder_title": "Ordner erstellen",
+  "tutorial_org1_folder_text":
+      "Klicke jetzt auf das Plus und erstelle im Menü einen neuen Ordner als praktisches Beispiel!",
+
+  "tutorial_org2_longpress_title": "Auswahlmodus",
+  "tutorial_org2_longpress_text":
+      "Da ist der Ordner! Halte nun deinen ersten Dex LANGE gedrückt (ca. halbe Sekunde), um ihn auszuwählen.",
+  "tutorial_org2_move_title": "Elemente verschieben",
+  "tutorial_org2_move_text":
+      "Klicke nun auf das Verschieben-Icon, wähle deinen neuen Ordner aus und bestätige. Damit bist du ein Profi!",
+
+  "tutorial_home_settings_title": "Fast geschafft!",
+  "tutorial_home_settings_text":
+      "Zum Abschluss zeige ich dir noch die Einstellungen. Klicke auf das Zahnrad oben rechts!",
+  "tutorial_settings_appearance_title": "Erscheinungsbild",
+  "tutorial_settings_appearance_text":
+      "Hier kannst du den Dark Mode aktivieren und die Farben der App ganz nach deinem Geschmack anpassen.",
+  "tutorial_settings_updates_title": "Updates & Versionen",
+  "tutorial_settings_updates_text":
+      "Prüfe hier auf neue Updates oder wechsle zu einer älteren Version zurück, falls mal etwas nicht klappt.",
+  "tutorial_settings_general_title": "Allgemein",
+  "tutorial_settings_general_text":
+      "Ändere die Sprache oder starte das gesamte Tutorial neu, falls du dir alles noch einmal ansehen möchtest.",
+  "tutorial_settings_data_title": "Datenverwaltung",
+  "tutorial_settings_data_text":
+      "Erstelle manuelle Backups deiner Dexe (Exportieren) oder lade alte Backups wieder in die App (Importieren).",
+  "tutorial_settings_cloud_title": "Cloud-Synchronisation",
+  "tutorial_settings_cloud_text":
+      "Verbinde dein Google Drive, um deine Daten sicher in der Cloud zu speichern und zwischen deinen Geräten zu synchronisieren!",
+  "tutorial_settings_community_title": "Community & Support",
+  "tutorial_settings_community_text":
+      "Du hast einen Bug gefunden oder möchtest bei der Entwicklung helfen? Hier findest du alle Links!",
+  "tutorial_settings_credits_title": "Danksagungen & Quellen",
+  "tutorial_settings_credits_text":
+      "PokeVault wäre ohne diese tollen Projekte nicht möglich. Schau sie dir gerne an! Das war's – viel Spaß mit der App!",
 };

@@ -927,15 +927,12 @@ const Map<String, String> translationsEn = {
   "tutorial_home_search_title": "Search & Sort",
   "tutorial_home_search_text":
       "Once your collection grows, you can search or sort it by progress and region right here.",
-  "tutorial_home_settings_title": "Easy Management",
   "tutorial_home_intro_title": "Bzzzt! Hello!",
   "tutorial_home_intro_text":
       "I'm Rotom, your smart Pokédex assistant! Let me show you how everything works here. Let's go!",
   "tutorial_create_name_title": "Your Dex, your name",
   "tutorial_create_name_text":
       "Give your Pokédex a fitting name here (e.g., 'Kanto Living Dex').",
-  "tutorial_home_settings_text":
-      "Here are the settings. You can adjust things like the language or the design here at any time.",
 
   "tutorial_home_sheet_title": "New Pokédex",
   "tutorial_home_sheet_text":
@@ -1145,4 +1142,65 @@ const Map<String, String> translationsEn = {
   'cloud_tut_step10':
       'The login should now be successful! You can close the browser window and return to the app.',
   'close': 'Close',
+
+  "tutorial_organize_intro_title": "Organization is key!",
+  "tutorial_organize_intro_text":
+      "Now that you have your first Dex, let me quickly show you how to organize everything neatly.",
+  "tutorial_organize_folder_title": "Create folders",
+  "tutorial_organize_folder_text":
+      "Using this plus icon, you can create folders alongside Dexes to group your collection.",
+  "tutorial_organize_drag_title": "Drag & Drop",
+  "tutorial_organize_drag_text":
+      "Tip: When you sort by \"Manual\" in the top right corner, you can grab and rearrange Dexes and folders anytime using the right handles.",
+  "tutorial_organize_longpress_title": "Selection mode (Long-Press)",
+  "tutorial_organize_longpress_text":
+      "Now, LONG PRESS your Dex (for about half a second) to enter selection mode!",
+  "tutorial_organize_move_title": "Move items",
+  "tutorial_organize_move_text":
+      "Perfect! Now you can move, export, or delete it. Tap the folder icon to move it!",
+
+  "tutorial_org1_intro_title": "Let's clean up!",
+  "tutorial_org1_intro_text":
+      "Organization is everything. Let me quickly show you the most important features on the home screen.",
+  "tutorial_org1_sort_title": "Sorting & Manual",
+  "tutorial_org1_sort_text":
+      "Here you can sort. If you select 'Manual', you can grab Dexes and folders by their right edge and drag them around freely!",
+  "tutorial_org1_options_title": "Quick Actions (3 Dots)",
+  "tutorial_org1_options_text":
+      "Use the 3 dots on a Dex card to instantly access important actions like renaming or deleting.",
+  "tutorial_org1_folder_title": "Create a folder",
+  "tutorial_org1_folder_text":
+      "Click the plus icon now and create a new folder from the menu as a practical example!",
+
+  "tutorial_org2_longpress_title": "Selection mode",
+  "tutorial_org2_longpress_text":
+      "There's the folder! Now LONG PRESS your first Dex (for about half a second) to select it.",
+  "tutorial_org2_move_title": "Move items",
+  "tutorial_org2_move_text":
+      "Tap the move icon, select your new folder, and confirm. Now you're a pro!",
+
+  "tutorial_home_settings_title": "Almost done!",
+  "tutorial_home_settings_text":
+      "To wrap things up, let me show you the settings. Click the gear icon in the top right!",
+  "tutorial_settings_appearance_title": "Appearance",
+  "tutorial_settings_appearance_text":
+      "Here you can activate Dark Mode and customize the app's colors to your liking.",
+  "tutorial_settings_updates_title": "Updates & Versions",
+  "tutorial_settings_updates_text":
+      "Check for updates here or downgrade to an older version if something goes wrong.",
+  "tutorial_settings_general_title": "General",
+  "tutorial_settings_general_text":
+      "Change the language or restart the entire tutorial if you want to see everything again.",
+  "tutorial_settings_data_title": "Data Management",
+  "tutorial_settings_data_text":
+      "Create manual backups of your Dexes (Export) or load old backups back into the app (Import).",
+  "tutorial_settings_cloud_title": "Cloud Sync",
+  "tutorial_settings_cloud_text":
+      "Connect your Google Drive to securely save your data in the cloud and sync it across devices!",
+  "tutorial_settings_community_title": "Community & Support",
+  "tutorial_settings_community_text":
+      "Found a bug or want to help with development? You can find all the links here!",
+  "tutorial_settings_credits_title": "Credits & Sources",
+  "tutorial_settings_credits_text":
+      "PokeVault wouldn't be possible without these amazing projects. Feel free to check them out! That's it – have fun with the app!",
 };

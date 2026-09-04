@@ -2,7 +2,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:shared_preferences/shared_preferences.dart'; // NEU
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../l10n/app_translations.dart';
 import '../../providers/dex_provider.dart';
 import '../../providers/tutorial_provider.dart';
@@ -32,12 +32,16 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final GlobalKey _fabKey = GlobalKey();
+  final GlobalKey _moveActionKey = GlobalKey();
+  final GlobalKey _sortDropdownKey = GlobalKey();
+  final GlobalKey _settingsActionKey = GlobalKey();
   final Map<String, GlobalKey> _dexKeys = {};
   final Set<String> _selectedItemIds = {};
   String _searchQuery = '';
   String _currentSort = 'manual';
   late String _currentFolderId;
   int _previousDexCount = 0;
+  int _previousFolderCount = 0;
 
   bool get _isSelectionMode => _selectedItemIds.isNotEmpty;
 
@@ -48,7 +52,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
     final provider = Provider.of<DexProvider>(context, listen: false);
     _previousDexCount = provider.userDexes.length;
-
+    _previousFolderCount = provider.folders.length;
     if (_currentFolderId == 'root') {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _checkWebWarning();
@@ -143,7 +147,6 @@ class _HomeScreenState extends State<HomeScreen> {
       if (!_dexKeys.containsKey(newestDex.id)) {
         _dexKeys[newestDex.id] = GlobalKey();
       }
-
       TutorialOverlay.show(
         context,
         TutorialFeature(
@@ -163,6 +166,132 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
         ),
         () => tutProvider.markFeatureAsSeen('open_dex'),
+      );
+    } else if (tutProvider.hasSeenFeature('open_dex') &&
+        !tutProvider.hasSeenFeature('home_organize_part1') &&
+        dexProvider.userDexes.isNotEmpty) {
+      final newestDex = dexProvider.userDexes.last;
+      if (!_dexKeys.containsKey(newestDex.id)) {
+        _dexKeys[newestDex.id] = GlobalKey();
+      }
+
+      TutorialOverlay.show(
+        context,
+        TutorialFeature(
+          id: 'home_organize_part1',
+          nameKey: 'tutorial_feature_home',
+          steps: [
+            TutorialStep(
+              targetKey: null,
+              titleKey: 'tutorial_org1_intro_title',
+              textKey: 'tutorial_org1_intro_text',
+            ),
+            TutorialStep(
+              targetKey: _sortDropdownKey,
+              titleKey: 'tutorial_org1_sort_title',
+              textKey: 'tutorial_org1_sort_text',
+              requireTargetTap: false,
+            ),
+            TutorialStep(
+              targetKey: _dexKeys[newestDex.id],
+              titleKey: 'tutorial_org1_options_title',
+              textKey: 'tutorial_org1_options_text',
+              requireTargetTap: false,
+            ),
+            TutorialStep(
+              targetKey: _fabKey,
+              titleKey: 'tutorial_org1_folder_title',
+              textKey: 'tutorial_org1_folder_text',
+              requireTargetTap: true,
+              onTargetTap: () {
+                tutProvider.markFeatureAsSeen('home_organize_part1');
+                _openCreateBottomSheet();
+              },
+            ),
+          ],
+        ),
+        () => tutProvider.markFeatureAsSeen('home_organize_part1'),
+      );
+    } else if (tutProvider.hasSeenFeature('home_organize_part1') &&
+        !tutProvider.hasSeenFeature('home_organize_part2') &&
+        dexProvider.folders.isNotEmpty &&
+        dexProvider.userDexes.isNotEmpty) {
+      final newestDex = dexProvider.userDexes.last;
+      if (!_dexKeys.containsKey(newestDex.id)) {
+        _dexKeys[newestDex.id] = GlobalKey();
+      }
+
+      TutorialOverlay.show(
+        context,
+        TutorialFeature(
+          id: 'home_organize_part2',
+          nameKey: 'tutorial_feature_home',
+          steps: [
+            TutorialStep(
+              targetKey: _dexKeys[newestDex.id],
+              titleKey: 'tutorial_org2_longpress_title',
+              textKey: 'tutorial_org2_longpress_text',
+              requireTargetTap: true,
+              requireLongPress: true,
+              onTargetTap: () {
+                setState(() {
+                  _selectedItemIds.add(newestDex.id);
+                });
+              },
+            ),
+            TutorialStep(
+              targetKey: _moveActionKey,
+              titleKey: 'tutorial_org2_move_title',
+              textKey: 'tutorial_org2_move_text',
+              requireTargetTap: true,
+              preCalculateDelayMilliseconds: 500,
+              onTargetTap: () {
+                tutProvider.markFeatureAsSeen('home_organize_part2');
+                HomeDialogs.showMoveDialog(
+                  context,
+                  dexProvider,
+                  _selectedItemIds,
+                  () {
+                    _clearSelection();
+                    Future.delayed(const Duration(milliseconds: 600), () {
+                      if (mounted) _showTutorialIfNeeded();
+                    });
+                  },
+                );
+              },
+            ),
+          ],
+        ),
+        () => tutProvider.markFeatureAsSeen('home_organize_part2'),
+      );
+    } else if (tutProvider.hasSeenFeature('home_organize_part2') &&
+        !tutProvider.hasSeenFeature('home_settings_intro')) {
+      TutorialOverlay.show(
+        context,
+        TutorialFeature(
+          id: 'home_settings_intro',
+          nameKey: 'tutorial_feature_home',
+          steps: [
+            TutorialStep(
+              targetKey: _settingsActionKey,
+              titleKey: 'tutorial_home_settings_title',
+              textKey: 'tutorial_home_settings_text',
+              requireTargetTap: true,
+              onTargetTap: () {
+                tutProvider.markFeatureAsSeen('home_settings_intro');
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const SettingsScreen(),
+                  ),
+                ).then((_) {
+                  if (mounted) _showTutorialIfNeeded();
+                });
+              },
+            ),
+          ],
+        ),
+        () => tutProvider.markFeatureAsSeen('home_settings_intro'),
       );
     }
   }
@@ -474,6 +603,18 @@ class _HomeScreenState extends State<HomeScreen> {
       }
     }
 
+    if (provider.folders.length != _previousFolderCount) {
+      bool increased = provider.folders.length > _previousFolderCount;
+      _previousFolderCount = provider.folders.length;
+      if (increased) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          Future.delayed(const Duration(milliseconds: 800), () {
+            if (mounted) _showTutorialIfNeeded();
+          });
+        });
+      }
+    }
+
     return Scaffold(
       appBar: AppBar(
         leading: _isSelectionMode
@@ -510,6 +651,7 @@ class _HomeScreenState extends State<HomeScreen> {
         actions: _isSelectionMode
             ? [
                 IconButton(
+                  key: _moveActionKey,
                   icon: const Icon(Icons.drive_file_move_outline),
                   tooltip: 'Verschieben',
                   onPressed: () => HomeDialogs.showMoveDialog(
@@ -560,6 +702,7 @@ class _HomeScreenState extends State<HomeScreen> {
             : [
                 if (_currentFolderId == 'root')
                   IconButton(
+                    key: _settingsActionKey,
                     icon: const Icon(Icons.settings),
                     onPressed: () {
                       Navigator.push(
@@ -602,6 +745,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                   const SizedBox(width: 8),
                   Container(
+                    key: _sortDropdownKey,
                     decoration: BoxDecoration(
                       color: Theme.of(context)
                           .colorScheme

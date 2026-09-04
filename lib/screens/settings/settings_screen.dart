@@ -3,6 +3,8 @@ import 'package:provider/provider.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:flutter/foundation.dart';
+
 import '../../services/google_drive_sync_service.dart';
 import 'downgrade_screen.dart';
 import '../../providers/theme_provider.dart';
@@ -14,12 +16,18 @@ import '../../utils/notification_helper.dart';
 import '../../utils/update_helper.dart';
 import '../../widgets/dialogs/update_dialog.dart';
 import '../../providers/settings_provider.dart';
-import 'package:flutter/foundation.dart';
 import '../../services/database_service.dart';
+import '../../models/tutorial_step.dart';
+import '../../widgets/tutorial/tutorial_overlay.dart';
 
-class SettingsScreen extends StatelessWidget {
+class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
 
+  @override
+  State<SettingsScreen> createState() => _SettingsScreenState();
+}
+
+class _SettingsScreenState extends State<SettingsScreen> {
   final List<Color> _defaultColors = const [
     Color(0xFFE53935),
     Color(0xFF1E88E5),
@@ -29,6 +37,74 @@ class SettingsScreen extends StatelessWidget {
     Color(0xFF00ACC1),
     Color(0xFFD81B60),
   ];
+
+  final GlobalKey _appearanceKey = GlobalKey();
+  final GlobalKey _updatesKey = GlobalKey();
+  final GlobalKey _generalKey = GlobalKey();
+  final GlobalKey _dataKey = GlobalKey();
+  final GlobalKey _cloudKey = GlobalKey();
+  final GlobalKey _communityKey = GlobalKey();
+  final GlobalKey _creditsKey = GlobalKey();
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _showTutorialIfNeeded();
+    });
+  }
+
+  void _showTutorialIfNeeded() {
+    final tutProvider = Provider.of<TutorialProvider>(context, listen: false);
+
+    if (!tutProvider.hasSeenFeature('settings_screen')) {
+      TutorialOverlay.show(
+        context,
+        TutorialFeature(
+          id: 'settings_screen',
+          nameKey: 'settings',
+          steps: [
+            TutorialStep(
+              targetKey: _appearanceKey,
+              titleKey: 'tutorial_settings_appearance_title',
+              textKey: 'tutorial_settings_appearance_text',
+            ),
+            TutorialStep(
+              targetKey: _updatesKey,
+              titleKey: 'tutorial_settings_updates_title',
+              textKey: 'tutorial_settings_updates_text',
+            ),
+            TutorialStep(
+              targetKey: _generalKey,
+              titleKey: 'tutorial_settings_general_title',
+              textKey: 'tutorial_settings_general_text',
+            ),
+            TutorialStep(
+              targetKey: _dataKey,
+              titleKey: 'tutorial_settings_data_title',
+              textKey: 'tutorial_settings_data_text',
+            ),
+            TutorialStep(
+              targetKey: _cloudKey,
+              titleKey: 'tutorial_settings_cloud_title',
+              textKey: 'tutorial_settings_cloud_text',
+            ),
+            TutorialStep(
+              targetKey: _communityKey,
+              titleKey: 'tutorial_settings_community_title',
+              textKey: 'tutorial_settings_community_text',
+            ),
+            TutorialStep(
+              targetKey: _creditsKey,
+              titleKey: 'tutorial_settings_credits_title',
+              textKey: 'tutorial_settings_credits_text',
+            ),
+          ],
+        ),
+        () => tutProvider.markFeatureAsSeen('settings_screen'),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -42,593 +118,684 @@ class SettingsScreen extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.all(16.0),
         children: [
-          _buildSectionHeader(
-            context,
-            Translator.get('appearance'),
-            Icons.palette,
-          ),
-          Card(
+          Container(
+            key: _appearanceKey,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
               children: [
-                SwitchListTile(
-                  title: Text(Translator.get('dark_mode')),
-                  value: settingsProvider.themeMode == ThemeMode.dark,
-                  onChanged: (bool value) {
-                    settingsProvider.toggleTheme();
-                  },
+                _buildSectionHeader(
+                  context,
+                  Translator.get('appearance'),
+                  Icons.palette,
                 ),
-                const Divider(height: 1),
-                Padding(
-                  padding: const EdgeInsets.all(16.0),
+                Card(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        Translator.get('choose_accent_color'),
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
+                      SwitchListTile(
+                        title: Text(Translator.get('dark_mode')),
+                        value: settingsProvider.themeMode == ThemeMode.dark,
+                        onChanged: (bool value) {
+                          settingsProvider.toggleTheme();
+                        },
+                      ),
+                      const Divider(height: 1),
+                      Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              Translator.get('choose_accent_color'),
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            _buildColorList(
+                              context,
+                              themeProvider,
+                              isDarkMode,
+                              isBackground: false,
+                            ),
+                          ],
                         ),
                       ),
-                      const SizedBox(height: 12),
-                      _buildColorList(
-                        context,
-                        themeProvider,
-                        isDarkMode,
-                        isBackground: false,
-                      ),
-                    ],
-                  ),
-                ),
-                const Divider(height: 1),
-                Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        Translator.get('choose_bg_color'),
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
+                      const Divider(height: 1),
+                      Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              Translator.get('choose_bg_color'),
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            _buildColorList(
+                              context,
+                              themeProvider,
+                              isDarkMode,
+                              isBackground: true,
+                            ),
+                          ],
                         ),
                       ),
-                      const SizedBox(height: 12),
-                      _buildColorList(
-                        context,
-                        themeProvider,
-                        isDarkMode,
-                        isBackground: true,
+                      const Divider(height: 1),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16.0,
+                          vertical: 8.0,
+                        ),
+                        child: TextButton.icon(
+                          onPressed: () => themeProvider.resetToDefault(),
+                          icon: const Icon(Icons.restore),
+                          label: Text(
+                            Translator.get('reset_theme') != 'reset_theme'
+                                ? Translator.get('reset_theme')
+                                : 'Standarddesign wiederherstellen',
+                          ),
+                          style: TextButton.styleFrom(
+                            foregroundColor: Theme.of(
+                              context,
+                            ).colorScheme.error,
+                          ),
+                        ),
                       ),
                     ],
-                  ),
-                ),
-                const Divider(height: 1),
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16.0,
-                    vertical: 8.0,
-                  ),
-                  child: TextButton.icon(
-                    onPressed: () => themeProvider.resetToDefault(),
-                    icon: const Icon(Icons.restore),
-                    label: Text(
-                      Translator.get('reset_theme') != 'reset_theme'
-                          ? Translator.get('reset_theme')
-                          : 'Standarddesign wiederherstellen',
-                    ),
-                    style: TextButton.styleFrom(
-                      foregroundColor: Theme.of(context).colorScheme.error,
-                    ),
                   ),
                 ),
               ],
             ),
           ),
           const SizedBox(height: 24),
-          _buildSectionHeader(
-            context,
-            Translator.get('updates'),
-            Icons.system_update,
-          ),
-          Card(
+
+          Container(
+            key: _updatesKey,
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
               children: [
-                ListTile(
-                  leading: const Icon(Icons.update),
-                  title: Text(Translator.get('check_for_updates')),
-                  trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-                  onTap: () async {
-                    showDialog(
-                      context: context,
-                      barrierDismissible: false,
-                      builder: (context) =>
-                          const Center(child: CircularProgressIndicator()),
-                    );
-                    try {
-                      final updateInfo = await UpdateHelper.checkForUpdate();
-                      if (context.mounted) {
-                        Navigator.pop(context);
-                        if (updateInfo != null) {
+                _buildSectionHeader(
+                  context,
+                  Translator.get('updates'),
+                  Icons.system_update,
+                ),
+                Card(
+                  child: Column(
+                    children: [
+                      ListTile(
+                        leading: const Icon(Icons.update),
+                        title: Text(Translator.get('check_for_updates')),
+                        trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                        onTap: () async {
                           showDialog(
                             context: context,
                             barrierDismissible: false,
-                            builder: (context) =>
-                                UpdateDialog(updateInfo: updateInfo),
-                          );
-                        } else {
-                          NotificationHelper.showInfo(
-                            Translator.get('up_to_date'),
-                          );
-                        }
-                      }
-                    } catch (e) {
-                      if (context.mounted) {
-                        Navigator.pop(context);
-                        NotificationHelper.showError(
-                          '${Translator.get('error')} $e',
-                        );
-                      }
-                    }
-                  },
-                ),
-                const Divider(height: 1),
-                ListTile(
-                  leading: const Icon(Icons.history, color: Colors.redAccent),
-                  title: Text(
-                    Translator.get('downgrades_title') != 'downgrades_title'
-                        ? Translator.get('downgrades_title')
-                        : 'Vorherige Versionen (Downgrades)',
-                  ),
-                  trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const DowngradeScreen(),
-                      ),
-                    );
-                  },
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 24),
-          _buildSectionHeader(
-            context,
-            Translator.get('general'),
-            Icons.language,
-          ),
-          Card(
-            child: Column(
-              children: [
-                ListTile(
-                  title: Text(Translator.get('language')),
-                  subtitle: Text(Translator.get('current_language')),
-                  trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-                  onTap: () => _showLanguageDialog(context, settingsProvider),
-                ),
-                const Divider(height: 1),
-                ListTile(
-                  leading: const Icon(
-                    Icons.lightbulb_outline,
-                    color: Colors.amber,
-                  ),
-                  title: Text(
-                    Translator.get('tutorial_reset_title') !=
-                            'tutorial_reset_title'
-                        ? Translator.get('tutorial_reset_title')
-                        : 'Tutorial neustarten',
-                  ),
-                  subtitle: Text(
-                    Translator.get('tutorial_reset_sub') != 'tutorial_reset_sub'
-                        ? Translator.get('tutorial_reset_sub')
-                        : 'Setzt alle Hilfen zurück',
-                  ),
-                  onTap: () async {
-                    try {
-                      final tutProvider = Provider.of<TutorialProvider>(
-                        context,
-                        listen: false,
-                      );
-                      await tutProvider.resetAllTutorials();
-                      NotificationHelper.showSuccess(
-                        Translator.get('tutorial_reset_success') !=
-                                'tutorial_reset_success'
-                            ? Translator.get('tutorial_reset_success')
-                            : 'Tutorial wurde zurückgesetzt!',
-                      );
-                    } catch (e) {
-                      NotificationHelper.showError(
-                        '${Translator.get('error')} $e',
-                      );
-                    }
-                  },
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 24),
-          _buildSectionHeader(
-            context,
-            Translator.get('data_management'),
-            Icons.save,
-          ),
-          Card(
-            child: Column(
-              children: [
-                ListTile(
-                  leading: const Icon(Icons.download),
-                  title: Text(Translator.get('import_tooltip')),
-                  onTap: () async => await dexProvider.importJsonData(),
-                ),
-                const Divider(height: 1),
-                ListTile(
-                  leading: const Icon(Icons.upload),
-                  title: Text(Translator.get('export_tooltip')),
-                  onTap: () async {
-                    if (dexProvider.userDexes.isNotEmpty) {
-                      await DexStorageService.exportDexes(
-                        dexProvider.userDexes,
-                        dexProvider,
-                      );
-                    }
-                  },
-                ),
-              ],
-            ),
-          ),
-
-          const SizedBox(height: 24),
-          Padding(
-            padding: const EdgeInsets.only(bottom: 8.0, left: 8.0, right: 8.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Row(
-                  children: [
-                    Icon(
-                      Icons.cloud_sync,
-                      size: 20,
-                      color: Theme.of(context).colorScheme.primary,
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      Translator.get('cloud_sync'),
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                        color: Theme.of(context).colorScheme.primary,
-                      ),
-                    ),
-                  ],
-                ),
-                IconButton(
-                  icon: const Icon(Icons.help_outline),
-                  color: Theme.of(context).colorScheme.primary,
-                  tooltip: Translator.get('cloud_tut_title'),
-                  onPressed: () => _showCloudSetupTutorial(context),
-                ),
-              ],
-            ),
-          ),
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  TextField(
-                    controller:
-                        TextEditingController(
-                            text: settingsProvider.googleClientId,
-                          )
-                          ..selection = TextSelection.collapsed(
-                            offset: settingsProvider.googleClientId.length,
-                          ),
-                    decoration: InputDecoration(
-                      labelText: Translator.get('google_client_id'),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      prefixIcon: const Icon(Icons.vpn_key),
-                      filled: true,
-                      fillColor: Theme.of(context)
-                          .colorScheme
-                          .surfaceContainerHighest
-                          .withValues(alpha: 0.3),
-                    ),
-                    onChanged: (val) => settingsProvider.setGoogleClientId(val),
-                  ),
-                  const SizedBox(height: 12),
-
-                  if (!kIsWeb)
-                    TextField(
-                      controller:
-                          TextEditingController(
-                              text: settingsProvider.googleClientSecret,
-                            )
-                            ..selection = TextSelection.collapsed(
-                              offset:
-                                  settingsProvider.googleClientSecret.length,
+                            builder: (context) => const Center(
+                              child: CircularProgressIndicator(),
                             ),
-                      decoration: InputDecoration(
-                        labelText: Translator.get('google_client_secret'),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        prefixIcon: const Icon(Icons.lock),
-                        filled: true,
-                        fillColor: Theme.of(context)
-                            .colorScheme
-                            .surfaceContainerHighest
-                            .withValues(alpha: 0.3),
-                      ),
-                      obscureText: true,
-                      onChanged: (val) =>
-                          settingsProvider.setGoogleClientSecret(val),
-                    ),
-                  if (!kIsWeb) const SizedBox(height: 16),
-                  const Divider(height: 32),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: ElevatedButton.icon(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor:
-                                GoogleDriveSyncService.instance.isSignedIn
-                                ? Colors.red.shade400
-                                : Theme.of(context).colorScheme.primary,
-                            foregroundColor: Colors.white,
-                          ),
-                          icon: Icon(
-                            GoogleDriveSyncService.instance.isSignedIn
-                                ? Icons.logout
-                                : Icons.login,
-                          ),
-                          label: FittedBox(
-                            child: Text(
-                              Translator.get(
-                                GoogleDriveSyncService.instance.isSignedIn
-                                    ? 'logout_drive'
-                                    : 'login_drive',
-                              ),
-                            ),
-                          ),
-                          onPressed: () async {
-                            if (GoogleDriveSyncService.instance.isSignedIn) {
-                              await GoogleDriveSyncService.instance.signOut();
-                            } else {
-                              if (settingsProvider.googleClientId.isEmpty ||
-                                  (!kIsWeb &&
-                                      settingsProvider
-                                          .googleClientSecret
-                                          .isEmpty)) {
-                                NotificationHelper.showError(
-                                  "Bitte Anmeldedaten eintragen!",
-                                );
-                                return;
-                              }
-
-                              String result = await GoogleDriveSyncService
-                                  .instance
-                                  .signIn(
-                                    settingsProvider.googleClientId,
-                                    settingsProvider.googleClientSecret,
-                                  );
-
-                              if (result == "OK") {
-                                NotificationHelper.showSuccess(
-                                  "Login erfolgreich!",
+                          );
+                          try {
+                            final updateInfo =
+                                await UpdateHelper.checkForUpdate();
+                            if (context.mounted) {
+                              Navigator.pop(context);
+                              if (updateInfo != null) {
+                                showDialog(
+                                  context: context,
+                                  barrierDismissible: false,
+                                  builder: (context) =>
+                                      UpdateDialog(updateInfo: updateInfo),
                                 );
                               } else {
-                                NotificationHelper.showError(
-                                  "Login fehlgeschlagen: $result",
+                                NotificationHelper.showInfo(
+                                  Translator.get('up_to_date'),
                                 );
                               }
                             }
-                            (context as Element).markNeedsBuild();
-                          },
+                          } catch (e) {
+                            if (context.mounted) {
+                              Navigator.pop(context);
+                              NotificationHelper.showError(
+                                '${Translator.get('error')} $e',
+                              );
+                            }
+                          }
+                        },
+                      ),
+                      const Divider(height: 1),
+                      ListTile(
+                        leading: const Icon(
+                          Icons.history,
+                          color: Colors.redAccent,
+                        ),
+                        title: Text(
+                          Translator.get('downgrades_title') !=
+                                  'downgrades_title'
+                              ? Translator.get('downgrades_title')
+                              : 'Vorherige Versionen (Downgrades)',
+                        ),
+                        trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const DowngradeScreen(),
+                            ),
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 24),
+
+          Container(
+            key: _generalKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _buildSectionHeader(
+                  context,
+                  Translator.get('general'),
+                  Icons.language,
+                ),
+                Card(
+                  child: Column(
+                    children: [
+                      ListTile(
+                        title: Text(Translator.get('language')),
+                        subtitle: Text(Translator.get('current_language')),
+                        trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                        onTap: () =>
+                            _showLanguageDialog(context, settingsProvider),
+                      ),
+                      const Divider(height: 1),
+                      ListTile(
+                        leading: const Icon(
+                          Icons.lightbulb_outline,
+                          color: Colors.amber,
+                        ),
+                        title: Text(
+                          Translator.get('tutorial_reset_title') !=
+                                  'tutorial_reset_title'
+                              ? Translator.get('tutorial_reset_title')
+                              : 'Tutorial neustarten',
+                        ),
+                        subtitle: Text(
+                          Translator.get('tutorial_reset_sub') !=
+                                  'tutorial_reset_sub'
+                              ? Translator.get('tutorial_reset_sub')
+                              : 'Setzt alle Hilfen zurück',
+                        ),
+                        onTap: () async {
+                          try {
+                            final tutProvider = Provider.of<TutorialProvider>(
+                              context,
+                              listen: false,
+                            );
+                            await tutProvider.resetAllTutorials();
+                            NotificationHelper.showSuccess(
+                              Translator.get('tutorial_reset_success') !=
+                                      'tutorial_reset_success'
+                                  ? Translator.get('tutorial_reset_success')
+                                  : 'Tutorial wurde zurückgesetzt!',
+                            );
+                          } catch (e) {
+                            NotificationHelper.showError(
+                              '${Translator.get('error')} $e',
+                            );
+                          }
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 24),
+
+          Container(
+            key: _dataKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _buildSectionHeader(
+                  context,
+                  Translator.get('data_management'),
+                  Icons.save,
+                ),
+                Card(
+                  child: Column(
+                    children: [
+                      ListTile(
+                        leading: const Icon(Icons.download),
+                        title: Text(Translator.get('import_tooltip')),
+                        onTap: () async => await dexProvider.importJsonData(),
+                      ),
+                      const Divider(height: 1),
+                      ListTile(
+                        leading: const Icon(Icons.upload),
+                        title: Text(Translator.get('export_tooltip')),
+                        onTap: () async {
+                          if (dexProvider.userDexes.isNotEmpty) {
+                            await DexStorageService.exportDexes(
+                              dexProvider.userDexes,
+                              dexProvider,
+                            );
+                          }
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 24),
+
+          Container(
+            key: _cloudKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.only(
+                    bottom: 8.0,
+                    left: 8.0,
+                    right: 8.0,
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.cloud_sync,
+                            size: 20,
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            Translator.get('cloud_sync'),
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              color: Theme.of(context).colorScheme.primary,
+                            ),
+                          ),
+                        ],
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.help_outline),
+                        color: Theme.of(context).colorScheme.primary,
+                        tooltip: Translator.get('cloud_tut_title'),
+                        onPressed: () => _showCloudSetupTutorial(context),
+                      ),
+                    ],
+                  ),
+                ),
+                Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        TextField(
+                          controller:
+                              TextEditingController(
+                                  text: settingsProvider.googleClientId,
+                                )
+                                ..selection = TextSelection.collapsed(
+                                  offset:
+                                      settingsProvider.googleClientId.length,
+                                ),
+                          decoration: InputDecoration(
+                            labelText: Translator.get('google_client_id'),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            prefixIcon: const Icon(Icons.vpn_key),
+                            filled: true,
+                            fillColor: Theme.of(context)
+                                .colorScheme
+                                .surfaceContainerHighest
+                                .withValues(alpha: 0.3),
+                          ),
+                          onChanged: (val) =>
+                              settingsProvider.setGoogleClientId(val),
+                        ),
+                        const SizedBox(height: 12),
+                        if (!kIsWeb)
+                          TextField(
+                            controller:
+                                TextEditingController(
+                                    text: settingsProvider.googleClientSecret,
+                                  )
+                                  ..selection = TextSelection.collapsed(
+                                    offset: settingsProvider
+                                        .googleClientSecret
+                                        .length,
+                                  ),
+                            decoration: InputDecoration(
+                              labelText: Translator.get('google_client_secret'),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              prefixIcon: const Icon(Icons.lock),
+                              filled: true,
+                              fillColor: Theme.of(context)
+                                  .colorScheme
+                                  .surfaceContainerHighest
+                                  .withValues(alpha: 0.3),
+                            ),
+                            obscureText: true,
+                            onChanged: (val) =>
+                                settingsProvider.setGoogleClientSecret(val),
+                          ),
+                        if (!kIsWeb) const SizedBox(height: 16),
+                        const Divider(height: 32),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: ElevatedButton.icon(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor:
+                                      GoogleDriveSyncService.instance.isSignedIn
+                                      ? Colors.red.shade400
+                                      : Theme.of(context).colorScheme.primary,
+                                  foregroundColor: Colors.white,
+                                ),
+                                icon: Icon(
+                                  GoogleDriveSyncService.instance.isSignedIn
+                                      ? Icons.logout
+                                      : Icons.login,
+                                ),
+                                label: FittedBox(
+                                  child: Text(
+                                    Translator.get(
+                                      GoogleDriveSyncService.instance.isSignedIn
+                                          ? 'logout_drive'
+                                          : 'login_drive',
+                                    ),
+                                  ),
+                                ),
+                                onPressed: () async {
+                                  if (GoogleDriveSyncService
+                                      .instance
+                                      .isSignedIn) {
+                                    await GoogleDriveSyncService.instance
+                                        .signOut();
+                                  } else {
+                                    if (settingsProvider
+                                            .googleClientId
+                                            .isEmpty ||
+                                        (!kIsWeb &&
+                                            settingsProvider
+                                                .googleClientSecret
+                                                .isEmpty)) {
+                                      NotificationHelper.showError(
+                                        "Bitte Anmeldedaten eintragen!",
+                                      );
+                                      return;
+                                    }
+                                    String result = await GoogleDriveSyncService
+                                        .instance
+                                        .signIn(
+                                          settingsProvider.googleClientId,
+                                          settingsProvider.googleClientSecret,
+                                        );
+                                    if (result == "OK") {
+                                      NotificationHelper.showSuccess(
+                                        "Login erfolgreich!",
+                                      );
+                                    } else {
+                                      NotificationHelper.showError(
+                                        "Login fehlgeschlagen: $result",
+                                      );
+                                    }
+                                  }
+                                  setState(() {});
+                                },
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: ElevatedButton.icon(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.green,
+                                  foregroundColor: Colors.white,
+                                ),
+                                icon: const Icon(Icons.sync),
+                                label: FittedBox(
+                                  child: Text(Translator.get('sync_now')),
+                                ),
+                                onPressed: () async {
+                                  if (!GoogleDriveSyncService
+                                      .instance
+                                      .isSignedIn) {
+                                    NotificationHelper.showWarning(
+                                      "Bitte logge dich zuerst ein!",
+                                    );
+                                    return;
+                                  }
+                                  showDialog(
+                                    context: context,
+                                    barrierDismissible: false,
+                                    builder: (context) => const Center(
+                                      child: CircularProgressIndicator(),
+                                    ),
+                                  );
+                                  try {
+                                    final cloudData =
+                                        await GoogleDriveSyncService.instance
+                                            .downloadBackup();
+                                    if (cloudData != null) {
+                                      await dexProvider.mergeCloudData(
+                                        cloudData,
+                                      );
+                                    }
+                                    final Map<String, dynamic> exportData =
+                                        await DatabaseService.instance
+                                            .exportCloudSyncData();
+                                    bool success = await GoogleDriveSyncService
+                                        .instance
+                                        .uploadBackup(exportData);
+                                    if (context.mounted) {
+                                      Navigator.pop(context);
+                                      if (success) {
+                                        NotificationHelper.showSuccess(
+                                          Translator.get('sync_success'),
+                                        );
+                                      } else {
+                                        NotificationHelper.showError(
+                                          "Upload fehlgeschlagen.",
+                                        );
+                                      }
+                                    }
+                                  } catch (e) {
+                                    if (context.mounted) {
+                                      Navigator.pop(context);
+                                      NotificationHelper.showError(
+                                        "Sync Fehler: $e",
+                                      );
+                                    }
+                                  }
+                                },
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 24),
+
+          Container(
+            key: _communityKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _buildSectionHeader(
+                  context,
+                  Translator.get('community_support'),
+                  Icons.people_alt,
+                ),
+                Card(
+                  child: Column(
+                    children: [
+                      ListTile(
+                        leading: const Icon(Icons.bug_report_outlined),
+                        title: Text(Translator.get('report_issue_title')),
+                        subtitle: Text(Translator.get('report_issue_sub')),
+                        trailing: const Icon(Icons.open_in_new, size: 16),
+                        onTap: () => _launchURL(
+                          'https://github.com/raptorclash/pokevault/issues/new/choose',
                         ),
                       ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: ElevatedButton.icon(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.green,
-                            foregroundColor: Colors.white,
-                          ),
-                          icon: const Icon(Icons.sync),
-                          label: FittedBox(
-                            child: Text(Translator.get('sync_now')),
-                          ),
-                          onPressed: () async {
-                            if (!GoogleDriveSyncService.instance.isSignedIn) {
-                              NotificationHelper.showWarning(
-                                "Bitte logge dich zuerst ein!",
-                              );
-                              return;
-                            }
-
-                            showDialog(
-                              context: context,
-                              barrierDismissible: false,
-                              builder: (context) => const Center(
-                                child: CircularProgressIndicator(),
-                              ),
-                            );
-
-                            try {
-                              final cloudData = await GoogleDriveSyncService
-                                  .instance
-                                  .downloadBackup();
-
-                              if (cloudData != null) {
-                                await dexProvider.mergeCloudData(cloudData);
-                              }
-
-                              final Map<String, dynamic> exportData =
-                                  await DatabaseService.instance
-                                      .exportCloudSyncData();
-
-                              bool success = await GoogleDriveSyncService
-                                  .instance
-                                  .uploadBackup(exportData);
-
-                              if (context.mounted) {
-                                Navigator.pop(context);
-                                if (success) {
-                                  NotificationHelper.showSuccess(
-                                    Translator.get('sync_success'),
-                                  );
-                                } else {
-                                  NotificationHelper.showError(
-                                    "Upload fehlgeschlagen.",
-                                  );
-                                }
-                              }
-                            } catch (e) {
-                              if (context.mounted) {
-                                Navigator.pop(context);
-                                NotificationHelper.showError("Sync Fehler: $e");
-                              }
-                            }
-                          },
+                      const Divider(height: 1),
+                      ListTile(
+                        leading: const Icon(Icons.code),
+                        title: Text(Translator.get('contribute_title')),
+                        subtitle: Text(Translator.get('contribute_sub')),
+                        trailing: const Icon(Icons.open_in_new, size: 16),
+                        onTap: () => _launchURL(
+                          'https://github.com/raptorclash/pokevault',
                         ),
                       ),
                     ],
                   ),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: 24),
-          _buildSectionHeader(
-            context,
-            Translator.get('community_support'),
-            Icons.people_alt,
-          ),
-          Card(
-            child: Column(
-              children: [
-                ListTile(
-                  leading: const Icon(Icons.bug_report_outlined),
-                  title: Text(Translator.get('report_issue_title')),
-                  subtitle: Text(Translator.get('report_issue_sub')),
-                  trailing: const Icon(Icons.open_in_new, size: 16),
-                  onTap: () => _launchURL(
-                    'https://github.com/raptorclash/pokevault/issues/new/choose',
-                  ),
-                ),
-                const Divider(height: 1),
-                ListTile(
-                  leading: const Icon(Icons.code),
-                  title: Text(Translator.get('contribute_title')),
-                  subtitle: Text(Translator.get('contribute_sub')),
-                  trailing: const Icon(Icons.open_in_new, size: 16),
-                  onTap: () =>
-                      _launchURL('https://github.com/raptorclash/pokevault'),
                 ),
               ],
             ),
           ),
           const SizedBox(height: 24),
-          _buildSectionHeader(
-            context,
-            Translator.get('credits'),
-            Icons.favorite_rounded,
-          ),
-          Card(
+
+          Container(
+            key: _creditsKey,
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
               children: [
-                ListTile(
-                  leading: const Icon(Icons.api_rounded),
-                  title: Text(Translator.get('credit_api_title')),
-                  subtitle: Text(Translator.get('credit_api_sub')),
-                  trailing: const Icon(Icons.open_in_new, size: 16),
-                  onTap: () => _launchURL('https://pokeapi.co/'),
+                _buildSectionHeader(
+                  context,
+                  Translator.get('credits'),
+                  Icons.favorite_rounded,
                 ),
-                const Divider(height: 1),
-                ListTile(
-                  leading: const Icon(Icons.lightbulb_outline_rounded),
-                  title: Text(Translator.get('credit_inspi_title')),
-                  subtitle: Text(Translator.get('credit_inspi_sub')),
-                  trailing: const Icon(Icons.open_in_new, size: 16),
-                  onTap: () => _launchURL(
-                    'https://drive.google.com/drive/folders/1jgopfeGuNA8oJX6mnYearpnNti4a8W-v',
+                Card(
+                  child: Column(
+                    children: [
+                      ListTile(
+                        leading: const Icon(Icons.api_rounded),
+                        title: Text(Translator.get('credit_api_title')),
+                        subtitle: Text(Translator.get('credit_api_sub')),
+                        trailing: const Icon(Icons.open_in_new, size: 16),
+                        onTap: () => _launchURL('https://pokeapi.co/'),
+                      ),
+                      const Divider(height: 1),
+                      ListTile(
+                        leading: const Icon(Icons.lightbulb_outline_rounded),
+                        title: Text(Translator.get('credit_inspi_title')),
+                        subtitle: Text(Translator.get('credit_inspi_sub')),
+                        trailing: const Icon(Icons.open_in_new, size: 16),
+                        onTap: () => _launchURL(
+                          'https://drive.google.com/drive/folders/1jgopfeGuNA8oJX6mnYearpnNti4a8W-v',
+                        ),
+                      ),
+                      const Divider(height: 1),
+                      ListTile(
+                        leading: const Icon(Icons.menu_book),
+                        title: Text(Translator.get('credit_pokewiki_title')),
+                        subtitle: Text(Translator.get('credit_pokewiki_sub')),
+                        trailing: const Icon(Icons.open_in_new, size: 16),
+                        onTap: () => _launchURL('https://www.pokewiki.de/'),
+                      ),
+                      const Divider(height: 1),
+                      ListTile(
+                        leading: const Icon(Icons.article),
+                        title: Text(Translator.get('credit_bisafans_title')),
+                        subtitle: Text(Translator.get('credit_bisafans_sub')),
+                        trailing: const Icon(Icons.open_in_new, size: 16),
+                        onTap: () => _launchURL('https://www.bisafans.de/'),
+                      ),
+                      const Divider(height: 1),
+                      ListTile(
+                        leading: const Icon(Icons.auto_awesome),
+                        title: Text(Translator.get('credit_shiny_gen1_title')),
+                        subtitle: Text(Translator.get('credit_shiny_gen1_sub')),
+                        trailing: const Icon(Icons.open_in_new, size: 16),
+                        onTap: () => _launchURL(
+                          'https://bluemoonfalls.com/pages/shinies/gen-1-shiny-hunting',
+                        ),
+                      ),
+                      const Divider(height: 1),
+                      ListTile(
+                        leading: const Icon(Icons.bug_report_rounded),
+                        title: Text(Translator.get('credit_glitch_gen2_title')),
+                        subtitle: Text(
+                          Translator.get('credit_glitch_gen2_sub'),
+                        ),
+                        trailing: const Icon(Icons.open_in_new, size: 16),
+                        onTap: () => _launchURL(
+                          'https://glitchcity.wiki/wiki/Guides:Mail_Writer_Codes',
+                        ),
+                      ),
+                      const Divider(height: 1),
+                      ListTile(
+                        leading: const Icon(Icons.catching_pokemon),
+                        title: Text(Translator.get('credit_balls_title')),
+                        subtitle: Text(Translator.get('credit_balls_sub')),
+                        trailing: const Icon(Icons.open_in_new, size: 16),
+                        onTap: () => _launchURL(
+                          'https://docs.google.com/spreadsheets/d/1bvIx7Q2Lxp7efHRrUh48WkuwirNlKardwSHVz_R8kA0/edit',
+                        ),
+                      ),
+                      const Divider(height: 1),
+                      ListTile(
+                        leading: const Icon(Icons.menu_book_rounded),
+                        title: const Text('Bulbapedia (Catch Rates)'),
+                        subtitle: const Text(
+                          'Mechaniken für Legends Z-A und Max Raids',
+                        ),
+                        trailing: const Icon(Icons.open_in_new, size: 16),
+                        onTap: () => _launchURL(
+                          'https://bulbapedia.bulbagarden.net/wiki/Catch_rate',
+                        ),
+                      ),
+                      const Divider(height: 1),
+                      ListTile(
+                        leading: const Icon(Icons.memory),
+                        title: Text(Translator.get('credit_ai_title')),
+                        subtitle: Text(Translator.get('credit_ai_sub')),
+                        trailing: const Icon(Icons.open_in_new, size: 16),
+                        onTap: () => _launchURL('https://gemini.google.com/'),
+                      ),
+                    ],
                   ),
-                ),
-                const Divider(height: 1),
-                ListTile(
-                  leading: const Icon(Icons.menu_book),
-                  title: Text(Translator.get('credit_pokewiki_title')),
-                  subtitle: Text(Translator.get('credit_pokewiki_sub')),
-                  trailing: const Icon(Icons.open_in_new, size: 16),
-                  onTap: () => _launchURL('https://www.pokewiki.de/'),
-                ),
-                const Divider(height: 1),
-                ListTile(
-                  leading: const Icon(Icons.article),
-                  title: Text(Translator.get('credit_bisafans_title')),
-                  subtitle: Text(Translator.get('credit_bisafans_sub')),
-                  trailing: const Icon(Icons.open_in_new, size: 16),
-                  onTap: () => _launchURL('https://www.bisafans.de/'),
-                ),
-                const Divider(height: 1),
-                ListTile(
-                  leading: const Icon(Icons.auto_awesome),
-                  title: Text(Translator.get('credit_shiny_gen1_title')),
-                  subtitle: Text(Translator.get('credit_shiny_gen1_sub')),
-                  trailing: const Icon(Icons.open_in_new, size: 16),
-                  onTap: () => _launchURL(
-                    'https://bluemoonfalls.com/pages/shinies/gen-1-shiny-hunting',
-                  ),
-                ),
-                const Divider(height: 1),
-                ListTile(
-                  leading: const Icon(Icons.bug_report_rounded),
-                  title: Text(Translator.get('credit_glitch_gen2_title')),
-                  subtitle: Text(Translator.get('credit_glitch_gen2_sub')),
-                  trailing: const Icon(Icons.open_in_new, size: 16),
-                  onTap: () => _launchURL(
-                    'https://glitchcity.wiki/wiki/Guides:Mail_Writer_Codes',
-                  ),
-                ),
-                const Divider(height: 1),
-                ListTile(
-                  leading: const Icon(Icons.catching_pokemon),
-                  title: Text(Translator.get('credit_balls_title')),
-                  subtitle: Text(Translator.get('credit_balls_sub')),
-                  trailing: const Icon(Icons.open_in_new, size: 16),
-                  onTap: () => _launchURL(
-                    'https://docs.google.com/spreadsheets/d/1bvIx7Q2Lxp7efHRrUh48WkuwirNlKardwSHVz_R8kA0/edit',
-                  ),
-                ),
-                const Divider(height: 1),
-                ListTile(
-                  leading: const Icon(Icons.menu_book_rounded),
-                  title: const Text('Bulbapedia (Catch Rates)'),
-                  subtitle: const Text(
-                    'Mechaniken für Legends Z-A und Max Raids',
-                  ),
-                  trailing: const Icon(Icons.open_in_new, size: 16),
-                  onTap: () => _launchURL(
-                    'https://bulbapedia.bulbagarden.net/wiki/Catch_rate',
-                  ),
-                ),
-                const Divider(height: 1),
-                ListTile(
-                  leading: const Icon(Icons.memory),
-                  title: Text(Translator.get('credit_ai_title')),
-                  subtitle: Text(Translator.get('credit_ai_sub')),
-                  trailing: const Icon(Icons.open_in_new, size: 16),
-                  onTap: () => _launchURL('https://gemini.google.com/'),
                 ),
               ],
             ),
           ),
           const SizedBox(height: 32),
+
           FutureBuilder<PackageInfo>(
             future: PackageInfo.fromPlatform(),
             builder: (context, snapshot) {
@@ -932,7 +1099,6 @@ class SettingsScreen extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 16),
-
                   _buildTutorialStep(
                     context,
                     1,
@@ -940,7 +1106,6 @@ class SettingsScreen extends StatelessWidget {
                     linkUrl: 'https://console.cloud.google.com',
                     linkText: '🔗 console.cloud.google.com',
                   ),
-
                   _buildTutorialStep(
                     context,
                     2,

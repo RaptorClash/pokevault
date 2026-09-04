@@ -225,11 +225,16 @@ class _TutorialOverlayState extends State<TutorialOverlay>
       if (newRect == null) {
         calculatedNewPos = Offset(screenWidth / 2, screenHeight / 2);
       } else {
-        bool showBubbleTop = newRect.top > screenHeight / 2;
-        calculatedNewPos = Offset(
-          screenWidth / 2,
-          showBubbleTop ? newRect.top - 150 : newRect.bottom + 150,
-        );
+        double spaceTop = newRect.top;
+        double spaceBottom = screenHeight - newRect.bottom;
+
+        if (spaceTop >= 260) {
+          calculatedNewPos = Offset(screenWidth / 2, newRect.top - 150);
+        } else if (spaceBottom >= 260) {
+          calculatedNewPos = Offset(screenWidth / 2, newRect.bottom + 150);
+        } else {
+          calculatedNewPos = Offset(screenWidth / 2, screenHeight - 150);
+        }
       }
 
       if (_newRotomPos != null && _newRotomPos != calculatedNewPos) {
@@ -653,9 +658,38 @@ class _TutorialOverlayState extends State<TutorialOverlay>
     final isLast = _currentIndex == widget.feature.steps.length - 1;
     final screenHeight = MediaQuery.of(context).size.height;
 
-    bool showBubbleTop =
-        _targetRect != null && _targetRect!.top > screenHeight / 2;
     bool isIntro = _targetRect == null;
+    bool showBubbleTop = false;
+    bool isHugeTarget = false;
+
+    if (_targetRect != null) {
+      double spaceTop = _targetRect!.top;
+      double spaceBottom = screenHeight - _targetRect!.bottom;
+
+      if (spaceTop >= 260) {
+        showBubbleTop = true;
+      } else if (spaceBottom >= 260) {
+        showBubbleTop = false;
+      } else {
+        isHugeTarget = true;
+        showBubbleTop = true;
+      }
+    }
+
+    double? calcTop;
+    double? calcBottom;
+
+    if (_easterEggPos != null) {
+      calcTop = _easterEggPos!.dy;
+    } else if (isIntro) {
+      calcTop = (screenHeight / 2) - 100;
+    } else if (isHugeTarget) {
+      calcBottom = 40.0;
+    } else if (showBubbleTop) {
+      calcBottom = screenHeight - _targetRect!.top + 30;
+    } else {
+      calcTop = _targetRect!.bottom + 30;
+    }
 
     return Material(
       type: MaterialType.transparency,
@@ -675,14 +709,13 @@ class _TutorialOverlayState extends State<TutorialOverlay>
                 bool isLong = false;
                 if (_pointerDownTime != null) {
                   final duration = DateTime.now().difference(_pointerDownTime!);
-                  // Wenn der Klick länger als 400ms war, ist es ein Long-Press
                   if (duration.inMilliseconds >= 400) {
                     isLong = true;
                   }
                 }
                 if (!isLong) {
                   _handleShortTapError();
-                  return; // Bricht ab, es geht nicht zum nächsten Schritt!
+                  return;
                 }
               }
               _wrongTapCount = 0;
@@ -757,16 +790,8 @@ class _TutorialOverlayState extends State<TutorialOverlay>
               AnimatedPositioned(
                 duration: const Duration(milliseconds: 400),
                 curve: Curves.easeInOutBack,
-                top: _easterEggPos != null
-                    ? _easterEggPos!.dy
-                    : (isIntro
-                          ? (screenHeight / 2) - 100
-                          : (showBubbleTop ? null : _targetRect!.bottom + 30)),
-                bottom: _easterEggPos != null || isIntro
-                    ? null
-                    : (showBubbleTop
-                          ? screenHeight - _targetRect!.top + 30
-                          : null),
+                top: calcTop,
+                bottom: calcBottom,
                 left: _easterEggPos != null ? _easterEggPos!.dx : 20,
                 width: MediaQuery.of(context).size.width - 40,
                 child: _isEasterEggActive
