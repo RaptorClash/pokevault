@@ -20,6 +20,7 @@ import 'dex_box_view.dart';
 import 'dex_list_view.dart';
 import 'route_tracker_screen.dart';
 import '../pokemon_info/pokemon_info_screen.dart';
+import '../../services/database_service.dart';
 
 class DexScreen extends StatefulWidget {
   final UserDex initialDex;
@@ -73,10 +74,8 @@ class _DexScreenState extends State<DexScreen> {
 
   Future<void> _initializeDataAsync() async {
     try {
-      final prefs = await SharedPreferences.getInstance();
-      _isBoxView = prefs.getBool('box_view_${widget.initialDex.id}') ?? false;
-      _separateForms =
-          prefs.getBool('separate_forms_${widget.initialDex.id}') ?? true;
+      _isBoxView = widget.initialDex.viewMode == 'box';
+      _separateForms = widget.initialDex.sortMode != 'forms';
 
       final lang = context.read<SettingsProvider>().currentLanguage;
 
@@ -346,22 +345,8 @@ class _DexScreenState extends State<DexScreen> {
   }
 
   Future<void> _toggleBoxView() async {
-    final prefs = await SharedPreferences.getInstance();
     setState(() {
       _isBoxView = !_isBoxView;
-      prefs.setBool('box_view_${widget.initialDex.id}', _isBoxView);
-    });
-  }
-
-  Future<void> _toggleSeparateForms() async {
-    if (_isCalculatingBoxes) return;
-
-    final prefs = await SharedPreferences.getInstance();
-    final newVal = !_separateForms;
-    await prefs.setBool('separate_forms_${widget.initialDex.id}', newVal);
-
-    setState(() {
-      _separateForms = newVal;
     });
 
     final provider = context.read<DexProvider>();
@@ -369,6 +354,25 @@ class _DexScreenState extends State<DexScreen> {
       (d) => d.id == widget.initialDex.id,
       orElse: () => widget.initialDex,
     );
+    liveDex.viewMode = _isBoxView ? 'box' : 'list';
+    await DatabaseService.instance.saveUserDex(liveDex);
+  }
+
+  Future<void> _toggleSeparateForms() async {
+    if (_isCalculatingBoxes) return;
+
+    setState(() {
+      _separateForms = !_separateForms;
+    });
+
+    final provider = context.read<DexProvider>();
+    final liveDex = provider.userDexes.firstWhere(
+      (d) => d.id == widget.initialDex.id,
+      orElse: () => widget.initialDex,
+    );
+    liveDex.sortMode = _separateForms ? 'dex' : 'forms';
+    await DatabaseService.instance.saveUserDex(liveDex);
+
     await _recalculateBoxesAsync(liveDex);
   }
 

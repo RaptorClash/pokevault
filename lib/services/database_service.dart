@@ -67,7 +67,7 @@ class DatabaseService {
     return await factory.openDatabase(
       path,
       options: OpenDatabaseOptions(
-        version: 2,
+        version: 3,
         onCreate: _createUserDataTables,
         onUpgrade: _upgradeUserDataTables,
       ),
@@ -87,6 +87,8 @@ class DatabaseService {
           include_gmax INTEGER,
           include_other INTEGER,
           is_shiny_dex INTEGER,
+          view_mode TEXT DEFAULT 'list',
+          sort_mode TEXT DEFAULT 'dex',
           updated_at INTEGER DEFAULT 0,
           deleted_at INTEGER DEFAULT 0
         )
@@ -162,6 +164,21 @@ class DatabaseService {
         );
       } catch (e) {
         debugPrint("Migrations-Fehler (Spalten existieren evtl. schon): $e");
+      }
+    }
+    if (oldVersion < 3) {
+      try {
+        await db.execute(
+          "ALTER TABLE user_dexes ADD COLUMN view_mode TEXT DEFAULT 'list'",
+        );
+        await db.execute(
+          "ALTER TABLE user_dexes ADD COLUMN sort_mode TEXT DEFAULT 'dex'",
+        );
+        debugPrint(
+          "Datenbank erfolgreich auf Version 3 (Sort/View-Modes) migriert!",
+        );
+      } catch (e) {
+        debugPrint("Migrations-Fehler V3: $e");
       }
     }
   }

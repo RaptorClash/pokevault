@@ -8,10 +8,11 @@ class UserDex {
   final bool includeGMax;
   final bool includeOther;
   final bool isShinyDex;
-
   List<String> caughtIds;
   List<String> shinyIds;
   List<String> ignoredIds;
+  String viewMode;
+  String sortMode;
 
   UserDex({
     required this.id,
@@ -26,6 +27,8 @@ class UserDex {
     this.caughtIds = const [],
     this.shinyIds = const [],
     this.ignoredIds = const [],
+    this.viewMode = 'list',
+    this.sortMode = 'dex',
   });
 
   factory UserDex.fromMap(Map<String, dynamic> map) {
@@ -39,6 +42,8 @@ class UserDex {
       includeGMax: (map['include_gmax'] as num?)?.toInt() == 1,
       includeOther: (map['include_other'] as num?)?.toInt() == 1,
       isShinyDex: (map['is_shiny_dex'] as num?)?.toInt() == 1,
+      viewMode: map['view_mode']?.toString() ?? 'list',
+      sortMode: map['sort_mode']?.toString() ?? 'dex',
       caughtIds: [],
       shinyIds: [],
       ignoredIds: [],
@@ -56,6 +61,8 @@ class UserDex {
       'include_gmax': includeGMax ? 1 : 0,
       'include_other': includeOther ? 1 : 0,
       'is_shiny_dex': isShinyDex ? 1 : 0,
+      'view_mode': viewMode,
+      'sort_mode': sortMode,
     };
   }
 
@@ -70,6 +77,8 @@ class UserDex {
       'includeGMax': includeGMax,
       'includeOther': includeOther,
       'isShinyDex': isShinyDex,
+      'viewMode': viewMode,
+      'sortMode': sortMode,
       'caughtIds': caughtIds,
       'shinyIds': shinyIds,
       'ignoredIds': ignoredIds,
@@ -87,6 +96,8 @@ class UserDex {
       includeGMax: json['includeGMax'] ?? false,
       includeOther: json['includeOther'] ?? false,
       isShinyDex: json['isShinyDex'] ?? false,
+      viewMode: json['viewMode']?.toString() ?? 'list',
+      sortMode: json['sortMode']?.toString() ?? 'dex',
       caughtIds: List<String>.from(json['caughtIds'] ?? []),
       shinyIds: List<String>.from(json['shinyIds'] ?? []),
       ignoredIds: List<String>.from(json['ignoredIds'] ?? []),
