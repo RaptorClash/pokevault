@@ -12,13 +12,14 @@ import 'utils/notification_helper.dart';
 import 'l10n/app_translations.dart';
 import 'providers/settings_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'i18n/strings.g.dart';
 
 void main() async {
-  // <--- async hinzufügen
   try {
     WidgetsFlutterBinding.ensureInitialized();
 
-    // Speicher VOR dem App-Start laden
+    LocaleSettings.useDeviceLocale();
+
     final prefs = await SharedPreferences.getInstance();
 
     if (kIsWeb) {
@@ -32,15 +33,16 @@ void main() async {
     PaintingBinding.instance.imageCache.maximumSizeBytes = 1024 * 1024 * 40;
 
     runApp(
-      MultiProvider(
-        providers: [
-          ChangeNotifierProvider(create: (_) => ThemeProvider()),
-          ChangeNotifierProvider(create: (context) => DexProvider()),
-          // Hier übergeben wir die geladenen Prefs an den TutorialProvider:
-          ChangeNotifierProvider(create: (_) => TutorialProvider(prefs)),
-          ChangeNotifierProvider(create: (_) => SettingsProvider()),
-        ],
-        child: const PokedexApp(),
+      TranslationProvider(
+        child: MultiProvider(
+          providers: [
+            ChangeNotifierProvider(create: (_) => ThemeProvider()),
+            ChangeNotifierProvider(create: (context) => DexProvider()),
+            ChangeNotifierProvider(create: (_) => TutorialProvider(prefs)),
+            ChangeNotifierProvider(create: (_) => SettingsProvider()),
+          ],
+          child: const PokedexApp(),
+        ),
       ),
     );
   } catch (e) {
@@ -53,7 +55,6 @@ class PokedexApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final dexProvider = context.watch<DexProvider>();
     final themeProvider = Provider.of<ThemeProvider>(context);
     final settingsProvider = context.watch<SettingsProvider>();
 
