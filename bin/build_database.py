@@ -417,14 +417,16 @@ def main():
                     expected_app_uids.add(f"{i}_{clean_form}")
                     
                     form_type = 'other'
-                    min_gen = 9
+                    min_gen = get_gen_by_id(i)
+
                     if f_data.get('version_group'):
-                        gen_str = VERSION_TO_GEN.get(f_data['version_group']['name'], 'gen_9').split('_')[-1]
-                        min_gen = int(gen_str) if gen_str.isdigit() else 9
-                    
+                        gen_str = VERSION_TO_GEN.get(f_data['version_group']['name'], '').split('_')[-1]
+                        if gen_str.isdigit():
+                            min_gen = int(gen_str)
+
                     if clean_form == 'normal': 
                         form_type = 'normal'
-                        min_gen = get_gen_by_id(i)
+
                     elif any(x in clean_form for x in ['alola', 'galar', 'hisui', 'paldea']): form_type = 'regional'
                     elif 'mega' in clean_form or 'primal' in clean_form: form_type = 'mega'
                     elif 'gmax' in clean_form: form_type = 'gmax'

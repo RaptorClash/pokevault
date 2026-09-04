@@ -174,34 +174,68 @@ class DexLogicHelper {
     return 'paldea';
   }
 
-  static String getEntryCategoryId(DexDisplayEntry entry) {
+  static String getEntryCategoryId(DexDisplayEntry entry, String region) {
     final id = entry.pokemon.id;
     final uniqueId = entry.uniqueId.toLowerCase();
-    bool isBaseForm = false;
-    if (!uniqueId.contains('_')) {
-      isBaseForm = true;
-    } else {
-      String formName = uniqueId.substring(uniqueId.indexOf('_') + 1);
-      if (formName == 'normal' ||
-          formName == 'male' ||
-          (formName == 'm' && id != 201)) {
-        isBaseForm = true;
-      } else if (entry.pokemon.forms.isNotEmpty &&
-          formName == entry.pokemon.forms.first.name.toLowerCase()) {
-        isBaseForm = true;
+
+    // Hilfsfunktion: Ist es eine native Regionalform für diesen Dex?
+    bool isNativeReg(String formName) {
+      if (region.contains('alola') && formName.contains('alola')) return true;
+      if (region.contains('galar') && formName.contains('galar')) return true;
+      if (region.contains('hisui') && formName.contains('hisui')) return true;
+      if (region.contains('paldea') && formName.contains('paldea')) return true;
+      return false;
+    }
+
+    // Prüfen, ob das Pokémon in dieser Region eine native Form besitzt
+    bool hasNativeRegional = false;
+    for (var f in entry.pokemon.forms) {
+      if (f.formType == 'regional' && isNativeReg(f.name.toLowerCase())) {
+        hasNativeRegional = true;
+        break;
       }
     }
+
+    String formName = uniqueId.contains('_')
+        ? uniqueId.substring(uniqueId.indexOf('_') + 1)
+        : 'normal';
+    bool isBaseForm = false;
+
+    if (hasNativeRegional) {
+      // Wenn eine native Form existiert, ist diese die Base-Form!
+      if (isNativeReg(formName)) {
+        isBaseForm = true;
+      }
+    } else {
+      // Wenn keine native Regionalform existiert, bleibt die Normalform Base
+      if (!uniqueId.contains('_')) {
+        isBaseForm = true;
+      } else {
+        if (formName == 'normal' ||
+            formName == 'male' ||
+            (formName == 'm' && id != 201)) {
+          isBaseForm = true;
+        } else if (entry.pokemon.forms.isNotEmpty &&
+            formName == entry.pokemon.forms.first.name.toLowerCase()) {
+          isBaseForm = true;
+        }
+      }
+    }
+
     if (isBaseForm) return 'base';
+
     if (id == 25 && uniqueId.contains('cap')) return 'cap';
     if (id == 201) return 'unown';
     if (id == 666) return 'vivillon';
+    if (id == 676) return 'furfrou';
     if (id == 869) return 'alcremie';
+
     if ((uniqueId.endsWith('_f') || uniqueId.endsWith('_female')) &&
         id != 201) {
       return 'females';
     }
+
     if (uniqueId.contains('_')) {
-      String formName = uniqueId.substring(uniqueId.indexOf('_') + 1);
       try {
         final form = entry.pokemon.forms.firstWhere(
           (f) => f.name.toLowerCase() == formName,
@@ -209,8 +243,11 @@ class DexLogicHelper {
         if (form.formType == 'gmax') return 'gmax';
         if (form.formType == 'regional') return 'regional';
         if (form.formType == 'mega') return 'mega';
+        if (form.formType == 'normal')
+          return 'alternate'; // Normale Form rückt in die Extra-Box!
       } catch (_) {}
     }
+
     return 'alternate';
   }
 
@@ -242,7 +279,7 @@ class DexLogicHelper {
       List<DexDisplayEntry> baseEntries = [];
       List<DexDisplayEntry> formEntries = [];
       for (var entry in entries) {
-        if (getEntryCategoryId(entry) == 'base') {
+        if (getEntryCategoryId(entry, liveDex.region) == 'base') {
           baseEntries.add(entry);
         } else {
           formEntries.add(entry);
@@ -303,7 +340,7 @@ class DexLogicHelper {
           } catch (_) {}
         }
         String regionId = getPokemonRegionId(entry.pokemon, form);
-        String catId = getEntryCategoryId(entry);
+        String catId = getEntryCategoryId(entry, liveDex.region);
         structured.putIfAbsent(regionId, () => {});
         structured[regionId]!.putIfAbsent(catId, () => []).add(entry);
       }
@@ -388,16 +425,18 @@ class DexLogicHelper {
                 : (b.name.contains('50') || b.name == 'normal' ? 1 : 2);
             if (wA != wB) return wA.compareTo(wB);
           }
-          int getWeight(String type) {
-            if (type == 'normal') return 0;
-            if (type == 'regional') return 1;
-            if (type == 'other') return 2;
-            if (type == 'mega') return 3;
-            if (type == 'gmax') return 4;
+          int getWeight(PokemonForm form) {
+            if (isNativeRegionalForm(form, liveDex.region)) return -1;
+
+            if (form.formType == 'normal') return 0;
+            if (form.formType == 'regional') return 1;
+            if (form.formType == 'other') return 2;
+            if (form.formType == 'mega') return 3;
+            if (form.formType == 'gmax') return 4;
             return 5;
           }
 
-          return getWeight(a.formType).compareTo(getWeight(b.formType));
+          return getWeight(a).compareTo(getWeight(b));
         });
 
         bool hasExplicitGenderForms = p.forms.any(
