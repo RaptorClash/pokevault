@@ -1,6 +1,5 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
-
 import 'models.dart';
 import 'strategy_base.dart';
 import '../../l10n/app_translations.dart';
@@ -249,6 +248,14 @@ class Gen95Strategy extends CatchRateStrategy {
     BallOption('love', Translator.get('ball_love_ball'), 'love-ball'),
     BallOption('quick', Translator.get('ball_quick_ball'), 'quick-ball'),
     BallOption('timer', Translator.get('ball_timer_ball'), 'timer-ball'),
+    BallOption('premier', Translator.get('ball_premier_ball'), 'premier-ball'),
+    BallOption('luxury', Translator.get('ball_luxury_ball'), 'luxury-ball'),
+    BallOption('dusk', Translator.get('ball_dusk_ball'), 'dusk-ball'),
+    BallOption('net', Translator.get('ball_net_ball'), 'net-ball'),
+    BallOption('dive', Translator.get('ball_dive_ball'), 'dive-ball'),
+    BallOption('nest', Translator.get('ball_nest_ball'), 'nest-ball'),
+    BallOption('beast', Translator.get('ball_beast_ball'), 'beast-ball'),
+    BallOption('dream', Translator.get('ball_dream_ball'), 'dream-ball'),
   ];
 
   @override
@@ -278,6 +285,13 @@ class Gen95Strategy extends CatchRateStrategy {
     if (modifiedRate == 255) modifiedRate = 765;
 
     double ballBonus = 1.0;
+
+    bool isUB = params.pokemon.isUltraBeast;
+
+    List<String> types = params.pokemon.forms.isNotEmpty
+        ? params.pokemon.forms.first.types
+        : [];
+
     switch (params.ballId) {
       case 'great':
         ballBonus = 1.5;
@@ -294,17 +308,46 @@ class Gen95Strategy extends CatchRateStrategy {
       case 'level':
         if ((params.ownLevel ~/ 4) > params.enemyLevel) {
           ballBonus = 8.0;
-        } else if ((params.ownLevel ~/ 2) > params.enemyLevel)
+        } else if ((params.ownLevel ~/ 2) > params.enemyLevel) {
           ballBonus = 4.0;
-        else if (params.ownLevel > params.enemyLevel)
+        } else if (params.ownLevel > params.enemyLevel) {
           ballBonus = 2.0;
+        }
         break;
       case 'love':
         ballBonus = params.isLoveConditionMet ? 8.0 : 1.0;
         break;
+
+      case 'beast':
+        if (isUB) {
+          ballBonus = 5.0;
+        } else {
+          ballBonus = 410.0 / 4096.0;
+        }
+        break;
+      case 'net':
+        if (types.contains('water') || types.contains('bug')) ballBonus = 3.5;
+        break;
+      case 'dive':
+        if (params.isSurfingOrDiving) ballBonus = 3.5;
+        break;
+      case 'dusk':
+        if (params.isNightOrCave) ballBonus = 3.0;
+        break;
+      case 'nest':
+        ballBonus = max(1.0, 8.0 - (810.0 / 4096.0) * (params.enemyLevel - 1));
+        break;
+      case 'dream':
+        if (params.statusType == 2) ballBonus = 4.0;
+        break;
+    }
+
+    if (isUB && params.ballId != 'beast') {
+      ballBonus = 410.0 / 4096.0;
     }
 
     double statusBonus = 1.0;
+
     if (params.isCatchWindow) {
       statusBonus = params.isAlpha ? 3.0 : 1.2;
     } else {

@@ -1,12 +1,10 @@
-import 'dart:collection';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
 import '../../l10n/app_translations.dart';
 import '../../utils/notification_helper.dart';
 import '../../utils/shiny_logic_helper.dart';
+import '../../utils/breeding_logic_helper.dart';
 import '../../providers/dex_provider.dart';
-import 'widgets/breeding_data.dart';
 import 'widgets/breeding_step_card.dart';
 
 class BreedingCalculatorWidget extends StatefulWidget {
@@ -27,11 +25,12 @@ class BreedingCalculatorWidget extends StatefulWidget {
 class _BreedingCalculatorWidgetState extends State<BreedingCalculatorWidget> {
   int _startId = 130;
   late int _targetId;
-
   List<int>? _path;
   List<List<int>>? _allPaths;
   int _selectedPathIndex = 0;
   bool _useOnlyCaught = false;
+
+  bool _isCalculating = false;
 
   @override
   void initState() {
@@ -92,30 +91,12 @@ class _BreedingCalculatorWidgetState extends State<BreedingCalculatorWidget> {
     return p.getName(Translator.currentLanguage);
   }
 
-  void _calculatePath() {
+  Future<void> _calculatePath() async {
+    setState(() {
+      _isCalculating = true;
+    });
+
     try {
-      if (_startId == _targetId) {
-        setState(() {
-          _allPaths = [
-            [_startId],
-          ];
-          _selectedPathIndex = 0;
-          _path = _allPaths![0];
-        });
-        return;
-      }
-
-      if (_startId == 132) {
-        setState(() {
-          _allPaths = [
-            [132, _targetId],
-          ];
-          _selectedPathIndex = 0;
-          _path = _allPaths![0];
-        });
-        return;
-      }
-
       final dexProvider = Provider.of<DexProvider>(context, listen: false);
       final liveDex = dexProvider.userDexes.firstWhere(
         (d) => d.id == widget.dexId,
@@ -132,133 +113,38 @@ class _BreedingCalculatorWidgetState extends State<BreedingCalculatorWidget> {
         }
       }
 
-      var eggGroups = BreedingData.getEggGroups(dexProvider);
+      final args = BreedingCalcArgs(
+        startId: _startId,
+        targetId: _targetId,
+        useOnlyCaught: _useOnlyCaught,
+        caughtBaseIds: caughtBaseIds,
+        allPokemon: dexProvider.allPokemon,
+      );
 
-      Map<int, List<List<int>>> pathsToNode = {
-        _startId: [
-          [_startId],
-        ],
-      };
-      Queue<int> queue = Queue();
-      queue.add(_startId);
+      final finalPaths = await BreedingLogicHelper.calculatePathsInBackground(
+        args,
+      );
 
-      int? targetDepth;
-
-      while (queue.isNotEmpty) {
-        int current = queue.removeFirst();
-        int currentDepth = pathsToNode[current]!.first.length;
-
-        if (targetDepth != null && currentDepth >= targetDepth) continue;
-
-        if (ShinyLogicHelper.isBaby(current)) continue;
-
-        var currentGroups = eggGroups[current] ?? [];
-
-        for (int nextId = 1; nextId <= 251; nextId++) {
-          final nextPoke = dexProvider.allPokemon
-              .where((p) => p.id == nextId)
-              .firstOrNull;
-          if (nextPoke == null) continue;
-
-          if (!ShinyLogicHelper.isBreedable(nextPoke) &&
-              !ShinyLogicHelper.isBaby(nextId)) {
-            continue;
+      if (mounted) {
+        setState(() {
+          if (finalPaths.isNotEmpty) {
+            _allPaths = finalPaths;
+            _selectedPathIndex = 0;
+            _path = _allPaths![0];
+          } else {
+            _allPaths = [];
+            _path = null;
           }
-
-          int baseNextId = ShinyLogicHelper.getBaseForm(nextId);
-          final baseNextPoke = dexProvider.allPokemon
-              .where((p) => p.id == baseNextId)
-              .firstOrNull;
-
-          if (_useOnlyCaught &&
-              nextId != _targetId &&
-              !caughtBaseIds.contains(baseNextId)) {
-            continue;
-          }
-
-          if (baseNextPoke != null) {
-            if (nextId == _targetId) {
-              if (_startId != 132 &&
-                  (baseNextPoke.genderRate == -1 ||
-                      baseNextPoke.genderRate == 0)) {
-                continue;
-              }
-            } else {
-              if (baseNextPoke.genderRate == -1 ||
-                  baseNextPoke.genderRate == 0 ||
-                  baseNextPoke.genderRate == 8) {
-                continue;
-              }
-            }
-          }
-
-          var nextGroups = eggGroups[nextId] ?? [];
-          if (ShinyLogicHelper.isBaby(nextId)) {
-            int adultId = ShinyLogicHelper.getAdultForBaby(nextId);
-            nextGroups = eggGroups[adultId] ?? [];
-          }
-
-          bool sharesGroup = currentGroups.any((g) => nextGroups.contains(g));
-
-          if (sharesGroup) {
-            bool isNewNode = !pathsToNode.containsKey(nextId);
-            bool isSameDepth =
-                !isNewNode &&
-                pathsToNode[nextId]!.first.length == currentDepth + 1;
-
-            if (isNewNode || isSameDepth) {
-              if (isNewNode) pathsToNode[nextId] = [];
-
-              for (var p in pathsToNode[current]!) {
-                if (!p.contains(nextId)) {
-                  pathsToNode[nextId]!.add(List<int>.from(p)..add(nextId));
-                }
-              }
-
-              if (isNewNode) {
-                if (nextId == _targetId) {
-                  targetDepth = currentDepth + 1;
-                } else {
-                  queue.add(nextId);
-                }
-              }
-            }
-          }
-        }
+          _isCalculating = false;
+        });
       }
-
-      List<List<int>> validPaths = pathsToNode[_targetId] ?? [];
-
-      Map<String, List<int>> uniquePathsMap = {};
-      for (var p in validPaths) {
-        String routeKey = 'direct';
-        if (p.length > 2) {
-          int intermediateBase = ShinyLogicHelper.getBaseForm(p[1]);
-          routeKey = 'via_$intermediateBase';
-        }
-
-        if (!uniquePathsMap.containsKey(routeKey) ||
-            p.length < uniquePathsMap[routeKey]!.length) {
-          uniquePathsMap[routeKey] = p;
-        }
-      }
-
-      List<List<int>> finalPaths = uniquePathsMap.values.toList();
-      finalPaths.sort((a, b) => a.length.compareTo(b.length));
-      if (finalPaths.length > 5) finalPaths = finalPaths.sublist(0, 5);
-
-      setState(() {
-        if (finalPaths.isNotEmpty) {
-          _allPaths = finalPaths;
-          _selectedPathIndex = 0;
-          _path = _allPaths![0];
-        } else {
-          _allPaths = [];
-          _path = null;
-        }
-      });
     } catch (e) {
-      NotificationHelper.showError('Fehler bei der Pfadberechnung: $e');
+      if (mounted) {
+        setState(() {
+          _isCalculating = false;
+        });
+        NotificationHelper.showError('Fehler bei der Pfadberechnung: $e');
+      }
     }
   }
 
@@ -286,7 +172,6 @@ class _BreedingCalculatorWidgetState extends State<BreedingCalculatorWidget> {
       String baseNextName = _getPokemonNameOnly(
         ShinyLogicHelper.getBaseForm(nextId),
       );
-
       String stepDitto = Translator.get(
         'shiny_breed_step_ditto',
       ).replaceAll('{0}', nextName).replaceAll('{1}', baseNextName);
@@ -383,7 +268,6 @@ class _BreedingCalculatorWidgetState extends State<BreedingCalculatorWidget> {
         );
       }
     }
-
     return steps;
   }
 
@@ -753,78 +637,87 @@ class _BreedingCalculatorWidgetState extends State<BreedingCalculatorWidget> {
                 ),
               ),
               const SizedBox(height: 16),
-              if (_allPaths != null && _allPaths!.length > 1) ...[
-                Text(
-                  Translator.currentLanguage == 'de'
-                      ? 'Alternative Routen'
-                      : 'Alternative Routes',
-                  style: const TextStyle(fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 8),
-                SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: Row(
-                    children: List.generate(_allPaths!.length, (index) {
-                      var p = _allPaths![index];
-                      bool isSelected = index == _selectedPathIndex;
-                      String routeName = Translator.currentLanguage == 'de'
-                          ? 'Direkt'
-                          : 'Direct';
 
-                      if (p.length > 2) {
-                        int intermediateBase = ShinyLogicHelper.getBaseForm(
-                          p[1],
+              if (_isCalculating)
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 32.0),
+                  child: Center(child: CircularProgressIndicator()),
+                )
+              else ...[
+                if (_allPaths != null && _allPaths!.length > 1) ...[
+                  Text(
+                    Translator.currentLanguage == 'de'
+                        ? 'Alternative Routen'
+                        : 'Alternative Routes',
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 8),
+                  SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      children: List.generate(_allPaths!.length, (index) {
+                        var p = _allPaths![index];
+                        bool isSelected = index == _selectedPathIndex;
+                        String routeName = Translator.currentLanguage == 'de'
+                            ? 'Direkt'
+                            : 'Direct';
+                        if (p.length > 2) {
+                          int intermediateBase = ShinyLogicHelper.getBaseForm(
+                            p[1],
+                          );
+                          String pokeName = _getPokemonNameOnly(
+                            intermediateBase,
+                          );
+                          routeName = 'Via $pokeName';
+                        }
+                        return Padding(
+                          padding: const EdgeInsets.only(right: 8.0),
+                          child: ChoiceChip(
+                            label: Text(routeName),
+                            selected: isSelected,
+                            onSelected: (val) {
+                              setState(() {
+                                _selectedPathIndex = index;
+                                _path = _allPaths![index];
+                              });
+                            },
+                          ),
                         );
-                        String pokeName = _getPokemonNameOnly(intermediateBase);
-                        routeName = 'Via $pokeName';
-                      }
-                      return Padding(
-                        padding: const EdgeInsets.only(right: 8.0),
-                        child: ChoiceChip(
-                          label: Text(routeName),
-                          selected: isSelected,
-                          onSelected: (val) {
-                            setState(() {
-                              _selectedPathIndex = index;
-                              _path = _allPaths![index];
-                            });
-                          },
-                        ),
-                      );
-                    }),
+                      }),
+                    ),
                   ),
-                ),
-                const SizedBox(height: 16),
+                  const SizedBox(height: 16),
+                ],
+                if (_allPaths != null && _allPaths!.isEmpty)
+                  Text(
+                    _startId != 132
+                        ? (Translator.get('no_path_impossible') !=
+                                  'no_path_impossible'
+                              ? Translator.get('no_path_impossible')
+                              : 'Unmöglich! Du MUSST ein Shiny Ditto verwenden!')
+                        : (_useOnlyCaught
+                              ? (Translator.get('no_path_caught') !=
+                                        'no_path_caught'
+                                    ? Translator.get('no_path_caught')
+                                    : 'Keine Route mit deinen gefangenen Pokémon gefunden.')
+                              : Translator.get('shiny_breed_no_path')),
+                    style: const TextStyle(
+                      color: Colors.red,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  )
+                else if (_path == null)
+                  Text(
+                    _useOnlyCaught
+                        ? (Translator.get('no_path_caught') != 'no_path_caught'
+                              ? Translator.get('no_path_caught')
+                              : 'Keine Route mit deinen gefangenen Pokémon gefunden.')
+                        : Translator.get('shiny_breed_no_path'),
+                    style: const TextStyle(color: Colors.red),
+                  )
+                else
+                  ..._buildPathSteps(),
               ],
-              if (_allPaths != null && _allPaths!.isEmpty)
-                Text(
-                  _startId != 132
-                      ? (Translator.get('no_path_impossible') !=
-                                'no_path_impossible'
-                            ? Translator.get('no_path_impossible')
-                            : 'Unmöglich! Du MUSST ein Shiny Ditto verwenden!')
-                      : (_useOnlyCaught
-                            ? (Translator.get('no_path_caught') !=
-                                      'no_path_caught'
-                                  ? Translator.get('no_path_caught')
-                                  : 'Keine Route mit deinen gefangenen Pokémon gefunden.')
-                            : Translator.get('shiny_breed_no_path')),
-                  style: const TextStyle(
-                    color: Colors.red,
-                    fontWeight: FontWeight.bold,
-                  ),
-                )
-              else if (_path == null)
-                Text(
-                  _useOnlyCaught
-                      ? (Translator.get('no_path_caught') != 'no_path_caught'
-                            ? Translator.get('no_path_caught')
-                            : 'Keine Route mit deinen gefangenen Pokémon gefunden.')
-                      : Translator.get('shiny_breed_no_path'),
-                  style: const TextStyle(color: Colors.red),
-                )
-              else
-                ..._buildPathSteps(),
             ],
           ),
         ),

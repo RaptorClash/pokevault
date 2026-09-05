@@ -10,6 +10,7 @@ class Pokemon {
   final double weight;
   final int speed;
   final List<PokemonForm> forms;
+  final List<String> catchRateTags;
 
   Pokemon({
     required this.id,
@@ -23,6 +24,7 @@ class Pokemon {
     required this.weight,
     required this.speed,
     required this.forms,
+    this.catchRateTags = const [],
   });
 
   factory Pokemon.fromMap(Map<String, dynamic> map, List<PokemonForm> forms) {
@@ -42,12 +44,20 @@ class Pokemon {
       weight: (map['weight'] as num?)?.toDouble() ?? 0.0,
       speed: (map['speed'] as num?)?.toInt() ?? 0,
       forms: forms,
+      catchRateTags: (map['catch_rate_tags']?.toString() ?? '')
+          .split(',')
+          .where((e) => e.isNotEmpty)
+          .toList(),
     );
   }
 
   String getName(String languageCode) {
     return languageCode == 'de' ? nameDe : nameEn;
   }
+
+  bool get isUltraBeast => catchRateTags.contains('ultra_beast');
+  bool get isMoonBallTarget => catchRateTags.contains('moon_ball');
+  bool get isFastBallGen2Target => catchRateTags.contains('fast_ball_gen2');
 }
 
 class PokemonForm {

@@ -5,12 +5,12 @@ import '../../../models/pokemon.dart';
 import '../../../utils/notification_helper.dart';
 import '../../../utils/catch_rate/models.dart';
 import '../../../utils/catch_rate/strategy_base.dart';
+import '../../../services/database_service.dart';
 import 'catch_rate_ui_components.dart';
 
 class CatchRateCalculator extends StatefulWidget {
   final Pokemon pokemon;
   const CatchRateCalculator({super.key, required this.pokemon});
-
   @override
   State<CatchRateCalculator> createState() => _CatchRateCalculatorState();
 }
@@ -19,6 +19,8 @@ class _CatchRateCalculatorState extends State<CatchRateCalculator> {
   late double _minGen;
   List<double> _availableGens = [];
   double _selectedGen = 9.0;
+  bool _isLoadingGens = true;
+
   double _hpPercent = 100.0;
   String _selectedBallId = 'poke';
   int _statusType = 0;
@@ -48,7 +50,6 @@ class _CatchRateCalculatorState extends State<CatchRateCalculator> {
   int _donutPenalty = 0;
   int _missingBadges = 0;
   bool _isTargetShiny = false;
-
   late CatchRateResult _currentResult;
   late CatchRateStrategy _currentStrategy;
 
@@ -78,6 +79,7 @@ class _CatchRateCalculatorState extends State<CatchRateCalculator> {
   void initState() {
     super.initState();
     _minGen = _getMinGenForPokemon(widget.pokemon.id);
+
     _availableGens = _genNames.keys
         .where((g) => _canShowGen(g, widget.pokemon.id))
         .toList();
@@ -86,6 +88,96 @@ class _CatchRateCalculatorState extends State<CatchRateCalculator> {
     }
     _selectedGen = _availableGens.last;
     _initStrategyAndCalculate();
+
+    _fetchValidGens();
+  }
+
+  Future<void> _fetchValidGens() async {
+    try {
+      final encounters = await DatabaseService.instance.getEncounters(
+        widget.pokemon.id,
+      );
+      Set<double> validGens = {};
+
+      if (encounters != null && encounters.isNotEmpty) {
+        encounters.forEach((genStr, versionsMap) {
+          if (genStr == 'gen_1') validGens.add(1.0);
+          if (genStr == 'gen_2') validGens.add(2.0);
+          if (genStr == 'gen_3' || genStr == 'gen_4') validGens.add(3.0);
+          if (genStr == 'gen_5') validGens.add(5.0);
+          if (genStr == 'gen_6') validGens.add(6.0);
+          if (genStr == 'gen_7') {
+            if (versionsMap.keys.any((v) => v.contains('lets-go'))) {
+              validGens.add(7.5);
+            }
+            if (versionsMap.keys.any((v) => !v.contains('lets-go'))) {
+              validGens.add(6.0);
+            }
+          }
+          if (genStr == 'gen_8') {
+            if (versionsMap.keys.any((v) => v.contains('legends-arceus'))) {
+              validGens.add(8.5);
+            }
+            if (versionsMap.keys.any((v) => !v.contains('legends-arceus'))) {
+              validGens.add(8.0);
+            }
+          }
+          if (genStr == 'gen_9') {
+            if (versionsMap.keys.any((v) => v.contains('legends-z-a'))) {
+              validGens.add(9.5);
+            }
+            if (versionsMap.keys.any((v) => !v.contains('legends-z-a'))) {
+              validGens.add(9.0);
+            }
+          }
+        });
+      } else {
+        validGens.addAll(
+          _genNames.keys.where((g) => _canShowGen(g, widget.pokemon.id)),
+        );
+      }
+
+      final db = await DatabaseService.instance.appDatabase;
+      final zaCheck = await db.query(
+        'dex_orders',
+        where: 'pokemon_id = ? AND (dex_name = ? OR dex_name = ?)',
+        whereArgs: [
+          widget.pokemon.id,
+          'lumiose_regional',
+          'lumiose_dimensions_regional',
+        ],
+        limit: 1,
+      );
+
+      if (zaCheck.isNotEmpty) {
+        validGens.add(9.5);
+      } else {
+        validGens.remove(9.5);
+      }
+
+      if (mounted) {
+        setState(() {
+          if (validGens.isNotEmpty) {
+            _availableGens = validGens.toList()..sort();
+          } else {
+            _availableGens = [max(_minGen, 9.0)];
+          }
+
+          if (!_availableGens.contains(_selectedGen)) {
+            _selectedGen = _availableGens.last;
+            _powerBonus = 1.0;
+          }
+          _isLoadingGens = false;
+          _initStrategyAndCalculate();
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoadingGens = false;
+        });
+      }
+    }
   }
 
   void _initStrategyAndCalculate() {
@@ -159,7 +251,11 @@ class _CatchRateCalculatorState extends State<CatchRateCalculator> {
     if (gen == 7.5) {
       return pokeId <= 151 || pokeId == 808 || pokeId == 809;
     }
-    if (gen == 9.5) return true;
+
+    if (gen == 9.5) return false;
+
+    if (_minGen == 7.0 && gen == 6.0) return true;
+
     return gen >= _minGen;
   }
 
@@ -233,6 +329,12 @@ class _CatchRateCalculatorState extends State<CatchRateCalculator> {
     );
   }
 
+  String _getBallName(BallOption ball) {
+    return ball.nameKey != 'ball_${ball.id}'
+        ? ball.nameKey
+        : ball.nameKey.replaceAll('ball_', '').toUpperCase();
+  }
+
   Widget _buildHeader(List<BallOption> currentBalls) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -262,98 +364,188 @@ class _CatchRateCalculatorState extends State<CatchRateCalculator> {
             ),
           ),
         const SizedBox(height: 16),
-        DropdownButtonFormField<double>(
-          initialValue: _selectedGen,
-          decoration: InputDecoration(
-            labelText: Translator.get('generation'),
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-            filled: true,
-            fillColor: Theme.of(
-              context,
-            ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
-          ),
-          items: _availableGens.map((gen) {
-            return DropdownMenuItem<double>(
-              value: gen,
-              child: Text(_genNames[gen] ?? 'Gen $gen'),
-            );
-          }).toList(),
-          onChanged: (val) {
-            try {
-              if (val != null) {
-                _selectedGen = val;
-                _powerBonus = 1.0;
-                _currentStrategy = CatchRateStrategyFactory.getStrategy(
-                  _selectedGen,
-                );
-                final newBalls = _currentStrategy.getAvailableBalls();
-                if (!newBalls.any((b) => b.id == _selectedBallId)) {
-                  _selectedBallId = newBalls.first.id;
-                }
-                _updateResult();
-              }
-            } catch (e) {
-              NotificationHelper.showError(
-                "${Translator.get('error_calc_catch_rate_ui')} $e",
-              );
-            }
-          },
-        ),
-        const SizedBox(height: 12),
-        DropdownButtonFormField<String>(
-          initialValue: currentBalls.any((b) => b.id == _selectedBallId)
-              ? _selectedBallId
-              : currentBalls.first.id,
-          isExpanded: true,
-          decoration: InputDecoration(
-            labelText:
-                Translator.get('pokeball_bonus') +
-                (_selectedBallId != 'master' &&
-                        _selectedBallId != 'origin' &&
-                        _selectedBallId != 'heavy' &&
-                        _selectedBallId != 'safari' &&
-                        _selectedBallId != 'cherish'
-                    ? ' (Bonus: ${_currentResult.bonus.toStringAsFixed(2)}x)'
-                    : ''),
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-            filled: true,
-            fillColor: Theme.of(
-              context,
-            ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
-          ),
-          items: currentBalls.map((ball) {
-            return DropdownMenuItem<String>(
-              value: ball.id,
-              child: Row(
-                children: [
-                  Image.network(
-                    'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/${ball.spriteId}.png',
-                    width: 24,
-                    height: 24,
-                    errorBuilder: (c, e, s) =>
-                        const Icon(Icons.catching_pokemon, size: 24),
+
+        _isLoadingGens
+            ? const Padding(
+                padding: EdgeInsets.symmetric(vertical: 12.0),
+                child: Center(child: CircularProgressIndicator()),
+              )
+            : DropdownButtonFormField<double>(
+                initialValue: _selectedGen,
+                decoration: InputDecoration(
+                  labelText: Translator.get('generation'),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
                   ),
-                  const SizedBox(width: 12),
-                  Text(
-                    ball.nameKey != 'ball_${ball.id}'
-                        ? ball.nameKey
-                        : ball.nameKey.replaceAll('ball_', '').toUpperCase(),
-                  ),
-                ],
+                  filled: true,
+                  fillColor: Theme.of(
+                    context,
+                  ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+                ),
+                items: _availableGens.map((gen) {
+                  return DropdownMenuItem<double>(
+                    value: gen,
+                    child: Text(_genNames[gen] ?? 'Gen $gen'),
+                  );
+                }).toList(),
+                onChanged: (val) {
+                  try {
+                    if (val != null) {
+                      _selectedGen = val;
+                      _powerBonus = 1.0;
+                      _currentStrategy = CatchRateStrategyFactory.getStrategy(
+                        _selectedGen,
+                      );
+                      final newBalls = _currentStrategy.getAvailableBalls();
+                      if (!newBalls.any((b) => b.id == _selectedBallId)) {
+                        _selectedBallId = newBalls.first.id;
+                      }
+                      _updateResult();
+                    }
+                  } catch (e) {
+                    NotificationHelper.showError(
+                      "${Translator.get('error_calc_catch_rate_ui')} $e",
+                    );
+                  }
+                },
               ),
+
+        const SizedBox(height: 16),
+
+        LayoutBuilder(
+          builder: (context, constraints) {
+            BallOption selectedBallOption = currentBalls.firstWhere(
+              (b) => b.id == _selectedBallId,
+              orElse: () => currentBalls.first,
             );
-          }).toList(),
-          onChanged: (val) {
-            try {
-              if (val != null) {
-                _selectedBallId = val;
-                _updateResult();
-              }
-            } catch (e) {
-              NotificationHelper.showError(
-                "${Translator.get('error_calc_catch_rate_ui')} $e",
-              );
-            }
+
+            return Autocomplete<BallOption>(
+              key: ValueKey('ball_auto_${_selectedGen}_${_selectedBallId}'),
+              initialValue: TextEditingValue(
+                text: _getBallName(selectedBallOption),
+              ),
+              displayStringForOption: _getBallName,
+              optionsBuilder: (TextEditingValue textEditingValue) {
+                if (textEditingValue.text.isEmpty) {
+                  return currentBalls;
+                }
+                final query = textEditingValue.text.toLowerCase();
+                return currentBalls.where((ball) {
+                  return _getBallName(ball).toLowerCase().contains(query);
+                });
+              },
+              onSelected: (BallOption val) {
+                setState(() {
+                  _selectedBallId = val.id;
+                  _updateResult();
+                });
+              },
+              fieldViewBuilder: (context, controller, focusNode, onEditingComplete) {
+                return TextField(
+                  controller: controller,
+                  focusNode: focusNode,
+                  decoration: InputDecoration(
+                    labelText:
+                        Translator.get('pokeball_bonus') +
+                        (_selectedBallId != 'master' &&
+                                _selectedBallId != 'origin' &&
+                                _selectedBallId != 'heavy' &&
+                                _selectedBallId != 'safari' &&
+                                _selectedBallId != 'cherish'
+                            ? ' (Bonus: ${_currentResult.bonus.toStringAsFixed(2)}x)'
+                            : ''),
+                    contentPadding: const EdgeInsets.symmetric(
+                      vertical: 22,
+                      horizontal: 16,
+                    ),
+                    prefixIcon: Padding(
+                      padding: const EdgeInsets.only(left: 16.0, right: 12.0),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.catching_pokemon,
+                            size: 26,
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
+                          const SizedBox(width: 8),
+                          Image.network(
+                            'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/${selectedBallOption.spriteId}.png',
+                            width: 36,
+                            height: 36,
+                            fit: BoxFit.contain,
+                            errorBuilder: (c, e, s) =>
+                                const SizedBox(width: 36, height: 36),
+                          ),
+                        ],
+                      ),
+                    ),
+                    suffixIcon: controller.text.isNotEmpty
+                        ? IconButton(
+                            icon: const Icon(Icons.clear),
+                            onPressed: () {
+                              controller.clear();
+                              focusNode.requestFocus();
+                            },
+                          )
+                        : null,
+                    filled: true,
+                    fillColor: Theme.of(context)
+                        .colorScheme
+                        .surfaceContainerHighest
+                        .withValues(alpha: 0.3),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      borderSide: BorderSide(
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.primary.withValues(alpha: 0.3),
+                      ),
+                    ),
+                  ),
+                );
+              },
+              optionsViewBuilder: (context, onSelected, options) {
+                return Align(
+                  alignment: Alignment.topLeft,
+                  child: Material(
+                    elevation: 4.0,
+                    shape: const RoundedRectangleBorder(
+                      borderRadius: BorderRadius.vertical(
+                        bottom: Radius.circular(12),
+                      ),
+                    ),
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(
+                        maxHeight: 250,
+                        maxWidth: constraints.maxWidth,
+                      ),
+                      child: ListView.builder(
+                        padding: EdgeInsets.zero,
+                        shrinkWrap: true,
+                        itemCount: options.length,
+                        itemBuilder: (BuildContext context, int index) {
+                          final BallOption option = options.elementAt(index);
+                          return ListTile(
+                            leading: Image.network(
+                              'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/${option.spriteId}.png',
+                              width: 40,
+                              height: 40,
+                              errorBuilder: (c, e, s) =>
+                                  const Icon(Icons.catching_pokemon),
+                            ),
+                            title: Text(_getBallName(option)),
+                            onTap: () {
+                              onSelected(option);
+                            },
+                          );
+                        },
+                      ),
+                    ),
+                  ),
+                );
+              },
+            );
           },
         ),
       ],
@@ -363,7 +555,6 @@ class _CatchRateCalculatorState extends State<CatchRateCalculator> {
   Widget _buildBattleConditions() {
     String t(String key, String fallback) =>
         Translator.get(key) != key ? Translator.get(key) : fallback;
-
     return Card(
       elevation: 0,
       shape: RoundedRectangleBorder(
@@ -641,9 +832,7 @@ class _CatchRateCalculatorState extends State<CatchRateCalculator> {
         _currentStrategy.showMissingBadges ||
         _currentStrategy.showTargetShiny ||
         _currentStrategy.showUnnoticed;
-
     final currentBalls = _currentStrategy.getAvailableBalls();
-
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: Column(

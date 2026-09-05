@@ -178,7 +178,8 @@ def main():
         CREATE TABLE IF NOT EXISTS pokemon (
             id INTEGER PRIMARY KEY, name_de TEXT, name_en TEXT,
             has_gender_differences INTEGER, gender_rate INTEGER, capture_rate INTEGER,
-            evolution_chain_id INTEGER, egg_groups TEXT, weight REAL, speed INTEGER
+            evolution_chain_id INTEGER, egg_groups TEXT, weight REAL, speed INTEGER,
+            catch_rate_tags TEXT
         );
         CREATE TABLE IF NOT EXISTS forms (
             id INTEGER PRIMARY KEY AUTOINCREMENT, pokemon_id INTEGER, name TEXT,
@@ -388,11 +389,20 @@ def main():
             egg_groups = ",".join([eg['name'] for eg in species.get('egg_groups', [])])
             evo_chain_id = int(species['evolution_chain']['url'].strip('/').split('/')[-1]) if species.get('evolution_chain') else -1
             
+            tags = []
+            if i in [793, 794, 795, 796, 797, 798, 799, 803, 804, 805, 806]: 
+                tags.append('ultra_beast')
+            if i in [81, 82, 88, 89, 114]: 
+                tags.append('fast_ball_gen2')
+            if i in [29, 30, 31, 32, 33, 34, 35, 36, 39, 40, 300, 301, 517, 518]: 
+                tags.append('moon_ball')
+            catch_rate_tags = ",".join(tags)
+
             c.execute('''INSERT INTO pokemon
-                (id, name_de, name_en, has_gender_differences, gender_rate, capture_rate, evolution_chain_id, egg_groups, weight, speed)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
+                (id, name_de, name_en, has_gender_differences, gender_rate, capture_rate, evolution_chain_id, egg_groups, weight, speed, catch_rate_tags)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
                 (i, name_de, name_en, 1 if has_gender_diff else 0,
-                 species.get('gender_rate', -1), species.get('capture_rate', 255), evo_chain_id, egg_groups, weight, speed))
+                 species.get('gender_rate', -1), species.get('capture_rate', 255), evo_chain_id, egg_groups, weight, speed, catch_rate_tags))
 
             varieties = species.get('varieties', [])
             if not varieties:

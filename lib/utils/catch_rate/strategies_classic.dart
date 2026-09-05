@@ -124,7 +124,7 @@ class Gen2Strategy extends CatchRateStrategy {
         ballBonus = 2.0;
         break;
       case 'fast':
-        if ([81, 82, 88, 89, 114].contains(params.pokemon.id)) ballBonus = 4.0;
+        if (params.pokemon.isFastBallGen2Target) ballBonus = 4.0;
         break;
       case 'love':
         ballBonus = params.isLoveConditionMet ? 8.0 : 1.0;

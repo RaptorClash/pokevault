@@ -69,7 +69,7 @@ abstract class ModernStrategyBase extends CatchRateStrategy {
         BallOption('dream', Translator.get('ball_dream_ball'), 'dream-ball'),
       );
     }
-    if (gen >= 7.0) {
+    if (gen >= 6.0) {
       balls.add(
         BallOption('beast', Translator.get('ball_beast_ball'), 'beast-ball'),
       );
@@ -85,6 +85,8 @@ abstract class ModernStrategyBase extends CatchRateStrategy {
     List<String> types = params.pokemon.forms.isNotEmpty
         ? params.pokemon.forms.first.types
         : [];
+
+    bool isUB = params.pokemon.isUltraBeast;
 
     switch (params.ballId) {
       case 'great':
@@ -102,22 +104,7 @@ abstract class ModernStrategyBase extends CatchRateStrategy {
         ballBonus = params.isLoveConditionMet ? 8.0 : 1.0;
         break;
       case 'moon':
-        if ([
-          29,
-          30,
-          31,
-          32,
-          33,
-          34,
-          35,
-          36,
-          39,
-          40,
-          300,
-          301,
-          517,
-          518,
-        ].contains(params.pokemon.id)) {
+        if (params.pokemon.isMoonBallTarget) {
           ballBonus = 4.0;
         }
         break;
@@ -198,19 +185,7 @@ abstract class ModernStrategyBase extends CatchRateStrategy {
         if (params.isAlreadyCaught) ballBonus = (gen >= 7.0) ? 3.5 : 3.0;
         break;
       case 'beast':
-        if ([
-          793,
-          794,
-          795,
-          796,
-          797,
-          798,
-          799,
-          803,
-          804,
-          805,
-          806,
-        ].contains(params.pokemon.id)) {
+        if (isUB) {
           ballBonus = 5.0;
         } else {
           ballBonus = 410.0 / 4096.0;
@@ -221,20 +196,7 @@ abstract class ModernStrategyBase extends CatchRateStrategy {
         break;
     }
 
-    bool isUltraBeast = [
-      793,
-      794,
-      795,
-      796,
-      797,
-      798,
-      799,
-      803,
-      804,
-      805,
-      806,
-    ].contains(params.pokemon.id);
-    if (isUltraBeast && params.ballId != 'beast') {
+    if (isUB && params.ballId != 'beast') {
       ballBonus = 410.0 / 4096.0;
     }
 
