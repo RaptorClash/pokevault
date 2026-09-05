@@ -2,10 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../l10n/app_translations.dart';
 import '../services/google_drive_sync_service.dart';
+import 'dart:ui' as ui;
 
 class SettingsProvider with ChangeNotifier {
   ThemeMode themeMode = ThemeMode.system;
-  String currentLanguage = 'de';
+  String currentLanguage = 'en';
 
   String _googleClientId = '';
   bool _autoSyncEnabled = false;
@@ -46,6 +47,22 @@ class SettingsProvider with ChangeNotifier {
     _googleClientId = prefs.getString('googleClientId') ?? '';
     _autoSyncEnabled = prefs.getBool('autoSyncEnabled') ?? false;
     _googleClientSecret = prefs.getString('googleClientSecret') ?? '';
+
+    if (prefs.containsKey('language')) {
+      currentLanguage = prefs.getString('language')!;
+    } else {
+      final deviceLanguageCode =
+          ui.PlatformDispatcher.instance.locale.languageCode;
+
+      if (deviceLanguageCode == 'de') {
+        currentLanguage = 'de';
+      } else {
+        currentLanguage = 'en';
+      }
+      await prefs.setString('language', currentLanguage);
+    }
+
+    Translator.currentLanguage = currentLanguage;
 
     currentLanguage = prefs.getString('language') ?? 'de';
     Translator.currentLanguage = currentLanguage;

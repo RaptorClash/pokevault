@@ -19,6 +19,10 @@ import '../../utils/notification_helper.dart';
 import 'edit_dex_dialog.dart';
 import 'widgets/home_dialogs.dart';
 import 'widgets/home_ui_components.dart';
+import '../../services/google_drive_sync_service.dart';
+import '../../services/database_service.dart';
+import '../../providers/settings_provider.dart';
+import 'widgets/breadcrumb_bar.dart';
 
 class HomeScreen extends StatefulWidget {
   final String currentFolderId;
@@ -59,6 +63,44 @@ class _HomeScreenState extends State<HomeScreen> {
         _checkForUpdates();
         _showTutorialIfNeeded();
       });
+    }
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _autoSyncDrive();
+    });
+  }
+
+  Future<void> _autoSyncDrive() async {
+    final settingsProvider = Provider.of<SettingsProvider>(
+      context,
+      listen: false,
+    );
+    final dexProvider = Provider.of<DexProvider>(context, listen: false);
+
+    final clientId = settingsProvider.googleClientId;
+    final clientSecret = settingsProvider.googleClientSecret;
+
+    if (clientId.isEmpty) return;
+
+    try {
+      bool isConnected = await GoogleDriveSyncService.instance.restoreSignIn(
+        clientId,
+        clientSecret,
+      );
+
+      if (isConnected) {
+        final cloudData = await GoogleDriveSyncService.instance
+            .downloadBackup();
+        if (cloudData != null) {
+          await dexProvider.mergeCloudData(cloudData);
+        }
+
+        final Map<String, dynamic> exportData = await DatabaseService.instance
+            .exportCloudSyncData();
+        await GoogleDriveSyncService.instance.uploadBackup(exportData);
+      }
+    } catch (e) {
+      NotificationHelper.showError("Hintergrund-Sync fehlgeschlagen.");
     }
   }
 
@@ -425,6 +467,20 @@ class _HomeScreenState extends State<HomeScreen> {
     return items;
   }
 
+  List<BreadcrumbItem> _getBreadcrumbs(DexProvider provider) {
+    List<BreadcrumbItem> path = [];
+    String current = _currentFolderId;
+
+    while (current != 'root') {
+      final folder = provider.folders.where((f) => f.id == current).firstOrNull;
+      if (folder != null) {
+        path.insert(0, BreadcrumbItem(id: folder.id, title: folder.title));
+      }
+      current = HomeDialogs.getParentId(provider, current);
+    }
+    return path;
+  }
+
   List<Widget> _buildTree(
     DexProvider provider,
     String parentId,
@@ -636,17 +692,29 @@ class _HomeScreenState extends State<HomeScreen> {
                       },
                     )
                   : null),
+        titleSpacing: _isSelectionMode
+            ? null
+            : 0,
         title: _isSelectionMode
             ? Text('${_selectedItemIds.length} ausgewählt')
-            : Text(
-                _currentFolderId == 'root'
-                    ? 'PokeVault'
-                    : (provider.folders
-                              .where((f) => f.id == _currentFolderId)
-                              .firstOrNull
-                              ?.title ??
-                          'Ordner'),
-                style: const TextStyle(fontWeight: FontWeight.bold),
+            : BreadcrumbBar(
+                path: _getBreadcrumbs(provider),
+                onHomeTap: () {
+                  if (_currentFolderId != 'root') {
+                    setState(() {
+                      _currentFolderId = 'root';
+                      _searchQuery = '';
+                    });
+                  }
+                },
+                onFolderTap: (folderId) {
+                  if (_currentFolderId != folderId) {
+                    setState(() {
+                      _currentFolderId = folderId;
+                      _searchQuery = '';
+                    });
+                  }
+                },
               ),
         actions: _isSelectionMode
             ? [
@@ -836,6 +904,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       _searchQuery.isEmpty &&
                       !_isSelectionMode
                 ? ReorderableListView(
+                    buildDefaultDragHandles: false,
                     padding: const EdgeInsets.only(
                       bottom: 80,
                       left: 16,
