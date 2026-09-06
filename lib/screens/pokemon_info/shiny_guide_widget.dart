@@ -5,6 +5,7 @@ import '../../utils/shiny_logic_helper.dart';
 import '../../l10n/app_translations.dart';
 import 'breeding_calculator_widget.dart';
 import '../../utils/notification_helper.dart';
+import '../../services/database_service.dart';
 
 class ShinyGuideWidget extends StatefulWidget {
   final DexDisplayEntry entry;
@@ -50,15 +51,11 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
         widget.entry.pokemon.id <= 257) {
       return true;
     }
-    if (gen == 1) {
-      return widget.entry.pokemon.id <= 151;
-    }
-    if (gen == 2) {
-      return widget.entry.pokemon.id <= 251;
-    }
-    if (gen == 3) {
-      return widget.entry.pokemon.id <= 386;
-    }
+    if (gen == 1) return widget.entry.pokemon.id <= 151;
+    if (gen == 2) return widget.entry.pokemon.id <= 251;
+    if (gen == 3) return widget.entry.pokemon.id <= 386;
+    if (gen == 4)
+      return widget.entry.pokemon.id <= 493;
     return false;
   }
 
@@ -70,6 +67,8 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
       content.add(_buildGen2Specific(context));
     } else if (gen == 3) {
       content.add(_buildGen3Specific(context));
+    } else if (gen == 4) {
+      content.add(_buildGen4Specific(context));
     }
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -732,6 +731,320 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
     );
   }
 
+  Widget _buildGen4Specific(BuildContext context) {
+    final id = widget.entry.pokemon.id;
+
+    return FutureBuilder<Map<String, Map<String, List<String>>>?>(
+      future: DatabaseService.instance.getEncounters(id),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Padding(
+            padding: EdgeInsets.all(16.0),
+            child: Center(child: CircularProgressIndicator()),
+          );
+        }
+
+        final encounters = snapshot.data;
+        bool hasRadarEncounter = false;
+        bool isStaticOrGift = false;
+
+        List<int> legendariesAndMythicals = [
+          144,
+          145,
+          146,
+          150,
+          151,
+          243,
+          244,
+          245,
+          249,
+          250,
+          251,
+          377,
+          378,
+          379,
+          380,
+          381,
+          382,
+          383,
+          384,
+          385,
+          386,
+          480,
+          481,
+          482,
+          483,
+          484,
+          485,
+          486,
+          487,
+          488,
+          489,
+          490,
+          491,
+          492,
+          493,
+        ];
+        if (legendariesAndMythicals.contains(id)) {
+          isStaticOrGift = true;
+        }
+
+        if (encounters != null && encounters.containsKey('gen_4')) {
+          final gen4 = encounters['gen_4']!;
+          for (var version in gen4.keys) {
+            for (var loc in gen4[version]!) {
+              final locLower = loc.toLowerCase();
+
+              if (version == 'diamond' ||
+                  version == 'pearl' ||
+                  version == 'platinum') {
+                if (locLower.contains('walk') ||
+                    locLower.contains('grass') ||
+                    locLower.contains('radar') ||
+                    locLower.contains('gras')) {
+                  hasRadarEncounter = true;
+                }
+              }
+              if (locLower.contains('stationary') ||
+                  locLower.contains('gift') ||
+                  locLower.contains('fossil') ||
+                  locLower.contains('only one')) {
+                isStaticOrGift = true;
+              }
+            }
+          }
+        }
+
+        List<Widget> content = [];
+
+        content.add(
+          Text(
+            Translator.get('shiny_gen4_huntable_yes') !=
+                    'shiny_gen4_huntable_yes'
+                ? Translator.get('shiny_gen4_huntable_yes')
+                : 'Shiny Huntable: Ja (Basis-Chance 1:8192)',
+            style: const TextStyle(
+              color: Colors.green,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        );
+        content.add(const SizedBox(height: 16));
+
+        Widget buildInfoBox(
+          IconData icon,
+          String titleKey,
+          String descKey,
+          Color color,
+        ) {
+          return Container(
+            padding: const EdgeInsets.all(12),
+            margin: const EdgeInsets.only(bottom: 12),
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.15),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: color.withValues(alpha: 0.3)),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(icon, color: color, size: 20),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        Translator.get(titleKey) != titleKey
+                            ? Translator.get(titleKey)
+                            : titleKey,
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: color,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  Translator.get(descKey) != descKey
+                      ? Translator.get(descKey)
+                      : descKey,
+                  style: const TextStyle(
+                    fontSize: 13,
+                    fontStyle: FontStyle.italic,
+                  ),
+                ),
+              ],
+            ),
+          );
+        }
+
+        Widget buildLinkBtn(IconData icon, String titleKey, String url) {
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 8.0),
+            child: SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                icon: Icon(icon),
+                label: Text(
+                  Translator.get(titleKey) != titleKey
+                      ? Translator.get(titleKey)
+                      : titleKey,
+                  textAlign: TextAlign.center,
+                ),
+                onPressed: () => _launchURL(url),
+              ),
+            ),
+          );
+        }
+
+        if (isStaticOrGift) {
+          content.add(
+            buildInfoBox(
+              Icons.restart_alt,
+              'shiny_gen4_sr_title',
+              'shiny_gen4_sr_desc',
+              Colors.teal,
+            ),
+          );
+          content.add(const SizedBox(height: 8));
+        }
+
+        bool isBreedable =
+            (ShinyLogicHelper.isBreedable(widget.entry.pokemon) ||
+                ShinyLogicHelper.isBaby(id)) &&
+            !legendariesAndMythicals.contains(id);
+
+        if (isBreedable) {
+          content.add(
+            buildInfoBox(
+              Icons.egg_alt,
+              'shiny_gen4_masuda_title',
+              'shiny_gen4_masuda_desc',
+              Colors.purple,
+            ),
+          );
+          content.add(
+            buildLinkBtn(
+              Icons.language,
+              'shiny_gen4_masuda_link',
+              'https://bulbapedia.bulbagarden.net/wiki/Masuda_method',
+            ),
+          );
+          content.add(const SizedBox(height: 8));
+        }
+
+        if (hasRadarEncounter && !legendariesAndMythicals.contains(id)) {
+          content.add(
+            buildInfoBox(
+              Icons.radar,
+              'shiny_gen4_radar_title',
+              'shiny_gen4_radar_desc',
+              Colors.blue,
+            ),
+          );
+          content.add(
+            buildLinkBtn(
+              Icons.forum,
+              'shiny_gen4_radar_link_en_reddit',
+              'https://www.reddit.com/r/ShinyPokemon/comments/ezinx0/gen_4_poke_radar_guide_leave_suggestions/',
+            ),
+          );
+          content.add(
+            buildLinkBtn(
+              Icons.play_circle_filled,
+              'shiny_gen4_radar_link_en_yt',
+              'https://www.youtube.com/watch?v=nXVGWZOEHU8',
+            ),
+          );
+          content.add(
+            buildLinkBtn(
+              Icons.language,
+              'shiny_gen4_radar_link_de_bisa',
+              'https://www.bisafans.de/spiele/editionen/diamant-perl/shiny-pokemon-fangen.php',
+            ),
+          );
+          content.add(
+            buildLinkBtn(
+              Icons.play_circle_filled,
+              'shiny_gen4_radar_link_de_yt',
+              'https://www.youtube.com/watch?v=mXV1G0z7gZM',
+            ),
+          );
+          content.add(const SizedBox(height: 8));
+        }
+
+        bool hasGenderVariation =
+            widget.entry.pokemon.genderRate > 0 &&
+            widget.entry.pokemon.genderRate < 8;
+        if (hasGenderVariation && !legendariesAndMythicals.contains(id)) {
+          content.add(
+            buildInfoBox(
+              Icons.favorite,
+              'shiny_gen4_ccg_title',
+              'shiny_gen4_ccg_desc',
+              Colors.pink,
+            ),
+          );
+          content.add(
+            buildLinkBtn(
+              Icons.play_circle_filled,
+              'shiny_gen4_ccg_link_dppt',
+              'https://www.youtube.com/watch?v=os0AOt1VMi0&t=475s',
+            ),
+          );
+          content.add(
+            buildLinkBtn(
+              Icons.play_circle_filled,
+              'shiny_gen4_ccg_link_hgss',
+              'https://www.youtube.com/watch?v=aHfVnqkmmUw',
+            ),
+          );
+          content.add(const SizedBox(height: 8));
+        }
+
+        bool isHGSSStarter = id == 152 || id == 155 || id == 158;
+        if (isHGSSStarter) {
+          content.add(
+            buildInfoBox(
+              Icons.star,
+              'shiny_gen4_hgss_starter_title',
+              'shiny_gen4_hgss_starter_desc',
+              Colors.amber,
+            ),
+          );
+          content.add(
+            buildLinkBtn(
+              Icons.language,
+              'shiny_gen4_hgss_starter_link',
+              'https://pokemondb.net/pokebase/412511/how-do-you-shiny-hunt-the-starters-in-heartgold',
+            ),
+          );
+          content.add(const SizedBox(height: 8));
+        }
+
+        List<int> gen4Roamers = [144, 145, 146, 243, 244, 380, 381, 481, 488];
+        if (gen4Roamers.contains(id)) {
+          content.add(
+            buildInfoBox(
+              Icons.map,
+              'shiny_gen4_roamer_title',
+              'shiny_gen4_roamer_desc',
+              Colors.deepOrange,
+            ),
+          );
+          content.add(const SizedBox(height: 8));
+        }
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: content,
+        );
+      },
+    );
+  }
+
   int _calcStat(int base, int dv, int level, bool isHp) {
     int stat = (((base + dv) * 2) * level) ~/ 100;
     return isHp ? stat + level + 10 : stat + 5;
@@ -857,7 +1170,7 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
   Widget build(BuildContext context) {
     List<Widget> genTiles = [];
 
-    for (int gen = 1; gen <= 3; gen++) {
+    for (int gen = 1; gen <= 4; gen++) {
       if (_shouldShowGen(gen)) {
         Widget content = _buildGenContent(context, gen);
         genTiles.add(

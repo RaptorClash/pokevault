@@ -4,9 +4,9 @@
 /// To regenerate, run: `dart run slang`
 ///
 /// Locales: 2
-/// Strings: 2028 (1014 per locale)
+/// Strings: 2096 (1048 per locale)
 ///
-/// Built on 2026-09-04 at 19:43 UTC
+/// Built on 2026-09-06 at 10:12 UTC
 
 // coverage:ignore-file
 // ignore_for_file: type=lint
@@ -1156,6 +1156,40 @@ class Translations implements BaseTranslations<AppLocale, Translations> {
 	String get tutorial_settings_community_text => 'Du hast einen Bug gefunden oder möchtest bei der Entwicklung helfen? Hier findest du alle Links!';
 	String get tutorial_settings_credits_title => 'Danksagungen & Quellen';
 	String get tutorial_settings_credits_text => 'PokeVault wäre ohne diese tollen Projekte nicht möglich. Schau sie dir gerne an! Das war\'s – viel Spaß mit der App!';
+	String get shiny_gen3_huntable_yes => 'Shiny Huntable: Ja (Basis-Chance 1:8192)';
+	String get shiny_gen3_rs_note => 'Rubin & Saphir: Der Seed ist zufällig, Standard Soft Resets (SR) funktionieren problemlos. AUSNAHME: Ist die interne Batterie leer oder der Spielstand hat 999:59h erreicht, friert der Seed bei 0 ein (wie in Smaragd).';
+	String get shiny_gen3_emerald_note => 'Smaragd: RNG Fehler! Der Start-Seed ist bei jedem Reset immer 0. Klassische Soft Resets bringen nichts, da immer die exakt gleichen Pokémon-Werte generiert werden. Nutze hier die "Runaway"-Methode (Flucht & Neu-Encounter) oder RNG Manipulation.';
+	String get shiny_gen3_frbg_note => 'Feuerrot & Blattgrün: Kein RNG Bug. Der Seed generiert sich bei jedem Spielstart neu. Soft Resets sind völlig bedenkenlos möglich.';
+	String get shiny_gen3_links_title => 'RNG Manipulation Guides & Ressourcen';
+	String get shiny_gen3_link_blisy_channel => 'im a blisy - YouTube Kanal (EN)';
+	String get shiny_gen3_link_blisy_playlist => 'im a blisy - R/S/E RNG Playlist (EN)';
+	String get shiny_gen3_link_blisy_rs_video => 'im a blisy - R/S Stationäre RNG (Video) (EN)';
+	String get shiny_gen3_link_smogon => 'Smogon - R/S Non-Bred RNG Guide (EN)';
+	String get shiny_gen3_link_retail_rng => 'Retail RNG - Smaragd Guide (EN)';
+	String get shiny_gen3_link_reddit_emerald => 'Reddit - RNG Manipulation in Emerald (EN)';
+	String get shiny_gen1_huntable_yes => 'Shiny Huntable: Ja (DV-basiert, Chance 1:8192)';
+	String get shiny_gen2_huntable_yes => 'Shiny Huntable: Ja (Basis-Chance 1:8192)';
+	String get shiny_gen4_huntable_yes => 'Shiny Huntable: Ja (Basis-Chance 1:8192)';
+	String get shiny_gen4_masuda_title => 'Masuda-Methode (Chance: 1:1638)';
+	String get shiny_gen4_masuda_desc => 'Züchte zwei Pokémon aus unterschiedlichen Sprachregionen miteinander (z.B. ein deutsches Feurigel und ein japanisches Ditto), um die Shiny-Chance auf 1:1638 (5/8192) zu vervielfachen.';
+	String get shiny_gen4_masuda_link => 'Bulbapedia - Masuda Method (EN)';
+	String get shiny_gen4_radar_title => 'Poké-Radar (Chance: bis 1:200)';
+	String get shiny_gen4_radar_desc => 'Exklusiv in D/P/Pt für Begegnungen im hohen Gras. Erreichst du eine Kette von 40 des gleichen Pokémon, steigt die Chance auf 1:200 pro wackelndem Feld. Manche Felder glitzern vorher sogar!';
+	String get shiny_gen4_radar_link_en_reddit => 'Reddit - Gen 4 Radar Guide (EN)';
+	String get shiny_gen4_radar_link_en_yt => 'YouTube - Radar Tutorial (EN)';
+	String get shiny_gen4_radar_link_de_bisa => 'Bisafans - Poké-Radar Guide (DE)';
+	String get shiny_gen4_radar_link_de_yt => 'YouTube - Radar Tutorial (DE)';
+	String get shiny_gen4_hgss_starter_title => 'HGSS Starter Resets (Effektiv 3:8192)';
+	String get shiny_gen4_hgss_starter_desc => 'Extrem schnell! Du siehst bereits bei der Auswahl im Koffer bei Prof. Lind, ob Endivie, Feurigel oder Karnimani Shiny sind. Bei jedem Soft-Reset checkst du also direkt 3 Pokémon gleichzeitig.';
+	String get shiny_gen4_hgss_starter_link => 'Guide: HGSS Starters Hunten';
+	String get shiny_gen4_ccg_title => 'Cute Charm Glitch (~21% Shiny Chance!)';
+	String get shiny_gen4_ccg_desc => 'Fehler im Code: Besitzt dein Spiel eine bestimmte Kombination aus Trainer-ID und Secret-ID, zwingt ein Pokémon mit der Fähigkeit Charmebolzen an erster Stelle das Spiel dazu, unfassbar oft ein Shiny des anderen Geschlechts auftauchen zu lassen.';
+	String get shiny_gen4_ccg_link_dppt => 'YouTube - CCG für D/P/Pt (EN)';
+	String get shiny_gen4_ccg_link_hgss => 'YouTube - CCG für HGSS (EN)';
+	String get shiny_gen4_roamer_title => 'Wander-Pokémon (Roamer) in Gen 4';
+	String get shiny_gen4_roamer_desc => 'Die Werte und der Shiny-Status werden festgelegt, sobald das Pokémon in die Wildnis entlassen wird! Du musst VOR diesem Gespräch / Event speichern und bei Misserfolg komplett resetten.';
+	String get shiny_gen4_sr_title => 'Soft Resets (Chance: 1:8192)';
+	String get shiny_gen4_sr_desc => 'Für stationäre Begegnungen, Legendäre Pokémon oder Geschenke. Speichere direkt vor dem Event und starte das Spiel neu, bis es Shiny ist.';
 }
 
 // Path: <root>
@@ -2204,6 +2238,40 @@ class _StringsEn extends Translations {
 	@override String get tutorial_settings_community_text => 'Found a bug or want to help with development? You can find all the links here!';
 	@override String get tutorial_settings_credits_title => 'Credits & Sources';
 	@override String get tutorial_settings_credits_text => 'PokeVault wouldn\'t be possible without these amazing projects. Feel free to check them out! That\'s it – have fun with the app!';
+	@override String get shiny_gen3_huntable_yes => 'Shiny Huntable: Yes (Base odds 1:8192)';
+	@override String get shiny_gen3_rs_note => 'Ruby & Sapphire: The seed is random, standard Soft Resets (SR) work perfectly. EXCEPTION: If the internal battery is dead or the save file reached 999:59h, the seed freezes at 0 (just like in Emerald).';
+	@override String get shiny_gen3_emerald_note => 'Emerald: RNG Glitch! The starting seed is always 0 on every reset. Classic Soft Resets are useless since the exact same Pokémon stats are generated every time. Use the "Runaway" method (flee & re-encounter) or RNG manipulation here.';
+	@override String get shiny_gen3_frbg_note => 'FireRed & LeafGreen: No RNG Glitch. The seed generates randomly on every startup. Soft Resets are perfectly fine and safe to do.';
+	@override String get shiny_gen3_links_title => 'RNG Manipulation Guides & Resources';
+	@override String get shiny_gen3_link_blisy_channel => 'im a blisy - YouTube Channel (EN)';
+	@override String get shiny_gen3_link_blisy_playlist => 'im a blisy - R/S/E RNG Playlist (EN)';
+	@override String get shiny_gen3_link_blisy_rs_video => 'im a blisy - R/S Stationary RNG (Video) (EN)';
+	@override String get shiny_gen3_link_smogon => 'Smogon - R/S Non-Bred RNG Guide (EN)';
+	@override String get shiny_gen3_link_retail_rng => 'Retail RNG - Emerald Guide (EN)';
+	@override String get shiny_gen3_link_reddit_emerald => 'Reddit - RNG Manipulation in Emerald (EN)';
+	@override String get shiny_gen1_huntable_yes => 'Shiny Huntable: Yes (DV-based, Odds 1:8192)';
+	@override String get shiny_gen2_huntable_yes => 'Shiny Huntable: Yes (Base odds 1:8192)';
+	@override String get shiny_gen4_huntable_yes => 'Shiny Huntable: Yes (Base odds 1:8192)';
+	@override String get shiny_gen4_masuda_title => 'Masuda Method (Odds: 1:1638)';
+	@override String get shiny_gen4_masuda_desc => 'Breed two Pokémon from different language regions (e.g. an English Cyndaquil and a Japanese Ditto) to multiply your shiny odds to 1:1638 (5/8192).';
+	@override String get shiny_gen4_masuda_link => 'Bulbapedia - Masuda Method (EN)';
+	@override String get shiny_gen4_radar_title => 'Poké Radar (Odds: up to 1:200)';
+	@override String get shiny_gen4_radar_desc => 'Exclusive to D/P/Pt for tall grass encounters. If you reach a chain of 40 of the same Pokémon, your odds increase to 1:200 per shaking patch. You can even see shiny patches beforehand!';
+	@override String get shiny_gen4_radar_link_en_reddit => 'Reddit - Gen 4 Radar Guide';
+	@override String get shiny_gen4_radar_link_en_yt => 'YouTube - Radar Tutorial';
+	@override String get shiny_gen4_radar_link_de_bisa => 'Bisafans - Poké Radar Guide (DE)';
+	@override String get shiny_gen4_radar_link_de_yt => 'YouTube - Radar Tutorial (DE)';
+	@override String get shiny_gen4_hgss_starter_title => 'HGSS Starter Resets (Effective 3:8192)';
+	@override String get shiny_gen4_hgss_starter_desc => 'Extremely fast! You can see if Chikorita, Cyndaquil, or Totodile are shiny directly in Prof. Elm\'s briefcase before picking them. You check 3 Pokémon at once per soft reset.';
+	@override String get shiny_gen4_hgss_starter_link => 'Guide: How to hunt HGSS Starters';
+	@override String get shiny_gen4_ccg_title => 'Cute Charm Glitch (~21% Shiny Chance!)';
+	@override String get shiny_gen4_ccg_desc => 'Code oversight: If your save file has a specific combination of Trainer ID and Secret ID, leading your party with a Cute Charm Pokémon will force the game to spawn wild shinies of the opposite gender extremely often.';
+	@override String get shiny_gen4_ccg_link_dppt => 'YouTube - CCG for D/P/Pt (EN)';
+	@override String get shiny_gen4_ccg_link_hgss => 'YouTube - CCG for HGS (EN)';
+	@override String get shiny_gen4_roamer_title => 'Roaming Pokémon in Gen 4';
+	@override String get shiny_gen4_roamer_desc => 'Stats and shininess are locked in the moment the Pokémon is released into the wild! You MUST save BEFORE the conversation/event and reset if it isn\'t shiny when you find it.';
+	@override String get shiny_gen4_sr_title => 'Soft Resets (Odds: 1:8192)';
+	@override String get shiny_gen4_sr_desc => 'For stationary encounters, legendaries, or gifts. Save right before the encounter and reset the game until it shines.';
 }
 
 /// Flat map(s) containing all translations.
@@ -3220,6 +3288,40 @@ extension on Translations {
 			case 'tutorial_settings_community_text': return 'Du hast einen Bug gefunden oder möchtest bei der Entwicklung helfen? Hier findest du alle Links!';
 			case 'tutorial_settings_credits_title': return 'Danksagungen & Quellen';
 			case 'tutorial_settings_credits_text': return 'PokeVault wäre ohne diese tollen Projekte nicht möglich. Schau sie dir gerne an! Das war\'s – viel Spaß mit der App!';
+			case 'shiny_gen3_huntable_yes': return 'Shiny Huntable: Ja (Basis-Chance 1:8192)';
+			case 'shiny_gen3_rs_note': return 'Rubin & Saphir: Der Seed ist zufällig, Standard Soft Resets (SR) funktionieren problemlos. AUSNAHME: Ist die interne Batterie leer oder der Spielstand hat 999:59h erreicht, friert der Seed bei 0 ein (wie in Smaragd).';
+			case 'shiny_gen3_emerald_note': return 'Smaragd: RNG Fehler! Der Start-Seed ist bei jedem Reset immer 0. Klassische Soft Resets bringen nichts, da immer die exakt gleichen Pokémon-Werte generiert werden. Nutze hier die "Runaway"-Methode (Flucht & Neu-Encounter) oder RNG Manipulation.';
+			case 'shiny_gen3_frbg_note': return 'Feuerrot & Blattgrün: Kein RNG Bug. Der Seed generiert sich bei jedem Spielstart neu. Soft Resets sind völlig bedenkenlos möglich.';
+			case 'shiny_gen3_links_title': return 'RNG Manipulation Guides & Ressourcen';
+			case 'shiny_gen3_link_blisy_channel': return 'im a blisy - YouTube Kanal (EN)';
+			case 'shiny_gen3_link_blisy_playlist': return 'im a blisy - R/S/E RNG Playlist (EN)';
+			case 'shiny_gen3_link_blisy_rs_video': return 'im a blisy - R/S Stationäre RNG (Video) (EN)';
+			case 'shiny_gen3_link_smogon': return 'Smogon - R/S Non-Bred RNG Guide (EN)';
+			case 'shiny_gen3_link_retail_rng': return 'Retail RNG - Smaragd Guide (EN)';
+			case 'shiny_gen3_link_reddit_emerald': return 'Reddit - RNG Manipulation in Emerald (EN)';
+			case 'shiny_gen1_huntable_yes': return 'Shiny Huntable: Ja (DV-basiert, Chance 1:8192)';
+			case 'shiny_gen2_huntable_yes': return 'Shiny Huntable: Ja (Basis-Chance 1:8192)';
+			case 'shiny_gen4_huntable_yes': return 'Shiny Huntable: Ja (Basis-Chance 1:8192)';
+			case 'shiny_gen4_masuda_title': return 'Masuda-Methode (Chance: 1:1638)';
+			case 'shiny_gen4_masuda_desc': return 'Züchte zwei Pokémon aus unterschiedlichen Sprachregionen miteinander (z.B. ein deutsches Feurigel und ein japanisches Ditto), um die Shiny-Chance auf 1:1638 (5/8192) zu vervielfachen.';
+			case 'shiny_gen4_masuda_link': return 'Bulbapedia - Masuda Method (EN)';
+			case 'shiny_gen4_radar_title': return 'Poké-Radar (Chance: bis 1:200)';
+			case 'shiny_gen4_radar_desc': return 'Exklusiv in D/P/Pt für Begegnungen im hohen Gras. Erreichst du eine Kette von 40 des gleichen Pokémon, steigt die Chance auf 1:200 pro wackelndem Feld. Manche Felder glitzern vorher sogar!';
+			case 'shiny_gen4_radar_link_en_reddit': return 'Reddit - Gen 4 Radar Guide (EN)';
+			case 'shiny_gen4_radar_link_en_yt': return 'YouTube - Radar Tutorial (EN)';
+			case 'shiny_gen4_radar_link_de_bisa': return 'Bisafans - Poké-Radar Guide (DE)';
+			case 'shiny_gen4_radar_link_de_yt': return 'YouTube - Radar Tutorial (DE)';
+			case 'shiny_gen4_hgss_starter_title': return 'HGSS Starter Resets (Effektiv 3:8192)';
+			case 'shiny_gen4_hgss_starter_desc': return 'Extrem schnell! Du siehst bereits bei der Auswahl im Koffer bei Prof. Lind, ob Endivie, Feurigel oder Karnimani Shiny sind. Bei jedem Soft-Reset checkst du also direkt 3 Pokémon gleichzeitig.';
+			case 'shiny_gen4_hgss_starter_link': return 'Guide: HGSS Starters Hunten';
+			case 'shiny_gen4_ccg_title': return 'Cute Charm Glitch (~21% Shiny Chance!)';
+			case 'shiny_gen4_ccg_desc': return 'Fehler im Code: Besitzt dein Spiel eine bestimmte Kombination aus Trainer-ID und Secret-ID, zwingt ein Pokémon mit der Fähigkeit Charmebolzen an erster Stelle das Spiel dazu, unfassbar oft ein Shiny des anderen Geschlechts auftauchen zu lassen.';
+			case 'shiny_gen4_ccg_link_dppt': return 'YouTube - CCG für D/P/Pt (EN)';
+			case 'shiny_gen4_ccg_link_hgss': return 'YouTube - CCG für HGSS (EN)';
+			case 'shiny_gen4_roamer_title': return 'Wander-Pokémon (Roamer) in Gen 4';
+			case 'shiny_gen4_roamer_desc': return 'Die Werte und der Shiny-Status werden festgelegt, sobald das Pokémon in die Wildnis entlassen wird! Du musst VOR diesem Gespräch / Event speichern und bei Misserfolg komplett resetten.';
+			case 'shiny_gen4_sr_title': return 'Soft Resets (Chance: 1:8192)';
+			case 'shiny_gen4_sr_desc': return 'Für stationäre Begegnungen, Legendäre Pokémon oder Geschenke. Speichere direkt vor dem Event und starte das Spiel neu, bis es Shiny ist.';
 			default: return null;
 		}
 	}
@@ -4248,6 +4350,40 @@ extension on _StringsEn {
 			case 'tutorial_settings_community_text': return 'Found a bug or want to help with development? You can find all the links here!';
 			case 'tutorial_settings_credits_title': return 'Credits & Sources';
 			case 'tutorial_settings_credits_text': return 'PokeVault wouldn\'t be possible without these amazing projects. Feel free to check them out! That\'s it – have fun with the app!';
+			case 'shiny_gen3_huntable_yes': return 'Shiny Huntable: Yes (Base odds 1:8192)';
+			case 'shiny_gen3_rs_note': return 'Ruby & Sapphire: The seed is random, standard Soft Resets (SR) work perfectly. EXCEPTION: If the internal battery is dead or the save file reached 999:59h, the seed freezes at 0 (just like in Emerald).';
+			case 'shiny_gen3_emerald_note': return 'Emerald: RNG Glitch! The starting seed is always 0 on every reset. Classic Soft Resets are useless since the exact same Pokémon stats are generated every time. Use the "Runaway" method (flee & re-encounter) or RNG manipulation here.';
+			case 'shiny_gen3_frbg_note': return 'FireRed & LeafGreen: No RNG Glitch. The seed generates randomly on every startup. Soft Resets are perfectly fine and safe to do.';
+			case 'shiny_gen3_links_title': return 'RNG Manipulation Guides & Resources';
+			case 'shiny_gen3_link_blisy_channel': return 'im a blisy - YouTube Channel (EN)';
+			case 'shiny_gen3_link_blisy_playlist': return 'im a blisy - R/S/E RNG Playlist (EN)';
+			case 'shiny_gen3_link_blisy_rs_video': return 'im a blisy - R/S Stationary RNG (Video) (EN)';
+			case 'shiny_gen3_link_smogon': return 'Smogon - R/S Non-Bred RNG Guide (EN)';
+			case 'shiny_gen3_link_retail_rng': return 'Retail RNG - Emerald Guide (EN)';
+			case 'shiny_gen3_link_reddit_emerald': return 'Reddit - RNG Manipulation in Emerald (EN)';
+			case 'shiny_gen1_huntable_yes': return 'Shiny Huntable: Yes (DV-based, Odds 1:8192)';
+			case 'shiny_gen2_huntable_yes': return 'Shiny Huntable: Yes (Base odds 1:8192)';
+			case 'shiny_gen4_huntable_yes': return 'Shiny Huntable: Yes (Base odds 1:8192)';
+			case 'shiny_gen4_masuda_title': return 'Masuda Method (Odds: 1:1638)';
+			case 'shiny_gen4_masuda_desc': return 'Breed two Pokémon from different language regions (e.g. an English Cyndaquil and a Japanese Ditto) to multiply your shiny odds to 1:1638 (5/8192).';
+			case 'shiny_gen4_masuda_link': return 'Bulbapedia - Masuda Method (EN)';
+			case 'shiny_gen4_radar_title': return 'Poké Radar (Odds: up to 1:200)';
+			case 'shiny_gen4_radar_desc': return 'Exclusive to D/P/Pt for tall grass encounters. If you reach a chain of 40 of the same Pokémon, your odds increase to 1:200 per shaking patch. You can even see shiny patches beforehand!';
+			case 'shiny_gen4_radar_link_en_reddit': return 'Reddit - Gen 4 Radar Guide';
+			case 'shiny_gen4_radar_link_en_yt': return 'YouTube - Radar Tutorial';
+			case 'shiny_gen4_radar_link_de_bisa': return 'Bisafans - Poké Radar Guide (DE)';
+			case 'shiny_gen4_radar_link_de_yt': return 'YouTube - Radar Tutorial (DE)';
+			case 'shiny_gen4_hgss_starter_title': return 'HGSS Starter Resets (Effective 3:8192)';
+			case 'shiny_gen4_hgss_starter_desc': return 'Extremely fast! You can see if Chikorita, Cyndaquil, or Totodile are shiny directly in Prof. Elm\'s briefcase before picking them. You check 3 Pokémon at once per soft reset.';
+			case 'shiny_gen4_hgss_starter_link': return 'Guide: How to hunt HGSS Starters';
+			case 'shiny_gen4_ccg_title': return 'Cute Charm Glitch (~21% Shiny Chance!)';
+			case 'shiny_gen4_ccg_desc': return 'Code oversight: If your save file has a specific combination of Trainer ID and Secret ID, leading your party with a Cute Charm Pokémon will force the game to spawn wild shinies of the opposite gender extremely often.';
+			case 'shiny_gen4_ccg_link_dppt': return 'YouTube - CCG for D/P/Pt (EN)';
+			case 'shiny_gen4_ccg_link_hgss': return 'YouTube - CCG for HGS (EN)';
+			case 'shiny_gen4_roamer_title': return 'Roaming Pokémon in Gen 4';
+			case 'shiny_gen4_roamer_desc': return 'Stats and shininess are locked in the moment the Pokémon is released into the wild! You MUST save BEFORE the conversation/event and reset if it isn\'t shiny when you find it.';
+			case 'shiny_gen4_sr_title': return 'Soft Resets (Odds: 1:8192)';
+			case 'shiny_gen4_sr_desc': return 'For stationary encounters, legendaries, or gifts. Save right before the encounter and reset the game until it shines.';
 			default: return null;
 		}
 	}
