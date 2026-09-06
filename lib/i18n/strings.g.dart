@@ -4,9 +4,9 @@
 /// To regenerate, run: `dart run slang`
 ///
 /// Locales: 2
-/// Strings: 2286 (1143 per locale)
+/// Strings: 2332 (1166 per locale)
 ///
-/// Built on 2026-09-06 at 14:30 UTC
+/// Built on 2026-09-06 at 14:49 UTC
 
 // coverage:ignore-file
 // ignore_for_file: type=lint
@@ -704,7 +704,7 @@ class Translations implements BaseTranslations<AppLocale, Translations> {
 	String get shiny_guide_gen5 => 'Generation 5';
 	String get shiny_guide_gen6 => 'Generation 6';
 	String get shiny_guide_gen7 => 'Generation 7';
-	String get shiny_guide_gen9 => 'Generation 9';
+	String get shiny_guide_gen9 => 'Generation 9 (Karmesin & Purpur)';
 	String get shiny_hunt_methods_soon => 'Weitere Jagdmethoden werden in Zukunft hinzugefügt.';
 	String get shiny_guide_missing_note => 'Hinweis: Wenn eine Generation nicht aufgeführt ist, kann das Pokémon dort nicht regulär als Shiny gejagt/gezüchtet werden (oder die Jagdmethoden werden in zukünftigen Updates ergänzt).';
 	String get shiny_odd_egg_title => 'Das Kurios-Ei (Pokémon Kristall)';
@@ -1285,6 +1285,29 @@ class Translations implements BaseTranslations<AppLocale, Translations> {
 	String get shiny_gen85_locked_desc => 'Achtung: ALLE Legendären und Mysteriösen Pokémon (Arceus, Dialga, Palkia, Darkrai etc.) sowie einmalige Quest-Begegnungen sind in Hisui Shiny Locked!';
 	String get shiny_gen8_pla_link_reddit => 'Reddit - PLA Outbreaks Guide (EN)';
 	String get shiny_gen8_pla_link_bisafans => 'Bisafans - PLA Outbreaks Guide (DE)';
+	String get shiny_guide_gen9_5 => 'Generation 9.5 (Legenden: Z-A)';
+	String get shiny_gen9_sv_title => 'Karmesin & Purpur (Paldea)';
+	String get shiny_gen9_sv_desc => 'Basis-Chance 1:4096. Shinys sind in der Overworld sichtbar, machen aber KEINEN Sound! Nutze die Let\'s Go-Funktion (Auto-Kampf), da dein Partner Shinys strikt verschont.';
+	String get shiny_gen9_sandwich_title => 'Sandwiches (Schillerkraft)';
+	String get shiny_gen9_sandwich_desc => 'Mit Geheimgewürzen stellst du Schillerkraft Lv. 3 her. Erhöht die Shiny-Chance massiv (bis zu 1:512 mit Pin).';
+	String get shiny_gen9_outbreak_title => 'Massenaufläufe (Outbreaks)';
+	String get shiny_gen9_outbreak_desc => 'Besiege 60+ Pokémon im Auto-Kampf in einem Auflauf für die maximale Bonus-Chance. Kombinierbar mit Sandwiches!';
+	String get shiny_gen9_isolation_title => 'Isolation Hunting (Begegnungskraft)';
+	String get shiny_gen9_isolation_desc => 'Nutze Sandwiches mit \'Begegnungskraft\' an Orten, wo nur das Ziel-Pokémon diesen Typ hat. Das zwingt das Spiel, fast ausschließlich dein Ziel spawnen zu lassen!';
+	String get shiny_gen9_locked_title => 'Shiny Locks in Karmesin & Purpur';
+	String get shiny_gen9_locked_desc => 'Zahlreiche Legendäre (Koraidon, Miraidon, Ruinen-Legis, Paradox-Legis, Terapagos etc.) sowie Gierspenst (außer Event-Raids) und Blutmond-Ursaluna sind Shiny Locked!';
+	String get shiny_gen9_link_sandwich => 'Polygon - Sandwich Rezepte & Guide (EN)';
+	String get shiny_gen9_link_outbreak => 'YouTube - SV Shiny Hunting Guide (EN)';
+	String get shiny_gen9_link_bisa => 'Bisafans - Shiny Hunting in SV (DE)';
+	String get shiny_gen95_plza_title => 'Legenden: Z-A (Lumiose City)';
+	String get shiny_gen95_plza_desc => 'Der Shiny-Sound ist zurück! Bis zu 10 Shinys können gleichzeitig auf der Map existieren und werden dauerhaft gespeichert, bevor das älteste despawnt.';
+	String get shiny_gen95_donut_title => 'Donuts & Spawns (50m/70m Trick)';
+	String get shiny_gen95_donut_desc => 'Donuts erhöhen die Shiny-Chance! Neue Pokémon spawnen im Umkreis von 50m. Legenden kannst du resetten, indem du 70m weggehst (Despawn) und wieder kommst (neuer Spawn bei 50m).';
+	String get shiny_gen95_locked_title => 'Shiny Locks in Legenden: Z-A';
+	String get shiny_gen95_locked_desc => 'Kyogre, Groudon, Rayquaza, Xerneas, Yveltal, Zygarde, Heatran, Darkrai und alle Nebenmissions-Begegnungen (außer Voltilamm) sind gesperrt!';
+	String get shiny_gen95_link_reddit => 'Reddit - Best PLZA Hunting Methods (EN)';
+	String get shiny_gen95_link_ign => 'IGN - PLZA Shiny Guide (EN)';
+	String get shiny_gen95_link_yt_de => 'YouTube - Z-A Shiny Tutorial (DE)';
 }
 
 // Path: <root>
@@ -1881,7 +1904,7 @@ class _StringsEn extends Translations {
 	@override String get shiny_guide_gen5 => 'Generation 5';
 	@override String get shiny_guide_gen6 => 'Generation 6';
 	@override String get shiny_guide_gen7 => 'Generation 7';
-	@override String get shiny_guide_gen9 => 'Generation 9';
+	@override String get shiny_guide_gen9 => 'Generation 9 (Scarlet & Violet)';
 	@override String get shiny_hunt_methods_soon => 'More hunting methods will be added in the future.';
 	@override String get shiny_guide_missing_note => 'Note: If a generation is not listed, the Pokémon cannot be regularly shiny hunted/bred there (or the hunting methods will be added in future updates).';
 	@override String get shiny_odd_egg_title => 'The Odd Egg (Pokémon Crystal)';
@@ -2462,6 +2485,29 @@ class _StringsEn extends Translations {
 	@override String get shiny_gen85_locked_desc => 'Warning: ALL Legendary and Mythical Pokémon (Arceus, Dialga, Palkia, Darkrai etc.) and one-time quest encounters are shiny locked in Hisui!';
 	@override String get shiny_gen8_pla_link_reddit => 'Reddit - PLA Outbreaks Guide (EN)';
 	@override String get shiny_gen8_pla_link_bisafans => 'Bisafans - PLA Outbreaks Guide (DE)';
+	@override String get shiny_guide_gen9_5 => 'Generation 9.5 (Legends: Z-A)';
+	@override String get shiny_gen9_sv_title => 'Scarlet & Violet (Paldea)';
+	@override String get shiny_gen9_sv_desc => 'Base odds 1:4096. Shinys are visible in the overworld but make NO sound! Use the Let\'s Go feature (Auto-Battle), as your partner refuses to attack shinies.';
+	@override String get shiny_gen9_sandwich_title => 'Sandwiches (Sparkling Power)';
+	@override String get shiny_gen9_sandwich_desc => 'Use Herba Mystica to craft Sparkling Power Lv. 3 sandwiches. This massively increases shiny odds (up to 1:512 with Charm).';
+	@override String get shiny_gen9_outbreak_title => 'Mass Outbreaks';
+	@override String get shiny_gen9_outbreak_desc => 'Defeat 60+ Pokémon via Auto-Battle in an outbreak to maximize your odds. Stackable with sandwiches!';
+	@override String get shiny_gen9_isolation_title => 'Isolation Hunting (Encounter Power)';
+	@override String get shiny_gen9_isolation_desc => 'Use \'Encounter Power\' sandwiches in areas where only your target shares that type. This forces the game to spawn almost exclusively your target!';
+	@override String get shiny_gen9_locked_title => 'Shiny Locks in Scarlet & Violet';
+	@override String get shiny_gen9_locked_desc => 'Many legendaries (Koraidon, Miraidon, Ruin Treasures, Paradox Legends, Terapagos etc.) as well as Gimmighoul (except event raids) and Bloodmoon Ursaluna are shiny locked!';
+	@override String get shiny_gen9_link_sandwich => 'Polygon - Sandwich Recipes & Guide';
+	@override String get shiny_gen9_link_outbreak => 'YouTube - SV Shiny Hunting Guide';
+	@override String get shiny_gen9_link_bisa => 'Bisafans - Shiny Hunting in SV (DE)';
+	@override String get shiny_gen95_plza_title => 'Legends: Z-A (Lumiose City)';
+	@override String get shiny_gen95_plza_desc => 'The shiny sound is back! Up to 10 shinies can exist simultaneously on the map and are permanently saved before the oldest one despawns.';
+	@override String get shiny_gen95_donut_title => 'Donuts & Spawns (50m/70m Trick)';
+	@override String get shiny_gen95_donut_desc => 'Donuts boost shiny odds! New Pokémon spawn within 50m. You can quickly reset static targets by walking away (70m = despawn) and coming back (50m = spawn).';
+	@override String get shiny_gen95_locked_title => 'Shiny Locks in Legends: Z-A';
+	@override String get shiny_gen95_locked_desc => 'Kyogre, Groudon, Rayquaza, Xerneas, Yveltal, Zygarde, Heatran, Darkrai and all side mission encounters (except Mareep) are shiny locked!';
+	@override String get shiny_gen95_link_reddit => 'Reddit - Best PLZA Hunting Methods';
+	@override String get shiny_gen95_link_ign => 'IGN - PLZA Shiny Guide';
+	@override String get shiny_gen95_link_yt_de => 'YouTube - Z-A Shiny Tutorial (DE)';
 }
 
 /// Flat map(s) containing all translations.
@@ -3026,7 +3072,7 @@ extension on Translations {
 			case 'shiny_guide_gen5': return 'Generation 5';
 			case 'shiny_guide_gen6': return 'Generation 6';
 			case 'shiny_guide_gen7': return 'Generation 7';
-			case 'shiny_guide_gen9': return 'Generation 9';
+			case 'shiny_guide_gen9': return 'Generation 9 (Karmesin & Purpur)';
 			case 'shiny_hunt_methods_soon': return 'Weitere Jagdmethoden werden in Zukunft hinzugefügt.';
 			case 'shiny_guide_missing_note': return 'Hinweis: Wenn eine Generation nicht aufgeführt ist, kann das Pokémon dort nicht regulär als Shiny gejagt/gezüchtet werden (oder die Jagdmethoden werden in zukünftigen Updates ergänzt).';
 			case 'shiny_odd_egg_title': return 'Das Kurios-Ei (Pokémon Kristall)';
@@ -3607,6 +3653,29 @@ extension on Translations {
 			case 'shiny_gen85_locked_desc': return 'Achtung: ALLE Legendären und Mysteriösen Pokémon (Arceus, Dialga, Palkia, Darkrai etc.) sowie einmalige Quest-Begegnungen sind in Hisui Shiny Locked!';
 			case 'shiny_gen8_pla_link_reddit': return 'Reddit - PLA Outbreaks Guide (EN)';
 			case 'shiny_gen8_pla_link_bisafans': return 'Bisafans - PLA Outbreaks Guide (DE)';
+			case 'shiny_guide_gen9_5': return 'Generation 9.5 (Legenden: Z-A)';
+			case 'shiny_gen9_sv_title': return 'Karmesin & Purpur (Paldea)';
+			case 'shiny_gen9_sv_desc': return 'Basis-Chance 1:4096. Shinys sind in der Overworld sichtbar, machen aber KEINEN Sound! Nutze die Let\'s Go-Funktion (Auto-Kampf), da dein Partner Shinys strikt verschont.';
+			case 'shiny_gen9_sandwich_title': return 'Sandwiches (Schillerkraft)';
+			case 'shiny_gen9_sandwich_desc': return 'Mit Geheimgewürzen stellst du Schillerkraft Lv. 3 her. Erhöht die Shiny-Chance massiv (bis zu 1:512 mit Pin).';
+			case 'shiny_gen9_outbreak_title': return 'Massenaufläufe (Outbreaks)';
+			case 'shiny_gen9_outbreak_desc': return 'Besiege 60+ Pokémon im Auto-Kampf in einem Auflauf für die maximale Bonus-Chance. Kombinierbar mit Sandwiches!';
+			case 'shiny_gen9_isolation_title': return 'Isolation Hunting (Begegnungskraft)';
+			case 'shiny_gen9_isolation_desc': return 'Nutze Sandwiches mit \'Begegnungskraft\' an Orten, wo nur das Ziel-Pokémon diesen Typ hat. Das zwingt das Spiel, fast ausschließlich dein Ziel spawnen zu lassen!';
+			case 'shiny_gen9_locked_title': return 'Shiny Locks in Karmesin & Purpur';
+			case 'shiny_gen9_locked_desc': return 'Zahlreiche Legendäre (Koraidon, Miraidon, Ruinen-Legis, Paradox-Legis, Terapagos etc.) sowie Gierspenst (außer Event-Raids) und Blutmond-Ursaluna sind Shiny Locked!';
+			case 'shiny_gen9_link_sandwich': return 'Polygon - Sandwich Rezepte & Guide (EN)';
+			case 'shiny_gen9_link_outbreak': return 'YouTube - SV Shiny Hunting Guide (EN)';
+			case 'shiny_gen9_link_bisa': return 'Bisafans - Shiny Hunting in SV (DE)';
+			case 'shiny_gen95_plza_title': return 'Legenden: Z-A (Lumiose City)';
+			case 'shiny_gen95_plza_desc': return 'Der Shiny-Sound ist zurück! Bis zu 10 Shinys können gleichzeitig auf der Map existieren und werden dauerhaft gespeichert, bevor das älteste despawnt.';
+			case 'shiny_gen95_donut_title': return 'Donuts & Spawns (50m/70m Trick)';
+			case 'shiny_gen95_donut_desc': return 'Donuts erhöhen die Shiny-Chance! Neue Pokémon spawnen im Umkreis von 50m. Legenden kannst du resetten, indem du 70m weggehst (Despawn) und wieder kommst (neuer Spawn bei 50m).';
+			case 'shiny_gen95_locked_title': return 'Shiny Locks in Legenden: Z-A';
+			case 'shiny_gen95_locked_desc': return 'Kyogre, Groudon, Rayquaza, Xerneas, Yveltal, Zygarde, Heatran, Darkrai und alle Nebenmissions-Begegnungen (außer Voltilamm) sind gesperrt!';
+			case 'shiny_gen95_link_reddit': return 'Reddit - Best PLZA Hunting Methods (EN)';
+			case 'shiny_gen95_link_ign': return 'IGN - PLZA Shiny Guide (EN)';
+			case 'shiny_gen95_link_yt_de': return 'YouTube - Z-A Shiny Tutorial (DE)';
 			default: return null;
 		}
 	}
@@ -4183,7 +4252,7 @@ extension on _StringsEn {
 			case 'shiny_guide_gen5': return 'Generation 5';
 			case 'shiny_guide_gen6': return 'Generation 6';
 			case 'shiny_guide_gen7': return 'Generation 7';
-			case 'shiny_guide_gen9': return 'Generation 9';
+			case 'shiny_guide_gen9': return 'Generation 9 (Scarlet & Violet)';
 			case 'shiny_hunt_methods_soon': return 'More hunting methods will be added in the future.';
 			case 'shiny_guide_missing_note': return 'Note: If a generation is not listed, the Pokémon cannot be regularly shiny hunted/bred there (or the hunting methods will be added in future updates).';
 			case 'shiny_odd_egg_title': return 'The Odd Egg (Pokémon Crystal)';
@@ -4764,6 +4833,29 @@ extension on _StringsEn {
 			case 'shiny_gen85_locked_desc': return 'Warning: ALL Legendary and Mythical Pokémon (Arceus, Dialga, Palkia, Darkrai etc.) and one-time quest encounters are shiny locked in Hisui!';
 			case 'shiny_gen8_pla_link_reddit': return 'Reddit - PLA Outbreaks Guide (EN)';
 			case 'shiny_gen8_pla_link_bisafans': return 'Bisafans - PLA Outbreaks Guide (DE)';
+			case 'shiny_guide_gen9_5': return 'Generation 9.5 (Legends: Z-A)';
+			case 'shiny_gen9_sv_title': return 'Scarlet & Violet (Paldea)';
+			case 'shiny_gen9_sv_desc': return 'Base odds 1:4096. Shinys are visible in the overworld but make NO sound! Use the Let\'s Go feature (Auto-Battle), as your partner refuses to attack shinies.';
+			case 'shiny_gen9_sandwich_title': return 'Sandwiches (Sparkling Power)';
+			case 'shiny_gen9_sandwich_desc': return 'Use Herba Mystica to craft Sparkling Power Lv. 3 sandwiches. This massively increases shiny odds (up to 1:512 with Charm).';
+			case 'shiny_gen9_outbreak_title': return 'Mass Outbreaks';
+			case 'shiny_gen9_outbreak_desc': return 'Defeat 60+ Pokémon via Auto-Battle in an outbreak to maximize your odds. Stackable with sandwiches!';
+			case 'shiny_gen9_isolation_title': return 'Isolation Hunting (Encounter Power)';
+			case 'shiny_gen9_isolation_desc': return 'Use \'Encounter Power\' sandwiches in areas where only your target shares that type. This forces the game to spawn almost exclusively your target!';
+			case 'shiny_gen9_locked_title': return 'Shiny Locks in Scarlet & Violet';
+			case 'shiny_gen9_locked_desc': return 'Many legendaries (Koraidon, Miraidon, Ruin Treasures, Paradox Legends, Terapagos etc.) as well as Gimmighoul (except event raids) and Bloodmoon Ursaluna are shiny locked!';
+			case 'shiny_gen9_link_sandwich': return 'Polygon - Sandwich Recipes & Guide';
+			case 'shiny_gen9_link_outbreak': return 'YouTube - SV Shiny Hunting Guide';
+			case 'shiny_gen9_link_bisa': return 'Bisafans - Shiny Hunting in SV (DE)';
+			case 'shiny_gen95_plza_title': return 'Legends: Z-A (Lumiose City)';
+			case 'shiny_gen95_plza_desc': return 'The shiny sound is back! Up to 10 shinies can exist simultaneously on the map and are permanently saved before the oldest one despawns.';
+			case 'shiny_gen95_donut_title': return 'Donuts & Spawns (50m/70m Trick)';
+			case 'shiny_gen95_donut_desc': return 'Donuts boost shiny odds! New Pokémon spawn within 50m. You can quickly reset static targets by walking away (70m = despawn) and coming back (50m = spawn).';
+			case 'shiny_gen95_locked_title': return 'Shiny Locks in Legends: Z-A';
+			case 'shiny_gen95_locked_desc': return 'Kyogre, Groudon, Rayquaza, Xerneas, Yveltal, Zygarde, Heatran, Darkrai and all side mission encounters (except Mareep) are shiny locked!';
+			case 'shiny_gen95_link_reddit': return 'Reddit - Best PLZA Hunting Methods';
+			case 'shiny_gen95_link_ign': return 'IGN - PLZA Shiny Guide';
+			case 'shiny_gen95_link_yt_de': return 'YouTube - Z-A Shiny Tutorial (DE)';
 			default: return null;
 		}
 	}

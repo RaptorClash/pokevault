@@ -142,8 +142,20 @@ class ShinyLogicHelper {
   }
 
   static bool isBreedable(Pokemon pokemon) {
-    if (pokemon.eggGroups.contains('No Eggs Discovered')) return false;
-    if (pokemon.eggGroups.contains('Ditto')) return false;
+    bool hasNoEggs = pokemon.eggGroups.any((g) {
+      final lower = g.toLowerCase();
+      return lower.contains('no-eggs') ||
+          lower.contains('undiscovered') ||
+          lower.contains('no eggs');
+    });
+
+    if (hasNoEggs) return false;
+
+    bool isDitto = pokemon.eggGroups.any(
+      (g) => g.toLowerCase().contains('ditto'),
+    );
+    if (isDitto) return false;
+
     return true;
   }
 
@@ -153,14 +165,14 @@ class ShinyLogicHelper {
 
   static int getAdultForBaby(int babyId) {
     const Map<int, int> babyToAdult = {
-      172: 25, // Pichu -> Pikachu
-      173: 35, // Cleffa -> Clefairy
-      174: 39, // Igglybuff -> Jigglypuff
-      175: 176, // Togepi -> Togetic
-      236: 106, // Tyrogue -> Hitmonlee
-      238: 124, // Smoochum -> Jynx
-      239: 125, // Elekid -> Electabuzz
-      240: 126, // Magby -> Magmar
+      172: 25,
+      173: 35,
+      174: 39,
+      175: 176,
+      236: 106,
+      238: 124,
+      239: 125,
+      240: 126,
     };
     return babyToAdult[babyId] ?? babyId;
   }
