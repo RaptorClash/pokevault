@@ -45,36 +45,44 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
     }
   }
 
-  bool _shouldShowGen(int gen) {
+  bool _shouldShowGen(double gen) {
     if (gen == 2 &&
         widget.entry.pokemon.id >= 252 &&
-        widget.entry.pokemon.id <= 257) {
+        widget.entry.pokemon.id <= 257)
       return true;
-    }
     if (gen == 1) return widget.entry.pokemon.id <= 151;
     if (gen == 2) return widget.entry.pokemon.id <= 251;
     if (gen == 3) return widget.entry.pokemon.id <= 386;
     if (gen == 4) return widget.entry.pokemon.id <= 493;
     if (gen == 5) return widget.entry.pokemon.id <= 649;
     if (gen == 6) return widget.entry.pokemon.id <= 721;
+    if (gen == 7) return widget.entry.pokemon.id <= 807;
+    if (gen == 7.5)
+      return widget.entry.pokemon.id <= 151 ||
+          widget.entry.pokemon.id == 808 ||
+          widget.entry.pokemon.id == 809;
     return false;
   }
 
-  Widget _buildGenContent(BuildContext context, int gen) {
+  Widget _buildGenContent(BuildContext context, double gen) {
     List<Widget> content = [];
-    if (gen == 1) {
+    if (gen == 1.0)
       content.add(_buildGen1Specific(context));
-    } else if (gen == 2) {
+    else if (gen == 2.0)
       content.add(_buildGen2Specific(context));
-    } else if (gen == 3) {
+    else if (gen == 3.0)
       content.add(_buildGen3Specific(context));
-    } else if (gen == 4) {
+    else if (gen == 4.0)
       content.add(_buildGen4Specific(context));
-    } else if (gen == 5) {
+    else if (gen == 5.0)
       content.add(_buildGen5Specific(context));
-    } else if (gen == 6) {
+    else if (gen == 6.0)
       content.add(_buildGen6Specific(context));
-    }
+    else if (gen == 7.0)
+      content.add(_buildGen7Specific(context));
+    else if (gen == 7.5)
+      content.add(_buildGen7_5Specific(context));
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: content,
@@ -1787,6 +1795,721 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
     );
   }
 
+  Widget _buildGen7Specific(BuildContext context) {
+    final id = widget.entry.pokemon.id;
+
+    return FutureBuilder<Map<String, Map<String, List<String>>>?>(
+      future: DatabaseService.instance.getEncounters(id),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Padding(
+            padding: EdgeInsets.all(16.0),
+            child: Center(child: CircularProgressIndicator()),
+          );
+        }
+
+        final encounters = snapshot.data;
+        bool hasAlolaEncounter = false;
+        bool isStaticOrGift = false;
+        bool hasWildSpawn = false;
+
+        if (encounters != null && encounters.containsKey('gen_7')) {
+          final gen7 = encounters['gen_7']!;
+          for (var version in gen7.keys) {
+            if (version == 'sun' ||
+                version == 'moon' ||
+                version == 'ultra-sun' ||
+                version == 'ultra-moon') {
+              hasAlolaEncounter = true;
+              for (var loc in gen7[version]!) {
+                final locLower = loc.toLowerCase();
+                if (locLower.contains('stationary') ||
+                    locLower.contains('gift') ||
+                    locLower.contains('fossil') ||
+                    locLower.contains('only one')) {
+                  isStaticOrGift = true;
+                }
+                if (locLower.contains('grass') ||
+                    locLower.contains('walk') ||
+                    locLower.contains('gras') ||
+                    locLower.contains('cave') ||
+                    locLower.contains('surf')) {
+                  hasWildSpawn = true;
+                }
+              }
+            }
+          }
+        }
+
+        List<int> warpRidePokemon = [
+          195,
+          219,
+          271,
+          274,
+          277,
+          308,
+          326,
+          334,
+          419,
+          423,
+          450,
+          452,
+          460,
+          469,
+          531,
+          558,
+          561,
+          581,
+          618,
+          695,
+          144,
+          145,
+          146,
+          150,
+          243,
+          244,
+          245,
+          249,
+          250,
+          377,
+          378,
+          379,
+          380,
+          381,
+          382,
+          383,
+          384,
+          480,
+          481,
+          482,
+          483,
+          484,
+          485,
+          486,
+          487,
+          488,
+          638,
+          639,
+          640,
+          641,
+          642,
+          643,
+          644,
+          645,
+          646,
+          716,
+          717,
+        ];
+        bool canBeInWarpRide = warpRidePokemon.contains(id);
+
+        List<int> absoluteGen7Locks = [
+          718,
+          785,
+          786,
+          787,
+          788,
+          789,
+          790,
+          791,
+          792,
+          800,
+          801,
+          802,
+          807,
+        ];
+
+        List<int> ultraBeasts = [
+          793,
+          794,
+          795,
+          796,
+          797,
+          798,
+          799,
+          803,
+          804,
+          805,
+          806,
+        ];
+
+        List<int> legendariesAndMythicals = [
+          144,
+          145,
+          146,
+          150,
+          151,
+          243,
+          244,
+          245,
+          249,
+          250,
+          251,
+          377,
+          378,
+          379,
+          380,
+          381,
+          382,
+          383,
+          384,
+          385,
+          386,
+          480,
+          481,
+          482,
+          483,
+          484,
+          485,
+          486,
+          487,
+          488,
+          489,
+          490,
+          491,
+          492,
+          493,
+          494,
+          638,
+          639,
+          640,
+          641,
+          642,
+          643,
+          644,
+          645,
+          646,
+          647,
+          648,
+          649,
+          716,
+          717,
+          718,
+          719,
+          720,
+          721,
+          772,
+          773,
+          785,
+          786,
+          787,
+          788,
+          789,
+          790,
+          791,
+          792,
+          793,
+          794,
+          795,
+          796,
+          797,
+          798,
+          799,
+          800,
+          801,
+          802,
+          803,
+          804,
+          805,
+          806,
+          807,
+        ];
+
+        bool isBreedable =
+            (ShinyLogicHelper.isBreedable(widget.entry.pokemon) ||
+                ShinyLogicHelper.isBaby(id)) &&
+            !legendariesAndMythicals.contains(id);
+        bool isHuntable =
+            (isBreedable || hasAlolaEncounter || canBeInWarpRide) &&
+            !absoluteGen7Locks.contains(id);
+
+        if ((legendariesAndMythicals.contains(id) && hasAlolaEncounter) ||
+            canBeInWarpRide) {
+          isStaticOrGift = true;
+        }
+
+        List<Widget> content = [];
+
+        Widget buildInfoBox(
+          IconData icon,
+          String titleKey,
+          String descKey,
+          Color color,
+        ) {
+          return Container(
+            padding: const EdgeInsets.all(12),
+            margin: const EdgeInsets.only(bottom: 12),
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.15),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: color.withValues(alpha: 0.3)),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(icon, color: color, size: 20),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        Translator.get(titleKey) != titleKey
+                            ? Translator.get(titleKey)
+                            : titleKey,
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: color,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  Translator.get(descKey) != descKey
+                      ? Translator.get(descKey)
+                      : descKey,
+                  style: const TextStyle(
+                    fontSize: 13,
+                    fontStyle: FontStyle.italic,
+                  ),
+                ),
+              ],
+            ),
+          );
+        }
+
+        Widget buildLinkBtn(IconData icon, String titleKey, String url) {
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 8.0),
+            child: SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                icon: Icon(icon),
+                label: Text(
+                  Translator.get(titleKey) != titleKey
+                      ? Translator.get(titleKey)
+                      : titleKey,
+                  textAlign: TextAlign.center,
+                ),
+                onPressed: () => _launchURL(url),
+              ),
+            ),
+          );
+        }
+
+        if (!isHuntable) {
+          content.add(
+            Text(
+              Translator.get('shiny_huntable_no') != 'shiny_huntable_no'
+                  ? Translator.get('shiny_huntable_no')
+                  : 'Shiny Huntable: Nein',
+              style: const TextStyle(
+                color: Colors.red,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          );
+          content.add(const SizedBox(height: 8));
+          if (absoluteGen7Locks.contains(id)) {
+            content.add(
+              buildInfoBox(
+                Icons.lock,
+                'shiny_gen7_locked_title',
+                'shiny_gen7_locked_desc',
+                Colors.red,
+              ),
+            );
+          } else {
+            content.add(
+              Text(
+                Translator.get('shiny_not_in_gen') != 'shiny_not_in_gen'
+                    ? Translator.get('shiny_not_in_gen')
+                    : 'Dieses Pokémon ist in dieser Generation nicht regulär fangbar oder züchtbar.',
+                style: const TextStyle(
+                  fontStyle: FontStyle.italic,
+                  fontSize: 13,
+                ),
+              ),
+            );
+          }
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: content,
+          );
+        }
+
+        content.add(
+          Text(
+            Translator.get('shiny_gen7_huntable_yes') !=
+                    'shiny_gen7_huntable_yes'
+                ? Translator.get('shiny_gen7_huntable_yes')
+                : 'Shiny Huntable: Ja (Basis-Chance 1:4096)',
+            style: const TextStyle(
+              color: Colors.green,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        );
+        content.add(const SizedBox(height: 16));
+
+        if (ultraBeasts.contains(id)) {
+          content.add(
+            buildInfoBox(
+              Icons.warning_amber_rounded,
+              'shiny_gen7_ub_locked_title',
+              'shiny_gen7_ub_locked_desc',
+              Colors.orange,
+            ),
+          );
+        }
+
+        if (isBreedable) {
+          content.add(
+            buildInfoBox(
+              Icons.egg_alt,
+              'shiny_gen6_masuda_title',
+              'shiny_gen6_masuda_desc',
+              Colors.purple,
+            ),
+          );
+        }
+
+        if (hasWildSpawn && !legendariesAndMythicals.contains(id)) {
+          content.add(
+            buildInfoBox(
+              Icons.group_add,
+              'shiny_gen7_sos_title',
+              'shiny_gen7_sos_desc',
+              Colors.blue,
+            ),
+          );
+          content.add(
+            buildLinkBtn(
+              Icons.forum,
+              'shiny_gen7_sos_link_reddit',
+              'https://www.reddit.com/r/pokemontrades/comments/5ig3pj/sos_chaining_how_to_do_it_and_how_to_do_it/',
+            ),
+          );
+          content.add(
+            buildLinkBtn(
+              Icons.play_circle_filled,
+              'shiny_gen7_sos_link_yt_en',
+              'https://www.youtube.com/watch?v=JyQW4buHeGY',
+            ),
+          );
+          content.add(
+            buildLinkBtn(
+              Icons.play_circle_filled,
+              'shiny_gen7_sos_link_yt_de',
+              'https://www.youtube.com/watch?v=SJdagmvWASM',
+            ),
+          );
+          content.add(const SizedBox(height: 8));
+        }
+
+        if (canBeInWarpRide) {
+          content.add(
+            buildInfoBox(
+              Icons.rocket_launch,
+              'shiny_gen7_warp_title',
+              'shiny_gen7_warp_desc',
+              Colors.indigo,
+            ),
+          );
+          content.add(
+            buildLinkBtn(
+              Icons.forum,
+              'shiny_gen7_warp_link_reddit',
+              'https://www.reddit.com/r/ShinyPokemon/comments/7myj5n/7_warp_ride_shiny_odds_grid/',
+            ),
+          );
+          content.add(
+            buildLinkBtn(
+              Icons.play_circle_filled,
+              'shiny_gen7_warp_link_yt_en',
+              'https://www.youtube.com/watch?v=63AHQizp8zg',
+            ),
+          );
+          content.add(
+            buildLinkBtn(
+              Icons.play_circle_filled,
+              'shiny_gen7_warp_link_yt_de',
+              'https://www.youtube.com/watch?v=USjxUroSmKA',
+            ),
+          );
+          content.add(
+            buildLinkBtn(
+              Icons.language,
+              'shiny_gen7_warp_link_bisa',
+              'https://www.bisafans.de/spiele/editionen/ultra-sonne-ultra-mond/warp-loch-shinys.php',
+            ),
+          );
+          content.add(const SizedBox(height: 8));
+        }
+
+        if (isStaticOrGift) {
+          content.add(
+            buildInfoBox(
+              Icons.restart_alt,
+              'shiny_gen6_sr_title',
+              'shiny_gen6_sr_desc',
+              Colors.teal,
+            ),
+          );
+        }
+
+        if (hasWildSpawn && !legendariesAndMythicals.contains(id)) {
+          content.add(
+            buildInfoBox(
+              Icons.holiday_village,
+              'shiny_gen7_pelago_title',
+              'shiny_gen7_pelago_desc',
+              Colors.green,
+            ),
+          );
+        }
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: content,
+        );
+      },
+    );
+  }
+
+  Widget _buildGen7_5Specific(BuildContext context) {
+    final id = widget.entry.pokemon.id;
+
+    return FutureBuilder<Map<String, Map<String, List<String>>>?>(
+      future: DatabaseService.instance.getEncounters(id),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Padding(
+            padding: EdgeInsets.all(16.0),
+            child: Center(child: CircularProgressIndicator()),
+          );
+        }
+
+        final encounters = snapshot.data;
+        bool hasLetsGoEncounter = false;
+        bool isStaticOrGift = false;
+
+        if (encounters != null && encounters.containsKey('gen_7')) {
+          final gen7 = encounters['gen_7']!;
+          for (var version in gen7.keys) {
+            if (version == 'lets-go-pikachu' || version == 'lets-go-eevee') {
+              hasLetsGoEncounter = true;
+              for (var loc in gen7[version]!) {
+                final locLower = loc.toLowerCase();
+                if (locLower.contains('stationary') ||
+                    locLower.contains('gift') ||
+                    locLower.contains('fossil') ||
+                    locLower.contains('only one')) {
+                  isStaticOrGift = true;
+                }
+              }
+            }
+          }
+        }
+
+        List<int> alolanFormsBaseIds = [
+          19,
+          20,
+          26,
+          27,
+          28,
+          37,
+          38,
+          50,
+          51,
+          52,
+          53,
+          74,
+          75,
+          76,
+          88,
+          89,
+          103,
+          105,
+        ];
+        bool canTradeAlolan = alolanFormsBaseIds.contains(id);
+
+        List<Widget> content = [];
+
+        Widget buildInfoBox(
+          IconData icon,
+          String titleKey,
+          String descKey,
+          Color color,
+        ) {
+          return Container(
+            padding: const EdgeInsets.all(12),
+            margin: const EdgeInsets.only(bottom: 12),
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.15),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: color.withValues(alpha: 0.3)),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(icon, color: color, size: 20),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        Translator.get(titleKey) != titleKey
+                            ? Translator.get(titleKey)
+                            : titleKey,
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: color,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  Translator.get(descKey) != descKey
+                      ? Translator.get(descKey)
+                      : descKey,
+                  style: const TextStyle(
+                    fontSize: 13,
+                    fontStyle: FontStyle.italic,
+                  ),
+                ),
+              ],
+            ),
+          );
+        }
+
+        Widget buildLinkBtn(IconData icon, String titleKey, String url) {
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 8.0),
+            child: SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                icon: Icon(icon),
+                label: Text(
+                  Translator.get(titleKey) != titleKey
+                      ? Translator.get(titleKey)
+                      : titleKey,
+                  textAlign: TextAlign.center,
+                ),
+                onPressed: () => _launchURL(url),
+              ),
+            ),
+          );
+        }
+
+        if (!hasLetsGoEncounter && !canTradeAlolan && id != 808 && id != 809) {
+          content.add(
+            Text(
+              Translator.get('shiny_huntable_no') != 'shiny_huntable_no'
+                  ? Translator.get('shiny_huntable_no')
+                  : 'Shiny Huntable: Nein',
+              style: const TextStyle(
+                color: Colors.red,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          );
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: content,
+          );
+        }
+
+        content.add(
+          Text(
+            Translator.get('shiny_gen7_huntable_yes') !=
+                    'shiny_gen7_huntable_yes'
+                ? Translator.get('shiny_gen7_huntable_yes')
+                : 'Shiny Huntable: Ja (Basis-Chance 1:4096)',
+            style: const TextStyle(
+              color: Colors.green,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        );
+        content.add(const SizedBox(height: 16));
+
+        if (id == 25 || id == 133 || id == 151) {
+          content.add(
+            buildInfoBox(
+              Icons.lock,
+              'shiny_gen75_locked_title',
+              'shiny_gen75_locked_desc',
+              Colors.red,
+            ),
+          );
+        }
+
+        if (hasLetsGoEncounter && id != 151) {
+          content.add(
+            buildInfoBox(
+              Icons.link,
+              'shiny_gen75_combo_title',
+              'shiny_gen75_combo_desc',
+              Colors.orange,
+            ),
+          );
+          content.add(
+            buildLinkBtn(
+              Icons.forum,
+              'shiny_gen75_combo_link_reddit',
+              'https://www.reddit.com/r/PokemonLetsGo/comments/1fendma/pokemon_lets_go_guide_for_shiny_hunting_tracking/',
+            ),
+          );
+          content.add(
+            buildLinkBtn(
+              Icons.play_circle_filled,
+              'shiny_gen75_combo_link_yt_de1',
+              'https://www.youtube.com/watch?v=8UJ_91-wcQM',
+            ),
+          );
+          content.add(
+            buildLinkBtn(
+              Icons.play_circle_filled,
+              'shiny_gen75_combo_link_yt_de2',
+              'https://www.youtube.com/watch?v=mzAWo2-vXsM',
+            ),
+          );
+          content.add(const SizedBox(height: 8));
+        }
+
+        if (canTradeAlolan) {
+          content.add(
+            buildInfoBox(
+              Icons.swap_horiz,
+              'shiny_gen75_alola_title',
+              'shiny_gen75_alola_desc',
+              Colors.teal,
+            ),
+          );
+        }
+
+        if (isStaticOrGift && id != 151) {
+          content.add(
+            buildInfoBox(
+              Icons.restart_alt,
+              'shiny_gen6_sr_title',
+              'shiny_gen6_sr_desc',
+              Colors.deepPurple,
+            ),
+          );
+        }
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: content,
+        );
+      },
+    );
+  }
+
   int _calcStat(int base, int dv, int level, bool isHp) {
     int stat = (((base + dv) * 2) * level) ~/ 100;
     return isHp ? stat + level + 10 : stat + 5;
@@ -1912,15 +2635,25 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
   Widget build(BuildContext context) {
     List<Widget> genTiles = [];
 
-    for (int gen = 1; gen <= 6; gen++) {
+    List<double> generations = [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 7.5];
+
+    for (double gen in generations) {
       if (_shouldShowGen(gen)) {
         Widget content = _buildGenContent(context, gen);
+
+        String titleKey = gen == 7.5
+            ? 'shiny_guide_gen7_5'
+            : 'shiny_guide_gen${gen.toInt()}';
+        String fallbackTitle = gen == 7.5
+            ? 'Generation 7.5'
+            : 'Generation ${gen.toInt()}';
+
         genTiles.add(
           ExpansionTile(
             title: Text(
-              Translator.get('shiny_guide_gen$gen') != 'shiny_guide_gen$gen'
-                  ? Translator.get('shiny_guide_gen$gen')
-                  : 'Generation $gen',
+              Translator.get(titleKey) != titleKey
+                  ? Translator.get(titleKey)
+                  : fallbackTitle,
               style: const TextStyle(fontWeight: FontWeight.w600),
             ),
             children: [

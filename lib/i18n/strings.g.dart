@@ -4,9 +4,9 @@
 /// To regenerate, run: `dart run slang`
 ///
 /// Locales: 2
-/// Strings: 2184 (1092 per locale)
+/// Strings: 2240 (1120 per locale)
 ///
-/// Built on 2026-09-06 at 11:05 UTC
+/// Built on 2026-09-06 at 11:27 UTC
 
 // coverage:ignore-file
 // ignore_for_file: type=lint
@@ -1234,6 +1234,34 @@ class Translations implements BaseTranslations<AppLocale, Translations> {
 	String get shiny_gen6_snorlax_warning_title => 'Relaxo Shiny Lock';
 	String get shiny_gen6_snorlax_warning_desc => 'Hinweis: Das stationäre (schlafende) Relaxo auf Route 7 in X/Y ist Shiny Locked! Um ein Shiny Relaxo in Gen 6 zu erhalten, musst du es züchten.';
 	String get shiny_gen6_locked_desc => 'In Gen 6 sind Mewtu, die legendären Vögel, Xerneas, Yveltal, Zygarde, Kyogre, Groudon, Rayquaza, Deoxys sowie Diancie, Hoopa und Volcanion Shiny Locked!';
+	String get shiny_guide_gen7_5 => 'Generation 7.5 (Let\'s Go P/E)';
+	String get shiny_gen7_huntable_yes => 'Shiny Huntable: Ja (Basis-Chance 1:4096)';
+	String get shiny_gen7_locked_title => 'Shiny Locks in Gen 7';
+	String get shiny_gen7_locked_desc => 'Gesperrt in S/M & US/UM: Zygarde, Kapu-Riki, Kapu-Fala, Kapu-Toro, Kapu-Kime, Cosmog, Cosmovum, Solgaleo, Lunala, Necrozma.';
+	String get shiny_gen7_ub_locked_title => 'Ultrabestien (Nur in S/M gesperrt!)';
+	String get shiny_gen7_ub_locked_desc => 'Achtung: Alle Ultrabestien sind in Sonne & Mond Shiny Locked. In Ultrasonne & Ultramond kannst du sie jedoch regulär hunten!';
+	String get shiny_gen7_sos_title => 'SOS-Chaining (Quereinsteiger)';
+	String get shiny_gen7_sos_desc => 'Wilde Pokémon rufen um Hilfe. Mit einem Zitterorb steigt die Rufrate. Bei einer Kette von 70+ steigt die Shiny-Chance enorm an (bis 1:315).';
+	String get shiny_gen7_sos_link_reddit => 'Reddit - SOS Chaining Guide (EN)';
+	String get shiny_gen7_sos_link_yt_en => 'YouTube - SOS Tutorial (EN)';
+	String get shiny_gen7_sos_link_yt_de => 'YouTube - SOS Tutorial (DE)';
+	String get shiny_gen7_warp_title => 'Ultradimension-Zero (US/UM)';
+	String get shiny_gen7_warp_desc => 'Im Warp Ride haben normale Pokémon (je nach Distanz) eine irrsinnig hohe Shiny-Chance (bis 36%). Legenden haben die normale Chance (1:4096 / SR).';
+	String get shiny_gen7_warp_link_reddit => 'Reddit - Warp Ride Odds (EN)';
+	String get shiny_gen7_warp_link_yt_en => 'YouTube - Warp Ride Tutorial (EN)';
+	String get shiny_gen7_warp_link_yt_de => 'YouTube - Warp Ride Tutorial (DE)';
+	String get shiny_gen7_warp_link_bisa => 'Bisafans - Warp Loch Shinys (DE)';
+	String get shiny_gen7_pelago_title => 'Pokémon-Resort (Poké Pelago)';
+	String get shiny_gen7_pelago_desc => 'Wilde Pokémon, die deine Insel besuchen, können Shiny sein! Du siehst es direkt, musst aber 24h warten, ob sie im Team bleiben.';
+	String get shiny_gen75_combo_title => 'Fangserie (Catch Combo)';
+	String get shiny_gen75_combo_desc => 'Fange immer wieder das gleiche Pokémon. Ab einer Kette von 31 + Lockparfüm + Schillerpin steigt die Chance für den NÄCHSTEN Spawn auf gigantische 1:273!';
+	String get shiny_gen75_combo_link_reddit => 'Reddit - Let\'s Go Shiny Guide (EN)';
+	String get shiny_gen75_combo_link_yt_de1 => 'YouTube - Let\'s Go Hunt (DE)';
+	String get shiny_gen75_combo_link_yt_de2 => 'YouTube - Let\'s Go Hunt Teil 2 (DE)';
+	String get shiny_gen75_alola_title => 'Alola-NPC-Tausche';
+	String get shiny_gen75_alola_desc => 'NPCs tauschen unbegrenzt Alola-Formen. Diese können Shiny sein (Chance 1:4096). Der Schillerpin oder Ketten wirken hierauf NICHT.';
+	String get shiny_gen75_locked_title => 'Let\'s Go Shiny Locks';
+	String get shiny_gen75_locked_desc => 'Dein Partner-Pikachu/Evoli und das Mew (Pokéball Plus) sind immer Shiny Locked. Wilde Pikachu/Evoli kannst du aber normal jagen!';
 }
 
 // Path: <root>
@@ -2360,6 +2388,34 @@ class _StringsEn extends Translations {
 	@override String get shiny_gen6_snorlax_warning_title => 'Snorlax Shiny Lock';
 	@override String get shiny_gen6_snorlax_warning_desc => 'Warning: The stationary (sleeping) Snorlax on Route 7 in X/Y is shiny locked! You have to breed it to get a shiny in Gen 6.';
 	@override String get shiny_gen6_locked_desc => 'In Gen 6, Mewtwo, the Legendary Birds, Xerneas, Yveltal, Zygarde, Kyogre, Groudon, Rayquaza, Deoxys as well as Diancie, Hoopa, and Volcanion are shiny locked!';
+	@override String get shiny_guide_gen7_5 => 'Generation 7.5 (Let\'s Go P/E)';
+	@override String get shiny_gen7_huntable_yes => 'Shiny Huntable: Yes (Base Odds 1:4096)';
+	@override String get shiny_gen7_locked_title => 'Shiny Locks in Gen 7';
+	@override String get shiny_gen7_locked_desc => 'Locked in S/M & US/UM: Zygarde, Tapu Koko, Tapu Lele, Tapu Bulu, Tapu Fini, Cosmog, Cosmoem, Solgaleo, Lunala, Necrozma.';
+	@override String get shiny_gen7_ub_locked_title => 'Ultra Beasts (Locked in S/M only!)';
+	@override String get shiny_gen7_ub_locked_desc => 'Warning: All Ultra Beasts are shiny locked in Sun & Moon. However, you can hunt them normally in Ultra Sun & Ultra Moon!';
+	@override String get shiny_gen7_sos_title => 'SOS Chaining';
+	@override String get shiny_gen7_sos_desc => 'Wild Pokémon call for help. An Adrenaline Orb increases the call rate. A chain of 70+ massively boosts your shiny odds (up to 1:315).';
+	@override String get shiny_gen7_sos_link_reddit => 'Reddit - SOS Chaining Guide';
+	@override String get shiny_gen7_sos_link_yt_en => 'YouTube - SOS Tutorial';
+	@override String get shiny_gen7_sos_link_yt_de => 'YouTube - SOS Tutorial (DE)';
+	@override String get shiny_gen7_warp_title => 'Ultra Warp Ride (US/UM)';
+	@override String get shiny_gen7_warp_desc => 'Normal Pokémon found here have incredibly high shiny odds (up to 36%). Legendaries have standard odds (1:4096 / SR).';
+	@override String get shiny_gen7_warp_link_reddit => 'Reddit - Warp Ride Odds';
+	@override String get shiny_gen7_warp_link_yt_en => 'YouTube - Warp Ride Tutorial';
+	@override String get shiny_gen7_warp_link_yt_de => 'YouTube - Warp Ride Tutorial (DE)';
+	@override String get shiny_gen7_warp_link_bisa => 'Bisafans - Warp Hole Shinys (DE)';
+	@override String get shiny_gen7_pelago_title => 'Poké Pelago';
+	@override String get shiny_gen7_pelago_desc => 'Wild Pokémon visiting your island can be shiny! You see it immediately, but have to wait 24h to see if they stay.';
+	@override String get shiny_gen75_combo_title => 'Catch Combo';
+	@override String get shiny_gen75_combo_desc => 'Catch the exact same Pokémon consecutively. At a chain of 31 + Lure + Shiny Charm, the NEXT spawn has crazy odds of 1:273!';
+	@override String get shiny_gen75_combo_link_reddit => 'Reddit - Let\'s Go Shiny Guide';
+	@override String get shiny_gen75_combo_link_yt_de1 => 'YouTube - Let\'s Go Hunt (DE)';
+	@override String get shiny_gen75_combo_link_yt_de2 => 'YouTube - Let\'s Go Hunt Part 2 (DE)';
+	@override String get shiny_gen75_alola_title => 'Alolan NPC Trades';
+	@override String get shiny_gen75_alola_desc => 'NPCs trade Alolan forms infinitely. These can be shiny (1:4096). Shiny Charm and catch combos DO NOT affect these trades.';
+	@override String get shiny_gen75_locked_title => 'Let\'s Go Shiny Locks';
+	@override String get shiny_gen75_locked_desc => 'Your Partner Pikachu/Eevee and Mew (Pokéball Plus) are always shiny locked. However, wild Pikachu/Eevee can be hunted normally!';
 }
 
 /// Flat map(s) containing all translations.
@@ -3454,6 +3510,34 @@ extension on Translations {
 			case 'shiny_gen6_snorlax_warning_title': return 'Relaxo Shiny Lock';
 			case 'shiny_gen6_snorlax_warning_desc': return 'Hinweis: Das stationäre (schlafende) Relaxo auf Route 7 in X/Y ist Shiny Locked! Um ein Shiny Relaxo in Gen 6 zu erhalten, musst du es züchten.';
 			case 'shiny_gen6_locked_desc': return 'In Gen 6 sind Mewtu, die legendären Vögel, Xerneas, Yveltal, Zygarde, Kyogre, Groudon, Rayquaza, Deoxys sowie Diancie, Hoopa und Volcanion Shiny Locked!';
+			case 'shiny_guide_gen7_5': return 'Generation 7.5 (Let\'s Go P/E)';
+			case 'shiny_gen7_huntable_yes': return 'Shiny Huntable: Ja (Basis-Chance 1:4096)';
+			case 'shiny_gen7_locked_title': return 'Shiny Locks in Gen 7';
+			case 'shiny_gen7_locked_desc': return 'Gesperrt in S/M & US/UM: Zygarde, Kapu-Riki, Kapu-Fala, Kapu-Toro, Kapu-Kime, Cosmog, Cosmovum, Solgaleo, Lunala, Necrozma.';
+			case 'shiny_gen7_ub_locked_title': return 'Ultrabestien (Nur in S/M gesperrt!)';
+			case 'shiny_gen7_ub_locked_desc': return 'Achtung: Alle Ultrabestien sind in Sonne & Mond Shiny Locked. In Ultrasonne & Ultramond kannst du sie jedoch regulär hunten!';
+			case 'shiny_gen7_sos_title': return 'SOS-Chaining (Quereinsteiger)';
+			case 'shiny_gen7_sos_desc': return 'Wilde Pokémon rufen um Hilfe. Mit einem Zitterorb steigt die Rufrate. Bei einer Kette von 70+ steigt die Shiny-Chance enorm an (bis 1:315).';
+			case 'shiny_gen7_sos_link_reddit': return 'Reddit - SOS Chaining Guide (EN)';
+			case 'shiny_gen7_sos_link_yt_en': return 'YouTube - SOS Tutorial (EN)';
+			case 'shiny_gen7_sos_link_yt_de': return 'YouTube - SOS Tutorial (DE)';
+			case 'shiny_gen7_warp_title': return 'Ultradimension-Zero (US/UM)';
+			case 'shiny_gen7_warp_desc': return 'Im Warp Ride haben normale Pokémon (je nach Distanz) eine irrsinnig hohe Shiny-Chance (bis 36%). Legenden haben die normale Chance (1:4096 / SR).';
+			case 'shiny_gen7_warp_link_reddit': return 'Reddit - Warp Ride Odds (EN)';
+			case 'shiny_gen7_warp_link_yt_en': return 'YouTube - Warp Ride Tutorial (EN)';
+			case 'shiny_gen7_warp_link_yt_de': return 'YouTube - Warp Ride Tutorial (DE)';
+			case 'shiny_gen7_warp_link_bisa': return 'Bisafans - Warp Loch Shinys (DE)';
+			case 'shiny_gen7_pelago_title': return 'Pokémon-Resort (Poké Pelago)';
+			case 'shiny_gen7_pelago_desc': return 'Wilde Pokémon, die deine Insel besuchen, können Shiny sein! Du siehst es direkt, musst aber 24h warten, ob sie im Team bleiben.';
+			case 'shiny_gen75_combo_title': return 'Fangserie (Catch Combo)';
+			case 'shiny_gen75_combo_desc': return 'Fange immer wieder das gleiche Pokémon. Ab einer Kette von 31 + Lockparfüm + Schillerpin steigt die Chance für den NÄCHSTEN Spawn auf gigantische 1:273!';
+			case 'shiny_gen75_combo_link_reddit': return 'Reddit - Let\'s Go Shiny Guide (EN)';
+			case 'shiny_gen75_combo_link_yt_de1': return 'YouTube - Let\'s Go Hunt (DE)';
+			case 'shiny_gen75_combo_link_yt_de2': return 'YouTube - Let\'s Go Hunt Teil 2 (DE)';
+			case 'shiny_gen75_alola_title': return 'Alola-NPC-Tausche';
+			case 'shiny_gen75_alola_desc': return 'NPCs tauschen unbegrenzt Alola-Formen. Diese können Shiny sein (Chance 1:4096). Der Schillerpin oder Ketten wirken hierauf NICHT.';
+			case 'shiny_gen75_locked_title': return 'Let\'s Go Shiny Locks';
+			case 'shiny_gen75_locked_desc': return 'Dein Partner-Pikachu/Evoli und das Mew (Pokéball Plus) sind immer Shiny Locked. Wilde Pikachu/Evoli kannst du aber normal jagen!';
 			default: return null;
 		}
 	}
@@ -4560,6 +4644,34 @@ extension on _StringsEn {
 			case 'shiny_gen6_snorlax_warning_title': return 'Snorlax Shiny Lock';
 			case 'shiny_gen6_snorlax_warning_desc': return 'Warning: The stationary (sleeping) Snorlax on Route 7 in X/Y is shiny locked! You have to breed it to get a shiny in Gen 6.';
 			case 'shiny_gen6_locked_desc': return 'In Gen 6, Mewtwo, the Legendary Birds, Xerneas, Yveltal, Zygarde, Kyogre, Groudon, Rayquaza, Deoxys as well as Diancie, Hoopa, and Volcanion are shiny locked!';
+			case 'shiny_guide_gen7_5': return 'Generation 7.5 (Let\'s Go P/E)';
+			case 'shiny_gen7_huntable_yes': return 'Shiny Huntable: Yes (Base Odds 1:4096)';
+			case 'shiny_gen7_locked_title': return 'Shiny Locks in Gen 7';
+			case 'shiny_gen7_locked_desc': return 'Locked in S/M & US/UM: Zygarde, Tapu Koko, Tapu Lele, Tapu Bulu, Tapu Fini, Cosmog, Cosmoem, Solgaleo, Lunala, Necrozma.';
+			case 'shiny_gen7_ub_locked_title': return 'Ultra Beasts (Locked in S/M only!)';
+			case 'shiny_gen7_ub_locked_desc': return 'Warning: All Ultra Beasts are shiny locked in Sun & Moon. However, you can hunt them normally in Ultra Sun & Ultra Moon!';
+			case 'shiny_gen7_sos_title': return 'SOS Chaining';
+			case 'shiny_gen7_sos_desc': return 'Wild Pokémon call for help. An Adrenaline Orb increases the call rate. A chain of 70+ massively boosts your shiny odds (up to 1:315).';
+			case 'shiny_gen7_sos_link_reddit': return 'Reddit - SOS Chaining Guide';
+			case 'shiny_gen7_sos_link_yt_en': return 'YouTube - SOS Tutorial';
+			case 'shiny_gen7_sos_link_yt_de': return 'YouTube - SOS Tutorial (DE)';
+			case 'shiny_gen7_warp_title': return 'Ultra Warp Ride (US/UM)';
+			case 'shiny_gen7_warp_desc': return 'Normal Pokémon found here have incredibly high shiny odds (up to 36%). Legendaries have standard odds (1:4096 / SR).';
+			case 'shiny_gen7_warp_link_reddit': return 'Reddit - Warp Ride Odds';
+			case 'shiny_gen7_warp_link_yt_en': return 'YouTube - Warp Ride Tutorial';
+			case 'shiny_gen7_warp_link_yt_de': return 'YouTube - Warp Ride Tutorial (DE)';
+			case 'shiny_gen7_warp_link_bisa': return 'Bisafans - Warp Hole Shinys (DE)';
+			case 'shiny_gen7_pelago_title': return 'Poké Pelago';
+			case 'shiny_gen7_pelago_desc': return 'Wild Pokémon visiting your island can be shiny! You see it immediately, but have to wait 24h to see if they stay.';
+			case 'shiny_gen75_combo_title': return 'Catch Combo';
+			case 'shiny_gen75_combo_desc': return 'Catch the exact same Pokémon consecutively. At a chain of 31 + Lure + Shiny Charm, the NEXT spawn has crazy odds of 1:273!';
+			case 'shiny_gen75_combo_link_reddit': return 'Reddit - Let\'s Go Shiny Guide';
+			case 'shiny_gen75_combo_link_yt_de1': return 'YouTube - Let\'s Go Hunt (DE)';
+			case 'shiny_gen75_combo_link_yt_de2': return 'YouTube - Let\'s Go Hunt Part 2 (DE)';
+			case 'shiny_gen75_alola_title': return 'Alolan NPC Trades';
+			case 'shiny_gen75_alola_desc': return 'NPCs trade Alolan forms infinitely. These can be shiny (1:4096). Shiny Charm and catch combos DO NOT affect these trades.';
+			case 'shiny_gen75_locked_title': return 'Let\'s Go Shiny Locks';
+			case 'shiny_gen75_locked_desc': return 'Your Partner Pikachu/Eevee and Mew (Pokéball Plus) are always shiny locked. However, wild Pikachu/Eevee can be hunted normally!';
 			default: return null;
 		}
 	}
