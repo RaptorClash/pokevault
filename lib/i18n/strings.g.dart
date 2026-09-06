@@ -4,9 +4,9 @@
 /// To regenerate, run: `dart run slang`
 ///
 /// Locales: 2
-/// Strings: 2240 (1120 per locale)
+/// Strings: 2286 (1143 per locale)
 ///
-/// Built on 2026-09-06 at 11:27 UTC
+/// Built on 2026-09-06 at 14:30 UTC
 
 // coverage:ignore-file
 // ignore_for_file: type=lint
@@ -704,7 +704,6 @@ class Translations implements BaseTranslations<AppLocale, Translations> {
 	String get shiny_guide_gen5 => 'Generation 5';
 	String get shiny_guide_gen6 => 'Generation 6';
 	String get shiny_guide_gen7 => 'Generation 7';
-	String get shiny_guide_gen8 => 'Generation 8';
 	String get shiny_guide_gen9 => 'Generation 9';
 	String get shiny_hunt_methods_soon => 'Weitere Jagdmethoden werden in Zukunft hinzugefügt.';
 	String get shiny_guide_missing_note => 'Hinweis: Wenn eine Generation nicht aufgeführt ist, kann das Pokémon dort nicht regulär als Shiny gejagt/gezüchtet werden (oder die Jagdmethoden werden in zukünftigen Updates ergänzt).';
@@ -1262,6 +1261,30 @@ class Translations implements BaseTranslations<AppLocale, Translations> {
 	String get shiny_gen75_alola_desc => 'NPCs tauschen unbegrenzt Alola-Formen. Diese können Shiny sein (Chance 1:4096). Der Schillerpin oder Ketten wirken hierauf NICHT.';
 	String get shiny_gen75_locked_title => 'Let\'s Go Shiny Locks';
 	String get shiny_gen75_locked_desc => 'Dein Partner-Pikachu/Evoli und das Mew (Pokéball Plus) sind immer Shiny Locked. Wilde Pikachu/Evoli kannst du aber normal jagen!';
+	String get shiny_guide_gen8 => 'Generation 8 (SwSh & BDSP)';
+	String get shiny_guide_gen8_5 => 'Generation 8.5 (Legenden: Arceus)';
+	String get shiny_gen8_swsh_title => 'Schwert & Schild (Galar)';
+	String get shiny_gen8_swsh_desc => 'Basis-Chance 1:4096 (1:1365 mit Pin). Nutze Dynamax-Abenteuer im DLC (1:100 Chance!) oder die K.O.-Methode für wilde Spawns.';
+	String get shiny_gen8_bdsp_title => 'Strahlender Diamant & Leuchtende Perle';
+	String get shiny_gen8_bdsp_desc => 'Basis-Chance 1:4096. Nutze den Untergrund-Diglett-Bonus (verdoppelt die Shiny-Rate temporär) oder Soft Resets für Legendäre.';
+	String get shiny_gen8_locked_title => 'Shiny Locks in SwSh & BDSP';
+	String get shiny_gen8_locked_desc => 'Die Legendären aus Galar (Zacian, Zamazenta, Endynalos, Dakuma, Coronospa etc.) sowie Typ:Null, Cosmog und Venicro sind hier komplett gesperrt. Starter-Geschenke (wie Chimpep) sind gesperrt, können aber GEZÜCHTET werden!';
+	String get shiny_gen8_masuda_title => 'Masuda-Methode (SwSh & BDSP)';
+	String get shiny_gen8_masuda_desc => 'Züchte zwei Pokémon aus unterschiedlichen Sprachregionen. Chance: 1:683 (ohne Pin) / 1:512 (mit Schillerpin).';
+	String get shiny_gen8_masuda_link => 'Bulbapedia - Masuda Method';
+	String get shiny_gen8_radar_title => 'Poké-Radar (Nur BDSP)';
+	String get shiny_gen8_radar_desc => 'Exklusiv in den Sinnoh-Remakes: Erreiche eine Kette von 40 im hohen Gras, um die Shiny-Chance auf gigantische 1:99 pro glitzerndem Grasfeld zu erhöhen!';
+	String get shiny_gen8_radar_link_yt_de => 'YouTube - BDSP Radar Tutorial (DE)';
+	String get shiny_gen8_radar_link_reddit => 'Reddit - BDSP Radar Guide (EN)';
+	String get shiny_gen8_radar_link_yt_en => 'YouTube - BDSP Radar Tutorial (EN)';
+	String get shiny_gen85_pla_title => 'Legenden: Arceus (Hisui)';
+	String get shiny_gen85_pla_desc => 'Shinys laufen sichtbar in der Overworld herum! Sie kündigen sich durch einen **deutlichen Sound-Jingle und visuellen Effekt** an. Du kannst den Schillerpin und das Forschungslevel kombinieren.';
+	String get shiny_gen85_pla_outbreaks_title => 'Massive Massenauftritte (MMOs)';
+	String get shiny_gen85_pla_outbreaks_desc => 'Das effektivste Tool in Hisui. Durch das gezielte Besiegen/Fangen in Massenauftritten sinkt die Chance auf bis zu 1:128.';
+	String get shiny_gen85_locked_title => 'Shiny Locks in Hisui';
+	String get shiny_gen85_locked_desc => 'Achtung: ALLE Legendären und Mysteriösen Pokémon (Arceus, Dialga, Palkia, Darkrai etc.) sowie einmalige Quest-Begegnungen sind in Hisui Shiny Locked!';
+	String get shiny_gen8_pla_link_reddit => 'Reddit - PLA Outbreaks Guide (EN)';
+	String get shiny_gen8_pla_link_bisafans => 'Bisafans - PLA Outbreaks Guide (DE)';
 }
 
 // Path: <root>
@@ -1858,7 +1881,6 @@ class _StringsEn extends Translations {
 	@override String get shiny_guide_gen5 => 'Generation 5';
 	@override String get shiny_guide_gen6 => 'Generation 6';
 	@override String get shiny_guide_gen7 => 'Generation 7';
-	@override String get shiny_guide_gen8 => 'Generation 8';
 	@override String get shiny_guide_gen9 => 'Generation 9';
 	@override String get shiny_hunt_methods_soon => 'More hunting methods will be added in the future.';
 	@override String get shiny_guide_missing_note => 'Note: If a generation is not listed, the Pokémon cannot be regularly shiny hunted/bred there (or the hunting methods will be added in future updates).';
@@ -2416,6 +2438,30 @@ class _StringsEn extends Translations {
 	@override String get shiny_gen75_alola_desc => 'NPCs trade Alolan forms infinitely. These can be shiny (1:4096). Shiny Charm and catch combos DO NOT affect these trades.';
 	@override String get shiny_gen75_locked_title => 'Let\'s Go Shiny Locks';
 	@override String get shiny_gen75_locked_desc => 'Your Partner Pikachu/Eevee and Mew (Pokéball Plus) are always shiny locked. However, wild Pikachu/Eevee can be hunted normally!';
+	@override String get shiny_guide_gen8 => 'Generation 8 (SwSh & BDSP)';
+	@override String get shiny_guide_gen8_5 => 'Generation 8.5 (Legends: Arceus)';
+	@override String get shiny_gen8_swsh_title => 'Sword & Shield (Galar)';
+	@override String get shiny_gen8_swsh_desc => 'Base odds 1:4096 (1:1365 with Charm). Use Dynamax Adventures in the DLC (1:100 odds!) or the K.O. method for wild spawns.';
+	@override String get shiny_gen8_bdsp_title => 'Brilliant Diamond & Shining Pearl';
+	@override String get shiny_gen8_bdsp_desc => 'Base odds 1:4096. Use the Underground Diglett bonus (temporarily doubles odds) or Soft Resets for legendaries.';
+	@override String get shiny_gen8_locked_title => 'Shiny Locks in SwSh & BDSP';
+	@override String get shiny_gen8_locked_desc => 'Galar Legendaries (Zacian, Zamazenta, Eternatus, Kubfu, Calyrex etc.) as well as Type:Null, Cosmog, and Poipole are shiny locked. Gift starters are locked but CAN BE BRED!';
+	@override String get shiny_gen8_masuda_title => 'Masuda Method (SwSh & BDSP)';
+	@override String get shiny_gen8_masuda_desc => 'Breed two Pokémon from different language regions. Odds: 1:683 (No Charm) / 1:512 (With Shiny Charm).';
+	@override String get shiny_gen8_masuda_link => 'Bulbapedia - Masuda Method';
+	@override String get shiny_gen8_radar_title => 'Poké Radar (BDSP only)';
+	@override String get shiny_gen8_radar_desc => 'Exclusive to the Sinnoh remakes: Reach a chain of 40 in tall grass to boost your shiny odds to an amazing 1:99 per sparkling patch!';
+	@override String get shiny_gen8_radar_link_yt_de => 'YouTube - BDSP Radar Tutorial (DE)';
+	@override String get shiny_gen8_radar_link_reddit => 'Reddit - BDSP Radar Guide (EN)';
+	@override String get shiny_gen8_radar_link_yt_en => 'YouTube - BDSP Radar Tutorial (EN)';
+	@override String get shiny_gen85_pla_title => 'Legends: Arceus (Hisui)';
+	@override String get shiny_gen85_pla_desc => 'Shinys roam visibly in the overworld! They alert you with a **distinct sound jingle and visual effect**. You can stack the Shiny Charm and Research Levels.';
+	@override String get shiny_gen85_pla_outbreaks_title => 'Massive Mass Outbreaks (MMOs)';
+	@override String get shiny_gen85_pla_outbreaks_desc => 'The most effective tool in Hisui. Clearing out mass outbreaks drops your odds down to 1:128.';
+	@override String get shiny_gen85_locked_title => 'Shiny Locks in Hisui';
+	@override String get shiny_gen85_locked_desc => 'Warning: ALL Legendary and Mythical Pokémon (Arceus, Dialga, Palkia, Darkrai etc.) and one-time quest encounters are shiny locked in Hisui!';
+	@override String get shiny_gen8_pla_link_reddit => 'Reddit - PLA Outbreaks Guide (EN)';
+	@override String get shiny_gen8_pla_link_bisafans => 'Bisafans - PLA Outbreaks Guide (DE)';
 }
 
 /// Flat map(s) containing all translations.
@@ -2980,7 +3026,6 @@ extension on Translations {
 			case 'shiny_guide_gen5': return 'Generation 5';
 			case 'shiny_guide_gen6': return 'Generation 6';
 			case 'shiny_guide_gen7': return 'Generation 7';
-			case 'shiny_guide_gen8': return 'Generation 8';
 			case 'shiny_guide_gen9': return 'Generation 9';
 			case 'shiny_hunt_methods_soon': return 'Weitere Jagdmethoden werden in Zukunft hinzugefügt.';
 			case 'shiny_guide_missing_note': return 'Hinweis: Wenn eine Generation nicht aufgeführt ist, kann das Pokémon dort nicht regulär als Shiny gejagt/gezüchtet werden (oder die Jagdmethoden werden in zukünftigen Updates ergänzt).';
@@ -3538,6 +3583,30 @@ extension on Translations {
 			case 'shiny_gen75_alola_desc': return 'NPCs tauschen unbegrenzt Alola-Formen. Diese können Shiny sein (Chance 1:4096). Der Schillerpin oder Ketten wirken hierauf NICHT.';
 			case 'shiny_gen75_locked_title': return 'Let\'s Go Shiny Locks';
 			case 'shiny_gen75_locked_desc': return 'Dein Partner-Pikachu/Evoli und das Mew (Pokéball Plus) sind immer Shiny Locked. Wilde Pikachu/Evoli kannst du aber normal jagen!';
+			case 'shiny_guide_gen8': return 'Generation 8 (SwSh & BDSP)';
+			case 'shiny_guide_gen8_5': return 'Generation 8.5 (Legenden: Arceus)';
+			case 'shiny_gen8_swsh_title': return 'Schwert & Schild (Galar)';
+			case 'shiny_gen8_swsh_desc': return 'Basis-Chance 1:4096 (1:1365 mit Pin). Nutze Dynamax-Abenteuer im DLC (1:100 Chance!) oder die K.O.-Methode für wilde Spawns.';
+			case 'shiny_gen8_bdsp_title': return 'Strahlender Diamant & Leuchtende Perle';
+			case 'shiny_gen8_bdsp_desc': return 'Basis-Chance 1:4096. Nutze den Untergrund-Diglett-Bonus (verdoppelt die Shiny-Rate temporär) oder Soft Resets für Legendäre.';
+			case 'shiny_gen8_locked_title': return 'Shiny Locks in SwSh & BDSP';
+			case 'shiny_gen8_locked_desc': return 'Die Legendären aus Galar (Zacian, Zamazenta, Endynalos, Dakuma, Coronospa etc.) sowie Typ:Null, Cosmog und Venicro sind hier komplett gesperrt. Starter-Geschenke (wie Chimpep) sind gesperrt, können aber GEZÜCHTET werden!';
+			case 'shiny_gen8_masuda_title': return 'Masuda-Methode (SwSh & BDSP)';
+			case 'shiny_gen8_masuda_desc': return 'Züchte zwei Pokémon aus unterschiedlichen Sprachregionen. Chance: 1:683 (ohne Pin) / 1:512 (mit Schillerpin).';
+			case 'shiny_gen8_masuda_link': return 'Bulbapedia - Masuda Method';
+			case 'shiny_gen8_radar_title': return 'Poké-Radar (Nur BDSP)';
+			case 'shiny_gen8_radar_desc': return 'Exklusiv in den Sinnoh-Remakes: Erreiche eine Kette von 40 im hohen Gras, um die Shiny-Chance auf gigantische 1:99 pro glitzerndem Grasfeld zu erhöhen!';
+			case 'shiny_gen8_radar_link_yt_de': return 'YouTube - BDSP Radar Tutorial (DE)';
+			case 'shiny_gen8_radar_link_reddit': return 'Reddit - BDSP Radar Guide (EN)';
+			case 'shiny_gen8_radar_link_yt_en': return 'YouTube - BDSP Radar Tutorial (EN)';
+			case 'shiny_gen85_pla_title': return 'Legenden: Arceus (Hisui)';
+			case 'shiny_gen85_pla_desc': return 'Shinys laufen sichtbar in der Overworld herum! Sie kündigen sich durch einen **deutlichen Sound-Jingle und visuellen Effekt** an. Du kannst den Schillerpin und das Forschungslevel kombinieren.';
+			case 'shiny_gen85_pla_outbreaks_title': return 'Massive Massenauftritte (MMOs)';
+			case 'shiny_gen85_pla_outbreaks_desc': return 'Das effektivste Tool in Hisui. Durch das gezielte Besiegen/Fangen in Massenauftritten sinkt die Chance auf bis zu 1:128.';
+			case 'shiny_gen85_locked_title': return 'Shiny Locks in Hisui';
+			case 'shiny_gen85_locked_desc': return 'Achtung: ALLE Legendären und Mysteriösen Pokémon (Arceus, Dialga, Palkia, Darkrai etc.) sowie einmalige Quest-Begegnungen sind in Hisui Shiny Locked!';
+			case 'shiny_gen8_pla_link_reddit': return 'Reddit - PLA Outbreaks Guide (EN)';
+			case 'shiny_gen8_pla_link_bisafans': return 'Bisafans - PLA Outbreaks Guide (DE)';
 			default: return null;
 		}
 	}
@@ -4114,7 +4183,6 @@ extension on _StringsEn {
 			case 'shiny_guide_gen5': return 'Generation 5';
 			case 'shiny_guide_gen6': return 'Generation 6';
 			case 'shiny_guide_gen7': return 'Generation 7';
-			case 'shiny_guide_gen8': return 'Generation 8';
 			case 'shiny_guide_gen9': return 'Generation 9';
 			case 'shiny_hunt_methods_soon': return 'More hunting methods will be added in the future.';
 			case 'shiny_guide_missing_note': return 'Note: If a generation is not listed, the Pokémon cannot be regularly shiny hunted/bred there (or the hunting methods will be added in future updates).';
@@ -4672,6 +4740,30 @@ extension on _StringsEn {
 			case 'shiny_gen75_alola_desc': return 'NPCs trade Alolan forms infinitely. These can be shiny (1:4096). Shiny Charm and catch combos DO NOT affect these trades.';
 			case 'shiny_gen75_locked_title': return 'Let\'s Go Shiny Locks';
 			case 'shiny_gen75_locked_desc': return 'Your Partner Pikachu/Eevee and Mew (Pokéball Plus) are always shiny locked. However, wild Pikachu/Eevee can be hunted normally!';
+			case 'shiny_guide_gen8': return 'Generation 8 (SwSh & BDSP)';
+			case 'shiny_guide_gen8_5': return 'Generation 8.5 (Legends: Arceus)';
+			case 'shiny_gen8_swsh_title': return 'Sword & Shield (Galar)';
+			case 'shiny_gen8_swsh_desc': return 'Base odds 1:4096 (1:1365 with Charm). Use Dynamax Adventures in the DLC (1:100 odds!) or the K.O. method for wild spawns.';
+			case 'shiny_gen8_bdsp_title': return 'Brilliant Diamond & Shining Pearl';
+			case 'shiny_gen8_bdsp_desc': return 'Base odds 1:4096. Use the Underground Diglett bonus (temporarily doubles odds) or Soft Resets for legendaries.';
+			case 'shiny_gen8_locked_title': return 'Shiny Locks in SwSh & BDSP';
+			case 'shiny_gen8_locked_desc': return 'Galar Legendaries (Zacian, Zamazenta, Eternatus, Kubfu, Calyrex etc.) as well as Type:Null, Cosmog, and Poipole are shiny locked. Gift starters are locked but CAN BE BRED!';
+			case 'shiny_gen8_masuda_title': return 'Masuda Method (SwSh & BDSP)';
+			case 'shiny_gen8_masuda_desc': return 'Breed two Pokémon from different language regions. Odds: 1:683 (No Charm) / 1:512 (With Shiny Charm).';
+			case 'shiny_gen8_masuda_link': return 'Bulbapedia - Masuda Method';
+			case 'shiny_gen8_radar_title': return 'Poké Radar (BDSP only)';
+			case 'shiny_gen8_radar_desc': return 'Exclusive to the Sinnoh remakes: Reach a chain of 40 in tall grass to boost your shiny odds to an amazing 1:99 per sparkling patch!';
+			case 'shiny_gen8_radar_link_yt_de': return 'YouTube - BDSP Radar Tutorial (DE)';
+			case 'shiny_gen8_radar_link_reddit': return 'Reddit - BDSP Radar Guide (EN)';
+			case 'shiny_gen8_radar_link_yt_en': return 'YouTube - BDSP Radar Tutorial (EN)';
+			case 'shiny_gen85_pla_title': return 'Legends: Arceus (Hisui)';
+			case 'shiny_gen85_pla_desc': return 'Shinys roam visibly in the overworld! They alert you with a **distinct sound jingle and visual effect**. You can stack the Shiny Charm and Research Levels.';
+			case 'shiny_gen85_pla_outbreaks_title': return 'Massive Mass Outbreaks (MMOs)';
+			case 'shiny_gen85_pla_outbreaks_desc': return 'The most effective tool in Hisui. Clearing out mass outbreaks drops your odds down to 1:128.';
+			case 'shiny_gen85_locked_title': return 'Shiny Locks in Hisui';
+			case 'shiny_gen85_locked_desc': return 'Warning: ALL Legendary and Mythical Pokémon (Arceus, Dialga, Palkia, Darkrai etc.) and one-time quest encounters are shiny locked in Hisui!';
+			case 'shiny_gen8_pla_link_reddit': return 'Reddit - PLA Outbreaks Guide (EN)';
+			case 'shiny_gen8_pla_link_bisafans': return 'Bisafans - PLA Outbreaks Guide (DE)';
 			default: return null;
 		}
 	}

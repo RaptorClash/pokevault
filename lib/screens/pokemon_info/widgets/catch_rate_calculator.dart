@@ -98,7 +98,6 @@ class _CatchRateCalculatorState extends State<CatchRateCalculator> {
         widget.pokemon.id,
       );
       Set<double> validGens = {};
-
       if (encounters != null && encounters.isNotEmpty) {
         encounters.forEach((genStr, versionsMap) {
           if (genStr == 'gen_1') validGens.add(1.0);
@@ -138,6 +137,7 @@ class _CatchRateCalculatorState extends State<CatchRateCalculator> {
       }
 
       final db = await DatabaseService.instance.appDatabase;
+
       final zaCheck = await db.query(
         'dex_orders',
         where: 'pokemon_id = ? AND (dex_name = ? OR dex_name = ?)',
@@ -148,11 +148,40 @@ class _CatchRateCalculatorState extends State<CatchRateCalculator> {
         ],
         limit: 1,
       );
-
       if (zaCheck.isNotEmpty) {
         validGens.add(9.5);
       } else {
         validGens.remove(9.5);
+      }
+
+      final hisuiCheck = await db.query(
+        'dex_orders',
+        where: 'pokemon_id = ? AND dex_name = ?',
+        whereArgs: [widget.pokemon.id, 'hisui_regional'],
+        limit: 1,
+      );
+      if (hisuiCheck.isNotEmpty) {
+        validGens.add(8.5);
+        validGens.add(8.0);
+      }
+
+      final swshCheck = await db.query(
+        'dex_orders',
+        where: 'pokemon_id = ? AND dex_name IN (?, ?, ?)',
+        whereArgs: [
+          widget.pokemon.id,
+          'galar_regional',
+          'isle_of_armor_regional',
+          'crown_tundra_regional',
+        ],
+        limit: 1,
+      );
+      if (swshCheck.isNotEmpty) {
+        validGens.add(8.0);
+      }
+
+      if (widget.pokemon.id <= 493) {
+        validGens.add(8.0);
       }
 
       if (mounted) {
@@ -162,7 +191,6 @@ class _CatchRateCalculatorState extends State<CatchRateCalculator> {
           } else {
             _availableGens = [max(_minGen, 9.0)];
           }
-
           if (!_availableGens.contains(_selectedGen)) {
             _selectedGen = _availableGens.last;
             _powerBonus = 1.0;
