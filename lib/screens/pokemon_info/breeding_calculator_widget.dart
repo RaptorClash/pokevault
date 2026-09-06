@@ -6,6 +6,7 @@ import '../../utils/shiny_logic_helper.dart';
 import '../../utils/breeding_logic_helper.dart';
 import '../../providers/dex_provider.dart';
 import 'widgets/breeding_step_card.dart';
+import '../../services/database_service.dart';
 
 class BreedingCalculatorWidget extends StatefulWidget {
   final int initialTargetId;
@@ -31,6 +32,7 @@ class _BreedingCalculatorWidgetState extends State<BreedingCalculatorWidget> {
   bool _useOnlyCaught = false;
 
   bool _isCalculating = false;
+  Map<int, Map<String, dynamic>> _preEvolutions = {};
 
   @override
   void initState() {
@@ -102,13 +104,16 @@ class _BreedingCalculatorWidgetState extends State<BreedingCalculatorWidget> {
         (d) => d.id == widget.dexId,
       );
 
+      final preEvos = await DatabaseService.instance.getGen12PreEvolutions();
+      _preEvolutions = preEvos;
+
       Set<int> caughtBaseIds = {};
       if (_useOnlyCaught) {
         for (String uniqueId in liveDex.caughtIds) {
           int id = int.tryParse(uniqueId.split('_')[0]) ?? -1;
           if (id != -1) {
             caughtBaseIds.add(id);
-            caughtBaseIds.add(ShinyLogicHelper.getBaseForm(id));
+            caughtBaseIds.add(ShinyLogicHelper.getBaseForm(id, preEvos));
           }
         }
       }
@@ -119,6 +124,7 @@ class _BreedingCalculatorWidgetState extends State<BreedingCalculatorWidget> {
         useOnlyCaught: _useOnlyCaught,
         caughtBaseIds: caughtBaseIds,
         allPokemon: dexProvider.allPokemon,
+        preEvolutions: preEvos,
       );
 
       final finalPaths = await BreedingLogicHelper.calculatePathsInBackground(
@@ -170,7 +176,7 @@ class _BreedingCalculatorWidgetState extends State<BreedingCalculatorWidget> {
       int nextId = _path![1];
       String nextName = _getPokemonNameOnly(nextId);
       String baseNextName = _getPokemonNameOnly(
-        ShinyLogicHelper.getBaseForm(nextId),
+        ShinyLogicHelper.getBaseForm(nextId, _preEvolutions),
       );
       String stepDitto = Translator.get(
         'shiny_breed_step_ditto',
@@ -193,6 +199,7 @@ class _BreedingCalculatorWidgetState extends State<BreedingCalculatorWidget> {
           cCarrier: false,
           isFinal: true,
           dittoHint: stepDitto,
+          preEvolutions: _preEvolutions,
         ),
       );
       return steps;
@@ -205,7 +212,9 @@ class _BreedingCalculatorWidgetState extends State<BreedingCalculatorWidget> {
 
       final dexProvider = Provider.of<DexProvider>(context, listen: false);
       final baseNextPoke = dexProvider.allPokemon
-          .where((p) => p.id == ShinyLogicHelper.getBaseForm(nextId))
+          .where(
+            (p) => p.id == ShinyLogicHelper.getBaseForm(nextId, _preEvolutions),
+          )
           .firstOrNull;
 
       bool isFemaleShiny = baseNextPoke != null && baseNextPoke.genderRate != 1;
@@ -215,7 +224,7 @@ class _BreedingCalculatorWidgetState extends State<BreedingCalculatorWidget> {
         p1Id = currentId;
       } else {
         int prevId = _path![i];
-        int prevBase = ShinyLogicHelper.getBaseForm(prevId);
+        int prevBase = ShinyLogicHelper.getBaseForm(prevId, _preEvolutions);
         p1Id = ShinyLogicHelper.isBaby(prevBase) ? prevId : prevBase;
       }
 
@@ -239,15 +248,17 @@ class _BreedingCalculatorWidgetState extends State<BreedingCalculatorWidget> {
           cGender: 'f',
           cCarrier: !isFemaleShiny,
           isFinal: isFinalNode && isFemaleShiny,
+          preEvolutions: _preEvolutions,
         ),
       );
 
       if (!isFinalNode || !isFemaleShiny) {
         int carrierId =
-            ShinyLogicHelper.isBaby(ShinyLogicHelper.getBaseForm(nextId))
+            ShinyLogicHelper.isBaby(
+              ShinyLogicHelper.getBaseForm(nextId, _preEvolutions),
+            )
             ? breedNextId
-            : ShinyLogicHelper.getBaseForm(nextId);
-
+            : ShinyLogicHelper.getBaseForm(nextId, _preEvolutions);
         steps.add(
           BreedingStepCard(
             stepNumber: stepCounter++,
@@ -264,6 +275,7 @@ class _BreedingCalculatorWidgetState extends State<BreedingCalculatorWidget> {
             cGender: 'm',
             cCarrier: false,
             isFinal: isFinalNode,
+            preEvolutions: _preEvolutions,
           ),
         );
       }
@@ -664,6 +676,7 @@ class _BreedingCalculatorWidgetState extends State<BreedingCalculatorWidget> {
                         if (p.length > 2) {
                           int intermediateBase = ShinyLogicHelper.getBaseForm(
                             p[1],
+                            _preEvolutions,
                           );
                           String pokeName = _getPokemonNameOnly(
                             intermediateBase,

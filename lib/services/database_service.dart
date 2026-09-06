@@ -11,6 +11,7 @@ import '../utils/notification_helper.dart';
 import '../l10n/app_translations.dart';
 import 'dart:typed_data';
 import 'package:sqflite_common_ffi_web/sqflite_ffi_web.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class DatabaseService {
   static final DatabaseService instance = DatabaseService._init();
@@ -25,29 +26,45 @@ class DatabaseService {
     return _appDatabase!;
   }
 
+  static const int _currentAppDbVersion = 4;
+
   Future<Database> _initAppDB(String fileName) async {
     String path = fileName;
     DatabaseFactory factory = kIsWeb ? databaseFactoryFfiWeb : databaseFactory;
+
     if (!kIsWeb) {
       Directory documentsDirectory = await getApplicationDocumentsDirectory();
       path = join(documentsDirectory.path, fileName);
     }
+
+    final prefs = await SharedPreferences.getInstance();
+    final int storedDbVersion = prefs.getInt('app_db_version') ?? 0;
     bool dbExists = await factory.databaseExists(path);
-    if (!dbExists) {
+
+    if (!dbExists || storedDbVersion < _currentAppDbVersion) {
       try {
         ByteData data = await rootBundle.load('assets/db/$fileName');
         Uint8List bytes = data.buffer.asUint8List(
           data.offsetInBytes,
           data.lengthInBytes,
         );
+
         await factory.writeDatabaseBytes(path, bytes);
+
+        await prefs.setInt('app_db_version', _currentAppDbVersion);
+        debugPrint(
+          "App-Datenbank erfolgreich auf Version $_currentAppDbVersion aktualisiert.",
+        );
       } catch (e) {
         NotificationHelper.showError('${Translator.get('error_db_init')} $e');
       }
     }
+
     return await factory.openDatabase(
       path,
-      options: OpenDatabaseOptions(version: 1),
+      options: OpenDatabaseOptions(
+        version: 1,
+      ),
     );
   }
 
@@ -537,5 +554,62 @@ class DatabaseService {
         'unique_id',
       ], cloudData['user_pokemon'] as List?);
     });
+  }
+
+  Future<List<int>?> getGen1BaseStats(int pokemonId) async {
+    final db = await instance.appDatabase;
+    final maps = await db.query(
+      'gen1_base_stats',
+      where: 'id = ?',
+      whereArgs: [pokemonId],
+    );
+
+    if (maps.isNotEmpty) {
+      final m = maps.first;
+      return [
+        (m['hp'] as num).toInt(),
+        (m['atk'] as num).toInt(),
+        (m['def'] as num).toInt(),
+        (m['spc'] as num).toInt(),
+        (m['spe'] as num).toInt(),
+      ];
+    }
+    return null;
+  }
+
+  Future<Map<int, Map<String, dynamic>>> getGen12PreEvolutions() async {
+    final db = await instance.appDatabase;
+    final maps = await db.query('gen12_pre_evolutions');
+
+    Map<int, Map<String, dynamic>> result = {};
+    for (var m in maps) {
+      result[(m['id'] as num).toInt()] = {
+        'pre': (m['pre_id'] as num).toInt(),
+        'req': m['req'].toString(),
+      };
+    }
+    return result;
+  }
+
+  Future<int> getDefaultLevel(int pokemonId) async {
+    final db = await instance.appDatabase;
+    final maps = await db.query(
+      'default_levels',
+      where: 'pokemon_id = ?',
+      whereArgs: [pokemonId],
+    );
+    return maps.isNotEmpty
+        ? (maps.first['default_level'] as num).toInt()
+        : 15;
+  }
+
+  Future<List<String>> getShinyCategories(int pokemonId) async {
+    final db = await instance.appDatabase;
+    final maps = await db.query(
+      'shiny_categories',
+      where: 'pokemon_id = ?',
+      whereArgs: [pokemonId],
+    );
+    return maps.map((m) => m['category'] as String).toList();
   }
 }

@@ -22,6 +22,7 @@ class BreedingStepCard extends StatelessWidget {
   final bool cCarrier;
   final bool isFinal;
   final String? dittoHint;
+  final Map<int, Map<String, dynamic>> preEvolutions;
 
   const BreedingStepCard({
     super.key,
@@ -39,6 +40,7 @@ class BreedingStepCard extends StatelessWidget {
     required this.cGender,
     required this.cCarrier,
     required this.isFinal,
+    required this.preEvolutions,
     this.dittoHint,
   });
 
@@ -50,7 +52,7 @@ class BreedingStepCard extends StatelessWidget {
     bool isCarrier = false,
   }) {
     final provider = context.read<DexProvider>();
-    List<int> family = BreedingData.getFullFamily(id, provider);
+    List<int> family = BreedingData.getFullFamily(id, provider, preEvolutions);
     if (family.length <= 1) {
       return PokemonAvatar(
         id: family.first,
@@ -218,7 +220,7 @@ class BreedingStepCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final provider = context.watch<DexProvider>();
     String stepText = Translator.currentLanguage == 'de' ? 'Schritt' : 'Step';
-    int baseChildId = ShinyLogicHelper.getBaseForm(childId);
+    int baseChildId = ShinyLogicHelper.getBaseForm(childId, preEvolutions);
     bool needsEvolution =
         baseChildId != childId &&
         (isFinal || ShinyLogicHelper.isBaby(baseChildId));
@@ -227,11 +229,13 @@ class BreedingStepCard extends StatelessWidget {
     var g1 =
         BreedingData.getEggGroups(provider)[ShinyLogicHelper.getBaseForm(
           parent1Id,
+          preEvolutions,
         )] ??
         [];
     var g2 =
         BreedingData.getEggGroups(provider)[ShinyLogicHelper.getBaseForm(
           parent2Id,
+          preEvolutions,
         )] ??
         [];
     String sharedGroup = g1.firstWhere(
@@ -401,9 +405,11 @@ class BreedingStepCard extends StatelessWidget {
               const SizedBox(height: 16),
               const Divider(),
               const SizedBox(height: 12),
-              ...ShinyLogicHelper.getEvolutionPath(baseChildId, childId).map((
-                step,
-              ) {
+              ...ShinyLogicHelper.getEvolutionPath(
+                baseChildId,
+                childId,
+                preEvolutions,
+              ).map((step) {
                 return _buildEvolutionUI(
                   context,
                   step['from'],

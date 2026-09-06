@@ -19,11 +19,37 @@ class ShinyGuideWidget extends StatefulWidget {
 
 class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
   late int _selectedLevel;
+  List<String> _shinyCategories = [];
+  bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    _selectedLevel = ShinyLogicHelper.getDefaultLevel(widget.entry.pokemon.id);
+    _loadData();
+  }
+
+  Future<void> _loadData() async {
+    try {
+      final id = widget.entry.pokemon.id;
+      final level = await DatabaseService.instance.getDefaultLevel(id);
+      final categories = await DatabaseService.instance.getShinyCategories(id);
+
+      if (mounted) {
+        setState(() {
+          _selectedLevel = level;
+          _shinyCategories = categories;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      debugPrint("Fehler beim Laden der Shiny-Daten: $e");
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+        NotificationHelper.showError('Fehler beim Laden der Shiny-Daten: $e');
+      }
+    }
   }
 
   Future<void> _launchURL(String urlString) async {
@@ -109,8 +135,9 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
   bool _shouldShowGen(double gen) {
     if (gen == 2 &&
         widget.entry.pokemon.id >= 252 &&
-        widget.entry.pokemon.id <= 257)
+        widget.entry.pokemon.id <= 257) {
       return true;
+    }
     if (gen == 1) return widget.entry.pokemon.id <= 151;
     if (gen == 2) return widget.entry.pokemon.id <= 251;
     if (gen == 3) return widget.entry.pokemon.id <= 386;
@@ -118,10 +145,11 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
     if (gen == 5) return widget.entry.pokemon.id <= 649;
     if (gen == 6) return widget.entry.pokemon.id <= 721;
     if (gen == 7) return widget.entry.pokemon.id <= 807;
-    if (gen == 7.5)
+    if (gen == 7.5) {
       return widget.entry.pokemon.id <= 151 ||
           widget.entry.pokemon.id == 808 ||
           widget.entry.pokemon.id == 809;
+    }
     if (gen == 8) return widget.entry.pokemon.id <= 905;
     if (gen == 8.5) return widget.entry.pokemon.id <= 905;
     if (gen == 9) return widget.entry.pokemon.id <= 1025;
@@ -131,9 +159,7 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
 
   Widget _buildGen1Specific(BuildContext context) {
     try {
-      final isHuntable = ShinyLogicHelper.isHuntableInGen1(
-        widget.entry.pokemon.id,
-      );
+      final isHuntable = _shinyCategories.contains('gen1_huntable');
 
       final statusWidget = Text(
         isHuntable
@@ -245,86 +271,100 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
       Widget calculatorWidget = const SizedBox.shrink();
 
       if (isHuntable && widget.entry.pokemon.id != 151) {
-        final baseStats =
-            ShinyLogicHelper.gen1BaseStats[widget.entry.pokemon.id];
-        if (baseStats != null) {
-          calculatorWidget = Column(
-            children: [
-              const SizedBox(height: 16),
-              ExpansionTile(
-                tilePadding: EdgeInsets.zero,
-                title: Text(
-                  Translator.get('shiny_stat_calculator'),
-                  style: const TextStyle(fontWeight: FontWeight.bold),
-                ),
-                children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const SizedBox(height: 8),
-                      Row(
-                        children: [
-                          Text('${Translator.get('level')}: '),
-                          const SizedBox(width: 16),
-                          DropdownButton<int>(
-                            value: _selectedLevel,
-                            items: List.generate(100, (i) => i + 1).map((
-                              int value,
-                            ) {
-                              return DropdownMenuItem<int>(
-                                value: value,
-                                child: Text(value.toString()),
-                              );
-                            }).toList(),
-                            onChanged: (newValue) {
-                              if (newValue != null) {
-                                setState(() {
-                                  _selectedLevel = newValue;
-                                });
-                              }
-                            },
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        '${Translator.get('base_stats')}: ${baseStats[0]}/${baseStats[1]}/${baseStats[2]}/${baseStats[3]}/${baseStats[4]}',
-                        style: const TextStyle(
-                          fontSize: 12,
-                          color: Colors.grey,
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        Translator.get('table_hp_0'),
-                        style: const TextStyle(fontWeight: FontWeight.w600),
-                      ),
-                      const SizedBox(height: 8),
-                      _buildStatTable(baseStats, _selectedLevel, 0, [
-                        2,
-                        6,
-                        10,
-                        14,
-                      ]),
-                      const SizedBox(height: 24),
-                      Text(
-                        Translator.get('table_hp_8'),
-                        style: const TextStyle(fontWeight: FontWeight.w600),
-                      ),
-                      const SizedBox(height: 8),
-                      _buildStatTable(baseStats, _selectedLevel, 8, [
-                        3,
-                        7,
-                        11,
-                        15,
-                      ]),
-                    ],
+        calculatorWidget = FutureBuilder<List<int>?>(
+          future: DatabaseService.instance.getGen1BaseStats(
+            widget.entry.pokemon.id,
+          ),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Padding(
+                padding: EdgeInsets.symmetric(vertical: 24.0),
+                child: Center(child: CircularProgressIndicator()),
+              );
+            }
+            if (!snapshot.hasData || snapshot.data == null) {
+              return const SizedBox.shrink();
+            }
+
+            final baseStats = snapshot.data!;
+            return Column(
+              children: [
+                const SizedBox(height: 16),
+                ExpansionTile(
+                  tilePadding: EdgeInsets.zero,
+                  title: Text(
+                    Translator.get('shiny_stat_calculator'),
+                    style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
-                ],
-              ),
-            ],
-          );
-        }
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const SizedBox(height: 8),
+                        Row(
+                          children: [
+                            Text('${Translator.get('level')}: '),
+                            const SizedBox(width: 16),
+                            DropdownButton<int>(
+                              value: _selectedLevel,
+                              items: List.generate(100, (i) => i + 1).map((
+                                int value,
+                              ) {
+                                return DropdownMenuItem<int>(
+                                  value: value,
+                                  child: Text(value.toString()),
+                                );
+                              }).toList(),
+                              onChanged: (newValue) {
+                                if (newValue != null) {
+                                  setState(() {
+                                    _selectedLevel = newValue;
+                                  });
+                                }
+                              },
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          '${Translator.get('base_stats')}: ${baseStats[0]}/${baseStats[1]}/${baseStats[2]}/${baseStats[3]}/${baseStats[4]}',
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey,
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          Translator.get('table_hp_0'),
+                          style: const TextStyle(fontWeight: FontWeight.w600),
+                        ),
+                        const SizedBox(height: 8),
+                        _buildStatTable(baseStats, _selectedLevel, 0, [
+                          2,
+                          6,
+                          10,
+                          14,
+                        ]),
+                        const SizedBox(height: 24),
+                        Text(
+                          Translator.get('table_hp_8'),
+                          style: const TextStyle(fontWeight: FontWeight.w600),
+                        ),
+                        const SizedBox(height: 8),
+                        _buildStatTable(baseStats, _selectedLevel, 8, [
+                          3,
+                          7,
+                          11,
+                          15,
+                        ]),
+                      ],
+                    ),
+                  ],
+                ),
+              ],
+            );
+          },
+        );
       }
 
       return Column(
@@ -799,49 +839,15 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
         bool hasRadarEncounter = false;
         bool isStaticOrGift = false;
 
-        List<int> legendariesAndMythicals = [
-          144,
-          145,
-          146,
-          150,
-          151,
-          243,
-          244,
-          245,
-          249,
-          250,
-          251,
-          377,
-          378,
-          379,
-          380,
-          381,
-          382,
-          383,
-          384,
-          385,
-          386,
-          480,
-          481,
-          482,
-          483,
-          484,
-          485,
-          486,
-          487,
-          488,
-          489,
-          490,
-          491,
-          492,
-          493,
-        ];
+        bool isLegendaryOrMythical = _shinyCategories.contains(
+          'legendary_mythical',
+        );
 
         bool isBreedableThisGen =
             (id <= 493) &&
             (ShinyLogicHelper.isBreedable(widget.entry.pokemon) ||
                 ShinyLogicHelper.isBaby(id)) &&
-            !legendariesAndMythicals.contains(id);
+            !isLegendaryOrMythical;
 
         bool isHuntable = hasEncounterThisGen || isBreedableThisGen;
 
@@ -870,7 +876,8 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
           }
         }
 
-        if (legendariesAndMythicals.contains(id) && hasEncounterThisGen)
+        if (_shinyCategories.contains('legendary_mythical') &&
+            hasEncounterThisGen)
           isStaticOrGift = true;
 
         List<Widget> content = [];
@@ -958,7 +965,7 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
         );
         content.add(const SizedBox(height: 16));
 
-        if (isStaticOrGift)
+        if (isStaticOrGift) {
           content.add(
             buildInfoBox(
               Icons.restart_alt,
@@ -967,6 +974,7 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
               Colors.teal,
             ),
           );
+        }
         if (isBreedableThisGen) {
           content.add(
             buildInfoBox(
@@ -984,7 +992,8 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
             ),
           );
         }
-        if (hasRadarEncounter && !legendariesAndMythicals.contains(id)) {
+        if (hasRadarEncounter &&
+            !_shinyCategories.contains('legendary_mythical')) {
           content.add(
             buildInfoBox(
               Icons.radar,
@@ -1025,7 +1034,8 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
         bool hasGenderVariation =
             widget.entry.pokemon.genderRate > 0 &&
             widget.entry.pokemon.genderRate < 8;
-        if (hasGenderVariation && !legendariesAndMythicals.contains(id)) {
+        if (hasGenderVariation &&
+            !_shinyCategories.contains('legendary_mythical')) {
           content.add(
             buildInfoBox(
               Icons.favorite,
@@ -1115,26 +1125,11 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
         bool isStaticOrGift = false;
         bool hasGrassEncounter = false;
 
-        List<int> gen5Legendaries = [
-          494,
-          638,
-          639,
-          640,
-          641,
-          642,
-          643,
-          644,
-          645,
-          646,
-          647,
-          648,
-          649,
-        ];
         bool isBreedableThisGen =
             (id <= 649) &&
             (ShinyLogicHelper.isBreedable(widget.entry.pokemon) ||
                 ShinyLogicHelper.isBaby(id)) &&
-            !gen5Legendaries.contains(id);
+            !_shinyCategories.contains('legendary_mythical');
 
         bool isHuntable = hasEncounterThisGen || isBreedableThisGen;
 
@@ -1148,18 +1143,22 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
               if (locLower.contains('stationary') ||
                   locLower.contains('gift') ||
                   locLower.contains('fossil') ||
-                  locLower.contains('only one'))
+                  locLower.contains('only one')) {
                 isStaticOrGift = true;
+              }
               if (locLower.contains('grass') ||
                   locLower.contains('walk') ||
-                  locLower.contains('gras'))
+                  locLower.contains('gras')) {
                 hasGrassEncounter = true;
+              }
             }
           }
         }
 
-        if (gen5Legendaries.contains(id) && hasEncounterThisGen)
+        if (_shinyCategories.contains('legendary_mythical') &&
+            hasEncounterThisGen) {
           isStaticOrGift = true;
+        }
 
         List<Widget> content = [];
         Widget buildInfoBox(
@@ -1275,7 +1274,7 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
               Colors.amber,
             ),
           );
-          if (isBreedableThisGen)
+          if (isBreedableThisGen) {
             content.add(
               buildInfoBox(
                 Icons.egg_alt,
@@ -1284,7 +1283,9 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
                 Colors.purple,
               ),
             );
-          if (isStaticOrGift)
+          }
+
+          if (isStaticOrGift) {
             content.add(
               buildInfoBox(
                 Icons.restart_alt,
@@ -1293,7 +1294,9 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
                 Colors.teal,
               ),
             );
-          if (hasGrassEncounter && !gen5Legendaries.contains(id))
+          }
+          if (hasGrassEncounter &&
+              !_shinyCategories.contains('legendary_mythical')) {
             content.add(
               buildInfoBox(
                 Icons.grass,
@@ -1302,6 +1305,8 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
                 Colors.green,
               ),
             );
+          }
+
           content.add(
             buildInfoBox(
               Icons.memory,
@@ -1354,29 +1359,15 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
 
   Widget _buildGen6Specific(BuildContext context, String title) {
     final id = widget.entry.pokemon.id;
-    List<int> absoluteGen6Locks = [
-      144,
-      145,
-      146,
-      150,
-      382,
-      383,
-      384,
-      386,
-      716,
-      717,
-      718,
-      719,
-      720,
-      721,
-    ];
-    bool isAbsolutelyLocked = absoluteGen6Locks.contains(id);
+
+    bool isAbsolutelyLocked = _shinyCategories.contains('gen6_locks');
 
     return FutureBuilder<Map<String, Map<String, List<String>>>?>(
       future: DatabaseService.instance.getEncounters(id),
       builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting)
+        if (snapshot.connectionState == ConnectionState.waiting) {
           return const SizedBox.shrink();
+        }
 
         final encounters = snapshot.data;
         bool hasEncounterThisGen =
@@ -1388,68 +1379,11 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
             hasHordeEncounter = false,
             isStaticOrGift = false;
 
-        List<int> legendariesAndMythicals = [
-          144,
-          145,
-          146,
-          150,
-          151,
-          243,
-          244,
-          245,
-          249,
-          250,
-          251,
-          377,
-          378,
-          379,
-          380,
-          381,
-          382,
-          383,
-          384,
-          385,
-          386,
-          480,
-          481,
-          482,
-          483,
-          484,
-          485,
-          486,
-          487,
-          488,
-          489,
-          490,
-          491,
-          492,
-          493,
-          494,
-          638,
-          639,
-          640,
-          641,
-          642,
-          643,
-          644,
-          645,
-          646,
-          647,
-          648,
-          649,
-          716,
-          717,
-          718,
-          719,
-          720,
-          721,
-        ];
-
         bool isBreedableThisGen =
             (id <= 721) &&
             (ShinyLogicHelper.isBreedable(widget.entry.pokemon) ||
                 ShinyLogicHelper.isBaby(id)) &&
-            !legendariesAndMythicals.contains(id);
+            !_shinyCategories.contains('legendary_mythical');
         bool isHuntable = hasEncounterThisGen || isBreedableThisGen;
 
         if (!isHuntable && !isAbsolutelyLocked) return const SizedBox.shrink();
@@ -1471,27 +1405,33 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
               }
               if (locLower.contains('friend') ||
                   locLower.contains('safari') ||
-                  locLower.contains('kontakt'))
+                  locLower.contains('kontakt')) {
                 hasFriendSafari = true;
+              }
               if (locLower.contains('fish') ||
                   locLower.contains('angel') ||
                   locLower.contains('surf') ||
                   locLower.contains('water') ||
-                  locLower.contains('rod'))
+                  locLower.contains('rod')) {
                 hasFishingEncounter = true;
-              if (locLower.contains('horde') || locLower.contains('massen'))
+              }
+              if (locLower.contains('horde') || locLower.contains('massen')) {
                 hasHordeEncounter = true;
+              }
               if (locLower.contains('stationary') ||
                   locLower.contains('gift') ||
                   locLower.contains('fossil') ||
-                  locLower.contains('only one'))
+                  locLower.contains('only one')) {
                 isStaticOrGift = true;
+              }
             }
           }
         }
 
-        if (legendariesAndMythicals.contains(id) && hasEncounterThisGen)
+        if (_shinyCategories.contains('legendary_mythical') &&
+            hasEncounterThisGen) {
           isStaticOrGift = true;
+        }
 
         List<Widget> content = [];
         Widget buildInfoBox(
@@ -1599,7 +1539,7 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
             ),
           );
           content.add(const SizedBox(height: 16));
-          if (id == 143)
+          if (id == 143) {
             content.add(
               buildInfoBox(
                 Icons.warning_amber_rounded,
@@ -1608,7 +1548,9 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
                 Colors.orange,
               ),
             );
-          if (isBreedableThisGen)
+          }
+
+          if (isBreedableThisGen) {
             content.add(
               buildInfoBox(
                 Icons.egg_alt,
@@ -1617,7 +1559,10 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
                 Colors.purple,
               ),
             );
-          if (hasFriendSafari && !legendariesAndMythicals.contains(id))
+          }
+
+          if (hasFriendSafari &&
+              !_shinyCategories.contains('legendary_mythical')) {
             content.add(
               buildInfoBox(
                 Icons.people_alt,
@@ -1626,8 +1571,10 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
                 Colors.pink,
               ),
             );
+          }
 
-          if (hasORASGrassEncounter && !legendariesAndMythicals.contains(id)) {
+          if (hasORASGrassEncounter &&
+              !_shinyCategories.contains('legendary_mythical')) {
             content.add(
               buildInfoBox(
                 Icons.screen_search_desktop,
@@ -1659,7 +1606,8 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
             );
             content.add(const SizedBox(height: 8));
           }
-          if (hasXYGrassEncounter && !legendariesAndMythicals.contains(id)) {
+          if (hasXYGrassEncounter &&
+              !_shinyCategories.contains('legendary_mythical')) {
             content.add(
               buildInfoBox(
                 Icons.radar,
@@ -1684,7 +1632,8 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
             );
             content.add(const SizedBox(height: 8));
           }
-          if (hasFishingEncounter && !legendariesAndMythicals.contains(id)) {
+          if (hasFishingEncounter &&
+              !_shinyCategories.contains('legendary_mythical')) {
             content.add(
               buildInfoBox(
                 Icons.water,
@@ -1709,7 +1658,8 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
             );
             content.add(const SizedBox(height: 8));
           }
-          if (hasHordeEncounter && !legendariesAndMythicals.contains(id)) {
+          if (hasHordeEncounter &&
+              !_shinyCategories.contains('legendary_mythical')) {
             content.add(
               buildInfoBox(
                 Icons.group,
@@ -1768,8 +1718,9 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
     return FutureBuilder<Map<String, Map<String, List<String>>>?>(
       future: DatabaseService.instance.getEncounters(id),
       builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting)
+        if (snapshot.connectionState == ConnectionState.waiting) {
           return const SizedBox.shrink();
+        }
 
         final encounters = snapshot.data;
         bool hasAlolaEncounter = false,
@@ -1789,204 +1740,39 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
                 if (locLower.contains('stationary') ||
                     locLower.contains('gift') ||
                     locLower.contains('fossil') ||
-                    locLower.contains('only one'))
+                    locLower.contains('only one')) {
                   isStaticOrGift = true;
+                }
                 if (locLower.contains('grass') ||
                     locLower.contains('walk') ||
                     locLower.contains('gras') ||
                     locLower.contains('cave') ||
-                    locLower.contains('surf'))
+                    locLower.contains('surf')) {
                   hasWildSpawn = true;
+                }
               }
             }
           }
         }
 
-        List<int> warpRidePokemon = [
-          195,
-          219,
-          271,
-          274,
-          277,
-          308,
-          326,
-          334,
-          419,
-          423,
-          450,
-          452,
-          460,
-          469,
-          531,
-          558,
-          561,
-          581,
-          618,
-          695,
-          144,
-          145,
-          146,
-          150,
-          243,
-          244,
-          245,
-          249,
-          250,
-          377,
-          378,
-          379,
-          380,
-          381,
-          382,
-          383,
-          384,
-          480,
-          481,
-          482,
-          483,
-          484,
-          485,
-          486,
-          487,
-          488,
-          638,
-          639,
-          640,
-          641,
-          642,
-          643,
-          644,
-          645,
-          646,
-          716,
-          717,
-        ];
-        bool canBeInWarpRide = warpRidePokemon.contains(id);
-
-        List<int> absoluteGen7Locks = [
-          718,
-          785,
-          786,
-          787,
-          788,
-          789,
-          790,
-          791,
-          792,
-          800,
-          801,
-          802,
-          807,
-        ];
-        List<int> ultraBeasts = [
-          793,
-          794,
-          795,
-          796,
-          797,
-          798,
-          799,
-          803,
-          804,
-          805,
-          806,
-        ];
-        List<int> legendariesAndMythicals = [
-          144,
-          145,
-          146,
-          150,
-          151,
-          243,
-          244,
-          245,
-          249,
-          250,
-          251,
-          377,
-          378,
-          379,
-          380,
-          381,
-          382,
-          383,
-          384,
-          385,
-          386,
-          480,
-          481,
-          482,
-          483,
-          484,
-          485,
-          486,
-          487,
-          488,
-          489,
-          490,
-          491,
-          492,
-          493,
-          494,
-          638,
-          639,
-          640,
-          641,
-          642,
-          643,
-          644,
-          645,
-          646,
-          647,
-          648,
-          649,
-          716,
-          717,
-          718,
-          719,
-          720,
-          721,
-          772,
-          773,
-          785,
-          786,
-          787,
-          788,
-          789,
-          790,
-          791,
-          792,
-          793,
-          794,
-          795,
-          796,
-          797,
-          798,
-          799,
-          800,
-          801,
-          802,
-          803,
-          804,
-          805,
-          806,
-          807,
-        ];
-
+        bool canBeInWarpRide = _shinyCategories.contains('warp_ride');
         bool isBreedableThisGen =
             (id <= 807) &&
             (ShinyLogicHelper.isBreedable(widget.entry.pokemon) ||
                 ShinyLogicHelper.isBaby(id)) &&
-            !legendariesAndMythicals.contains(id);
+            !_shinyCategories.contains('legendary_mythical');
         bool isHuntable =
             hasAlolaEncounter || canBeInWarpRide || isBreedableThisGen;
 
-        if (!isHuntable && !absoluteGen7Locks.contains(id))
+        if (!isHuntable && !_shinyCategories.contains('gen7_locks')) {
           return const SizedBox.shrink();
+        }
 
-        if ((legendariesAndMythicals.contains(id) && hasAlolaEncounter) ||
-            canBeInWarpRide)
+        if ((_shinyCategories.contains('legendary_mythical') &&
+                hasAlolaEncounter) ||
+            canBeInWarpRide) {
           isStaticOrGift = true;
+        }
 
         List<Widget> content = [];
         Widget buildInfoBox(
@@ -2059,7 +1845,7 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
           );
         }
 
-        if (absoluteGen7Locks.contains(id)) {
+        if (_shinyCategories.contains('gen7_locks')) {
           content.add(
             Text(
               Translator.get('shiny_huntable_no') != 'shiny_huntable_no'
@@ -2094,7 +1880,7 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
             ),
           );
           content.add(const SizedBox(height: 16));
-          if (ultraBeasts.contains(id))
+          if (_shinyCategories.contains('ultra_beast')) {
             content.add(
               buildInfoBox(
                 Icons.warning_amber_rounded,
@@ -2103,7 +1889,8 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
                 Colors.orange,
               ),
             );
-          if (isBreedableThisGen)
+          }
+          if (isBreedableThisGen) {
             content.add(
               buildInfoBox(
                 Icons.egg_alt,
@@ -2112,7 +1899,9 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
                 Colors.purple,
               ),
             );
-          if (hasWildSpawn && !legendariesAndMythicals.contains(id)) {
+          }
+          if (hasWildSpawn &&
+              !_shinyCategories.contains('legendary_mythical')) {
             content.add(
               buildInfoBox(
                 Icons.group_add,
@@ -2183,7 +1972,7 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
             );
             content.add(const SizedBox(height: 8));
           }
-          if (isStaticOrGift)
+          if (isStaticOrGift) {
             content.add(
               buildInfoBox(
                 Icons.restart_alt,
@@ -2192,7 +1981,9 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
                 Colors.teal,
               ),
             );
-          if (hasWildSpawn && !legendariesAndMythicals.contains(id))
+          }
+          if (hasWildSpawn &&
+              !_shinyCategories.contains('legendary_mythical')) {
             content.add(
               buildInfoBox(
                 Icons.holiday_village,
@@ -2201,6 +1992,7 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
                 Colors.green,
               ),
             );
+          }
         }
 
         return ExpansionTile(
@@ -2228,8 +2020,9 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
     return FutureBuilder<Map<String, Map<String, List<String>>>?>(
       future: DatabaseService.instance.getEncounters(id),
       builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting)
+        if (snapshot.connectionState == ConnectionState.waiting) {
           return const SizedBox.shrink();
+        }
 
         final encounters = snapshot.data;
         bool hasLetsGoEncounter = false;
@@ -2253,32 +2046,12 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
           }
         }
 
-        List<int> alolanFormsBaseIds = [
-          19,
-          20,
-          26,
-          27,
-          28,
-          37,
-          38,
-          50,
-          51,
-          52,
-          53,
-          74,
-          75,
-          76,
-          88,
-          89,
-          103,
-          105,
-        ];
-        bool canTradeAlolan = alolanFormsBaseIds.contains(id);
-
+        bool canTradeAlolan = _shinyCategories.contains('alolan_base');
         bool isHuntable = hasLetsGoEncounter || canTradeAlolan;
 
-        if (!isHuntable && id != 25 && id != 133 && id != 151)
+        if (!isHuntable && id != 25 && id != 133 && id != 151) {
           return const SizedBox.shrink();
+        }
 
         List<Widget> content = [];
         Widget buildInfoBox(
@@ -2418,7 +2191,7 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
             );
             content.add(const SizedBox(height: 8));
           }
-          if (canTradeAlolan)
+          if (canTradeAlolan) {
             content.add(
               buildInfoBox(
                 Icons.swap_horiz,
@@ -2427,7 +2200,9 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
                 Colors.teal,
               ),
             );
-          if (isStaticOrGift && id != 151)
+          }
+
+          if (isStaticOrGift && id != 151) {
             content.add(
               buildInfoBox(
                 Icons.restart_alt,
@@ -2436,6 +2211,7 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
                 Colors.deepPurple,
               ),
             );
+          }
         }
 
         return ExpansionTile(
@@ -2463,8 +2239,9 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
     return FutureBuilder<Map<String, dynamic>>(
       future: _fetchGen8Data(id),
       builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting)
+        if (snapshot.connectionState == ConnectionState.waiting) {
           return const SizedBox.shrink();
+        }
 
         final data = snapshot.data!;
         bool isSwShAvailable = data['isSwSh'] == true;
@@ -2477,25 +2254,7 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
         bool isHuntable =
             isSwShAvailable || isBDSPAvailable || isBreedableThisGen;
 
-        List<int> absoluteGen8Locks = [
-          772,
-          773,
-          789,
-          790,
-          803,
-          804,
-          888,
-          889,
-          890,
-          891,
-          892,
-          893,
-          896,
-          897,
-          898,
-        ];
-        bool isLocked = absoluteGen8Locks.contains(id);
-
+        bool isLocked = _shinyCategories.contains('gen8_locks');
         if (!isHuntable && !isLocked) return const SizedBox.shrink();
 
         List<Widget> content = [];
@@ -2604,7 +2363,7 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
             ),
           );
           content.add(const SizedBox(height: 16));
-          if (isSwShAvailable || isBreedableThisGen)
+          if (isSwShAvailable || isBreedableThisGen) {
             content.add(
               buildInfoBox(
                 Icons.sports_esports,
@@ -2613,7 +2372,8 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
                 Colors.blue,
               ),
             );
-          if (isBDSPAvailable)
+          }
+          if (isBDSPAvailable) {
             content.add(
               buildInfoBox(
                 Icons.diamond,
@@ -2622,6 +2382,7 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
                 Colors.cyan,
               ),
             );
+          }
           if (isBreedableThisGen) {
             content.add(
               buildInfoBox(
@@ -2699,32 +2460,13 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
     return FutureBuilder<Map<String, dynamic>>(
       future: _fetchGen8Data(id),
       builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting)
+        if (snapshot.connectionState == ConnectionState.waiting) {
           return const SizedBox.shrink();
+        }
 
         bool isPLAAvailable = snapshot.data!['isHisui'] == true;
-        List<int> plaLocks = [
-          480,
-          481,
-          482,
-          483,
-          484,
-          485,
-          486,
-          487,
-          488,
-          489,
-          490,
-          491,
-          492,
-          493,
-          641,
-          642,
-          645,
-          905,
-        ];
-        bool isLocked = plaLocks.contains(id);
 
+        bool isLocked = _shinyCategories.contains('pla_locks');
         if (!isPLAAvailable) return const SizedBox.shrink();
 
         List<Widget> content = [];
@@ -2896,166 +2638,13 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
         final data = snapshot.data!;
         bool isSVAvailable = data['isSV'] == true;
 
-        List<int> svLocks = [
-          144,
-          145,
-          146,
-          243,
-          244,
-          245,
-          249,
-          250,
-          380,
-          381,
-          382,
-          383,
-          384,
-          638,
-          639,
-          640,
-          643,
-          644,
-          646,
-          648,
-          791,
-          792,
-          800,
-          891,
-          896,
-          897,
-          901,
-          1001,
-          1002,
-          1003,
-          1004,
-          1007,
-          1008,
-          1009,
-          1010,
-          1014,
-          1015,
-          1016,
-          1017,
-          1020,
-          1021,
-          1022,
-          1023,
-          1024,
-          1025,
-        ];
-        List<int> legendariesAndMythicals = [
-          144,
-          145,
-          146,
-          150,
-          151,
-          243,
-          244,
-          245,
-          249,
-          250,
-          251,
-          377,
-          378,
-          379,
-          380,
-          381,
-          382,
-          383,
-          384,
-          385,
-          386,
-          480,
-          481,
-          482,
-          483,
-          484,
-          485,
-          486,
-          487,
-          488,
-          489,
-          490,
-          491,
-          492,
-          493,
-          494,
-          638,
-          639,
-          640,
-          641,
-          642,
-          643,
-          644,
-          645,
-          646,
-          647,
-          648,
-          649,
-          716,
-          717,
-          718,
-          719,
-          720,
-          721,
-          772,
-          773,
-          785,
-          786,
-          787,
-          788,
-          789,
-          790,
-          791,
-          792,
-          793,
-          794,
-          795,
-          796,
-          797,
-          798,
-          799,
-          800,
-          801,
-          802,
-          803,
-          804,
-          805,
-          806,
-          807,
-          888,
-          889,
-          890,
-          891,
-          892,
-          893,
-          894,
-          895,
-          896,
-          897,
-          898,
-          905,
-          1001,
-          1002,
-          1003,
-          1004,
-          1007,
-          1008,
-          1014,
-          1015,
-          1016,
-          1017,
-          1024,
-        ];
-
         bool isBreedableThisGen =
             isSVAvailable &&
             (ShinyLogicHelper.isBreedable(widget.entry.pokemon) ||
                 ShinyLogicHelper.isBaby(id)) &&
-            !legendariesAndMythicals.contains(id);
+            !_shinyCategories.contains('legendary_mythical');
         bool isHuntable = isSVAvailable || isBreedableThisGen;
-        bool isLocked = svLocks.contains(id);
-
+        bool isLocked = _shinyCategories.contains('sv_locks');
         if (!isHuntable && !isLocked) return const SizedBox.shrink();
 
         List<Widget> content = [];
@@ -3189,7 +2778,7 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
                 Colors.teal,
               ),
             );
-            if (!legendariesAndMythicals.contains(id))
+            if (!_shinyCategories.contains('legendary_mythical')) {
               content.add(
                 buildInfoBox(
                   Icons.filter_center_focus,
@@ -3198,8 +2787,9 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
                   Colors.cyan,
                 ),
               );
+            }
           }
-          if (isBreedableThisGen)
+          if (isBreedableThisGen) {
             content.add(
               buildInfoBox(
                 Icons.egg_alt,
@@ -3208,6 +2798,7 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
                 Colors.purple,
               ),
             );
+          }
 
           content.add(
             buildLinkBtn(
@@ -3261,24 +2852,8 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
           return const SizedBox.shrink();
 
         bool isPLZAAvailable = snapshot.data!['isPLZA'] == true;
-        List<int> plzaLocks = [
-          359,
-          382,
-          383,
-          384,
-          398,
-          448,
-          485,
-          491,
-          669,
-          678,
-          716,
-          717,
-          718,
-          977,
-        ];
-        bool isLocked = plzaLocks.contains(id);
 
+        bool isLocked = _shinyCategories.contains('plza_locks');
         if (!isPLZAAvailable) return const SizedBox.shrink();
 
         List<Widget> content = [];
@@ -3568,6 +3143,12 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
 
   @override
   Widget build(BuildContext context) {
+    if (_isLoading) {
+      return const Padding(
+        padding: EdgeInsets.all(32.0),
+        child: Center(child: CircularProgressIndicator()),
+      );
+    }
     List<Widget> genTiles = [];
 
     List<double> generations = [

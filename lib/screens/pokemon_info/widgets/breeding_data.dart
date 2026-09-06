@@ -33,18 +33,22 @@ class BreedingData {
     return totalOdds;
   }
 
-  static List<int> getFullFamily(int id, DexProvider provider) {
-    int baseId = ShinyLogicHelper.getBaseForm(id);
+  static List<int> getFullFamily(
+    int id,
+    DexProvider provider,
+    Map<int, Map<String, dynamic>> preEvolutions,
+  ) {
+    int baseId = ShinyLogicHelper.getBaseForm(id, preEvolutions);
     List<int> family = [baseId];
 
-    List<int> stage1 = ShinyLogicHelper.gen12PreEvolutions.entries
+    List<int> stage1 = preEvolutions.entries
         .where((e) => e.value['pre'] == baseId)
         .map((e) => e.key)
         .toList();
     family.addAll(stage1);
 
     for (int s1 in stage1) {
-      List<int> stage2 = ShinyLogicHelper.gen12PreEvolutions.entries
+      List<int> stage2 = preEvolutions.entries
           .where((e) => e.value['pre'] == s1)
           .map((e) => e.key)
           .toList();

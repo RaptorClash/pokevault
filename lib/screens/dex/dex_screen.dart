@@ -51,6 +51,7 @@ class _DexScreenState extends State<DexScreen> {
   late int _lastIgnoredCount;
   List<DexDisplayEntry> _rawEntries = [];
   List<BoxData> _boxes = [];
+  Map<int, Map<String, dynamic>> _preEvolutions = {};
 
   final PageController _pageController = PageController();
   Timer? _debounce;
@@ -78,6 +79,8 @@ class _DexScreenState extends State<DexScreen> {
       _separateForms = widget.initialDex.sortMode != 'forms';
 
       final lang = context.read<SettingsProvider>().currentLanguage;
+
+      _preEvolutions = await DatabaseService.instance.getGen12PreEvolutions();
 
       _rawEntries = await DexLogicHelper.buildEntriesInBackground(
         widget.initialDex,
@@ -477,9 +480,13 @@ class _DexScreenState extends State<DexScreen> {
                   final family = BreedingData.getFullFamily(
                     targetPoke.id,
                     provider,
+                    _preEvolutions,
                   );
                   if (family.contains(
-                    ShinyLogicHelper.getBaseForm(entry.pokemon.id),
+                    ShinyLogicHelper.getBaseForm(
+                      entry.pokemon.id,
+                      _preEvolutions,
+                    ),
                   )) {
                     match = true;
                   } else if (entry.pokemon.id == targetPoke.id) {

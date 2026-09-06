@@ -9,6 +9,7 @@ class BreedingCalcArgs {
   final bool useOnlyCaught;
   final Set<int> caughtBaseIds;
   final List<Pokemon> allPokemon;
+  final Map<int, Map<String, dynamic>> preEvolutions;
 
   BreedingCalcArgs({
     required this.startId,
@@ -16,6 +17,7 @@ class BreedingCalcArgs {
     required this.useOnlyCaught,
     required this.caughtBaseIds,
     required this.allPokemon,
+    required this.preEvolutions,
   });
 }
 
@@ -77,7 +79,7 @@ List<List<int>> _calculatePathTask(BreedingCalcArgs args) {
         continue;
       }
 
-      int baseNextId = ShinyLogicHelper.getBaseForm(nextId);
+      int baseNextId = ShinyLogicHelper.getBaseForm(nextId, args.preEvolutions);
       final baseNextPoke = allPokemon
           .where((p) => p.id == baseNextId)
           .firstOrNull;
@@ -141,7 +143,10 @@ List<List<int>> _calculatePathTask(BreedingCalcArgs args) {
   for (var p in validPaths) {
     String routeKey = 'direct';
     if (p.length > 2) {
-      int intermediateBase = ShinyLogicHelper.getBaseForm(p[1]);
+      int intermediateBase = ShinyLogicHelper.getBaseForm(
+        p[1],
+        args.preEvolutions,
+      );
       routeKey = 'via_$intermediateBase';
     }
 
