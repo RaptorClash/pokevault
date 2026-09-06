@@ -125,42 +125,8 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
     if (gen == 8) return widget.entry.pokemon.id <= 905;
     if (gen == 8.5) return widget.entry.pokemon.id <= 905;
     if (gen == 9) return widget.entry.pokemon.id <= 1025;
-    if (gen == 9.5)
-      return widget.entry.pokemon.id <= 1025;
+    if (gen == 9.5) return widget.entry.pokemon.id <= 1025;
     return false;
-  }
-
-  Widget _buildGenContent(BuildContext context, double gen) {
-    List<Widget> content = [];
-    if (gen == 1.0)
-      content.add(_buildGen1Specific(context));
-    else if (gen == 2.0)
-      content.add(_buildGen2Specific(context));
-    else if (gen == 3.0)
-      content.add(_buildGen3Specific(context));
-    else if (gen == 4.0)
-      content.add(_buildGen4Specific(context));
-    else if (gen == 5.0)
-      content.add(_buildGen5Specific(context));
-    else if (gen == 6.0)
-      content.add(_buildGen6Specific(context));
-    else if (gen == 7.0)
-      content.add(_buildGen7Specific(context));
-    else if (gen == 7.5)
-      content.add(_buildGen7_5Specific(context));
-    else if (gen == 8.0)
-      content.add(_buildGen8Specific(context));
-    else if (gen == 8.5)
-      content.add(_buildGen8_5Specific(context));
-    else if (gen == 9.0)
-      content.add(_buildGen9Specific(context));
-    else if (gen == 9.5)
-      content.add(_buildGen9_5Specific(context));
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: content,
-    );
   }
 
   Widget _buildGen1Specific(BuildContext context) {
@@ -818,18 +784,14 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
     );
   }
 
-  Widget _buildGen4Specific(BuildContext context) {
+  Widget _buildGen4Specific(BuildContext context, String title) {
     final id = widget.entry.pokemon.id;
 
     return FutureBuilder<Map<String, Map<String, List<String>>>?>(
       future: DatabaseService.instance.getEncounters(id),
       builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Padding(
-            padding: EdgeInsets.all(16.0),
-            child: Center(child: CircularProgressIndicator()),
-          );
-        }
+        if (snapshot.connectionState == ConnectionState.waiting)
+          return const SizedBox.shrink();
 
         final encounters = snapshot.data;
         bool hasEncounterThisGen =
@@ -875,12 +837,15 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
           493,
         ];
 
-        bool isBreedable =
+        bool isBreedableThisGen =
+            (id <= 493) &&
             (ShinyLogicHelper.isBreedable(widget.entry.pokemon) ||
                 ShinyLogicHelper.isBaby(id)) &&
             !legendariesAndMythicals.contains(id);
 
-        bool isHuntable = isBreedable || hasEncounterThisGen;
+        bool isHuntable = hasEncounterThisGen || isBreedableThisGen;
+
+        if (!isHuntable) return const SizedBox.shrink();
 
         if (hasEncounterThisGen) {
           final gen4 = encounters['gen_4']!;
@@ -893,59 +858,29 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
                 if (locLower.contains('walk') ||
                     locLower.contains('grass') ||
                     locLower.contains('radar') ||
-                    locLower.contains('gras')) {
+                    locLower.contains('gras'))
                   hasRadarEncounter = true;
-                }
               }
               if (locLower.contains('stationary') ||
                   locLower.contains('gift') ||
                   locLower.contains('fossil') ||
-                  locLower.contains('only one')) {
+                  locLower.contains('only one'))
                 isStaticOrGift = true;
-              }
             }
           }
         }
 
-        if (legendariesAndMythicals.contains(id) && hasEncounterThisGen) {
+        if (legendariesAndMythicals.contains(id) && hasEncounterThisGen)
           isStaticOrGift = true;
-        }
 
         List<Widget> content = [];
-
-        if (!isHuntable) {
-          content.add(
-            Text(
-              Translator.get('shiny_huntable_no') != 'shiny_huntable_no'
-                  ? Translator.get('shiny_huntable_no')
-                  : 'Shiny Huntable: Nein',
-              style: const TextStyle(
-                color: Colors.red,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          );
-          content.add(const SizedBox(height: 8));
-          content.add(
-            Text(
-              Translator.get('shiny_not_in_gen') != 'shiny_not_in_gen'
-                  ? Translator.get('shiny_not_in_gen')
-                  : 'Dieses Pokémon ist in dieser Generation nicht regulär fangbar oder züchtbar.',
-              style: const TextStyle(fontStyle: FontStyle.italic, fontSize: 13),
-            ),
-          );
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: content,
-          );
-        }
-
         Widget buildInfoBox(
           IconData icon,
           String titleKey,
           String descKey,
           Color color,
         ) {
+          /* ...wie bisher... */
           return Container(
             padding: const EdgeInsets.all(12),
             margin: const EdgeInsets.only(bottom: 12),
@@ -990,6 +925,7 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
         }
 
         Widget buildLinkBtn(IconData icon, String titleKey, String url) {
+          /* ...wie bisher... */
           return Padding(
             padding: const EdgeInsets.only(bottom: 8.0),
             child: SizedBox(
@@ -1022,7 +958,7 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
         );
         content.add(const SizedBox(height: 16));
 
-        if (isStaticOrGift) {
+        if (isStaticOrGift)
           content.add(
             buildInfoBox(
               Icons.restart_alt,
@@ -1031,9 +967,7 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
               Colors.teal,
             ),
           );
-        }
-
-        if (isBreedable) {
+        if (isBreedableThisGen) {
           content.add(
             buildInfoBox(
               Icons.egg_alt,
@@ -1050,7 +984,6 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
             ),
           );
         }
-
         if (hasRadarEncounter && !legendariesAndMythicals.contains(id)) {
           content.add(
             buildInfoBox(
@@ -1089,7 +1022,6 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
             ),
           );
         }
-
         bool hasGenderVariation =
             widget.entry.pokemon.genderRate > 0 &&
             widget.entry.pokemon.genderRate < 8;
@@ -1117,9 +1049,7 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
             ),
           );
         }
-
-        bool isHGSSStarter = id == 152 || id == 155 || id == 158;
-        if (isHGSSStarter) {
+        if (id == 152 || id == 155 || id == 158) {
           content.add(
             buildInfoBox(
               Icons.star,
@@ -1136,9 +1066,8 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
             ),
           );
         }
-
         List<int> gen4Roamers = [144, 145, 146, 243, 244, 380, 381, 481, 488];
-        if (gen4Roamers.contains(id)) {
+        if (gen4Roamers.contains(id) && hasEncounterThisGen) {
           content.add(
             buildInfoBox(
               Icons.map,
@@ -1149,15 +1078,26 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
           );
         }
 
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: content,
+        return ExpansionTile(
+          title: Text(
+            title,
+            style: const TextStyle(fontWeight: FontWeight.w600),
+          ),
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: content,
+              ),
+            ),
+          ],
         );
       },
     );
   }
 
-  Widget _buildGen5Specific(BuildContext context) {
+  Widget _buildGen5Specific(BuildContext context, String title) {
     final id = widget.entry.pokemon.id;
 
     List<int> gen5ShinyLocks = [494, 643, 644, 647, 648, 649];
@@ -1166,12 +1106,8 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
     return FutureBuilder<Map<String, Map<String, List<String>>>?>(
       future: DatabaseService.instance.getEncounters(id),
       builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Padding(
-            padding: EdgeInsets.all(16.0),
-            child: Center(child: CircularProgressIndicator()),
-          );
-        }
+        if (snapshot.connectionState == ConnectionState.waiting)
+          return const SizedBox.shrink();
 
         final encounters = snapshot.data;
         bool hasEncounterThisGen =
@@ -1194,13 +1130,15 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
           648,
           649,
         ];
-        bool isBreedable =
+        bool isBreedableThisGen =
+            (id <= 649) &&
             (ShinyLogicHelper.isBreedable(widget.entry.pokemon) ||
                 ShinyLogicHelper.isBaby(id)) &&
             !gen5Legendaries.contains(id);
 
-        bool isHuntable =
-            (isBreedable || hasEncounterThisGen) && !isShinyLocked;
+        bool isHuntable = hasEncounterThisGen || isBreedableThisGen;
+
+        if (!isHuntable && !isShinyLocked) return const SizedBox.shrink();
 
         if (hasEncounterThisGen) {
           final gen5 = encounters['gen_5']!;
@@ -1210,30 +1148,27 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
               if (locLower.contains('stationary') ||
                   locLower.contains('gift') ||
                   locLower.contains('fossil') ||
-                  locLower.contains('only one')) {
+                  locLower.contains('only one'))
                 isStaticOrGift = true;
-              }
               if (locLower.contains('grass') ||
                   locLower.contains('walk') ||
-                  locLower.contains('gras')) {
+                  locLower.contains('gras'))
                 hasGrassEncounter = true;
-              }
             }
           }
         }
 
-        if (gen5Legendaries.contains(id) && hasEncounterThisGen) {
+        if (gen5Legendaries.contains(id) && hasEncounterThisGen)
           isStaticOrGift = true;
-        }
 
         List<Widget> content = [];
-
         Widget buildInfoBox(
           IconData icon,
           String titleKey,
           String descKey,
           Color color,
         ) {
+          /* wie bisher */
           return Container(
             padding: const EdgeInsets.all(12),
             margin: const EdgeInsets.only(bottom: 12),
@@ -1277,114 +1212,8 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
           );
         }
 
-        if (!isHuntable) {
-          content.add(
-            Text(
-              Translator.get('shiny_huntable_no') != 'shiny_huntable_no'
-                  ? Translator.get('shiny_huntable_no')
-                  : 'Shiny Huntable: Nein',
-              style: const TextStyle(
-                color: Colors.red,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          );
-          content.add(const SizedBox(height: 8));
-
-          if (isShinyLocked) {
-            content.add(
-              buildInfoBox(
-                Icons.lock,
-                'shiny_gen5_locked_title',
-                'shiny_gen5_locked_desc',
-                Colors.red,
-              ),
-            );
-          } else {
-            content.add(
-              Text(
-                Translator.get('shiny_not_in_gen') != 'shiny_not_in_gen'
-                    ? Translator.get('shiny_not_in_gen')
-                    : 'Dieses Pokémon ist in dieser Generation nicht regulär fangbar oder züchtbar.',
-                style: const TextStyle(
-                  fontStyle: FontStyle.italic,
-                  fontSize: 13,
-                ),
-              ),
-            );
-          }
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: content,
-          );
-        }
-
-        content.add(
-          Text(
-            Translator.get('shiny_gen5_huntable_yes') !=
-                    'shiny_gen5_huntable_yes'
-                ? Translator.get('shiny_gen5_huntable_yes')
-                : 'Shiny Huntable: Ja (Basis-Chance 1:8192)',
-            style: const TextStyle(
-              color: Colors.green,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        );
-        content.add(const SizedBox(height: 16));
-
-        content.add(
-          buildInfoBox(
-            Icons.star,
-            'shiny_gen5_charm_title',
-            'shiny_gen5_charm_desc',
-            Colors.amber,
-          ),
-        );
-
-        if (isBreedable) {
-          content.add(
-            buildInfoBox(
-              Icons.egg_alt,
-              'shiny_gen5_masuda_title',
-              'shiny_gen5_masuda_desc',
-              Colors.purple,
-            ),
-          );
-        }
-
-        if (isStaticOrGift) {
-          content.add(
-            buildInfoBox(
-              Icons.restart_alt,
-              'shiny_gen5_sr_title',
-              'shiny_gen5_sr_desc',
-              Colors.teal,
-            ),
-          );
-        }
-
-        if (hasGrassEncounter && !gen5Legendaries.contains(id)) {
-          content.add(
-            buildInfoBox(
-              Icons.grass,
-              'shiny_gen5_darkgrass_title',
-              'shiny_gen5_darkgrass_desc',
-              Colors.green,
-            ),
-          );
-        }
-
-        content.add(
-          buildInfoBox(
-            Icons.memory,
-            'shiny_gen5_rng_title',
-            'shiny_gen5_rng_desc',
-            Colors.blue,
-          ),
-        );
-
         Widget buildLinkBtn(IconData icon, String titleKey, String url) {
+          /* wie bisher */
           return Padding(
             padding: const EdgeInsets.only(bottom: 8.0),
             child: SizedBox(
@@ -1403,39 +1232,128 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
           );
         }
 
-        content.add(
-          buildLinkBtn(
-            Icons.play_circle_filled,
-            'shiny_gen5_rng_link_blisy',
-            'https://www.youtube.com/watch?v=Yy1YNz0oBls&list=PL4o9bTT3px_jOygj-x_vlYkNLtRsRXAPn',
-          ),
-        );
-        content.add(
-          buildLinkBtn(
-            Icons.article,
-            'shiny_gen5_rng_link_retail',
-            'https://retailrng.com/bw/beginner/introduction/',
-          ),
-        );
-        content.add(
-          buildLinkBtn(
-            Icons.article,
-            'shiny_gen5_rng_link_smogon',
-            'https://www.smogon.com/ingame/rng/bw_rng_intro',
-          ),
-        );
+        if (isShinyLocked) {
+          content.add(
+            Text(
+              Translator.get('shiny_huntable_no') != 'shiny_huntable_no'
+                  ? Translator.get('shiny_huntable_no')
+                  : 'Shiny Huntable: Nein',
+              style: const TextStyle(
+                color: Colors.red,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          );
+          content.add(const SizedBox(height: 8));
+          content.add(
+            buildInfoBox(
+              Icons.lock,
+              'shiny_gen5_locked_title',
+              'shiny_gen5_locked_desc',
+              Colors.red,
+            ),
+          );
+        } else {
+          content.add(
+            Text(
+              Translator.get('shiny_gen5_huntable_yes') !=
+                      'shiny_gen5_huntable_yes'
+                  ? Translator.get('shiny_gen5_huntable_yes')
+                  : 'Shiny Huntable: Ja (Basis-Chance 1:8192)',
+              style: const TextStyle(
+                color: Colors.green,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          );
+          content.add(const SizedBox(height: 16));
+          content.add(
+            buildInfoBox(
+              Icons.star,
+              'shiny_gen5_charm_title',
+              'shiny_gen5_charm_desc',
+              Colors.amber,
+            ),
+          );
+          if (isBreedableThisGen)
+            content.add(
+              buildInfoBox(
+                Icons.egg_alt,
+                'shiny_gen5_masuda_title',
+                'shiny_gen5_masuda_desc',
+                Colors.purple,
+              ),
+            );
+          if (isStaticOrGift)
+            content.add(
+              buildInfoBox(
+                Icons.restart_alt,
+                'shiny_gen5_sr_title',
+                'shiny_gen5_sr_desc',
+                Colors.teal,
+              ),
+            );
+          if (hasGrassEncounter && !gen5Legendaries.contains(id))
+            content.add(
+              buildInfoBox(
+                Icons.grass,
+                'shiny_gen5_darkgrass_title',
+                'shiny_gen5_darkgrass_desc',
+                Colors.green,
+              ),
+            );
+          content.add(
+            buildInfoBox(
+              Icons.memory,
+              'shiny_gen5_rng_title',
+              'shiny_gen5_rng_desc',
+              Colors.blue,
+            ),
+          );
+          content.add(
+            buildLinkBtn(
+              Icons.play_circle_filled,
+              'shiny_gen5_rng_link_blisy',
+              'https://www.youtube.com/watch?v=Yy1YNz0oBls&list=PL4o9bTT3px_jOygj-x_vlYkNLtRsRXAPn',
+            ),
+          );
+          content.add(
+            buildLinkBtn(
+              Icons.article,
+              'shiny_gen5_rng_link_retail',
+              'https://retailrng.com/bw/beginner/introduction/',
+            ),
+          );
+          content.add(
+            buildLinkBtn(
+              Icons.article,
+              'shiny_gen5_rng_link_smogon',
+              'https://www.smogon.com/ingame/rng/bw_rng_intro',
+            ),
+          );
+        }
 
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: content,
+        return ExpansionTile(
+          title: Text(
+            title,
+            style: const TextStyle(fontWeight: FontWeight.w600),
+          ),
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: content,
+              ),
+            ),
+          ],
         );
       },
     );
   }
 
-  Widget _buildGen6Specific(BuildContext context) {
+  Widget _buildGen6Specific(BuildContext context, String title) {
     final id = widget.entry.pokemon.id;
-
     List<int> absoluteGen6Locks = [
       144,
       145,
@@ -1457,22 +1375,18 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
     return FutureBuilder<Map<String, Map<String, List<String>>>?>(
       future: DatabaseService.instance.getEncounters(id),
       builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Padding(
-            padding: EdgeInsets.all(16.0),
-            child: Center(child: CircularProgressIndicator()),
-          );
-        }
+        if (snapshot.connectionState == ConnectionState.waiting)
+          return const SizedBox.shrink();
 
         final encounters = snapshot.data;
         bool hasEncounterThisGen =
             encounters != null && encounters.containsKey('gen_6');
-        bool hasXYGrassEncounter = false;
-        bool hasORASGrassEncounter = false;
-        bool hasFriendSafari = false;
-        bool hasFishingEncounter = false;
-        bool hasHordeEncounter = false;
-        bool isStaticOrGift = false;
+        bool hasXYGrassEncounter = false,
+            hasORASGrassEncounter = false,
+            hasFriendSafari = false,
+            hasFishingEncounter = false,
+            hasHordeEncounter = false,
+            isStaticOrGift = false;
 
         List<int> legendariesAndMythicals = [
           144,
@@ -1531,12 +1445,14 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
           721,
         ];
 
-        bool isBreedable =
+        bool isBreedableThisGen =
+            (id <= 721) &&
             (ShinyLogicHelper.isBreedable(widget.entry.pokemon) ||
                 ShinyLogicHelper.isBaby(id)) &&
             !legendariesAndMythicals.contains(id);
-        bool isHuntable =
-            (isBreedable || hasEncounterThisGen) && !isAbsolutelyLocked;
+        bool isHuntable = hasEncounterThisGen || isBreedableThisGen;
+
+        if (!isHuntable && !isAbsolutelyLocked) return const SizedBox.shrink();
 
         if (hasEncounterThisGen) {
           final gen6 = encounters['gen_6']!;
@@ -1555,41 +1471,36 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
               }
               if (locLower.contains('friend') ||
                   locLower.contains('safari') ||
-                  locLower.contains('kontakt')) {
+                  locLower.contains('kontakt'))
                 hasFriendSafari = true;
-              }
               if (locLower.contains('fish') ||
                   locLower.contains('angel') ||
                   locLower.contains('surf') ||
                   locLower.contains('water') ||
-                  locLower.contains('rod')) {
+                  locLower.contains('rod'))
                 hasFishingEncounter = true;
-              }
-              if (locLower.contains('horde') || locLower.contains('massen')) {
+              if (locLower.contains('horde') || locLower.contains('massen'))
                 hasHordeEncounter = true;
-              }
               if (locLower.contains('stationary') ||
                   locLower.contains('gift') ||
                   locLower.contains('fossil') ||
-                  locLower.contains('only one')) {
+                  locLower.contains('only one'))
                 isStaticOrGift = true;
-              }
             }
           }
         }
 
-        if (legendariesAndMythicals.contains(id) && hasEncounterThisGen) {
+        if (legendariesAndMythicals.contains(id) && hasEncounterThisGen)
           isStaticOrGift = true;
-        }
 
         List<Widget> content = [];
-
         Widget buildInfoBox(
           IconData icon,
           String titleKey,
           String descKey,
           Color color,
         ) {
+          /* wie bisher */
           return Container(
             padding: const EdgeInsets.all(12),
             margin: const EdgeInsets.only(bottom: 12),
@@ -1633,96 +1544,8 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
           );
         }
 
-        if (!isHuntable) {
-          content.add(
-            Text(
-              Translator.get('shiny_huntable_no') != 'shiny_huntable_no'
-                  ? Translator.get('shiny_huntable_no')
-                  : 'Shiny Huntable: Nein',
-              style: const TextStyle(
-                color: Colors.red,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          );
-          content.add(const SizedBox(height: 8));
-
-          if (isAbsolutelyLocked) {
-            content.add(
-              buildInfoBox(
-                Icons.lock,
-                'shiny_gen6_locked_title',
-                'shiny_gen6_locked_desc',
-                Colors.red,
-              ),
-            );
-          } else {
-            content.add(
-              Text(
-                Translator.get('shiny_not_in_gen') != 'shiny_not_in_gen'
-                    ? Translator.get('shiny_not_in_gen')
-                    : 'Dieses Pokémon ist in dieser Generation nicht regulär fangbar oder züchtbar.',
-                style: const TextStyle(
-                  fontStyle: FontStyle.italic,
-                  fontSize: 13,
-                ),
-              ),
-            );
-          }
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: content,
-          );
-        }
-
-        content.add(
-          Text(
-            Translator.get('shiny_gen6_huntable_yes') !=
-                    'shiny_gen6_huntable_yes'
-                ? Translator.get('shiny_gen6_huntable_yes')
-                : 'Shiny Huntable: Ja (Neue Basis-Chance: 1:4096)',
-            style: const TextStyle(
-              color: Colors.green,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        );
-        content.add(const SizedBox(height: 16));
-
-        if (id == 143) {
-          content.add(
-            buildInfoBox(
-              Icons.warning_amber_rounded,
-              'shiny_gen6_snorlax_warning_title',
-              'shiny_gen6_snorlax_warning_desc',
-              Colors.orange,
-            ),
-          );
-        }
-
-        if (isBreedable) {
-          content.add(
-            buildInfoBox(
-              Icons.egg_alt,
-              'shiny_gen6_masuda_title',
-              'shiny_gen6_masuda_desc',
-              Colors.purple,
-            ),
-          );
-        }
-
-        if (hasFriendSafari && !legendariesAndMythicals.contains(id)) {
-          content.add(
-            buildInfoBox(
-              Icons.people_alt,
-              'shiny_gen6_friendsafari_title',
-              'shiny_gen6_friendsafari_desc',
-              Colors.pink,
-            ),
-          );
-        }
-
         Widget buildLinkBtn(IconData icon, String titleKey, String url) {
+          /* wie bisher */
           return Padding(
             padding: const EdgeInsets.only(bottom: 8.0),
             child: SizedBox(
@@ -1741,151 +1564,217 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
           );
         }
 
-        if (hasORASGrassEncounter && !legendariesAndMythicals.contains(id)) {
+        if (isAbsolutelyLocked) {
           content.add(
-            buildInfoBox(
-              Icons.screen_search_desktop,
-              'shiny_gen6_dexnav_title',
-              'shiny_gen6_dexnav_desc',
-              Colors.orange,
-            ),
-          );
-          content.add(
-            buildLinkBtn(
-              Icons.forum,
-              'shiny_gen6_dexnav_link_reddit',
-              'https://www.reddit.com/r/ShinyPokemon/comments/1i8rjzm/talk_oras_dexnav_survival_guide_how_to_chain_what/',
-            ),
-          );
-          content.add(
-            buildLinkBtn(
-              Icons.play_circle_filled,
-              'shiny_gen6_dexnav_link_yt',
-              'https://www.youtube.com/watch?v=acqLZJjAGGk',
-            ),
-          );
-          content.add(
-            buildLinkBtn(
-              Icons.forum,
-              'shiny_gen6_dexnav_link_pokecomm',
-              'https://www.pokecommunity.com/threads/dexnav-shiny-chaining-and-perfect-iv-guide-updated-v-1.340264/',
+            Text(
+              Translator.get('shiny_huntable_no') != 'shiny_huntable_no'
+                  ? Translator.get('shiny_huntable_no')
+                  : 'Shiny Huntable: Nein',
+              style: const TextStyle(
+                color: Colors.red,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           );
           content.add(const SizedBox(height: 8));
-        }
-
-        if (hasXYGrassEncounter && !legendariesAndMythicals.contains(id)) {
           content.add(
             buildInfoBox(
-              Icons.radar,
-              'shiny_gen6_radar_title',
-              'shiny_gen6_radar_desc',
-              Colors.blue,
+              Icons.lock,
+              'shiny_gen6_locked_title',
+              'shiny_gen6_locked_desc',
+              Colors.red,
             ),
           );
+        } else {
           content.add(
-            buildLinkBtn(
-              Icons.play_circle_filled,
-              'shiny_gen6_radar_link_yt',
-              'https://www.youtube.com/watch?v=oP4hDHPA8Cg',
+            Text(
+              Translator.get('shiny_gen6_huntable_yes') !=
+                      'shiny_gen6_huntable_yes'
+                  ? Translator.get('shiny_gen6_huntable_yes')
+                  : 'Shiny Huntable: Ja (Neue Basis-Chance: 1:4096)',
+              style: const TextStyle(
+                color: Colors.green,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           );
-          content.add(
-            buildLinkBtn(
-              Icons.insert_chart_outlined,
-              'shiny_gen6_radar_link_slides',
-              'https://docs.google.com/presentation/d/1lg-wfWoBa7etT4Yd4jFOP4Z979Qr9-q_w0t6liFeftc/pub?slide=id.g2094469701_4_440',
-            ),
-          );
-          content.add(const SizedBox(height: 8));
+          content.add(const SizedBox(height: 16));
+          if (id == 143)
+            content.add(
+              buildInfoBox(
+                Icons.warning_amber_rounded,
+                'shiny_gen6_snorlax_warning_title',
+                'shiny_gen6_snorlax_warning_desc',
+                Colors.orange,
+              ),
+            );
+          if (isBreedableThisGen)
+            content.add(
+              buildInfoBox(
+                Icons.egg_alt,
+                'shiny_gen6_masuda_title',
+                'shiny_gen6_masuda_desc',
+                Colors.purple,
+              ),
+            );
+          if (hasFriendSafari && !legendariesAndMythicals.contains(id))
+            content.add(
+              buildInfoBox(
+                Icons.people_alt,
+                'shiny_gen6_friendsafari_title',
+                'shiny_gen6_friendsafari_desc',
+                Colors.pink,
+              ),
+            );
+
+          if (hasORASGrassEncounter && !legendariesAndMythicals.contains(id)) {
+            content.add(
+              buildInfoBox(
+                Icons.screen_search_desktop,
+                'shiny_gen6_dexnav_title',
+                'shiny_gen6_dexnav_desc',
+                Colors.orange,
+              ),
+            );
+            content.add(
+              buildLinkBtn(
+                Icons.forum,
+                'shiny_gen6_dexnav_link_reddit',
+                'https://www.reddit.com/r/ShinyPokemon/comments/1i8rjzm/talk_oras_dexnav_survival_guide_how_to_chain_what/',
+              ),
+            );
+            content.add(
+              buildLinkBtn(
+                Icons.play_circle_filled,
+                'shiny_gen6_dexnav_link_yt',
+                'https://www.youtube.com/watch?v=acqLZJjAGGk',
+              ),
+            );
+            content.add(
+              buildLinkBtn(
+                Icons.forum,
+                'shiny_gen6_dexnav_link_pokecomm',
+                'https://www.pokecommunity.com/threads/dexnav-shiny-chaining-and-perfect-iv-guide-updated-v-1.340264/',
+              ),
+            );
+            content.add(const SizedBox(height: 8));
+          }
+          if (hasXYGrassEncounter && !legendariesAndMythicals.contains(id)) {
+            content.add(
+              buildInfoBox(
+                Icons.radar,
+                'shiny_gen6_radar_title',
+                'shiny_gen6_radar_desc',
+                Colors.blue,
+              ),
+            );
+            content.add(
+              buildLinkBtn(
+                Icons.play_circle_filled,
+                'shiny_gen6_radar_link_yt',
+                'https://www.youtube.com/watch?v=oP4hDHPA8Cg',
+              ),
+            );
+            content.add(
+              buildLinkBtn(
+                Icons.insert_chart_outlined,
+                'shiny_gen6_radar_link_slides',
+                'https://docs.google.com/presentation/d/1lg-wfWoBa7etT4Yd4jFOP4Z979Qr9-q_w0t6liFeftc/pub?slide=id.g2094469701_4_440',
+              ),
+            );
+            content.add(const SizedBox(height: 8));
+          }
+          if (hasFishingEncounter && !legendariesAndMythicals.contains(id)) {
+            content.add(
+              buildInfoBox(
+                Icons.water,
+                'shiny_gen6_fishing_title',
+                'shiny_gen6_fishing_desc',
+                Colors.lightBlue,
+              ),
+            );
+            content.add(
+              buildLinkBtn(
+                Icons.play_circle_filled,
+                'shiny_gen6_fishing_link_yt',
+                'https://www.youtube.com/watch?v=JgvW8fha7k4',
+              ),
+            );
+            content.add(
+              buildLinkBtn(
+                Icons.forum,
+                'shiny_gen6_fishing_link_reddit',
+                'https://www.reddit.com/r/pokemon/comments/1p1iqx/vps_guide_to_chain_fishing_shinies/',
+              ),
+            );
+            content.add(const SizedBox(height: 8));
+          }
+          if (hasHordeEncounter && !legendariesAndMythicals.contains(id)) {
+            content.add(
+              buildInfoBox(
+                Icons.group,
+                'shiny_gen6_horde_title',
+                'shiny_gen6_horde_desc',
+                Colors.teal,
+              ),
+            );
+            content.add(const SizedBox(height: 8));
+          }
+          if (isStaticOrGift && id != 143) {
+            content.add(
+              buildInfoBox(
+                Icons.restart_alt,
+                'shiny_gen6_sr_title',
+                'shiny_gen6_sr_desc',
+                Colors.deepPurple,
+              ),
+            );
+          }
+          if (hasORASGrassEncounter ||
+              hasXYGrassEncounter ||
+              hasFishingEncounter) {
+            content.add(
+              buildLinkBtn(
+                Icons.language,
+                'shiny_gen6_chaining_link_wiki',
+                'https://www.pokewiki.de/Shiny-Chaining',
+              ),
+            );
+          }
         }
 
-        if (hasFishingEncounter && !legendariesAndMythicals.contains(id)) {
-          content.add(
-            buildInfoBox(
-              Icons.water,
-              'shiny_gen6_fishing_title',
-              'shiny_gen6_fishing_desc',
-              Colors.lightBlue,
+        return ExpansionTile(
+          title: Text(
+            title,
+            style: const TextStyle(fontWeight: FontWeight.w600),
+          ),
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: content,
+              ),
             ),
-          );
-          content.add(
-            buildLinkBtn(
-              Icons.play_circle_filled,
-              'shiny_gen6_fishing_link_yt',
-              'https://www.youtube.com/watch?v=JgvW8fha7k4',
-            ),
-          );
-          content.add(
-            buildLinkBtn(
-              Icons.forum,
-              'shiny_gen6_fishing_link_reddit',
-              'https://www.reddit.com/r/pokemon/comments/1p1iqx/vps_guide_to_chain_fishing_shinies/',
-            ),
-          );
-          content.add(const SizedBox(height: 8));
-        }
-
-        if (hasHordeEncounter && !legendariesAndMythicals.contains(id)) {
-          content.add(
-            buildInfoBox(
-              Icons.group,
-              'shiny_gen6_horde_title',
-              'shiny_gen6_horde_desc',
-              Colors.teal,
-            ),
-          );
-          content.add(const SizedBox(height: 8));
-        }
-
-        if (isStaticOrGift && id != 143 && !isAbsolutelyLocked) {
-          content.add(
-            buildInfoBox(
-              Icons.restart_alt,
-              'shiny_gen6_sr_title',
-              'shiny_gen6_sr_desc',
-              Colors.deepPurple,
-            ),
-          );
-        }
-
-        if (hasORASGrassEncounter ||
-            hasXYGrassEncounter ||
-            hasFishingEncounter) {
-          content.add(
-            buildLinkBtn(
-              Icons.language,
-              'shiny_gen6_chaining_link_wiki',
-              'https://www.pokewiki.de/Shiny-Chaining',
-            ),
-          );
-        }
-
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: content,
+          ],
         );
       },
     );
   }
 
-  Widget _buildGen7Specific(BuildContext context) {
+  Widget _buildGen7Specific(BuildContext context, String title) {
     final id = widget.entry.pokemon.id;
 
     return FutureBuilder<Map<String, Map<String, List<String>>>?>(
       future: DatabaseService.instance.getEncounters(id),
       builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Padding(
-            padding: EdgeInsets.all(16.0),
-            child: Center(child: CircularProgressIndicator()),
-          );
-        }
+        if (snapshot.connectionState == ConnectionState.waiting)
+          return const SizedBox.shrink();
 
         final encounters = snapshot.data;
-        bool hasAlolaEncounter = false;
-        bool isStaticOrGift = false;
-        bool hasWildSpawn = false;
+        bool hasAlolaEncounter = false,
+            isStaticOrGift = false,
+            hasWildSpawn = false;
 
         if (encounters != null && encounters.containsKey('gen_7')) {
           final gen7 = encounters['gen_7']!;
@@ -1900,16 +1789,14 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
                 if (locLower.contains('stationary') ||
                     locLower.contains('gift') ||
                     locLower.contains('fossil') ||
-                    locLower.contains('only one')) {
+                    locLower.contains('only one'))
                   isStaticOrGift = true;
-                }
                 if (locLower.contains('grass') ||
                     locLower.contains('walk') ||
                     locLower.contains('gras') ||
                     locLower.contains('cave') ||
-                    locLower.contains('surf')) {
+                    locLower.contains('surf'))
                   hasWildSpawn = true;
-                }
               }
             }
           }
@@ -1991,7 +1878,6 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
           802,
           807,
         ];
-
         List<int> ultraBeasts = [
           793,
           794,
@@ -2005,7 +1891,6 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
           805,
           806,
         ];
-
         List<int> legendariesAndMythicals = [
           144,
           145,
@@ -2088,27 +1973,29 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
           807,
         ];
 
-        bool isBreedable =
+        bool isBreedableThisGen =
+            (id <= 807) &&
             (ShinyLogicHelper.isBreedable(widget.entry.pokemon) ||
                 ShinyLogicHelper.isBaby(id)) &&
             !legendariesAndMythicals.contains(id);
         bool isHuntable =
-            (isBreedable || hasAlolaEncounter || canBeInWarpRide) &&
-            !absoluteGen7Locks.contains(id);
+            hasAlolaEncounter || canBeInWarpRide || isBreedableThisGen;
+
+        if (!isHuntable && !absoluteGen7Locks.contains(id))
+          return const SizedBox.shrink();
 
         if ((legendariesAndMythicals.contains(id) && hasAlolaEncounter) ||
-            canBeInWarpRide) {
+            canBeInWarpRide)
           isStaticOrGift = true;
-        }
 
         List<Widget> content = [];
-
         Widget buildInfoBox(
           IconData icon,
           String titleKey,
           String descKey,
           Color color,
         ) {
+          /* wie bisher */
           return Container(
             padding: const EdgeInsets.all(12),
             margin: const EdgeInsets.only(bottom: 12),
@@ -2153,6 +2040,7 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
         }
 
         Widget buildLinkBtn(IconData icon, String titleKey, String url) {
+          /* wie bisher */
           return Padding(
             padding: const EdgeInsets.only(bottom: 8.0),
             child: SizedBox(
@@ -2171,7 +2059,7 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
           );
         }
 
-        if (!isHuntable) {
+        if (absoluteGen7Locks.contains(id)) {
           content.add(
             Text(
               Translator.get('shiny_huntable_no') != 'shiny_huntable_no'
@@ -2184,185 +2072,164 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
             ),
           );
           content.add(const SizedBox(height: 8));
-          if (absoluteGen7Locks.contains(id)) {
+          content.add(
+            buildInfoBox(
+              Icons.lock,
+              'shiny_gen7_locked_title',
+              'shiny_gen7_locked_desc',
+              Colors.red,
+            ),
+          );
+        } else {
+          content.add(
+            Text(
+              Translator.get('shiny_gen7_huntable_yes') !=
+                      'shiny_gen7_huntable_yes'
+                  ? Translator.get('shiny_gen7_huntable_yes')
+                  : 'Shiny Huntable: Ja (Basis-Chance 1:4096)',
+              style: const TextStyle(
+                color: Colors.green,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          );
+          content.add(const SizedBox(height: 16));
+          if (ultraBeasts.contains(id))
             content.add(
               buildInfoBox(
-                Icons.lock,
-                'shiny_gen7_locked_title',
-                'shiny_gen7_locked_desc',
-                Colors.red,
+                Icons.warning_amber_rounded,
+                'shiny_gen7_ub_locked_title',
+                'shiny_gen7_ub_locked_desc',
+                Colors.orange,
               ),
             );
-          } else {
+          if (isBreedableThisGen)
             content.add(
-              Text(
-                Translator.get('shiny_not_in_gen') != 'shiny_not_in_gen'
-                    ? Translator.get('shiny_not_in_gen')
-                    : 'Dieses Pokémon ist in dieser Generation nicht regulär fangbar oder züchtbar.',
-                style: const TextStyle(
-                  fontStyle: FontStyle.italic,
-                  fontSize: 13,
-                ),
+              buildInfoBox(
+                Icons.egg_alt,
+                'shiny_gen6_masuda_title',
+                'shiny_gen6_masuda_desc',
+                Colors.purple,
               ),
             );
+          if (hasWildSpawn && !legendariesAndMythicals.contains(id)) {
+            content.add(
+              buildInfoBox(
+                Icons.group_add,
+                'shiny_gen7_sos_title',
+                'shiny_gen7_sos_desc',
+                Colors.blue,
+              ),
+            );
+            content.add(
+              buildLinkBtn(
+                Icons.forum,
+                'shiny_gen7_sos_link_reddit',
+                'https://www.reddit.com/r/pokemontrades/comments/5ig3pj/sos_chaining_how_to_do_it_and_how_to_do_it/',
+              ),
+            );
+            content.add(
+              buildLinkBtn(
+                Icons.play_circle_filled,
+                'shiny_gen7_sos_link_yt_en',
+                'https://www.youtube.com/watch?v=JyQW4buHeGY',
+              ),
+            );
+            content.add(
+              buildLinkBtn(
+                Icons.play_circle_filled,
+                'shiny_gen7_sos_link_yt_de',
+                'https://www.youtube.com/watch?v=SJdagmvWASM',
+              ),
+            );
+            content.add(const SizedBox(height: 8));
           }
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: content,
-          );
+          if (canBeInWarpRide) {
+            content.add(
+              buildInfoBox(
+                Icons.rocket_launch,
+                'shiny_gen7_warp_title',
+                'shiny_gen7_warp_desc',
+                Colors.indigo,
+              ),
+            );
+            content.add(
+              buildLinkBtn(
+                Icons.forum,
+                'shiny_gen7_warp_link_reddit',
+                'https://www.reddit.com/r/ShinyPokemon/comments/7myj5n/7_warp_ride_shiny_odds_grid/',
+              ),
+            );
+            content.add(
+              buildLinkBtn(
+                Icons.play_circle_filled,
+                'shiny_gen7_warp_link_yt_en',
+                'https://www.youtube.com/watch?v=63AHQizp8zg',
+              ),
+            );
+            content.add(
+              buildLinkBtn(
+                Icons.play_circle_filled,
+                'shiny_gen7_warp_link_yt_de',
+                'https://www.youtube.com/watch?v=USjxUroSmKA',
+              ),
+            );
+            content.add(
+              buildLinkBtn(
+                Icons.language,
+                'shiny_gen7_warp_link_bisa',
+                'https://www.bisafans.de/spiele/editionen/ultra-sonne-ultra-mond/warp-loch-shinys.php',
+              ),
+            );
+            content.add(const SizedBox(height: 8));
+          }
+          if (isStaticOrGift)
+            content.add(
+              buildInfoBox(
+                Icons.restart_alt,
+                'shiny_gen6_sr_title',
+                'shiny_gen6_sr_desc',
+                Colors.teal,
+              ),
+            );
+          if (hasWildSpawn && !legendariesAndMythicals.contains(id))
+            content.add(
+              buildInfoBox(
+                Icons.holiday_village,
+                'shiny_gen7_pelago_title',
+                'shiny_gen7_pelago_desc',
+                Colors.green,
+              ),
+            );
         }
 
-        content.add(
-          Text(
-            Translator.get('shiny_gen7_huntable_yes') !=
-                    'shiny_gen7_huntable_yes'
-                ? Translator.get('shiny_gen7_huntable_yes')
-                : 'Shiny Huntable: Ja (Basis-Chance 1:4096)',
-            style: const TextStyle(
-              color: Colors.green,
-              fontWeight: FontWeight.bold,
-            ),
+        return ExpansionTile(
+          title: Text(
+            title,
+            style: const TextStyle(fontWeight: FontWeight.w600),
           ),
-        );
-        content.add(const SizedBox(height: 16));
-
-        if (ultraBeasts.contains(id)) {
-          content.add(
-            buildInfoBox(
-              Icons.warning_amber_rounded,
-              'shiny_gen7_ub_locked_title',
-              'shiny_gen7_ub_locked_desc',
-              Colors.orange,
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: content,
+              ),
             ),
-          );
-        }
-
-        if (isBreedable) {
-          content.add(
-            buildInfoBox(
-              Icons.egg_alt,
-              'shiny_gen6_masuda_title',
-              'shiny_gen6_masuda_desc',
-              Colors.purple,
-            ),
-          );
-        }
-
-        if (hasWildSpawn && !legendariesAndMythicals.contains(id)) {
-          content.add(
-            buildInfoBox(
-              Icons.group_add,
-              'shiny_gen7_sos_title',
-              'shiny_gen7_sos_desc',
-              Colors.blue,
-            ),
-          );
-          content.add(
-            buildLinkBtn(
-              Icons.forum,
-              'shiny_gen7_sos_link_reddit',
-              'https://www.reddit.com/r/pokemontrades/comments/5ig3pj/sos_chaining_how_to_do_it_and_how_to_do_it/',
-            ),
-          );
-          content.add(
-            buildLinkBtn(
-              Icons.play_circle_filled,
-              'shiny_gen7_sos_link_yt_en',
-              'https://www.youtube.com/watch?v=JyQW4buHeGY',
-            ),
-          );
-          content.add(
-            buildLinkBtn(
-              Icons.play_circle_filled,
-              'shiny_gen7_sos_link_yt_de',
-              'https://www.youtube.com/watch?v=SJdagmvWASM',
-            ),
-          );
-          content.add(const SizedBox(height: 8));
-        }
-
-        if (canBeInWarpRide) {
-          content.add(
-            buildInfoBox(
-              Icons.rocket_launch,
-              'shiny_gen7_warp_title',
-              'shiny_gen7_warp_desc',
-              Colors.indigo,
-            ),
-          );
-          content.add(
-            buildLinkBtn(
-              Icons.forum,
-              'shiny_gen7_warp_link_reddit',
-              'https://www.reddit.com/r/ShinyPokemon/comments/7myj5n/7_warp_ride_shiny_odds_grid/',
-            ),
-          );
-          content.add(
-            buildLinkBtn(
-              Icons.play_circle_filled,
-              'shiny_gen7_warp_link_yt_en',
-              'https://www.youtube.com/watch?v=63AHQizp8zg',
-            ),
-          );
-          content.add(
-            buildLinkBtn(
-              Icons.play_circle_filled,
-              'shiny_gen7_warp_link_yt_de',
-              'https://www.youtube.com/watch?v=USjxUroSmKA',
-            ),
-          );
-          content.add(
-            buildLinkBtn(
-              Icons.language,
-              'shiny_gen7_warp_link_bisa',
-              'https://www.bisafans.de/spiele/editionen/ultra-sonne-ultra-mond/warp-loch-shinys.php',
-            ),
-          );
-          content.add(const SizedBox(height: 8));
-        }
-
-        if (isStaticOrGift) {
-          content.add(
-            buildInfoBox(
-              Icons.restart_alt,
-              'shiny_gen6_sr_title',
-              'shiny_gen6_sr_desc',
-              Colors.teal,
-            ),
-          );
-        }
-
-        if (hasWildSpawn && !legendariesAndMythicals.contains(id)) {
-          content.add(
-            buildInfoBox(
-              Icons.holiday_village,
-              'shiny_gen7_pelago_title',
-              'shiny_gen7_pelago_desc',
-              Colors.green,
-            ),
-          );
-        }
-
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: content,
+          ],
         );
       },
     );
   }
 
-  Widget _buildGen7_5Specific(BuildContext context) {
+  Widget _buildGen7_5Specific(BuildContext context, String title) {
     final id = widget.entry.pokemon.id;
 
     return FutureBuilder<Map<String, Map<String, List<String>>>?>(
       future: DatabaseService.instance.getEncounters(id),
       builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Padding(
-            padding: EdgeInsets.all(16.0),
-            child: Center(child: CircularProgressIndicator()),
-          );
-        }
+        if (snapshot.connectionState == ConnectionState.waiting)
+          return const SizedBox.shrink();
 
         final encounters = snapshot.data;
         bool hasLetsGoEncounter = false;
@@ -2408,14 +2275,19 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
         ];
         bool canTradeAlolan = alolanFormsBaseIds.contains(id);
 
-        List<Widget> content = [];
+        bool isHuntable = hasLetsGoEncounter || canTradeAlolan;
 
+        if (!isHuntable && id != 25 && id != 133 && id != 151)
+          return const SizedBox.shrink();
+
+        List<Widget> content = [];
         Widget buildInfoBox(
           IconData icon,
           String titleKey,
           String descKey,
           Color color,
         ) {
+          /* wie bisher */
           return Container(
             padding: const EdgeInsets.all(12),
             margin: const EdgeInsets.only(bottom: 12),
@@ -2460,6 +2332,7 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
         }
 
         Widget buildLinkBtn(IconData icon, String titleKey, String url) {
+          /* wie bisher */
           return Padding(
             padding: const EdgeInsets.only(bottom: 8.0),
             child: SizedBox(
@@ -2478,7 +2351,7 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
           );
         }
 
-        if (!hasLetsGoEncounter && !canTradeAlolan && id != 808 && id != 809) {
+        if (id == 25 || id == 133 || id == 151) {
           content.add(
             Text(
               Translator.get('shiny_huntable_no') != 'shiny_huntable_no'
@@ -2490,27 +2363,7 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
               ),
             ),
           );
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: content,
-          );
-        }
-
-        content.add(
-          Text(
-            Translator.get('shiny_gen7_huntable_yes') !=
-                    'shiny_gen7_huntable_yes'
-                ? Translator.get('shiny_gen7_huntable_yes')
-                : 'Shiny Huntable: Ja (Basis-Chance 1:4096)',
-            style: const TextStyle(
-              color: Colors.green,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        );
-        content.add(const SizedBox(height: 16));
-
-        if (id == 25 || id == 133 || id == 151) {
+          content.add(const SizedBox(height: 8));
           content.add(
             buildInfoBox(
               Icons.lock,
@@ -2519,92 +2372,110 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
               Colors.red,
             ),
           );
+        } else {
+          content.add(
+            Text(
+              Translator.get('shiny_gen7_huntable_yes') !=
+                      'shiny_gen7_huntable_yes'
+                  ? Translator.get('shiny_gen7_huntable_yes')
+                  : 'Shiny Huntable: Ja (Basis-Chance 1:4096)',
+              style: const TextStyle(
+                color: Colors.green,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          );
+          content.add(const SizedBox(height: 16));
+          if (hasLetsGoEncounter && id != 151) {
+            content.add(
+              buildInfoBox(
+                Icons.link,
+                'shiny_gen75_combo_title',
+                'shiny_gen75_combo_desc',
+                Colors.orange,
+              ),
+            );
+            content.add(
+              buildLinkBtn(
+                Icons.forum,
+                'shiny_gen75_combo_link_reddit',
+                'https://www.reddit.com/r/PokemonLetsGo/comments/1fendma/pokemon_lets_go_guide_for_shiny_hunting_tracking/',
+              ),
+            );
+            content.add(
+              buildLinkBtn(
+                Icons.play_circle_filled,
+                'shiny_gen75_combo_link_yt_de1',
+                'https://www.youtube.com/watch?v=8UJ_91-wcQM',
+              ),
+            );
+            content.add(
+              buildLinkBtn(
+                Icons.play_circle_filled,
+                'shiny_gen75_combo_link_yt_de2',
+                'https://www.youtube.com/watch?v=mzAWo2-vXsM',
+              ),
+            );
+            content.add(const SizedBox(height: 8));
+          }
+          if (canTradeAlolan)
+            content.add(
+              buildInfoBox(
+                Icons.swap_horiz,
+                'shiny_gen75_alola_title',
+                'shiny_gen75_alola_desc',
+                Colors.teal,
+              ),
+            );
+          if (isStaticOrGift && id != 151)
+            content.add(
+              buildInfoBox(
+                Icons.restart_alt,
+                'shiny_gen6_sr_title',
+                'shiny_gen6_sr_desc',
+                Colors.deepPurple,
+              ),
+            );
         }
 
-        if (hasLetsGoEncounter && id != 151) {
-          content.add(
-            buildInfoBox(
-              Icons.link,
-              'shiny_gen75_combo_title',
-              'shiny_gen75_combo_desc',
-              Colors.orange,
+        return ExpansionTile(
+          title: Text(
+            title,
+            style: const TextStyle(fontWeight: FontWeight.w600),
+          ),
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: content,
+              ),
             ),
-          );
-          content.add(
-            buildLinkBtn(
-              Icons.forum,
-              'shiny_gen75_combo_link_reddit',
-              'https://www.reddit.com/r/PokemonLetsGo/comments/1fendma/pokemon_lets_go_guide_for_shiny_hunting_tracking/',
-            ),
-          );
-          content.add(
-            buildLinkBtn(
-              Icons.play_circle_filled,
-              'shiny_gen75_combo_link_yt_de1',
-              'https://www.youtube.com/watch?v=8UJ_91-wcQM',
-            ),
-          );
-          content.add(
-            buildLinkBtn(
-              Icons.play_circle_filled,
-              'shiny_gen75_combo_link_yt_de2',
-              'https://www.youtube.com/watch?v=mzAWo2-vXsM',
-            ),
-          );
-          content.add(const SizedBox(height: 8));
-        }
-
-        if (canTradeAlolan) {
-          content.add(
-            buildInfoBox(
-              Icons.swap_horiz,
-              'shiny_gen75_alola_title',
-              'shiny_gen75_alola_desc',
-              Colors.teal,
-            ),
-          );
-        }
-
-        if (isStaticOrGift && id != 151) {
-          content.add(
-            buildInfoBox(
-              Icons.restart_alt,
-              'shiny_gen6_sr_title',
-              'shiny_gen6_sr_desc',
-              Colors.deepPurple,
-            ),
-          );
-        }
-
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: content,
+          ],
         );
       },
     );
   }
 
-  Widget _buildGen8Specific(BuildContext context) {
+  Widget _buildGen8Specific(BuildContext context, String title) {
     final id = widget.entry.pokemon.id;
 
     return FutureBuilder<Map<String, dynamic>>(
       future: _fetchGen8Data(id),
       builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Padding(
-            padding: EdgeInsets.all(16.0),
-            child: Center(child: CircularProgressIndicator()),
-          );
-        }
+        if (snapshot.connectionState == ConnectionState.waiting)
+          return const SizedBox.shrink();
 
         final data = snapshot.data!;
         bool isSwShAvailable = data['isSwSh'] == true;
         bool isBDSPAvailable = data['isBDSP'] == true;
 
-        bool isBreedable =
-            ShinyLogicHelper.isBreedable(widget.entry.pokemon) ||
-            ShinyLogicHelper.isBaby(id);
-        bool isHuntable = isSwShAvailable || isBDSPAvailable || isBreedable;
+        bool isBreedableThisGen =
+            (isSwShAvailable || isBDSPAvailable) &&
+            (ShinyLogicHelper.isBreedable(widget.entry.pokemon) ||
+                ShinyLogicHelper.isBaby(id));
+        bool isHuntable =
+            isSwShAvailable || isBDSPAvailable || isBreedableThisGen;
 
         List<int> absoluteGen8Locks = [
           772,
@@ -2625,14 +2496,16 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
         ];
         bool isLocked = absoluteGen8Locks.contains(id);
 
-        List<Widget> content = [];
+        if (!isHuntable && !isLocked) return const SizedBox.shrink();
 
+        List<Widget> content = [];
         Widget buildInfoBox(
           IconData icon,
           String titleKey,
           String descKey,
           Color color,
         ) {
+          /* wie bisher */
           return Container(
             padding: const EdgeInsets.all(12),
             margin: const EdgeInsets.only(bottom: 12),
@@ -2677,6 +2550,7 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
         }
 
         Widget buildLinkBtn(IconData icon, String titleKey, String url) {
+          /* wie bisher */
           return Padding(
             padding: const EdgeInsets.only(bottom: 8.0),
             child: SizedBox(
@@ -2692,24 +2566,6 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
                 onPressed: () => _launchURL(url),
               ),
             ),
-          );
-        }
-
-        if (!isHuntable) {
-          content.add(
-            Text(
-              Translator.get('shiny_huntable_no') != 'shiny_huntable_no'
-                  ? Translator.get('shiny_huntable_no')
-                  : 'Shiny Huntable: Nein',
-              style: const TextStyle(
-                color: Colors.red,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          );
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: content,
           );
         }
 
@@ -2734,123 +2590,119 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
               Colors.red,
             ),
           );
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: content,
+        } else {
+          content.add(
+            Text(
+              Translator.get('shiny_gen7_huntable_yes') !=
+                      'shiny_gen7_huntable_yes'
+                  ? Translator.get('shiny_gen7_huntable_yes')
+                  : 'Shiny Huntable: Ja (Basis-Chance 1:4096)',
+              style: const TextStyle(
+                color: Colors.green,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
           );
+          content.add(const SizedBox(height: 16));
+          if (isSwShAvailable || isBreedableThisGen)
+            content.add(
+              buildInfoBox(
+                Icons.sports_esports,
+                'shiny_gen8_swsh_title',
+                'shiny_gen8_swsh_desc',
+                Colors.blue,
+              ),
+            );
+          if (isBDSPAvailable)
+            content.add(
+              buildInfoBox(
+                Icons.diamond,
+                'shiny_gen8_bdsp_title',
+                'shiny_gen8_bdsp_desc',
+                Colors.cyan,
+              ),
+            );
+          if (isBreedableThisGen) {
+            content.add(
+              buildInfoBox(
+                Icons.egg_alt,
+                'shiny_gen8_masuda_title',
+                'shiny_gen8_masuda_desc',
+                Colors.purple,
+              ),
+            );
+            content.add(
+              buildLinkBtn(
+                Icons.language,
+                'shiny_gen8_masuda_link',
+                'https://bulbapedia.bulbagarden.net/wiki/Masuda_method',
+              ),
+            );
+            content.add(const SizedBox(height: 8));
+          }
+          if (isBDSPAvailable && isBreedableThisGen) {
+            content.add(
+              buildInfoBox(
+                Icons.radar,
+                'shiny_gen8_radar_title',
+                'shiny_gen8_radar_desc',
+                Colors.indigo,
+              ),
+            );
+            content.add(
+              buildLinkBtn(
+                Icons.play_circle_filled,
+                'shiny_gen8_radar_link_yt_de',
+                'https://www.youtube.com/watch?v=bCmGq6eYL90',
+              ),
+            );
+            content.add(
+              buildLinkBtn(
+                Icons.forum,
+                'shiny_gen8_radar_link_reddit',
+                'https://www.reddit.com/r/PokeLeaks/comments/qsr6ze/bdsp_poke_radar_guide/?show=original',
+              ),
+            );
+            content.add(
+              buildLinkBtn(
+                Icons.play_circle_filled,
+                'shiny_gen8_radar_link_yt_en',
+                'https://www.youtube.com/watch?v=wnaS_WhyNMs',
+              ),
+            );
+            content.add(const SizedBox(height: 8));
+          }
         }
 
-        content.add(
-          Text(
-            Translator.get('shiny_gen7_huntable_yes') !=
-                    'shiny_gen7_huntable_yes'
-                ? Translator.get('shiny_gen7_huntable_yes')
-                : 'Shiny Huntable: Ja (Basis-Chance 1:4096)',
-            style: const TextStyle(
-              color: Colors.green,
-              fontWeight: FontWeight.bold,
-            ),
+        return ExpansionTile(
+          title: Text(
+            title,
+            style: const TextStyle(fontWeight: FontWeight.w600),
           ),
-        );
-        content.add(const SizedBox(height: 16));
-
-        if (isSwShAvailable || isBreedable) {
-          content.add(
-            buildInfoBox(
-              Icons.sports_esports,
-              'shiny_gen8_swsh_title',
-              'shiny_gen8_swsh_desc',
-              Colors.blue,
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: content,
+              ),
             ),
-          );
-        }
-
-        if (isBDSPAvailable) {
-          content.add(
-            buildInfoBox(
-              Icons.diamond,
-              'shiny_gen8_bdsp_title',
-              'shiny_gen8_bdsp_desc',
-              Colors.cyan,
-            ),
-          );
-        }
-
-        if (isBreedable) {
-          content.add(
-            buildInfoBox(
-              Icons.egg_alt,
-              'shiny_gen8_masuda_title',
-              'shiny_gen8_masuda_desc',
-              Colors.purple,
-            ),
-          );
-          content.add(
-            buildLinkBtn(
-              Icons.language,
-              'shiny_gen8_masuda_link',
-              'https://bulbapedia.bulbagarden.net/wiki/Masuda_method',
-            ),
-          );
-          content.add(const SizedBox(height: 8));
-        }
-
-        if (isBDSPAvailable && isBreedable) {
-          content.add(
-            buildInfoBox(
-              Icons.radar,
-              'shiny_gen8_radar_title',
-              'shiny_gen8_radar_desc',
-              Colors.indigo,
-            ),
-          );
-          content.add(
-            buildLinkBtn(
-              Icons.play_circle_filled,
-              'shiny_gen8_radar_link_yt_de',
-              'https://www.youtube.com/watch?v=bCmGq6eYL90',
-            ),
-          );
-          content.add(
-            buildLinkBtn(
-              Icons.forum,
-              'shiny_gen8_radar_link_reddit',
-              'https://www.reddit.com/r/PokeLeaks/comments/qsr6ze/bdsp_poke_radar_guide/?show=original',
-            ),
-          );
-          content.add(
-            buildLinkBtn(
-              Icons.play_circle_filled,
-              'shiny_gen8_radar_link_yt_en',
-              'https://www.youtube.com/watch?v=wnaS_WhyNMs',
-            ),
-          );
-          content.add(const SizedBox(height: 8));
-        }
-
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: content,
+          ],
         );
       },
     );
   }
 
-  Widget _buildGen8_5Specific(BuildContext context) {
+  Widget _buildGen8_5Specific(BuildContext context, String title) {
     final id = widget.entry.pokemon.id;
 
     return FutureBuilder<Map<String, dynamic>>(
       future: _fetchGen8Data(id),
       builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Padding(
-            padding: EdgeInsets.all(16.0),
-            child: Center(child: CircularProgressIndicator()),
-          );
-        }
+        if (snapshot.connectionState == ConnectionState.waiting)
+          return const SizedBox.shrink();
 
         bool isPLAAvailable = snapshot.data!['isHisui'] == true;
-
         List<int> plaLocks = [
           480,
           481,
@@ -2873,14 +2725,16 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
         ];
         bool isLocked = plaLocks.contains(id);
 
-        List<Widget> content = [];
+        if (!isPLAAvailable) return const SizedBox.shrink();
 
+        List<Widget> content = [];
         Widget buildInfoBox(
           IconData icon,
           String titleKey,
           String descKey,
           Color color,
         ) {
+          /* wie bisher */
           return Container(
             padding: const EdgeInsets.all(12),
             margin: const EdgeInsets.only(bottom: 12),
@@ -2925,6 +2779,7 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
         }
 
         Widget buildLinkBtn(IconData icon, String titleKey, String url) {
+          /* wie bisher */
           return Padding(
             padding: const EdgeInsets.only(bottom: 8.0),
             child: SizedBox(
@@ -2940,24 +2795,6 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
                 onPressed: () => _launchURL(url),
               ),
             ),
-          );
-        }
-
-        if (!isPLAAvailable) {
-          content.add(
-            Text(
-              Translator.get('shiny_huntable_no') != 'shiny_huntable_no'
-                  ? Translator.get('shiny_huntable_no')
-                  : 'Shiny Huntable: Nein',
-              style: const TextStyle(
-                color: Colors.red,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          );
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: content,
           );
         }
 
@@ -2982,78 +2819,79 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
               Colors.red,
             ),
           );
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: content,
+        } else {
+          content.add(
+            Text(
+              Translator.get('shiny_gen7_huntable_yes') !=
+                      'shiny_gen7_huntable_yes'
+                  ? Translator.get('shiny_gen7_huntable_yes')
+                  : 'Shiny Huntable: Ja (Basis-Chance 1:4096)',
+              style: const TextStyle(
+                color: Colors.green,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          );
+          content.add(const SizedBox(height: 16));
+          content.add(
+            buildInfoBox(
+              Icons.catching_pokemon,
+              'shiny_gen85_pla_title',
+              'shiny_gen85_pla_desc',
+              Colors.amber,
+            ),
+          );
+          content.add(
+            buildInfoBox(
+              Icons.radar,
+              'shiny_gen85_pla_outbreaks_title',
+              'shiny_gen85_pla_outbreaks_desc',
+              Colors.deepOrange,
+            ),
+          );
+          content.add(
+            buildLinkBtn(
+              Icons.forum,
+              'shiny_gen8_pla_link_reddit',
+              'https://www.reddit.com/r/PokemonLegendsArceus/comments/1lqhvyh/the_right_method_to_shiny_hunting_since_111/?show=original',
+            ),
+          );
+          content.add(
+            buildLinkBtn(
+              Icons.language,
+              'shiny_gen8_pla_link_bisafans',
+              'https://community.bisafans.de/forum/index.php?thread/340909-shiny-hunting-in-version-1-1-1/',
+            ),
           );
         }
 
-        content.add(
-          Text(
-            Translator.get('shiny_gen7_huntable_yes') !=
-                    'shiny_gen7_huntable_yes'
-                ? Translator.get('shiny_gen7_huntable_yes')
-                : 'Shiny Huntable: Ja (Basis-Chance 1:4096)',
-            style: const TextStyle(
-              color: Colors.green,
-              fontWeight: FontWeight.bold,
+        return ExpansionTile(
+          title: Text(
+            title,
+            style: const TextStyle(fontWeight: FontWeight.w600),
+          ),
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: content,
+              ),
             ),
-          ),
-        );
-        content.add(const SizedBox(height: 16));
-
-        content.add(
-          buildInfoBox(
-            Icons.catching_pokemon,
-            'shiny_gen85_pla_title',
-            'shiny_gen85_pla_desc',
-            Colors.amber,
-          ),
-        );
-        content.add(
-          buildInfoBox(
-            Icons.radar,
-            'shiny_gen85_pla_outbreaks_title',
-            'shiny_gen85_pla_outbreaks_desc',
-            Colors.deepOrange,
-          ),
-        );
-
-        content.add(
-          buildLinkBtn(
-            Icons.forum,
-            'shiny_gen8_pla_link_reddit',
-            'https://www.reddit.com/r/PokemonLegendsArceus/comments/1lqhvyh/the_right_method_to_shiny_hunting_since_111/?show=original',
-          ),
-        );
-        content.add(
-          buildLinkBtn(
-            Icons.language,
-            'shiny_gen8_pla_link_bisafans',
-            'https://community.bisafans.de/forum/index.php?thread/340909-shiny-hunting-in-version-1-1-1/',
-          ),
-        );
-
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: content,
+          ],
         );
       },
     );
   }
 
-  Widget _buildGen9Specific(BuildContext context) {
+  Widget _buildGen9Specific(BuildContext context, String title) {
     final id = widget.entry.pokemon.id;
 
     return FutureBuilder<Map<String, dynamic>>(
       future: _fetchGen9Data(id),
       builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Padding(
-            padding: EdgeInsets.all(16.0),
-            child: Center(child: CircularProgressIndicator()),
-          );
-        }
+        if (snapshot.connectionState == ConnectionState.waiting)
+          return const SizedBox.shrink();
 
         final data = snapshot.data!;
         bool isSVAvailable = data['isSV'] == true;
@@ -3105,7 +2943,6 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
           1024,
           1025,
         ];
-
         List<int> legendariesAndMythicals = [
           144,
           145,
@@ -3211,21 +3048,24 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
           1024,
         ];
 
-        bool isBreedable =
+        bool isBreedableThisGen =
+            isSVAvailable &&
             (ShinyLogicHelper.isBreedable(widget.entry.pokemon) ||
                 ShinyLogicHelper.isBaby(id)) &&
             !legendariesAndMythicals.contains(id);
-        bool isHuntable = isSVAvailable || isBreedable;
+        bool isHuntable = isSVAvailable || isBreedableThisGen;
         bool isLocked = svLocks.contains(id);
 
-        List<Widget> content = [];
+        if (!isHuntable && !isLocked) return const SizedBox.shrink();
 
+        List<Widget> content = [];
         Widget buildInfoBox(
           IconData icon,
           String titleKey,
           String descKey,
           Color color,
         ) {
+          /* wie bisher */
           return Container(
             padding: const EdgeInsets.all(12),
             margin: const EdgeInsets.only(bottom: 12),
@@ -3270,6 +3110,7 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
         }
 
         Widget buildLinkBtn(IconData icon, String titleKey, String url) {
+          /* wie bisher */
           return Padding(
             padding: const EdgeInsets.only(bottom: 8.0),
             child: SizedBox(
@@ -3285,24 +3126,6 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
                 onPressed: () => _launchURL(url),
               ),
             ),
-          );
-        }
-
-        if (!isHuntable) {
-          content.add(
-            Text(
-              Translator.get('shiny_huntable_no') != 'shiny_huntable_no'
-                  ? Translator.get('shiny_huntable_no')
-                  : 'Shiny Huntable: Nein',
-              style: const TextStyle(
-                color: Colors.red,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          );
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: content,
           );
         }
 
@@ -3327,120 +3150,117 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
               Colors.red,
             ),
           );
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: content,
-          );
-        }
-
-        content.add(
-          Text(
-            Translator.get('shiny_gen7_huntable_yes') !=
-                    'shiny_gen7_huntable_yes'
-                ? Translator.get('shiny_gen7_huntable_yes')
-                : 'Shiny Huntable: Ja (Basis-Chance 1:4096)',
-            style: const TextStyle(
-              color: Colors.green,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        );
-        content.add(const SizedBox(height: 16));
-
-        if (isSVAvailable) {
+        } else {
           content.add(
-            buildInfoBox(
-              Icons.map,
-              'shiny_gen9_sv_title',
-              'shiny_gen9_sv_desc',
-              Colors.blue,
+            Text(
+              Translator.get('shiny_gen7_huntable_yes') !=
+                      'shiny_gen7_huntable_yes'
+                  ? Translator.get('shiny_gen7_huntable_yes')
+                  : 'Shiny Huntable: Ja (Basis-Chance 1:4096)',
+              style: const TextStyle(
+                color: Colors.green,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           );
-          content.add(
-            buildInfoBox(
-              Icons.fastfood,
-              'shiny_gen9_sandwich_title',
-              'shiny_gen9_sandwich_desc',
-              Colors.orange,
-            ),
-          );
-          content.add(
-            buildInfoBox(
-              Icons.groups,
-              'shiny_gen9_outbreak_title',
-              'shiny_gen9_outbreak_desc',
-              Colors.teal,
-            ),
-          );
-
-          if (!legendariesAndMythicals.contains(id)) {
+          content.add(const SizedBox(height: 16));
+          if (isSVAvailable) {
             content.add(
               buildInfoBox(
-                Icons.filter_center_focus,
-                'shiny_gen9_isolation_title',
-                'shiny_gen9_isolation_desc',
-                Colors.cyan,
+                Icons.map,
+                'shiny_gen9_sv_title',
+                'shiny_gen9_sv_desc',
+                Colors.blue,
               ),
             );
+            content.add(
+              buildInfoBox(
+                Icons.fastfood,
+                'shiny_gen9_sandwich_title',
+                'shiny_gen9_sandwich_desc',
+                Colors.orange,
+              ),
+            );
+            content.add(
+              buildInfoBox(
+                Icons.groups,
+                'shiny_gen9_outbreak_title',
+                'shiny_gen9_outbreak_desc',
+                Colors.teal,
+              ),
+            );
+            if (!legendariesAndMythicals.contains(id))
+              content.add(
+                buildInfoBox(
+                  Icons.filter_center_focus,
+                  'shiny_gen9_isolation_title',
+                  'shiny_gen9_isolation_desc',
+                  Colors.cyan,
+                ),
+              );
           }
-        }
+          if (isBreedableThisGen)
+            content.add(
+              buildInfoBox(
+                Icons.egg_alt,
+                'shiny_gen8_masuda_title',
+                'shiny_gen8_masuda_desc',
+                Colors.purple,
+              ),
+            );
 
-        if (isBreedable) {
           content.add(
-            buildInfoBox(
-              Icons.egg_alt,
-              'shiny_gen8_masuda_title',
-              'shiny_gen8_masuda_desc',
-              Colors.purple,
+            buildLinkBtn(
+              Icons.language,
+              'shiny_gen9_link_bisa',
+              'https://www.bisafans.de/spiele/editionen/karmesin-purpur/shiny-pokemon.php',
+            ),
+          );
+          content.add(
+            buildLinkBtn(
+              Icons.language,
+              'shiny_gen9_link_sandwich',
+              'https://www.polygon.com/pokemon-scarlet-violet-guide/23472506/sandwich-recipes-ingredients-list-meal-powers',
+            ),
+          );
+          content.add(
+            buildLinkBtn(
+              Icons.play_circle_filled,
+              'shiny_gen9_link_outbreak',
+              'https://www.youtube.com/watch?v=kYJzXvG22iY',
             ),
           );
         }
 
-        content.add(
-          buildLinkBtn(
-            Icons.language,
-            'shiny_gen9_link_bisa',
-            'https://www.bisafans.de/spiele/editionen/karmesin-purpur/shiny-pokemon.php',
+        return ExpansionTile(
+          title: Text(
+            title,
+            style: const TextStyle(fontWeight: FontWeight.w600),
           ),
-        );
-        content.add(
-          buildLinkBtn(
-            Icons.language,
-            'shiny_gen9_link_sandwich',
-            'https://www.polygon.com/pokemon-scarlet-violet-guide/23472506/sandwich-recipes-ingredients-list-meal-powers',
-          ),
-        );
-        content.add(
-          buildLinkBtn(
-            Icons.play_circle_filled,
-            'shiny_gen9_link_outbreak',
-            'https://www.youtube.com/watch?v=kYJzXvG22iY',
-          ),
-        );
-
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: content,
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: content,
+              ),
+            ),
+          ],
         );
       },
     );
   }
 
-  Widget _buildGen9_5Specific(BuildContext context) {
+  Widget _buildGen9_5Specific(BuildContext context, String title) {
     final id = widget.entry.pokemon.id;
 
     return FutureBuilder<Map<String, dynamic>>(
       future: _fetchGen9Data(id),
       builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Padding(
-            padding: EdgeInsets.all(16.0),
-            child: Center(child: CircularProgressIndicator()),
-          );
-        }
+        if (snapshot.connectionState == ConnectionState.waiting)
+          return const SizedBox.shrink();
 
         bool isPLZAAvailable = snapshot.data!['isPLZA'] == true;
-
         List<int> plzaLocks = [
           359,
           382,
@@ -3459,14 +3279,16 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
         ];
         bool isLocked = plzaLocks.contains(id);
 
-        List<Widget> content = [];
+        if (!isPLZAAvailable) return const SizedBox.shrink();
 
+        List<Widget> content = [];
         Widget buildInfoBox(
           IconData icon,
           String titleKey,
           String descKey,
           Color color,
         ) {
+          /* wie bisher */
           return Container(
             padding: const EdgeInsets.all(12),
             margin: const EdgeInsets.only(bottom: 12),
@@ -3511,6 +3333,7 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
         }
 
         Widget buildLinkBtn(IconData icon, String titleKey, String url) {
+          /* wie bisher */
           return Padding(
             padding: const EdgeInsets.only(bottom: 8.0),
             child: SizedBox(
@@ -3526,24 +3349,6 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
                 onPressed: () => _launchURL(url),
               ),
             ),
-          );
-        }
-
-        if (!isPLZAAvailable) {
-          content.add(
-            Text(
-              Translator.get('shiny_huntable_no') != 'shiny_huntable_no'
-                  ? Translator.get('shiny_huntable_no')
-                  : 'Shiny Huntable: Nein',
-              style: const TextStyle(
-                color: Colors.red,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          );
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: content,
           );
         }
 
@@ -3568,68 +3373,73 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
               Colors.red,
             ),
           );
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: content,
+        } else {
+          content.add(
+            Text(
+              Translator.get('shiny_gen7_huntable_yes') !=
+                      'shiny_gen7_huntable_yes'
+                  ? Translator.get('shiny_gen7_huntable_yes')
+                  : 'Shiny Huntable: Ja (Basis-Chance 1:4096)',
+              style: const TextStyle(
+                color: Colors.green,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          );
+          content.add(const SizedBox(height: 16));
+          content.add(
+            buildInfoBox(
+              Icons.campaign,
+              'shiny_gen95_plza_title',
+              'shiny_gen95_plza_desc',
+              Colors.amber,
+            ),
+          );
+          content.add(
+            buildInfoBox(
+              Icons.refresh,
+              'shiny_gen95_donut_title',
+              'shiny_gen95_donut_desc',
+              Colors.deepOrange,
+            ),
+          );
+          content.add(
+            buildLinkBtn(
+              Icons.forum,
+              'shiny_gen95_link_reddit',
+              'https://www.reddit.com/r/PokemonZA/comments/1of201i/best_shiny_hunting_locationsmethods/',
+            ),
+          );
+          content.add(
+            buildLinkBtn(
+              Icons.language,
+              'shiny_gen95_link_ign',
+              'https://www.ign.com/wikis/pokemon-legends-z-a/How_to_Shiny_Hunt_(Shiny_Pokemon_Guide)',
+            ),
+          );
+          content.add(
+            buildLinkBtn(
+              Icons.play_circle_filled,
+              'shiny_gen95_link_yt_de',
+              'https://www.youtube.com/watch?v=6Z6nbxlK3J8',
+            ),
           );
         }
 
-        content.add(
-          Text(
-            Translator.get('shiny_gen7_huntable_yes') !=
-                    'shiny_gen7_huntable_yes'
-                ? Translator.get('shiny_gen7_huntable_yes')
-                : 'Shiny Huntable: Ja (Basis-Chance 1:4096)',
-            style: const TextStyle(
-              color: Colors.green,
-              fontWeight: FontWeight.bold,
+        return ExpansionTile(
+          title: Text(
+            title,
+            style: const TextStyle(fontWeight: FontWeight.w600),
+          ),
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: content,
+              ),
             ),
-          ),
-        );
-        content.add(const SizedBox(height: 16));
-
-        content.add(
-          buildInfoBox(
-            Icons.campaign,
-            'shiny_gen95_plza_title',
-            'shiny_gen95_plza_desc',
-            Colors.amber,
-          ),
-        );
-        content.add(
-          buildInfoBox(
-            Icons.refresh,
-            'shiny_gen95_donut_title',
-            'shiny_gen95_donut_desc',
-            Colors.deepOrange,
-          ),
-        );
-
-        content.add(
-          buildLinkBtn(
-            Icons.forum,
-            'shiny_gen95_link_reddit',
-            'https://www.reddit.com/r/PokemonZA/comments/1of201i/best_shiny_hunting_locationsmethods/',
-          ),
-        );
-        content.add(
-          buildLinkBtn(
-            Icons.language,
-            'shiny_gen95_link_ign',
-            'https://www.ign.com/wikis/pokemon-legends-z-a/How_to_Shiny_Hunt_(Shiny_Pokemon_Guide)',
-          ),
-        );
-        content.add(
-          buildLinkBtn(
-            Icons.play_circle_filled,
-            'shiny_gen95_link_yt_de',
-            'https://www.youtube.com/watch?v=6Z6nbxlK3J8',
-          ),
-        );
-
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: content,
+          ],
         );
       },
     );
@@ -3777,8 +3587,6 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
 
     for (double gen in generations) {
       if (_shouldShowGen(gen)) {
-        Widget content = _buildGenContent(context, gen);
-
         String titleKey;
         String fallbackTitle;
         if (gen == 7.5) {
@@ -3795,19 +3603,73 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
           fallbackTitle = 'Generation ${gen.toInt()}';
         }
 
-        genTiles.add(
-          ExpansionTile(
-            title: Text(
-              Translator.get(titleKey) != titleKey
-                  ? Translator.get(titleKey)
-                  : fallbackTitle,
-              style: const TextStyle(fontWeight: FontWeight.w600),
+        String resolvedTitle = Translator.get(titleKey) != titleKey
+            ? Translator.get(titleKey)
+            : fallbackTitle;
+
+        if (gen == 1.0) {
+          genTiles.add(
+            ExpansionTile(
+              title: Text(
+                resolvedTitle,
+                style: const TextStyle(fontWeight: FontWeight.w600),
+              ),
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: _buildGen1Specific(context),
+                ),
+              ],
             ),
-            children: [
-              Padding(padding: const EdgeInsets.all(16.0), child: content),
-            ],
-          ),
-        );
+          );
+        } else if (gen == 2.0) {
+          genTiles.add(
+            ExpansionTile(
+              title: Text(
+                resolvedTitle,
+                style: const TextStyle(fontWeight: FontWeight.w600),
+              ),
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: _buildGen2Specific(context),
+                ),
+              ],
+            ),
+          );
+        } else if (gen == 3.0) {
+          genTiles.add(
+            ExpansionTile(
+              title: Text(
+                resolvedTitle,
+                style: const TextStyle(fontWeight: FontWeight.w600),
+              ),
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: _buildGen3Specific(context),
+                ),
+              ],
+            ),
+          );
+        } else if (gen == 4.0)
+          genTiles.add(_buildGen4Specific(context, resolvedTitle));
+        else if (gen == 5.0)
+          genTiles.add(_buildGen5Specific(context, resolvedTitle));
+        else if (gen == 6.0)
+          genTiles.add(_buildGen6Specific(context, resolvedTitle));
+        else if (gen == 7.0)
+          genTiles.add(_buildGen7Specific(context, resolvedTitle));
+        else if (gen == 7.5)
+          genTiles.add(_buildGen7_5Specific(context, resolvedTitle));
+        else if (gen == 8.0)
+          genTiles.add(_buildGen8Specific(context, resolvedTitle));
+        else if (gen == 8.5)
+          genTiles.add(_buildGen8_5Specific(context, resolvedTitle));
+        else if (gen == 9.0)
+          genTiles.add(_buildGen9Specific(context, resolvedTitle));
+        else if (gen == 9.5)
+          genTiles.add(_buildGen9_5Specific(context, resolvedTitle));
       }
     }
 
