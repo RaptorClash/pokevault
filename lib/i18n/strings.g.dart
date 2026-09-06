@@ -4,9 +4,9 @@
 /// To regenerate, run: `dart run slang`
 ///
 /// Locales: 2
-/// Strings: 2096 (1048 per locale)
+/// Strings: 2184 (1092 per locale)
 ///
-/// Built on 2026-09-06 at 10:12 UTC
+/// Built on 2026-09-06 at 11:05 UTC
 
 // coverage:ignore-file
 // ignore_for_file: type=lint
@@ -1190,6 +1190,50 @@ class Translations implements BaseTranslations<AppLocale, Translations> {
 	String get shiny_gen4_roamer_desc => 'Die Werte und der Shiny-Status werden festgelegt, sobald das Pokémon in die Wildnis entlassen wird! Du musst VOR diesem Gespräch / Event speichern und bei Misserfolg komplett resetten.';
 	String get shiny_gen4_sr_title => 'Soft Resets (Chance: 1:8192)';
 	String get shiny_gen4_sr_desc => 'Für stationäre Begegnungen, Legendäre Pokémon oder Geschenke. Speichere direkt vor dem Event und starte das Spiel neu, bis es Shiny ist.';
+	String get shiny_gen5_huntable_yes => 'Shiny Huntable: Ja (Basis-Chance 1:8192)';
+	String get shiny_gen5_locked_title => 'Shiny Locked!';
+	String get shiny_gen5_locked_desc => 'Achtung: Dieses Pokémon kann in Generation 5 NICHT als Shiny erhalten werden (vom Spiel gesperrt).';
+	String get shiny_gen5_charm_title => 'Schillerpin (Nur S2/W2)';
+	String get shiny_gen5_charm_desc => 'Der Schillerpin wurde in Schwarz 2 / Weiß 2 eingeführt. Er erhöht die wilde Shiny-Chance auf ca. 1:2731 (3/8192).';
+	String get shiny_gen5_masuda_title => 'Masuda-Methode (Bis zu 1:1024)';
+	String get shiny_gen5_masuda_desc => 'Züchte zwei Pokémon aus unterschiedlichen Sprachregionen. Chance in Gen 5: 1:1365 (Ohne Pin) / 1:1024 (Mit Schillerpin in S2/W2).';
+	String get shiny_gen5_darkgrass_title => 'Dunkles Gras (Doppelkämpfe)';
+	String get shiny_gen5_darkgrass_desc => 'Im dunklen Gras triffst du oft auf zwei Pokémon gleichzeitig. Das ändert zwar nicht die Basis-Chance, halbiert aber die Zeit pro Begegnung massiv!';
+	String get shiny_gen5_sr_title => 'Soft Resets (Chance: 1:8192)';
+	String get shiny_gen5_sr_desc => 'Für Legendäre (außer den gesperrten) und statische Begegnungen. Die Shiny-Chance lässt sich in S2/W2 durch den Schillerpin auf 1:2731 verbessern.';
+	String get shiny_gen5_rng_title => 'RNG Manipulation (Gen 5)';
+	String get shiny_gen5_rng_desc => 'Gen 5 ist eine der anfängerfreundlichsten Generationen für RNG, da oft nur das exakte Datum und die Sekunde im DS-Menü getroffen werden muss.';
+	String get shiny_gen5_rng_link_blisy => 'im a blisy - Gen 5 RNG (YouTube) (EN)';
+	String get shiny_gen5_rng_link_retail => 'Retail RNG - Gen 5 Guide (EN)';
+	String get shiny_gen5_rng_link_smogon => 'Smogon - Gen 5 RNG Guide (EN)';
+	String get shiny_gen6_huntable_yes => 'Shiny Huntable: Ja (Neue Basis-Chance: 1:4096)';
+	String get shiny_gen6_locked_title => 'Shiny Locks in Gen 6';
+	String get shiny_gen6_masuda_title => 'Masuda-Methode (Bis zu 1:512)';
+	String get shiny_gen6_masuda_desc => 'Züchte mit zwei Sprachregionen. Chance: 1:683 (ohne Pin) / 1:512 (mit Schillerpin). Tipp: Nutze die O-Kraft \'Brutkraft\', um Eier rasend schnell auszubrüten!';
+	String get shiny_gen6_fishing_title => 'Kettenangeln / Chain Fishing (Bis zu ~1:100)';
+	String get shiny_gen6_fishing_desc => 'Wirf die Angel erfolgreich immer wieder an derselben Stelle aus. Ein Pokémon mit der Fähigkeit \'Saugnapf\' oder \'Wertehalter\' an der Spitze deines Teams ist Pflicht!';
+	String get shiny_gen6_fishing_link_yt => 'YouTube - Chain Fishing Tutorial (EN)';
+	String get shiny_gen6_fishing_link_reddit => 'Reddit - Chain Fishing Guide (EN)';
+	String get shiny_gen6_horde_title => 'Massenbegegnungen / Hordes (Effektiv ~1:819)';
+	String get shiny_gen6_horde_desc => 'Nutze die Attacke \'Lockduft\' oder das Item \'Honig\', um 5 Pokémon gleichzeitig zu treffen. Sehr entspannte Methode!';
+	String get shiny_gen6_radar_title => 'Poké-Radar in X/Y (Bis zu 1:200)';
+	String get shiny_gen6_radar_desc => 'Wie in Gen 4: Bei einer Kette von 40 im hohen Gras hast du extrem hohe Chancen auf das glitzernde Grasfeld.';
+	String get shiny_gen6_radar_link_yt => 'YouTube - X/Y Radar Tutorial (EN)';
+	String get shiny_gen6_radar_link_slides => 'Google Slides - Radar Guide (EN)';
+	String get shiny_gen6_friendsafari_title => 'Kontaktsafari (Feste Chance: 1:512)';
+	String get shiny_gen6_friendsafari_desc => 'Exklusiv nach der Liga in X/Y. Jedes Pokémon hier hat eine feste Shiny-Chance von 1:512. Schillerpin oder Ketten haben hier KEINEN Einfluss.';
+	String get shiny_gen6_dexnav_title => 'DexNav in OR/AS';
+	String get shiny_gen6_dexnav_desc => 'Je höher dein Suchlevel (Search Level) für dieses Pokémon, desto besser die Shiny-Chancen. Eine der interaktivsten Jagdmethoden überhaupt!';
+	String get shiny_gen6_dexnav_link_reddit => 'Reddit - DexNav Survival Guide (EN)';
+	String get shiny_gen6_dexnav_link_yt => 'YouTube - DexNav Tutorial (EN)';
+	String get shiny_gen6_dexnav_link_pokecomm => 'PokeCommunity - DexNav Guide (EN)';
+	String get shiny_gen6_chaining_link_wiki => 'PokéWiki - Shiny Chaining (DE)';
+	String get shiny_gen6_sr_title => 'Soft Resets (Chance: 1:4096)';
+	String get shiny_gen6_sr_desc => 'Für Legendäre (die nicht gesperrt sind, z.B. aus Hoopa-Ringen) und statische Pokémon. Mit Schillerpin steigt die Chance auf 1:1365.';
+	String get shiny_not_in_gen => 'Dieses Pokémon ist in dieser Generation nicht regulär fangbar oder züchtbar.';
+	String get shiny_gen6_snorlax_warning_title => 'Relaxo Shiny Lock';
+	String get shiny_gen6_snorlax_warning_desc => 'Hinweis: Das stationäre (schlafende) Relaxo auf Route 7 in X/Y ist Shiny Locked! Um ein Shiny Relaxo in Gen 6 zu erhalten, musst du es züchten.';
+	String get shiny_gen6_locked_desc => 'In Gen 6 sind Mewtu, die legendären Vögel, Xerneas, Yveltal, Zygarde, Kyogre, Groudon, Rayquaza, Deoxys sowie Diancie, Hoopa und Volcanion Shiny Locked!';
 }
 
 // Path: <root>
@@ -2272,6 +2316,50 @@ class _StringsEn extends Translations {
 	@override String get shiny_gen4_roamer_desc => 'Stats and shininess are locked in the moment the Pokémon is released into the wild! You MUST save BEFORE the conversation/event and reset if it isn\'t shiny when you find it.';
 	@override String get shiny_gen4_sr_title => 'Soft Resets (Odds: 1:8192)';
 	@override String get shiny_gen4_sr_desc => 'For stationary encounters, legendaries, or gifts. Save right before the encounter and reset the game until it shines.';
+	@override String get shiny_gen5_huntable_yes => 'Shiny Huntable: Yes (Base odds 1:8192)';
+	@override String get shiny_gen5_locked_title => 'Shiny Locked!';
+	@override String get shiny_gen5_locked_desc => 'Warning: This Pokémon CANNOT be shiny in Generation 5 (shiny locked by the game).';
+	@override String get shiny_gen5_charm_title => 'Shiny Charm (B2/W2 only)';
+	@override String get shiny_gen5_charm_desc => 'The Shiny Charm was introduced in Black 2 / White 2. It increases wild shiny odds to approx. 1:2731 (3/8192).';
+	@override String get shiny_gen5_masuda_title => 'Masuda Method (Up to 1:1024)';
+	@override String get shiny_gen5_masuda_desc => 'Breed two Pokémon from different language regions. Gen 5 Odds: 1:1365 (No Charm) / 1:1024 (With Shiny Charm in B2/W2).';
+	@override String get shiny_gen5_darkgrass_title => 'Dark Grass (Double Battles)';
+	@override String get shiny_gen5_darkgrass_desc => 'In dark grass, you often encounter two Pokémon at once. This doesn\'t change the base odds, but it massively speeds up your encounters!';
+	@override String get shiny_gen5_sr_title => 'Soft Resets (Odds: 1:8192)';
+	@override String get shiny_gen5_sr_desc => 'For legendaries (except locked ones) and stationary encounters. In B2/W2, the Shiny Charm improves these odds to 1:2731.';
+	@override String get shiny_gen5_rng_title => 'RNG Manipulation (Gen 5)';
+	@override String get shiny_gen5_rng_desc => 'Gen 5 is one of the most beginner-friendly generations for RNG, often only requiring you to hit the exact date and second in the DS menu.';
+	@override String get shiny_gen5_rng_link_blisy => 'im a blisy - Gen 5 RNG (YouTube) (EN)';
+	@override String get shiny_gen5_rng_link_retail => 'Retail RNG - Gen 5 Guide (EN)';
+	@override String get shiny_gen5_rng_link_smogon => 'Smogon - Gen 5 RNG Guide (EN)';
+	@override String get shiny_gen6_huntable_yes => 'Shiny Huntable: Yes (New Base Odds: 1:4096)';
+	@override String get shiny_gen6_locked_title => 'Shiny Locks in Gen 6';
+	@override String get shiny_gen6_masuda_title => 'Masuda Method (Up to 1:512)';
+	@override String get shiny_gen6_masuda_desc => 'Breed two Pokémon from different languages. Odds: 1:683 (No Charm) / 1:512 (With Charm). Tip: Use the \'Hatching O-Power\' to hatch eggs incredibly fast!';
+	@override String get shiny_gen6_fishing_title => 'Chain Fishing (Up to ~1:100)';
+	@override String get shiny_gen6_fishing_desc => 'Reel in a Pokémon consecutively in the same spot. A Pokémon with \'Suction Cups\' or \'Sticky Hold\' in the lead is mandatory!';
+	@override String get shiny_gen6_fishing_link_yt => 'YouTube - Chain Fishing Tutorial';
+	@override String get shiny_gen6_fishing_link_reddit => 'Reddit - Chain Fishing Guide';
+	@override String get shiny_gen6_horde_title => 'Horde Encounters (Effective ~1:819)';
+	@override String get shiny_gen6_horde_desc => 'Use \'Sweet Scent\' or \'Honey\' to encounter 5 Pokémon at once. Very relaxing hunt!';
+	@override String get shiny_gen6_radar_title => 'Poké Radar in X/Y (Up to 1:200)';
+	@override String get shiny_gen6_radar_desc => 'Like in Gen 4: Reaching a chain of 40 in tall grass gives you amazing odds for a sparkling patch.';
+	@override String get shiny_gen6_radar_link_yt => 'YouTube - X/Y Radar Tutorial';
+	@override String get shiny_gen6_radar_link_slides => 'Google Slides - Radar Guide';
+	@override String get shiny_gen6_friendsafari_title => 'Friend Safari (Fixed Odds: 1:512)';
+	@override String get shiny_gen6_friendsafari_desc => 'Exclusive post-game in X/Y. Every Pokémon here has flat 1:512 odds. Shiny Charm and chaining have NO effect here.';
+	@override String get shiny_gen6_dexnav_title => 'DexNav in OR/AS';
+	@override String get shiny_gen6_dexnav_desc => 'The higher your Search Level for this Pokémon, the better your shiny odds. One of the most interactive hunting methods!';
+	@override String get shiny_gen6_dexnav_link_reddit => 'Reddit - DexNav Survival Guide';
+	@override String get shiny_gen6_dexnav_link_yt => 'YouTube - DexNav Tutorial';
+	@override String get shiny_gen6_dexnav_link_pokecomm => 'PokeCommunity - DexNav Guide';
+	@override String get shiny_gen6_chaining_link_wiki => 'PokéWiki - Shiny Chaining (DE)';
+	@override String get shiny_gen6_sr_title => 'Soft Resets (Odds: 1:4096)';
+	@override String get shiny_gen6_sr_desc => 'For legendaries (that aren\'t locked, e.g., from Hoopa rings) and stationary Pokémon. With Shiny Charm, odds increase to 1:1365.';
+	@override String get shiny_not_in_gen => 'This Pokémon cannot be regularly caught or bred in this generation.';
+	@override String get shiny_gen6_snorlax_warning_title => 'Snorlax Shiny Lock';
+	@override String get shiny_gen6_snorlax_warning_desc => 'Warning: The stationary (sleeping) Snorlax on Route 7 in X/Y is shiny locked! You have to breed it to get a shiny in Gen 6.';
+	@override String get shiny_gen6_locked_desc => 'In Gen 6, Mewtwo, the Legendary Birds, Xerneas, Yveltal, Zygarde, Kyogre, Groudon, Rayquaza, Deoxys as well as Diancie, Hoopa, and Volcanion are shiny locked!';
 }
 
 /// Flat map(s) containing all translations.
@@ -3322,6 +3410,50 @@ extension on Translations {
 			case 'shiny_gen4_roamer_desc': return 'Die Werte und der Shiny-Status werden festgelegt, sobald das Pokémon in die Wildnis entlassen wird! Du musst VOR diesem Gespräch / Event speichern und bei Misserfolg komplett resetten.';
 			case 'shiny_gen4_sr_title': return 'Soft Resets (Chance: 1:8192)';
 			case 'shiny_gen4_sr_desc': return 'Für stationäre Begegnungen, Legendäre Pokémon oder Geschenke. Speichere direkt vor dem Event und starte das Spiel neu, bis es Shiny ist.';
+			case 'shiny_gen5_huntable_yes': return 'Shiny Huntable: Ja (Basis-Chance 1:8192)';
+			case 'shiny_gen5_locked_title': return 'Shiny Locked!';
+			case 'shiny_gen5_locked_desc': return 'Achtung: Dieses Pokémon kann in Generation 5 NICHT als Shiny erhalten werden (vom Spiel gesperrt).';
+			case 'shiny_gen5_charm_title': return 'Schillerpin (Nur S2/W2)';
+			case 'shiny_gen5_charm_desc': return 'Der Schillerpin wurde in Schwarz 2 / Weiß 2 eingeführt. Er erhöht die wilde Shiny-Chance auf ca. 1:2731 (3/8192).';
+			case 'shiny_gen5_masuda_title': return 'Masuda-Methode (Bis zu 1:1024)';
+			case 'shiny_gen5_masuda_desc': return 'Züchte zwei Pokémon aus unterschiedlichen Sprachregionen. Chance in Gen 5: 1:1365 (Ohne Pin) / 1:1024 (Mit Schillerpin in S2/W2).';
+			case 'shiny_gen5_darkgrass_title': return 'Dunkles Gras (Doppelkämpfe)';
+			case 'shiny_gen5_darkgrass_desc': return 'Im dunklen Gras triffst du oft auf zwei Pokémon gleichzeitig. Das ändert zwar nicht die Basis-Chance, halbiert aber die Zeit pro Begegnung massiv!';
+			case 'shiny_gen5_sr_title': return 'Soft Resets (Chance: 1:8192)';
+			case 'shiny_gen5_sr_desc': return 'Für Legendäre (außer den gesperrten) und statische Begegnungen. Die Shiny-Chance lässt sich in S2/W2 durch den Schillerpin auf 1:2731 verbessern.';
+			case 'shiny_gen5_rng_title': return 'RNG Manipulation (Gen 5)';
+			case 'shiny_gen5_rng_desc': return 'Gen 5 ist eine der anfängerfreundlichsten Generationen für RNG, da oft nur das exakte Datum und die Sekunde im DS-Menü getroffen werden muss.';
+			case 'shiny_gen5_rng_link_blisy': return 'im a blisy - Gen 5 RNG (YouTube) (EN)';
+			case 'shiny_gen5_rng_link_retail': return 'Retail RNG - Gen 5 Guide (EN)';
+			case 'shiny_gen5_rng_link_smogon': return 'Smogon - Gen 5 RNG Guide (EN)';
+			case 'shiny_gen6_huntable_yes': return 'Shiny Huntable: Ja (Neue Basis-Chance: 1:4096)';
+			case 'shiny_gen6_locked_title': return 'Shiny Locks in Gen 6';
+			case 'shiny_gen6_masuda_title': return 'Masuda-Methode (Bis zu 1:512)';
+			case 'shiny_gen6_masuda_desc': return 'Züchte mit zwei Sprachregionen. Chance: 1:683 (ohne Pin) / 1:512 (mit Schillerpin). Tipp: Nutze die O-Kraft \'Brutkraft\', um Eier rasend schnell auszubrüten!';
+			case 'shiny_gen6_fishing_title': return 'Kettenangeln / Chain Fishing (Bis zu ~1:100)';
+			case 'shiny_gen6_fishing_desc': return 'Wirf die Angel erfolgreich immer wieder an derselben Stelle aus. Ein Pokémon mit der Fähigkeit \'Saugnapf\' oder \'Wertehalter\' an der Spitze deines Teams ist Pflicht!';
+			case 'shiny_gen6_fishing_link_yt': return 'YouTube - Chain Fishing Tutorial (EN)';
+			case 'shiny_gen6_fishing_link_reddit': return 'Reddit - Chain Fishing Guide (EN)';
+			case 'shiny_gen6_horde_title': return 'Massenbegegnungen / Hordes (Effektiv ~1:819)';
+			case 'shiny_gen6_horde_desc': return 'Nutze die Attacke \'Lockduft\' oder das Item \'Honig\', um 5 Pokémon gleichzeitig zu treffen. Sehr entspannte Methode!';
+			case 'shiny_gen6_radar_title': return 'Poké-Radar in X/Y (Bis zu 1:200)';
+			case 'shiny_gen6_radar_desc': return 'Wie in Gen 4: Bei einer Kette von 40 im hohen Gras hast du extrem hohe Chancen auf das glitzernde Grasfeld.';
+			case 'shiny_gen6_radar_link_yt': return 'YouTube - X/Y Radar Tutorial (EN)';
+			case 'shiny_gen6_radar_link_slides': return 'Google Slides - Radar Guide (EN)';
+			case 'shiny_gen6_friendsafari_title': return 'Kontaktsafari (Feste Chance: 1:512)';
+			case 'shiny_gen6_friendsafari_desc': return 'Exklusiv nach der Liga in X/Y. Jedes Pokémon hier hat eine feste Shiny-Chance von 1:512. Schillerpin oder Ketten haben hier KEINEN Einfluss.';
+			case 'shiny_gen6_dexnav_title': return 'DexNav in OR/AS';
+			case 'shiny_gen6_dexnav_desc': return 'Je höher dein Suchlevel (Search Level) für dieses Pokémon, desto besser die Shiny-Chancen. Eine der interaktivsten Jagdmethoden überhaupt!';
+			case 'shiny_gen6_dexnav_link_reddit': return 'Reddit - DexNav Survival Guide (EN)';
+			case 'shiny_gen6_dexnav_link_yt': return 'YouTube - DexNav Tutorial (EN)';
+			case 'shiny_gen6_dexnav_link_pokecomm': return 'PokeCommunity - DexNav Guide (EN)';
+			case 'shiny_gen6_chaining_link_wiki': return 'PokéWiki - Shiny Chaining (DE)';
+			case 'shiny_gen6_sr_title': return 'Soft Resets (Chance: 1:4096)';
+			case 'shiny_gen6_sr_desc': return 'Für Legendäre (die nicht gesperrt sind, z.B. aus Hoopa-Ringen) und statische Pokémon. Mit Schillerpin steigt die Chance auf 1:1365.';
+			case 'shiny_not_in_gen': return 'Dieses Pokémon ist in dieser Generation nicht regulär fangbar oder züchtbar.';
+			case 'shiny_gen6_snorlax_warning_title': return 'Relaxo Shiny Lock';
+			case 'shiny_gen6_snorlax_warning_desc': return 'Hinweis: Das stationäre (schlafende) Relaxo auf Route 7 in X/Y ist Shiny Locked! Um ein Shiny Relaxo in Gen 6 zu erhalten, musst du es züchten.';
+			case 'shiny_gen6_locked_desc': return 'In Gen 6 sind Mewtu, die legendären Vögel, Xerneas, Yveltal, Zygarde, Kyogre, Groudon, Rayquaza, Deoxys sowie Diancie, Hoopa und Volcanion Shiny Locked!';
 			default: return null;
 		}
 	}
@@ -4384,6 +4516,50 @@ extension on _StringsEn {
 			case 'shiny_gen4_roamer_desc': return 'Stats and shininess are locked in the moment the Pokémon is released into the wild! You MUST save BEFORE the conversation/event and reset if it isn\'t shiny when you find it.';
 			case 'shiny_gen4_sr_title': return 'Soft Resets (Odds: 1:8192)';
 			case 'shiny_gen4_sr_desc': return 'For stationary encounters, legendaries, or gifts. Save right before the encounter and reset the game until it shines.';
+			case 'shiny_gen5_huntable_yes': return 'Shiny Huntable: Yes (Base odds 1:8192)';
+			case 'shiny_gen5_locked_title': return 'Shiny Locked!';
+			case 'shiny_gen5_locked_desc': return 'Warning: This Pokémon CANNOT be shiny in Generation 5 (shiny locked by the game).';
+			case 'shiny_gen5_charm_title': return 'Shiny Charm (B2/W2 only)';
+			case 'shiny_gen5_charm_desc': return 'The Shiny Charm was introduced in Black 2 / White 2. It increases wild shiny odds to approx. 1:2731 (3/8192).';
+			case 'shiny_gen5_masuda_title': return 'Masuda Method (Up to 1:1024)';
+			case 'shiny_gen5_masuda_desc': return 'Breed two Pokémon from different language regions. Gen 5 Odds: 1:1365 (No Charm) / 1:1024 (With Shiny Charm in B2/W2).';
+			case 'shiny_gen5_darkgrass_title': return 'Dark Grass (Double Battles)';
+			case 'shiny_gen5_darkgrass_desc': return 'In dark grass, you often encounter two Pokémon at once. This doesn\'t change the base odds, but it massively speeds up your encounters!';
+			case 'shiny_gen5_sr_title': return 'Soft Resets (Odds: 1:8192)';
+			case 'shiny_gen5_sr_desc': return 'For legendaries (except locked ones) and stationary encounters. In B2/W2, the Shiny Charm improves these odds to 1:2731.';
+			case 'shiny_gen5_rng_title': return 'RNG Manipulation (Gen 5)';
+			case 'shiny_gen5_rng_desc': return 'Gen 5 is one of the most beginner-friendly generations for RNG, often only requiring you to hit the exact date and second in the DS menu.';
+			case 'shiny_gen5_rng_link_blisy': return 'im a blisy - Gen 5 RNG (YouTube) (EN)';
+			case 'shiny_gen5_rng_link_retail': return 'Retail RNG - Gen 5 Guide (EN)';
+			case 'shiny_gen5_rng_link_smogon': return 'Smogon - Gen 5 RNG Guide (EN)';
+			case 'shiny_gen6_huntable_yes': return 'Shiny Huntable: Yes (New Base Odds: 1:4096)';
+			case 'shiny_gen6_locked_title': return 'Shiny Locks in Gen 6';
+			case 'shiny_gen6_masuda_title': return 'Masuda Method (Up to 1:512)';
+			case 'shiny_gen6_masuda_desc': return 'Breed two Pokémon from different languages. Odds: 1:683 (No Charm) / 1:512 (With Charm). Tip: Use the \'Hatching O-Power\' to hatch eggs incredibly fast!';
+			case 'shiny_gen6_fishing_title': return 'Chain Fishing (Up to ~1:100)';
+			case 'shiny_gen6_fishing_desc': return 'Reel in a Pokémon consecutively in the same spot. A Pokémon with \'Suction Cups\' or \'Sticky Hold\' in the lead is mandatory!';
+			case 'shiny_gen6_fishing_link_yt': return 'YouTube - Chain Fishing Tutorial';
+			case 'shiny_gen6_fishing_link_reddit': return 'Reddit - Chain Fishing Guide';
+			case 'shiny_gen6_horde_title': return 'Horde Encounters (Effective ~1:819)';
+			case 'shiny_gen6_horde_desc': return 'Use \'Sweet Scent\' or \'Honey\' to encounter 5 Pokémon at once. Very relaxing hunt!';
+			case 'shiny_gen6_radar_title': return 'Poké Radar in X/Y (Up to 1:200)';
+			case 'shiny_gen6_radar_desc': return 'Like in Gen 4: Reaching a chain of 40 in tall grass gives you amazing odds for a sparkling patch.';
+			case 'shiny_gen6_radar_link_yt': return 'YouTube - X/Y Radar Tutorial';
+			case 'shiny_gen6_radar_link_slides': return 'Google Slides - Radar Guide';
+			case 'shiny_gen6_friendsafari_title': return 'Friend Safari (Fixed Odds: 1:512)';
+			case 'shiny_gen6_friendsafari_desc': return 'Exclusive post-game in X/Y. Every Pokémon here has flat 1:512 odds. Shiny Charm and chaining have NO effect here.';
+			case 'shiny_gen6_dexnav_title': return 'DexNav in OR/AS';
+			case 'shiny_gen6_dexnav_desc': return 'The higher your Search Level for this Pokémon, the better your shiny odds. One of the most interactive hunting methods!';
+			case 'shiny_gen6_dexnav_link_reddit': return 'Reddit - DexNav Survival Guide';
+			case 'shiny_gen6_dexnav_link_yt': return 'YouTube - DexNav Tutorial';
+			case 'shiny_gen6_dexnav_link_pokecomm': return 'PokeCommunity - DexNav Guide';
+			case 'shiny_gen6_chaining_link_wiki': return 'PokéWiki - Shiny Chaining (DE)';
+			case 'shiny_gen6_sr_title': return 'Soft Resets (Odds: 1:4096)';
+			case 'shiny_gen6_sr_desc': return 'For legendaries (that aren\'t locked, e.g., from Hoopa rings) and stationary Pokémon. With Shiny Charm, odds increase to 1:1365.';
+			case 'shiny_not_in_gen': return 'This Pokémon cannot be regularly caught or bred in this generation.';
+			case 'shiny_gen6_snorlax_warning_title': return 'Snorlax Shiny Lock';
+			case 'shiny_gen6_snorlax_warning_desc': return 'Warning: The stationary (sleeping) Snorlax on Route 7 in X/Y is shiny locked! You have to breed it to get a shiny in Gen 6.';
+			case 'shiny_gen6_locked_desc': return 'In Gen 6, Mewtwo, the Legendary Birds, Xerneas, Yveltal, Zygarde, Kyogre, Groudon, Rayquaza, Deoxys as well as Diancie, Hoopa, and Volcanion are shiny locked!';
 			default: return null;
 		}
 	}
