@@ -56,6 +56,9 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
     if (gen == 2) {
       return widget.entry.pokemon.id <= 251;
     }
+    if (gen == 3) {
+      return widget.entry.pokemon.id <= 386;
+    }
     return false;
   }
 
@@ -65,6 +68,8 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
       content.add(_buildGen1Specific(context));
     } else if (gen == 2) {
       content.add(_buildGen2Specific(context));
+    } else if (gen == 3) {
+      content.add(_buildGen3Specific(context));
     }
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -77,10 +82,16 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
       final isHuntable = ShinyLogicHelper.isHuntableInGen1(
         widget.entry.pokemon.id,
       );
+
       final statusWidget = Text(
         isHuntable
-            ? Translator.get('shiny_huntable_yes')
-            : Translator.get('shiny_huntable_no'),
+            ? (Translator.get('shiny_gen1_huntable_yes') !=
+                      'shiny_gen1_huntable_yes'
+                  ? Translator.get('shiny_gen1_huntable_yes')
+                  : 'Shiny Huntable: Ja (DV-basiert, Chance 1:8192)')
+            : (Translator.get('shiny_huntable_no') != 'shiny_huntable_no'
+                  ? Translator.get('shiny_huntable_no')
+                  : 'Shiny Huntable: Nein'),
         style: TextStyle(
           color: isHuntable ? Colors.green : Colors.red,
           fontWeight: FontWeight.bold,
@@ -180,6 +191,7 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
       );
 
       Widget calculatorWidget = const SizedBox.shrink();
+
       if (isHuntable && widget.entry.pokemon.id != 151) {
         final baseStats =
             ShinyLogicHelper.gen1BaseStats[widget.entry.pokemon.id];
@@ -280,6 +292,20 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
 
   Widget _buildGen2Specific(BuildContext context) {
     List<Widget> content = [];
+
+    content.add(
+      Text(
+        Translator.get('shiny_gen2_huntable_yes') != 'shiny_gen2_huntable_yes'
+            ? Translator.get('shiny_gen2_huntable_yes')
+            : 'Shiny Huntable: Ja (Basis-Chance 1:8192)',
+        style: const TextStyle(
+          color: Colors.green,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+    );
+    content.add(const SizedBox(height: 16));
+
     if (widget.entry.pokemon.id >= 243 && widget.entry.pokemon.id <= 245) {
       content.add(
         Text(
@@ -489,6 +515,216 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
         ),
       );
     }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: content,
+    );
+  }
+
+  Widget _buildGen3Specific(BuildContext context) {
+    List<Widget> content = [];
+
+    content.add(
+      Text(
+        Translator.get('shiny_gen3_huntable_yes') != 'shiny_gen3_huntable_yes'
+            ? Translator.get('shiny_gen3_huntable_yes')
+            : 'Shiny Huntable: Ja (Basis-Chance 1:8192)',
+        style: const TextStyle(
+          color: Colors.green,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+    );
+    content.add(const SizedBox(height: 16));
+
+    content.add(
+      Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: Theme.of(
+            context,
+          ).colorScheme.primaryContainer.withValues(alpha: 0.3),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.5),
+          ),
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(
+              Icons.info_outline,
+              color: Theme.of(context).colorScheme.primary,
+              size: 20,
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                Translator.get('shiny_gen3_rs_note') != 'shiny_gen3_rs_note'
+                    ? Translator.get('shiny_gen3_rs_note')
+                    : 'Rubin & Saphir: Der Seed ist zufällig...',
+                style: const TextStyle(
+                  fontSize: 13,
+                  fontStyle: FontStyle.italic,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+    content.add(const SizedBox(height: 8));
+
+    content.add(
+      Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: Theme.of(
+            context,
+          ).colorScheme.errorContainer.withValues(alpha: 0.3),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color: Theme.of(context).colorScheme.error.withValues(alpha: 0.5),
+          ),
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(
+              Icons.warning_amber_rounded,
+              color: Theme.of(context).colorScheme.error,
+              size: 20,
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                Translator.get('shiny_gen3_emerald_note') !=
+                        'shiny_gen3_emerald_note'
+                    ? Translator.get('shiny_gen3_emerald_note')
+                    : 'Smaragd: RNG Fehler! Der Start-Seed ist bei jedem Reset immer 0...',
+                style: const TextStyle(
+                  fontSize: 13,
+                  fontStyle: FontStyle.italic,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+    content.add(const SizedBox(height: 8));
+
+    content.add(
+      Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: Theme.of(
+            context,
+          ).colorScheme.tertiaryContainer.withValues(alpha: 0.3),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color: Theme.of(
+              context,
+            ).colorScheme.tertiary.withValues(alpha: 0.5),
+          ),
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(
+              Icons.check_circle_outline,
+              color: Theme.of(context).colorScheme.tertiary,
+              size: 20,
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                Translator.get('shiny_gen3_frbg_note') != 'shiny_gen3_frbg_note'
+                    ? Translator.get('shiny_gen3_frbg_note')
+                    : 'Feuerrot & Blattgrün: Kein RNG Bug...',
+                style: const TextStyle(
+                  fontSize: 13,
+                  fontStyle: FontStyle.italic,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+    content.add(const SizedBox(height: 24));
+
+    content.add(
+      Text(
+        Translator.get('shiny_gen3_links_title') != 'shiny_gen3_links_title'
+            ? Translator.get('shiny_gen3_links_title')
+            : 'RNG Manipulation Guides & Ressourcen',
+        style: const TextStyle(fontWeight: FontWeight.bold),
+      ),
+    );
+    content.add(const SizedBox(height: 12));
+
+    Widget buildLinkBtn(IconData icon, String titleKey, String url) {
+      return Padding(
+        padding: const EdgeInsets.only(bottom: 8.0),
+        child: SizedBox(
+          width: double.infinity,
+          child: ElevatedButton.icon(
+            icon: Icon(icon),
+            label: Text(
+              Translator.get(titleKey) != titleKey
+                  ? Translator.get(titleKey)
+                  : titleKey,
+              textAlign: TextAlign.center,
+            ),
+            onPressed: () => _launchURL(url),
+          ),
+        ),
+      );
+    }
+
+    content.add(
+      buildLinkBtn(
+        Icons.person,
+        'shiny_gen3_link_blisy_channel',
+        'https://www.youtube.com/@imablisy',
+      ),
+    );
+    content.add(
+      buildLinkBtn(
+        Icons.play_circle_filled,
+        'shiny_gen3_link_blisy_playlist',
+        'https://www.youtube.com/watch?v=5feON9zDy6g&list=PL4o9bTT3px_h08zUFb3oChEFku_jG6zyt',
+      ),
+    );
+    content.add(
+      buildLinkBtn(
+        Icons.play_circle_filled,
+        'shiny_gen3_link_blisy_rs_video',
+        'https://www.youtube.com/watch?v=_8qxkkGeXok',
+      ),
+    );
+    content.add(
+      buildLinkBtn(
+        Icons.article,
+        'shiny_gen3_link_smogon',
+        'https://www.smogon.com/ingame/rng/rs_nonbredrng',
+      ),
+    );
+    content.add(
+      buildLinkBtn(
+        Icons.article,
+        'shiny_gen3_link_retail_rng',
+        'https://retailrng.com/emerald/',
+      ),
+    );
+    content.add(
+      buildLinkBtn(
+        Icons.forum,
+        'shiny_gen3_link_reddit_emerald',
+        'https://www.reddit.com/r/pokemonrng/comments/idxt27/rng_manipulation_in_emerald/',
+      ),
+    );
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -620,7 +856,8 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
   @override
   Widget build(BuildContext context) {
     List<Widget> genTiles = [];
-    for (int gen = 1; gen <= 2; gen++) {
+
+    for (int gen = 1; gen <= 3; gen++) {
       if (_shouldShowGen(gen)) {
         Widget content = _buildGenContent(context, gen);
         genTiles.add(

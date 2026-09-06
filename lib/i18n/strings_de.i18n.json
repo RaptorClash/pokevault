@@ -1012,5 +1012,18 @@
     "tutorial_settings_community_title": "Community & Support",
     "tutorial_settings_community_text": "Du hast einen Bug gefunden oder möchtest bei der Entwicklung helfen? Hier findest du alle Links!",
     "tutorial_settings_credits_title": "Danksagungen & Quellen",
-    "tutorial_settings_credits_text": "PokeVault wäre ohne diese tollen Projekte nicht möglich. Schau sie dir gerne an! Das war's – viel Spaß mit der App!"
+    "tutorial_settings_credits_text": "PokeVault wäre ohne diese tollen Projekte nicht möglich. Schau sie dir gerne an! Das war's – viel Spaß mit der App!",
+    "shiny_gen3_huntable_yes": "Shiny Huntable: Ja (Basis-Chance 1:8192)",
+    "shiny_gen3_rs_note": "Rubin & Saphir: Der Seed ist zufällig, Standard Soft Resets (SR) funktionieren problemlos. AUSNAHME: Ist die interne Batterie leer oder der Spielstand hat 999:59h erreicht, friert der Seed bei 0 ein (wie in Smaragd).",
+    "shiny_gen3_emerald_note": "Smaragd: RNG Fehler! Der Start-Seed ist bei jedem Reset immer 0. Klassische Soft Resets bringen nichts, da immer die exakt gleichen Pokémon-Werte generiert werden. Nutze hier die \"Runaway\"-Methode (Flucht & Neu-Encounter) oder RNG Manipulation.",
+    "shiny_gen3_frbg_note": "Feuerrot & Blattgrün: Kein RNG Bug. Der Seed generiert sich bei jedem Spielstart neu. Soft Resets sind völlig bedenkenlos möglich.",
+    "shiny_gen3_links_title": "RNG Manipulation Guides & Ressourcen",
+    "shiny_gen3_link_blisy_channel": "im a blisy - YouTube Kanal (Absolute Empfehlung!)",
+    "shiny_gen3_link_blisy_playlist": "im a blisy - R/S/E RNG Playlist",
+    "shiny_gen3_link_blisy_rs_video": "im a blisy - R/S Stationäre RNG (Video)",
+    "shiny_gen3_link_smogon": "Smogon - R/S Non-Bred RNG Guide",
+    "shiny_gen3_link_retail_rng": "Retail RNG - Smaragd Guide",
+    "shiny_gen3_link_reddit_emerald": "Reddit - RNG Manipulation in Emerald",
+    "shiny_gen1_huntable_yes": "Shiny Huntable: Ja (DV-basiert, Chance 1:8192)",
+    "shiny_gen2_huntable_yes": "Shiny Huntable: Ja (Basis-Chance 1:8192)"
 }
