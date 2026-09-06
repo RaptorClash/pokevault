@@ -8,7 +8,12 @@ class TutorialProvider extends ChangeNotifier {
 
   int getFeatureStep(String id) => _prefs.getInt(id) ?? 0;
 
-  bool hasSeenFeature(String id) => _prefs.getBool(id) ?? false;
+  bool hasSeenFeature(String id) {
+    if (_prefs.getBool('skip_all_tutorials') == true) {
+      return true;
+    }
+    return _prefs.getBool(id) ?? false;
+  }
 
   Future<void> markFeatureAsSeen(String id) async {
     await _prefs.setBool(id, true);
@@ -23,8 +28,6 @@ class TutorialProvider extends ChangeNotifier {
   Future<void> resetAllTutorials() async {
     final allKeys = _prefs.getKeys();
 
-    // WHITELIST: Diese Keys dürfen NICHT gelöscht werden, da sonst
-    // Einstellungen, Google Drive Login und der Migrations-Status verloren gehen!
     final systemKeys = [
       'migrated_to_sqlite_v2',
       'drive_access_token',
@@ -45,13 +48,10 @@ class TutorialProvider extends ChangeNotifier {
       if (!systemKeys.contains(key)) {
         await _prefs.remove(
           key,
-        ); // Löscht ab sofort ALLE Tutorial-Schlüssel zuverlässig
+        );
       }
     }
 
-    // WICHTIGER FIX: Wir setzen den Migrations-Status absichtlich wieder auf true!
-    // Dadurch wird repariert, dass der "Daten auf aktuelle Version anpassen"
-    // Bildschirm bei dir fälschlicherweise bei jedem Start angezeigt wurde.
     await _prefs.setBool('migrated_to_sqlite_v2', true);
 
     notifyListeners();
@@ -59,6 +59,11 @@ class TutorialProvider extends ChangeNotifier {
 
   Future<void> updateFatureStep(String id, int step) async {
     await _prefs.setInt(id, step);
+    notifyListeners();
+  }
+
+  Future<void> skipAllTutorials() async {
+    await _prefs.setBool('skip_all_tutorials', true);
     notifyListeners();
   }
 }

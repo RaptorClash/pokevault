@@ -6,6 +6,8 @@ import '../../l10n/app_translations.dart';
 import '../../utils/notification_helper.dart';
 import '../../constants/app_vectors.dart';
 import 'tutorial_painters.dart';
+import 'package:provider/provider.dart';
+import '../../providers/tutorial_provider.dart';
 
 class TutorialOverlay extends StatefulWidget {
   final TutorialFeature feature;
@@ -539,8 +541,15 @@ class _TutorialOverlayState extends State<TutorialOverlay>
     }
   }
 
-  void _skipTutorial() {
+void _skipTutorial() {
     if (mounted) {
+      try {
+        final tutProvider = Provider.of<TutorialProvider>(context, listen: false);
+        tutProvider.skipAllTutorials();
+      } catch (e) {
+        debugPrint("Fehler beim globalen Überspringen: $e");
+      }
+
       Navigator.of(context).pop();
     }
   }
