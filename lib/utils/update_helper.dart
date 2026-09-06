@@ -60,6 +60,12 @@ class UpdateHelper {
               downloadUrl = asset['browser_download_url'];
               fileExtension = assetName.substring(assetName.lastIndexOf('.'));
               break;
+            } else if (Platform.isLinux &&
+                (assetName.endsWith('.appimage') ||
+                    assetName.endsWith('.tar.gz'))) {
+              downloadUrl = asset['browser_download_url'];
+              fileExtension = assetName.substring(assetName.lastIndexOf('.'));
+              break;
             }
           }
 
@@ -116,6 +122,12 @@ class UpdateHelper {
                 (assetName.endsWith('.zip') ||
                     assetName.endsWith('.exe') ||
                     assetName.endsWith('.msix'))) {
+              downloadUrl = asset['browser_download_url'];
+              fileExtension = assetName.substring(assetName.lastIndexOf('.'));
+              break;
+            } else if (Platform.isLinux &&
+                (assetName.endsWith('.appimage') ||
+                    assetName.endsWith('.tar.gz'))) {
               downloadUrl = asset['browser_download_url'];
               fileExtension = assetName.substring(assetName.lastIndexOf('.'));
               break;
@@ -282,6 +294,37 @@ Set WshShell = Nothing
     await vbsFile.writeAsString(vbsContent);
 
     await Process.start('wscript', [vbsPath], mode: ProcessStartMode.detached);
+    exit(0);
+  }
+
+  static Future<void> _installLinuxUpdate(
+    String newFilePath,
+    String extension,
+  ) async {
+    String currentExe = Platform.resolvedExecutable;
+    Directory tempDir = await getTemporaryDirectory();
+    String shPath = '${tempDir.path}/update_pokevault.sh';
+
+    await Process.run('chmod', ['+x', newFilePath]);
+
+    String appImagePath = Platform.environment['APPIMAGE'] ?? currentExe;
+
+    String shContent =
+        '''
+#!/bin/sh
+sleep 1
+cp -f "$newFilePath" "$appImagePath"
+chmod +x "$appImagePath"
+rm -f "$newFilePath"
+nohup "$appImagePath" >/dev/null 2>&1 &
+rm -f "$shPath"
+''';
+
+    File shFile = File(shPath);
+    await shFile.writeAsString(shContent);
+    await Process.run('chmod', ['+x', shPath]);
+
+    await Process.start('sh', [shPath], mode: ProcessStartMode.detached);
     exit(0);
   }
 }
