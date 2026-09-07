@@ -12,6 +12,7 @@ import 'providers/settings_provider.dart';
 import 'screens/home/home_screen.dart';
 import 'utils/notification_helper.dart';
 import 'i18n/strings.g.dart';
+import 'package:flutter/services.dart';
 
 void main() async {
   FlutterError.onError = (FlutterErrorDetails details) {
@@ -64,6 +65,8 @@ void main() async {
   }
 }
 
+final GlobalKey<NavigatorState> appNavigatorKey = GlobalKey<NavigatorState>();
+
 class PokedexApp extends StatelessWidget {
   const PokedexApp({super.key});
 
@@ -77,6 +80,32 @@ class PokedexApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       scaffoldMessengerKey: NotificationHelper.scaffoldMessengerKey,
       scrollBehavior: AppScrollBehavior(),
+      navigatorKey: appNavigatorKey,
+
+      builder: (context, child) {
+        return Focus(
+          canRequestFocus: false,
+          onKeyEvent: (node, event) {
+            if (event is KeyDownEvent) {
+              if (event.logicalKey == LogicalKeyboardKey.backspace ||
+                  event.logicalKey == LogicalKeyboardKey.browserBack) {
+                if (FocusManager.instance.primaryFocus?.context?.widget
+                    is EditableText) {
+                  return KeyEventResult.ignored;
+                }
+
+                if (appNavigatorKey.currentState?.canPop() ?? false) {
+                  appNavigatorKey.currentState?.pop();
+                  return KeyEventResult.handled;
+                }
+              }
+            }
+            return KeyEventResult.ignored;
+          },
+          child: child ?? const SizedBox(),
+        );
+      },
+
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
           seedColor: themeProvider.lightPrimaryColor,

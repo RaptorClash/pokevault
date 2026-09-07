@@ -361,7 +361,7 @@ class _CreateDexBottomSheetState extends State<CreateDexBottomSheet> {
             }
             return Padding(
               padding: const EdgeInsets.only(right: 12, bottom: 8),
-              child: GestureDetector(
+              child: InkWell(
                 key: itemKey,
                 onTap: () => _selectGroupAndDex(group, group.dexKeys.first),
                 child: AnimatedContainer(
@@ -477,8 +477,7 @@ class _CreateDexBottomSheetState extends State<CreateDexBottomSheet> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: selectedGroup.dexKeys.map((key) {
                 final isSelected = key == selectedSubDex;
-                return GestureDetector(
-                  behavior: HitTestBehavior.opaque,
+                return InkWell(
                   onTap: () => setState(() {
                     _showFakeDropdown = false;
                     _selectSubDex(key);

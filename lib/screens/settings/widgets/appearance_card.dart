@@ -141,7 +141,7 @@ class AppearanceCard extends StatelessWidget {
       children: [
         ...allColorsToDisplay.map((color) {
           final isActive = activeColor.toARGB32() == color.toARGB32();
-          return GestureDetector(
+          return InkWell(
             onTap: () {
               if (isBackground) {
                 themeProvider.updateBackgroundColor(color, isDarkMode);
@@ -181,7 +181,7 @@ class AppearanceCard extends StatelessWidget {
             ),
           );
         }),
-        GestureDetector(
+        InkWell(
           onTap: () => _showColorPickerDialog(
             context,
             themeProvider,

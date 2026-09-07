@@ -23,6 +23,7 @@ import '../../services/google_drive_sync_service.dart';
 import '../../services/database_service.dart';
 import '../../providers/settings_provider.dart';
 import 'widgets/breadcrumb_bar.dart';
+import 'package:flutter/services.dart';
 
 class HomeScreen extends StatefulWidget {
   final String currentFolderId;
@@ -46,6 +47,7 @@ class _HomeScreenState extends State<HomeScreen> {
   late String _currentFolderId;
   int _previousDexCount = 0;
   int _previousFolderCount = 0;
+  final FocusNode _searchFocusNode = FocusNode();
 
   bool get _isSelectionMode => _selectedItemIds.isNotEmpty;
 
@@ -68,6 +70,12 @@ class _HomeScreenState extends State<HomeScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _autoSyncDrive();
     });
+  }
+
+  @override
+  void dispose() {
+    _searchFocusNode.dispose();
+    super.dispose();
   }
 
   Future<void> _autoSyncDrive() async {
@@ -673,271 +681,322 @@ class _HomeScreenState extends State<HomeScreen> {
       }
     }
 
-    return Scaffold(
-      appBar: AppBar(
-        leading: _isSelectionMode
-            ? IconButton(
-                icon: const Icon(Icons.close),
-                onPressed: _clearSelection,
-              )
-            : (_currentFolderId != 'root'
-                  ? IconButton(
-                      icon: const Icon(Icons.arrow_back),
-                      onPressed: () {
+    final bool canPop = !_isSelectionMode && _currentFolderId == 'root';
+
+    return PopScope(
+      canPop: canPop,
+      onPopInvoked: (didPop) {
+        if (didPop) return;
+
+        if (_isSelectionMode) {
+          _clearSelection();
+        } else if (_currentFolderId != 'root') {
+          setState(() {
+            _currentFolderId = HomeDialogs.getParentId(
+              provider,
+              _currentFolderId,
+            );
+            _searchQuery = '';
+          });
+        }
+      },
+      child: Focus(
+        autofocus: true,
+        onKeyEvent: (node, event) {
+          if (event is KeyDownEvent) {
+            if (_searchFocusNode.hasFocus &&
+                event.logicalKey == LogicalKeyboardKey.backspace) {
+              return KeyEventResult.ignored;
+            }
+
+            if (event.logicalKey == LogicalKeyboardKey.backspace ||
+                event.logicalKey == LogicalKeyboardKey.browserBack) {
+              if (_isSelectionMode) {
+                _clearSelection();
+                return KeyEventResult.handled;
+              } else if (_currentFolderId != 'root') {
+                setState(() {
+                  _currentFolderId = HomeDialogs.getParentId(
+                    provider,
+                    _currentFolderId,
+                  );
+                  _searchQuery = '';
+                });
+                return KeyEventResult.handled;
+              }
+            }
+          }
+          return KeyEventResult.ignored;
+        },
+        child: Scaffold(
+          appBar: AppBar(
+            leading: _isSelectionMode
+                ? IconButton(
+                    icon: const Icon(Icons.close),
+                    onPressed: _clearSelection,
+                  )
+                : (_currentFolderId != 'root'
+                      ? IconButton(
+                          icon: const Icon(Icons.arrow_back),
+                          onPressed: () {
+                            setState(() {
+                              _currentFolderId = HomeDialogs.getParentId(
+                                provider,
+                                _currentFolderId,
+                              );
+                              _searchQuery = '';
+                            });
+                          },
+                        )
+                      : null),
+            titleSpacing: _isSelectionMode ? null : 0,
+            title: _isSelectionMode
+                ? Text('${_selectedItemIds.length} ausgewählt')
+                : BreadcrumbBar(
+                    path: _getBreadcrumbs(provider),
+                    onHomeTap: () {
+                      if (_currentFolderId != 'root') {
                         setState(() {
-                          _currentFolderId = HomeDialogs.getParentId(
-                            provider,
-                            _currentFolderId,
-                          );
+                          _currentFolderId = 'root';
                           _searchQuery = '';
                         });
-                      },
-                    )
-                  : null),
-        titleSpacing: _isSelectionMode ? null : 0,
-        title: _isSelectionMode
-            ? Text('${_selectedItemIds.length} ausgewählt')
-            : BreadcrumbBar(
-                path: _getBreadcrumbs(provider),
-                onHomeTap: () {
-                  if (_currentFolderId != 'root') {
-                    setState(() {
-                      _currentFolderId = 'root';
-                      _searchQuery = '';
-                    });
-                  }
-                },
-                onFolderTap: (folderId) {
-                  if (_currentFolderId != folderId) {
-                    setState(() {
-                      _currentFolderId = folderId;
-                      _searchQuery = '';
-                    });
-                  }
-                },
-              ),
-        actions: _isSelectionMode
-            ? [
-                IconButton(
-                  key: _moveActionKey,
-                  icon: const Icon(Icons.drive_file_move_outline),
-                  tooltip: 'Verschieben',
-                  onPressed: () => HomeDialogs.showMoveDialog(
-                    context,
-                    provider,
-                    _selectedItemIds,
-                    _clearSelection,
+                      }
+                    },
+                    onFolderTap: (folderId) {
+                      if (_currentFolderId != folderId) {
+                        setState(() {
+                          _currentFolderId = folderId;
+                          _searchQuery = '';
+                        });
+                      }
+                    },
                   ),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.upload),
-                  tooltip: 'Exportieren',
-                  onPressed: () async {
-                    try {
-                      final dexesToExport = HomeDialogs.getDexesToExport(
+            actions: _isSelectionMode
+                ? [
+                    IconButton(
+                      key: _moveActionKey,
+                      icon: const Icon(Icons.drive_file_move_outline),
+                      tooltip: 'Verschieben',
+                      onPressed: () => HomeDialogs.showMoveDialog(
+                        context,
                         provider,
                         _selectedItemIds,
-                      );
-                      if (dexesToExport.isNotEmpty) {
-                        await DexStorageService.exportDexes(
-                          dexesToExport,
-                          provider,
-                        );
-                        _clearSelection();
-                      } else {
-                        NotificationHelper.showWarning(
-                          'Keine Dexe zum Exportieren in der Auswahl gefunden.',
-                        );
-                      }
-                    } catch (e) {
-                      NotificationHelper.showError(
-                        '${Translator.get('error')} $e',
-                      );
-                    }
-                  },
-                ),
-                IconButton(
-                  icon: const Icon(Icons.delete, color: Colors.red),
-                  tooltip: 'Löschen',
-                  onPressed: () => HomeDialogs.confirmMultipleDelete(
-                    context,
-                    provider,
-                    _selectedItemIds,
-                    _clearSelection,
-                  ),
-                ),
-              ]
-            : [
-                if (_currentFolderId == 'root')
-                  IconButton(
-                    key: _settingsActionKey,
-                    icon: const Icon(Icons.settings),
-                    onPressed: () {
-                      Navigator.push(
+                        _clearSelection,
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.upload),
+                      tooltip: 'Exportieren',
+                      onPressed: () async {
+                        try {
+                          final dexesToExport = HomeDialogs.getDexesToExport(
+                            provider,
+                            _selectedItemIds,
+                          );
+                          if (dexesToExport.isNotEmpty) {
+                            await DexStorageService.exportDexes(
+                              dexesToExport,
+                              provider,
+                            );
+                            _clearSelection();
+                          } else {
+                            NotificationHelper.showWarning(
+                              'Keine Dexe zum Exportieren in der Auswahl gefunden.',
+                            );
+                          }
+                        } catch (e) {
+                          NotificationHelper.showError(
+                            '${Translator.get('error')} $e',
+                          );
+                        }
+                      },
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.delete, color: Colors.red),
+                      tooltip: 'Löschen',
+                      onPressed: () => HomeDialogs.confirmMultipleDelete(
                         context,
-                        MaterialPageRoute(
-                          builder: (context) => const SettingsScreen(),
-                        ),
-                      ).then((_) {
-                        _showTutorialIfNeeded();
-                      });
-                    },
-                  ),
-              ],
-      ),
-      body: Column(
-        children: [
-          if (!_isSelectionMode)
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      decoration: InputDecoration(
-                        hintText: Translator.get('search_hint'),
-                        prefixIcon: const Icon(Icons.search),
-                        filled: true,
-                        fillColor: Theme.of(context)
-                            .colorScheme
-                            .surfaceContainerHighest
-                            .withValues(alpha: 0.3),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide.none,
+                        provider,
+                        _selectedItemIds,
+                        _clearSelection,
+                      ),
+                    ),
+                  ]
+                : [
+                    if (_currentFolderId == 'root')
+                      IconButton(
+                        key: _settingsActionKey,
+                        icon: const Icon(Icons.settings),
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const SettingsScreen(),
+                            ),
+                          ).then((_) {
+                            _showTutorialIfNeeded();
+                          });
+                        },
+                      ),
+                  ],
+          ),
+          body: Column(
+            children: [
+              if (!_isSelectionMode)
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          focusNode:
+                              _searchFocusNode,
+                          decoration: InputDecoration(
+                            hintText: Translator.get('search_hint'),
+                            prefixIcon: const Icon(Icons.search),
+                            filled: true,
+                            fillColor: Theme.of(context)
+                                .colorScheme
+                                .surfaceContainerHighest
+                                .withValues(alpha: 0.3),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide.none,
+                            ),
+                          ),
+                          onChanged: (value) =>
+                              setState(() => _searchQuery = value),
                         ),
                       ),
-                      onChanged: (value) =>
-                          setState(() => _searchQuery = value),
-                    ),
+                      const SizedBox(width: 8),
+                      Container(
+                        key: _sortDropdownKey,
+                        decoration: BoxDecoration(
+                          color: Theme.of(context)
+                              .colorScheme
+                              .surfaceContainerHighest
+                              .withValues(alpha: 0.3),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: PopupMenuButton<String>(
+                          icon: const Icon(Icons.sort),
+                          onSelected: (value) =>
+                              setState(() => _currentSort = value),
+                          itemBuilder: (context) => [
+                            PopupMenuItem(
+                              value: 'manual',
+                              child: Text(
+                                'Manuell',
+                                style: TextStyle(
+                                  fontWeight: _currentSort == 'manual'
+                                      ? FontWeight.bold
+                                      : FontWeight.normal,
+                                ),
+                              ),
+                            ),
+                            PopupMenuItem(
+                              value: 'az',
+                              child: Text(
+                                'A-Z',
+                                style: TextStyle(
+                                  fontWeight: _currentSort == 'az'
+                                      ? FontWeight.bold
+                                      : FontWeight.normal,
+                                ),
+                              ),
+                            ),
+                            PopupMenuItem(
+                              value: 'caught',
+                              child: Text(
+                                'Meiste Gefangen',
+                                style: TextStyle(
+                                  fontWeight: _currentSort == 'caught'
+                                      ? FontWeight.bold
+                                      : FontWeight.normal,
+                                ),
+                              ),
+                            ),
+                            PopupMenuItem(
+                              value: 'region',
+                              child: Text(
+                                'Nach Region',
+                                style: TextStyle(
+                                  fontWeight: _currentSort == 'region'
+                                      ? FontWeight.bold
+                                      : FontWeight.normal,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(width: 8),
-                  Container(
-                    key: _sortDropdownKey,
-                    decoration: BoxDecoration(
-                      color: Theme.of(context)
-                          .colorScheme
-                          .surfaceContainerHighest
-                          .withValues(alpha: 0.3),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: PopupMenuButton<String>(
-                      icon: const Icon(Icons.sort),
-                      onSelected: (value) =>
-                          setState(() => _currentSort = value),
-                      itemBuilder: (context) => [
-                        PopupMenuItem(
-                          value: 'manual',
-                          child: Text(
-                            'Manuell',
-                            style: TextStyle(
-                              fontWeight: _currentSort == 'manual'
-                                  ? FontWeight.bold
-                                  : FontWeight.normal,
+                ),
+              Expanded(
+                child: _getSortedItems(provider, _currentFolderId).isEmpty
+                    ? Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.catching_pokemon,
+                              size: 64,
+                              color: Theme.of(context).dividerColor,
                             ),
-                          ),
-                        ),
-                        PopupMenuItem(
-                          value: 'az',
-                          child: Text(
-                            'A-Z',
-                            style: TextStyle(
-                              fontWeight: _currentSort == 'az'
-                                  ? FontWeight.bold
-                                  : FontWeight.normal,
+                            const SizedBox(height: 16),
+                            Text(
+                              _searchQuery.isEmpty
+                                  ? Translator.get('no_dex')
+                                  : 'Keine Ergebnisse gefunden',
+                              style: TextStyle(
+                                color: Theme.of(context).hintColor,
+                                fontSize: 16,
+                              ),
                             ),
-                          ),
+                          ],
                         ),
-                        PopupMenuItem(
-                          value: 'caught',
-                          child: Text(
-                            'Meiste Gefangen',
-                            style: TextStyle(
-                              fontWeight: _currentSort == 'caught'
-                                  ? FontWeight.bold
-                                  : FontWeight.normal,
-                            ),
-                          ),
+                      )
+                    : _currentSort == 'manual' &&
+                          _searchQuery.isEmpty &&
+                          !_isSelectionMode
+                    ? ReorderableListView(
+                        buildDefaultDragHandles: false,
+                        padding: const EdgeInsets.only(
+                          bottom: 80,
+                          left: 16,
+                          right: 16,
                         ),
-                        PopupMenuItem(
-                          value: 'region',
-                          child: Text(
-                            'Nach Region',
-                            style: TextStyle(
-                              fontWeight: _currentSort == 'region'
-                                  ? FontWeight.bold
-                                  : FontWeight.normal,
-                            ),
-                          ),
+                        onReorder: (oldIndex, newIndex) {
+                          if (newIndex > oldIndex) newIndex -= 1;
+                          provider.reorderItem(
+                            _currentFolderId,
+                            oldIndex,
+                            newIndex,
+                          );
+                        },
+                        children: _buildTree(provider, _currentFolderId, true),
+                      )
+                    : ListView(
+                        padding: const EdgeInsets.only(
+                          bottom: 80,
+                          left: 16,
+                          right: 16,
                         ),
-                      ],
-                    ),
-                  ),
-                ],
+                        children: _buildTree(provider, _currentFolderId, true),
+                      ),
               ),
-            ),
-          Expanded(
-            child: _getSortedItems(provider, _currentFolderId).isEmpty
-                ? Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.catching_pokemon,
-                          size: 64,
-                          color: Theme.of(context).dividerColor,
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          _searchQuery.isEmpty
-                              ? Translator.get('no_dex')
-                              : 'Keine Ergebnisse gefunden',
-                          style: TextStyle(
-                            color: Theme.of(context).hintColor,
-                            fontSize: 16,
-                          ),
-                        ),
-                      ],
-                    ),
-                  )
-                : _currentSort == 'manual' &&
-                      _searchQuery.isEmpty &&
-                      !_isSelectionMode
-                ? ReorderableListView(
-                    buildDefaultDragHandles: false,
-                    padding: const EdgeInsets.only(
-                      bottom: 80,
-                      left: 16,
-                      right: 16,
-                    ),
-                    onReorder: (oldIndex, newIndex) {
-                      if (newIndex > oldIndex) newIndex -= 1;
-                      provider.reorderItem(
-                        _currentFolderId,
-                        oldIndex,
-                        newIndex,
-                      );
-                    },
-                    children: _buildTree(provider, _currentFolderId, true),
-                  )
-                : ListView(
-                    padding: const EdgeInsets.only(
-                      bottom: 80,
-                      left: 16,
-                      right: 16,
-                    ),
-                    children: _buildTree(provider, _currentFolderId, true),
-                  ),
+            ],
           ),
-        ],
+          floatingActionButton: !_isSelectionMode
+              ? FloatingActionButton(
+                  key: _fabKey,
+                  onPressed: _openCreateBottomSheet,
+                  child: const Icon(Icons.add),
+                )
+              : null,
+        ),
       ),
-      floatingActionButton: !_isSelectionMode
-          ? FloatingActionButton(
-              key: _fabKey,
-              onPressed: _openCreateBottomSheet,
-              child: const Icon(Icons.add),
-            )
-          : null,
     );
   }
 }
