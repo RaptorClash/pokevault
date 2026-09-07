@@ -1,23 +1,35 @@
+import 'dart:ui';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'dart:ui';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:sqflite_common_ffi_web/sqflite_ffi_web.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'providers/theme_provider.dart';
 import 'providers/dex_provider.dart';
 import 'providers/tutorial_provider.dart';
+import 'providers/settings_provider.dart';
 import 'screens/home/home_screen.dart';
 import 'utils/notification_helper.dart';
-import 'l10n/app_translations.dart';
-import 'providers/settings_provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'i18n/strings.g.dart';
 
 void main() async {
+  FlutterError.onError = (FlutterErrorDetails details) {
+    FlutterError.presentError(details);
+    debugPrint('Framework Error: ${details.exception}');
+  };
+
+  PlatformDispatcher.instance.onError = (error, stack) {
+    debugPrint('Async Error: $error');
+
+    if (NotificationHelper.scaffoldMessengerKey.currentState != null) {
+      NotificationHelper.showError("Unerwarteter Fehler: $error");
+    }
+    return true;
+  };
+
   try {
     WidgetsFlutterBinding.ensureInitialized();
-
     LocaleSettings.useDeviceLocale();
 
     final prefs = await SharedPreferences.getInstance();
@@ -29,6 +41,7 @@ void main() async {
       sqfliteFfiInit();
       databaseFactory = databaseFactoryFfi;
     }
+
     PaintingBinding.instance.imageCache.maximumSize = 150;
     PaintingBinding.instance.imageCache.maximumSizeBytes = 1024 * 1024 * 40;
 
@@ -45,8 +58,9 @@ void main() async {
         ),
       ),
     );
-  } catch (e) {
-    NotificationHelper.showError("${Translator.get('error')} $e");
+  } catch (e, stackTrace) {
+    debugPrint('Fataler Init-Fehler: $e\n$stackTrace');
+    runApp(InitErrorApp(errorMessage: e.toString()));
   }
 }
 
@@ -92,4 +106,51 @@ class AppScrollBehavior extends MaterialScrollBehavior {
     PointerDeviceKind.mouse,
     PointerDeviceKind.trackpad,
   };
+}
+
+class InitErrorApp extends StatelessWidget {
+  final String errorMessage;
+
+  const InitErrorApp({super.key, required this.errorMessage});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: Scaffold(
+        backgroundColor: Colors.white,
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(
+                  Icons.error_outline,
+                  color: Colors.redAccent,
+                  size: 80,
+                ),
+                const SizedBox(height: 24),
+                const Text(
+                  'Kritischer Fehler beim Starten der App',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black87,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  errorMessage,
+                  style: const TextStyle(fontSize: 14, color: Colors.black54),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }
