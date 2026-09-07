@@ -1177,5 +1177,13 @@
     "shiny_gen95_locked_desc": "Kyogre, Groudon, Rayquaza, Xerneas, Yveltal, Zygarde, Heatran, Darkrai and all side mission encounters (except Mareep) are shiny locked!",
     "shiny_gen95_link_reddit": "Reddit - Best PLZA Hunting Methods",
     "shiny_gen95_link_ign": "IGN - PLZA Shiny Guide",
-    "shiny_gen95_link_yt_de": "YouTube - Z-A Shiny Tutorial (DE)"
+    "shiny_gen95_link_yt_de": "YouTube - Z-A Shiny Tutorial (DE)",
+    "route_tracker_title": "Route Tracker",
+    "search_route_pokemon": "Search route or Pokémon...",
+    "hide_completed_routes": "Hide completed routes",
+    "games_filter_title": "Filter Games & Versions",
+    "visible_editions": "Visible Editions",
+    "generation_x": "Generation {0}",
+    "none": "None",
+    "all": "All"
 }

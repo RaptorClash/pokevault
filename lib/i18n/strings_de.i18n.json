@@ -555,7 +555,6 @@
     "shiny_guide_gen5": "Generation 5",
     "shiny_guide_gen6": "Generation 6",
     "shiny_guide_gen7": "Generation 7",
-    "shiny_guide_gen9": "Generation 9",
     "shiny_hunt_methods_soon": "Weitere Jagdmethoden werden in Zukunft hinzugefügt.",
     "shiny_guide_missing_note": "Hinweis: Wenn eine Generation nicht aufgeführt ist, kann das Pokémon dort nicht regulär als Shiny gejagt/gezüchtet werden (oder die Jagdmethoden werden in zukünftigen Updates ergänzt).",
     "shiny_odd_egg_title": "Das Kurios-Ei (Pokémon Kristall)",
@@ -1165,5 +1164,13 @@
     "shiny_gen95_locked_desc": "Kyogre, Groudon, Rayquaza, Xerneas, Yveltal, Zygarde, Heatran, Darkrai und alle Nebenmissions-Begegnungen (außer Voltilamm) sind gesperrt!",
     "shiny_gen95_link_reddit": "Reddit - Best PLZA Hunting Methods (EN)",
     "shiny_gen95_link_ign": "IGN - PLZA Shiny Guide (EN)",
-    "shiny_gen95_link_yt_de": "YouTube - Z-A Shiny Tutorial (DE)"
+    "shiny_gen95_link_yt_de": "YouTube - Z-A Shiny Tutorial (DE)",
+    "route_tracker_title": "Routen-Tracker",
+    "search_route_pokemon": "Suche Route oder Pokémon...",
+    "hide_completed_routes": "Fertige Routen ausblenden",
+    "games_filter_title": "Spiele & Editionen filtern",
+    "visible_editions": "Sichtbare Editionen",
+    "generation_x": "Generation {0}",
+    "none": "Keine",
+    "all": "Alle"
 }
