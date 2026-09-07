@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart';
-import 'package:cached_network_image/cached_network_image.dart';
+
+import 'poke_image_io.dart' if (dart.library.html) 'poke_image_web.dart';
 
 class UniversalPokeImage extends StatelessWidget {
   final String imageUrl;
@@ -24,75 +24,15 @@ class UniversalPokeImage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (kIsWeb) {
-      return Image.network(
-        imageUrl,
-        width: width,
-        height: height,
-        fit: fit,
-        errorBuilder: (context, error, stackTrace) {
-          if (fallbackUrl != null && fallbackUrl!.isNotEmpty) {
-            return Image.network(
-              fallbackUrl!,
-              width: width,
-              height: height,
-              fit: fit,
-              errorBuilder: (c, e, s) => Icon(
-                Icons.catching_pokemon,
-                color: Colors.grey,
-                size: errorIconSize,
-              ),
-            );
-          }
-          return Icon(
-            Icons.catching_pokemon,
-            color: Colors.grey,
-            size: errorIconSize,
-          );
-        },
-      );
-    } else {
-      return CachedNetworkImage(
-        imageUrl: imageUrl,
-        width: width,
-        height: height,
-        fit: fit,
-        fadeInDuration: const Duration(milliseconds: 200),
-        placeholder:
-            placeholder ??
-            (context, url) => Center(
-              child: SizedBox(
-                width: width != null ? width! * 0.5 : 24,
-                height: height != null ? height! * 0.5 : 24,
-                child: const CircularProgressIndicator(strokeWidth: 2),
-              ),
-            ),
-        errorWidget: (context, url, error) {
-          if (fallbackUrl != null && fallbackUrl!.isNotEmpty) {
-            return CachedNetworkImage(
-              imageUrl: fallbackUrl!,
-              width: width,
-              height: height,
-              fit: fit,
-              placeholder:
-                  placeholder ??
-                  (context, url) => const Center(
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  ),
-              errorWidget: (c, e, s) => Icon(
-                Icons.catching_pokemon,
-                color: Colors.grey,
-                size: errorIconSize,
-              ),
-            );
-          }
-          return Icon(
-            Icons.catching_pokemon,
-            color: Colors.grey,
-            size: errorIconSize,
-          );
-        },
-      );
-    }
+    return buildPokeImage(
+      context: context,
+      imageUrl: imageUrl,
+      fallbackUrl: fallbackUrl,
+      width: width,
+      height: height,
+      fit: fit,
+      errorIconSize: errorIconSize,
+      placeholder: placeholder,
+    );
   }
 }
