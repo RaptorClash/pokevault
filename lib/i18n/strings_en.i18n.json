@@ -1185,5 +1185,7 @@
     "visible_editions": "Visible Editions",
     "generation_x": "Generation {0}",
     "none": "None",
-    "all": "All"
+    "all": "All",
+    "box_check_all": "Check whole box",
+    "box_uncheck_all": "Uncheck whole box"
 }

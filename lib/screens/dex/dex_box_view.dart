@@ -169,6 +169,48 @@ class DexBoxView extends StatelessWidget {
                             ),
                           ),
                         ),
+                        Padding(
+                          padding: const EdgeInsets.only(left: 8.0),
+                          child: IconButton(
+                            icon: Icon(
+                              box.entries.every(
+                                    (e) =>
+                                        liveDex.caughtIds.contains(e.uniqueId),
+                                  )
+                                  ? Icons.check_box
+                                  : Icons.check_box_outline_blank,
+                              color: Theme.of(context).colorScheme.primary,
+                            ),
+                            tooltip: Translator.get(
+                              box.entries.every(
+                                    (e) =>
+                                        liveDex.caughtIds.contains(e.uniqueId),
+                                  )
+                                  ? 'box_uncheck_all'
+                                  : 'box_check_all',
+                            ),
+                            onPressed: () {
+                              bool allCaught = box.entries.every(
+                                (e) => liveDex.caughtIds.contains(e.uniqueId),
+                              );
+
+                              bool newState = !allCaught;
+
+                              for (var entry in box.entries) {
+                                bool isCaught = liveDex.caughtIds.contains(
+                                  entry.uniqueId,
+                                );
+
+                                if (isCaught != newState) {
+                                  provider.togglePokemon(
+                                    liveDex.id,
+                                    entry.uniqueId,
+                                  );
+                                }
+                              }
+                            },
+                          ),
+                        ),
                         IconButton(
                           icon: const Icon(Icons.chevron_right),
                           onPressed: () {

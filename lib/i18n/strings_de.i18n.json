@@ -1172,5 +1172,7 @@
     "visible_editions": "Sichtbare Editionen",
     "generation_x": "Generation {0}",
     "none": "Keine",
-    "all": "Alle"
+    "all": "Alle",
+    "box_check_all": "Ganze Box abhaken",
+    "box_uncheck_all": "Ganze Box Markierung aufheben"
 }

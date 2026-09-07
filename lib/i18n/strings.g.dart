@@ -4,9 +4,9 @@
 /// To regenerate, run: `dart run slang`
 ///
 /// Locales: 2
-/// Strings: 2348 (1174 per locale)
+/// Strings: 2352 (1176 per locale)
 ///
-/// Built on 2026-09-07 at 20:03 UTC
+/// Built on 2026-09-07 at 20:19 UTC
 
 // coverage:ignore-file
 // ignore_for_file: type=lint
@@ -1316,6 +1316,8 @@ class Translations implements BaseTranslations<AppLocale, Translations> {
 	String get generation_x => 'Generation {0}';
 	String get none => 'Keine';
 	String get all => 'Alle';
+	String get box_check_all => 'Ganze Box abhaken';
+	String get box_uncheck_all => 'Ganze Box Markierung aufheben';
 }
 
 // Path: <root>
@@ -2524,6 +2526,8 @@ class _StringsEn extends Translations {
 	@override String get generation_x => 'Generation {0}';
 	@override String get none => 'None';
 	@override String get all => 'All';
+	@override String get box_check_all => 'Check whole box';
+	@override String get box_uncheck_all => 'Uncheck whole box';
 }
 
 /// Flat map(s) containing all translations.
@@ -3700,6 +3704,8 @@ extension on Translations {
 			case 'generation_x': return 'Generation {0}';
 			case 'none': return 'Keine';
 			case 'all': return 'Alle';
+			case 'box_check_all': return 'Ganze Box abhaken';
+			case 'box_uncheck_all': return 'Ganze Box Markierung aufheben';
 			default: return null;
 		}
 	}
@@ -4888,6 +4894,8 @@ extension on _StringsEn {
 			case 'generation_x': return 'Generation {0}';
 			case 'none': return 'None';
 			case 'all': return 'All';
+			case 'box_check_all': return 'Check whole box';
+			case 'box_uncheck_all': return 'Uncheck whole box';
 			default: return null;
 		}
 	}
