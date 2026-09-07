@@ -526,10 +526,10 @@ class _CreateDexBottomSheetState extends State<CreateDexBottomSheet> {
           SwitchListTile(
             key: _shinyKey,
             title: Text(
-              Translator.get('tutorial_create_step6_title') !=
-                      'tutorial_create_step6_title'
-                  ? Translator.get('tutorial_create_step6_title')
-                  : 'Shiny Dex',
+              Translator.get(
+                'tutorial_create_step6_title',
+                fallback: 'Shiny Dex',
+              ),
             ),
             secondary: const Icon(Icons.star, color: Colors.amber),
             value: isShinyDex,
@@ -540,10 +540,10 @@ class _CreateDexBottomSheetState extends State<CreateDexBottomSheet> {
           SwitchListTile(
             key: _genderKey,
             title: Text(
-              Translator.get('tutorial_create_step7_title') !=
-                      'tutorial_create_step7_title'
-                  ? Translator.get('tutorial_create_step7_title')
-                  : 'Geschlechter',
+              Translator.get(
+                'tutorial_create_step7_title',
+                fallback: 'Geschlechter',
+              ),
             ),
             secondary: const Icon(Icons.wc),
             value: includeGenders,

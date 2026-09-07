@@ -64,11 +64,7 @@ class _EditDexDialogState extends State<EditDexDialog> {
             ),
             const SizedBox(height: 16),
             SwitchListTile(
-              title: Text(
-                Translator.get('shiny_dex') != 'shiny_dex'
-                    ? Translator.get('shiny_dex')
-                    : 'Shiny Dex',
-              ),
+              title: Text(Translator.get('shiny_dex', fallback: 'Shiny Dex')),
               secondary: const Icon(Icons.star, color: Colors.amber),
               value: isShinyDex,
               activeThumbColor: Colors.amber,

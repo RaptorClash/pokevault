@@ -163,13 +163,14 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
 
       final statusWidget = Text(
         isHuntable
-            ? (Translator.get('shiny_gen1_huntable_yes') !=
-                      'shiny_gen1_huntable_yes'
-                  ? Translator.get('shiny_gen1_huntable_yes')
-                  : 'Shiny Huntable: Ja (DV-basiert, Chance 1:8192)')
-            : (Translator.get('shiny_huntable_no') != 'shiny_huntable_no'
-                  ? Translator.get('shiny_huntable_no')
-                  : 'Shiny Huntable: Nein'),
+            ? (Translator.get(
+                'shiny_gen1_huntable_yes',
+                fallback: 'Shiny Huntable: Ja (DV-basiert, Chance 1:8192)',
+              ))
+            : (Translator.get(
+                'shiny_huntable_no',
+                fallback: 'Shiny Huntable: Nein',
+              )),
         style: TextStyle(
           color: isHuntable ? Colors.green : Colors.red,
           fontWeight: FontWeight.bold,
@@ -387,9 +388,10 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
 
     content.add(
       Text(
-        Translator.get('shiny_gen2_huntable_yes') != 'shiny_gen2_huntable_yes'
-            ? Translator.get('shiny_gen2_huntable_yes')
-            : 'Shiny Huntable: Ja (Basis-Chance 1:8192)',
+        Translator.get(
+          'shiny_gen2_huntable_yes',
+          fallback: 'Shiny Huntable: Ja (Basis-Chance 1:8192)',
+        ),
         style: const TextStyle(
           color: Colors.green,
           fontWeight: FontWeight.bold,
@@ -618,9 +620,10 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
 
     content.add(
       Text(
-        Translator.get('shiny_gen3_huntable_yes') != 'shiny_gen3_huntable_yes'
-            ? Translator.get('shiny_gen3_huntable_yes')
-            : 'Shiny Huntable: Ja (Basis-Chance 1:8192)',
+        Translator.get(
+          'shiny_gen3_huntable_yes',
+          fallback: 'Shiny Huntable: Ja (Basis-Chance 1:8192)',
+        ),
         style: const TextStyle(
           color: Colors.green,
           fontWeight: FontWeight.bold,
@@ -652,9 +655,10 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
             const SizedBox(width: 8),
             Expanded(
               child: Text(
-                Translator.get('shiny_gen3_rs_note') != 'shiny_gen3_rs_note'
-                    ? Translator.get('shiny_gen3_rs_note')
-                    : 'Rubin & Saphir: Der Seed ist zufällig...',
+                Translator.get(
+                  'shiny_gen3_rs_note',
+                  fallback: 'Rubin & Saphir: Der Seed ist zufällig...',
+                ),
                 style: const TextStyle(
                   fontSize: 13,
                   fontStyle: FontStyle.italic,
@@ -690,10 +694,11 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
             const SizedBox(width: 8),
             Expanded(
               child: Text(
-                Translator.get('shiny_gen3_emerald_note') !=
-                        'shiny_gen3_emerald_note'
-                    ? Translator.get('shiny_gen3_emerald_note')
-                    : 'Smaragd: RNG Fehler! Der Start-Seed ist bei jedem Reset immer 0...',
+                Translator.get(
+                  'shiny_gen3_emerald_note',
+                  fallback:
+                      'Smaragd: RNG Fehler! Der Start-Seed ist bei jedem Reset immer 0...',
+                ),
                 style: const TextStyle(
                   fontSize: 13,
                   fontStyle: FontStyle.italic,
@@ -731,9 +736,10 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
             const SizedBox(width: 8),
             Expanded(
               child: Text(
-                Translator.get('shiny_gen3_frbg_note') != 'shiny_gen3_frbg_note'
-                    ? Translator.get('shiny_gen3_frbg_note')
-                    : 'Feuerrot & Blattgrün: Kein RNG Bug...',
+                Translator.get(
+                  'shiny_gen3_frbg_note',
+                  fallback: 'Feuerrot & Blattgrün: Kein RNG Bug...',
+                ),
                 style: const TextStyle(
                   fontSize: 13,
                   fontStyle: FontStyle.italic,
@@ -748,9 +754,10 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
 
     content.add(
       Text(
-        Translator.get('shiny_gen3_links_title') != 'shiny_gen3_links_title'
-            ? Translator.get('shiny_gen3_links_title')
-            : 'RNG Manipulation Guides & Ressourcen',
+        Translator.get(
+          'shiny_gen3_links_title',
+          fallback: 'RNG Manipulation Guides & Ressourcen',
+        ),
         style: const TextStyle(fontWeight: FontWeight.bold),
       ),
     );
@@ -953,10 +960,10 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
 
         content.add(
           Text(
-            Translator.get('shiny_gen4_huntable_yes') !=
-                    'shiny_gen4_huntable_yes'
-                ? Translator.get('shiny_gen4_huntable_yes')
-                : 'Shiny Huntable: Ja (Basis-Chance 1:8192)',
+            Translator.get(
+              'shiny_gen4_huntable_yes',
+              fallback: 'Shiny Huntable: Ja (Basis-Chance 1:8192)',
+            ),
             style: const TextStyle(
               color: Colors.green,
               fontWeight: FontWeight.bold,
@@ -1234,9 +1241,10 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
         if (isShinyLocked) {
           content.add(
             Text(
-              Translator.get('shiny_huntable_no') != 'shiny_huntable_no'
-                  ? Translator.get('shiny_huntable_no')
-                  : 'Shiny Huntable: Nein',
+              Translator.get(
+                'shiny_huntable_no',
+                fallback: 'Shiny Huntable: Nein',
+              ),
               style: const TextStyle(
                 color: Colors.red,
                 fontWeight: FontWeight.bold,
@@ -1255,10 +1263,10 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
         } else {
           content.add(
             Text(
-              Translator.get('shiny_gen5_huntable_yes') !=
-                      'shiny_gen5_huntable_yes'
-                  ? Translator.get('shiny_gen5_huntable_yes')
-                  : 'Shiny Huntable: Ja (Basis-Chance 1:8192)',
+              Translator.get(
+                'shiny_gen5_huntable_yes',
+                fallback: 'Shiny Huntable: Ja (Basis-Chance 1:8192)',
+              ),
               style: const TextStyle(
                 color: Colors.green,
                 fontWeight: FontWeight.bold,
@@ -1507,9 +1515,10 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
         if (isAbsolutelyLocked) {
           content.add(
             Text(
-              Translator.get('shiny_huntable_no') != 'shiny_huntable_no'
-                  ? Translator.get('shiny_huntable_no')
-                  : 'Shiny Huntable: Nein',
+              Translator.get(
+                'shiny_huntable_no',
+                fallback: 'Shiny Huntable: Nein',
+              ),
               style: const TextStyle(
                 color: Colors.red,
                 fontWeight: FontWeight.bold,
@@ -1528,10 +1537,10 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
         } else {
           content.add(
             Text(
-              Translator.get('shiny_gen6_huntable_yes') !=
-                      'shiny_gen6_huntable_yes'
-                  ? Translator.get('shiny_gen6_huntable_yes')
-                  : 'Shiny Huntable: Ja (Neue Basis-Chance: 1:4096)',
+              Translator.get(
+                'shiny_gen6_huntable_yes',
+                fallback: 'Shiny Huntable: Ja (Neue Basis-Chance: 1:4096)',
+              ),
               style: const TextStyle(
                 color: Colors.green,
                 fontWeight: FontWeight.bold,
@@ -1848,9 +1857,10 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
         if (_shinyCategories.contains('gen7_locks')) {
           content.add(
             Text(
-              Translator.get('shiny_huntable_no') != 'shiny_huntable_no'
-                  ? Translator.get('shiny_huntable_no')
-                  : 'Shiny Huntable: Nein',
+              Translator.get(
+                'shiny_huntable_no',
+                fallback: 'Shiny Huntable: Nein',
+              ),
               style: const TextStyle(
                 color: Colors.red,
                 fontWeight: FontWeight.bold,
@@ -1869,10 +1879,10 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
         } else {
           content.add(
             Text(
-              Translator.get('shiny_gen7_huntable_yes') !=
-                      'shiny_gen7_huntable_yes'
-                  ? Translator.get('shiny_gen7_huntable_yes')
-                  : 'Shiny Huntable: Ja (Basis-Chance 1:4096)',
+              Translator.get(
+                'shiny_gen7_huntable_yes',
+                fallback: 'Shiny Huntable: Ja (Basis-Chance 1:4096)',
+              ),
               style: const TextStyle(
                 color: Colors.green,
                 fontWeight: FontWeight.bold,
@@ -2127,9 +2137,10 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
         if (id == 25 || id == 133 || id == 151) {
           content.add(
             Text(
-              Translator.get('shiny_huntable_no') != 'shiny_huntable_no'
-                  ? Translator.get('shiny_huntable_no')
-                  : 'Shiny Huntable: Nein',
+              Translator.get(
+                'shiny_huntable_no',
+                fallback: 'Shiny Huntable: Nein',
+              ),
               style: const TextStyle(
                 color: Colors.red,
                 fontWeight: FontWeight.bold,
@@ -2148,10 +2159,10 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
         } else {
           content.add(
             Text(
-              Translator.get('shiny_gen7_huntable_yes') !=
-                      'shiny_gen7_huntable_yes'
-                  ? Translator.get('shiny_gen7_huntable_yes')
-                  : 'Shiny Huntable: Ja (Basis-Chance 1:4096)',
+              Translator.get(
+                'shiny_gen7_huntable_yes',
+                fallback: 'Shiny Huntable: Ja (Basis-Chance 1:4096)',
+              ),
               style: const TextStyle(
                 color: Colors.green,
                 fontWeight: FontWeight.bold,
@@ -2331,9 +2342,10 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
         if (isLocked) {
           content.add(
             Text(
-              Translator.get('shiny_huntable_no') != 'shiny_huntable_no'
-                  ? Translator.get('shiny_huntable_no')
-                  : 'Shiny Huntable: Nein',
+              Translator.get(
+                'shiny_huntable_no',
+                fallback: 'Shiny Huntable: Nein',
+              ),
               style: const TextStyle(
                 color: Colors.red,
                 fontWeight: FontWeight.bold,
@@ -2352,10 +2364,10 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
         } else {
           content.add(
             Text(
-              Translator.get('shiny_gen7_huntable_yes') !=
-                      'shiny_gen7_huntable_yes'
-                  ? Translator.get('shiny_gen7_huntable_yes')
-                  : 'Shiny Huntable: Ja (Basis-Chance 1:4096)',
+              Translator.get(
+                'shiny_gen7_huntable_yes',
+                fallback: 'Shiny Huntable: Ja (Basis-Chance 1:4096)',
+              ),
               style: const TextStyle(
                 color: Colors.green,
                 fontWeight: FontWeight.bold,
@@ -2543,9 +2555,10 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
         if (isLocked) {
           content.add(
             Text(
-              Translator.get('shiny_huntable_no') != 'shiny_huntable_no'
-                  ? Translator.get('shiny_huntable_no')
-                  : 'Shiny Huntable: Nein',
+              Translator.get(
+                'shiny_huntable_no',
+                fallback: 'Shiny Huntable: Nein',
+              ),
               style: const TextStyle(
                 color: Colors.red,
                 fontWeight: FontWeight.bold,
@@ -2564,10 +2577,10 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
         } else {
           content.add(
             Text(
-              Translator.get('shiny_gen7_huntable_yes') !=
-                      'shiny_gen7_huntable_yes'
-                  ? Translator.get('shiny_gen7_huntable_yes')
-                  : 'Shiny Huntable: Ja (Basis-Chance 1:4096)',
+              Translator.get(
+                'shiny_gen7_huntable_yes',
+                fallback: 'Shiny Huntable: Ja (Basis-Chance 1:4096)',
+              ),
               style: const TextStyle(
                 color: Colors.green,
                 fontWeight: FontWeight.bold,
@@ -2721,9 +2734,10 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
         if (isLocked) {
           content.add(
             Text(
-              Translator.get('shiny_huntable_no') != 'shiny_huntable_no'
-                  ? Translator.get('shiny_huntable_no')
-                  : 'Shiny Huntable: Nein',
+              Translator.get(
+                'shiny_huntable_no',
+                fallback: 'Shiny Huntable: Nein',
+              ),
               style: const TextStyle(
                 color: Colors.red,
                 fontWeight: FontWeight.bold,
@@ -2742,10 +2756,10 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
         } else {
           content.add(
             Text(
-              Translator.get('shiny_gen7_huntable_yes') !=
-                      'shiny_gen7_huntable_yes'
-                  ? Translator.get('shiny_gen7_huntable_yes')
-                  : 'Shiny Huntable: Ja (Basis-Chance 1:4096)',
+              Translator.get(
+                'shiny_gen7_huntable_yes',
+                fallback: 'Shiny Huntable: Ja (Basis-Chance 1:4096)',
+              ),
               style: const TextStyle(
                 color: Colors.green,
                 fontWeight: FontWeight.bold,
@@ -2930,9 +2944,10 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
         if (isLocked) {
           content.add(
             Text(
-              Translator.get('shiny_huntable_no') != 'shiny_huntable_no'
-                  ? Translator.get('shiny_huntable_no')
-                  : 'Shiny Huntable: Nein',
+              Translator.get(
+                'shiny_huntable_no',
+                fallback: 'Shiny Huntable: Nein',
+              ),
               style: const TextStyle(
                 color: Colors.red,
                 fontWeight: FontWeight.bold,
@@ -2951,10 +2966,10 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
         } else {
           content.add(
             Text(
-              Translator.get('shiny_gen7_huntable_yes') !=
-                      'shiny_gen7_huntable_yes'
-                  ? Translator.get('shiny_gen7_huntable_yes')
-                  : 'Shiny Huntable: Ja (Basis-Chance 1:4096)',
+              Translator.get(
+                'shiny_gen7_huntable_yes',
+                fallback: 'Shiny Huntable: Ja (Basis-Chance 1:4096)',
+              ),
               style: const TextStyle(
                 color: Colors.green,
                 fontWeight: FontWeight.bold,

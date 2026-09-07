@@ -1,15 +1,25 @@
 import '../i18n/strings.g.dart';
 
 class Translator {
-  static String get(String key) {
+  static String get(String key, {String? fallback}) {
+    String translated = key;
+
     try {
       final result = t[key];
       if (result != null) {
-        return result.toString();
+        translated = result.toString();
+      } else {
+        translated = DataTranslator.translateApi(key);
       }
-    } catch (_) {}
+    } catch (_) {
+      translated = DataTranslator.translateApi(key);
+    }
 
-    return DataTranslator.translateApi(key);
+    if (translated == key || translated.isEmpty) {
+      return fallback ?? key;
+    }
+
+    return translated;
   }
 
   static set currentLanguage(String lang) {

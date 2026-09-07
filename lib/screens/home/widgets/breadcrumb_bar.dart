@@ -72,10 +72,7 @@ class BreadcrumbBar extends StatelessWidget {
                 fontWeight: isLast ? FontWeight.bold : FontWeight.normal,
                 color: isLast
                     ? Theme.of(context).colorScheme.primary
-                    : Theme.of(context)
-                          .textTheme
-                          .bodyMedium
-                          ?.color,
+                    : Theme.of(context).textTheme.bodyMedium?.color,
               ),
             ),
           ),
@@ -84,8 +81,7 @@ class BreadcrumbBar extends StatelessWidget {
     }
 
     return SingleChildScrollView(
-      scrollDirection:
-          Axis.horizontal,
+      scrollDirection: Axis.horizontal,
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: breadcrumbWidgets,

@@ -251,9 +251,10 @@ class BreedingStepCard extends StatelessWidget {
         .where((p) => p.id == childId)
         .firstOrNull;
     String realOdds = cCarrier
-        ? (Translator.get('chance_carrier') != 'chance_carrier'
-              ? Translator.get('chance_carrier')
-              : 'Chance: 1:2 (Gen-Trägerin)')
+        ? (Translator.get(
+            'chance_carrier',
+            fallback: 'Chance: 1:2 (Gen-Trägerin)',
+          ))
         : (targetPoke != null
               ? BreedingData.getRealOdds(targetPoke, cGender)
               : '1:128');

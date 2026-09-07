@@ -20,9 +20,7 @@ class BreedingData {
     String totalOdds = '1:128';
     if (p.genderRate == 1) {
       if (requiredGender == 'm') return '~ 1:73';
-      return Translator.get('impossible') != 'impossible'
-          ? Translator.get('impossible')
-          : 'Unmöglich!';
+      return Translator.get('impossible', fallback: 'Unmöglich!');
     } else if (p.genderRate == 2) {
       if (requiredGender == 'm') return '~ 1:85';
       return '1:256';

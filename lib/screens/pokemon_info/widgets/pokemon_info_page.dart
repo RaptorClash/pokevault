@@ -121,10 +121,10 @@ class PokemonInfoPage extends StatelessWidget {
                   color: Colors.purple,
                 ),
                 title: Text(
-                  Translator.get('catch_calculator_title') !=
-                          'catch_calculator_title'
-                      ? Translator.get('catch_calculator_title')
-                      : 'Ultimativer Fangratenrechner',
+                  Translator.get(
+                    'catch_calculator_title',
+                    fallback: 'Ultimativer Fangratenrechner',
+                  ),
                   style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
                 children: [CatchRateCalculator(pokemon: entry.pokemon)],
@@ -153,7 +153,7 @@ class PokemonInfoPage extends StatelessWidget {
     } catch (e) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         NotificationHelper.showError(
-          "${Translator.get('error_page_load') != 'error_page_load' ? Translator.get('error_page_load') : 'Fehler beim Laden der Seite:'} $e",
+          "${Translator.get('error_page_load', fallback: 'Fehler beim Laden der Seite:')} $e",
         );
       });
       return const Center(

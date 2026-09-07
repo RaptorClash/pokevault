@@ -46,9 +46,7 @@ class DexStorageService {
         await Share.shareXFiles([xFile], text: Translator.get('share_text'));
 
         NotificationHelper.showSuccess(
-          Translator.get('backup_success') != 'backup_success'
-              ? Translator.get('backup_success')
-              : 'Backup heruntergeladen!',
+          Translator.get('backup_success', fallback: 'Backup heruntergeladen!'),
         );
         return;
       }

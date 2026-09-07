@@ -76,9 +76,7 @@ class _RouteTrackerScreenState extends State<RouteTrackerScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          Translator.get('route_tracker_title') != 'route_tracker_title'
-              ? Translator.get('route_tracker_title')
-              : 'Routen-Tracker',
+          Translator.get('route_tracker_title', fallback: 'Routen-Tracker'),
         ),
       ),
       body: _isLoading
@@ -86,9 +84,10 @@ class _RouteTrackerScreenState extends State<RouteTrackerScreen> {
           : _routesMap.isEmpty
           ? Center(
               child: Text(
-                Translator.get('no_encounters_found') != 'no_encounters_found'
-                    ? Translator.get('no_encounters_found')
-                    : 'Keine Fundorte für diesen Dex gefunden.',
+                Translator.get(
+                  'no_encounters_found',
+                  fallback: 'Keine Fundorte für diesen Dex gefunden.',
+                ),
               ),
             )
           : ListView.builder(
@@ -109,7 +108,7 @@ class _RouteTrackerScreenState extends State<RouteTrackerScreen> {
                       style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
                     subtitle: Text(
-                      '$caughtCount / ${entries.length} ${Translator.get('caught') != 'caught' ? Translator.get('caught') : 'gefangen'}',
+                      '$caughtCount / ${entries.length} ${Translator.get('caught', fallback: 'gefangen')}',
                       style: TextStyle(
                         color: caughtCount == entries.length
                             ? Colors.green

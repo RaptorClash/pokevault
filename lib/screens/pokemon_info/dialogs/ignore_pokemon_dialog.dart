@@ -52,14 +52,17 @@ class IgnorePokemonDialog {
         }
         return AlertDialog(
           title: Text(
-            Translator.get('ignore_confirm_title') != 'ignore_confirm_title'
-                ? Translator.get('ignore_confirm_title')
-                : 'Pokémon entfernen?',
+            Translator.get(
+              'ignore_confirm_title',
+              fallback: 'Pokémon entfernen?',
+            ),
           ),
           content: Text(
-            Translator.get('ignore_confirm_text') != 'ignore_confirm_text'
-                ? Translator.get('ignore_confirm_text')
-                : 'Möchtest du dieses Pokémon ausblenden? Du kannst es im Menü jederzeit wiederherstellen.',
+            Translator.get(
+              'ignore_confirm_text',
+              fallback:
+                  'Möchtest du dieses Pokémon ausblenden? Du kannst es im Menü jederzeit wiederherstellen.',
+            ),
           ),
           actions: [
             TextButton(
@@ -78,9 +81,7 @@ class IgnorePokemonDialog {
                 Navigator.pop(context);
               },
               child: Text(
-                Translator.get('ignore_pokemon') != 'ignore_pokemon'
-                    ? Translator.get('ignore_pokemon')
-                    : 'Entfernen',
+                Translator.get('ignore_pokemon', fallback: 'Entfernen'),
               ),
             ),
           ],

@@ -24,9 +24,7 @@ class BreedingInfoWidget extends StatelessWidget {
 
   String _getGenderText(int rate) {
     if (rate == -1) {
-      return Translator.get('gender_genderless') != 'gender_genderless'
-          ? Translator.get('gender_genderless')
-          : 'Geschlechtslos';
+      return Translator.get('gender_genderless', fallback: 'Geschlechtslos');
     }
     if (rate == 0) return '100% ♂';
     if (rate == 1) return '87.5% ♂ / 12.5% ♀';
@@ -34,9 +32,7 @@ class BreedingInfoWidget extends StatelessWidget {
     if (rate == 4) return '50% ♂ / 50% ♀';
     if (rate == 6) return '25% ♂ / 75% ♀';
     if (rate == 8) return '100% ♀';
-    return Translator.get('unknown') != 'unknown'
-        ? Translator.get('unknown')
-        : 'Unbekannt';
+    return Translator.get('unknown', fallback: 'Unbekannt');
   }
 
   Color _getGenderColor(int rate) {
@@ -55,9 +51,7 @@ class BreedingInfoWidget extends StatelessWidget {
 
   String _formatEvoDetails(List details) {
     if (details.isEmpty) {
-      return Translator.get('evo_base_form') != 'evo_base_form'
-          ? Translator.get('evo_base_form')
-          : 'Basisform / Ei';
+      return Translator.get('evo_base_form', fallback: 'Basisform / Ei');
     }
 
     List<String> allMethods = [];
@@ -142,9 +136,7 @@ class BreedingInfoWidget extends StatelessWidget {
     String conditionText = details.isEmpty
         ? (node['is_baby'] == true
               ? 'Baby-Pokémon'
-              : (Translator.get('evo_base_form') != 'evo_base_form'
-                    ? Translator.get('evo_base_form')
-                    : 'Basisform / Ei'))
+              : (Translator.get('evo_base_form', fallback: 'Basisform / Ei')))
         : _formatEvoDetails(details);
 
     return Column(
@@ -218,9 +210,7 @@ class BreedingInfoWidget extends StatelessWidget {
     IconData genderIcon = _getGenderIcon(pokemon.genderRate);
     Color genderColor = _getGenderColor(pokemon.genderRate);
 
-    String eggGroupsText = Translator.get('unknown') != 'unknown'
-        ? Translator.get('unknown')
-        : 'Unbekannt';
+    String eggGroupsText = Translator.get('unknown', fallback: 'Unbekannt');
     if (pokemon.eggGroups.isNotEmpty) {
       eggGroupsText = pokemon.eggGroups
           .map((g) {
@@ -238,9 +228,10 @@ class BreedingInfoWidget extends StatelessWidget {
       child: ExpansionTile(
         leading: const Icon(Icons.egg_alt, color: Colors.green),
         title: Text(
-          Translator.get('breeding_info_title') != 'breeding_info_title'
-              ? Translator.get('breeding_info_title')
-              : 'Zucht und Entwicklung',
+          Translator.get(
+            'breeding_info_title',
+            fallback: 'Zucht und Entwicklung',
+          ),
           style: const TextStyle(fontWeight: FontWeight.bold),
         ),
         children: [
@@ -261,18 +252,14 @@ class BreedingInfoWidget extends StatelessWidget {
                 _buildInfoRow(
                   context,
                   Icons.catching_pokemon,
-                  Translator.get('egg_groups') != 'egg_groups'
-                      ? Translator.get('egg_groups')
-                      : 'Ei-Gruppen',
+                  Translator.get('egg_groups', fallback: 'Ei-Gruppen'),
                   eggGroupsText,
                 ),
                 const SizedBox(height: 12),
                 _buildInfoRow(
                   context,
                   genderIcon,
-                  Translator.get('gender_ratio') != 'gender_ratio'
-                      ? Translator.get('gender_ratio')
-                      : 'Geschlechter',
+                  Translator.get('gender_ratio', fallback: 'Geschlechter'),
                   genderText,
                   iconColor: genderColor,
                 ),

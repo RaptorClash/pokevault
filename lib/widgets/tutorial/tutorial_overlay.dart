@@ -268,10 +268,11 @@ class _TutorialOverlayState extends State<TutorialOverlay>
       _triggerRotomAutoSwipe();
     } else {
       setState(() {
-        _overrideText =
-            Translator.get('tutorial_wrong_swipe') != 'tutorial_wrong_swipe'
-            ? Translator.get('tutorial_wrong_swipe')
-            : 'Halt, falsche Richtung! Wir wollen zurück zum Nationaldex (nach rechts wischen)!';
+        _overrideText = Translator.get(
+          'tutorial_wrong_swipe',
+          fallback:
+              'Halt, falsche Richtung! Wir wollen zurück zum Nationaldex (nach rechts wischen)!',
+        );
       });
       Future.delayed(const Duration(seconds: 3), () {
         if (mounted && !_isEasterEggActive) {
@@ -287,10 +288,11 @@ class _TutorialOverlayState extends State<TutorialOverlay>
     setState(() {
       _isEasterEggActive = true;
       _easterEggTriggered = true;
-      _overrideText =
-          Translator.get('tutorial_rotom_angry') != 'tutorial_rotom_angry'
-          ? Translator.get('tutorial_rotom_angry')
-          : 'Na gut, wenn du nicht willst... dann mach ich das eben selbst! ZZZZZZT!';
+      _overrideText = Translator.get(
+        'tutorial_rotom_angry',
+        fallback:
+            'Na gut, wenn du nicht willst... dann mach ich das eben selbst! ZZZZZZT!',
+      );
     });
 
     final step = widget.feature.steps[_currentIndex];
@@ -367,10 +369,10 @@ class _TutorialOverlayState extends State<TutorialOverlay>
       _triggerRotomAutoTap();
     } else {
       setState(() {
-        _overrideText =
-            Translator.get('tutorial_wrong_tap') != 'tutorial_wrong_tap'
-            ? Translator.get('tutorial_wrong_tap')
-            : 'Klick direkt auf den markierten Bereich!';
+        _overrideText = Translator.get(
+          'tutorial_wrong_tap',
+          fallback: 'Klick direkt auf den markierten Bereich!',
+        );
       });
       Future.delayed(const Duration(seconds: 3), () {
         if (mounted && !_isEasterEggActive) {
@@ -384,11 +386,11 @@ class _TutorialOverlayState extends State<TutorialOverlay>
     if (_isAdvancing || _isEasterEggActive) return;
 
     setState(() {
-      _overrideText =
-          Translator.get('tutorial_longpress_error') !=
-              'tutorial_longpress_error'
-          ? Translator.get('tutorial_longpress_error')
-          : 'Das war ein normaler Klick! Halte das Pokémon LANGE gedrückt!';
+      _overrideText = Translator.get(
+        'tutorial_longpress_error',
+        fallback:
+            'Das war ein normaler Klick! Halte das Pokémon LANGE gedrückt!',
+      );
     });
 
     Future.delayed(const Duration(seconds: 3), () {
@@ -404,10 +406,11 @@ class _TutorialOverlayState extends State<TutorialOverlay>
     setState(() {
       _isEasterEggActive = true;
       _easterEggTriggered = true;
-      _overrideText =
-          Translator.get('tutorial_rotom_angry') != 'tutorial_rotom_angry'
-          ? Translator.get('tutorial_rotom_angry')
-          : 'Na gut, wenn du nicht willst... dann mach ich das eben selbst! ZZZZZZT!';
+      _overrideText = Translator.get(
+        'tutorial_rotom_angry',
+        fallback:
+            'Na gut, wenn du nicht willst... dann mach ich das eben selbst! ZZZZZZT!',
+      );
     });
 
     if (_targetRect != null) {
@@ -541,10 +544,13 @@ class _TutorialOverlayState extends State<TutorialOverlay>
     }
   }
 
-void _skipTutorial() {
+  void _skipTutorial() {
     if (mounted) {
       try {
-        final tutProvider = Provider.of<TutorialProvider>(context, listen: false);
+        final tutProvider = Provider.of<TutorialProvider>(
+          context,
+          listen: false,
+        );
         tutProvider.skipAllTutorials();
       } catch (e) {
         debugPrint("Fehler beim globalen Überspringen: $e");

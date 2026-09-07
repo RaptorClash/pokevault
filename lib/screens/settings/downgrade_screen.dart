@@ -43,9 +43,10 @@ class _DowngradeScreenState extends State<DowngradeScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          Translator.get('downgrades_title') != 'downgrades_title'
-              ? Translator.get('downgrades_title')
-              : 'Vorherige Versionen (Downgrades)',
+          Translator.get(
+            'downgrades_title',
+            fallback: 'Vorherige Versionen (Downgrades)',
+          ),
         ),
       ),
       body: FutureBuilder<List<UpdateInfo>>(

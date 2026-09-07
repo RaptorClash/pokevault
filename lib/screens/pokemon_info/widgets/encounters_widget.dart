@@ -221,9 +221,10 @@ class EncountersWidget extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.all(16.0),
           child: Text(
-            Translator.get('no_encounters_found') != 'no_encounters_found'
-                ? Translator.get('no_encounters_found')
-                : 'Keine Fundorte bekannt.',
+            Translator.get(
+              'no_encounters_found',
+              fallback: 'Keine Fundorte bekannt.',
+            ),
             style: TextStyle(color: Theme.of(context).hintColor),
             textAlign: TextAlign.center,
           ),
@@ -426,10 +427,11 @@ class EncountersWidget extends StatelessWidget {
             const SizedBox(width: 8),
             Expanded(
               child: Text(
-                Translator.get('encounter_missing_note') !=
-                        'encounter_missing_note'
-                    ? Translator.get('encounter_missing_note')
-                    : 'Hinweis: Wenn eine Edition nicht aufgeführt ist, ist das Pokémon dort in der Regel nur durch Entwicklung, Tausch oder Transfer erhältlich.',
+                Translator.get(
+                  'encounter_missing_note',
+                  fallback:
+                      'Hinweis: Wenn eine Edition nicht aufgeführt ist, ist das Pokémon dort in der Regel nur durch Entwicklung, Tausch oder Transfer erhältlich.',
+                ),
                 style: const TextStyle(
                   fontSize: 12,
                   fontStyle: FontStyle.italic,
@@ -454,9 +456,10 @@ class EncountersWidget extends StatelessWidget {
       child: ExpansionTile(
         leading: const Icon(Icons.map, color: Colors.blue),
         title: Text(
-          Translator.get('encounters_title') != 'encounters_title'
-              ? Translator.get('encounters_title')
-              : 'Fundorte & Begegnungen',
+          Translator.get(
+            'encounters_title',
+            fallback: 'Fundorte & Begegnungen',
+          ),
           style: const TextStyle(fontWeight: FontWeight.bold),
         ),
         children: [

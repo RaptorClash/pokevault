@@ -308,9 +308,10 @@ class _BreedingCalculatorWidgetState extends State<BreedingCalculatorWidget> {
                 controlAffinity: ListTileControlAffinity.leading,
                 activeColor: Theme.of(context).colorScheme.primary,
                 title: Text(
-                  Translator.get('only_caught_pokemon') != 'only_caught_pokemon'
-                      ? Translator.get('only_caught_pokemon')
-                      : 'Nur gefangene Pokémon für Route verwenden',
+                  Translator.get(
+                    'only_caught_pokemon',
+                    fallback: 'Nur gefangene Pokémon für Route verwenden',
+                  ),
                   style: const TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.bold,
@@ -550,10 +551,10 @@ class _BreedingCalculatorWidgetState extends State<BreedingCalculatorWidget> {
                     color: Theme.of(context).colorScheme.secondary,
                   ),
                   title: Text(
-                    Translator.get('shiny_breed_mechanics_title') !=
-                            'shiny_breed_mechanics_title'
-                        ? Translator.get('shiny_breed_mechanics_title')
-                        : 'Wichtige Zucht-Mechaniken (Gen 2)',
+                    Translator.get(
+                      'shiny_breed_mechanics_title',
+                      fallback: 'Wichtige Zucht-Mechaniken (Gen 2)',
+                    ),
                     style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
                   children: [
@@ -597,13 +598,10 @@ class _BreedingCalculatorWidgetState extends State<BreedingCalculatorWidget> {
                               Expanded(
                                 child: Text(
                                   Translator.get(
-                                            'shiny_breed_mechanics_dv_passing',
-                                          ) !=
-                                          'shiny_breed_mechanics_dv_passing'
-                                      ? Translator.get(
-                                          'shiny_breed_mechanics_dv_passing',
-                                        )
-                                      : 'Warum dieser Geschlechter-Wechsel? In Gen 2 wird der Shiny-Status immer an das *andere* Geschlecht vererbt.',
+                                    'shiny_breed_mechanics_dv_passing',
+                                    fallback:
+                                        'Warum dieser Geschlechter-Wechsel? In Gen 2 wird der Shiny-Status immer an das *andere* Geschlecht vererbt.',
+                                  ),
                                   style: TextStyle(
                                     fontSize: 12,
                                     color: Theme.of(
@@ -627,13 +625,10 @@ class _BreedingCalculatorWidgetState extends State<BreedingCalculatorWidget> {
                               Expanded(
                                 child: Text(
                                   Translator.get(
-                                            'shiny_breed_dv_conflict_text',
-                                          ) !=
-                                          'shiny_breed_dv_conflict_text'
-                                      ? Translator.get(
-                                          'shiny_breed_dv_conflict_text',
-                                        )
-                                      : 'Achtung: Inzest-Sperre bei gleichen DVs beachten!',
+                                    'shiny_breed_dv_conflict_text',
+                                    fallback:
+                                        'Achtung: Inzest-Sperre bei gleichen DVs beachten!',
+                                  ),
                                   style: TextStyle(
                                     fontSize: 12,
                                     color: Theme.of(context).colorScheme.error,
@@ -704,15 +699,17 @@ class _BreedingCalculatorWidgetState extends State<BreedingCalculatorWidget> {
                 if (_allPaths != null && _allPaths!.isEmpty)
                   Text(
                     _startId != 132
-                        ? (Translator.get('no_path_impossible') !=
-                                  'no_path_impossible'
-                              ? Translator.get('no_path_impossible')
-                              : 'Unmöglich! Du MUSST ein Shiny Ditto verwenden!')
+                        ? (Translator.get(
+                            'no_path_impossible',
+                            fallback:
+                                'Unmöglich! Du MUSST ein Shiny Ditto verwenden!',
+                          ))
                         : (_useOnlyCaught
-                              ? (Translator.get('no_path_caught') !=
-                                        'no_path_caught'
-                                    ? Translator.get('no_path_caught')
-                                    : 'Keine Route mit deinen gefangenen Pokémon gefunden.')
+                              ? (Translator.get(
+                                  'no_path_caught',
+                                  fallback:
+                                      'Keine Route mit deinen gefangenen Pokémon gefunden.',
+                                ))
                               : Translator.get('shiny_breed_no_path')),
                     style: const TextStyle(
                       color: Colors.red,
@@ -722,9 +719,11 @@ class _BreedingCalculatorWidgetState extends State<BreedingCalculatorWidget> {
                 else if (_path == null)
                   Text(
                     _useOnlyCaught
-                        ? (Translator.get('no_path_caught') != 'no_path_caught'
-                              ? Translator.get('no_path_caught')
-                              : 'Keine Route mit deinen gefangenen Pokémon gefunden.')
+                        ? (Translator.get(
+                            'no_path_caught',
+                            fallback:
+                                'Keine Route mit deinen gefangenen Pokémon gefunden.',
+                          ))
                         : Translator.get('shiny_breed_no_path'),
                     style: const TextStyle(color: Colors.red),
                   )

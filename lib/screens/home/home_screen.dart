@@ -120,10 +120,11 @@ class _HomeScreenState extends State<HomeScreen> {
             color: Colors.orange,
           ),
           content: Text(
-            Translator.get('web_backup_warning_text') !=
-                    'web_backup_warning_text'
-                ? Translator.get('web_backup_warning_text')
-                : 'Achtung: Im Web-Browser können deine Daten gelöscht werden, wenn der Browser-Cache geleert wird. Bitte erstelle regelmäßig Backups!',
+            Translator.get(
+              'web_backup_warning_text',
+              fallback:
+                  'Achtung: Im Web-Browser können deine Daten gelöscht werden, wenn der Browser-Cache geleert wird. Bitte erstelle regelmäßig Backups!',
+            ),
             style: const TextStyle(color: Colors.black87),
           ),
           actions: [
@@ -133,10 +134,10 @@ class _HomeScreenState extends State<HomeScreen> {
                 ScaffoldMessenger.of(context).hideCurrentMaterialBanner();
               },
               child: Text(
-                Translator.get('web_backup_warning_action') !=
-                        'web_backup_warning_action'
-                    ? Translator.get('web_backup_warning_action')
-                    : 'Verstanden',
+                Translator.get(
+                  'web_backup_warning_action',
+                  fallback: 'Verstanden',
+                ),
                 style: const TextStyle(fontWeight: FontWeight.bold),
               ),
             ),
@@ -627,10 +628,11 @@ class _HomeScreenState extends State<HomeScreen> {
                 const CircularProgressIndicator(),
                 const SizedBox(height: 24),
                 Text(
-                  Translator.get('migration_loading_text') !=
-                          'migration_loading_text'
-                      ? Translator.get('migration_loading_text')
-                      : 'Daten werden für die neuste Version optimiert...\nBitte App nicht schließen.',
+                  Translator.get(
+                    'migration_loading_text',
+                    fallback:
+                        'Daten werden für die neuste Version optimiert...\nBitte App nicht schließen.',
+                  ),
                   textAlign: TextAlign.center,
                   style: const TextStyle(
                     fontSize: 16,
@@ -692,9 +694,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       },
                     )
                   : null),
-        titleSpacing: _isSelectionMode
-            ? null
-            : 0,
+        titleSpacing: _isSelectionMode ? null : 0,
         title: _isSelectionMode
             ? Text('${_selectedItemIds.length} ausgewählt')
             : BreadcrumbBar(

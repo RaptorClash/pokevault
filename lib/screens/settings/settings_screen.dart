@@ -196,9 +196,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           onPressed: () => themeProvider.resetToDefault(),
                           icon: const Icon(Icons.restore),
                           label: Text(
-                            Translator.get('reset_theme') != 'reset_theme'
-                                ? Translator.get('reset_theme')
-                                : 'Standarddesign wiederherstellen',
+                            Translator.get(
+                              'reset_theme',
+                              fallback: 'Standarddesign wiederherstellen',
+                            ),
                           ),
                           style: TextButton.styleFrom(
                             foregroundColor: Theme.of(
@@ -276,10 +277,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           color: Colors.redAccent,
                         ),
                         title: Text(
-                          Translator.get('downgrades_title') !=
-                                  'downgrades_title'
-                              ? Translator.get('downgrades_title')
-                              : 'Vorherige Versionen (Downgrades)',
+                          Translator.get(
+                            'downgrades_title',
+                            fallback: 'Vorherige Versionen (Downgrades)',
+                          ),
                         ),
                         trailing: const Icon(Icons.arrow_forward_ios, size: 16),
                         onTap: () {
@@ -327,16 +328,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           color: Colors.amber,
                         ),
                         title: Text(
-                          Translator.get('tutorial_reset_title') !=
-                                  'tutorial_reset_title'
-                              ? Translator.get('tutorial_reset_title')
-                              : 'Tutorial neustarten',
+                          Translator.get(
+                            'tutorial_reset_title',
+                            fallback: 'Tutorial neustarten',
+                          ),
                         ),
                         subtitle: Text(
-                          Translator.get('tutorial_reset_sub') !=
-                                  'tutorial_reset_sub'
-                              ? Translator.get('tutorial_reset_sub')
-                              : 'Setzt alle Hilfen zurück',
+                          Translator.get(
+                            'tutorial_reset_sub',
+                            fallback: 'Setzt alle Hilfen zurück',
+                          ),
                         ),
                         onTap: () async {
                           try {
@@ -346,10 +347,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             );
                             await tutProvider.resetAllTutorials();
                             NotificationHelper.showSuccess(
-                              Translator.get('tutorial_reset_success') !=
-                                      'tutorial_reset_success'
-                                  ? Translator.get('tutorial_reset_success')
-                                  : 'Tutorial wurde zurückgesetzt!',
+                              Translator.get(
+                                'tutorial_reset_success',
+                                fallback: 'Tutorial wurde zurückgesetzt!',
+                              ),
                             );
                           } catch (e) {
                             NotificationHelper.showError(
@@ -1163,11 +1164,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: Text(
-                Translator.get('close') != 'close'
-                    ? Translator.get('close')
-                    : 'Schließen',
-              ),
+              child: Text(Translator.get('close', fallback: 'Schließen')),
             ),
           ],
         );

@@ -62,9 +62,7 @@ class DatabaseService {
 
     return await factory.openDatabase(
       path,
-      options: OpenDatabaseOptions(
-        version: 1,
-      ),
+      options: OpenDatabaseOptions(version: 1),
     );
   }
 
@@ -598,9 +596,7 @@ class DatabaseService {
       where: 'pokemon_id = ?',
       whereArgs: [pokemonId],
     );
-    return maps.isNotEmpty
-        ? (maps.first['default_level'] as num).toInt()
-        : 15;
+    return maps.isNotEmpty ? (maps.first['default_level'] as num).toInt() : 15;
   }
 
   Future<List<String>> getShinyCategories(int pokemonId) async {

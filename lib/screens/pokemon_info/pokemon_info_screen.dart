@@ -185,9 +185,7 @@ class _PokemonInfoScreenState extends State<PokemonInfoScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  Translator.get('extra_info') != 'extra_info'
-                      ? Translator.get('extra_info')
-                      : 'Zusatzinformationen',
+                  Translator.get('extra_info', fallback: 'Zusatzinformationen'),
                   style: TextStyle(fontSize: boxTitle != null ? 16 : 20),
                 ),
                 if (boxTitle != null)

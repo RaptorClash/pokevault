@@ -553,9 +553,7 @@ class _DexScreenState extends State<DexScreen> {
       context: context,
       builder: (ctx) => AlertDialog(
         title: Text(
-          Translator.get('search_help_title') != 'search_help_title'
-              ? Translator.get('search_help_title')
-              : 'Such-Befehle',
+          Translator.get('search_help_title', fallback: 'Such-Befehle'),
         ),
         content: SingleChildScrollView(
           child: Column(
@@ -563,51 +561,59 @@ class _DexScreenState extends State<DexScreen> {
             children: [
               _helpItem(
                 '15 / #15',
-                Translator.get('search_help_id') != 'search_help_id'
-                    ? Translator.get('search_help_id')
-                    : 'Sucht exakt nach einer ID.',
+                Translator.get(
+                  'search_help_id',
+                  fallback: 'Sucht exakt nach einer ID.',
+                ),
               ),
               _helpItem(
                 '1-151',
-                Translator.get('search_help_range') != 'search_help_range'
-                    ? Translator.get('search_help_range')
-                    : 'Zeigt Pokémon im ID-Bereich.',
+                Translator.get(
+                  'search_help_range',
+                  fallback: 'Zeigt Pokémon im ID-Bereich.',
+                ),
               ),
               _helpItem(
                 'shiny, caught, missing',
-                Translator.get('search_help_status') != 'search_help_status'
-                    ? Translator.get('search_help_status')
-                    : 'Filtert nach Status.',
+                Translator.get(
+                  'search_help_status',
+                  fallback: 'Filtert nach Status.',
+                ),
               ),
               _helpItem(
                 'kanto, alola, mega',
-                Translator.get('search_help_forms') != 'search_help_forms'
-                    ? Translator.get('search_help_forms')
-                    : 'Filtert nach Regionen oder Formen.',
+                Translator.get(
+                  'search_help_forms',
+                  fallback: 'Filtert nach Regionen oder Formen.',
+                ),
               ),
               _helpItem(
                 '+Bisasam',
-                Translator.get('search_help_family') != 'search_help_family'
-                    ? Translator.get('search_help_family')
-                    : 'Zeigt die Entwicklungsreihe.',
+                Translator.get(
+                  'search_help_family',
+                  fallback: 'Zeigt die Entwicklungsreihe.',
+                ),
               ),
               _helpItem(
                 'Pika* / *chu',
-                Translator.get('search_help_wildcard') != 'search_help_wildcard'
-                    ? Translator.get('search_help_wildcard')
-                    : 'Wildcard-Suche.',
+                Translator.get(
+                  'search_help_wildcard',
+                  fallback: 'Wildcard-Suche.',
+                ),
               ),
               _helpItem(
                 'shiny & kanto',
-                Translator.get('search_help_and') != 'search_help_and'
-                    ? Translator.get('search_help_and')
-                    : 'Mit "&" müssen beide Begriffe zutreffen.',
+                Translator.get(
+                  'search_help_and',
+                  fallback: 'Mit "&" müssen beide Begriffe zutreffen.',
+                ),
               ),
               _helpItem(
                 '1-9, Evoli',
-                Translator.get('search_help_or') != 'search_help_or'
-                    ? Translator.get('search_help_or')
-                    : 'Mit "," reicht ein Treffer (ODER).',
+                Translator.get(
+                  'search_help_or',
+                  fallback: 'Mit "," reicht ein Treffer (ODER).',
+                ),
               ),
             ],
           ),
@@ -922,10 +928,10 @@ class _DexScreenState extends State<DexScreen> {
                     const Icon(Icons.visibility_off, size: 20),
                     const SizedBox(width: 8),
                     Text(
-                      Translator.get('ignored_list_title') !=
-                              'ignored_list_title'
-                          ? Translator.get('ignored_list_title')
-                          : 'Ausgeblendete Pokemon',
+                      Translator.get(
+                        'ignored_list_title',
+                        fallback: 'Ausgeblendete Pokemon',
+                      ),
                     ),
                   ],
                 ),
@@ -1026,10 +1032,10 @@ class _DexScreenState extends State<DexScreen> {
                               const Icon(Icons.visibility_off, size: 20),
                               const SizedBox(width: 8),
                               Text(
-                                Translator.get('ignored_list_title') !=
-                                        'ignored_list_title'
-                                    ? Translator.get('ignored_list_title')
-                                    : 'Ausgeblendete Pokemon',
+                                Translator.get(
+                                  'ignored_list_title',
+                                  fallback: 'Ausgeblendete Pokemon',
+                                ),
                               ),
                             ],
                           ),

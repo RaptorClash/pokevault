@@ -123,7 +123,9 @@ class ThemeProvider extends ChangeNotifier {
 
       notifyListeners();
     } catch (e) {
-      NotificationHelper.showError("${Translator.get('error_reset_to_default')} $e");
+      NotificationHelper.showError(
+        "${Translator.get('error_reset_to_default')} $e",
+      );
     }
   }
 }

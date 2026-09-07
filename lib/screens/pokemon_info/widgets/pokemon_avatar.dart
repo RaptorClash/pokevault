@@ -126,9 +126,7 @@ class PokemonAvatar extends StatelessWidget {
             ),
             if (isCarrier)
               Text(
-                Translator.get('carrier') != 'carrier'
-                    ? Translator.get('carrier')
-                    : '(Trägerin)',
+                Translator.get('carrier', fallback: '(Trägerin)'),
                 style: TextStyle(
                   fontSize: 10 * sizeScale,
                   color: Colors.blue,

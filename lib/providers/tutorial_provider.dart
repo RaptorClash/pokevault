@@ -46,9 +46,7 @@ class TutorialProvider extends ChangeNotifier {
 
     for (String key in allKeys) {
       if (!systemKeys.contains(key)) {
-        await _prefs.remove(
-          key,
-        );
+        await _prefs.remove(key);
       }
     }
 

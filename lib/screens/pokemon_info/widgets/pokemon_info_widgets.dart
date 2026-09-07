@@ -125,12 +125,8 @@ class PokemonHeaderWidget extends StatelessWidget {
                     ? Colors.amber
                     : Theme.of(context).colorScheme.surface,
                 tooltip: wantShiny
-                    ? (Translator.get('normal_form') != 'normal_form'
-                          ? Translator.get('normal_form')
-                          : 'Normale Form')
-                    : (Translator.get('shiny_form') != 'shiny_form'
-                          ? Translator.get('shiny_form')
-                          : 'Shiny Form'),
+                    ? (Translator.get('normal_form', fallback: 'Normale Form'))
+                    : (Translator.get('shiny_form', fallback: 'Shiny Form')),
                 onPressed: onShinyToggled,
                 child: Icon(
                   wantShiny ? Icons.auto_awesome : Icons.auto_awesome_outlined,
@@ -219,7 +215,7 @@ class PokemonBasicInfoWidget extends StatelessWidget {
             if (entry.displaySuffix.trim().isNotEmpty) ...[
               const SizedBox(height: 8),
               Text(
-                '${Translator.get('form') != 'form' ? Translator.get('form') : 'Form'}: ${entry.displaySuffix.replaceAll('(', '').replaceAll(')', '').trim()}',
+                '${Translator.get('form', fallback: 'Form')}: ${entry.displaySuffix.replaceAll('(', '').replaceAll(')', '').trim()}',
                 style: const TextStyle(
                   fontSize: 18,
                   fontStyle: FontStyle.italic,
@@ -270,15 +266,14 @@ class PokemonStatusTogglesWidget extends StatelessWidget {
             margin: const EdgeInsets.symmetric(vertical: 4),
             child: SwitchListTile(
               title: Text(
-                Translator.get('caught_status') != 'caught_status'
-                    ? Translator.get('caught_status')
-                    : 'Gefangen Status',
+                Translator.get('caught_status', fallback: 'Gefangen Status'),
                 style: const TextStyle(fontWeight: FontWeight.bold),
               ),
               subtitle: Text(
-                Translator.get('mark_as_caught') != 'mark_as_caught'
-                    ? Translator.get('mark_as_caught')
-                    : 'Als gefangen markieren',
+                Translator.get(
+                  'mark_as_caught',
+                  fallback: 'Als gefangen markieren',
+                ),
               ),
               secondary: Icon(
                 Icons.catching_pokemon,
@@ -427,9 +422,7 @@ class MatchingBallsWidget extends StatelessWidget {
       child: ExpansionTile(
         leading: const Icon(Icons.catching_pokemon, color: Colors.redAccent),
         title: Text(
-          Translator.get('matching_balls') != 'matching_balls'
-              ? Translator.get('matching_balls')
-              : 'Matching Balls',
+          Translator.get('matching_balls', fallback: 'Matching Balls'),
           style: const TextStyle(fontWeight: FontWeight.bold),
         ),
         children: [
@@ -455,10 +448,10 @@ class MatchingBallsWidget extends StatelessWidget {
                   _buildBallCard(
                     context,
                     Icons.catching_pokemon,
-                    Translator.get('matching_ball_normal') !=
-                            'matching_ball_normal'
-                        ? Translator.get('matching_ball_normal')
-                        : 'Matching Ball (Normal)',
+                    Translator.get(
+                      'matching_ball_normal',
+                      fallback: 'Matching Ball (Normal)',
+                    ),
                     normalBalls,
                     Theme.of(context).colorScheme.primary,
                     provider.ballUrls,
@@ -466,10 +459,10 @@ class MatchingBallsWidget extends StatelessWidget {
                   _buildBallCard(
                     context,
                     Icons.star,
-                    Translator.get('matching_ball_shiny') !=
-                            'matching_ball_shiny'
-                        ? Translator.get('matching_ball_shiny')
-                        : 'Matching Ball (Shiny)',
+                    Translator.get(
+                      'matching_ball_shiny',
+                      fallback: 'Matching Ball (Shiny)',
+                    ),
                     shinyBalls,
                     Colors.amber,
                     provider.ballUrls,
@@ -507,9 +500,7 @@ class IgnorePokemonButton extends StatelessWidget {
         ),
         icon: const Icon(Icons.delete_outline),
         label: Text(
-          Translator.get('ignore_pokemon') != 'ignore_pokemon'
-              ? Translator.get('ignore_pokemon')
-              : 'Aus Dex entfernen',
+          Translator.get('ignore_pokemon', fallback: 'Aus Dex entfernen'),
         ),
         onPressed: onIgnore,
       ),

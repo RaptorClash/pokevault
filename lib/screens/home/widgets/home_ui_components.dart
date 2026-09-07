@@ -359,9 +359,10 @@ class _HomeBottomSheetMenuState extends State<HomeBottomSheetMenu> {
         ListTile(
           leading: const Icon(Icons.folder, color: Colors.blueAccent),
           title: Text(
-            Translator.get('folder_create_title') != 'folder_create_title'
-                ? Translator.get('folder_create_title')
-                : 'Neuen Ordner erstellen',
+            Translator.get(
+              'folder_create_title',
+              fallback: 'Neuen Ordner erstellen',
+            ),
           ),
           onTap: widget.onFolderCreate,
         ),

@@ -230,14 +230,13 @@ class HomeDialogs {
       context: context,
       builder: (context) => AlertDialog(
         title: Text(
-          Translator.get('dex_delete_title') != 'dex_delete_title'
-              ? Translator.get('dex_delete_title')
-              : 'Pokédex löschen',
+          Translator.get('dex_delete_title', fallback: 'Pokédex löschen'),
         ),
         content: Text(
-          Translator.get('dex_delete_text') != 'dex_delete_text'
-              ? Translator.get('dex_delete_text')
-              : 'Möchtest du diesen Pokédex wirklich löschen?',
+          Translator.get(
+            'dex_delete_text',
+            fallback: 'Möchtest du diesen Pokédex wirklich löschen?',
+          ),
         ),
         actions: [
           TextButton(
@@ -280,18 +279,17 @@ class HomeDialogs {
         builder: (context, setStateSB) {
           return AlertDialog(
             title: Text(
-              Translator.get('delete_folder_title') != 'delete_folder_title'
-                  ? Translator.get('delete_folder_title')
-                  : 'Ordner löschen',
+              Translator.get('delete_folder_title', fallback: 'Ordner löschen'),
             ),
             content: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  Translator.get('delete_folder_text') != 'delete_folder_text'
-                      ? Translator.get('delete_folder_text')
-                      : 'Möchtest du diesen Ordner wirklich löschen?',
+                  Translator.get(
+                    'delete_folder_text',
+                    fallback: 'Möchtest du diesen Ordner wirklich löschen?',
+                  ),
                 ),
                 const SizedBox(height: 16),
                 CheckboxListTile(
@@ -458,9 +456,7 @@ class HomeDialogs {
       context: context,
       builder: (ctx) => AlertDialog(
         title: Text(
-          Translator.get('search_help_title') != 'search_help_title'
-              ? Translator.get('search_help_title')
-              : 'Such-Befehle',
+          Translator.get('search_help_title', fallback: 'Such-Befehle'),
         ),
         content: SingleChildScrollView(
           child: Column(
@@ -468,51 +464,59 @@ class HomeDialogs {
             children: [
               helpItem(
                 '15 / #15',
-                Translator.get('search_help_id') != 'search_help_id'
-                    ? Translator.get('search_help_id')
-                    : 'Sucht exakt nach einer ID.',
+                Translator.get(
+                  'search_help_id',
+                  fallback: 'Sucht exakt nach einer ID.',
+                ),
               ),
               helpItem(
                 '1-151',
-                Translator.get('search_help_range') != 'search_help_range'
-                    ? Translator.get('search_help_range')
-                    : 'Zeigt Pokémon im ID-Bereich.',
+                Translator.get(
+                  'search_help_range',
+                  fallback: 'Zeigt Pokémon im ID-Bereich.',
+                ),
               ),
               helpItem(
                 'shiny, caught, missing',
-                Translator.get('search_help_status') != 'search_help_status'
-                    ? Translator.get('search_help_status')
-                    : 'Filtert nach Status.',
+                Translator.get(
+                  'search_help_status',
+                  fallback: 'Filtert nach Status.',
+                ),
               ),
               helpItem(
                 'kanto, alola, mega',
-                Translator.get('search_help_forms') != 'search_help_forms'
-                    ? Translator.get('search_help_forms')
-                    : 'Filtert nach Regionen oder Formen.',
+                Translator.get(
+                  'search_help_forms',
+                  fallback: 'Filtert nach Regionen oder Formen.',
+                ),
               ),
               helpItem(
                 '+Bisasam',
-                Translator.get('search_help_family') != 'search_help_family'
-                    ? Translator.get('search_help_family')
-                    : 'Zeigt die Entwicklungsreihe.',
+                Translator.get(
+                  'search_help_family',
+                  fallback: 'Zeigt die Entwicklungsreihe.',
+                ),
               ),
               helpItem(
                 'Pika* / *chu',
-                Translator.get('search_help_wildcard') != 'search_help_wildcard'
-                    ? Translator.get('search_help_wildcard')
-                    : 'Wildcard-Suche.',
+                Translator.get(
+                  'search_help_wildcard',
+                  fallback: 'Wildcard-Suche.',
+                ),
               ),
               helpItem(
                 'shiny & kanto',
-                Translator.get('search_help_and') != 'search_help_and'
-                    ? Translator.get('search_help_and')
-                    : 'Mit "&" müssen beide Begriffe zutreffen.',
+                Translator.get(
+                  'search_help_and',
+                  fallback: 'Mit "&" müssen beide Begriffe zutreffen.',
+                ),
               ),
               helpItem(
                 '1-9, Evoli',
-                Translator.get('search_help_or') != 'search_help_or'
-                    ? Translator.get('search_help_or')
-                    : 'Mit "," reicht ein Treffer (ODER).',
+                Translator.get(
+                  'search_help_or',
+                  fallback: 'Mit "," reicht ein Treffer (ODER).',
+                ),
               ),
             ],
           ),

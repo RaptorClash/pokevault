@@ -27,20 +27,21 @@ class _DowngradeDialogState extends State<DowngradeDialog> {
     return AlertDialog(
       title: Text(
         _currentStep == DowngradeStep.backup
-            ? (Translator.get('downgrade_backup_title') !=
-                      'downgrade_backup_title'
-                  ? Translator.get('downgrade_backup_title')
-                  : 'Vorher Backup erstellen?')
+            ? (Translator.get(
+                'downgrade_backup_title',
+                fallback: 'Vorher Backup erstellen?',
+              ))
             : _currentStep == DowngradeStep.finalWarning
-            ? (Translator.get('downgrade_final_warning_title') !=
-                      'downgrade_final_warning_title'
-                  ? Translator.get('downgrade_final_warning_title')
-                  : 'Letzte Warnung')
+            ? (Translator.get(
+                'downgrade_final_warning_title',
+                fallback: 'Letzte Warnung',
+              ))
             : _currentStep == DowngradeStep.success
             ? 'Download abgeschlossen!'
-            : (Translator.get('attention_downgrade') != 'attention_downgrade'
-                  ? Translator.get('attention_downgrade')
-                  : 'Achtung: Downgrade'),
+            : (Translator.get(
+                'attention_downgrade',
+                fallback: 'Achtung: Downgrade',
+              )),
         style: TextStyle(
           color: _currentStep == DowngradeStep.finalWarning
               ? Colors.redAccent
@@ -119,10 +120,11 @@ class _DowngradeDialogState extends State<DowngradeDialog> {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    Translator.get('downgrade_warning_text') !=
-                            'downgrade_warning_text'
-                        ? Translator.get('downgrade_warning_text')
-                        : 'Du bist dabei, auf eine ältere Version der App zurückzukehren. Dabei können neue Funktionen verloren gehen oder Inkompatibilitäten auftreten.\n\nWICHTIG FÜR ANDROID: Android blockiert direkte Downgrades. Du musst die App erst deinstallieren und die heruntergeladene APK manuell installieren.\n\nBitte exportiere VORHER unbedingt deine Dexe in den Einstellungen als Backup!',
+                    Translator.get(
+                      'downgrade_warning_text',
+                      fallback:
+                          'Du bist dabei, auf eine ältere Version der App zurückzukehren. Dabei können neue Funktionen verloren gehen oder Inkompatibilitäten auftreten.\n\nWICHTIG FÜR ANDROID: Android blockiert direkte Downgrades. Du musst die App erst deinstallieren und die heruntergeladene APK manuell installieren.\n\nBitte exportiere VORHER unbedingt deine Dexe in den Einstellungen als Backup!',
+                    ),
                     style: const TextStyle(fontSize: 12, color: Colors.red),
                   ),
                 ),
@@ -139,16 +141,19 @@ class _DowngradeDialogState extends State<DowngradeDialog> {
       );
     } else if (_currentStep == DowngradeStep.backup) {
       return Text(
-        Translator.get('downgrade_backup_text') != 'downgrade_backup_text'
-            ? Translator.get('downgrade_backup_text')
-            : 'Möchtest du deine aktuellen PokéDexe vor dem Downgrade sichern? Das wird dringend empfohlen!',
+        Translator.get(
+          'downgrade_backup_text',
+          fallback:
+              'Möchtest du deine aktuellen PokéDexe vor dem Downgrade sichern? Das wird dringend empfohlen!',
+        ),
       );
     } else {
       return Text(
-        Translator.get('downgrade_final_warning_text') !=
-                'downgrade_final_warning_text'
-            ? Translator.get('downgrade_final_warning_text')
-            : 'Bist du dir absolut sicher, dass du auf diese alte Version downgraden möchtest? Hast du dein Backup gemacht?',
+        Translator.get(
+          'downgrade_final_warning_text',
+          fallback:
+              'Bist du dir absolut sicher, dass du auf diese alte Version downgraden möchtest? Hast du dein Backup gemacht?',
+        ),
       );
     }
   }
@@ -182,9 +187,10 @@ class _DowngradeDialogState extends State<DowngradeDialog> {
             foregroundColor: Colors.white,
           ),
           child: Text(
-            Translator.get('downgrade_execute') != 'downgrade_execute'
-                ? Translator.get('downgrade_execute')
-                : 'Downgrade ausführen',
+            Translator.get(
+              'downgrade_execute',
+              fallback: 'Downgrade ausführen',
+            ),
           ),
         ),
       ];
@@ -194,9 +200,10 @@ class _DowngradeDialogState extends State<DowngradeDialog> {
           onPressed: () =>
               setState(() => _currentStep = DowngradeStep.finalWarning),
           child: Text(
-            Translator.get('downgrade_backup_skip') != 'downgrade_backup_skip'
-                ? Translator.get('downgrade_backup_skip')
-                : 'Ohne Backup fortfahren',
+            Translator.get(
+              'downgrade_backup_skip',
+              fallback: 'Ohne Backup fortfahren',
+            ),
           ),
         ),
         ElevatedButton(
@@ -212,10 +219,10 @@ class _DowngradeDialogState extends State<DowngradeDialog> {
             foregroundColor: Theme.of(context).colorScheme.onPrimary,
           ),
           child: Text(
-            Translator.get('downgrade_backup_create') !=
-                    'downgrade_backup_create'
-                ? Translator.get('downgrade_backup_create')
-                : 'Backup erstellen',
+            Translator.get(
+              'downgrade_backup_create',
+              fallback: 'Backup erstellen',
+            ),
           ),
         ),
       ];
@@ -232,10 +239,10 @@ class _DowngradeDialogState extends State<DowngradeDialog> {
             foregroundColor: Colors.white,
           ),
           child: Text(
-            Translator.get('downgrade_final_confirm') !=
-                    'downgrade_final_confirm'
-                ? Translator.get('downgrade_final_confirm')
-                : 'Ja, Downgrade starten',
+            Translator.get(
+              'downgrade_final_confirm',
+              fallback: 'Ja, Downgrade starten',
+            ),
           ),
         ),
       ];
