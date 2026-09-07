@@ -7,6 +7,9 @@ import '../../utils/breeding_logic_helper.dart';
 import '../../providers/dex_provider.dart';
 import 'widgets/breeding_step_card.dart';
 import '../../services/database_service.dart';
+import 'widgets/breeding_calc/pokemon_autocomplete_field.dart';
+import 'widgets/breeding_calc/target_pokemon_display.dart';
+import 'widgets/breeding_calc/breeding_mechanics_info.dart';
 
 class BreedingCalculatorWidget extends StatefulWidget {
   final int initialTargetId;
@@ -326,323 +329,43 @@ class _BreedingCalculatorWidgetState extends State<BreedingCalculatorWidget> {
                 },
               ),
               const SizedBox(height: 16),
+
               Text(
                 Translator.get('shiny_breed_start'),
                 style: const TextStyle(fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 8),
-              LayoutBuilder(
-                builder: (context, constraints) {
-                  return Autocomplete<int>(
-                    initialValue: TextEditingValue(
-                      text: _getPokemonDisplayName(_startId),
-                    ),
-                    displayStringForOption: _getPokemonDisplayName,
-                    optionsBuilder: (TextEditingValue textEditingValue) {
-                      if (textEditingValue.text.isEmpty) {
-                        return _validStartIds;
-                      }
-                      final query = textEditingValue.text.toLowerCase();
-                      return _validStartIds.where((id) {
-                        return _getPokemonDisplayName(
-                          id,
-                        ).toLowerCase().contains(query);
-                      });
-                    },
-                    onSelected: (int val) {
-                      if (val != _startId) {
-                        setState(() {
-                          _startId = val;
-                          _calculatePath();
-                        });
-                      }
-                    },
-                    fieldViewBuilder:
-                        (context, controller, focusNode, onEditingComplete) {
-                          return TextField(
-                            controller: controller,
-                            focusNode: focusNode,
-                            decoration: InputDecoration(
-                              labelText: Translator.get('search_hint'),
-                              contentPadding: const EdgeInsets.symmetric(
-                                vertical: 22,
-                                horizontal: 16,
-                              ),
-                              prefixIcon: Padding(
-                                padding: const EdgeInsets.only(
-                                  left: 16.0,
-                                  right: 12.0,
-                                ),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    const Icon(Icons.search, size: 26),
-                                    const SizedBox(width: 8),
-                                    Container(
-                                      padding: const EdgeInsets.all(4),
-                                      decoration: BoxDecoration(
-                                        color: Colors.amber.withValues(
-                                          alpha: 0.15,
-                                        ),
-                                        shape: BoxShape.circle,
-                                        border: Border.all(
-                                          color: Colors.amber.withValues(
-                                            alpha: 0.5,
-                                          ),
-                                        ),
-                                      ),
-                                      child: Image.network(
-                                        'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/shiny/$_startId.png',
-                                        width: 36,
-                                        height: 36,
-                                        fit: BoxFit.contain,
-                                        errorBuilder: (c, e, s) =>
-                                            const SizedBox(
-                                              width: 36,
-                                              height: 36,
-                                            ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              suffixIcon: controller.text.isNotEmpty
-                                  ? IconButton(
-                                      icon: const Icon(Icons.clear),
-                                      onPressed: () {
-                                        controller.clear();
-                                      },
-                                    )
-                                  : null,
-                              filled: true,
-                              fillColor: Theme.of(context)
-                                  .colorScheme
-                                  .surfaceContainerHighest
-                                  .withValues(alpha: 0.3),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(16),
-                                borderSide: BorderSide(
-                                  color: Theme.of(
-                                    context,
-                                  ).colorScheme.primary.withValues(alpha: 0.3),
-                                ),
-                              ),
-                            ),
-                          );
-                        },
-                    optionsViewBuilder: (context, onSelected, options) {
-                      return Align(
-                        alignment: Alignment.topLeft,
-                        child: Material(
-                          elevation: 4.0,
-                          shape: const RoundedRectangleBorder(
-                            borderRadius: BorderRadius.vertical(
-                              bottom: Radius.circular(12),
-                            ),
-                          ),
-                          child: ConstrainedBox(
-                            constraints: BoxConstraints(
-                              maxHeight: 250,
-                              maxWidth: constraints.maxWidth,
-                            ),
-                            child: ListView.builder(
-                              padding: EdgeInsets.zero,
-                              shrinkWrap: true,
-                              itemCount: options.length,
-                              itemBuilder: (BuildContext context, int index) {
-                                final int option = options.elementAt(index);
-                                return ListTile(
-                                  leading: Image.network(
-                                    'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/shiny/$option.png',
-                                    width: 40,
-                                    height: 40,
-                                    errorBuilder: (c, e, s) =>
-                                        const Icon(Icons.catching_pokemon),
-                                  ),
-                                  title: Text(_getPokemonDisplayName(option)),
-                                  onTap: () {
-                                    onSelected(option);
-                                  },
-                                );
-                              },
-                            ),
-                          ),
-                        ),
-                      );
-                    },
-                  );
+
+              PokemonAutocompleteField(
+                startId: _startId,
+                validStartIds: _validStartIds,
+                getDisplayName: _getPokemonDisplayName,
+                onSelected: (int val) {
+                  if (val != _startId) {
+                    setState(() {
+                      _startId = val;
+                      _calculatePath();
+                    });
+                  }
                 },
               ),
+
               const SizedBox(height: 16),
               Text(
                 Translator.get('shiny_breed_target'),
                 style: const TextStyle(fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 8),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 12,
-                ),
-                decoration: BoxDecoration(
-                  color: Theme.of(
-                    context,
-                  ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(
-                    color: Theme.of(
-                      context,
-                    ).colorScheme.primary.withValues(alpha: 0.3),
-                  ),
-                ),
-                child: Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(4),
-                      decoration: BoxDecoration(
-                        color: Colors.amber.withValues(alpha: 0.15),
-                        shape: BoxShape.circle,
-                        border: Border.all(
-                          color: Colors.amber.withValues(alpha: 0.5),
-                        ),
-                      ),
-                      child: Image.network(
-                        'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/shiny/$_targetId.png',
-                        width: 56,
-                        height: 56,
-                        fit: BoxFit.contain,
-                        errorBuilder: (c, e, s) => const Icon(
-                          Icons.catching_pokemon,
-                          color: Colors.grey,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Text(
-                        '#${_targetId.toString().padLeft(3, '0')} ${targetPoke != null ? targetPoke.getName(Translator.currentLanguage) : '???'}',
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 18,
-                        ),
-                      ),
-                    ),
-                    const Icon(Icons.flag, color: Colors.green, size: 28),
-                  ],
-                ),
+
+              TargetPokemonDisplay(
+                targetId: _targetId,
+                targetName: targetPoke != null
+                    ? targetPoke.getName(Translator.currentLanguage)
+                    : '???',
               ),
+
               const SizedBox(height: 24),
-              Card(
-                elevation: 0,
-                color: Theme.of(
-                  context,
-                ).colorScheme.secondaryContainer.withValues(alpha: 0.3),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
-                  side: BorderSide(
-                    color: Theme.of(
-                      context,
-                    ).colorScheme.secondary.withValues(alpha: 0.3),
-                  ),
-                ),
-                child: ExpansionTile(
-                  leading: Icon(
-                    Icons.menu_book,
-                    color: Theme.of(context).colorScheme.secondary,
-                  ),
-                  title: Text(
-                    Translator.get(
-                      'shiny_breed_mechanics_title',
-                      fallback: 'Wichtige Zucht-Mechaniken (Gen 2)',
-                    ),
-                    style: const TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Icon(
-                                Icons.lightbulb_outline,
-                                size: 20,
-                                color: Theme.of(context).colorScheme.secondary,
-                              ),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: Text(
-                                  Translator.get('shiny_breed_female_note'),
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: Theme.of(
-                                      context,
-                                    ).colorScheme.onSecondaryContainer,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                          const Divider(height: 24),
-                          Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Icon(
-                                Icons.swap_horiz,
-                                size: 20,
-                                color: Theme.of(context).colorScheme.secondary,
-                              ),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: Text(
-                                  Translator.get(
-                                    'shiny_breed_mechanics_dv_passing',
-                                    fallback:
-                                        'Warum dieser Geschlechter-Wechsel? In Gen 2 wird der Shiny-Status immer an das *andere* Geschlecht vererbt.',
-                                  ),
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: Theme.of(
-                                      context,
-                                    ).colorScheme.onSecondaryContainer,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                          const Divider(height: 24),
-                          Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Icon(
-                                Icons.warning_amber_rounded,
-                                size: 20,
-                                color: Theme.of(context).colorScheme.error,
-                              ),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: Text(
-                                  Translator.get(
-                                    'shiny_breed_dv_conflict_text',
-                                    fallback:
-                                        'Achtung: Inzest-Sperre bei gleichen DVs beachten!',
-                                  ),
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: Theme.of(context).colorScheme.error,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+              const BreedingMechanicsInfo(),
               const SizedBox(height: 16),
 
               if (_isCalculating)
@@ -673,10 +396,8 @@ class _BreedingCalculatorWidgetState extends State<BreedingCalculatorWidget> {
                             p[1],
                             _preEvolutions,
                           );
-                          String pokeName = _getPokemonNameOnly(
-                            intermediateBase,
-                          );
-                          routeName = 'Via $pokeName';
+                          routeName =
+                              'Via ${_getPokemonNameOnly(intermediateBase)}';
                         }
                         return Padding(
                           padding: const EdgeInsets.only(right: 8.0),
@@ -699,17 +420,17 @@ class _BreedingCalculatorWidgetState extends State<BreedingCalculatorWidget> {
                 if (_allPaths != null && _allPaths!.isEmpty)
                   Text(
                     _startId != 132
-                        ? (Translator.get(
+                        ? Translator.get(
                             'no_path_impossible',
                             fallback:
                                 'Unmöglich! Du MUSST ein Shiny Ditto verwenden!',
-                          ))
+                          )
                         : (_useOnlyCaught
-                              ? (Translator.get(
+                              ? Translator.get(
                                   'no_path_caught',
                                   fallback:
                                       'Keine Route mit deinen gefangenen Pokémon gefunden.',
-                                ))
+                                )
                               : Translator.get('shiny_breed_no_path')),
                     style: const TextStyle(
                       color: Colors.red,
@@ -719,11 +440,11 @@ class _BreedingCalculatorWidgetState extends State<BreedingCalculatorWidget> {
                 else if (_path == null)
                   Text(
                     _useOnlyCaught
-                        ? (Translator.get(
+                        ? Translator.get(
                             'no_path_caught',
                             fallback:
                                 'Keine Route mit deinen gefangenen Pokémon gefunden.',
-                          ))
+                          )
                         : Translator.get('shiny_breed_no_path'),
                     style: const TextStyle(color: Colors.red),
                   )

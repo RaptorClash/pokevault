@@ -111,4 +111,65 @@ class ShinyLogicHelper {
     }
     return steps;
   }
+
+  static Future<Map<String, dynamic>> fetchGen8Data(int id) async {
+    final encounters = await DatabaseService.instance.getEncounters(id);
+    final db = await DatabaseService.instance.appDatabase;
+
+    final hisuiCheck = await db.query(
+      'dex_orders',
+      where: 'pokemon_id = ? AND dex_name = ?',
+      whereArgs: [id, 'hisui_regional'],
+      limit: 1,
+    );
+
+    final swshCheck = await db.query(
+      'dex_orders',
+      where: 'pokemon_id = ? AND dex_name IN (?, ?, ?)',
+      whereArgs: [
+        id,
+        'galar_regional',
+        'isle_of_armor_regional',
+        'crown_tundra_regional',
+      ],
+      limit: 1,
+    );
+
+    return {
+      'encounters': encounters,
+      'isHisui': hisuiCheck.isNotEmpty,
+      'isSwSh': swshCheck.isNotEmpty,
+      'isBDSP': id <= 493,
+    };
+  }
+
+  static Future<Map<String, dynamic>> fetchGen9Data(int id) async {
+    final encounters = await DatabaseService.instance.getEncounters(id);
+    final db = await DatabaseService.instance.appDatabase;
+
+    final svCheck = await db.query(
+      'dex_orders',
+      where: 'pokemon_id = ? AND dex_name IN (?, ?, ?)',
+      whereArgs: [
+        id,
+        'paldea_regional',
+        'kitakami_regional',
+        'blueberry_regional',
+      ],
+      limit: 1,
+    );
+
+    final plzaCheck = await db.query(
+      'dex_orders',
+      where: 'pokemon_id = ? AND dex_name IN (?, ?)',
+      whereArgs: [id, 'lumiose_regional', 'lumiose_dimensions_regional'],
+      limit: 1,
+    );
+
+    return {
+      'encounters': encounters,
+      'isSV': svCheck.isNotEmpty,
+      'isPLZA': plzaCheck.isNotEmpty,
+    };
+  }
 }

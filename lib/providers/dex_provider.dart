@@ -239,16 +239,19 @@ class DexProvider extends ChangeNotifier with WidgetsBindingObserver {
     }
   }
 
-  void deleteFolder(String id) {
-    folders.removeWhere((f) => f.id == id);
-    for (var key in structure.keys) {
-      structure[key]?.remove(id);
+  Future<void> deleteFolder(String folderId, bool recursive) async {
+    if (!recursive) {
+      final childrenToRescue = structure[folderId] ?? [];
+      structure['root']?.addAll(childrenToRescue);
     }
-    structure.remove(id);
-    db.deleteFolder(id);
-    db.saveStructure(structure);
-    triggerAutoUpload();
+
+    structure.remove(folderId);
+    structure.values.forEach((list) => list.remove(folderId));
+
+    folders.removeWhere((f) => f.id == folderId);
     notifyListeners();
+
+    await DatabaseService.instance.deleteFolder(folderId, recursive: recursive);
   }
 
   void moveItem(String itemId, String newParentId) {

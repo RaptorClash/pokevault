@@ -18,7 +18,7 @@ class HomeDialogs {
       for (var child in children) {
         recursiveDelete(provider, child);
       }
-      provider.deleteFolder(itemId);
+      provider.deleteFolder(itemId, true);
     } else {
       provider.deleteDex(itemId);
     }
@@ -324,7 +324,7 @@ class HomeDialogs {
                     if (doRecursiveDelete) {
                       HomeDialogs.recursiveDelete(provider, folder.id);
                     } else {
-                      provider.deleteFolder(folder.id);
+                      provider.deleteFolder(folder.id, false);
                     }
                     Navigator.pop(context);
                     NotificationHelper.showSuccess('Erfolgreich gelöscht.');
@@ -400,7 +400,7 @@ class HomeDialogs {
                         if (doRecursiveDelete) {
                           HomeDialogs.recursiveDelete(provider, id);
                         } else {
-                          provider.deleteFolder(id);
+                          provider.deleteFolder(id, false);
                         }
                       } else {
                         provider.deleteDex(id);

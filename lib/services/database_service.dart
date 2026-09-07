@@ -419,7 +419,7 @@ class DatabaseService {
     );
   }
 
-  Future<void> deleteFolder(String folderId) async {
+  Future<void> deleteFolder(String folderId, {bool recursive = false}) async {
     final db = await instance.userDatabase;
     int now = DateTime.now().toUtc().millisecondsSinceEpoch;
 
@@ -429,12 +429,29 @@ class DatabaseService {
       where: 'id = ?',
       whereArgs: [folderId],
     );
+
     await db.update(
       'folder_structure',
       {'deleted_at': now, 'updated_at': now},
-      where: 'parent_id = ? OR child_id = ?',
-      whereArgs: [folderId, folderId],
+      where: 'child_id = ?',
+      whereArgs: [folderId],
     );
+
+    if (recursive) {
+      await db.update(
+        'folder_structure',
+        {'deleted_at': now, 'updated_at': now},
+        where: 'parent_id = ?',
+        whereArgs: [folderId],
+      );
+    } else {
+      await db.update(
+        'folder_structure',
+        {'parent_id': 'root', 'updated_at': now},
+        where: 'parent_id = ? AND deleted_at = ?',
+        whereArgs: [folderId, 0],
+      );
+    }
   }
 
   Future<Map<String, List<String>>> getStructure() async {

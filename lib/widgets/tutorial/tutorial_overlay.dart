@@ -1,13 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import '../../models/tutorial_step.dart';
 import '../../l10n/app_translations.dart';
 import '../../utils/notification_helper.dart';
-import '../../constants/app_vectors.dart';
-import 'tutorial_painters.dart';
 import 'package:provider/provider.dart';
 import '../../providers/tutorial_provider.dart';
+import './tutorial_ui_components.dart';
 
 class TutorialOverlay extends StatefulWidget {
   final TutorialFeature feature;
@@ -566,113 +564,6 @@ class _TutorialOverlayState extends State<TutorialOverlay>
     }
   }
 
-  Widget _buildRotomIcon() {
-    return AnimatedBuilder(
-      animation: _pulseController,
-      builder: (context, child) {
-        return Transform.translate(
-          offset: Offset(0, -10 * _pulseController.value),
-          child: child,
-        );
-      },
-      child: SvgPicture.string(AppVectors.rotomDex, width: 90, height: 90),
-    );
-  }
-
-  Widget _buildBubbleContent(
-    TutorialStep step,
-    bool showBubbleTop,
-    bool isIntro,
-    bool isLast,
-  ) {
-    bool showNextBtn =
-        (!step.requireTargetTap && !step.hideNextButton) ||
-        _easterEggTriggered ||
-        _targetRect == null;
-
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
-        borderRadius: BorderRadius.circular(20).copyWith(
-          bottomLeft: (showBubbleTop && !isIntro) || _isEasterEggActive
-              ? const Radius.circular(20)
-              : const Radius.circular(0),
-          topLeft: (showBubbleTop && !isIntro) && !_isEasterEggActive
-              ? const Radius.circular(0)
-              : const Radius.circular(20),
-        ),
-        boxShadow: const [
-          BoxShadow(
-            color: Colors.black26,
-            blurRadius: 10,
-            offset: Offset(0, 5),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            Translator.get(step.titleKey),
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: Theme.of(context).colorScheme.primary,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            _overrideText ?? Translator.get(step.textKey),
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: _overrideText != null
-                  ? FontWeight.bold
-                  : FontWeight.normal,
-              color: _overrideText != null ? Colors.redAccent : null,
-            ),
-          ),
-          const SizedBox(height: 16),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Flexible(
-                child: TextButton(
-                  onPressed: _isEasterEggActive ? null : _skipTutorial,
-                  child: FittedBox(
-                    fit: BoxFit.scaleDown,
-                    child: Text(
-                      Translator.get('tutorial_skip'),
-                      style: const TextStyle(color: Colors.grey),
-                    ),
-                  ),
-                ),
-              ),
-              if (showNextBtn)
-                Flexible(
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Theme.of(context).colorScheme.primary,
-                      foregroundColor: Theme.of(context).colorScheme.onPrimary,
-                    ),
-                    onPressed: _isEasterEggActive ? null : _nextStep,
-                    child: FittedBox(
-                      fit: BoxFit.scaleDown,
-                      child: Text(
-                        Translator.get(
-                          isLast ? 'tutorial_finish' : 'tutorial_next',
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final step = widget.feature.steps[_currentIndex];
@@ -739,8 +630,10 @@ class _TutorialOverlayState extends State<TutorialOverlay>
                   return;
                 }
               }
+
               _wrongTapCount = 0;
               setState(() => _isAdvancing = true);
+
               if (isLast) {
                 _closeTutorial();
                 if (step.onTargetTap != null) step.onTargetTap!();
@@ -762,52 +655,19 @@ class _TutorialOverlayState extends State<TutorialOverlay>
           },
           child: Stack(
             children: [
-              CustomPaint(
-                size: MediaQuery.of(context).size,
-                painter: HolePainter(
-                  rect: _isEasterEggActive ? null : _targetRect,
-                ),
+              TutorialHighlight(
+                targetRect: _targetRect,
+                isEasterEggActive: _isEasterEggActive,
+                showHighlight: step.showHighlight,
+                pulseAnimation: _pulseController,
               ),
-              if (_targetRect != null &&
-                  step.showHighlight &&
-                  !_isEasterEggActive)
-                Positioned.fromRect(
-                  rect: _targetRect!,
-                  child: IgnorePointer(
-                    child: AnimatedBuilder(
-                      animation: _pulseController,
-                      builder: (context, child) {
-                        return Container(
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(
-                              color: Colors.amber.withValues(
-                                alpha: 0.5 + (_pulseController.value * 0.5),
-                              ),
-                              width: 4,
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                ),
-              if (_oldRotomPos != null && _newRotomPos != null)
-                IgnorePointer(
-                  child: AnimatedBuilder(
-                    animation: _lightningController,
-                    builder: (context, child) {
-                      return CustomPaint(
-                        size: MediaQuery.of(context).size,
-                        painter: LightningPainter(
-                          start: _oldRotomPos!,
-                          end: _newRotomPos!,
-                          progress: _lightningController.value,
-                        ),
-                      );
-                    },
-                  ),
-                ),
+
+              TutorialLightning(
+                oldPos: _oldRotomPos,
+                newPos: _newRotomPos,
+                lightningAnimation: _lightningController,
+              ),
+
               AnimatedPositioned(
                 duration: const Duration(milliseconds: 400),
                 curve: Curves.easeInOutBack,
@@ -815,41 +675,19 @@ class _TutorialOverlayState extends State<TutorialOverlay>
                 bottom: calcBottom,
                 left: _easterEggPos != null ? _easterEggPos!.dx : 20,
                 width: MediaQuery.of(context).size.width - 40,
-                child: _isEasterEggActive
-                    ? Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          _buildBubbleContent(
-                            step,
-                            showBubbleTop,
-                            isIntro,
-                            isLast,
-                          ),
-                          const SizedBox(height: 16),
-                          Align(
-                            alignment: Alignment.centerLeft,
-                            child: _buildRotomIcon(),
-                          ),
-                        ],
-                      )
-                    : Row(
-                        crossAxisAlignment: showBubbleTop && !isIntro
-                            ? CrossAxisAlignment.start
-                            : CrossAxisAlignment.end,
-                        children: [
-                          _buildRotomIcon(),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: _buildBubbleContent(
-                              step,
-                              showBubbleTop,
-                              isIntro,
-                              isLast,
-                            ),
-                          ),
-                        ],
-                      ),
+                child: TutorialBubble(
+                  step: step,
+                  showBubbleTop: showBubbleTop,
+                  isIntro: isIntro,
+                  isLast: isLast,
+                  isEasterEggActive: _isEasterEggActive,
+                  easterEggTriggered: _easterEggTriggered,
+                  overrideText: _overrideText,
+                  targetRect: _targetRect,
+                  pulseAnimation: _pulseController,
+                  onSkip: _skipTutorial,
+                  onNext: _nextStep,
+                ),
               ),
             ],
           ),
