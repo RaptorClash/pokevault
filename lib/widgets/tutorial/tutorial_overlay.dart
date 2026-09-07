@@ -434,7 +434,7 @@ class _TutorialOverlayState extends State<TutorialOverlay>
     setState(() => _isAdvancing = true);
 
     if (isLast) {
-      _skipTutorial();
+      _closeTutorial();
       if (step.onTargetTap != null) step.onTargetTap!();
     } else {
       if (step.onTargetTap != null) step.onTargetTap!();
@@ -534,7 +534,7 @@ class _TutorialOverlayState extends State<TutorialOverlay>
           },
         );
       } else {
-        _skipTutorial();
+        _closeTutorial();
       }
     } catch (e) {
       NotificationHelper.showError(
@@ -556,6 +556,12 @@ class _TutorialOverlayState extends State<TutorialOverlay>
         debugPrint("Fehler beim globalen Überspringen: $e");
       }
 
+      Navigator.of(context).pop();
+    }
+  }
+
+  void _closeTutorial() {
+    if (mounted) {
       Navigator.of(context).pop();
     }
   }
@@ -736,7 +742,7 @@ class _TutorialOverlayState extends State<TutorialOverlay>
               _wrongTapCount = 0;
               setState(() => _isAdvancing = true);
               if (isLast) {
-                _skipTutorial();
+                _closeTutorial();
                 if (step.onTargetTap != null) step.onTargetTap!();
               } else {
                 if (step.onTargetTap != null) step.onTargetTap!();
