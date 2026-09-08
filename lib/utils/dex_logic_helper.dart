@@ -178,7 +178,6 @@ class DexLogicHelper {
     final id = entry.pokemon.id;
     final uniqueId = entry.uniqueId.toLowerCase();
 
-    // Hilfsfunktion: Ist es eine native Regionalform für diesen Dex?
     bool isNativeReg(String formName) {
       if (region.contains('alola') && formName.contains('alola')) return true;
       if (region.contains('galar') && formName.contains('galar')) return true;
@@ -187,7 +186,6 @@ class DexLogicHelper {
       return false;
     }
 
-    // Prüfen, ob das Pokémon in dieser Region eine native Form besitzt
     bool hasNativeRegional = false;
     for (var f in entry.pokemon.forms) {
       if (f.formType == 'regional' && isNativeReg(f.name.toLowerCase())) {
@@ -202,12 +200,10 @@ class DexLogicHelper {
     bool isBaseForm = false;
 
     if (hasNativeRegional) {
-      // Wenn eine native Form existiert, ist diese die Base-Form!
       if (isNativeReg(formName)) {
         isBaseForm = true;
       }
     } else {
-      // Wenn keine native Regionalform existiert, bleibt die Normalform Base
       if (!uniqueId.contains('_')) {
         isBaseForm = true;
       } else {
@@ -244,7 +240,7 @@ class DexLogicHelper {
         if (form.formType == 'regional') return 'regional';
         if (form.formType == 'mega') return 'mega';
         if (form.formType == 'normal')
-          return 'alternate'; // Normale Form rückt in die Extra-Box!
+          return 'alternate';
       } catch (_) {}
     }
 
@@ -402,6 +398,12 @@ class DexLogicHelper {
     bool isMegaDex = liveDex.region == 'mega_dex';
     bool isIcognitoDex = liveDex.region == 'icognito_dex';
     String shinyPath = liveDex.isShinyDex ? 'shiny/' : '';
+    bool isMovesDex = liveDex.region == 'moves_dex';
+    bool isAbilitiesDex = liveDex.region == 'abilities_dex';
+
+    if (isMovesDex || isAbilitiesDex) {
+      return [];
+    }
 
     bool isNativeRegionalForm(PokemonForm f, String region) {
       if (f.formType != 'regional') return false;

@@ -89,8 +89,21 @@ class PokedexApp extends StatelessWidget {
             if (event is KeyDownEvent) {
               if (event.logicalKey == LogicalKeyboardKey.backspace ||
                   event.logicalKey == LogicalKeyboardKey.browserBack) {
-                if (FocusManager.instance.primaryFocus?.context?.widget
-                    is EditableText) {
+                final currentFocus = FocusManager.instance.primaryFocus;
+                bool isTextFieldActive = false;
+
+                if (currentFocus != null && currentFocus.context != null) {
+                  isTextFieldActive =
+                      currentFocus.context!.widget is EditableText ||
+                      currentFocus.context!
+                              .findAncestorWidgetOfExactType<EditableText>() !=
+                          null ||
+                      currentFocus.context!
+                              .findAncestorWidgetOfExactType<TextField>() !=
+                          null;
+                }
+
+                if (isTextFieldActive) {
                   return KeyEventResult.ignored;
                 }
 

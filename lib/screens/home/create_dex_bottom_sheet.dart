@@ -513,6 +513,37 @@ class _CreateDexBottomSheetState extends State<CreateDexBottomSheet> {
   }
 
   Widget _buildSettingsToggles() {
+    bool isMoveOrAbility =
+        selectedSubDex == 'moves_dex' || selectedSubDex == 'abilities_dex';
+
+    if (isMoveOrAbility) {
+      return Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Theme.of(
+            context,
+          ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Row(
+          children: [
+            Icon(Icons.info_outline, color: Theme.of(context).hintColor),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                'Für diesen Dex-Typ gibt es keine Shiny-, Geschlechter- oder Form-Optionen.',
+                style: TextStyle(
+                  color: Theme.of(context).hintColor,
+                  fontStyle: FontStyle.italic,
+                  fontSize: 13,
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
     return Container(
       decoration: BoxDecoration(
         color: Theme.of(

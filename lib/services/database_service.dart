@@ -12,6 +12,7 @@ import '../l10n/app_translations.dart';
 import 'dart:typed_data';
 import 'package:sqflite_common_ffi_web/sqflite_ffi_web.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../models/special_dex_models.dart';
 
 class DatabaseService {
   static final DatabaseService instance = DatabaseService._init();
@@ -26,7 +27,7 @@ class DatabaseService {
     return _appDatabase!;
   }
 
-  static const int _currentAppDbVersion = 4;
+  static const int _currentAppDbVersion = 7;
 
   Future<Database> _initAppDB(String fileName) async {
     String path = fileName;
@@ -624,5 +625,81 @@ class DatabaseService {
       whereArgs: [pokemonId],
     );
     return maps.map((m) => m['category'] as String).toList();
+  }
+
+  Future<List<PokeAbility>> getAllAbilities() async {
+    final db = await instance.appDatabase;
+    final maps = await db.query('abilities', orderBy: 'id ASC');
+    return maps
+        .map(
+          (m) => PokeAbility(
+            id: m['id'] as int,
+            nameDe: m['name_de'] as String,
+            nameEn: m['name_en'] as String,
+            descDe: m['desc_de'] as String,
+            descEn: m['desc_en'] as String,
+          ),
+        )
+        .toList();
+  }
+
+  Future<List<PokeMove>> getAllMoves() async {
+    final db = await instance.appDatabase;
+    final maps = await db.query('moves', orderBy: 'id ASC');
+    return maps
+        .map(
+          (m) => PokeMove(
+            id: m['id'] as int,
+            nameDe: m['name_de'] as String,
+            nameEn: m['name_en'] as String,
+            type: m['type'] as String,
+            power: m['power'] as int? ?? 0,
+            accuracy: m['accuracy'] as int? ?? 0,
+            pp: m['pp'] as int? ?? 0,
+            damageClass: m['damage_class'] as String,
+            descDe: m['desc_de'] as String,
+            descEn: m['desc_en'] as String,
+          ),
+        )
+        .toList();
+  }
+
+  Future<List<PokemonLearnset>> getPokemonForMove(int moveId) async {
+    final db = await instance.appDatabase;
+    final maps = await db.query(
+      'pokemon_moves',
+      where: 'move_id = ?',
+      whereArgs: [moveId],
+    );
+    return maps
+        .map(
+          (m) => PokemonLearnset(
+            pokemonId: m['pokemon_id'] as int,
+            learnMethod: m['learn_method'] as String,
+            levelLearned: m['level_learned'] as int,
+            versionGroup: m['version_group'] as String,
+          ),
+        )
+        .toList();
+  }
+
+  Future<List<PokemonLearnset>> getPokemonForAbility(int abilityId) async {
+    final db = await instance.appDatabase;
+    final maps = await db.query(
+      'pokemon_abilities',
+      where: 'ability_id = ?',
+      whereArgs: [abilityId],
+    );
+    return maps
+        .map(
+          (m) => PokemonLearnset(
+            pokemonId: m['pokemon_id'] as int,
+            learnMethod: 'ability',
+            levelLearned: 0,
+            versionGroup: 'all',
+            isHiddenAbility: (m['is_hidden'] as int) == 1,
+          ),
+        )
+        .toList();
   }
 }

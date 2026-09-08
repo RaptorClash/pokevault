@@ -1,0 +1,3 @@
+[submodule "bin/api-data"]
+	path = bin/api-data
+	url = https://github.com/PokeAPI/api-data.git

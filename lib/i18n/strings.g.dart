@@ -4,9 +4,9 @@
 /// To regenerate, run: `dart run slang`
 ///
 /// Locales: 2
-/// Strings: 2352 (1176 per locale)
+/// Strings: 2406 (1203 per locale)
 ///
-/// Built on 2026-09-07 at 20:19 UTC
+/// Built on 2026-09-08 at 10:56 UTC
 
 // coverage:ignore-file
 // ignore_for_file: type=lint
@@ -1318,6 +1318,34 @@ class Translations implements BaseTranslations<AppLocale, Translations> {
 	String get all => 'Alle';
 	String get box_check_all => 'Ganze Box abhaken';
 	String get box_uncheck_all => 'Ganze Box Markierung aufheben';
+	String get dex_abilities => 'Fähigkeiten-Dex';
+	String get dex_moves => 'Attacken-Dex';
+	String get power => 'Stärke';
+	String get accuracy => 'Genauigkeit';
+	String get pp => 'AP';
+	String get category => 'Kategorie';
+	String get type => 'Typ';
+	String get learned_by => 'Erlernbar von';
+	String get hidden_ability => 'Versteckte Fähigkeit';
+	String get normal_ability => 'Normale Fähigkeit';
+	String get learned_by_level => 'Levelaufstieg (Lv. {0})';
+	String get learned_by_machine => 'TM/VM';
+	String get learned_by_egg => 'Zucht (Ei)';
+	String get learned_by_tutor => 'Attacken-Lehrer';
+	String get region_moves_dex => 'Attacken-Dex';
+	String get region_abilities_dex => 'Fähigkeiten-Dex';
+	String get special_dex_moves => 'Attacken-Dex';
+	String get special_dex_abilities => 'Fähigkeiten-Dex';
+	String get special_dex_moves_desc => 'Eine Übersicht aller verfügbaren Attacken';
+	String get special_dex_abilities_desc => 'Eine Übersicht aller verfügbaren Fähigkeiten';
+	String get registered => 'Registriert';
+	String get power_short => 'Stärke';
+	String get accuracy_short => 'Genauigk.';
+	String get category_physical => 'Physisch';
+	String get category_special => 'Spezial';
+	String get category_status => 'Status';
+	String get hidden_ability_short => 'Versteckt';
+	String get normal_ability_short => 'Normal';
 }
 
 // Path: <root>
@@ -1914,7 +1942,6 @@ class _StringsEn extends Translations {
 	@override String get shiny_guide_gen5 => 'Generation 5';
 	@override String get shiny_guide_gen6 => 'Generation 6';
 	@override String get shiny_guide_gen7 => 'Generation 7';
-	@override String get shiny_guide_gen9 => 'Generation 9 (Scarlet & Violet)';
 	@override String get shiny_hunt_methods_soon => 'More hunting methods will be added in the future.';
 	@override String get shiny_guide_missing_note => 'Note: If a generation is not listed, the Pokémon cannot be regularly shiny hunted/bred there (or the hunting methods will be added in future updates).';
 	@override String get shiny_odd_egg_title => 'The Odd Egg (Pokémon Crystal)';
@@ -2495,6 +2522,7 @@ class _StringsEn extends Translations {
 	@override String get shiny_gen85_locked_desc => 'Warning: ALL Legendary and Mythical Pokémon (Arceus, Dialga, Palkia, Darkrai etc.) and one-time quest encounters are shiny locked in Hisui!';
 	@override String get shiny_gen8_pla_link_reddit => 'Reddit - PLA Outbreaks Guide (EN)';
 	@override String get shiny_gen8_pla_link_bisafans => 'Bisafans - PLA Outbreaks Guide (DE)';
+	@override String get shiny_guide_gen9 => 'Generation 9 (Scarlet & Violet)';
 	@override String get shiny_guide_gen9_5 => 'Generation 9.5 (Legends: Z-A)';
 	@override String get shiny_gen9_sv_title => 'Scarlet & Violet (Paldea)';
 	@override String get shiny_gen9_sv_desc => 'Base odds 1:4096. Shinys are visible in the overworld but make NO sound! Use the Let\'s Go feature (Auto-Battle), as your partner refuses to attack shinies.';
@@ -2528,6 +2556,32 @@ class _StringsEn extends Translations {
 	@override String get all => 'All';
 	@override String get box_check_all => 'Check whole box';
 	@override String get box_uncheck_all => 'Uncheck whole box';
+	@override String get dex_abilities => 'Ability Dex';
+	@override String get dex_moves => 'Move Dex';
+	@override String get power => 'Power';
+	@override String get accuracy => 'Accuracy';
+	@override String get pp => 'PP';
+	@override String get category => 'Category';
+	@override String get type => 'Type';
+	@override String get learned_by => 'Learned by';
+	@override String get hidden_ability => 'Hidden Ability';
+	@override String get normal_ability => 'Normal Ability';
+	@override String get learned_by_level => 'Level Up (Lv. {0})';
+	@override String get learned_by_machine => 'TM/HM';
+	@override String get learned_by_egg => 'Egg Move';
+	@override String get learned_by_tutor => 'Move Tutor';
+	@override String get special_dex_moves => 'Moves Dex';
+	@override String get special_dex_abilities => 'Abilities Dex';
+	@override String get special_dex_moves_desc => 'An overview of all available moves';
+	@override String get special_dex_abilities_desc => 'An overview of all available abilities';
+	@override String get registered => 'Registered';
+	@override String get power_short => 'Power';
+	@override String get accuracy_short => 'Accuracy';
+	@override String get category_physical => 'Physical';
+	@override String get category_special => 'Special';
+	@override String get category_status => 'Status';
+	@override String get hidden_ability_short => 'Hidden';
+	@override String get normal_ability_short => 'Normal';
 }
 
 /// Flat map(s) containing all translations.
@@ -3706,6 +3760,34 @@ extension on Translations {
 			case 'all': return 'Alle';
 			case 'box_check_all': return 'Ganze Box abhaken';
 			case 'box_uncheck_all': return 'Ganze Box Markierung aufheben';
+			case 'dex_abilities': return 'Fähigkeiten-Dex';
+			case 'dex_moves': return 'Attacken-Dex';
+			case 'power': return 'Stärke';
+			case 'accuracy': return 'Genauigkeit';
+			case 'pp': return 'AP';
+			case 'category': return 'Kategorie';
+			case 'type': return 'Typ';
+			case 'learned_by': return 'Erlernbar von';
+			case 'hidden_ability': return 'Versteckte Fähigkeit';
+			case 'normal_ability': return 'Normale Fähigkeit';
+			case 'learned_by_level': return 'Levelaufstieg (Lv. {0})';
+			case 'learned_by_machine': return 'TM/VM';
+			case 'learned_by_egg': return 'Zucht (Ei)';
+			case 'learned_by_tutor': return 'Attacken-Lehrer';
+			case 'region_moves_dex': return 'Attacken-Dex';
+			case 'region_abilities_dex': return 'Fähigkeiten-Dex';
+			case 'special_dex_moves': return 'Attacken-Dex';
+			case 'special_dex_abilities': return 'Fähigkeiten-Dex';
+			case 'special_dex_moves_desc': return 'Eine Übersicht aller verfügbaren Attacken';
+			case 'special_dex_abilities_desc': return 'Eine Übersicht aller verfügbaren Fähigkeiten';
+			case 'registered': return 'Registriert';
+			case 'power_short': return 'Stärke';
+			case 'accuracy_short': return 'Genauigk.';
+			case 'category_physical': return 'Physisch';
+			case 'category_special': return 'Spezial';
+			case 'category_status': return 'Status';
+			case 'hidden_ability_short': return 'Versteckt';
+			case 'normal_ability_short': return 'Normal';
 			default: return null;
 		}
 	}
@@ -4282,7 +4364,6 @@ extension on _StringsEn {
 			case 'shiny_guide_gen5': return 'Generation 5';
 			case 'shiny_guide_gen6': return 'Generation 6';
 			case 'shiny_guide_gen7': return 'Generation 7';
-			case 'shiny_guide_gen9': return 'Generation 9 (Scarlet & Violet)';
 			case 'shiny_hunt_methods_soon': return 'More hunting methods will be added in the future.';
 			case 'shiny_guide_missing_note': return 'Note: If a generation is not listed, the Pokémon cannot be regularly shiny hunted/bred there (or the hunting methods will be added in future updates).';
 			case 'shiny_odd_egg_title': return 'The Odd Egg (Pokémon Crystal)';
@@ -4863,6 +4944,7 @@ extension on _StringsEn {
 			case 'shiny_gen85_locked_desc': return 'Warning: ALL Legendary and Mythical Pokémon (Arceus, Dialga, Palkia, Darkrai etc.) and one-time quest encounters are shiny locked in Hisui!';
 			case 'shiny_gen8_pla_link_reddit': return 'Reddit - PLA Outbreaks Guide (EN)';
 			case 'shiny_gen8_pla_link_bisafans': return 'Bisafans - PLA Outbreaks Guide (DE)';
+			case 'shiny_guide_gen9': return 'Generation 9 (Scarlet & Violet)';
 			case 'shiny_guide_gen9_5': return 'Generation 9.5 (Legends: Z-A)';
 			case 'shiny_gen9_sv_title': return 'Scarlet & Violet (Paldea)';
 			case 'shiny_gen9_sv_desc': return 'Base odds 1:4096. Shinys are visible in the overworld but make NO sound! Use the Let\'s Go feature (Auto-Battle), as your partner refuses to attack shinies.';
@@ -4896,6 +4978,32 @@ extension on _StringsEn {
 			case 'all': return 'All';
 			case 'box_check_all': return 'Check whole box';
 			case 'box_uncheck_all': return 'Uncheck whole box';
+			case 'dex_abilities': return 'Ability Dex';
+			case 'dex_moves': return 'Move Dex';
+			case 'power': return 'Power';
+			case 'accuracy': return 'Accuracy';
+			case 'pp': return 'PP';
+			case 'category': return 'Category';
+			case 'type': return 'Type';
+			case 'learned_by': return 'Learned by';
+			case 'hidden_ability': return 'Hidden Ability';
+			case 'normal_ability': return 'Normal Ability';
+			case 'learned_by_level': return 'Level Up (Lv. {0})';
+			case 'learned_by_machine': return 'TM/HM';
+			case 'learned_by_egg': return 'Egg Move';
+			case 'learned_by_tutor': return 'Move Tutor';
+			case 'special_dex_moves': return 'Moves Dex';
+			case 'special_dex_abilities': return 'Abilities Dex';
+			case 'special_dex_moves_desc': return 'An overview of all available moves';
+			case 'special_dex_abilities_desc': return 'An overview of all available abilities';
+			case 'registered': return 'Registered';
+			case 'power_short': return 'Power';
+			case 'accuracy_short': return 'Accuracy';
+			case 'category_physical': return 'Physical';
+			case 'category_special': return 'Special';
+			case 'category_status': return 'Status';
+			case 'hidden_ability_short': return 'Hidden';
+			case 'normal_ability_short': return 'Normal';
 			default: return null;
 		}
 	}

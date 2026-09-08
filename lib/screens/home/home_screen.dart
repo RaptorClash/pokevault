@@ -24,6 +24,8 @@ import '../../services/database_service.dart';
 import '../../providers/settings_provider.dart';
 import 'widgets/breadcrumb_bar.dart';
 import 'package:flutter/services.dart';
+import '../moves/moves_dex_screen.dart';
+import '../abilities/abilities_dex_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   final String currentFolderId;
@@ -349,6 +351,33 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void _openDex(UserDex dex) {
     final provider = Provider.of<DexProvider>(context, listen: false);
+
+    if (dex.region == 'moves_dex') {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => MovesDexScreen(dex: dex),
+        ),
+      ).then((_) {
+        if (mounted) {
+          setState(() {});
+          _showTutorialIfNeeded();
+        }
+      });
+      return;
+    }
+
+    if (dex.region == 'abilities_dex') {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => AbilitiesDexScreen(dex: dex),
+        ),
+      ).then((_) {
+        if (mounted) _showTutorialIfNeeded();
+      });
+      return;
+    }
 
     List<int> selectedOrder = provider.allAvailableDexes[dex.region] ?? [];
     Map<int, Pokemon> pokemonMap = {for (var p in provider.allPokemon) p.id: p};
@@ -849,8 +878,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     children: [
                       Expanded(
                         child: TextField(
-                          focusNode:
-                              _searchFocusNode,
+                          focusNode: _searchFocusNode,
                           decoration: InputDecoration(
                             hintText: Translator.get('search_hint'),
                             prefixIcon: const Icon(Icons.search),

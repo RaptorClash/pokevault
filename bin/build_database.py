@@ -1,4 +1,5 @@
 import urllib.request
+import urllib.error
 import json
 import sqlite3
 import os
@@ -364,14 +365,44 @@ SHINY_CATEGORIES = {
     'plza_locks': [359, 382, 383, 384, 398, 448, 485, 491, 669, 678, 716, 717, 718, 977]
 }
 
-def fetch_json(url):
+API_CACHE = {}
+
+def fetch_json(url_or_path):
+    if url_or_path.startswith("/api/v2/"):
+        url_or_path = "https://pokeapi.co" + url_or_path
+
+    if url_or_path in API_CACHE:
+        return API_CACHE[url_or_path]
+
+    if url_or_path.startswith("https://pokeapi.co/api/v2/"):
+        local_path = url_or_path.replace("https://pokeapi.co/api/v2/", "bin/api-data/data/api/v2/")
+        local_path = local_path.rstrip('/') + '/index.json'
+        
+        if os.path.exists(local_path):
+            try:
+                with open(local_path, 'r', encoding='utf-8') as f:
+                    data = json.load(f)
+                    API_CACHE[url_or_path] = data
+                    return data
+            except Exception:
+                pass
+
+    time.sleep(0.05)
     for _ in range(3):
         try:
-            req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+            req = urllib.request.Request(url_or_path, headers={'User-Agent': 'Mozilla/5.0'})
             with urllib.request.urlopen(req) as response:
-                return json.loads(response.read().decode())
+                data = json.loads(response.read().decode())
+                API_CACHE[url_or_path] = data
+                return data
+        except urllib.error.HTTPError as e:
+            if e.code == 404: 
+                API_CACHE[url_or_path] = None
+                return None
+            time.sleep(1)
         except Exception:
             time.sleep(1)
+            
     return None
 
 def clean_location(raw_loc):
@@ -520,7 +551,6 @@ def main():
             pre_id INTEGER,
             req TEXT
         );
-
         CREATE TABLE IF NOT EXISTS default_levels (
             pokemon_id INTEGER PRIMARY KEY, 
             default_level INTEGER
@@ -528,6 +558,35 @@ def main():
         CREATE TABLE IF NOT EXISTS shiny_categories (
             pokemon_id INTEGER, 
             category TEXT
+        );
+        CREATE TABLE IF NOT EXISTS abilities (
+            id INTEGER PRIMARY KEY, 
+            name_de TEXT, name_en TEXT, 
+            desc_de TEXT, desc_en TEXT
+        );
+        CREATE TABLE IF NOT EXISTS pokemon_abilities (
+            pokemon_id INTEGER, 
+            ability_id INTEGER, 
+            is_hidden INTEGER
+        );
+        CREATE TABLE IF NOT EXISTS moves (
+            id INTEGER PRIMARY KEY, 
+            name_de TEXT, 
+            name_en TEXT, 
+            type TEXT, 
+            power INTEGER, 
+            accuracy INTEGER, 
+            pp INTEGER, 
+            damage_class TEXT, 
+            desc_de TEXT, 
+            desc_en TEXT
+        );
+        CREATE TABLE IF NOT EXISTS pokemon_moves (
+            pokemon_id INTEGER, 
+            move_id INTEGER, 
+            learn_method TEXT, 
+            level_learned INTEGER, 
+            version_group TEXT
         );
     ''')
 
@@ -707,9 +766,12 @@ def main():
             print(f"Fehler beim Laden von custom_encounters.json: {e}")
 
     expected_app_uids = set()
-
+    processed_abilities = set()
+    processed_moves = set()
+    
     for i in range(1, 1026):
         try:
+            print(f"Hole daten für Pokemon ID {i}")
             species = fetch_json(f"https://pokeapi.co/api/v2/pokemon-species/{i}")
             poke = fetch_json(f"https://pokeapi.co/api/v2/pokemon/{i}")
             if not species or not poke: continue
@@ -740,6 +802,73 @@ def main():
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
                 (i, name_de, name_en, 1 if has_gender_diff else 0,
                  species.get('gender_rate', -1), species.get('capture_rate', 255), evo_chain_id, egg_groups, weight, speed, catch_rate_tags))
+
+            for ab in poke.get('abilities', []):
+                ab_url = ab['ability']['url']
+                ab_id = int(ab_url.strip('/').split('/')[-1])
+                is_hidden = 1 if ab.get('is_hidden') else 0
+                
+                c.execute('INSERT INTO pokemon_abilities (pokemon_id, ability_id, is_hidden) VALUES (?, ?, ?)', 
+                        (i, ab_id, is_hidden))
+                
+                if ab_id not in processed_abilities:
+                    processed_abilities.add(ab_id)
+                    ab_data = fetch_json(ab_url)
+                    if ab_data:
+                        name_de = name_en = "Unknown"
+                        for n in ab_data.get('names', []):
+                            if n['language']['name'] == 'de': name_de = n['name']
+                            if n['language']['name'] == 'en': name_en = n['name']
+                        
+                        desc_de = desc_en = ""
+                        for f in ab_data.get('flavor_text_entries', []):
+                            if f['language']['name'] == 'de' and not desc_de: 
+                                desc_de = f['flavor_text'].replace('\n', ' ')
+                            if f['language']['name'] == 'en' and not desc_en: 
+                                desc_en = f['flavor_text'].replace('\n', ' ')
+                                
+                        c.execute('''INSERT INTO abilities (id, name_de, name_en, desc_de, desc_en) 
+                                    VALUES (?, ?, ?, ?, ?)''', 
+                                (ab_id, name_de, name_en, desc_de, desc_en))
+
+            for m in poke.get('moves', []):
+                move_url = m['move']['url']
+                move_id = int(move_url.strip('/').split('/')[-1])
+                
+                for vgd in m.get('version_group_details', []):
+                    learn_method = vgd['move_learn_method']['name']
+                    level_learned = vgd['level_learned_at']
+                    version_group = vgd['version_group']['name']
+                    c.execute('''INSERT INTO pokemon_moves (pokemon_id, move_id, learn_method, level_learned, version_group) 
+                                VALUES (?, ?, ?, ?, ?)''',
+                            (i, move_id, learn_method, level_learned, version_group))
+                
+                if move_id not in processed_moves:
+                    processed_moves.add(move_id)
+                    move_data = fetch_json(move_url)
+                    if move_data:
+                        name_de = name_en = "Unknown"
+                        for n in move_data.get('names', []):
+                            if n['language']['name'] == 'de': name_de = n['name']
+                            if n['language']['name'] == 'en': name_en = n['name']
+                        
+                        desc_de = desc_en = ""
+                        for f in move_data.get('flavor_text_entries', []):
+                            if f['language']['name'] == 'de' and not desc_de: 
+                                desc_de = f['flavor_text'].replace('\n', ' ')
+                            if f['language']['name'] == 'en' and not desc_en: 
+                                desc_en = f['flavor_text'].replace('\n', ' ')
+                                
+                        m_type = move_data['type']['name'] if move_data.get('type') else 'unknown'
+                        m_power = move_data.get('power') or 0
+                        m_acc = move_data.get('accuracy') or 0
+                        m_pp = move_data.get('pp') or 0
+                        m_class = move_data['damage_class']['name'] if move_data.get('damage_class') else 'unknown'
+                        
+                        c.execute('''INSERT INTO moves (id, name_de, name_en, type, power, accuracy, pp, damage_class, desc_de, desc_en) 
+                                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''', 
+                                (move_id, name_de, name_en, m_type, m_power, m_acc, m_pp, m_class, desc_de, desc_en))
+
 
             varieties = species.get('varieties', [])
             if not varieties:

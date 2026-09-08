@@ -90,7 +90,7 @@ class DexGroupsData {
     ),
     DexGroup(
       nameKey: 'group_special',
-      dexKeys: ['mega_dex', 'icognito_dex'],
+      dexKeys: ['mega_dex', 'icognito_dex', 'moves_dex', 'abilities_dex'],
       displayPokemonIds: [3, 6, 9, 201],
     ),
   ];
