@@ -621,4 +621,21 @@ class DexProvider extends ChangeNotifier with WidgetsBindingObserver {
 
     notifyListeners();
   }
+
+  Future<void> updatePokemonLanguages(
+    String dexId,
+    String uniqueId,
+    List<String> languages,
+  ) async {
+    final dexIndex = userDexes.indexWhere((d) => d.id == dexId);
+    if (dexIndex != -1) {
+      userDexes[dexIndex].caughtLanguages[uniqueId] = languages;
+      notifyListeners();
+      await DatabaseService.instance.savePokemonStatus(
+        dexId,
+        uniqueId,
+        languages: languages,
+      );
+    }
+  }
 }

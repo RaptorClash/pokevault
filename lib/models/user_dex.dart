@@ -16,6 +16,7 @@ class UserDex {
   String sortMode;
   Map<String, List<String>> caughtRibbons = {};
   Map<String, List<String>> caughtTeraTypes = {};
+  Map<String, List<String>> caughtLanguages = {};
 
   UserDex({
     required this.id,
@@ -35,6 +36,7 @@ class UserDex {
     this.sortMode = 'dex',
     this.caughtRibbons = const {},
     this.caughtTeraTypes = const {},
+    this.caughtLanguages = const {},
   });
 
   factory UserDex.fromMap(Map<String, dynamic> map) {
@@ -56,6 +58,7 @@ class UserDex {
       ignoredIds: [],
       caughtRibbons: {},
       caughtTeraTypes: {},
+      caughtLanguages: {},
     );
   }
 
@@ -75,6 +78,15 @@ class UserDex {
       'caught_ids': caughtIds.join(','),
       'shiny_ids': shinyIds.join(','),
       'alpha_ids': alphaIds.join(','),
+      'caught_languages': caughtLanguages.map(
+        (key, value) => MapEntry(key, value.join(',')),
+      ),
+      'caught_ribbons': caughtRibbons.map(
+        (key, value) => MapEntry(key, value.join(',')),
+      ),
+      'caught_tera_types': caughtTeraTypes.map(
+        (key, value) => MapEntry(key, value.join(',')),
+      ),
     };
   }
 
@@ -97,6 +109,7 @@ class UserDex {
       'ignoredIds': ignoredIds,
       'caughtRibbons': caughtRibbons,
       'caughtTeraTypes': caughtTeraTypes,
+      'caughtLanguages': caughtLanguages,
     };
   }
 
@@ -124,6 +137,11 @@ class UserDex {
       ),
       caughtTeraTypes: Map<String, List<String>>.from(
         (json['caughtTeraTypes'] ?? {}).map(
+          (key, value) => MapEntry(key.toString(), List<String>.from(value)),
+        ),
+      ),
+      caughtLanguages: Map<String, List<String>>.from(
+        (json['caughtLanguages'] ?? {}).map(
           (key, value) => MapEntry(key.toString(), List<String>.from(value)),
         ),
       ),

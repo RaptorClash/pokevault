@@ -50,9 +50,7 @@ class DatabaseService {
           data.offsetInBytes,
           data.lengthInBytes,
         );
-
         await factory.writeDatabaseBytes(path, bytes);
-
         await prefs.setInt('app_db_version', _currentAppDbVersion);
         debugPrint(
           "App-Datenbank erfolgreich auf Version $_currentAppDbVersion aktualisiert.",
@@ -77,14 +75,16 @@ class DatabaseService {
   Future<Database> _initUserDB(String fileName) async {
     String path = fileName;
     DatabaseFactory factory = kIsWeb ? databaseFactoryFfiWeb : databaseFactory;
+
     if (!kIsWeb) {
       Directory documentsDirectory = await getApplicationDocumentsDirectory();
       path = join(documentsDirectory.path, fileName);
     }
+
     return await factory.openDatabase(
       path,
       options: OpenDatabaseOptions(
-        version: 5,
+        version: 6, // Version auf 6 erhöht für Languages
         onCreate: _createUserDataTables,
         onUpgrade: _upgradeUserDataTables,
       ),
@@ -136,6 +136,10 @@ class DatabaseService {
           is_caught INTEGER DEFAULT 0,
           is_shiny INTEGER DEFAULT 0,
           is_ignored INTEGER DEFAULT 0,
+          is_alpha INTEGER DEFAULT 0,
+          caught_ribbons TEXT DEFAULT '',
+          caught_tera_types TEXT DEFAULT '',
+          caught_languages TEXT DEFAULT '',
           updated_at INTEGER DEFAULT 0,
           PRIMARY KEY (dex_id, unique_id)
         )
@@ -159,21 +163,18 @@ class DatabaseService {
         await db.execute(
           'ALTER TABLE user_dexes ADD COLUMN deleted_at INTEGER DEFAULT 0',
         );
-
         await db.execute(
           'ALTER TABLE folders ADD COLUMN updated_at INTEGER DEFAULT $now',
         );
         await db.execute(
           'ALTER TABLE folders ADD COLUMN deleted_at INTEGER DEFAULT 0',
         );
-
         await db.execute(
           'ALTER TABLE folder_structure ADD COLUMN updated_at INTEGER DEFAULT $now',
         );
         await db.execute(
           'ALTER TABLE folder_structure ADD COLUMN deleted_at INTEGER DEFAULT 0',
         );
-
         await db.execute(
           'ALTER TABLE user_pokemon ADD COLUMN updated_at INTEGER DEFAULT $now',
         );
@@ -226,17 +227,29 @@ class DatabaseService {
         debugPrint("Migrations-Fehler V5: $e");
       }
     }
+    if (oldVersion < 6) {
+      try {
+        await db.execute(
+          "ALTER TABLE user_pokemon ADD COLUMN caught_languages TEXT DEFAULT ''",
+        );
+        debugPrint("Datenbank erfolgreich auf Version 6 (Sprachen) migriert!");
+      } catch (e) {
+        debugPrint("Migrations-Fehler V6: $e");
+      }
+    }
   }
 
   Future<List<Pokemon>> getAllPokemon() async {
     final db = await instance.appDatabase;
     final pokeMaps = await db.query('pokemon');
     final formMaps = await db.query('forms');
+
     Map<int, List<PokemonForm>> formsByPoke = {};
     for (var f in formMaps) {
       int pId = (f['pokemon_id'] as num?)?.toInt() ?? 0;
       formsByPoke.putIfAbsent(pId, () => []).add(PokemonForm.fromMap(f));
     }
+
     return pokeMaps
         .map(
           (p) => Pokemon.fromMap(
@@ -253,18 +266,21 @@ class DatabaseService {
       'dex_orders',
       orderBy: 'dex_name ASC, order_index ASC',
     );
+
     Map<String, List<int>> result = {};
     for (var m in maps) {
       String dexName = m['dex_name']?.toString() ?? '';
       int pId = (m['pokemon_id'] as num?)?.toInt() ?? 0;
       result.putIfAbsent(dexName, () => []).add(pId);
     }
+
     final specialMaps = await db.query('special_dexes');
     for (var m in specialMaps) {
       String dexName = m['dex_name']?.toString().replaceAll('-', '_') ?? '';
       int pId = (m['pokemon_id'] as num?)?.toInt() ?? 0;
       result.putIfAbsent(dexName, () => []).add(pId);
     }
+
     result['national_overall'] = result['paldea_national'] ?? [];
     return result;
   }
@@ -289,12 +305,15 @@ class DatabaseService {
       where: 'pokemon_id = ?',
       whereArgs: [pokemonId],
     );
+
     if (maps.isEmpty) return null;
+
     Map<String, Map<String, List<String>>> result = {};
     for (var map in maps) {
       String gen = map['gen']?.toString() ?? '';
       String version = map['version']?.toString() ?? '';
       String locData = map['location_data']?.toString() ?? '';
+
       result.putIfAbsent(gen, () => {});
       result[gen]![version] = locData.split('|||||');
     }
@@ -340,6 +359,7 @@ class DatabaseService {
       where: 'deleted_at = ?',
       whereArgs: [0],
     );
+
     List<UserDex> dexes = [];
     for (var map in dexMaps) {
       UserDex dex = UserDex.fromMap(map);
@@ -348,16 +368,25 @@ class DatabaseService {
         where: 'dex_id = ?',
         whereArgs: [dex.id],
       );
+
       for (var p in pMaps) {
         String uId = p['unique_id']?.toString() ?? '';
         if ((p['is_caught'] as num?)?.toInt() == 1) dex.caughtIds.add(uId);
         if ((p['is_shiny'] as num?)?.toInt() == 1) dex.shinyIds.add(uId);
         if ((p['is_ignored'] as num?)?.toInt() == 1) dex.ignoredIds.add(uId);
         if ((p['is_alpha'] as num?)?.toInt() == 1) dex.alphaIds.add(uId);
+
         String rStr = p['caught_ribbons']?.toString() ?? '';
         if (rStr.isNotEmpty) dex.caughtRibbons[uId] = rStr.split(',');
+
         String tStr = p['caught_tera_types']?.toString() ?? '';
         if (tStr.isNotEmpty) dex.caughtTeraTypes[uId] = tStr.split(',');
+
+        String lStr = p['caught_languages']?.toString() ?? '';
+        if (lStr.isNotEmpty) {
+          // Erfordert, dass UserDex diese Map besitzt!
+          dex.caughtLanguages[uId] = lStr.split(',');
+        }
       }
       dexes.add(dex);
     }
@@ -367,14 +396,13 @@ class DatabaseService {
   Future<void> saveUserDex(UserDex dex) async {
     final db = await instance.userDatabase;
     Map<String, dynamic> dexMap = dex.toMap();
-
     dexMap.remove('caught_ids');
     dexMap.remove('shiny_ids');
     dexMap.remove('alpha_ids');
     dexMap.remove('ignored_ids');
     dexMap.remove('caught_ribbons');
     dexMap.remove('caught_tera_types');
-
+    dexMap.remove('caught_languages');
     dexMap['updated_at'] = DateTime.now().toUtc().millisecondsSinceEpoch;
     dexMap['deleted_at'] = 0;
 
@@ -388,14 +416,12 @@ class DatabaseService {
   Future<void> deleteUserDex(String dexId) async {
     final db = await instance.userDatabase;
     int now = DateTime.now().toUtc().millisecondsSinceEpoch;
-
     await db.update(
       'user_dexes',
       {'deleted_at': now, 'updated_at': now},
       where: 'id = ?',
       whereArgs: [dexId],
     );
-
     await db.update(
       'folder_structure',
       {'deleted_at': now, 'updated_at': now},
@@ -413,6 +439,7 @@ class DatabaseService {
     bool? isAlpha,
     List<String>? ribbons,
     List<String>? teraTypes,
+    List<String>? languages,
   }) async {
     final db = await instance.userDatabase;
     final maps = await db.query(
@@ -420,8 +447,9 @@ class DatabaseService {
       where: 'dex_id = ? AND unique_id = ?',
       whereArgs: [dexId, uniqueId],
     );
+
     int caught = 0, shiny = 0, ignored = 0, alpha = 0;
-    String r = '', t = '';
+    String r = '', t = '', l = '';
 
     if (maps.isNotEmpty) {
       caught = (maps.first['is_caught'] as num?)?.toInt() ?? 0;
@@ -430,13 +458,17 @@ class DatabaseService {
       alpha = (maps.first['is_alpha'] as num?)?.toInt() ?? 0;
       r = maps.first['caught_ribbons']?.toString() ?? '';
       t = maps.first['caught_tera_types']?.toString() ?? '';
+      l = maps.first['caught_languages']?.toString() ?? '';
     }
+
     if (isCaught != null) caught = isCaught ? 1 : 0;
     if (isShiny != null) shiny = isShiny ? 1 : 0;
     if (isIgnored != null) ignored = isIgnored ? 1 : 0;
     if (isAlpha != null) alpha = isAlpha ? 1 : 0;
     if (ribbons != null) r = ribbons.join(',');
     if (teraTypes != null) t = teraTypes.join(',');
+    if (languages != null) l = languages.join(',');
+
     await db.insert('user_pokemon', {
       'dex_id': dexId,
       'unique_id': uniqueId,
@@ -446,6 +478,7 @@ class DatabaseService {
       'is_alpha': alpha,
       'caught_ribbons': r,
       'caught_tera_types': t,
+      'caught_languages': l,
       'updated_at': DateTime.now().toUtc().millisecondsSinceEpoch,
     }, conflictAlgorithm: ConflictAlgorithm.replace);
   }
@@ -462,7 +495,6 @@ class DatabaseService {
 
   Future<void> saveFolder(DexFolder folder) async {
     final db = await instance.userDatabase;
-
     Map<String, dynamic> folderMap = folder.toMap();
     folderMap['updated_at'] = DateTime.now().toUtc().millisecondsSinceEpoch;
     folderMap['deleted_at'] = 0;
@@ -517,6 +549,7 @@ class DatabaseService {
       whereArgs: [0],
       orderBy: 'order_index ASC',
     );
+
     Map<String, List<String>> structure = {};
     for (var m in maps) {
       String pId = m['parent_id']?.toString() ?? 'root';
@@ -524,6 +557,7 @@ class DatabaseService {
       structure.putIfAbsent(pId, () => []).add(cId);
     }
     if (!structure.containsKey('root')) structure['root'] = [];
+
     return structure;
   }
 
@@ -569,7 +603,6 @@ class DatabaseService {
 
   Future<void> mergeCloudSyncData(Map<String, dynamic> cloudData) async {
     final db = await instance.userDatabase;
-
     await db.transaction((txn) async {
       Future<void> mergeTable(
         String tableName,
@@ -577,7 +610,6 @@ class DatabaseService {
         List<dynamic>? remoteRows,
       ) async {
         if (remoteRows == null) return;
-
         for (var row in remoteRows) {
           final remoteRow = Map<String, dynamic>.from(row);
           final whereClause = primaryKeys.map((k) => '$k = ?').join(' AND ');
@@ -600,7 +632,6 @@ class DatabaseService {
             final localUpdated = (localRow['updated_at'] as num?)?.toInt() ?? 0;
             final remoteUpdated =
                 (remoteRow['updated_at'] as num?)?.toInt() ?? 0;
-
             if (remoteUpdated > localUpdated) {
               await txn.update(
                 tableName,
@@ -633,7 +664,6 @@ class DatabaseService {
       where: 'id = ?',
       whereArgs: [pokemonId],
     );
-
     if (maps.isNotEmpty) {
       final m = maps.first;
       return [
@@ -650,7 +680,6 @@ class DatabaseService {
   Future<Map<int, Map<String, dynamic>>> getGen12PreEvolutions() async {
     final db = await instance.appDatabase;
     final maps = await db.query('gen12_pre_evolutions');
-
     Map<int, Map<String, dynamic>> result = {};
     for (var m in maps) {
       result[(m['id'] as num).toInt()] = {

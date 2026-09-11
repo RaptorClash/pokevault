@@ -126,6 +126,12 @@ class _PokemonInfoScreenState extends State<PokemonInfoScreen> {
         requireTargetTap: false,
       ),
       TutorialStep(
+        targetKey: _keys.get(_keys.language, currentId),
+        titleKey: 'tutorial_info_language_title',
+        textKey: 'tutorial_info_language_text',
+        requireTargetTap: false,
+      ),
+      TutorialStep(
         targetKey: _keys.get(_keys.tera, currentId),
         titleKey: 'tutorial_info_tera_title',
         textKey: 'tutorial_info_tera_text',
@@ -269,7 +275,6 @@ class _PokemonInfoScreenState extends State<PokemonInfoScreen> {
               entry: entry,
               dexId: widget.dexId,
             ),
-
             shinyToggleKey: _keys.get(_keys.shinyToggle, id),
             alphaToggleKey: _keys.get(_keys.alphaToggle, id),
             basicInfoKey: _keys.get(_keys.basicInfo, id),
@@ -278,6 +283,7 @@ class _PokemonInfoScreenState extends State<PokemonInfoScreen> {
             breedingKey: _keys.get(_keys.breeding, id),
             catchCalcKey: _keys.get(_keys.catchCalc, id),
             matchingBallsKey: _keys.get(_keys.matchingBalls, id),
+            languageKey: _keys.get(_keys.language, id),
             teraKey: _keys.get(_keys.tera, id),
             ribbonsKey: _keys.get(_keys.ribbons, id),
             marksKey: _keys.get(_keys.marks, id),

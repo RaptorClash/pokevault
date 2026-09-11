@@ -17,6 +17,7 @@ class PokemonInfoKeys {
   final Map<String, GlobalKey> ribbons = {};
   final Map<String, GlobalKey> tera = {};
   final Map<String, GlobalKey> marks = {};
+  final Map<String, GlobalKey> language = {};
 
   GlobalKey get(Map<String, GlobalKey> map, String id) {
     return map.putIfAbsent(id, () => GlobalKey());

@@ -14,6 +14,7 @@ import './tera_type_widget.dart';
 import './ribbons_widget.dart';
 import './marks_widget.dart';
 import './matching_balls_widget.dart';
+import 'language_widget.dart';
 
 class PokemonInfoPage extends StatelessWidget {
   final DexDisplayEntry entry;
@@ -30,6 +31,7 @@ class PokemonInfoPage extends StatelessWidget {
   final GlobalKey breedingKey;
   final GlobalKey catchCalcKey;
   final GlobalKey matchingBallsKey;
+  final GlobalKey languageKey;
   final GlobalKey teraKey;
   final GlobalKey ribbonsKey;
   final GlobalKey marksKey;
@@ -58,6 +60,7 @@ class PokemonInfoPage extends StatelessWidget {
     required this.encountersKey,
     required this.shinyGuideKey,
     required this.ignoreBtnKey,
+    required this.languageKey,
   });
 
   @override
@@ -148,6 +151,10 @@ class PokemonInfoPage extends StatelessWidget {
             MatchingBallsWidget(
               entry: entry,
               matchingBallsKey: matchingBallsKey,
+            ),
+            Container(
+              key: languageKey,
+              child: LanguageWidget(entry: entry, dexId: dexId),
             ),
             Container(
               key: teraKey,

@@ -4,9 +4,9 @@
 /// To regenerate, run: `dart run slang`
 ///
 /// Locales: 2
-/// Strings: 2434 (1217 per locale)
+/// Strings: 2450 (1225 per locale)
 ///
-/// Built on 2026-09-11 at 09:36 UTC
+/// Built on 2026-09-11 at 14:53 UTC
 
 // coverage:ignore-file
 // ignore_for_file: type=lint
@@ -1355,11 +1355,19 @@ class Translations implements BaseTranslations<AppLocale, Translations> {
 	String get location => 'Fundort / Bedingung:';
 	String get search => 'Suchen...';
 	String get tutorial_info_marks_title => 'Zeichen';
-	String get tutorial_info_marks_text => 'Zeichen werden ähnlich wie Bänder ausgerüstet und geben deinem Pokémon einen besonderen Titel, wenn es in den Kampf gerufen wird.';
 	String get credit_bulbapedia_title => 'Bulbapedia (Catch Rates)';
 	String get credit_bulbapedia_sub => 'Mechaniken für Legends Z-A und Max Raids';
 	String get credit_ribbons_title => 'Ribbons.Guide';
 	String get credit_ribbons_sub => 'Datenbank für Bänder & Zeichen';
+	String get alpha_status => 'Alpha-Pokémon';
+	String get tutorial_info_alpha_title => 'Riesige Alphas!';
+	String get tutorial_info_alpha_text => 'Manche Pokémon aus Hisui (und bald Z-A) können als riesige Alphas gefangen werden. Markiere sie hier!';
+	String get tutorial_info_tera_title => 'Tera-Typen';
+	String get tutorial_info_tera_text => 'In Paldea können Pokémon verschiedene Tera-Typen annehmen. Speichere hier, welche Tera-Typen du für dieses Pokémon bereits besitzt.';
+	String get tutorial_info_ribbons_title => 'Bänder sammeln';
+	String get tutorial_info_ribbons_text => 'Dein Pokémon hat eine Meisterschaft gewonnen oder etwas Besonderes geleistet? Hake hier die Bänder ab, die es gesammelt hat.';
+	String get tutorial_info_marks_text => 'Wilde Pokémon können beim Fang besondere Zeichen tragen. Wenn du ein solches gefangen hast, kannst du es hier vermerken.';
+	String get languages_title => 'Sprachen';
 }
 
 // Path: <root>
@@ -2605,11 +2613,19 @@ class _StringsEn extends Translations {
 	@override String get location => 'Location / Condition:';
 	@override String get search => 'Search...';
 	@override String get tutorial_info_marks_title => 'Marks';
-	@override String get tutorial_info_marks_text => 'Marks function similarly to Ribbons. They grant your Pokémon a special title when sent into battle.';
 	@override String get credit_bulbapedia_title => 'Bulbapedia (Catch Rates)';
 	@override String get credit_bulbapedia_sub => 'Mechanics for Legends Z-A and Max Raids';
 	@override String get credit_ribbons_title => 'Ribbons.Guide';
 	@override String get credit_ribbons_sub => 'Database for Ribbons & Marks';
+	@override String get alpha_status => 'Alpha Pokémon';
+	@override String get tutorial_info_alpha_title => 'Giant Alphas!';
+	@override String get tutorial_info_alpha_text => 'Some Pokémon from Hisui (and soon Z-A) can be caught as giant Alphas. Mark them right here!';
+	@override String get tutorial_info_tera_title => 'Tera Types';
+	@override String get tutorial_info_tera_text => 'In Paldea, Pokémon can have different Tera Types. Keep track of the ones you\'ve collected for this Pokémon.';
+	@override String get tutorial_info_ribbons_title => 'Collecting Ribbons';
+	@override String get tutorial_info_ribbons_text => 'Did your Pokémon win a championship or achieve something special? Check off the ribbons it has earned here.';
+	@override String get tutorial_info_marks_text => 'Wild Pokémon can carry special marks when caught. If you caught one, you can note it down here.';
+	@override String get languages_title => 'Languages';
 }
 
 /// Flat map(s) containing all translations.
@@ -3825,11 +3841,19 @@ extension on Translations {
 			case 'location': return 'Fundort / Bedingung:';
 			case 'search': return 'Suchen...';
 			case 'tutorial_info_marks_title': return 'Zeichen';
-			case 'tutorial_info_marks_text': return 'Zeichen werden ähnlich wie Bänder ausgerüstet und geben deinem Pokémon einen besonderen Titel, wenn es in den Kampf gerufen wird.';
 			case 'credit_bulbapedia_title': return 'Bulbapedia (Catch Rates)';
 			case 'credit_bulbapedia_sub': return 'Mechaniken für Legends Z-A und Max Raids';
 			case 'credit_ribbons_title': return 'Ribbons.Guide';
 			case 'credit_ribbons_sub': return 'Datenbank für Bänder & Zeichen';
+			case 'alpha_status': return 'Alpha-Pokémon';
+			case 'tutorial_info_alpha_title': return 'Riesige Alphas!';
+			case 'tutorial_info_alpha_text': return 'Manche Pokémon aus Hisui (und bald Z-A) können als riesige Alphas gefangen werden. Markiere sie hier!';
+			case 'tutorial_info_tera_title': return 'Tera-Typen';
+			case 'tutorial_info_tera_text': return 'In Paldea können Pokémon verschiedene Tera-Typen annehmen. Speichere hier, welche Tera-Typen du für dieses Pokémon bereits besitzt.';
+			case 'tutorial_info_ribbons_title': return 'Bänder sammeln';
+			case 'tutorial_info_ribbons_text': return 'Dein Pokémon hat eine Meisterschaft gewonnen oder etwas Besonderes geleistet? Hake hier die Bänder ab, die es gesammelt hat.';
+			case 'tutorial_info_marks_text': return 'Wilde Pokémon können beim Fang besondere Zeichen tragen. Wenn du ein solches gefangen hast, kannst du es hier vermerken.';
+			case 'languages_title': return 'Sprachen';
 			default: return null;
 		}
 	}
@@ -5055,11 +5079,19 @@ extension on _StringsEn {
 			case 'location': return 'Location / Condition:';
 			case 'search': return 'Search...';
 			case 'tutorial_info_marks_title': return 'Marks';
-			case 'tutorial_info_marks_text': return 'Marks function similarly to Ribbons. They grant your Pokémon a special title when sent into battle.';
 			case 'credit_bulbapedia_title': return 'Bulbapedia (Catch Rates)';
 			case 'credit_bulbapedia_sub': return 'Mechanics for Legends Z-A and Max Raids';
 			case 'credit_ribbons_title': return 'Ribbons.Guide';
 			case 'credit_ribbons_sub': return 'Database for Ribbons & Marks';
+			case 'alpha_status': return 'Alpha Pokémon';
+			case 'tutorial_info_alpha_title': return 'Giant Alphas!';
+			case 'tutorial_info_alpha_text': return 'Some Pokémon from Hisui (and soon Z-A) can be caught as giant Alphas. Mark them right here!';
+			case 'tutorial_info_tera_title': return 'Tera Types';
+			case 'tutorial_info_tera_text': return 'In Paldea, Pokémon can have different Tera Types. Keep track of the ones you\'ve collected for this Pokémon.';
+			case 'tutorial_info_ribbons_title': return 'Collecting Ribbons';
+			case 'tutorial_info_ribbons_text': return 'Did your Pokémon win a championship or achieve something special? Check off the ribbons it has earned here.';
+			case 'tutorial_info_marks_text': return 'Wild Pokémon can carry special marks when caught. If you caught one, you can note it down here.';
+			case 'languages_title': return 'Languages';
 			default: return null;
 		}
 	}
