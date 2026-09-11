@@ -1222,9 +1222,16 @@
     "location": "Location / Condition:",
     "search": "Search...",
     "tutorial_info_marks_title": "Marks",
-    "tutorial_info_marks_text": "Marks function similarly to Ribbons. They grant your Pokémon a special title when sent into battle.",
     "credit_bulbapedia_title": "Bulbapedia (Catch Rates)",
     "credit_bulbapedia_sub": "Mechanics for Legends Z-A and Max Raids",
     "credit_ribbons_title": "Ribbons.Guide",
-    "credit_ribbons_sub": "Database for Ribbons & Marks"
+    "credit_ribbons_sub": "Database for Ribbons & Marks",
+    "alpha_status": "Alpha Pokémon",
+    "tutorial_info_alpha_title": "Giant Alphas!",
+    "tutorial_info_alpha_text": "Some Pokémon from Hisui (and soon Z-A) can be caught as giant Alphas. Mark them right here!",
+    "tutorial_info_tera_title": "Tera Types",
+    "tutorial_info_tera_text": "In Paldea, Pokémon can have different Tera Types. Keep track of the ones you've collected for this Pokémon.",
+    "tutorial_info_ribbons_title": "Collecting Ribbons",
+    "tutorial_info_ribbons_text": "Did your Pokémon win a championship or achieve something special? Check off the ribbons it has earned here.",
+    "tutorial_info_marks_text": "Wild Pokémon can carry special marks when caught. If you caught one, you can note it down here."
 }

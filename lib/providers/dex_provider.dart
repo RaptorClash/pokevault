@@ -599,4 +599,26 @@ class DexProvider extends ChangeNotifier with WidgetsBindingObserver {
       teraTypes: currentTeras,
     );
   }
+
+  Future<void> toggleAlpha(String dexId, String uniqueId) async {
+    final dexIndex = userDexes.indexWhere((d) => d.id == dexId);
+    if (dexIndex == -1) return;
+
+    final dex = userDexes[dexIndex];
+    bool isAlpha = dex.alphaIds.contains(uniqueId);
+
+    if (isAlpha) {
+      dex.alphaIds.remove(uniqueId);
+    } else {
+      dex.alphaIds.add(uniqueId);
+    }
+
+    await DatabaseService.instance.savePokemonStatus(
+      dexId,
+      uniqueId,
+      isAlpha: !isAlpha,
+    );
+
+    notifyListeners();
+  }
 }

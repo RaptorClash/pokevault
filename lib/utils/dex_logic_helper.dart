@@ -4,6 +4,7 @@ import '../models/user_dex.dart';
 import '../models/dex_view_models.dart';
 import '../l10n/app_translations.dart';
 import 'notification_helper.dart';
+import '../services/database_service.dart';
 
 class BuildEntriesArgs {
   final UserDex liveDex;
@@ -239,8 +240,7 @@ class DexLogicHelper {
         if (form.formType == 'gmax') return 'gmax';
         if (form.formType == 'regional') return 'regional';
         if (form.formType == 'mega') return 'mega';
-        if (form.formType == 'normal')
-          return 'alternate';
+        if (form.formType == 'normal') return 'alternate';
       } catch (_) {}
     }
 
@@ -595,5 +595,32 @@ class DexLogicHelper {
       }
     }
     return entries;
+  }
+
+  static Future<bool> isAlphaEligible(int pokemonId) async {
+    final db = await DatabaseService.instance.appDatabase;
+
+    final specialCheck = await db.query(
+      'special_dexes',
+      where: 'pokemon_id = ? AND (dex_name = ? OR dex_name = ?)',
+      whereArgs: [pokemonId, 'legendary-dex', 'mythical-dex'],
+      limit: 1,
+    );
+    if (specialCheck.isNotEmpty) return false;
+
+    final regionCheck = await db.query(
+      'dex_orders',
+      where:
+          'pokemon_id = ? AND (dex_name = ? OR dex_name = ? OR dex_name = ?)',
+      whereArgs: [
+        pokemonId,
+        'hisui_regional',
+        'lumiose_regional',
+        'lumiose_dimensions_regional',
+      ],
+      limit: 1,
+    );
+
+    return regionCheck.isNotEmpty;
   }
 }

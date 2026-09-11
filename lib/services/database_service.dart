@@ -84,7 +84,7 @@ class DatabaseService {
     return await factory.openDatabase(
       path,
       options: OpenDatabaseOptions(
-        version: 4,
+        version: 5,
         onCreate: _createUserDataTables,
         onUpgrade: _upgradeUserDataTables,
       ),
@@ -104,6 +104,7 @@ class DatabaseService {
           include_gmax INTEGER,
           include_other INTEGER,
           is_shiny_dex INTEGER,
+          is_alpha INTEGER DEFAULT 0,
           view_mode TEXT DEFAULT 'list',
           sort_mode TEXT DEFAULT 'dex',
           updated_at INTEGER DEFAULT 0,
@@ -211,6 +212,18 @@ class DatabaseService {
         );
       } catch (e) {
         debugPrint("Migrations-Fehler V4: $e");
+      }
+    }
+    if (oldVersion < 5) {
+      try {
+        await db.execute(
+          "ALTER TABLE user_pokemon ADD COLUMN is_alpha INTEGER DEFAULT 0",
+        );
+        debugPrint(
+          "Datenbank erfolgreich auf Version 5 (Alpha Status) migriert!",
+        );
+      } catch (e) {
+        debugPrint("Migrations-Fehler V5: $e");
       }
     }
   }
@@ -340,6 +353,7 @@ class DatabaseService {
         if ((p['is_caught'] as num?)?.toInt() == 1) dex.caughtIds.add(uId);
         if ((p['is_shiny'] as num?)?.toInt() == 1) dex.shinyIds.add(uId);
         if ((p['is_ignored'] as num?)?.toInt() == 1) dex.ignoredIds.add(uId);
+        if ((p['is_alpha'] as num?)?.toInt() == 1) dex.alphaIds.add(uId);
         String rStr = p['caught_ribbons']?.toString() ?? '';
         if (rStr.isNotEmpty) dex.caughtRibbons[uId] = rStr.split(',');
         String tStr = p['caught_tera_types']?.toString() ?? '';
@@ -389,6 +403,7 @@ class DatabaseService {
     bool? isCaught,
     bool? isShiny,
     bool? isIgnored,
+    bool? isAlpha,
     List<String>? ribbons,
     List<String>? teraTypes,
   }) async {
@@ -398,19 +413,21 @@ class DatabaseService {
       where: 'dex_id = ? AND unique_id = ?',
       whereArgs: [dexId, uniqueId],
     );
-    int caught = 0, shiny = 0, ignored = 0;
+    int caught = 0, shiny = 0, ignored = 0, alpha = 0;
     String r = '', t = '';
 
     if (maps.isNotEmpty) {
       caught = (maps.first['is_caught'] as num?)?.toInt() ?? 0;
       shiny = (maps.first['is_shiny'] as num?)?.toInt() ?? 0;
       ignored = (maps.first['is_ignored'] as num?)?.toInt() ?? 0;
+      alpha = (maps.first['is_alpha'] as num?)?.toInt() ?? 0;
       r = maps.first['caught_ribbons']?.toString() ?? '';
       t = maps.first['caught_tera_types']?.toString() ?? '';
     }
     if (isCaught != null) caught = isCaught ? 1 : 0;
     if (isShiny != null) shiny = isShiny ? 1 : 0;
     if (isIgnored != null) ignored = isIgnored ? 1 : 0;
+    if (isAlpha != null) alpha = isAlpha ? 1 : 0;
     if (ribbons != null) r = ribbons.join(',');
     if (teraTypes != null) t = teraTypes.join(',');
     await db.insert('user_pokemon', {
@@ -419,6 +436,7 @@ class DatabaseService {
       'is_caught': caught,
       'is_shiny': shiny,
       'is_ignored': ignored,
+      'is_alpha': alpha,
       'caught_ribbons': r,
       'caught_tera_types': t,
       'updated_at': DateTime.now().toUtc().millisecondsSinceEpoch,

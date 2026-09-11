@@ -1212,9 +1212,16 @@
     "location": "Fundort / Bedingung:",
     "search": "Suchen...",
     "tutorial_info_marks_title": "Zeichen",
-    "tutorial_info_marks_text": "Zeichen werden ähnlich wie Bänder ausgerüstet und geben deinem Pokémon einen besonderen Titel, wenn es in den Kampf gerufen wird.",
     "credit_bulbapedia_title": "Bulbapedia (Catch Rates)",
     "credit_bulbapedia_sub": "Mechaniken für Legends Z-A und Max Raids",
     "credit_ribbons_title": "Ribbons.Guide",
-    "credit_ribbons_sub": "Datenbank für Bänder & Zeichen"
+    "credit_ribbons_sub": "Datenbank für Bänder & Zeichen",
+    "alpha_status": "Alpha-Pokémon",
+    "tutorial_info_alpha_title": "Riesige Alphas!",
+    "tutorial_info_alpha_text": "Manche Pokémon aus Hisui (und bald Z-A) können als riesige Alphas gefangen werden. Markiere sie hier!",
+    "tutorial_info_tera_title": "Tera-Typen",
+    "tutorial_info_tera_text": "In Paldea können Pokémon verschiedene Tera-Typen annehmen. Speichere hier, welche Tera-Typen du für dieses Pokémon bereits besitzt.",
+    "tutorial_info_ribbons_title": "Bänder sammeln",
+    "tutorial_info_ribbons_text": "Dein Pokémon hat eine Meisterschaft gewonnen oder etwas Besonderes geleistet? Hake hier die Bänder ab, die es gesammelt hat.",
+    "tutorial_info_marks_text": "Wilde Pokémon können beim Fang besondere Zeichen tragen. Wenn du ein solches gefangen hast, kannst du es hier vermerken."
 }

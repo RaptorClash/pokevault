@@ -23,6 +23,7 @@ class PokemonInfoPage extends StatelessWidget {
   final VoidCallback onIgnore;
 
   final GlobalKey shinyToggleKey;
+  final GlobalKey alphaToggleKey;
   final GlobalKey basicInfoKey;
   final GlobalKey caughtStatusKey;
   final GlobalKey shinyStatusKey;
@@ -44,6 +45,7 @@ class PokemonInfoPage extends StatelessWidget {
     required this.onShinyToggled,
     required this.onIgnore,
     required this.shinyToggleKey,
+    required this.alphaToggleKey,
     required this.basicInfoKey,
     required this.caughtStatusKey,
     required this.shinyStatusKey,
@@ -66,6 +68,7 @@ class PokemonInfoPage extends StatelessWidget {
       final isCaught = liveDex.caughtIds.contains(entry.uniqueId);
       final isShiny = liveDex.shinyIds.contains(entry.uniqueId);
       final wantShiny = manualShinyToggle ?? liveDex.isShinyDex;
+      final isAlpha = liveDex.alphaIds.contains(entry.uniqueId);
 
       String formName = 'normal';
       if (entry.uniqueId.contains('_')) {
@@ -107,9 +110,11 @@ class PokemonInfoPage extends StatelessWidget {
               entry: entry,
               isCaught: isCaught,
               isShiny: isShiny,
+              isAlpha: isAlpha,
               provider: provider,
               caughtStatusKey: caughtStatusKey,
               shinyStatusKey: shinyStatusKey,
+              alphaToggleKey: alphaToggleKey,
             ),
 
             const SizedBox(height: 32),

@@ -4,10 +4,12 @@ import '../../../models/dex_view_models.dart';
 import '../../../models/pokemon.dart';
 import '../../../providers/dex_provider.dart';
 import '../../../providers/settings_provider.dart';
-import '../../../services/database_service.dart';
 import '../../../l10n/app_translations.dart';
 import '../../../utils/notification_helper.dart';
 import '../../../widgets/universal_poke_image.dart';
+import '../../../utils/dex_logic_helper.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import '../../../constants/app_vectors.dart';
 
 const Map<String, Color> pokemonTypeColors = {
   'normal': Color(0xFFA8A77A),
@@ -241,9 +243,11 @@ class PokemonStatusTogglesWidget extends StatelessWidget {
   final DexDisplayEntry entry;
   final bool isCaught;
   final bool isShiny;
+  final bool isAlpha;
   final DexProvider provider;
   final GlobalKey caughtStatusKey;
   final GlobalKey shinyStatusKey;
+  final GlobalKey alphaToggleKey;
 
   const PokemonStatusTogglesWidget({
     super.key,
@@ -251,9 +255,11 @@ class PokemonStatusTogglesWidget extends StatelessWidget {
     required this.entry,
     required this.isCaught,
     required this.isShiny,
+    required this.isAlpha,
     required this.provider,
     required this.caughtStatusKey,
     required this.shinyStatusKey,
+    required this.alphaToggleKey,
   });
 
   @override
@@ -305,6 +311,41 @@ class PokemonStatusTogglesWidget extends StatelessWidget {
                 provider.toggleShiny(dexId, entry.uniqueId);
               },
             ),
+          ),
+          FutureBuilder<bool>(
+            future: DexLogicHelper.isAlphaEligible(entry.pokemon.id),
+            builder: (context, snapshot) {
+              if (!snapshot.hasData || snapshot.data == false) {
+                return const SizedBox.shrink();
+              }
+
+              return Card(
+                key: alphaToggleKey,
+                margin: const EdgeInsets.symmetric(vertical: 4),
+                child: SwitchListTile(
+                  title: Text(
+                    Translator.get('alpha_status', fallback: 'Alpha Status'),
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  subtitle: Text(
+                    Translator.get(
+                      'alpha_status_sub',
+                      fallback: 'Als Alpha markieren',
+                    ),
+                  ),
+                  secondary: SvgPicture.string(
+                    AppVectors.alphaSymbol,
+                    width: 24,
+                    height: 24,
+                  ),
+                  value: isAlpha,
+                  activeThumbColor: Colors.red,
+                  onChanged: (val) {
+                    provider.toggleAlpha(dexId, entry.uniqueId);
+                  },
+                ),
+              );
+            },
           ),
         ],
       );

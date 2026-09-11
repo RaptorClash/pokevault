@@ -11,6 +11,7 @@ class UserDex {
   List<String> caughtIds;
   List<String> shinyIds;
   List<String> ignoredIds;
+  List<String> alphaIds;
   String viewMode;
   String sortMode;
   Map<String, List<String>> caughtRibbons = {};
@@ -29,6 +30,7 @@ class UserDex {
     this.caughtIds = const [],
     this.shinyIds = const [],
     this.ignoredIds = const [],
+    this.alphaIds = const [],
     this.viewMode = 'list',
     this.sortMode = 'dex',
     this.caughtRibbons = const {},
@@ -48,6 +50,7 @@ class UserDex {
       isShinyDex: (map['is_shiny_dex'] as num?)?.toInt() == 1,
       viewMode: map['view_mode']?.toString() ?? 'list',
       sortMode: map['sort_mode']?.toString() ?? 'dex',
+      alphaIds: [],
       caughtIds: [],
       shinyIds: [],
       ignoredIds: [],
@@ -71,6 +74,7 @@ class UserDex {
       'sort_mode': sortMode,
       'caught_ids': caughtIds.join(','),
       'shiny_ids': shinyIds.join(','),
+      'alpha_ids': alphaIds.join(','),
     };
   }
 
@@ -87,6 +91,7 @@ class UserDex {
       'isShinyDex': isShinyDex,
       'viewMode': viewMode,
       'sortMode': sortMode,
+      'alphaIds': alphaIds,
       'caughtIds': caughtIds,
       'shinyIds': shinyIds,
       'ignoredIds': ignoredIds,
@@ -108,6 +113,7 @@ class UserDex {
       isShinyDex: json['isShinyDex'] ?? false,
       viewMode: json['viewMode']?.toString() ?? 'list',
       sortMode: json['sortMode']?.toString() ?? 'dex',
+      alphaIds: List<String>.from(json['alphaIds'] ?? []),
       caughtIds: List<String>.from(json['caughtIds'] ?? []),
       shinyIds: List<String>.from(json['shinyIds'] ?? []),
       ignoredIds: List<String>.from(json['ignoredIds'] ?? []),

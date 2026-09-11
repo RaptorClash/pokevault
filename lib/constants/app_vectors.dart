@@ -30,4 +30,12 @@ class AppVectors {
       </g>
     </svg>
   ''';
+
+  static const String alphaSymbol = '''
+  <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+    <path d="M12 2L15 6L21 7L19.5 14C18.5 19 15.5 22 12 22C8.5 22 5.5 19 4.5 14L3 7L9 6L12 2Z" fill="#FF3B30"/>
+    <path d="M7 12C8 13 10 14 10 14C10 14 8 15 6.5 15C5.5 15 5 14 5 13C5 12 6 11 7 12Z" fill="#121212"/>
+    <path d="M17 12C16 13 14 14 14 14C14 14 16 15 17.5 15C18.5 15 19 14 19 13C19 12 18 11 17 12Z" fill="#121212"/>
+  </svg>
+  ''';
 }

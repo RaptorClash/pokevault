@@ -6,6 +6,8 @@ import '../../providers/dex_provider.dart';
 import '../../l10n/app_translations.dart';
 import '../pokemon_info/pokemon_info_screen.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import '../../constants/app_vectors.dart';
 
 class DexBoxView extends StatelessWidget {
   final List<BoxData> boxes;
@@ -245,6 +247,9 @@ class DexBoxView extends StatelessWidget {
                         final isShiny = liveDex.shinyIds.contains(
                           entry.uniqueId,
                         );
+                        final isAlpha = liveDex.alphaIds.contains(
+                          entry.uniqueId,
+                        );
 
                         final bool isMatched =
                             isSearchActive &&
@@ -287,8 +292,7 @@ class DexBoxView extends StatelessWidget {
                         }
 
                         return Focus(
-                          canRequestFocus:
-                              false,
+                          canRequestFocus: false,
                           onKeyEvent: (node, event) {
                             if (event is KeyDownEvent) {
                               if (event.logicalKey == LogicalKeyboardKey.keyI ||
@@ -312,8 +316,7 @@ class DexBoxView extends StatelessWidget {
                               entry.uniqueId,
                             ),
                             onSecondaryTap: openInfoScreen,
-                            onLongPress:
-                                openInfoScreen,
+                            onLongPress: openInfoScreen,
                             child: AnimatedOpacity(
                               duration: const Duration(milliseconds: 200),
                               opacity: isDimmed ? 0.2 : 1.0,
@@ -429,6 +432,17 @@ class DexBoxView extends StatelessWidget {
                                                 Icons.star,
                                                 color: Colors.amber,
                                                 size: 14,
+                                              ),
+                                            if (isAlpha)
+                                              Padding(
+                                                padding: const EdgeInsets.only(
+                                                  right: 4.0,
+                                                ),
+                                                child: SvgPicture.string(
+                                                  AppVectors.alphaSymbol,
+                                                  width: 16,
+                                                  height: 16,
+                                                ),
                                               ),
                                           ],
                                         ),

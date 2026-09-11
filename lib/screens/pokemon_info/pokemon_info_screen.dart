@@ -84,6 +84,12 @@ class _PokemonInfoScreenState extends State<PokemonInfoScreen> {
         requireTargetTap: false,
       ),
       TutorialStep(
+        targetKey: _keys.get(_keys.alphaToggle, currentId),
+        titleKey: 'tutorial_info_alpha_title',
+        textKey: 'tutorial_info_alpha_text',
+        requireTargetTap: false,
+      ),
+      TutorialStep(
         targetKey: _keys.get(_keys.basicInfo, currentId),
         titleKey: 'tutorial_info_basic_title',
         textKey: 'tutorial_info_basic_text',
@@ -265,6 +271,7 @@ class _PokemonInfoScreenState extends State<PokemonInfoScreen> {
             ),
 
             shinyToggleKey: _keys.get(_keys.shinyToggle, id),
+            alphaToggleKey: _keys.get(_keys.alphaToggle, id),
             basicInfoKey: _keys.get(_keys.basicInfo, id),
             caughtStatusKey: _keys.get(_keys.caughtStatus, id),
             shinyStatusKey: _keys.get(_keys.shinyStatus, id),
