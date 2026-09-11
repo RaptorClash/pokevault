@@ -11,11 +11,20 @@ Widget buildPokeImage({
   double errorIconSize = 24.0,
   Widget Function(BuildContext, String)? placeholder,
 }) {
+  final double pixelRatio = MediaQuery.of(context).devicePixelRatio;
+
+  final int? cacheWidth = width != null ? (width * pixelRatio).toInt() : null;
+  final int? cacheHeight = height != null
+      ? (height * pixelRatio).toInt()
+      : null;
+
   return CachedNetworkImage(
     imageUrl: imageUrl,
     width: width,
     height: height,
     fit: fit,
+    memCacheWidth: cacheWidth,
+    memCacheHeight: cacheHeight,
     fadeInDuration: const Duration(milliseconds: 200),
     placeholder:
         placeholder ??
@@ -33,6 +42,8 @@ Widget buildPokeImage({
           width: width,
           height: height,
           fit: fit,
+          memCacheWidth: cacheWidth,
+          memCacheHeight: cacheHeight,
           placeholder:
               placeholder ??
               (context, url) => const Center(

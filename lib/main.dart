@@ -43,9 +43,8 @@ void main() async {
       databaseFactory = databaseFactoryFfi;
     }
 
-    PaintingBinding.instance.imageCache.maximumSize = 150;
-    PaintingBinding.instance.imageCache.maximumSizeBytes = 1024 * 1024 * 40;
-
+    PaintingBinding.instance.imageCache.maximumSize = 80;
+    PaintingBinding.instance.imageCache.maximumSizeBytes = 1024 * 1024 * 25;
     runApp(
       TranslationProvider(
         child: MultiProvider(
