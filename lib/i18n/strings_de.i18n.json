@@ -1204,5 +1204,17 @@
     "hidden_ability_short": "Versteckt",
     "normal_ability_short": "Normal",
     "sort_by": "Sortieren nach",
-    "sort_type": "Nach Typ gruppieren"
+    "sort_type": "Nach Typ gruppieren",
+    "ribbons": "Bänder",
+    "marks": "Zeichen",
+    "tera_types_title": "Terakristallisierung",
+    "title": "Titel:",
+    "location": "Fundort / Bedingung:",
+    "search": "Suchen...",
+    "tutorial_info_marks_title": "Zeichen",
+    "tutorial_info_marks_text": "Zeichen werden ähnlich wie Bänder ausgerüstet und geben deinem Pokémon einen besonderen Titel, wenn es in den Kampf gerufen wird.",
+    "credit_bulbapedia_title": "Bulbapedia (Catch Rates)",
+    "credit_bulbapedia_sub": "Mechaniken für Legends Z-A und Max Raids",
+    "credit_ribbons_title": "Ribbons.Guide",
+    "credit_ribbons_sub": "Datenbank für Bänder & Zeichen"
 }

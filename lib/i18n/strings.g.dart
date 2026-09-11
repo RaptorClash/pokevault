@@ -4,9 +4,9 @@
 /// To regenerate, run: `dart run slang`
 ///
 /// Locales: 2
-/// Strings: 2406 (1203 per locale)
+/// Strings: 2434 (1217 per locale)
 ///
-/// Built on 2026-09-08 at 10:56 UTC
+/// Built on 2026-09-11 at 09:36 UTC
 
 // coverage:ignore-file
 // ignore_for_file: type=lint
@@ -1346,6 +1346,20 @@ class Translations implements BaseTranslations<AppLocale, Translations> {
 	String get category_status => 'Status';
 	String get hidden_ability_short => 'Versteckt';
 	String get normal_ability_short => 'Normal';
+	String get sort_by => 'Sortieren nach';
+	String get sort_type => 'Nach Typ gruppieren';
+	String get ribbons => 'Bänder';
+	String get marks => 'Zeichen';
+	String get tera_types_title => 'Terakristallisierung';
+	String get title => 'Titel:';
+	String get location => 'Fundort / Bedingung:';
+	String get search => 'Suchen...';
+	String get tutorial_info_marks_title => 'Zeichen';
+	String get tutorial_info_marks_text => 'Zeichen werden ähnlich wie Bänder ausgerüstet und geben deinem Pokémon einen besonderen Titel, wenn es in den Kampf gerufen wird.';
+	String get credit_bulbapedia_title => 'Bulbapedia (Catch Rates)';
+	String get credit_bulbapedia_sub => 'Mechaniken für Legends Z-A und Max Raids';
+	String get credit_ribbons_title => 'Ribbons.Guide';
+	String get credit_ribbons_sub => 'Datenbank für Bänder & Zeichen';
 }
 
 // Path: <root>
@@ -2582,6 +2596,20 @@ class _StringsEn extends Translations {
 	@override String get category_status => 'Status';
 	@override String get hidden_ability_short => 'Hidden';
 	@override String get normal_ability_short => 'Normal';
+	@override String get sort_by => 'Sort by';
+	@override String get sort_type => 'Sort by type';
+	@override String get ribbons => 'Ribbons';
+	@override String get marks => 'Marks';
+	@override String get tera_types_title => 'Terastallization';
+	@override String get title => 'Title:';
+	@override String get location => 'Location / Condition:';
+	@override String get search => 'Search...';
+	@override String get tutorial_info_marks_title => 'Marks';
+	@override String get tutorial_info_marks_text => 'Marks function similarly to Ribbons. They grant your Pokémon a special title when sent into battle.';
+	@override String get credit_bulbapedia_title => 'Bulbapedia (Catch Rates)';
+	@override String get credit_bulbapedia_sub => 'Mechanics for Legends Z-A and Max Raids';
+	@override String get credit_ribbons_title => 'Ribbons.Guide';
+	@override String get credit_ribbons_sub => 'Database for Ribbons & Marks';
 }
 
 /// Flat map(s) containing all translations.
@@ -3788,6 +3816,20 @@ extension on Translations {
 			case 'category_status': return 'Status';
 			case 'hidden_ability_short': return 'Versteckt';
 			case 'normal_ability_short': return 'Normal';
+			case 'sort_by': return 'Sortieren nach';
+			case 'sort_type': return 'Nach Typ gruppieren';
+			case 'ribbons': return 'Bänder';
+			case 'marks': return 'Zeichen';
+			case 'tera_types_title': return 'Terakristallisierung';
+			case 'title': return 'Titel:';
+			case 'location': return 'Fundort / Bedingung:';
+			case 'search': return 'Suchen...';
+			case 'tutorial_info_marks_title': return 'Zeichen';
+			case 'tutorial_info_marks_text': return 'Zeichen werden ähnlich wie Bänder ausgerüstet und geben deinem Pokémon einen besonderen Titel, wenn es in den Kampf gerufen wird.';
+			case 'credit_bulbapedia_title': return 'Bulbapedia (Catch Rates)';
+			case 'credit_bulbapedia_sub': return 'Mechaniken für Legends Z-A und Max Raids';
+			case 'credit_ribbons_title': return 'Ribbons.Guide';
+			case 'credit_ribbons_sub': return 'Datenbank für Bänder & Zeichen';
 			default: return null;
 		}
 	}
@@ -5004,6 +5046,20 @@ extension on _StringsEn {
 			case 'category_status': return 'Status';
 			case 'hidden_ability_short': return 'Hidden';
 			case 'normal_ability_short': return 'Normal';
+			case 'sort_by': return 'Sort by';
+			case 'sort_type': return 'Sort by type';
+			case 'ribbons': return 'Ribbons';
+			case 'marks': return 'Marks';
+			case 'tera_types_title': return 'Terastallization';
+			case 'title': return 'Title:';
+			case 'location': return 'Location / Condition:';
+			case 'search': return 'Search...';
+			case 'tutorial_info_marks_title': return 'Marks';
+			case 'tutorial_info_marks_text': return 'Marks function similarly to Ribbons. They grant your Pokémon a special title when sent into battle.';
+			case 'credit_bulbapedia_title': return 'Bulbapedia (Catch Rates)';
+			case 'credit_bulbapedia_sub': return 'Mechanics for Legends Z-A and Max Raids';
+			case 'credit_ribbons_title': return 'Ribbons.Guide';
+			case 'credit_ribbons_sub': return 'Database for Ribbons & Marks';
 			default: return null;
 		}
 	}

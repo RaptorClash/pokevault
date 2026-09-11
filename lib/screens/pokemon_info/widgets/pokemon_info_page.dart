@@ -1,17 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
 import '../../../models/dex_view_models.dart';
 import '../../../models/pokemon.dart';
 import '../../../providers/dex_provider.dart';
 import '../../../l10n/app_translations.dart';
 import '../../../utils/notification_helper.dart';
-
 import '../shiny_guide_widget.dart';
 import 'catch_rate_calculator.dart';
 import 'breeding_info_widget.dart';
 import 'pokemon_info_widgets.dart';
 import 'encounters_widget.dart';
+import './tera_type_widget.dart';
+import './ribbons_widget.dart';
+import './marks_widget.dart';
+import './matching_balls_widget.dart';
 
 class PokemonInfoPage extends StatelessWidget {
   final DexDisplayEntry entry;
@@ -27,6 +29,9 @@ class PokemonInfoPage extends StatelessWidget {
   final GlobalKey breedingKey;
   final GlobalKey catchCalcKey;
   final GlobalKey matchingBallsKey;
+  final GlobalKey teraKey;
+  final GlobalKey ribbonsKey;
+  final GlobalKey marksKey;
   final GlobalKey encountersKey;
   final GlobalKey shinyGuideKey;
   final GlobalKey ignoreBtnKey;
@@ -45,6 +50,9 @@ class PokemonInfoPage extends StatelessWidget {
     required this.breedingKey,
     required this.catchCalcKey,
     required this.matchingBallsKey,
+    required this.teraKey,
+    required this.ribbonsKey,
+    required this.marksKey,
     required this.encountersKey,
     required this.shinyGuideKey,
     required this.ignoreBtnKey,
@@ -103,14 +111,16 @@ class PokemonInfoPage extends StatelessWidget {
               caughtStatusKey: caughtStatusKey,
               shinyStatusKey: shinyStatusKey,
             ),
-            const SizedBox(height: 16),
+
+            const SizedBox(height: 32),
+
             Container(
               key: breedingKey,
               child: BreedingInfoWidget(pokemon: entry.pokemon),
             ),
             Card(
               key: catchCalcKey,
-              margin: const EdgeInsets.symmetric(vertical: 8),
+              margin: const EdgeInsets.only(bottom: 16),
               elevation: 2,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
@@ -130,21 +140,40 @@ class PokemonInfoPage extends StatelessWidget {
                 children: [CatchRateCalculator(pokemon: entry.pokemon)],
               ),
             ),
-            const SizedBox(height: 16),
             MatchingBallsWidget(
               entry: entry,
               matchingBallsKey: matchingBallsKey,
+            ),
+            Container(
+              key: teraKey,
+              child: TeraTypeWidget(entry: entry, dexId: dexId),
+            ),
+            Container(
+              key: ribbonsKey,
+              child: RibbonsWidget(
+                entry: entry,
+                dexId: dexId,
+                ribbonsKey: ribbonsKey,
+              ),
+            ),
+            Container(
+              key: marksKey,
+              child: MarksWidget(
+                entry: entry,
+                dexId: dexId,
+                marksKey: marksKey,
+              ),
             ),
             EncountersWidget(
               pokemonId: entry.pokemon.id,
               encountersKey: encountersKey,
             ),
-            const SizedBox(height: 16),
             Container(
               key: shinyGuideKey,
               child: ShinyGuideWidget(entry: entry, dexId: dexId),
             ),
-            const SizedBox(height: 32),
+
+            const SizedBox(height: 16),
             IgnorePokemonButton(ignoreBtnKey: ignoreBtnKey, onIgnore: onIgnore),
             const SizedBox(height: 32),
           ],

@@ -67,6 +67,7 @@ class PokemonForm {
   final int imageId;
   final List<String> types;
   final List<String> exclusiveRegions;
+  final String? forcedTeraType;
 
   PokemonForm({
     required this.name,
@@ -75,6 +76,7 @@ class PokemonForm {
     required this.imageId,
     required this.types,
     required this.exclusiveRegions,
+    this.forcedTeraType,
   });
 
   factory PokemonForm.fromMap(Map<String, dynamic> map) {
@@ -91,6 +93,7 @@ class PokemonForm {
           .split(',')
           .where((e) => e.isNotEmpty)
           .toList(),
+      forcedTeraType: map['forced_tera_type'] as String?,
     );
   }
 }

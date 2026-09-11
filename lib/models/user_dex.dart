@@ -13,6 +13,8 @@ class UserDex {
   List<String> ignoredIds;
   String viewMode;
   String sortMode;
+  Map<String, List<String>> caughtRibbons = {};
+  Map<String, List<String>> caughtTeraTypes = {};
 
   UserDex({
     required this.id,
@@ -29,6 +31,8 @@ class UserDex {
     this.ignoredIds = const [],
     this.viewMode = 'list',
     this.sortMode = 'dex',
+    this.caughtRibbons = const {},
+    this.caughtTeraTypes = const {},
   });
 
   factory UserDex.fromMap(Map<String, dynamic> map) {
@@ -47,6 +51,8 @@ class UserDex {
       caughtIds: [],
       shinyIds: [],
       ignoredIds: [],
+      caughtRibbons: {},
+      caughtTeraTypes: {},
     );
   }
 
@@ -63,6 +69,8 @@ class UserDex {
       'is_shiny_dex': isShinyDex ? 1 : 0,
       'view_mode': viewMode,
       'sort_mode': sortMode,
+      'caught_ids': caughtIds.join(','),
+      'shiny_ids': shinyIds.join(','),
     };
   }
 
@@ -82,6 +90,8 @@ class UserDex {
       'caughtIds': caughtIds,
       'shinyIds': shinyIds,
       'ignoredIds': ignoredIds,
+      'caughtRibbons': caughtRibbons,
+      'caughtTeraTypes': caughtTeraTypes,
     };
   }
 
@@ -101,6 +111,16 @@ class UserDex {
       caughtIds: List<String>.from(json['caughtIds'] ?? []),
       shinyIds: List<String>.from(json['shinyIds'] ?? []),
       ignoredIds: List<String>.from(json['ignoredIds'] ?? []),
+      caughtRibbons: Map<String, List<String>>.from(
+        (json['caughtRibbons'] ?? {}).map(
+          (key, value) => MapEntry(key.toString(), List<String>.from(value)),
+        ),
+      ),
+      caughtTeraTypes: Map<String, List<String>>.from(
+        (json['caughtTeraTypes'] ?? {}).map(
+          (key, value) => MapEntry(key.toString(), List<String>.from(value)),
+        ),
+      ),
     );
   }
 }

@@ -1,23 +1,26 @@
-# 🔴 Poké Vault
+# 🔴 PokéVault
 
 > **Languages:** 🇬🇧 [English](README.md) | 🇩🇪 [Deutsch](README.de.md)
 
-**Poké Vault** is a comprehensive, fully customizable Living Dex Tracker built with Flutter. Whether you are aiming for a Regional Dex, a National Dex, a Form Dex, or a Shiny Dex – Poké Vault helps you keep track of your progress with ease.
+**PokéVault** is a comprehensive, fully customizable companion app for Pokémon Trainers, Completionists, and Shiny Hunters, built with Flutter. Whether you are aiming for a Regional Dex, a National Dex, a Form Dex, or a Shiny Dex – PokéVault helps you keep track of your progress with ease and provides the ultimate toolset for your shiny hunts.
 
 ![Flutter](https://img.shields.io/badge/Made%20with-Flutter-02569B?logo=flutter)
 ![Dart](https://img.shields.io/badge/Dart-0175C2?logo=dart)
-![Platform](https://img.shields.io/badge/Platform-Android%20%7C%20iOS%20%7C%20Web%20%7C%20Desktop-lightgrey)
-![License](https://img.shields.io/badge/License-CC%20BY--NC%204.0-lightgrey.svg)
+![Platform](https://img.shields.io/badge/Platform-Android%20%7C%20Windows%20%7C%20Linux%20%7C%20Web-lightgrey)
+![License](https://img.shields.io/badge/License-GPL--3.0-blue.svg)
 
 ## ✨ Features
 
-* **Multiple Dex Management:** Create as many trackers as you need for different games or generations (e.g., Kanto, Paldea, Isle of Armor, Indigo Disk).
+* **Multiple Dex Management:** Create as many trackers as you need for different games or generations.
 * **Deep Form Tracking:** Full support for Regional forms, Mega Evolutions, Gigantamax, and special forms (Alcremie, Vivillon, Unown, etc.).
 * **PC Box & List Views:** View your Pokémon in a classic "PC Box" grid or a detailed list view.
-* **Shiny Tracking:** Track regular and Shiny Pokémon separately.
+* **Shiny Tracking:** Track regular and Shiny Pokémon completely separately.
 * **Legal Matching Balls:** Get community-curated recommendations for the best Poké Balls (Matching Balls) for both normal and shiny variations!
+* **📊 Advanced Catch Rate Calculator:** Accurate capture rate calculations spanning every generation, including special mechanics for *Pokémon Legends: Arceus* and *Pokémon Legends: Z-A*.
+* **🧬 Shiny Breeding & Path Calculator:** Computes multi-step breeding chains (including Ditto and Baby Pokémon) and displays accurate probability odds.
+* **📖 Extensive Shiny Hunting Guides:** Step-by-step instructions for generation-specific methods (e.g., Pokéradar, DexNav, Sandwich Recipes).
+* **☁️ Cloud Sync & Offline-First:** 100% Offline Capable with a robust local SQLite database. Optional seamless backup and restore via your personal Google Drive.
 * **Full Customization:** Supports Dark/Light mode and custom accent & background colors.
-* **Import & Export:** Easily backup and restore your progress via JSON files.
 * **Multilingual:** Available in English and German.
 
 ## 📸 Screenshots
@@ -31,13 +34,14 @@
 ## 🚀 Getting Started
 
 ### Prerequisites
-* [Flutter SDK](https://flutter.dev/docs/get-started/install) (Version 3.x)
+* [Flutter SDK](https://docs.flutter.dev/get-started/install) (latest stable version recommended)
 * Dart SDK
+* An IDE such as VS Code or Android Studio
 
 ### Installation
 1. Clone the repository:
    ```bash
-   git clone https://github.com/yourusername/pokevault.git
+   git clone https://github.com/RaptorClash/pokevault.git
    ```
 
 2. Navigate to the project directory:
@@ -50,70 +54,65 @@
    flutter pub get
    ```
 
-4. Run the app:
+4. Download external data:
+Fetch the latest data repositories and wikis used by the database generator:
+   ```bash
+   python3 update_data.py
+   ```
+
+5. Setup SQLite Database:
+   *PokéVault relies on a pre-built SQLite database for core Pokémon data.* 
+   Make sure you run the database build script to generate `assets/db/pokedex.sqlite` before launching the app:
+   ```bash
+   python3 bin/build_database.py
+   ```
+
+6. Run the app:
    ```bash
    flutter run
    ```
 
-## 🛠️ Data Generation (Internal)
-The app uses Python and Dart scripts to generate static Dart data from external sources (e.g., PokeAPI and an Excel sheet for Matching Balls).
-If you want to update the database, you can run the scripts located in the bin/ folder:
-- `python bin/generate_matching_balls.py`
-- `dart bin/generate_dex.dart`
-- `dart bin/generate_orders.dart`
+## 🛠️ Building the App
+
+To compile a release build for your specific platform, run one of the following commands:
+
+**Android (APK):**
+```bash
+flutter build apk --release
+```
+
+**Windows:**
+```bash
+flutter build windows --release
+```
+
+**Linux:**
+```bash
+flutter build linux --release
+```
+
+**Web:**
+```bash
+flutter build web --release
+```
 
 ## 🤝 Contributing Data (Community Fixes)
-Missing encounters or do you have better Matching Ball suggestions? You can easily add or correct these in the JSON files located in the `bin/` folder without any coding knowledge.
+Missing encounters or do you have better Matching Ball suggestions? You can easily add or correct these data in the JSON files located in the `bin/` directory (if applicable) or contribute directly via Issues/Pull Requests.
 
-### 📍 Encounters (`bin/custom_encounters.json`)
-You can add missing locations for specific games here (especially helpful for Gen 8+ since the API lacks data there).
-**Format Example:**
-```json
-{
-  "1": { 
-    "gen_1": {
-      "red": ["Pallet Town (Starter)"]
-    }
-  }
-}
-```
-
-- `"1"`: The National Dex ID of the Pokémon (e.g., Bulbasaur).
-- `"gen_1"`: The Generation.
-- `"red"`: The English internal name of the game version.
-- `"[...]"`: A list of the encounter locations in English (e.g., "Route 1", "Gift", "Trade").
-
-### 🔴 Matching Balls (`bin/custom_matching_balls.json`)
-Here you can define the perfect Poké Balls for the regular and shiny versions of a Pokémon.
-Format Example:
-```json
-{
-  "1_normal": {
-    "normal": ["poke_ball", "friend_ball"],
-    "shiny": ["premier_ball"]
-  }
-}
-```
-- `"1_normal"`: The Dex ID followed by an underscore and the form. Use _normal for the standard form. For regional forms, use the suffix (e.g., `"19_alola"` for Alolan Rattata or `"52_galar"` for Galarian Meowth).
-- `"normal"` / `"shiny"`: The internal English names of the Poké Balls (e.g., `"great_ball"`, `"ultra_ball"`). If any ball is fine, use `["any_ball"]`.
-
-Just open a Pull Request with your additions to the JSON files!
-
-## 🏪 App Store Publishing
-I currently do not own any iOS/Mac devices to compile and publish the app for Apple platforms. If anyone from the community wants to take the compiled app and publish it to the Apple App Store, Google Play Store, or any other platform, you are more than welcome to do so! 
-
-**Conditions for publishing:**
-1. The app must remain **100% free** (no ads, no in-app purchases, strictly non-commercial).
-2. Proper credit must be given to this original GitHub repository in the app's store description.
+If you want to contribute code, features, or bug fixes, please use the appropriate Issue Templates in the `.github/ISSUE_TEMPLATE` folder and open a Pull Request on a dedicated feature branch.
 
 ## 🙏 Credits & Sources
 This app wouldn't be possible without these amazing community resources:
-- [PokeAPI](https://pokeapi.co/): Base data and official artworks.
-- [Living Dex Inspiration](https://drive.google.com/drive/folders/1jgopfeGuNA8oJX6mnYearpnNti4a8W-v): Community Google Sheets.
-- [Matching Balls Guide](https://docs.google.com/spreadsheets/d/1bvIx7Q2Lxp7efHRrUh48WkuwirNlKardwSHVz_R8kA0/edit?gid=877479959#gid=877479959): Community-curated Excel sheet for matching Poké Balls.
-- [Google Gemini](https://gemini.google.com): AI assistance in coding & refactoring.
+*   [PokeAPI](https://pokeapi.co/): Base data and official artworks.
+*   [Living Dex Inspiration](https://drive.google.com/drive/folders/1jgopfeGuNA8oJX6mnYearpnNti4a8W-v): Community Google Sheets.
+*   [Matching Balls Guide](https://docs.google.com/spreadsheets/d/1bvIx7Q2Lxp7efHRrUh48WkuwirNlKardwSHVz_R8kA0/edit?gid=877479959#gid=877479959): Community-curated Excel sheet for matching Poké Balls.
+*   [Bulbapedia](https://bulbapedia.bulbagarden.net/wiki/Catch_rate): Catch Rate mechanics.
+*   [Google Gemini](https://gemini.google.com): AI assistance in coding & refactoring.
+* And many more!
 
 ## 📄 License
-This project is licensed under the [Creative Commons Attribution-NonCommercial 4.0 International License (CC BY-NC 4.0)](LICENSE). 
+This project is licensed under the [GNU General Public License v3.0 (GPL-3.0)](LICENSE).
 
 **Disclaimer:** Pokémon and all respective names are trademark and © of Nintendo, Creatures Inc., and GAME FREAK inc. This is a free, non-commercial fan project and is not affiliated with, endorsed, or supported by Nintendo in any way.
+
+

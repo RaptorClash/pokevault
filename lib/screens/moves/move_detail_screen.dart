@@ -16,8 +16,7 @@ class MoveDetailScreen extends StatefulWidget {
 
 class _MoveDetailScreenState extends State<MoveDetailScreen> {
   String _searchQuery = '';
-  late Future<List<PokemonLearnset>>
-  _learnsetsFuture;
+  late Future<List<PokemonLearnset>> _learnsetsFuture;
 
   @override
   void initState() {
@@ -244,7 +243,7 @@ class _MoveDetailScreenState extends State<MoveDetailScreen> {
 
                             return Card(
                               elevation: 0,
-                              margin: EdgeInsets.zero,
+                              margin: const EdgeInsets.only(bottom: 16),
                               color: Theme.of(context)
                                   .colorScheme
                                   .surfaceContainerHighest

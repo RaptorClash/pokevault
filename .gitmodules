@@ -1,3 +1,6 @@
 [submodule "bin/api-data"]
 	path = bin/api-data
 	url = https://github.com/PokeAPI/api-data.git
+[submodule "bin/ribbons_guide"]
+	path = bin/ribbons_guide
+	url = https://github.com/SlyAceZeta/Ribbons.Guide.git

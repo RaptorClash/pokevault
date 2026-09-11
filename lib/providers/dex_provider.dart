@@ -10,6 +10,7 @@ import 'dart:async';
 import 'package:flutter/widgets.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../services/google_drive_sync_service.dart';
+import '../models/ribbon.dart';
 
 class DexProvider extends ChangeNotifier with WidgetsBindingObserver {
   List<UserDex> userDexes = [];
@@ -32,6 +33,7 @@ class DexProvider extends ChangeNotifier with WidgetsBindingObserver {
   DateTime? _lastSyncTime;
   bool _isSyncing = false;
   bool _hasPendingChanges = false;
+  List<Ribbon> allRibbons = [];
 
   DexProvider({DatabaseService? databaseService})
     : db = databaseService ?? DatabaseService.instance {
@@ -130,6 +132,7 @@ class DexProvider extends ChangeNotifier with WidgetsBindingObserver {
       userDexes = await db.getAllUserDexes();
       folders = await db.getAllFolders();
       structure = await db.getStructure();
+      allRibbons = await db.getAllRibbons();
 
       _isInitialized = true;
       notifyListeners();
@@ -549,5 +552,51 @@ class DexProvider extends ChangeNotifier with WidgetsBindingObserver {
     } finally {
       _isSyncing = false;
     }
+  }
+
+  Future<void> toggleRibbon(
+    String dexId,
+    String uniqueId,
+    String ribbonId,
+  ) async {
+    final dex = userDexes.firstWhere((d) => d.id == dexId);
+    final currentRibbons = List<String>.from(dex.caughtRibbons[uniqueId] ?? []);
+
+    if (currentRibbons.contains(ribbonId)) {
+      currentRibbons.remove(ribbonId);
+    } else {
+      currentRibbons.add(ribbonId);
+    }
+
+    dex.caughtRibbons[uniqueId] = currentRibbons;
+    notifyListeners();
+    await DatabaseService.instance.savePokemonStatus(
+      dexId,
+      uniqueId,
+      ribbons: currentRibbons,
+    );
+  }
+
+  Future<void> toggleTeraType(
+    String dexId,
+    String uniqueId,
+    String teraType,
+  ) async {
+    final dex = userDexes.firstWhere((d) => d.id == dexId);
+    final currentTeras = List<String>.from(dex.caughtTeraTypes[uniqueId] ?? []);
+
+    if (currentTeras.contains(teraType)) {
+      currentTeras.remove(teraType);
+    } else {
+      currentTeras.add(teraType);
+    }
+
+    dex.caughtTeraTypes[uniqueId] = currentTeras;
+    notifyListeners();
+    await DatabaseService.instance.savePokemonStatus(
+      dexId,
+      uniqueId,
+      teraTypes: currentTeras,
+    );
   }
 }

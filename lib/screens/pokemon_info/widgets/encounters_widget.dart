@@ -450,7 +450,7 @@ class EncountersWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       key: encountersKey,
-      margin: const EdgeInsets.symmetric(vertical: 8),
+      margin: const EdgeInsets.only(bottom: 16),
       elevation: 2,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: ExpansionTile(

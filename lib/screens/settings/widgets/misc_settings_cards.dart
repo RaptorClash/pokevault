@@ -343,11 +343,17 @@ class CreditsCard extends StatelessWidget {
               ),
               const Divider(height: 1),
               _buildCreditLink(
-                'Bulbapedia (Catch Rates)',
-                'Mechaniken für Legends Z-A und Max Raids',
+                'credit_bulbapedia_title',
+                'credit_bulbapedia_sub',
                 Icons.menu_book_rounded,
                 'https://bulbapedia.bulbagarden.net/wiki/Catch_rate',
-                isDirectText: true,
+              ),
+              const Divider(height: 1),
+              _buildCreditLink(
+                'credit_ribbons_title',
+                'credit_ribbons_sub',
+                Icons.workspace_premium,
+                'https://github.com/SlyAceZeta/Ribbons.Guide',
               ),
               const Divider(height: 1),
               _buildCreditLink(

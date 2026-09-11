@@ -1,13 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
 import '../../models/dex_view_models.dart';
 import '../../providers/dex_provider.dart';
 import '../../providers/tutorial_provider.dart';
 import '../../models/tutorial_step.dart';
 import '../../widgets/tutorial/tutorial_overlay.dart';
 import '../../l10n/app_translations.dart';
-
 import 'utils/pokemon_info_keys.dart';
 import 'dialogs/ignore_pokemon_dialog.dart';
 import 'widgets/pokemon_info_page.dart';
@@ -119,6 +117,24 @@ class _PokemonInfoScreenState extends State<PokemonInfoScreen> {
         targetKey: _keys.get(_keys.matchingBalls, currentId),
         titleKey: 'tutorial_info_matchingballs_title',
         textKey: 'tutorial_info_matchingballs_text',
+        requireTargetTap: false,
+      ),
+      TutorialStep(
+        targetKey: _keys.get(_keys.tera, currentId),
+        titleKey: 'tutorial_info_tera_title',
+        textKey: 'tutorial_info_tera_text',
+        requireTargetTap: false,
+      ),
+      TutorialStep(
+        targetKey: _keys.get(_keys.ribbons, currentId),
+        titleKey: 'tutorial_info_ribbons_title',
+        textKey: 'tutorial_info_ribbons_text',
+        requireTargetTap: false,
+      ),
+      TutorialStep(
+        targetKey: _keys.get(_keys.marks, currentId),
+        titleKey: 'tutorial_info_marks_title',
+        textKey: 'tutorial_info_marks_text',
         requireTargetTap: false,
       ),
       TutorialStep(
@@ -255,6 +271,9 @@ class _PokemonInfoScreenState extends State<PokemonInfoScreen> {
             breedingKey: _keys.get(_keys.breeding, id),
             catchCalcKey: _keys.get(_keys.catchCalc, id),
             matchingBallsKey: _keys.get(_keys.matchingBalls, id),
+            teraKey: _keys.get(_keys.tera, id),
+            ribbonsKey: _keys.get(_keys.ribbons, id),
+            marksKey: _keys.get(_keys.marks, id),
             encountersKey: _keys.get(_keys.encounters, id),
             shinyGuideKey: _keys.get(_keys.shinyGuide, id),
             ignoreBtnKey: _keys.get(_keys.ignoreBtn, id),

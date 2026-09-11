@@ -133,7 +133,7 @@ class _AbilityDetailScreenState extends State<AbilityDetailScreen> {
 
                     return Card(
                       elevation: 0,
-                      margin: EdgeInsets.zero,
+                      margin: const EdgeInsets.only(bottom: 16),
                       color: Theme.of(context)
                           .colorScheme
                           .surfaceContainerHighest

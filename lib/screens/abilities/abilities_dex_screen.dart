@@ -216,7 +216,7 @@ class _AbilitiesDexScreenState extends State<AbilitiesDexScreen> {
     return GestureDetector(
       onSecondaryTap: () => _openDetails(ability),
       child: Card(
-        margin: EdgeInsets.zero,
+        margin: const EdgeInsets.only(bottom: 16),
         elevation: 0,
         color: isCaught
             ? Colors.green.withValues(alpha: 0.15)

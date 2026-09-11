@@ -1214,5 +1214,17 @@
     "hidden_ability_short": "Hidden",
     "normal_ability_short": "Normal",
     "sort_by": "Sort by",
-    "sort_type": "Sort by type"
+    "sort_type": "Sort by type",
+    "ribbons": "Ribbons",
+    "marks": "Marks",
+    "tera_types_title": "Terastallization",
+    "title": "Title:",
+    "location": "Location / Condition:",
+    "search": "Search...",
+    "tutorial_info_marks_title": "Marks",
+    "tutorial_info_marks_text": "Marks function similarly to Ribbons. They grant your Pokémon a special title when sent into battle.",
+    "credit_bulbapedia_title": "Bulbapedia (Catch Rates)",
+    "credit_bulbapedia_sub": "Mechanics for Legends Z-A and Max Raids",
+    "credit_ribbons_title": "Ribbons.Guide",
+    "credit_ribbons_sub": "Database for Ribbons & Marks"
 }

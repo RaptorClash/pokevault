@@ -13,6 +13,7 @@ import 'dart:typed_data';
 import 'package:sqflite_common_ffi_web/sqflite_ffi_web.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/special_dex_models.dart';
+import '../models/ribbon.dart';
 
 class DatabaseService {
   static final DatabaseService instance = DatabaseService._init();
@@ -27,7 +28,7 @@ class DatabaseService {
     return _appDatabase!;
   }
 
-  static const int _currentAppDbVersion = 7;
+  static const int _currentAppDbVersion = 14;
 
   Future<Database> _initAppDB(String fileName) async {
     String path = fileName;
@@ -83,7 +84,7 @@ class DatabaseService {
     return await factory.openDatabase(
       path,
       options: OpenDatabaseOptions(
-        version: 3,
+        version: 4,
         onCreate: _createUserDataTables,
         onUpgrade: _upgradeUserDataTables,
       ),
@@ -195,6 +196,21 @@ class DatabaseService {
         );
       } catch (e) {
         debugPrint("Migrations-Fehler V3: $e");
+      }
+    }
+    if (oldVersion < 4) {
+      try {
+        await db.execute(
+          "ALTER TABLE user_pokemon ADD COLUMN caught_ribbons TEXT DEFAULT ''",
+        );
+        await db.execute(
+          "ALTER TABLE user_pokemon ADD COLUMN caught_tera_types TEXT DEFAULT ''",
+        );
+        debugPrint(
+          "Datenbank erfolgreich auf Version 4 (Ribbons & Tera) migriert!",
+        );
+      } catch (e) {
+        debugPrint("Migrations-Fehler V4: $e");
       }
     }
   }
@@ -324,6 +340,10 @@ class DatabaseService {
         if ((p['is_caught'] as num?)?.toInt() == 1) dex.caughtIds.add(uId);
         if ((p['is_shiny'] as num?)?.toInt() == 1) dex.shinyIds.add(uId);
         if ((p['is_ignored'] as num?)?.toInt() == 1) dex.ignoredIds.add(uId);
+        String rStr = p['caught_ribbons']?.toString() ?? '';
+        if (rStr.isNotEmpty) dex.caughtRibbons[uId] = rStr.split(',');
+        String tStr = p['caught_tera_types']?.toString() ?? '';
+        if (tStr.isNotEmpty) dex.caughtTeraTypes[uId] = tStr.split(',');
       }
       dexes.add(dex);
     }
@@ -369,6 +389,8 @@ class DatabaseService {
     bool? isCaught,
     bool? isShiny,
     bool? isIgnored,
+    List<String>? ribbons,
+    List<String>? teraTypes,
   }) async {
     final db = await instance.userDatabase;
     final maps = await db.query(
@@ -377,21 +399,28 @@ class DatabaseService {
       whereArgs: [dexId, uniqueId],
     );
     int caught = 0, shiny = 0, ignored = 0;
+    String r = '', t = '';
+
     if (maps.isNotEmpty) {
       caught = (maps.first['is_caught'] as num?)?.toInt() ?? 0;
       shiny = (maps.first['is_shiny'] as num?)?.toInt() ?? 0;
       ignored = (maps.first['is_ignored'] as num?)?.toInt() ?? 0;
+      r = maps.first['caught_ribbons']?.toString() ?? '';
+      t = maps.first['caught_tera_types']?.toString() ?? '';
     }
     if (isCaught != null) caught = isCaught ? 1 : 0;
     if (isShiny != null) shiny = isShiny ? 1 : 0;
     if (isIgnored != null) ignored = isIgnored ? 1 : 0;
-
+    if (ribbons != null) r = ribbons.join(',');
+    if (teraTypes != null) t = teraTypes.join(',');
     await db.insert('user_pokemon', {
       'dex_id': dexId,
       'unique_id': uniqueId,
       'is_caught': caught,
       'is_shiny': shiny,
       'is_ignored': ignored,
+      'caught_ribbons': r,
+      'caught_tera_types': t,
       'updated_at': DateTime.now().toUtc().millisecondsSinceEpoch,
     }, conflictAlgorithm: ConflictAlgorithm.replace);
   }
@@ -701,5 +730,40 @@ class DatabaseService {
           ),
         )
         .toList();
+  }
+
+  Future<List<Ribbon>> getAllRibbons() async {
+    final db = await instance.appDatabase;
+    final maps = await db.query('ribbons');
+    return maps.map((m) => Ribbon.fromMap(m)).toList();
+  }
+
+  Future<List<String>> getAvailableVersionGroups(int pokemonId) async {
+    final db = await instance.appDatabase;
+    final maps = await db.query(
+      'pokemon_moves',
+      columns: ['version_group'],
+      where: 'pokemon_id = ?',
+      whereArgs: [pokemonId],
+      distinct: true,
+    );
+    return maps.map((m) => m['version_group'] as String).toList();
+  }
+
+  Future<int> getBasePokemonId(int chainId) async {
+    if (chainId == -1) return -1;
+    final db = await instance.appDatabase;
+    final maps = await db.query(
+      'evolutions',
+      where: 'chain_id = ?',
+      whereArgs: [chainId],
+    );
+    if (maps.isNotEmpty) {
+      final data = jsonDecode(maps.first['chain_json']?.toString() ?? '{}');
+      if (data['species_id'] != null) {
+        return (data['species_id'] as num).toInt();
+      }
+    }
+    return -1;
   }
 }
