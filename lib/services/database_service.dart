@@ -366,8 +366,15 @@ class DatabaseService {
 
   Future<void> saveUserDex(UserDex dex) async {
     final db = await instance.userDatabase;
-
     Map<String, dynamic> dexMap = dex.toMap();
+
+    dexMap.remove('caught_ids');
+    dexMap.remove('shiny_ids');
+    dexMap.remove('alpha_ids');
+    dexMap.remove('ignored_ids');
+    dexMap.remove('caught_ribbons');
+    dexMap.remove('caught_tera_types');
+
     dexMap['updated_at'] = DateTime.now().toUtc().millisecondsSinceEpoch;
     dexMap['deleted_at'] = 0;
 
