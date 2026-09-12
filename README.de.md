@@ -91,6 +91,11 @@ flutter build windows --release
 flutter build linux --release
 ```
 
+**Linux AppImage:**
+```bash
+appimage-builder --recipe AppImageBuilder.yml
+```
+
 **Web:**
 ```bash
 flutter build web --release

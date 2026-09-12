@@ -1,0 +1,41 @@
+version: 1
+
+script:
+  - rm -rf AppDir || true
+  - mkdir -p AppDir/usr/bin
+  - cp -r build/linux/x64/release/bundle/* AppDir/usr/bin/
+  - mkdir -p AppDir/usr/share/applications
+  - |
+    cat << 'EOF' > AppDir/usr/share/applications/pokevault.desktop
+    [Desktop Entry]
+    Name=PokeVault
+    Exec=usr/bin/PokeVault
+    Icon=pokevault
+    Type=Application
+    Categories=Game;
+    EOF
+  - mkdir -p AppDir/usr/share/icons/hicolor/256x256/apps
+  - cp assets/app_icon.png AppDir/usr/share/icons/hicolor/256x256/apps/pokevault.png || touch AppDir/usr/share/icons/hicolor/256x256/apps/pokevault.png
+
+AppDir:
+  path: ./AppDir
+  app_info:
+    id: pokevault
+    name: PokeVault
+    icon: pokevault
+    version: '1.0.0'
+    exec: usr/bin/PokeVault
+  apt:
+    arch: amd64
+    allow_unauthenticated: true
+    sources:
+      - sourceline: 'deb [arch=amd64] http://archive.ubuntu.com/ubuntu/ jammy main universe'
+    include:
+      - libsqlite3-0
+      - libgl1-mesa-glx
+      - libegl1-mesa
+      - libx11-6
+
+AppImage:
+  arch: x86_64
+  file_name: PokeVault-x86_64.AppImage

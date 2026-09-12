@@ -43,3 +43,10 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Linux AppImage Builder & Release Artifacts
+AppDir/
+appimage-builder-cache/
+appimage-build/
+*.AppImage
+*.tar.gz
