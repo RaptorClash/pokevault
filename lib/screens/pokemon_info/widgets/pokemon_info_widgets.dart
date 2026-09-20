@@ -214,14 +214,29 @@ class PokemonBasicInfoWidget extends StatelessWidget {
                 }).toList(),
               ),
             ],
+
             if (entry.displaySuffix.trim().isNotEmpty) ...[
               const SizedBox(height: 8),
-              Text(
-                '${Translator.get('form', fallback: 'Form')}: ${entry.displaySuffix.replaceAll('(', '').replaceAll(')', '').trim()}',
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontStyle: FontStyle.italic,
-                ),
+              Builder(
+                builder: (context) {
+                  final cleanSuffix = entry.displaySuffix
+                      .replaceAll('(', '')
+                      .replaceAll(')', '')
+                      .trim();
+                  final isSpecial = entry.uniqueId.contains('_special_');
+                  final label = isSpecial
+                      ? Translator.get('special_info', fallback: 'Info')
+                      : Translator.get('form', fallback: 'Form');
+
+                  return Text(
+                    '$label: $cleanSuffix',
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontStyle: FontStyle.italic,
+                    ),
+                    textAlign: TextAlign.center,
+                  );
+                },
               ),
             ],
           ],

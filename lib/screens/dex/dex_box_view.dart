@@ -97,6 +97,15 @@ class DexBoxView extends StatelessWidget {
         .expand((b) => b.entries)
         .toList();
 
+    final List<int> matchIndices = [];
+    if (isSearchActive && highlightedIds.isNotEmpty) {
+      for (int i = 0; i < boxes.length; i++) {
+        if (boxes[i].entries.any((e) => highlightedIds.contains(e.uniqueId))) {
+          matchIndices.add(i);
+        }
+      }
+    }
+
     return Center(
       child: ConstrainedBox(
         constraints: BoxConstraints(maxWidth: boxMaxWidth),
@@ -105,6 +114,30 @@ class DexBoxView extends StatelessWidget {
           itemCount: boxes.length,
           itemBuilder: (context, boxIndex) {
             final box = boxes[boxIndex];
+
+            int prevMatch = -1;
+            int nextMatch = -1;
+            int currentIndexInMatches = -1;
+            bool canJump = false;
+
+            if (isSearchActive && matchIndices.isNotEmpty) {
+              currentIndexInMatches = matchIndices.indexOf(boxIndex);
+
+              int? tempPrev;
+              int? tempNext;
+              for (int i in matchIndices) {
+                if (i < boxIndex) tempPrev = i;
+                if (i > boxIndex && tempNext == null) tempNext = i;
+              }
+
+              prevMatch = tempPrev ?? matchIndices.last;
+              nextMatch = tempNext ?? matchIndices.first;
+
+              if (matchIndices.length > 1 || !matchIndices.contains(boxIndex)) {
+                canJump = true;
+              }
+            }
+
             return CustomScrollView(
               keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
               slivers: [
@@ -114,18 +147,35 @@ class DexBoxView extends StatelessWidget {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
+                        if (isSearchActive && matchIndices.isNotEmpty)
+                          IconButton(
+                            icon: const Icon(Icons.keyboard_double_arrow_left),
+                            color: Theme.of(context).colorScheme.primary,
+                            onPressed: canJump
+                                ? () {
+                                    pageController.animateToPage(
+                                      prevMatch,
+                                      duration: const Duration(
+                                        milliseconds: 300,
+                                      ),
+                                      curve: Curves.easeInOut,
+                                    );
+                                  }
+                                : null,
+                          ),
+
                         IconButton(
                           icon: const Icon(Icons.chevron_left),
-                          onPressed: () {
-                            if (pageController.hasClients &&
-                                (pageController.page ?? 0) > 0) {
-                              pageController.previousPage(
-                                duration: const Duration(milliseconds: 300),
-                                curve: Curves.easeInOut,
-                              );
-                            }
-                          },
+                          onPressed: boxIndex > 0
+                              ? () {
+                                  pageController.previousPage(
+                                    duration: const Duration(milliseconds: 300),
+                                    curve: Curves.easeInOut,
+                                  );
+                                }
+                              : null,
                         ),
+
                         InkWell(
                           onTap: () {
                             if (separateForms && boxes.length > 1) {
@@ -134,7 +184,7 @@ class DexBoxView extends StatelessWidget {
                           },
                           child: Container(
                             padding: const EdgeInsets.symmetric(
-                              horizontal: 24,
+                              horizontal: 16,
                               vertical: 8,
                             ),
                             decoration: BoxDecoration(
@@ -142,7 +192,7 @@ class DexBoxView extends StatelessWidget {
                                   .colorScheme
                                   .surfaceContainerHighest
                                   .withOpacity(0.5),
-                              borderRadius: BorderRadius.circular(16),
+                              borderRadius: BorderRadius.circular(20),
                               border: Border.all(
                                 color: Theme.of(
                                   context,
@@ -159,7 +209,10 @@ class DexBoxView extends StatelessWidget {
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
-                                if (separateForms && boxes.length > 1)
+                                if (separateForms &&
+                                    boxes.length > 1 &&
+                                    !(isSearchActive &&
+                                        matchIndices.isNotEmpty))
                                   const Padding(
                                     padding: EdgeInsets.only(left: 4.0),
                                     child: Icon(
@@ -167,12 +220,53 @@ class DexBoxView extends StatelessWidget {
                                       size: 20,
                                     ),
                                   ),
+                                if (isSearchActive && matchIndices.isNotEmpty)
+                                  Padding(
+                                    padding: const EdgeInsets.only(left: 12.0),
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 8,
+                                        vertical: 4,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: Theme.of(
+                                          context,
+                                        ).colorScheme.primaryContainer,
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      child: Row(
+                                        children: [
+                                          Icon(
+                                            Icons.search,
+                                            size: 14,
+                                            color: Theme.of(
+                                              context,
+                                            ).colorScheme.onPrimaryContainer,
+                                          ),
+                                          const SizedBox(width: 4),
+                                          Text(
+                                            currentIndexInMatches != -1
+                                                ? '${currentIndexInMatches + 1} / ${matchIndices.length}'
+                                                : '- / ${matchIndices.length}',
+                                            style: TextStyle(
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.bold,
+                                              color: Theme.of(
+                                                context,
+                                              ).colorScheme.onPrimaryContainer,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
                               ],
                             ),
                           ),
                         ),
+
                         Padding(
-                          padding: const EdgeInsets.only(left: 8.0),
+                          padding: const EdgeInsets.only(left: 4.0),
                           child: IconButton(
                             icon: Icon(
                               box.entries.every(
@@ -213,18 +307,35 @@ class DexBoxView extends StatelessWidget {
                             },
                           ),
                         ),
+
                         IconButton(
                           icon: const Icon(Icons.chevron_right),
-                          onPressed: () {
-                            if (pageController.hasClients &&
-                                (pageController.page ?? 0) < boxes.length - 1) {
-                              pageController.nextPage(
-                                duration: const Duration(milliseconds: 300),
-                                curve: Curves.easeInOut,
-                              );
-                            }
-                          },
+                          onPressed: boxIndex < boxes.length - 1
+                              ? () {
+                                  pageController.nextPage(
+                                    duration: const Duration(milliseconds: 300),
+                                    curve: Curves.easeInOut,
+                                  );
+                                }
+                              : null,
                         ),
+
+                        if (isSearchActive && matchIndices.isNotEmpty)
+                          IconButton(
+                            icon: const Icon(Icons.keyboard_double_arrow_right),
+                            color: Theme.of(context).colorScheme.primary,
+                            onPressed: canJump
+                                ? () {
+                                    pageController.animateToPage(
+                                      nextMatch,
+                                      duration: const Duration(
+                                        milliseconds: 300,
+                                      ),
+                                      curve: Curves.easeInOut,
+                                    );
+                                  }
+                                : null,
+                          ),
                       ],
                     ),
                   ),

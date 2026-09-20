@@ -411,7 +411,11 @@ class _DexScreenState extends State<DexScreen> {
       form = entry.pokemon.forms.firstWhere((f) => f.name == formName);
     } catch (_) {}
 
-    String regionId = DexLogicHelper.getPokemonRegionId(entry.pokemon, form, liveDex);
+    String regionId = DexLogicHelper.getPokemonRegionId(
+      entry.pokemon,
+      form,
+      liveDex,
+    );
 
     final orTerms = _searchQuery.toLowerCase().split(',');
     for (String orTerm in orTerms) {
@@ -513,7 +517,23 @@ class _DexScreenState extends State<DexScreen> {
                 final baseName = entry.pokemon
                     .getName(currentLanguage)
                     .toLowerCase();
-                final fullName = (baseName + entry.displaySuffix).toLowerCase();
+
+                String searchableText = baseName;
+                if (form != null) {
+                  searchableText += ' ${form.name.toLowerCase()}';
+                  searchableText +=
+                      ' ${Translator.get('form_name_${form.name}').toLowerCase()}';
+                }
+
+                if (entry.uniqueId.contains('_trade_')) {
+                  searchableText += ' trade tausche tausch';
+                }
+                if (entry.uniqueId.contains('_gift_')) {
+                  searchableText += ' gift geschenk';
+                }
+                if (entry.uniqueId.contains('_n_')) {
+                  searchableText += " n's pokemon n";
+                }
 
                 if (term.contains('*')) {
                   try {
@@ -524,15 +544,14 @@ class _DexScreenState extends State<DexScreen> {
                             .map((s) => RegExp.escape(s))
                             .join('.*') +
                         '\$';
-                    if (RegExp(rStr).hasMatch(fullName) ||
-                        RegExp(rStr).hasMatch(baseName)) {
+                    if (RegExp(rStr).hasMatch(searchableText)) {
                       match = true;
                     }
                   } catch (_) {
-                    if (fullName.contains(term)) match = true;
+                    if (searchableText.contains(term)) match = true;
                   }
                 } else {
-                  if (fullName.contains(term) ||
+                  if (searchableText.contains(term) ||
                       entry.pokemon.id.toString() == term) {
                     match = true;
                   }
