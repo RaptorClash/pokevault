@@ -400,7 +400,7 @@ class DexLogicHelper {
         liveDex.region == 'kanto_regional' ||
         liveDex.region == 'johto_regional';
     int capacity = isOriginalKantoJohto ? 20 : 30;
-    int crossAxis = isOriginalKantoJohto ? 5 : 6;
+    int crossAxis = isOriginalKantoJohto ? 4 : 5;
 
     if (!separateForms) {
       List<DexDisplayEntry> baseEntries = [];
