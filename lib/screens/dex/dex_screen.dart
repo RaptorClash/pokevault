@@ -21,6 +21,7 @@ import 'dex_list_view.dart';
 import 'route_tracker_screen.dart';
 import '../pokemon_info/pokemon_info_screen.dart';
 import '../../services/database_service.dart';
+import 'dex_sort_settings_screen.dart';
 
 class DexScreen extends StatefulWidget {
   final UserDex initialDex;
@@ -410,7 +411,7 @@ class _DexScreenState extends State<DexScreen> {
       form = entry.pokemon.forms.firstWhere((f) => f.name == formName);
     } catch (_) {}
 
-    String regionId = DexLogicHelper.getPokemonRegionId(entry.pokemon, form);
+    String regionId = DexLogicHelper.getPokemonRegionId(entry.pokemon, form, liveDex);
 
     final orTerms = _searchQuery.toLowerCase().split(',');
     for (String orTerm in orTerms) {
@@ -878,6 +879,16 @@ class _DexScreenState extends State<DexScreen> {
             onSelected: (value) {
               if (value == 'toggle_view') _toggleBoxView();
               if (value == 'toggle_sort') _toggleSeparateForms();
+              if (value == 'advanced_sort') {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => DexSortSettingsScreen(dex: liveDex),
+                  ),
+                ).then((_) {
+                  _recalculateBoxesAsync(liveDex);
+                });
+              }
               if (value == 'ignored_list') {
                 Navigator.push(
                   context,
@@ -920,6 +931,22 @@ class _DexScreenState extends State<DexScreen> {
                       _separateForms
                           ? Translator.get('sort_dex')
                           : Translator.get('sort_forms'),
+                    ),
+                  ],
+                ),
+              ),
+              const PopupMenuDivider(),
+              PopupMenuItem(
+                value: 'advanced_sort',
+                child: Row(
+                  children: [
+                    const Icon(Icons.tune, size: 20),
+                    const SizedBox(width: 8),
+                    Text(
+                      Translator.get(
+                        'advanced_sort_title',
+                        fallback: 'Erweiterte Sortierung',
+                      ),
                     ),
                   ],
                 ),
@@ -1007,6 +1034,36 @@ class _DexScreenState extends State<DexScreen> {
                                 _separateForms
                                     ? Translator.get('sort_dex')
                                     : Translator.get('sort_forms'),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const Divider(height: 1),
+                      InkWell(
+                        onTap: () {
+                          setState(() => _showFakeMenu = false);
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  DexSortSettingsScreen(dex: liveDex),
+                            ),
+                          ).then((_) {
+                            _recalculateBoxesAsync(liveDex);
+                          });
+                        },
+                        child: Padding(
+                          padding: const EdgeInsets.all(12),
+                          child: Row(
+                            children: [
+                              const Icon(Icons.tune, size: 20),
+                              const SizedBox(width: 8),
+                              Text(
+                                Translator.get(
+                                  'advanced_sort_title',
+                                  fallback: 'Erweiterte Sortierung',
+                                ),
                               ),
                             ],
                           ),

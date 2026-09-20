@@ -232,16 +232,56 @@ class DexLogicHelper {
     return 'unknown';
   }
 
-  static String getPokemonRegionId(Pokemon p, PokemonForm? f) {
+  static String getPokemonRegionId(Pokemon p, PokemonForm? f, UserDex liveDex) {
     if (f != null) {
       if (p.id == 25 && f.name.contains('cap')) return 'kanto';
-      if (f.formType == 'gmax') return 'galar';
-      if (f.name.contains('alola') || f.name.contains('totem')) return 'alola';
-      if (f.name.contains('galar')) return 'galar';
-      if (f.name.contains('hisui')) return 'hisui';
-      if (f.name.contains('paldea')) return 'paldea';
+
+      if (f.formType == 'gmax') {
+        return liveDex.gmaxSort == 'mechanic' ? 'galar' : _getBaseRegion(p.id);
+      }
+
+      if (f.formType == 'mega') {
+        if (liveDex.megaSort == 'mechanic') {
+          List<int> orasMegas = [
+            15,
+            18,
+            80,
+            208,
+            254,
+            302,
+            319,
+            323,
+            334,
+            362,
+            373,
+            376,
+            380,
+            381,
+            384,
+            428,
+            475,
+            531,
+            719,
+          ];
+          return orasMegas.contains(p.id) ? 'hoenn' : 'kalos';
+        }
+        return _getBaseRegion(p.id);
+      }
+
+      if (f.formType == 'regional') {
+        if (liveDex.regionalSort == 'origin') return _getBaseRegion(p.id);
+
+        if (f.name.contains('alola') || f.name.contains('totem'))
+          return 'alola';
+        if (f.name.contains('galar')) return 'galar';
+        if (f.name.contains('hisui')) return 'hisui';
+        if (f.name.contains('paldea')) return 'paldea';
+      }
     }
-    int id = p.id;
+    return _getBaseRegion(p.id);
+  }
+
+  static String _getBaseRegion(int id) {
     if (id <= 151) return 'kanto';
     if (id <= 251) return 'johto';
     if (id <= 386) return 'hoenn';
@@ -430,7 +470,7 @@ class DexLogicHelper {
           } catch (_) {}
         }
 
-        String regionId = getPokemonRegionId(entry.pokemon, form);
+        String regionId = getPokemonRegionId(entry.pokemon, form, liveDex);
 
         if (entry.uniqueId.contains('_special_')) {
           final parts = entry.uniqueId.split('_special_')[1].split('_');

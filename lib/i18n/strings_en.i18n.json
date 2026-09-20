@@ -1237,5 +1237,15 @@
     "languages_title": "Languages",
     "cat_gifts": "Gifts",
     "cat_trades": "Trades",
-    "cat_orre": "Colosseum & XD"
+    "cat_orre": "Colosseum & XD",
+    "advanced_sort_title": "Advanced Sorting",
+    "sort_mega_title": "Mega Evolutions",
+    "sort_gmax_title": "Gigantamax",
+    "sort_regional_title": "Regional Forms",
+    "sort_origin_kanto": "Origin Region (e.g. Kanto)",
+    "sort_mechanic_mega": "Mechanic Region (Kalos/Hoenn)",
+    "sort_mechanic_gmax": "Mechanic Region (Galar)",
+    "sort_mechanic_regional": "Form Region (e.g. Alola)",
+    "cat_silvally": "Silvally",
+    "cat_arceus": "Arceus"
 }

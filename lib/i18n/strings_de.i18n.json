@@ -1227,5 +1227,15 @@
     "languages_title": "Sprachen",
     "cat_gifts": "Geschenke",
     "cat_trades": "Tausche",
-    "cat_orre": "Colosseum & XD"
+    "cat_orre": "Colosseum & XD",
+    "advanced_sort_title": "Erweiterte Sortierung",
+    "sort_mega_title": "Mega-Entwicklungen",
+    "sort_gmax_title": "Giga-Dynamax",
+    "sort_regional_title": "Regionalformen",
+    "sort_origin_kanto": "Ursprungsregion (z.B. Kanto)",
+    "sort_mechanic_mega": "Region der Mechanik (Kalos/Hoenn)",
+    "sort_mechanic_gmax": "Region der Mechanik (Galar)",
+    "sort_mechanic_regional": "Region der Form (z.B. Alola)",
+    "cat_silvally": "Amigento",
+    "cat_arceus": "Arceus"
 }

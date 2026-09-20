@@ -4,9 +4,9 @@
 /// To regenerate, run: `dart run slang`
 ///
 /// Locales: 2
-/// Strings: 2450 (1225 per locale)
+/// Strings: 2476 (1238 per locale)
 ///
-/// Built on 2026-09-11 at 14:53 UTC
+/// Built on 2026-09-20 at 09:52 UTC
 
 // coverage:ignore-file
 // ignore_for_file: type=lint
@@ -1368,6 +1368,19 @@ class Translations implements BaseTranslations<AppLocale, Translations> {
 	String get tutorial_info_ribbons_text => 'Dein Pokémon hat eine Meisterschaft gewonnen oder etwas Besonderes geleistet? Hake hier die Bänder ab, die es gesammelt hat.';
 	String get tutorial_info_marks_text => 'Wilde Pokémon können beim Fang besondere Zeichen tragen. Wenn du ein solches gefangen hast, kannst du es hier vermerken.';
 	String get languages_title => 'Sprachen';
+	String get cat_gifts => 'Geschenke';
+	String get cat_trades => 'Tausche';
+	String get cat_orre => 'Colosseum & XD';
+	String get advanced_sort_title => 'Erweiterte Sortierung';
+	String get sort_mega_title => 'Mega-Entwicklungen';
+	String get sort_gmax_title => 'Giga-Dynamax';
+	String get sort_regional_title => 'Regionalformen';
+	String get sort_origin_kanto => 'Ursprungsregion (z.B. Kanto)';
+	String get sort_mechanic_mega => 'Region der Mechanik (Kalos/Hoenn)';
+	String get sort_mechanic_gmax => 'Region der Mechanik (Galar)';
+	String get sort_mechanic_regional => 'Region der Form (z.B. Alola)';
+	String get cat_silvally => 'Amigento';
+	String get cat_arceus => 'Arceus';
 }
 
 // Path: <root>
@@ -2626,6 +2639,19 @@ class _StringsEn extends Translations {
 	@override String get tutorial_info_ribbons_text => 'Did your Pokémon win a championship or achieve something special? Check off the ribbons it has earned here.';
 	@override String get tutorial_info_marks_text => 'Wild Pokémon can carry special marks when caught. If you caught one, you can note it down here.';
 	@override String get languages_title => 'Languages';
+	@override String get cat_gifts => 'Gifts';
+	@override String get cat_trades => 'Trades';
+	@override String get cat_orre => 'Colosseum & XD';
+	@override String get advanced_sort_title => 'Advanced Sorting';
+	@override String get sort_mega_title => 'Mega Evolutions';
+	@override String get sort_gmax_title => 'Gigantamax';
+	@override String get sort_regional_title => 'Regional Forms';
+	@override String get sort_origin_kanto => 'Origin Region (e.g. Kanto)';
+	@override String get sort_mechanic_mega => 'Mechanic Region (Kalos/Hoenn)';
+	@override String get sort_mechanic_gmax => 'Mechanic Region (Galar)';
+	@override String get sort_mechanic_regional => 'Form Region (e.g. Alola)';
+	@override String get cat_silvally => 'Silvally';
+	@override String get cat_arceus => 'Arceus';
 }
 
 /// Flat map(s) containing all translations.
@@ -3854,6 +3880,19 @@ extension on Translations {
 			case 'tutorial_info_ribbons_text': return 'Dein Pokémon hat eine Meisterschaft gewonnen oder etwas Besonderes geleistet? Hake hier die Bänder ab, die es gesammelt hat.';
 			case 'tutorial_info_marks_text': return 'Wilde Pokémon können beim Fang besondere Zeichen tragen. Wenn du ein solches gefangen hast, kannst du es hier vermerken.';
 			case 'languages_title': return 'Sprachen';
+			case 'cat_gifts': return 'Geschenke';
+			case 'cat_trades': return 'Tausche';
+			case 'cat_orre': return 'Colosseum & XD';
+			case 'advanced_sort_title': return 'Erweiterte Sortierung';
+			case 'sort_mega_title': return 'Mega-Entwicklungen';
+			case 'sort_gmax_title': return 'Giga-Dynamax';
+			case 'sort_regional_title': return 'Regionalformen';
+			case 'sort_origin_kanto': return 'Ursprungsregion (z.B. Kanto)';
+			case 'sort_mechanic_mega': return 'Region der Mechanik (Kalos/Hoenn)';
+			case 'sort_mechanic_gmax': return 'Region der Mechanik (Galar)';
+			case 'sort_mechanic_regional': return 'Region der Form (z.B. Alola)';
+			case 'cat_silvally': return 'Amigento';
+			case 'cat_arceus': return 'Arceus';
 			default: return null;
 		}
 	}
@@ -5092,6 +5131,19 @@ extension on _StringsEn {
 			case 'tutorial_info_ribbons_text': return 'Did your Pokémon win a championship or achieve something special? Check off the ribbons it has earned here.';
 			case 'tutorial_info_marks_text': return 'Wild Pokémon can carry special marks when caught. If you caught one, you can note it down here.';
 			case 'languages_title': return 'Languages';
+			case 'cat_gifts': return 'Gifts';
+			case 'cat_trades': return 'Trades';
+			case 'cat_orre': return 'Colosseum & XD';
+			case 'advanced_sort_title': return 'Advanced Sorting';
+			case 'sort_mega_title': return 'Mega Evolutions';
+			case 'sort_gmax_title': return 'Gigantamax';
+			case 'sort_regional_title': return 'Regional Forms';
+			case 'sort_origin_kanto': return 'Origin Region (e.g. Kanto)';
+			case 'sort_mechanic_mega': return 'Mechanic Region (Kalos/Hoenn)';
+			case 'sort_mechanic_gmax': return 'Mechanic Region (Galar)';
+			case 'sort_mechanic_regional': return 'Form Region (e.g. Alola)';
+			case 'cat_silvally': return 'Silvally';
+			case 'cat_arceus': return 'Arceus';
 			default: return null;
 		}
 	}

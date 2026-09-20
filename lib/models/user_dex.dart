@@ -14,6 +14,9 @@ class UserDex {
   List<String> alphaIds;
   String viewMode;
   String sortMode;
+  String megaSort;
+  String gmaxSort;
+  String regionalSort;
   Map<String, List<String>> caughtRibbons = {};
   Map<String, List<String>> caughtTeraTypes = {};
   Map<String, List<String>> caughtLanguages = {};
@@ -34,6 +37,9 @@ class UserDex {
     this.alphaIds = const [],
     this.viewMode = 'list',
     this.sortMode = 'dex',
+    this.megaSort = 'origin',
+    this.gmaxSort = 'origin',
+    this.regionalSort = 'mechanic',
     this.caughtRibbons = const {},
     this.caughtTeraTypes = const {},
     this.caughtLanguages = const {},
@@ -56,6 +62,9 @@ class UserDex {
       caughtIds: [],
       shinyIds: [],
       ignoredIds: [],
+      megaSort: map['mega_sort']?.toString() ?? 'origin',
+      gmaxSort: map['gmax_sort']?.toString() ?? 'origin',
+      regionalSort: map['regional_sort']?.toString() ?? 'mechanic',
       caughtRibbons: {},
       caughtTeraTypes: {},
       caughtLanguages: {},
@@ -75,6 +84,9 @@ class UserDex {
       'is_shiny_dex': isShinyDex ? 1 : 0,
       'view_mode': viewMode,
       'sort_mode': sortMode,
+      'mega_sort': megaSort,
+      'gmax_sort': gmaxSort,
+      'regional_sort': regionalSort,
       'caught_ids': caughtIds.join(','),
       'shiny_ids': shinyIds.join(','),
       'alpha_ids': alphaIds.join(','),
@@ -103,6 +115,9 @@ class UserDex {
       'isShinyDex': isShinyDex,
       'viewMode': viewMode,
       'sortMode': sortMode,
+      'megaSort': megaSort,
+      'gmaxSort': gmaxSort,
+      'regionalSort': regionalSort,
       'alphaIds': alphaIds,
       'caughtIds': caughtIds,
       'shinyIds': shinyIds,

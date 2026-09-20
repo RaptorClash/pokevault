@@ -84,7 +84,7 @@ class DatabaseService {
     return await factory.openDatabase(
       path,
       options: OpenDatabaseOptions(
-        version: 6,
+        version: 7,
         onCreate: _createUserDataTables,
         onUpgrade: _upgradeUserDataTables,
       ),
@@ -105,6 +105,9 @@ class DatabaseService {
           include_other INTEGER,
           is_shiny_dex INTEGER,
           is_alpha INTEGER DEFAULT 0,
+          mega_sort TEXT DEFAULT 'origin',
+          gmax_sort TEXT DEFAULT 'origin',
+          regional_sort TEXT DEFAULT 'mechanic',
           view_mode TEXT DEFAULT 'list',
           sort_mode TEXT DEFAULT 'dex',
           updated_at INTEGER DEFAULT 0,
@@ -235,6 +238,16 @@ class DatabaseService {
         debugPrint("Datenbank erfolgreich auf Version 6 (Sprachen) migriert!");
       } catch (e) {
         debugPrint("Migrations-Fehler V6: $e");
+      }
+    }
+    if (oldVersion < 7) {
+      try {
+        await db.execute("ALTER TABLE user_dexes ADD COLUMN mega_sort TEXT DEFAULT 'origin'");
+        await db.execute("ALTER TABLE user_dexes ADD COLUMN gmax_sort TEXT DEFAULT 'origin'");
+        await db.execute("ALTER TABLE user_dexes ADD COLUMN regional_sort TEXT DEFAULT 'mechanic'");
+        debugPrint("Datenbank erfolgreich auf Version 7 (Sortiereinstellungen) migriert!");
+      } catch (e) {
+        debugPrint("Migrations-Fehler V7: $e");
       }
     }
   }
