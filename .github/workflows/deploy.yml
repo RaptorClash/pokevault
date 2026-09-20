@@ -1,10 +1,8 @@
 name: Deploy Flutter Web to GitHub Pages
 
 on:
-  # Startet automatisch bei jedem neuen Release
   release:
     types: [published]
-  # Erlaubt es dir, die Action jederzeit manuell per Knopfdruck zu starten
   workflow_dispatch:
 
 permissions:

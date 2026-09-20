@@ -10,7 +10,13 @@ class BuildEntriesArgs {
   final UserDex liveDex;
   final List<Pokemon> pokemonList;
   final String language;
-  BuildEntriesArgs(this.liveDex, this.pokemonList, this.language);
+  final List<Map<String, dynamic>> specialObtainables;
+  BuildEntriesArgs(
+    this.liveDex,
+    this.pokemonList,
+    this.language,
+    this.specialObtainables,
+  );
 }
 
 class GenerateBoxesArgs {
@@ -87,11 +93,12 @@ class DexLogicHelper {
     UserDex liveDex,
     List<Pokemon> pokemonList,
     String language,
+    List<Map<String, dynamic>> specialObtainables,
   ) async {
     try {
       return await compute(
         _buildEntriesTask,
-        BuildEntriesArgs(liveDex, pokemonList, language),
+        BuildEntriesArgs(liveDex, pokemonList, language, specialObtainables),
       );
     } catch (e) {
       NotificationHelper.showError(
@@ -103,7 +110,11 @@ class DexLogicHelper {
 
   static List<DexDisplayEntry> _buildEntriesTask(BuildEntriesArgs args) {
     Translator.currentLanguage = args.language;
-    return buildDisplayEntries(args.liveDex, args.pokemonList);
+    return buildDisplayEntries(
+      args.liveDex,
+      args.pokemonList,
+      args.specialObtainables,
+    );
   }
 
   static Future<List<BoxData>> generateBoxesInBackground(
@@ -152,6 +163,75 @@ class DexLogicHelper {
     return 9;
   }
 
+  static String getRegionFromGame(String gameVer) {
+    String g = gameVer.toLowerCase();
+    if (g.contains('red') ||
+        g.contains('blue') ||
+        g.contains('yellow') ||
+        g.contains('rot') ||
+        g.contains('blau') ||
+        g.contains('gelb') ||
+        g.contains('feuerrot') ||
+        g.contains('blattgrün') ||
+        g.contains('let\'s go') ||
+        g.contains('pikachu') ||
+        g.contains('evoli'))
+      return 'kanto';
+    if (g.contains('gold') ||
+        g.contains('silver') ||
+        g.contains('crystal') ||
+        g.contains('silber') ||
+        g.contains('kristall') ||
+        g.contains('heartgold') ||
+        g.contains('soulsilver'))
+      return 'johto';
+    if (g.contains('ruby') ||
+        g.contains('sapphire') ||
+        g.contains('emerald') ||
+        g.contains('rubin') ||
+        g.contains('saphir') ||
+        g.contains('smaragd') ||
+        g.contains('omega') ||
+        g.contains('alpha') ||
+        g.contains('colosseum') ||
+        g.contains('xd') ||
+        g.contains('gale of darkness'))
+      return 'hoenn';
+    if (g.contains('diamond') ||
+        g.contains('pearl') ||
+        g.contains('platinum') ||
+        g.contains('diamant') ||
+        g.contains('platin') ||
+        g.contains('strahlender') ||
+        g.contains('leuchtende'))
+      return 'sinnoh';
+    if (g.contains('black') ||
+        g.contains('white') ||
+        g.contains('schwarz') ||
+        g.contains('weiß') ||
+        g.contains('weiss'))
+      return 'unova';
+    if (g.contains('x') || g.contains('y')) return 'kalos';
+    if (g.contains('sun') ||
+        g.contains('moon') ||
+        g.contains('sonne') ||
+        g.contains('mond'))
+      return 'alola';
+    if (g.contains('sword') ||
+        g.contains('shield') ||
+        g.contains('schwert') ||
+        g.contains('schild'))
+      return 'galar';
+    if (g.contains('arceus') || g.contains('hisui')) return 'hisui';
+    if (g.contains('scarlet') ||
+        g.contains('violet') ||
+        g.contains('karmesin') ||
+        g.contains('purpur'))
+      return 'paldea';
+    if (g.contains('z-a')) return 'lumiose';
+    return 'unknown';
+  }
+
   static String getPokemonRegionId(Pokemon p, PokemonForm? f) {
     if (f != null) {
       if (p.id == 25 && f.name.contains('cap')) return 'kanto';
@@ -178,6 +258,15 @@ class DexLogicHelper {
   static String getEntryCategoryId(DexDisplayEntry entry, String region) {
     final id = entry.pokemon.id;
     final uniqueId = entry.uniqueId.toLowerCase();
+
+    if (uniqueId.contains('_special_')) {
+      if (uniqueId.contains('_n_')) return 'n_pokemon';
+      if (uniqueId.contains('_trade_')) return 'trades';
+      if (uniqueId.contains('_colosseum_') || uniqueId.contains('_xd_'))
+        return 'orre';
+      if (uniqueId.contains('_gift_')) return 'gifts';
+      return 'special';
+    }
 
     bool isNativeReg(String formName) {
       if (region.contains('alola') && formName.contains('alola')) return true;
@@ -220,11 +309,12 @@ class DexLogicHelper {
     }
 
     if (isBaseForm) return 'base';
-
     if (id == 25 && uniqueId.contains('cap')) return 'cap';
     if (id == 201) return 'unown';
+    if (id == 493) return 'arceus';
     if (id == 666) return 'vivillon';
     if (id == 676) return 'furfrou';
+    if (id == 773) return 'silvally';
     if (id == 869) return 'alcremie';
 
     if ((uniqueId.endsWith('_f') || uniqueId.endsWith('_female')) &&
@@ -271,6 +361,7 @@ class DexLogicHelper {
         liveDex.region == 'johto_regional';
     int capacity = isOriginalKantoJohto ? 20 : 30;
     int crossAxis = isOriginalKantoJohto ? 5 : 6;
+
     if (!separateForms) {
       List<DexDisplayEntry> baseEntries = [];
       List<DexDisplayEntry> formEntries = [];
@@ -323,11 +414,14 @@ class DexLogicHelper {
         'galar',
         'hisui',
         'paldea',
+        'lumiose',
       ];
       Map<String, Map<String, List<DexDisplayEntry>>> structured = {};
+
       for (var entry in entries) {
         PokemonForm? form;
-        if (entry.uniqueId.contains('_')) {
+        if (entry.uniqueId.contains('_') &&
+            !entry.uniqueId.contains('_special_')) {
           String formName = entry.uniqueId.substring(
             entry.uniqueId.indexOf('_') + 1,
           );
@@ -335,11 +429,21 @@ class DexLogicHelper {
             form = entry.pokemon.forms.firstWhere((f) => f.name == formName);
           } catch (_) {}
         }
+
         String regionId = getPokemonRegionId(entry.pokemon, form);
+
+        if (entry.uniqueId.contains('_special_')) {
+          final parts = entry.uniqueId.split('_special_')[1].split('_');
+          if (parts.length >= 3) {
+            regionId = parts[2];
+          }
+        }
+
         String catId = getEntryCategoryId(entry, liveDex.region);
         structured.putIfAbsent(regionId, () => {});
         structured[regionId]!.putIfAbsent(catId, () => []).add(entry);
       }
+
       List<String> presentRegions = structured.keys.toList();
       presentRegions.sort((a, b) {
         int indexA = regionOrder.indexOf(a);
@@ -348,12 +452,14 @@ class DexLogicHelper {
         if (indexB == -1) indexB = 99;
         return indexA.compareTo(indexB);
       });
+
       for (String regionId in presentRegions) {
         var cats = structured[regionId]!;
         String localizedRegion = Translator.get('region_name_$regionId');
         if (localizedRegion == 'region_name_$regionId') {
           localizedRegion = regionId[0].toUpperCase() + regionId.substring(1);
         }
+
         void buildChunks(String catId) {
           if (!cats.containsKey(catId)) return;
           List<List<DexDisplayEntry>> chunks = chunkList(
@@ -364,9 +470,27 @@ class DexLogicHelper {
             String baseTitle;
             String localizedCat = Translator.get('cat_$catId');
             if (localizedCat == 'cat_$catId') localizedCat = catId;
-            baseTitle = (catId == 'base')
-                ? localizedRegion
-                : '$localizedRegion $localizedCat';
+
+            if (catId == 'n_pokemon') {
+              baseTitle = "N's Pokémon";
+            } else if (catId == 'trades') {
+              baseTitle =
+                  "$localizedRegion ${Translator.currentLanguage == 'de' ? 'Tausche' : 'Trades'}";
+            } else if (catId == 'gifts') {
+              baseTitle =
+                  "$localizedRegion ${Translator.currentLanguage == 'de' ? 'Geschenke' : 'Gifts'}";
+            } else if (catId == 'orre') {
+              baseTitle = "$localizedRegion ${Translator.get('cat_orre')}";
+            } else if (catId == 'arceus') {
+              baseTitle = "$localizedRegion Arceus";
+            } else if (catId == 'silvally') {
+              baseTitle =
+                  "$localizedRegion ${Translator.currentLanguage == 'de' ? 'Amigento' : 'Silvally'}";
+            } else {
+              baseTitle = (catId == 'base')
+                  ? localizedRegion
+                  : '$localizedRegion $localizedCat';
+            }
             String title = chunks.length == 1
                 ? baseTitle
                 : '$baseTitle ${i + 1}';
@@ -374,15 +498,36 @@ class DexLogicHelper {
           }
         }
 
-        buildChunks('base');
-        buildChunks('females');
-        List<String> specialCats =
-            cats.keys
-                .where((c) => c != 'base' && c != 'females' && c != 'alternate')
-                .toList()
-              ..sort();
-        for (String sc in specialCats) buildChunks(sc);
-        buildChunks('alternate');
+        List<String> strictCategoryOrder = [
+          'base',
+          'females',
+          'regional',
+          'mega',
+          'gmax',
+          'cap',
+          'unown',
+          'arceus',
+          'vivillon',
+          'furfrou',
+          'silvally',
+          'alcremie',
+          'alternate',
+          'trades',
+          'gifts',
+          'n_pokemon',
+          'orre',
+          'special',
+        ];
+
+        for (String catId in strictCategoryOrder) {
+          buildChunks(catId);
+        }
+
+        for (String catId in cats.keys) {
+          if (!strictCategoryOrder.contains(catId)) {
+            buildChunks(catId);
+          }
+        }
       }
     }
     return boxes;
@@ -391,6 +536,7 @@ class DexLogicHelper {
   static List<DexDisplayEntry> buildDisplayEntries(
     UserDex liveDex,
     List<Pokemon> pokemonList,
+    List<Map<String, dynamic>> specialObtainables,
   ) {
     List<DexDisplayEntry> entries = [];
     int dexGen = getMaxGenForDex(liveDex.region);
@@ -429,7 +575,6 @@ class DexLogicHelper {
           }
           int getWeight(PokemonForm form) {
             if (isNativeRegionalForm(form, liveDex.region)) return -1;
-
             if (form.formType == 'normal') return 0;
             if (form.formType == 'regional') return 1;
             if (form.formType == 'other') return 2;
@@ -594,16 +739,76 @@ class DexLogicHelper {
         }
       }
     }
+
+    if (liveDex.includeOther &&
+        !isMegaDex &&
+        !isMovesDex &&
+        !isAbilitiesDex &&
+        !isIcognitoDex) {
+      for (var spec in specialObtainables) {
+        int pId = (spec['pokemon_id'] as num?)?.toInt() ?? -1;
+        int sId = (spec['id'] as num?)?.toInt() ?? -1;
+        int isN = (spec['is_n_pokemon'] as num?)?.toInt() ?? 0;
+        String obtainType = spec['obtain_type']?.toString() ?? '';
+        String gameVer = spec['game_version']?.toString() ?? '';
+
+        final p = pokemonList.where((poke) => poke.id == pId).firstOrNull;
+        if (p != null) {
+          String specType = obtainType;
+          String specForm = spec['form']?.toString() ?? 'normal';
+
+          if (isN == 1) specType = 'n';
+          if (gameVer.toLowerCase().contains("let's go") &&
+              obtainType == 'trade') {
+            specForm = 'alola';
+          }
+
+          String specGameTag = '';
+          if (gameVer.toLowerCase().contains('colosseum'))
+            specGameTag = 'colosseum';
+          if (gameVer.toLowerCase().contains('xd') ||
+              gameVer.toLowerCase().contains('gale of darkness'))
+            specGameTag = 'xd';
+          if (specGameTag.isNotEmpty) specType = specGameTag;
+
+          String suffix = '';
+          if (isN == 1) {
+            suffix = " (N's Pokémon)";
+          } else if (obtainType == 'trade') {
+            suffix = " (${Translator.get('cat_trades')} - $gameVer)";
+          } else {
+            suffix = " (${Translator.get('cat_gifts')} - $gameVer)";
+          }
+
+          String specRegion = getRegionFromGame(gameVer);
+          String imageUrl =
+              'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/$shinyPath${p.id}.png';
+
+          entries.add(
+            DexDisplayEntry(
+              pokemon: p,
+              uniqueId:
+                  '${p.id}_special_${sId}_${specType}_${specRegion}_$specForm',
+              displaySuffix: suffix,
+              imageUrl: imageUrl,
+            ),
+          );
+        }
+      }
+    }
     return entries;
   }
 
-  static Future<bool> isAlphaEligible(int pokemonId) async {
-    final db = await DatabaseService.instance.appDatabase;
+  static Future<bool> isAlphaEligible(DexDisplayEntry entry) async {
+    if (entry.uniqueId.contains('_special_')) {
+      return false;
+    }
 
+    final db = await DatabaseService.instance.appDatabase;
     final specialCheck = await db.query(
       'special_dexes',
       where: 'pokemon_id = ? AND (dex_name = ? OR dex_name = ?)',
-      whereArgs: [pokemonId, 'legendary-dex', 'mythical-dex'],
+      whereArgs: [entry.pokemon.id, 'legendary-dex', 'mythical-dex'],
       limit: 1,
     );
     if (specialCheck.isNotEmpty) return false;
@@ -613,14 +818,13 @@ class DexLogicHelper {
       where:
           'pokemon_id = ? AND (dex_name = ? OR dex_name = ? OR dex_name = ?)',
       whereArgs: [
-        pokemonId,
+        entry.pokemon.id,
         'hisui_regional',
         'lumiose_regional',
         'lumiose_dimensions_regional',
       ],
       limit: 1,
     );
-
     return regionCheck.isNotEmpty;
   }
 }

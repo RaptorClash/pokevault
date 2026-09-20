@@ -19,6 +19,54 @@ DOWNLOADS = [
         "url": "https://docs.google.com/spreadsheets/d/1bvIx7Q2Lxp7efHRrUh48WkuwirNlKardwSHVz_R8kA0/export?format=xlsx",
         "filename": "Legal_Matching_Pokeballs.xlsx",
     },
+    {
+        "url": "https://bulbapedia.bulbagarden.net/wiki/In-game_trade",
+        "filename": "In-game trade - Bulbapedia.html",
+    },
+    {
+        "url": "https://bulbapedia.bulbagarden.net/wiki/Gift_Pok%C3%A9mon",
+        "filename": "Gift Pokémon - Bulbapedia.html",
+    },
+    {
+        "url": "https://www.pokewiki.de/Tausch",
+        "filename": "Tausch – PokéWiki.html",
+    },
+    {
+        "url": "https://www.bisafans.de/spiele/editionen/sonne-mond/geschenkte-pokemon.php",
+        "filename": "Geschenkte Pokémon Sonne Mond - Bisafans.html",
+    },
+    {
+        "url": "https://www.bisafans.de/spiele/editionen/schwarz-2-weiss-2/geschenkte-pokemon.php",
+        "filename": "Geschenkte Pokémon Schwarz 2 Weiß 2 - Bisafans.html",
+    },
+    {
+        "url": "https://www.bisafans.de/spiele/editionen/omega-rubin-alpha-saphir/geschenkte-pokemon.php",
+        "filename": "Geschenkte Pokémon Omega Rubin Alpha Saphir - Bisafans.html",
+    },
+    {
+        "url": "https://www.bisafans.de/spiele/editionen/pikachu-evoli/tausche-geschenke.php",
+        "filename": "Tausche Geschenke Pikachu Evoli - Bisafans.html",
+    },
+    {
+        "url": "https://www.bisafans.de/spiele/editionen/schild-schwert/geschenkte-pokemon.php",
+        "filename": "Geschenkte Pokémon Schild Schwert - Bisafans.html",
+    },
+    {
+        "url": "https://www.bisafans.de/spiele/editionen/strahlender-diamant-leuchtende-perle/geschenkte-pokemon.php",
+        "filename": "Geschenkte Pokémon Strahlender Diamant Leuchtende Perle - Bisafans.html",
+    },
+    {
+        "url": "https://www.bisafans.de/spiele/editionen/karmesin-purpur/geschenkte-pokemon.php",
+        "filename": "Geschenkte Pokémon Karmesin Purpur - Bisafans.html",
+    },
+    {
+        "url": "https://www.bisafans.de/spiele/editionen/z-a/geschenkte-pokemon.php",
+        "filename": "Geschenkte Pokémon ZA - Bisafans.html",
+    },
+    {
+        "url": "https://www.pokewiki.de/Ns_Pok%C3%A9mon",
+        "filename": "Ns Pokémon – PokéWiki.html",
+    },
 ]
 
 

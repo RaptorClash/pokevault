@@ -15,6 +15,7 @@ import './ribbons_widget.dart';
 import './marks_widget.dart';
 import './matching_balls_widget.dart';
 import 'language_widget.dart';
+import 'special_obtainable_card.dart';
 
 class PokemonInfoPage extends StatelessWidget {
   final DexDisplayEntry entry;
@@ -70,8 +71,10 @@ class PokemonInfoPage extends StatelessWidget {
       final liveDex = provider.userDexes.firstWhere((d) => d.id == dexId);
       final isCaught = liveDex.caughtIds.contains(entry.uniqueId);
       final isShiny = liveDex.shinyIds.contains(entry.uniqueId);
-      final wantShiny = manualShinyToggle ?? liveDex.isShinyDex;
       final isAlpha = liveDex.alphaIds.contains(entry.uniqueId);
+
+      final bool isSpecial = entry.uniqueId.contains('_special_');
+      final wantShiny = manualShinyToggle ?? liveDex.isShinyDex;
 
       String formName = 'normal';
       if (entry.uniqueId.contains('_')) {
@@ -93,13 +96,17 @@ class PokemonInfoPage extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            PokemonHeaderWidget(
-              entry: entry,
-              wantShiny: wantShiny,
-              currentForm: currentForm,
-              shinyToggleKey: shinyToggleKey,
-              onShinyToggled: onShinyToggled,
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxHeight: 280),
+              child: PokemonHeaderWidget(
+                entry: entry,
+                wantShiny: wantShiny,
+                currentForm: currentForm,
+                shinyToggleKey: shinyToggleKey,
+                onShinyToggled: onShinyToggled,
+              ),
             ),
+
             const SizedBox(height: 24),
             PokemonBasicInfoWidget(
               entry: entry,
@@ -108,6 +115,7 @@ class PokemonInfoPage extends StatelessWidget {
               currentForm: currentForm,
             ),
             const SizedBox(height: 32),
+
             PokemonStatusTogglesWidget(
               dexId: dexId,
               entry: entry,
@@ -120,38 +128,43 @@ class PokemonInfoPage extends StatelessWidget {
               alphaToggleKey: alphaToggleKey,
             ),
 
-            const SizedBox(height: 32),
+            if (isSpecial) SpecialObtainableCard(uniqueId: entry.uniqueId),
 
+            const SizedBox(height: 32),
             Container(
               key: breedingKey,
               child: BreedingInfoWidget(pokemon: entry.pokemon),
             ),
-            Card(
-              key: catchCalcKey,
-              margin: const EdgeInsets.only(bottom: 16),
-              elevation: 2,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: ExpansionTile(
-                leading: const Icon(
-                  Icons.calculate_outlined,
-                  color: Colors.purple,
+
+            if (!isSpecial) ...[
+              Card(
+                key: catchCalcKey,
+                margin: const EdgeInsets.only(bottom: 16),
+                elevation: 2,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
                 ),
-                title: Text(
-                  Translator.get(
-                    'catch_calculator_title',
-                    fallback: 'Ultimativer Fangratenrechner',
+                child: ExpansionTile(
+                  leading: const Icon(
+                    Icons.calculate_outlined,
+                    color: Colors.purple,
                   ),
-                  style: const TextStyle(fontWeight: FontWeight.bold),
+                  title: Text(
+                    Translator.get(
+                      'catch_calculator_title',
+                      fallback: 'Ultimativer Fangratenrechner',
+                    ),
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  children: [CatchRateCalculator(pokemon: entry.pokemon)],
                 ),
-                children: [CatchRateCalculator(pokemon: entry.pokemon)],
               ),
-            ),
-            MatchingBallsWidget(
-              entry: entry,
-              matchingBallsKey: matchingBallsKey,
-            ),
+              MatchingBallsWidget(
+                entry: entry,
+                matchingBallsKey: matchingBallsKey,
+              ),
+            ],
+
             Container(
               key: languageKey,
               child: LanguageWidget(entry: entry, dexId: dexId),
@@ -176,10 +189,14 @@ class PokemonInfoPage extends StatelessWidget {
                 marksKey: marksKey,
               ),
             ),
-            EncountersWidget(
-              pokemonId: entry.pokemon.id,
-              encountersKey: encountersKey,
-            ),
+
+            if (!isSpecial) ...[
+              EncountersWidget(
+                pokemonId: entry.pokemon.id,
+                encountersKey: encountersKey,
+              ),
+            ],
+
             Container(
               key: shinyGuideKey,
               child: ShinyGuideWidget(entry: entry, dexId: dexId),

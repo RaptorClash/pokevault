@@ -28,7 +28,7 @@ class DatabaseService {
     return _appDatabase!;
   }
 
-  static const int _currentAppDbVersion = 14;
+  static const int _currentAppDbVersion = 21;
 
   Future<Database> _initAppDB(String fileName) async {
     String path = fileName;
@@ -84,7 +84,7 @@ class DatabaseService {
     return await factory.openDatabase(
       path,
       options: OpenDatabaseOptions(
-        version: 6, // Version auf 6 erhöht für Languages
+        version: 6,
         onCreate: _createUserDataTables,
         onUpgrade: _upgradeUserDataTables,
       ),
@@ -384,7 +384,6 @@ class DatabaseService {
 
         String lStr = p['caught_languages']?.toString() ?? '';
         if (lStr.isNotEmpty) {
-          // Erfordert, dass UserDex diese Map besitzt!
           dex.caughtLanguages[uId] = lStr.split(',');
         }
       }
@@ -819,5 +818,10 @@ class DatabaseService {
       }
     }
     return -1;
+  }
+
+  Future<List<Map<String, dynamic>>> getSpecialObtainables() async {
+    final db = await instance.appDatabase;
+    return await db.query('special_obtainable');
   }
 }

@@ -313,7 +313,7 @@ class PokemonStatusTogglesWidget extends StatelessWidget {
             ),
           ),
           FutureBuilder<bool>(
-            future: DexLogicHelper.isAlphaEligible(entry.pokemon.id),
+            future: DexLogicHelper.isAlphaEligible(entry),
             builder: (context, snapshot) {
               if (!snapshot.hasData || snapshot.data == false) {
                 return const SizedBox.shrink();

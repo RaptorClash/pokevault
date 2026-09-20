@@ -82,10 +82,14 @@ class _DexScreenState extends State<DexScreen> {
 
       _preEvolutions = await DatabaseService.instance.getGen12PreEvolutions();
 
+      final specialObtainables = await DatabaseService.instance
+          .getSpecialObtainables();
+
       _rawEntries = await DexLogicHelper.buildEntriesInBackground(
         widget.initialDex,
         widget.pokemonList,
         lang,
+        specialObtainables,
       );
 
       final baseList = _rawEntries

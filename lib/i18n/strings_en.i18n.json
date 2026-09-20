@@ -1234,5 +1234,8 @@
     "tutorial_info_ribbons_title": "Collecting Ribbons",
     "tutorial_info_ribbons_text": "Did your Pokémon win a championship or achieve something special? Check off the ribbons it has earned here.",
     "tutorial_info_marks_text": "Wild Pokémon can carry special marks when caught. If you caught one, you can note it down here.",
-    "languages_title": "Languages"
+    "languages_title": "Languages",
+    "cat_gifts": "Gifts",
+    "cat_trades": "Trades",
+    "cat_orre": "Colosseum & XD"
 }
