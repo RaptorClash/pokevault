@@ -554,7 +554,7 @@ class DexLogicHelper {
 
   static String getEntryCategoryId(DexDisplayEntry entry, String region) {
     final id = entry.pokemon.id;
-    final uniqueId = entry.uniqueId.toLowerCase();
+    final uniqueId = getBaseId(entry.uniqueId).toLowerCase();
 
     if (uniqueId.contains('_special_')) {
       if (uniqueId.contains('_n_')) return 'n_pokemon';
@@ -662,6 +662,52 @@ class DexLogicHelper {
       return clean.substring(0, separatorIndex);
     }
     return clean;
+  }
+
+  /// Resolves the matching [PokemonForm] for a given [uniqueId] and [pokemon].
+  static PokemonForm? getEntryForm(Pokemon pokemon, String uniqueId) {
+    if (pokemon.forms.isEmpty) return null;
+    if (pokemon.forms.length == 1) return pokemon.forms.first;
+
+    final baseId = getBaseId(uniqueId);
+    if (baseId.contains('_special_')) {
+      final parts = baseId.split('_special_')[1].split('_');
+      if (parts.isNotEmpty) {
+        final formName = parts.last.toLowerCase();
+        final matched = pokemon.forms.where(
+          (f) => f.name.toLowerCase() == formName,
+        ).firstOrNull;
+        if (matched != null) return matched;
+      }
+      return pokemon.forms.first;
+    }
+
+    final firstUnderscore = baseId.indexOf('_');
+    if (firstUnderscore != -1) {
+      final rawFormName = baseId.substring(firstUnderscore + 1).toLowerCase();
+      if (rawFormName == 'm' || rawFormName == 'f') {
+        return pokemon.forms.firstWhere(
+          (f) => f.formType == 'normal',
+          orElse: () => pokemon.forms.first,
+        );
+      }
+      final exact = pokemon.forms.where(
+        (f) => f.name.toLowerCase() == rawFormName,
+      ).firstOrNull;
+      if (exact != null) return exact;
+
+      final fuzzy = pokemon.forms.where(
+        (f) =>
+            f.name.toLowerCase().startsWith(rawFormName) ||
+            rawFormName.startsWith(f.name.toLowerCase()),
+      ).firstOrNull;
+      if (fuzzy != null) return fuzzy;
+    }
+
+    return pokemon.forms.firstWhere(
+      (f) => f.formType == 'normal',
+      orElse: () => pokemon.forms.first,
+    );
   }
 
   /// Centralized helper to check if a Pokémon is marked as caught in [dex].
@@ -908,6 +954,7 @@ class DexLogicHelper {
                 uniqueId: id,
                 displaySuffix: originalEntry.displaySuffix,
                 imageUrl: imgUrl,
+                form: originalEntry.form,
               ));
             } catch (_) {
               boxEntries.add(DexDisplayEntry.emptyEntry);
@@ -989,17 +1036,7 @@ class DexLogicHelper {
       Map<String, Map<String, List<DexDisplayEntry>>> structured = {};
 
       for (var entry in entries) {
-        PokemonForm? form;
-        if (entry.uniqueId.contains('_') &&
-            !entry.uniqueId.contains('_special_')) {
-          String formName = entry.uniqueId.substring(
-            entry.uniqueId.indexOf('_') + 1,
-          );
-          try {
-            form = entry.pokemon.forms.firstWhere((f) => f.name == formName);
-          } catch (_) {}
-        }
-
+        PokemonForm? form = entry.resolvedForm;
         String regionId = getPokemonRegionId(entry.pokemon, form, liveDex);
 
         if (entry.uniqueId.contains('_special_')) {
@@ -1256,6 +1293,7 @@ class DexLogicHelper {
                 displaySuffix: ' ♂',
                 imageUrl:
                     'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/$shinyPath${p.id}.png',
+                form: form,
               ),
             );
             entries.add(
@@ -1265,6 +1303,7 @@ class DexLogicHelper {
                 displaySuffix: ' ♀',
                 imageUrl:
                     'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/home/$homeFemalePath/${p.id}.png',
+                form: form,
               ),
             );
           } else {
@@ -1274,6 +1313,7 @@ class DexLogicHelper {
                 uniqueId: '${p.id}_${form.name}',
                 displaySuffix: suffix,
                 imageUrl: specificImageUrl,
+                form: form,
               ),
             );
           }
@@ -1291,6 +1331,7 @@ class DexLogicHelper {
                 displaySuffix: ' ♂',
                 imageUrl:
                     'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/$shinyPath${p.id}.png',
+                form: p.forms.isNotEmpty ? p.forms.first : null,
               ),
             );
             entries.add(
@@ -1300,6 +1341,7 @@ class DexLogicHelper {
                 displaySuffix: ' ♀',
                 imageUrl:
                     'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/home/$homeFemalePath/${p.id}.png',
+                form: p.forms.isNotEmpty ? p.forms.first : null,
               ),
             );
           } else {
@@ -1310,6 +1352,7 @@ class DexLogicHelper {
                 displaySuffix: '',
                 imageUrl:
                     'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/$shinyPath${p.id}.png',
+                form: p.forms.isNotEmpty ? p.forms.first : null,
               ),
             );
           }
@@ -1363,6 +1406,10 @@ class DexLogicHelper {
           String imageUrl =
               'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/$shinyPath${p.id}.png';
 
+          final matchedSpecForm = p.forms.where(
+            (f) => f.name.toLowerCase() == specForm.toLowerCase(),
+          ).firstOrNull ?? (p.forms.isNotEmpty ? p.forms.first : null);
+
           entries.add(
             DexDisplayEntry(
               pokemon: p,
@@ -1370,6 +1417,7 @@ class DexLogicHelper {
                   '${p.id}_special_${sId}_${specType}_${specRegion}_$specForm',
               displaySuffix: suffix,
               imageUrl: imageUrl,
+              form: matchedSpecForm,
             ),
           );
         }

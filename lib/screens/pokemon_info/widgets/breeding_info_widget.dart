@@ -10,8 +10,13 @@ import 'pokemon_avatar.dart';
 
 class BreedingInfoWidget extends StatelessWidget {
   final Pokemon pokemon;
+  final PokemonForm? currentForm;
 
-  const BreedingInfoWidget({super.key, required this.pokemon});
+  const BreedingInfoWidget({
+    super.key,
+    required this.pokemon,
+    this.currentForm,
+  });
 
   String _getPokeName(int id, String lang, DexProvider provider) {
     try {
@@ -54,72 +59,337 @@ class BreedingInfoWidget extends StatelessWidget {
       return Translator.get('evo_base_form', fallback: 'Basisform / Ei');
     }
 
+    const magneticLocations = {
+      'mt-coronet',
+      'chargestone-cave',
+      'kalos-route-13',
+      'blush-mountain',
+      'vast-poni-canyon',
+      'new-mauville',
+    };
+
     List<String> allMethods = [];
 
     for (var detail in details) {
-      String trigger = detail['trigger'] ?? '';
+      String trigger = detail['trigger']?.toString() ?? '';
       List<String> conditions = [];
 
-      if (detail['min_level'] != null) {
-        conditions.add(
-          Translator.get(
-            'evo_level',
-          ).replaceAll('{0}', detail['min_level'].toString()),
-        );
+      // Geschlecht (1 = female, 2 = male)
+      if (detail['gender'] == 1) {
+        conditions.add(Translator.get('evo_gender_female', fallback: 'weiblich'));
+      } else if (detail['gender'] == 2) {
+        conditions.add(Translator.get('evo_gender_male', fallback: 'männlich'));
       }
-      if (detail['item'] != null) {
-        conditions.add(Translator.get('item_${detail['item']}'));
-      }
-      if (detail['held_item'] != null) {
-        conditions.add(
-          Translator.get(
-            'evo_held_item',
-          ).replaceAll('{0}', Translator.get('item_${detail['held_item']}')),
-        );
-      }
-      if (detail['min_happiness'] != null) {
-        conditions.add(Translator.get('evo_happiness'));
-      }
+
+      // Tageszeit
       if (detail['time_of_day'] != null &&
           detail['time_of_day'].toString().isNotEmpty) {
-        conditions.add(Translator.get('evo_time_${detail['time_of_day']}'));
+        String tod = detail['time_of_day'].toString();
+        conditions.add(Translator.get('evo_time_$tod', fallback: tod));
       }
-      if (detail['known_move'] != null) {
+
+      // Getragenes Item
+      if (detail['held_item'] != null) {
+        String itemKey = 'item_${detail['held_item']}';
+        String itemName = Translator.get(itemKey);
         conditions.add(
-          Translator.get(
-            'evo_move',
-          ).replaceAll('{0}', Translator.get('move_${detail['known_move']}')),
-        );
-      }
-      if (detail['location'] != null) {
-        conditions.add(
-          Translator.get(
-            'evo_location',
-          ).replaceAll('{0}', Translator.get('loc_${detail['location']}')),
+          Translator.get('evo_held_item', fallback: 'trägt {0}')
+              .replaceAll('{0}', itemName),
         );
       }
 
-      String triggerText = Translator.get('trigger_$trigger');
-      if (triggerText == 'trigger_$trigger') {
-        if (trigger == 'level-up') {
-          triggerText = 'Levelaufstieg';
-        } else if (trigger == 'use-item') {
-          triggerText = 'Item anwenden';
-        } else if (trigger == 'trade') {
-          triggerText = 'Tausch';
+      // Attacke
+      if (detail['known_move'] != null) {
+        String moveKey = 'move_${detail['known_move']}';
+        String moveName = Translator.get(moveKey);
+        conditions.add(
+          Translator.get('evo_move', fallback: 'Attacke {0}')
+              .replaceAll('{0}', moveName),
+        );
+      }
+      if (detail['known_move_type'] != null) {
+        String typeKey = 'type_${detail['known_move_type']}';
+        String typeName = Translator.get(typeKey, fallback: detail['known_move_type'].toString());
+        conditions.add(
+          Translator.get('evo_move_type', fallback: '{0}-Attacke')
+              .replaceAll('{0}', typeName),
+        );
+      }
+      if (detail['used_move'] != null) {
+        String moveKey = 'move_${detail['used_move']}';
+        String moveName = Translator.get(moveKey);
+        if (detail['min_move_count'] != null) {
+          conditions.add(
+            '$moveName, ${Translator.get('evo_move_count', fallback: '{0}×').replaceAll('{0}', detail['min_move_count'].toString())}',
+          );
         } else {
-          triggerText = trigger;
+          conditions.add(moveName);
         }
       }
 
-      if (conditions.isEmpty) {
-        allMethods.add(triggerText);
+      // Ort & Felsen & Magnetfeld
+      if (detail['near_special_rock'] == true) {
+        conditions.add(
+          Translator.get('evo_special_rock', fallback: 'in der Nähe eines Moos-/Eisfelsens'),
+        );
+      } else if (detail['location'] != null) {
+        String loc = detail['location'].toString();
+        if (magneticLocations.contains(loc)) {
+          conditions.add(
+            Translator.get('evo_magnetic_field', fallback: 'besonderes Magnetfeld'),
+          );
+        } else {
+          String locKey = 'loc_$loc';
+          String locName = Translator.get(locKey);
+          conditions.add(
+            Translator.get('evo_location', fallback: 'an Ort {0}')
+                .replaceAll('{0}', locName),
+          );
+        }
+      }
+
+      // Statuswerte (z.B. Rabauz -> Kicklee/Nockchan/Kapoera)
+      if (detail['relative_physical_stats'] != null) {
+        int rel = (detail['relative_physical_stats'] as num).toInt();
+        if (rel == 1) {
+          conditions.add(Translator.get('evo_stat_atk_gt_def', fallback: 'Angriff > Vert.'));
+        } else if (rel == -1) {
+          conditions.add(Translator.get('evo_stat_atk_lt_def', fallback: 'Angriff < Vert.'));
+        } else {
+          conditions.add(Translator.get('evo_stat_atk_eq_def', fallback: 'Angriff = Vert.'));
+        }
+      }
+
+      // Schönheit (Barschwa -> Milotic)
+      if (detail['min_beauty'] != null) {
+        String bty = Translator.get('evo_beauty', fallback: 'Schönheit {0}+')
+            .replaceAll('{0}', detail['min_beauty'].toString());
+        conditions.add(bty);
+      }
+
+      // Spezielle Spielmechaniken
+      if (detail['needs_overworld_rain'] == true) {
+        conditions.add(Translator.get('evo_rain', fallback: 'bei Regen'));
+      }
+      if (detail['turn_upside_down'] == true) {
+        conditions.add(Translator.get('evo_upside_down', fallback: 'Konsole umdrehen'));
+      }
+      if (detail['needs_multiplayer'] == true) {
+        conditions.add(Translator.get('evo_multiplayer', fallback: 'im Mehrspielermodus'));
+      }
+      if (detail['min_steps'] != null) {
+        conditions.add(
+          Translator.get('evo_steps', fallback: '{0} Schritte')
+              .replaceAll('{0}', detail['min_steps'].toString()),
+        );
+      }
+      if (detail['min_damage_taken'] != null) {
+        conditions.add(
+          Translator.get('evo_damage', fallback: '{0}+ Schaden')
+              .replaceAll('{0}', detail['min_damage_taken'].toString()),
+        );
+      }
+      if (detail['party_species'] != null) {
+        String species = detail['party_species'].toString();
+        String speciesKey = 'species_$species';
+        String speciesName = Translator.get(
+          speciesKey,
+          fallback: species.isNotEmpty
+              ? species[0].toUpperCase() + species.substring(1)
+              : species,
+        );
+        conditions.add(
+          Translator.get('evo_party_species', fallback: 'mit {0} im Team')
+              .replaceAll('{0}', speciesName),
+        );
+      }
+      if (detail['party_type'] != null) {
+        String typeKey = 'type_${detail['party_type']}';
+        String typeName = Translator.get(typeKey, fallback: detail['party_type'].toString());
+        conditions.add(
+          Translator.get('evo_party_type', fallback: 'mit {0}-Pokémon im Team')
+              .replaceAll('{0}', typeName),
+        );
+      }
+      if (detail['trade_species'] != null) {
+        String species = detail['trade_species'].toString();
+        String speciesKey = 'species_$species';
+        String speciesName = Translator.get(
+          speciesKey,
+          fallback: species.isNotEmpty
+              ? species[0].toUpperCase() + species.substring(1)
+              : species,
+        );
+        conditions.add(
+          Translator.get('evo_trade_species', fallback: 'gegen {0}')
+              .replaceAll('{0}', speciesName),
+        );
+      }
+
+      // Hauptdarstellung je nach Auslöser (Trigger)
+      if (trigger == 'use-item' && detail['item'] != null) {
+        String itemKey = 'item_${detail['item']}';
+        String itemName = Translator.get(itemKey);
+        if (conditions.isEmpty) {
+          allMethods.add(itemName);
+        } else {
+          allMethods.add('$itemName (${conditions.join(', ')})');
+        }
+      } else if (trigger == 'level-up') {
+        if (detail['min_level'] != null) {
+          String lvlText = Translator.get('evo_level', fallback: 'Level {0}')
+              .replaceAll('{0}', detail['min_level'].toString());
+          if (conditions.isEmpty) {
+            allMethods.add(lvlText);
+          } else {
+            allMethods.add('$lvlText (${conditions.join(', ')})');
+          }
+        } else if (detail['min_happiness'] != null) {
+          String hap = Translator.get('evo_happiness', fallback: 'hohe Zuneigung');
+          if (hap.isNotEmpty) {
+            hap = hap[0].toUpperCase() + hap.substring(1);
+          }
+          if (conditions.isEmpty) {
+            allMethods.add(hap);
+          } else {
+            allMethods.add('$hap (${conditions.join(', ')})');
+          }
+        } else if (detail['min_affection'] != null) {
+          String aff = Translator.get('evo_affection', fallback: 'hohe Zutraulichkeit');
+          if (aff.isNotEmpty) {
+            aff = aff[0].toUpperCase() + aff.substring(1);
+          }
+          if (conditions.isEmpty) {
+            allMethods.add(aff);
+          } else {
+            allMethods.add('$aff (${conditions.join(', ')})');
+          }
+        } else if (conditions.isNotEmpty) {
+          String trText = Translator.get('trigger_level-up', fallback: 'Levelaufstieg');
+          allMethods.add('$trText (${conditions.join(', ')})');
+        } else {
+          allMethods.add(Translator.get('trigger_level-up', fallback: 'Levelaufstieg'));
+        }
+      } else if (trigger == 'trade') {
+        String trText = Translator.get('trigger_trade', fallback: 'Tausch');
+        if (conditions.isEmpty) {
+          allMethods.add(trText);
+        } else {
+          allMethods.add('$trText (${conditions.join(', ')})');
+        }
       } else {
-        allMethods.add('$triggerText (${conditions.join(', ')})');
+        String trText = Translator.get('trigger_$trigger', fallback: trigger);
+        if (detail['min_level'] != null) {
+          String lvlText = Translator.get('evo_level', fallback: 'Level {0}')
+              .replaceAll('{0}', detail['min_level'].toString());
+          if (conditions.isEmpty) {
+            allMethods.add('$lvlText ($trText)');
+          } else {
+            allMethods.add('$lvlText ($trText, ${conditions.join(', ')})');
+          }
+        } else if (conditions.isEmpty) {
+          allMethods.add(trText);
+        } else {
+          allMethods.add('$trText (${conditions.join(', ')})');
+        }
       }
     }
 
-    return allMethods.toSet().join(' ODER ');
+    final seen = <String>{};
+    final unique = <String>[];
+    for (var m in allMethods) {
+      if (seen.add(m)) {
+        unique.add(m);
+      }
+    }
+
+    return unique.isEmpty
+        ? Translator.get('evo_base_form', fallback: 'Basisform / Ei')
+        : unique.join(' / ');
+  }
+
+  String? _getRegionalTag(String formName) {
+    final lower = formName.toLowerCase();
+    for (final tag in ['alola', 'galar', 'hisui', 'paldea']) {
+      if (lower.contains(tag)) return tag;
+    }
+    return null;
+  }
+
+  String? _getDetailRegionalForm(Map<dynamic, dynamic> detail) {
+    final ef = detail['evolved_form']?.toString().toLowerCase();
+    final bf = detail['base_form']?.toString().toLowerCase();
+    final rg = detail['region']?.toString().toLowerCase();
+
+    for (final tag in ['alola', 'galar', 'hisui', 'paldea']) {
+      if ((ef != null && ef.contains(tag)) ||
+          (bf != null && bf.contains(tag)) ||
+          (rg != null && rg.contains(tag))) {
+        return tag;
+      }
+    }
+    return null;
+  }
+
+  String _determineEffectiveForm(Map<String, dynamic> chainData) {
+    if (currentForm != null) {
+      final reg = _getRegionalTag(currentForm!.name);
+      if (reg != null) return reg;
+      if (currentForm!.name.isNotEmpty && currentForm!.name != 'normal') {
+        return currentForm!.name.toLowerCase();
+      }
+    }
+
+    String? foundForm;
+    void searchNode(Map<String, dynamic> node) {
+      if (foundForm != null) return;
+      for (final child in node['evolves_to'] ?? []) {
+        if (child is Map<String, dynamic>) {
+          if (child['species_id'] == pokemon.id) {
+            final details = (child['details'] as List?) ?? [];
+            if (details.isNotEmpty &&
+                details.every(
+                  (d) => d is Map && _getDetailRegionalForm(d) != null,
+                )) {
+              foundForm = _getDetailRegionalForm(details.first as Map);
+              return;
+            }
+          }
+          searchNode(child);
+        }
+      }
+    }
+
+    searchNode(chainData);
+    return foundForm ?? 'normal';
+  }
+
+  bool _nodeMatchesForm(Map<String, dynamic> childNode, String formName) {
+    final childDetails = (childNode['details'] as List?) ?? [];
+    if (childDetails.isEmpty) return true;
+
+    final isRegional = ['alola', 'galar', 'hisui', 'paldea'].contains(formName);
+
+    if (isRegional) {
+      return childDetails.any((d) => _getDetailRegionalForm(d) == formName);
+    } else {
+      return childDetails.any((d) => _getDetailRegionalForm(d) == null);
+    }
+  }
+
+  List _filterDetails(List rawDetails, String formName) {
+    if (rawDetails.isEmpty) return rawDetails;
+    final isRegional = ['alola', 'galar', 'hisui', 'paldea'].contains(formName);
+
+    if (isRegional) {
+      final matching = rawDetails.where((d) => _getDetailRegionalForm(d) == formName).toList();
+      if (matching.isNotEmpty) return matching;
+
+      return rawDetails.where((d) => _getDetailRegionalForm(d) == null).toList();
+    } else {
+      final normalOnly = rawDetails.where((d) => _getDetailRegionalForm(d) == null).toList();
+      return normalOnly.isNotEmpty ? normalOnly : rawDetails;
+    }
   }
 
   Widget _buildEvolutionNode(
@@ -128,16 +398,40 @@ class BreedingInfoWidget extends StatelessWidget {
     int depth,
     String lang,
     DexProvider provider,
+    String effectiveForm,
   ) {
     int speciesId = node['species_id'];
     List details = node['details'] ?? [];
     List evolvesTo = node['evolves_to'] ?? [];
 
-    String conditionText = details.isEmpty
+    final filteredDetails = _filterDetails(details, effectiveForm);
+    final filteredEvolvesTo = evolvesTo.where((child) {
+      if (child is Map<String, dynamic>) {
+        return _nodeMatchesForm(child, effectiveForm);
+      }
+      return true;
+    }).toList();
+
+    int? targetImageId;
+    if (speciesId == pokemon.id && currentForm != null && currentForm!.imageId > 0) {
+      targetImageId = currentForm!.imageId;
+    } else if (effectiveForm != 'normal') {
+      final nodePoke = provider.allPokemon.where((poke) => poke.id == speciesId).firstOrNull;
+      if (nodePoke != null) {
+        final matchedForm = nodePoke.forms.where(
+          (f) => _getRegionalTag(f.name) == effectiveForm || f.name.toLowerCase() == effectiveForm,
+        ).firstOrNull;
+        if (matchedForm != null && matchedForm.imageId > 0) {
+          targetImageId = matchedForm.imageId;
+        }
+      }
+    }
+
+    String conditionText = filteredDetails.isEmpty
         ? (node['is_baby'] == true
-              ? 'Baby-Pokémon'
+              ? Translator.get('evo_baby', fallback: 'Baby-Pokémon')
               : (Translator.get('evo_base_form', fallback: 'Basisform / Ei')))
-        : _formatEvoDetails(details);
+        : _formatEvoDetails(filteredDetails);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -161,6 +455,7 @@ class BreedingInfoWidget extends StatelessWidget {
                 ),
               PokemonAvatar(
                 id: speciesId,
+                imageId: targetImageId,
                 isShiny: false,
                 gender: 'any',
                 sizeScale: 0.7,
@@ -194,8 +489,15 @@ class BreedingInfoWidget extends StatelessWidget {
             ],
           ),
         ),
-        for (var childNode in evolvesTo)
-          _buildEvolutionNode(context, childNode, depth + 1, lang, provider),
+        for (var childNode in filteredEvolvesTo)
+          _buildEvolutionNode(
+            context,
+            childNode,
+            depth + 1,
+            lang,
+            provider,
+            effectiveForm,
+          ),
       ],
     );
   }
@@ -322,12 +624,19 @@ class BreedingInfoWidget extends StatelessWidget {
                               padding: EdgeInsets.symmetric(vertical: 12.0),
                               child: Divider(height: 1),
                             ),
-                            _buildEvolutionNode(
-                              context,
-                              snapshot.data!,
-                              0,
-                              lang,
-                              provider,
+                            Builder(
+                              builder: (context) {
+                                final effectiveForm =
+                                    _determineEffectiveForm(snapshot.data!);
+                                return _buildEvolutionNode(
+                                  context,
+                                  snapshot.data!,
+                                  0,
+                                  lang,
+                                  provider,
+                                  effectiveForm,
+                                );
+                              },
                             ),
                           ],
                         );

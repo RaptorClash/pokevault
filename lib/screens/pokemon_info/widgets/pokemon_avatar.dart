@@ -8,6 +8,7 @@ import '../../../widgets/universal_poke_image.dart'; // NEU
 
 class PokemonAvatar extends StatelessWidget {
   final int id;
+  final int? imageId;
   final bool isShiny;
   final String gender;
   final bool isHighlight;
@@ -17,6 +18,7 @@ class PokemonAvatar extends StatelessWidget {
   const PokemonAvatar({
     super.key,
     required this.id,
+    this.imageId,
     required this.isShiny,
     required this.gender,
     this.isHighlight = false,
@@ -32,8 +34,9 @@ class PokemonAvatar extends StatelessWidget {
       if (p == null) return const SizedBox.shrink();
       bool showAsShiny = isShiny && !isCarrier;
 
+      final int spriteId = (imageId != null && imageId! > 0) ? imageId! : id;
       final String imgUrl =
-          'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${showAsShiny ? "shiny/" : ""}$id.png';
+          'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${showAsShiny ? "shiny/" : ""}$spriteId.png';
       final String name = p.getName(Translator.currentLanguage);
 
       IconData genderIcon = Icons.transgender;

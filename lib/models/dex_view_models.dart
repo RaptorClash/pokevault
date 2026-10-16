@@ -1,17 +1,23 @@
 import 'pokemon.dart';
+import '../utils/dex_logic_helper.dart';
 
 class DexDisplayEntry {
   final Pokemon pokemon;
   final String uniqueId;
   final String displaySuffix;
   final String imageUrl;
+  final PokemonForm? form;
 
   DexDisplayEntry({
     required this.pokemon,
     required this.uniqueId,
     required this.displaySuffix,
     required this.imageUrl,
+    this.form,
   });
+
+  PokemonForm? get resolvedForm =>
+      form ?? DexLogicHelper.getEntryForm(pokemon, uniqueId);
 
   static final DexDisplayEntry emptyEntry = DexDisplayEntry(
     pokemon: Pokemon(

@@ -98,7 +98,7 @@ class Translator {
     String translated = key;
 
     try {
-      final result = t[key];
+      final result = t[key] ?? t[key.replaceAll('-', '_')];
       if (result != null) {
         translated = result.toString();
       } else {

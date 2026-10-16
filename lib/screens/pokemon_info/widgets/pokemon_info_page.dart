@@ -84,20 +84,7 @@ class PokemonInfoPage extends StatelessWidget {
       final bool isSpecial = entry.uniqueId.contains('_special_');
       final wantShiny = manualShinyToggle ?? liveDex.isShinyDex;
 
-      String formName = 'normal';
-      if (entry.uniqueId.contains('_')) {
-        formName = entry.uniqueId.substring(entry.uniqueId.indexOf('_') + 1);
-        if (formName == 'm' || formName == 'f') formName = 'normal';
-      }
-
-      PokemonForm? currentForm;
-      try {
-        currentForm = entry.pokemon.forms.firstWhere((f) => f.name == formName);
-      } catch (_) {
-        if (entry.pokemon.forms.isNotEmpty) {
-          currentForm = entry.pokemon.forms.first;
-        }
-      }
+      final PokemonForm? currentForm = entry.resolvedForm;
 
       return SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
@@ -141,7 +128,10 @@ class PokemonInfoPage extends StatelessWidget {
             const SizedBox(height: 32),
             Container(
               key: breedingKey,
-              child: BreedingInfoWidget(pokemon: entry.pokemon),
+              child: BreedingInfoWidget(
+                pokemon: entry.pokemon,
+                currentForm: currentForm,
+              ),
             ),
 
             if (!isSpecial) ...[

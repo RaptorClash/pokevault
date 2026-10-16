@@ -112,22 +112,7 @@ class _PokemonSearchSelectionScreenState
   }
 
   PokemonForm? _getEntryForm(DexDisplayEntry entry) {
-    if (entry.pokemon.forms.isEmpty) return null;
-    final baseUniqueId = entry.uniqueId.split('__')[0];
-    final firstUnderscore = baseUniqueId.indexOf('_');
-    if (firstUnderscore != -1) {
-      final formName = baseUniqueId.substring(firstUnderscore + 1).toLowerCase();
-      for (final f in entry.pokemon.forms) {
-        if (f.name.toLowerCase() == formName) return f;
-      }
-      for (final f in entry.pokemon.forms) {
-        if (formName.startsWith(f.name.toLowerCase()) ||
-            f.name.toLowerCase().startsWith(formName)) {
-          return f;
-        }
-      }
-    }
-    return entry.pokemon.forms.first;
+    return entry.resolvedForm;
   }
 
   List<String> _getEntryTypes(DexDisplayEntry entry) {

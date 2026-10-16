@@ -713,16 +713,7 @@ class _DexScreenState extends State<DexScreen> {
   ) {
     if (_searchQuery.trim().isEmpty) return true;
 
-    String formName = 'normal';
-    if (entry.uniqueId.contains('_')) {
-      formName = entry.uniqueId.substring(entry.uniqueId.indexOf('_') + 1);
-      if (formName == 'm' || formName == 'f') formName = 'normal';
-    }
-
-    PokemonForm? form;
-    try {
-      form = entry.pokemon.forms.firstWhere((f) => f.name == formName);
-    } catch (_) {}
+    final form = entry.resolvedForm;
 
     String regionId = DexLogicHelper.getPokemonRegionId(
       entry.pokemon,

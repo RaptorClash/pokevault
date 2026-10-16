@@ -27,7 +27,12 @@ class DatabaseService {
     return _appDatabase!;
   }
 
-  static const int _currentAppDbVersion = 21;
+  @visibleForTesting
+  static void setAppDatabaseForTesting(Database? db) {
+    _appDatabase = db;
+  }
+
+  static const int _currentAppDbVersion = 23;
 
   Future<Database> _initAppDB(String fileName) async {
     String path = fileName;

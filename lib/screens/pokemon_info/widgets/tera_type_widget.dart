@@ -48,15 +48,7 @@ class TeraTypeWidget extends StatelessWidget {
       return const SizedBox.shrink();
     }
 
-    String formName = entry.uniqueId.contains('_')
-        ? entry.uniqueId.split('_').last
-        : 'normal';
-    if (formName == 'm' || formName == 'f') formName = 'normal';
-
-    PokemonForm currentForm = entry.pokemon.forms.firstWhere(
-      (f) => f.name == formName,
-      orElse: () => entry.pokemon.forms.first,
-    );
+    PokemonForm currentForm = entry.resolvedForm ?? entry.pokemon.forms.first;
 
     return FutureBuilder<Map<String, dynamic>>(
       future: ShinyLogicHelper.fetchGen9Data(entry.pokemon.id),
