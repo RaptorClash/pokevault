@@ -1715,10 +1715,12 @@ class _DexScreenState extends State<DexScreen> {
                         size: 20,
                       ),
                       const SizedBox(width: 8),
-                      Text(
-                        _isBoxView
-                            ? Translator.get('view_list')
-                            : Translator.get('view_box'),
+                      Expanded(
+                        child: Text(
+                          _isBoxView
+                              ? Translator.get('view_list')
+                              : Translator.get('view_box'),
+                        ),
                       ),
                     ],
                   ),
@@ -1734,10 +1736,12 @@ class _DexScreenState extends State<DexScreen> {
                         size: 20,
                       ),
                       const SizedBox(width: 8),
-                      Text(
-                        _separateForms
-                            ? Translator.get('sort_dex')
-                            : Translator.get('sort_forms'),
+                      Expanded(
+                        child: Text(
+                          _separateForms
+                              ? Translator.get('sort_dex')
+                              : Translator.get('sort_forms'),
+                        ),
                       ),
                     ],
                   ),
@@ -1749,10 +1753,12 @@ class _DexScreenState extends State<DexScreen> {
                     children: [
                       const Icon(Icons.tune, size: 20),
                       const SizedBox(width: 8),
-                      Text(
-                        Translator.get(
-                          'advanced_sort_title',
-                          fallback: 'Erweiterte Sortierung',
+                      Expanded(
+                        child: Text(
+                          Translator.get(
+                            'advanced_sort_title',
+                            fallback: 'Erweiterte Sortierung',
+                          ),
                         ),
                       ),
                     ],
@@ -1765,10 +1771,12 @@ class _DexScreenState extends State<DexScreen> {
                     children: [
                       const Icon(Icons.visibility_off, size: 20),
                       const SizedBox(width: 8),
-                      Text(
-                        Translator.get(
-                          'ignored_list_title',
-                          fallback: 'Ausgeblendete Pokemon',
+                      Expanded(
+                        child: Text(
+                          Translator.get(
+                            'ignored_list_title',
+                            fallback: 'Ausgeblendete Pokemon',
+                          ),
                         ),
                       ),
                     ],

@@ -1,3 +1,4 @@
+// coverage:ignore-file
 /// Generated file. Do not edit.
 ///
 /// Original: lib/i18n

@@ -1,0 +1,6 @@
+transformations:
+  skip_generated_and_main:
+    - type: skip-by-glob
+      glob: "**/*.g.dart"
+    - type: skip-by-glob
+      glob: "lib/main.dart"

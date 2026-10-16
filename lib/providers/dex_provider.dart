@@ -276,7 +276,7 @@ class DexProvider extends ChangeNotifier with WidgetsBindingObserver {
     folders.removeWhere((f) => f.id == folderId);
     notifyListeners();
 
-    await DatabaseService.instance.deleteFolder(folderId, recursive: recursive);
+    await db.deleteFolder(folderId, recursive: recursive);
   }
 
   void moveItem(String itemId, String newParentId) {
