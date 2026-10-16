@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../models/dex_view_models.dart';
+import '../../../models/user_dex.dart';
 import '../../../providers/dex_provider.dart';
 import '../../../l10n/app_translations.dart';
 
@@ -28,7 +29,17 @@ class LanguageWidget extends StatelessWidget {
     final provider = context.watch<DexProvider>();
     final dex = provider.userDexes.firstWhere(
       (d) => d.id == dexId,
-      orElse: () => provider.userDexes.first,
+      orElse: () => UserDex(
+        id: dexId,
+        title: '',
+        region: dexId,
+        includeGenders: false,
+        includeRegional: false,
+        includeMega: false,
+        includeGMax: false,
+        includeOther: false,
+        isShinyDex: false,
+      ),
     );
     final uniqueId = entry.uniqueId;
     final caughtLangs = dex.caughtLanguages[uniqueId] ?? [];

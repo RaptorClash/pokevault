@@ -1,3 +1,86 @@
+import 'dart:convert';
+class CustomBoxState {
+  String title;
+  List<String> pokemonIds;
+  String regionKey;
+  int columns;
+  int rows;
+  bool autoFlow;
+  bool autoShift;
+  bool strictLimits;
+  bool patternAutoCreate;
+  bool autoDeleteEmpty;
+
+  CustomBoxState({
+    required this.title,
+    required this.pokemonIds,
+    this.regionKey = 'custom',
+    this.columns = 5,
+    this.rows = 6,
+    this.autoFlow = false,
+    this.autoShift = true,
+    this.strictLimits = true,
+    this.patternAutoCreate = true,
+    this.autoDeleteEmpty = true,
+  });
+
+  /// Computed grid capacity for the box.
+  int get capacity => columns * rows;
+
+  /// Creates a copy of this box state with optional overrides.
+  CustomBoxState copyWith({
+    String? title,
+    List<String>? pokemonIds,
+    String? regionKey,
+    int? columns,
+    int? rows,
+    bool? autoFlow,
+    bool? autoShift,
+    bool? strictLimits,
+    bool? patternAutoCreate,
+    bool? autoDeleteEmpty,
+  }) {
+    return CustomBoxState(
+      title: title ?? this.title,
+      pokemonIds: pokemonIds ?? List<String>.from(this.pokemonIds),
+      regionKey: regionKey ?? this.regionKey,
+      columns: columns ?? this.columns,
+      rows: rows ?? this.rows,
+      autoFlow: autoFlow ?? this.autoFlow,
+      autoShift: autoShift ?? this.autoShift,
+      strictLimits: strictLimits ?? this.strictLimits,
+      patternAutoCreate: patternAutoCreate ?? this.patternAutoCreate,
+      autoDeleteEmpty: autoDeleteEmpty ?? this.autoDeleteEmpty,
+    );
+  }
+
+  Map<String, dynamic> toMap() => {
+    'title': title,
+    'pokemonIds': pokemonIds,
+    'regionKey': regionKey,
+    'columns': columns,
+    'rows': rows,
+    'autoFlow': autoFlow,
+    'autoShift': autoShift,
+    'strictLimits': strictLimits,
+    'patternAutoCreate': patternAutoCreate,
+    'autoDeleteEmpty': autoDeleteEmpty,
+  };
+
+  factory CustomBoxState.fromMap(Map<String, dynamic> map) => CustomBoxState(
+    title: map['title']?.toString() ?? 'Box',
+    pokemonIds: List<String>.from(map['pokemonIds'] ?? []),
+    regionKey: map['regionKey']?.toString() ?? 'custom',
+    columns: (map['columns'] as int?) ?? 5,
+    rows: (map['rows'] as int?) ?? 6,
+    autoFlow: (map['autoFlow'] as bool?) ?? false,
+    autoShift: (map['autoShift'] as bool?) ?? true,
+    strictLimits: (map['strictLimits'] as bool?) ?? true,
+    patternAutoCreate: (map['patternAutoCreate'] as bool?) ?? true,
+    autoDeleteEmpty: (map['autoDeleteEmpty'] as bool?) ?? true,
+  );
+}
+
 class UserDex {
   final String id;
   final String title;
@@ -20,6 +103,7 @@ class UserDex {
   Map<String, List<String>> caughtRibbons = {};
   Map<String, List<String>> caughtTeraTypes = {};
   Map<String, List<String>> caughtLanguages = {};
+  List<CustomBoxState> customBoxes = [];
 
   UserDex({
     required this.id,
@@ -36,6 +120,7 @@ class UserDex {
     this.ignoredIds = const [],
     this.alphaIds = const [],
     this.viewMode = 'list',
+    this.customBoxes = const [],
     this.sortMode = 'dex',
     this.megaSort = 'origin',
     this.gmaxSort = 'origin',
@@ -65,6 +150,9 @@ class UserDex {
       megaSort: map['mega_sort']?.toString() ?? 'origin',
       gmaxSort: map['gmax_sort']?.toString() ?? 'origin',
       regionalSort: map['regional_sort']?.toString() ?? 'mechanic',
+      customBoxes: map['custom_boxes'] != null && map['custom_boxes'].toString().isNotEmpty
+          ? List<CustomBoxState>.from(jsonDecode(map['custom_boxes']).map((x) => CustomBoxState.fromMap(x)))
+          : [],
       caughtRibbons: {},
       caughtTeraTypes: {},
       caughtLanguages: {},
@@ -87,6 +175,7 @@ class UserDex {
       'mega_sort': megaSort,
       'gmax_sort': gmaxSort,
       'regional_sort': regionalSort,
+      'custom_boxes': jsonEncode(customBoxes.map((e) => e.toMap()).toList()),
       'caught_ids': caughtIds.join(','),
       'shiny_ids': shinyIds.join(','),
       'alpha_ids': alphaIds.join(','),
@@ -118,6 +207,7 @@ class UserDex {
       'megaSort': megaSort,
       'gmaxSort': gmaxSort,
       'regionalSort': regionalSort,
+      'customBoxes': customBoxes.map((e) => e.toMap()).toList(),
       'alphaIds': alphaIds,
       'caughtIds': caughtIds,
       'shinyIds': shinyIds,
@@ -141,6 +231,9 @@ class UserDex {
       isShinyDex: json['isShinyDex'] ?? false,
       viewMode: json['viewMode']?.toString() ?? 'list',
       sortMode: json['sortMode']?.toString() ?? 'dex',
+      customBoxes: json['customBoxes'] != null
+          ? List<CustomBoxState>.from((json['customBoxes'] as List).map((x) => CustomBoxState.fromMap(x)))
+          : [],
       alphaIds: List<String>.from(json['alphaIds'] ?? []),
       caughtIds: List<String>.from(json['caughtIds'] ?? []),
       shinyIds: List<String>.from(json['shinyIds'] ?? []),
@@ -192,3 +285,5 @@ class DexFolder {
     );
   }
 }
+
+

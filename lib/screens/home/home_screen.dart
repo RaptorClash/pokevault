@@ -16,6 +16,7 @@ import '../settings/settings_screen.dart';
 import '../../utils/update_helper.dart';
 import '../../widgets/dialogs/update_dialog.dart';
 import '../../utils/notification_helper.dart';
+import '../../utils/dex_logic_helper.dart';
 import 'edit_dex_dialog.dart';
 import 'widgets/home_dialogs.dart';
 import 'widgets/home_ui_components.dart';
@@ -380,6 +381,9 @@ class _HomeScreenState extends State<HomeScreen> {
     }
 
     List<int> selectedOrder = provider.allAvailableDexes[dex.region] ?? [];
+    if (dex.region == 'custom_empty' || selectedOrder.isEmpty) {
+      selectedOrder = provider.allAvailableDexes['national_overall'] ?? [];
+    }
     Map<int, Pokemon> pokemonMap = {for (var p in provider.allPokemon) p.id: p};
 
     List<Pokemon> selectedDatabase = selectedOrder
@@ -493,7 +497,7 @@ class _HomeScreenState extends State<HomeScreen> {
         if (a is UserDex && b is UserDex) {
           if (_currentSort == 'az') return a.title.compareTo(b.title);
           if (_currentSort == 'caught') {
-            return b.caughtIds.length.compareTo(a.caughtIds.length);
+            return DexLogicHelper.getCaughtCount(b).compareTo(DexLogicHelper.getCaughtCount(a));
           }
           if (_currentSort == 'region') return a.region.compareTo(b.region);
         }

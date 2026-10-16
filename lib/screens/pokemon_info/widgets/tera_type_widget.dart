@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../models/dex_view_models.dart';
 import '../../../models/pokemon.dart';
+import '../../../models/user_dex.dart';
 import '../../../providers/dex_provider.dart';
 import '../../../l10n/app_translations.dart';
 import '../../../utils/shiny_logic_helper.dart';
@@ -37,8 +38,25 @@ class TeraTypeWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<DexProvider>();
-    final liveDex = provider.userDexes.firstWhere((d) => d.id == dexId);
+    final liveDex = provider.userDexes.firstWhere(
+      (d) => d.id == dexId,
+      orElse: () => UserDex(
+        id: dexId,
+        title: '',
+        region: dexId,
+        includeGenders: false,
+        includeRegional: false,
+        includeMega: false,
+        includeGMax: false,
+        includeOther: false,
+        isShinyDex: false,
+      ),
+    );
     final caughtTeras = liveDex.caughtTeraTypes[entry.uniqueId] ?? [];
+
+    if (entry.pokemon.forms.isEmpty) {
+      return const SizedBox.shrink();
+    }
 
     String formName = entry.uniqueId.contains('_')
         ? entry.uniqueId.split('_').last

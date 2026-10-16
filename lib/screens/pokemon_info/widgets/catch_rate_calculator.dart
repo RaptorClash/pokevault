@@ -442,13 +442,16 @@ class _CatchRateCalculatorState extends State<CatchRateCalculator> {
 
         LayoutBuilder(
           builder: (context, constraints) {
+            if (currentBalls.isEmpty) {
+              return const SizedBox.shrink();
+            }
             BallOption selectedBallOption = currentBalls.firstWhere(
               (b) => b.id == _selectedBallId,
               orElse: () => currentBalls.first,
             );
 
             return Autocomplete<BallOption>(
-              key: ValueKey('ball_auto_${_selectedGen}_${_selectedBallId}'),
+              key: ValueKey('ball_auto_${_selectedGen}_$_selectedBallId'),
               initialValue: TextEditingValue(
                 text: _getBallName(selectedBallOption),
               ),

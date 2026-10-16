@@ -7,6 +7,7 @@ import '../../../providers/tutorial_provider.dart';
 import '../../../models/tutorial_step.dart';
 import '../../../widgets/tutorial/tutorial_overlay.dart';
 import '../../../utils/notification_helper.dart';
+import '../../../utils/dex_logic_helper.dart';
 import '../create_dex_bottom_sheet.dart';
 
 class FolderCard extends StatelessWidget {
@@ -204,7 +205,7 @@ class DexCard extends StatelessWidget {
             style: const TextStyle(fontWeight: FontWeight.bold),
           ),
           subtitle: Text(
-            '${Translator.get('region')}: $regionName | ${Translator.get('caught')}: ${dex.caughtIds.length}',
+            '${Translator.get('region')}: $regionName | ${Translator.get('caught')}: ${DexLogicHelper.getCaughtCount(dex)}',
           ),
           trailing: Row(
             mainAxisSize: MainAxisSize.min,

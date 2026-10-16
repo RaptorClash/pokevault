@@ -13,6 +13,11 @@ class DexGroup {
 class DexGroupsData {
   static final List<DexGroup> groups = [
     DexGroup(
+      nameKey: 'group_custom',
+      dexKeys: ['custom_empty'],
+      displayPokemonIds: [132, 201, 235, 137], // Ditto, Unown, Smeargle, Porygon
+    ),
+    DexGroup(
       nameKey: 'group_national',
       dexKeys: ['national_overall'],
       displayPokemonIds: [1, 152, 252, 387],

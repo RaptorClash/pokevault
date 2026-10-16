@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 import '../models/pokemon.dart';
 import '../models/user_dex.dart';
+import '../utils/dex_logic_helper.dart';
 import '../services/database_service.dart';
 import '../services/dex_storage_service.dart';
 import '../services/migration_service.dart';
@@ -43,6 +44,8 @@ class DexProvider extends ChangeNotifier with WidgetsBindingObserver {
       _checkForRemoteUpdates();
     });
   }
+
+  void forceRefresh() { notifyListeners(); }
 
   @override
   void dispose() {
@@ -166,6 +169,9 @@ class DexProvider extends ChangeNotifier with WidgetsBindingObserver {
       caughtIds: [],
       shinyIds: [],
       ignoredIds: [],
+      customBoxes: region == 'custom_empty'
+          ? [CustomBoxState(title: "Box 1", pokemonIds: [], regionKey: region)]
+          : [],
     );
     userDexes.add(newDex);
     structure.putIfAbsent(folderId, () => []).add(newDex.id);
@@ -303,78 +309,331 @@ class DexProvider extends ChangeNotifier with WidgetsBindingObserver {
   }
 
   void togglePokemon(String dexId, String pokemonUniqueId) {
-    final dex = userDexes.firstWhere((d) => d.id == dexId);
-    bool isCaught = !dex.caughtIds.contains(pokemonUniqueId);
+    final dexIndex = userDexes.indexWhere((d) => d.id == dexId);
+    if (dexIndex == -1) return;
+    final dex = userDexes[dexIndex];
+    final isCurrentlyCaught = DexLogicHelper.isPokemonCaught(dex, pokemonUniqueId);
+    final isCaught = !isCurrentlyCaught;
+
+    final isInstance = pokemonUniqueId.contains('__');
+    final baseId = DexLogicHelper.getBaseId(pokemonUniqueId);
 
     if (isCaught) {
-      dex.caughtIds.add(pokemonUniqueId);
+      if (!dex.caughtIds.contains(pokemonUniqueId)) {
+        dex.caughtIds.add(pokemonUniqueId);
+      }
+      db.savePokemonStatus(dexId, pokemonUniqueId, isCaught: true);
+
+      if (isInstance) {
+        final wasBaseIdCaught = dex.caughtIds.contains(baseId);
+        final hadOtherInstanceCaught = dex.caughtIds.any((id) =>
+            id != pokemonUniqueId && id.startsWith('${baseId}__'));
+
+        if (baseId.isNotEmpty && !wasBaseIdCaught) {
+          dex.caughtIds.add(baseId);
+          db.savePokemonStatus(dexId, baseId, isCaught: true);
+        }
+        if (wasBaseIdCaught && !hadOtherInstanceCaught) {
+          final allInst = dex.customBoxes
+              .expand((b) => b.pokemonIds)
+              .where((id) =>
+                  !DexLogicHelper.isPlaceholder(id) &&
+                  DexLogicHelper.getBaseId(id) == baseId)
+              .toList();
+          if (allInst.isNotEmpty && allInst.first != pokemonUniqueId) {
+            final primaryInst = allInst.first;
+            if (!dex.caughtIds.contains(primaryInst)) {
+              dex.caughtIds.add(primaryInst);
+              db.savePokemonStatus(dexId, primaryInst, isCaught: true);
+            }
+          }
+        }
+      } else {
+        for (var box in dex.customBoxes) {
+          for (var id in box.pokemonIds) {
+            if (id.contains('__') && DexLogicHelper.getBaseId(id) == baseId) {
+              if (!dex.caughtIds.contains(id)) {
+                dex.caughtIds.add(id);
+              }
+              db.savePokemonStatus(dexId, id, isCaught: true);
+            }
+          }
+        }
+      }
       triggerAutoUpload();
     } else {
       dex.caughtIds.remove(pokemonUniqueId);
+      db.savePokemonStatus(dexId, pokemonUniqueId, isCaught: false);
+
+      if (isInstance) {
+        final hasOtherCaughtInstance = dex.customBoxes
+            .expand((b) => b.pokemonIds)
+            .any((id) =>
+                id != pokemonUniqueId &&
+                id.contains('__') &&
+                DexLogicHelper.getBaseId(id) == baseId &&
+                dex.caughtIds.contains(id));
+        if (!hasOtherCaughtInstance) {
+          dex.caughtIds.remove(baseId);
+          db.savePokemonStatus(dexId, baseId, isCaught: false);
+        }
+      } else {
+        dex.caughtIds.remove(baseId);
+        db.savePokemonStatus(dexId, baseId, isCaught: false);
+        for (var box in dex.customBoxes) {
+          for (var id in box.pokemonIds) {
+            if (id.contains('__') && DexLogicHelper.getBaseId(id) == baseId) {
+              dex.caughtIds.remove(id);
+              db.savePokemonStatus(dexId, id, isCaught: false);
+            }
+          }
+        }
+      }
       triggerAutoUpload();
     }
 
-    bool isCurrentlyShiny = dex.shinyIds.contains(pokemonUniqueId);
+    if (dex.isShinyDex) {
+      final isCurrentlyShiny = DexLogicHelper.isPokemonShiny(dex, pokemonUniqueId);
+      if (isCurrentlyShiny != isCaught) {
+        if (isCaught) {
+          if (!dex.shinyIds.contains(pokemonUniqueId)) {
+            dex.shinyIds.add(pokemonUniqueId);
+          }
+          db.savePokemonStatus(dexId, pokemonUniqueId, isShiny: true);
+          if (isInstance) {
+            final wasBaseIdShiny = dex.shinyIds.contains(baseId);
+            final hadOtherInstanceShiny = dex.shinyIds.any((id) =>
+                id != pokemonUniqueId && id.startsWith('${baseId}__'));
 
-    if (dex.isShinyDex && isCurrentlyShiny != isCaught) {
-      if (isCaught) {
-        dex.shinyIds.add(pokemonUniqueId);
-        triggerAutoUpload();
-      } else {
-        dex.shinyIds.remove(pokemonUniqueId);
+            if (baseId.isNotEmpty && !wasBaseIdShiny) {
+              dex.shinyIds.add(baseId);
+              db.savePokemonStatus(dexId, baseId, isShiny: true);
+            }
+            if (wasBaseIdShiny && !hadOtherInstanceShiny) {
+              final allInst = dex.customBoxes
+                  .expand((b) => b.pokemonIds)
+                  .where((id) =>
+                      !DexLogicHelper.isPlaceholder(id) &&
+                      DexLogicHelper.getBaseId(id) == baseId)
+                  .toList();
+              if (allInst.isNotEmpty && allInst.first != pokemonUniqueId) {
+                final primaryInst = allInst.first;
+                if (!dex.shinyIds.contains(primaryInst)) {
+                  dex.shinyIds.add(primaryInst);
+                  db.savePokemonStatus(dexId, primaryInst, isShiny: true);
+                }
+              }
+            }
+          } else {
+            for (var box in dex.customBoxes) {
+              for (var id in box.pokemonIds) {
+                if (id.contains('__') && DexLogicHelper.getBaseId(id) == baseId) {
+                  if (!dex.shinyIds.contains(id)) dex.shinyIds.add(id);
+                  db.savePokemonStatus(dexId, id, isShiny: true);
+                }
+              }
+            }
+          }
+        } else {
+          dex.shinyIds.remove(pokemonUniqueId);
+          db.savePokemonStatus(dexId, pokemonUniqueId, isShiny: false);
+          if (isInstance) {
+            final hasOtherShinyInstance = dex.customBoxes
+                .expand((b) => b.pokemonIds)
+                .any((id) =>
+                    id != pokemonUniqueId &&
+                    id.contains('__') &&
+                    DexLogicHelper.getBaseId(id) == baseId &&
+                    dex.shinyIds.contains(id));
+            if (!hasOtherShinyInstance) {
+              dex.shinyIds.remove(baseId);
+              db.savePokemonStatus(dexId, baseId, isShiny: false);
+            }
+          } else {
+            dex.shinyIds.remove(baseId);
+            db.savePokemonStatus(dexId, baseId, isShiny: false);
+            for (var box in dex.customBoxes) {
+              for (var id in box.pokemonIds) {
+                if (id.contains('__') && DexLogicHelper.getBaseId(id) == baseId) {
+                  dex.shinyIds.remove(id);
+                  db.savePokemonStatus(dexId, id, isShiny: false);
+                }
+              }
+            }
+          }
+        }
         triggerAutoUpload();
       }
-      db.savePokemonStatus(
-        dexId,
-        pokemonUniqueId,
-        isCaught: isCaught,
-        isShiny: isCaught,
-      );
-    } else {
-      db.savePokemonStatus(dexId, pokemonUniqueId, isCaught: isCaught);
     }
 
     notifyListeners();
   }
 
   void toggleShiny(String dexId, String pokemonUniqueId) {
-    final dex = userDexes.firstWhere((d) => d.id == dexId);
-    bool isShiny = !dex.shinyIds.contains(pokemonUniqueId);
+    final dexIndex = userDexes.indexWhere((d) => d.id == dexId);
+    if (dexIndex == -1) return;
+    final dex = userDexes[dexIndex];
+    final isCurrentlyShiny = DexLogicHelper.isPokemonShiny(dex, pokemonUniqueId);
+    final isShiny = !isCurrentlyShiny;
+
+    final isInstance = pokemonUniqueId.contains('__');
+    final baseId = DexLogicHelper.getBaseId(pokemonUniqueId);
 
     if (isShiny) {
-      dex.shinyIds.add(pokemonUniqueId);
+      if (!dex.shinyIds.contains(pokemonUniqueId)) {
+        dex.shinyIds.add(pokemonUniqueId);
+      }
+      db.savePokemonStatus(dexId, pokemonUniqueId, isShiny: true);
+
+      if (isInstance) {
+        final wasBaseIdShiny = dex.shinyIds.contains(baseId);
+        final hadOtherInstanceShiny = dex.shinyIds.any((id) =>
+            id != pokemonUniqueId && id.startsWith('${baseId}__'));
+
+        if (baseId.isNotEmpty && !wasBaseIdShiny) {
+          dex.shinyIds.add(baseId);
+          db.savePokemonStatus(dexId, baseId, isShiny: true);
+        }
+        if (wasBaseIdShiny && !hadOtherInstanceShiny) {
+          final allInst = dex.customBoxes
+              .expand((b) => b.pokemonIds)
+              .where((id) =>
+                  !DexLogicHelper.isPlaceholder(id) &&
+                  DexLogicHelper.getBaseId(id) == baseId)
+              .toList();
+          if (allInst.isNotEmpty && allInst.first != pokemonUniqueId) {
+            final primaryInst = allInst.first;
+            if (!dex.shinyIds.contains(primaryInst)) {
+              dex.shinyIds.add(primaryInst);
+              db.savePokemonStatus(dexId, primaryInst, isShiny: true);
+            }
+          }
+        }
+      } else {
+        for (var box in dex.customBoxes) {
+          for (var id in box.pokemonIds) {
+            if (id.contains('__') && DexLogicHelper.getBaseId(id) == baseId) {
+              if (!dex.shinyIds.contains(id)) {
+                dex.shinyIds.add(id);
+              }
+              db.savePokemonStatus(dexId, id, isShiny: true);
+            }
+          }
+        }
+      }
       triggerAutoUpload();
     } else {
       dex.shinyIds.remove(pokemonUniqueId);
+      db.savePokemonStatus(dexId, pokemonUniqueId, isShiny: false);
+
+      if (isInstance) {
+        final hasOtherShinyInstance = dex.customBoxes
+            .expand((b) => b.pokemonIds)
+            .any((id) =>
+                id != pokemonUniqueId &&
+                id.contains('__') &&
+                DexLogicHelper.getBaseId(id) == baseId &&
+                dex.shinyIds.contains(id));
+        if (!hasOtherShinyInstance) {
+          dex.shinyIds.remove(baseId);
+          db.savePokemonStatus(dexId, baseId, isShiny: false);
+        }
+      } else {
+        dex.shinyIds.remove(baseId);
+        db.savePokemonStatus(dexId, baseId, isShiny: false);
+        for (var box in dex.customBoxes) {
+          for (var id in box.pokemonIds) {
+            if (id.contains('__') && DexLogicHelper.getBaseId(id) == baseId) {
+              dex.shinyIds.remove(id);
+              db.savePokemonStatus(dexId, id, isShiny: false);
+            }
+          }
+        }
+      }
       triggerAutoUpload();
     }
 
-    bool isCurrentlyCaught = dex.caughtIds.contains(pokemonUniqueId);
+    if (dex.isShinyDex) {
+      final isCurrentlyCaught = DexLogicHelper.isPokemonCaught(dex, pokemonUniqueId);
+      if (isCurrentlyCaught != isShiny) {
+        if (isShiny) {
+          if (!dex.caughtIds.contains(pokemonUniqueId)) {
+            dex.caughtIds.add(pokemonUniqueId);
+          }
+          db.savePokemonStatus(dexId, pokemonUniqueId, isCaught: true);
+          if (isInstance) {
+            final wasBaseIdCaught = dex.caughtIds.contains(baseId);
+            final hadOtherInstanceCaught = dex.caughtIds.any((id) =>
+                id != pokemonUniqueId && id.startsWith('${baseId}__'));
 
-    if (dex.isShinyDex && isCurrentlyCaught != isShiny) {
-      if (isShiny) {
-        dex.caughtIds.add(pokemonUniqueId);
-        triggerAutoUpload();
-      } else {
-        dex.caughtIds.remove(pokemonUniqueId);
+            if (baseId.isNotEmpty && !wasBaseIdCaught) {
+              dex.caughtIds.add(baseId);
+              db.savePokemonStatus(dexId, baseId, isCaught: true);
+            }
+            if (wasBaseIdCaught && !hadOtherInstanceCaught) {
+              final allInst = dex.customBoxes
+                  .expand((b) => b.pokemonIds)
+                  .where((id) =>
+                      !DexLogicHelper.isPlaceholder(id) &&
+                      DexLogicHelper.getBaseId(id) == baseId)
+                  .toList();
+              if (allInst.isNotEmpty && allInst.first != pokemonUniqueId) {
+                final primaryInst = allInst.first;
+                if (!dex.caughtIds.contains(primaryInst)) {
+                  dex.caughtIds.add(primaryInst);
+                  db.savePokemonStatus(dexId, primaryInst, isCaught: true);
+                }
+              }
+            }
+          } else {
+            for (var box in dex.customBoxes) {
+              for (var id in box.pokemonIds) {
+                if (id.contains('__') && DexLogicHelper.getBaseId(id) == baseId) {
+                  if (!dex.caughtIds.contains(id)) dex.caughtIds.add(id);
+                  db.savePokemonStatus(dexId, id, isCaught: true);
+                }
+              }
+            }
+          }
+        } else {
+          dex.caughtIds.remove(pokemonUniqueId);
+          db.savePokemonStatus(dexId, pokemonUniqueId, isCaught: false);
+          if (isInstance) {
+            final hasOtherCaughtInstance = dex.customBoxes
+                .expand((b) => b.pokemonIds)
+                .any((id) =>
+                    id != pokemonUniqueId &&
+                    id.contains('__') &&
+                    DexLogicHelper.getBaseId(id) == baseId &&
+                    dex.caughtIds.contains(id));
+            if (!hasOtherCaughtInstance) {
+              dex.caughtIds.remove(baseId);
+              db.savePokemonStatus(dexId, baseId, isCaught: false);
+            }
+          } else {
+            dex.caughtIds.remove(baseId);
+            db.savePokemonStatus(dexId, baseId, isCaught: false);
+            for (var box in dex.customBoxes) {
+              for (var id in box.pokemonIds) {
+                if (id.contains('__') && DexLogicHelper.getBaseId(id) == baseId) {
+                  dex.caughtIds.remove(id);
+                  db.savePokemonStatus(dexId, id, isCaught: false);
+                }
+              }
+            }
+          }
+        }
         triggerAutoUpload();
       }
-      db.savePokemonStatus(
-        dexId,
-        pokemonUniqueId,
-        isShiny: isShiny,
-        isCaught: isShiny,
-      );
-    } else {
-      db.savePokemonStatus(dexId, pokemonUniqueId, isShiny: isShiny);
-      triggerAutoUpload();
     }
 
     notifyListeners();
   }
 
   void ignorePokemon(String dexId, String pokemonUniqueId) {
-    final dex = userDexes.firstWhere((d) => d.id == dexId);
+    final dexIndex = userDexes.indexWhere((d) => d.id == dexId);
+    if (dexIndex == -1) return;
+    final dex = userDexes[dexIndex];
     if (!dex.ignoredIds.contains(pokemonUniqueId)) {
       dex.ignoredIds.add(pokemonUniqueId);
       db.savePokemonStatus(dexId, pokemonUniqueId, isIgnored: true);
@@ -384,7 +643,9 @@ class DexProvider extends ChangeNotifier with WidgetsBindingObserver {
   }
 
   void restorePokemon(String dexId, String pokemonUniqueId) {
-    final dex = userDexes.firstWhere((d) => d.id == dexId);
+    final dexIndex = userDexes.indexWhere((d) => d.id == dexId);
+    if (dexIndex == -1) return;
+    final dex = userDexes[dexIndex];
     dex.ignoredIds.remove(pokemonUniqueId);
     db.savePokemonStatus(dexId, pokemonUniqueId, isIgnored: false);
     triggerAutoUpload();
@@ -559,7 +820,9 @@ class DexProvider extends ChangeNotifier with WidgetsBindingObserver {
     String uniqueId,
     String ribbonId,
   ) async {
-    final dex = userDexes.firstWhere((d) => d.id == dexId);
+    final dexIndex = userDexes.indexWhere((d) => d.id == dexId);
+    if (dexIndex == -1) return;
+    final dex = userDexes[dexIndex];
     final currentRibbons = List<String>.from(dex.caughtRibbons[uniqueId] ?? []);
 
     if (currentRibbons.contains(ribbonId)) {
@@ -582,7 +845,9 @@ class DexProvider extends ChangeNotifier with WidgetsBindingObserver {
     String uniqueId,
     String teraType,
   ) async {
-    final dex = userDexes.firstWhere((d) => d.id == dexId);
+    final dexIndex = userDexes.indexWhere((d) => d.id == dexId);
+    if (dexIndex == -1) return;
+    final dex = userDexes[dexIndex];
     final currentTeras = List<String>.from(dex.caughtTeraTypes[uniqueId] ?? []);
 
     if (currentTeras.contains(teraType)) {
@@ -605,19 +870,90 @@ class DexProvider extends ChangeNotifier with WidgetsBindingObserver {
     if (dexIndex == -1) return;
 
     final dex = userDexes[dexIndex];
-    bool isAlpha = dex.alphaIds.contains(uniqueId);
+    final isCurrentlyAlpha = DexLogicHelper.isPokemonAlpha(dex, uniqueId);
+    final isAlpha = !isCurrentlyAlpha;
+    final isInstance = uniqueId.contains('__');
+    final baseId = DexLogicHelper.getBaseId(uniqueId);
 
     if (isAlpha) {
-      dex.alphaIds.remove(uniqueId);
-    } else {
-      dex.alphaIds.add(uniqueId);
-    }
+      if (!dex.alphaIds.contains(uniqueId)) {
+        dex.alphaIds.add(uniqueId);
+      }
+      await db.savePokemonStatus(
+        dexId,
+        uniqueId,
+        isAlpha: true,
+      );
 
-    await DatabaseService.instance.savePokemonStatus(
-      dexId,
-      uniqueId,
-      isAlpha: !isAlpha,
-    );
+      if (isInstance) {
+        final wasBaseIdAlpha = dex.alphaIds.contains(baseId);
+        final hadOtherInstanceAlpha = dex.alphaIds.any((id) =>
+            id != uniqueId && id.startsWith('${baseId}__'));
+
+        if (baseId.isNotEmpty && !wasBaseIdAlpha) {
+          dex.alphaIds.add(baseId);
+          await db.savePokemonStatus(dexId, baseId, isAlpha: true);
+        }
+        if (wasBaseIdAlpha && !hadOtherInstanceAlpha) {
+          final allInst = dex.customBoxes
+              .expand((b) => b.pokemonIds)
+              .where((id) =>
+                  !DexLogicHelper.isPlaceholder(id) &&
+                  DexLogicHelper.getBaseId(id) == baseId)
+              .toList();
+          if (allInst.isNotEmpty && allInst.first != uniqueId) {
+            final primaryInst = allInst.first;
+            if (!dex.alphaIds.contains(primaryInst)) {
+              dex.alphaIds.add(primaryInst);
+              await db.savePokemonStatus(dexId, primaryInst, isAlpha: true);
+            }
+          }
+        }
+      } else {
+        for (var box in dex.customBoxes) {
+          for (var id in box.pokemonIds) {
+            if (id.contains('__') && DexLogicHelper.getBaseId(id) == baseId) {
+              if (!dex.alphaIds.contains(id)) {
+                dex.alphaIds.add(id);
+              }
+              await db.savePokemonStatus(dexId, id, isAlpha: true);
+            }
+          }
+        }
+      }
+    } else {
+      dex.alphaIds.remove(uniqueId);
+      await db.savePokemonStatus(
+        dexId,
+        uniqueId,
+        isAlpha: false,
+      );
+
+      if (isInstance) {
+        final hasOtherAlphaInstance = dex.customBoxes
+            .expand((b) => b.pokemonIds)
+            .any((id) =>
+                id != uniqueId &&
+                id.contains('__') &&
+                DexLogicHelper.getBaseId(id) == baseId &&
+                dex.alphaIds.contains(id));
+        if (!hasOtherAlphaInstance) {
+          dex.alphaIds.remove(baseId);
+          await db.savePokemonStatus(dexId, baseId, isAlpha: false);
+        }
+      } else {
+        dex.alphaIds.remove(baseId);
+        await db.savePokemonStatus(dexId, baseId, isAlpha: false);
+        for (var box in dex.customBoxes) {
+          for (var id in box.pokemonIds) {
+            if (id.contains('__') && DexLogicHelper.getBaseId(id) == baseId) {
+              dex.alphaIds.remove(id);
+              await db.savePokemonStatus(dexId, id, isAlpha: false);
+            }
+          }
+        }
+      }
+    }
 
     notifyListeners();
   }

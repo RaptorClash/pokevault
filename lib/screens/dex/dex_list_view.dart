@@ -3,6 +3,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:provider/provider.dart';
 import '../../models/user_dex.dart';
 import '../../models/dex_view_models.dart';
+import '../../utils/dex_logic_helper.dart';
 import '../../providers/dex_provider.dart';
 import '../../providers/settings_provider.dart';
 import '../../l10n/app_translations.dart';
@@ -30,7 +31,17 @@ class DexListView extends StatelessWidget {
     final currentLanguage = context.watch<SettingsProvider>().currentLanguage;
 
     if (displayList.isEmpty) {
-      return Center(child: Text(Translator.get('empty_box')));
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(32.0),
+          child: Text(
+            Translator.currentLanguage == 'de'
+              ? 'Dieser Dex ist leer.\nKlicke oben rechts auf das Bearbeiten-Icon (Checkliste), um Pokémon hinzuzufügen!'
+              : 'This Dex is empty.\nClick the edit icon (checklist) in the top right to add Pokémon!',
+            textAlign: TextAlign.center,
+          ),
+        ),
+      );
     }
 
     double screenWidth = MediaQuery.of(context).size.width;
@@ -51,8 +62,8 @@ class DexListView extends StatelessWidget {
       itemBuilder: (context, index) {
         try {
           final entry = displayList[index];
-          final isCaught = liveDex.caughtIds.contains(entry.uniqueId);
-          final isShiny = liveDex.shinyIds.contains(entry.uniqueId);
+          final isCaught = DexLogicHelper.isPokemonCaught(liveDex, entry.uniqueId);
+          final isShiny = DexLogicHelper.isPokemonShiny(liveDex, entry.uniqueId);
           void openInfoScreen() {
             Navigator.push(
               context,
@@ -83,7 +94,7 @@ class DexListView extends StatelessWidget {
               return KeyEventResult.ignored;
             },
             child: InkWell(
-              key: entry.uniqueId == tutorialTargetId ? firstItemKey : null,
+              key: (entry.uniqueId == tutorialTargetId && index == 0) ? firstItemKey : null,
               onTap: () => provider.togglePokemon(liveDex.id, entry.uniqueId),
               onSecondaryTap: openInfoScreen,
               onLongPress: openInfoScreen,
@@ -113,56 +124,61 @@ class DexListView extends StatelessWidget {
                           ),
                         ),
                         Expanded(
-                          child: ColorFiltered(
-                            colorFilter: isCaught
-                                ? const ColorFilter.mode(
-                                    Colors.transparent,
-                                    BlendMode.dst,
-                                  )
-                                : const ColorFilter.matrix(<double>[
-                                    0.2126,
-                                    0.7152,
-                                    0.0722,
-                                    0,
-                                    0,
-                                    0.2126,
-                                    0.7152,
-                                    0.0722,
-                                    0,
-                                    0,
-                                    0.2126,
-                                    0.7152,
-                                    0.0722,
-                                    0,
-                                    0,
-                                    0,
-                                    0,
-                                    0,
-                                    1,
-                                    0,
-                                  ]),
-                            child: CachedNetworkImage(
-                              imageUrl: entry.imageUrl,
-                              memCacheWidth: 200,
-                              fit: BoxFit.contain,
-                              fadeInDuration: const Duration(milliseconds: 150),
-                              placeholder: (context, url) => const Center(
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                ),
-                              ),
-                              errorWidget: (context, url, error) =>
-                                  CachedNetworkImage(
-                                    imageUrl:
-                                        'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${liveDex.isShinyDex ? 'shiny/' : ''}${entry.pokemon.id}.png',
-                                    memCacheWidth: 200,
-                                    fit: BoxFit.contain,
-                                    errorWidget: (c, e, s) => const Icon(
-                                      Icons.catching_pokemon,
-                                      size: 24,
-                                    ),
+                          child: Builder(
+                            builder: (context) {
+                              final imageWidget = CachedNetworkImage(
+                                imageUrl: entry.imageUrl,
+                                memCacheWidth: 200,
+                                fit: BoxFit.contain,
+                                fadeInDuration: const Duration(milliseconds: 150),
+                                placeholder: (context, url) => const Center(
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
                                   ),
-                            ),
+                                ),
+                                errorWidget: (context, url, error) =>
+                                    CachedNetworkImage(
+                                      imageUrl:
+                                          'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${liveDex.isShinyDex ? 'shiny/' : ''}${entry.pokemon.id}.png',
+                                      memCacheWidth: 200,
+                                      fit: BoxFit.contain,
+                                      errorWidget: (c, e, s) => const Icon(
+                                        Icons.catching_pokemon,
+                                        size: 24,
+                                      ),
+                                    ),
+                              );
+
+                              if (isCaught) {
+                                return imageWidget;
+                              }
+
+                              return ColorFiltered(
+                                colorFilter: const ColorFilter.matrix(<double>[
+                                  0.2126,
+                                  0.7152,
+                                  0.0722,
+                                  0,
+                                  0,
+                                  0.2126,
+                                  0.7152,
+                                  0.0722,
+                                  0,
+                                  0,
+                                  0.2126,
+                                  0.7152,
+                                  0.0722,
+                                  0,
+                                  0,
+                                  0,
+                                  0,
+                                  0,
+                                  1,
+                                  0,
+                                ]),
+                                child: imageWidget,
+                              );
+                            },
                           ),
                         ),
                         Padding(

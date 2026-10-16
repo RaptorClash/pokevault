@@ -1,4 +1,4 @@
-import 'dart:convert';
+﻿import 'dart:convert';
 import 'package:universal_io/io.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
@@ -84,7 +84,7 @@ class DatabaseService {
     return await factory.openDatabase(
       path,
       options: OpenDatabaseOptions(
-        version: 7,
+        version: 8,
         onCreate: _createUserDataTables,
         onUpgrade: _upgradeUserDataTables,
       ),
@@ -109,6 +109,7 @@ class DatabaseService {
           gmax_sort TEXT DEFAULT 'origin',
           regional_sort TEXT DEFAULT 'mechanic',
           view_mode TEXT DEFAULT 'list',
+          custom_boxes TEXT DEFAULT '[]',
           sort_mode TEXT DEFAULT 'dex',
           updated_at INTEGER DEFAULT 0,
           deleted_at INTEGER DEFAULT 0
@@ -248,6 +249,14 @@ class DatabaseService {
         debugPrint("Datenbank erfolgreich auf Version 7 (Sortiereinstellungen) migriert!");
       } catch (e) {
         debugPrint("Migrations-Fehler V7: $e");
+      }
+    }
+    if (oldVersion < 8) {
+      try {
+        await db.execute("ALTER TABLE user_dexes ADD COLUMN custom_boxes TEXT DEFAULT '[]'");
+        debugPrint("Datenbank erfolgreich auf Version 8 (Custom Boxes) migriert!");
+      } catch (e) {
+        debugPrint("Migrations-Fehler V8: `$e");
       }
     }
   }
@@ -838,3 +847,5 @@ class DatabaseService {
     return await db.query('special_obtainable');
   }
 }
+
+

@@ -567,76 +567,78 @@ class _CreateDexBottomSheetState extends State<CreateDexBottomSheet> {
             onChanged: (val) => setState(() => isShinyDex = val),
           ),
           const Divider(height: 1),
-          SwitchListTile(
-            key: _genderKey,
-            title: Text(
-              Translator.get(
-                'tutorial_create_step7_title',
-                fallback: 'Geschlechter',
+          if (selectedGroup.nameKey != 'group_custom') ...[
+            SwitchListTile(
+              key: _genderKey,
+              title: Text(
+                Translator.get(
+                  'tutorial_create_step7_title',
+                  fallback: 'Geschlechter',
+                ),
               ),
+              secondary: const Icon(Icons.wc),
+              value: includeGenders,
+              activeThumbColor: Colors.red,
+              onChanged: (val) => setState(() => includeGenders = val),
             ),
-            secondary: const Icon(Icons.wc),
-            value: includeGenders,
-            activeThumbColor: Colors.red,
-            onChanged: (val) => setState(() => includeGenders = val),
-          ),
-          const Divider(height: 1),
-          ExpansionTile(
-            key: _formsExpansionKey,
-            controller: _expansionController,
-            initiallyExpanded:
-                includeMega || includeRegional || includeGMax || includeOther,
-            leading: const Icon(Icons.auto_awesome),
-            title: Text(Translator.get('include_forms')),
-            children: [
-              CheckboxListTile(
-                key: _regionalKey,
-                title: Text(Translator.get('form_regional')),
-                value: includeRegional,
-                activeColor: Colors.red,
-                enabled: (features['regional'] ?? false),
-                onChanged: (features['regional'] ?? false)
-                    ? (val) => setState(() => includeRegional = val ?? false)
-                    : null,
-              ),
-              CheckboxListTile(
-                key: _megaKey,
-                title: Text(Translator.get('form_mega')),
-                value: includeMega,
-                activeColor: Colors.red,
-                enabled:
-                    (features['mega'] ?? false) && selectedSubDex != 'mega_dex',
-                onChanged:
-                    (features['mega'] ?? false) && selectedSubDex != 'mega_dex'
-                    ? (val) => setState(() => includeMega = val ?? false)
-                    : null,
-              ),
-              CheckboxListTile(
-                key: _gmaxKey,
-                title: Text(Translator.get('form_gmax')),
-                value: includeGMax,
-                activeColor: Colors.red,
-                enabled: (features['gmax'] ?? false),
-                onChanged: (features['gmax'] ?? false)
-                    ? (val) => setState(() => includeGMax = val ?? false)
-                    : null,
-              ),
-              CheckboxListTile(
-                key: _otherKey,
-                title: Text(Translator.get('form_other')),
-                value: includeOther,
-                activeColor: Colors.red,
-                enabled:
-                    (features['other'] ?? false) &&
-                    selectedSubDex != 'icognito_dex',
-                onChanged:
-                    (features['other'] ?? false) &&
-                        selectedSubDex != 'icognito_dex'
-                    ? (val) => setState(() => includeOther = val ?? false)
-                    : null,
-              ),
-            ],
-          ),
+            const Divider(height: 1),
+            ExpansionTile(
+              key: _formsExpansionKey,
+              controller: _expansionController,
+              initiallyExpanded:
+                  includeMega || includeRegional || includeGMax || includeOther,
+              leading: const Icon(Icons.auto_awesome),
+              title: Text(Translator.get('include_forms')),
+              children: [
+                CheckboxListTile(
+                  key: _regionalKey,
+                  title: Text(Translator.get('form_regional')),
+                  value: includeRegional,
+                  activeColor: Colors.red,
+                  enabled: (features['regional'] ?? false),
+                  onChanged: (features['regional'] ?? false)
+                      ? (val) => setState(() => includeRegional = val ?? false)
+                      : null,
+                ),
+                CheckboxListTile(
+                  key: _megaKey,
+                  title: Text(Translator.get('form_mega')),
+                  value: includeMega,
+                  activeColor: Colors.red,
+                  enabled:
+                      (features['mega'] ?? false) && selectedSubDex != 'mega_dex',
+                  onChanged:
+                      (features['mega'] ?? false) && selectedSubDex != 'mega_dex'
+                      ? (val) => setState(() => includeMega = val ?? false)
+                      : null,
+                ),
+                CheckboxListTile(
+                  key: _gmaxKey,
+                  title: Text(Translator.get('form_gmax')),
+                  value: includeGMax,
+                  activeColor: Colors.red,
+                  enabled: (features['gmax'] ?? false),
+                  onChanged: (features['gmax'] ?? false)
+                      ? (val) => setState(() => includeGMax = val ?? false)
+                      : null,
+                ),
+                CheckboxListTile(
+                  key: _otherKey,
+                  title: Text(Translator.get('form_other')),
+                  value: includeOther,
+                  activeColor: Colors.red,
+                  enabled:
+                      (features['other'] ?? false) &&
+                      selectedSubDex != 'icognito_dex',
+                  onChanged:
+                      (features['other'] ?? false) &&
+                          selectedSubDex != 'icognito_dex'
+                      ? (val) => setState(() => includeOther = val ?? false)
+                      : null,
+                ),
+              ],
+            ),
+          ],
         ],
       ),
     );

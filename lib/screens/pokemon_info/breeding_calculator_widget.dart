@@ -4,6 +4,7 @@ import '../../l10n/app_translations.dart';
 import '../../utils/notification_helper.dart';
 import '../../utils/shiny_logic_helper.dart';
 import '../../utils/breeding_logic_helper.dart';
+import '../../models/user_dex.dart';
 import '../../providers/dex_provider.dart';
 import 'widgets/breeding_step_card.dart';
 import '../../services/database_service.dart';
@@ -105,6 +106,17 @@ class _BreedingCalculatorWidgetState extends State<BreedingCalculatorWidget> {
       final dexProvider = Provider.of<DexProvider>(context, listen: false);
       final liveDex = dexProvider.userDexes.firstWhere(
         (d) => d.id == widget.dexId,
+        orElse: () => UserDex(
+          id: widget.dexId,
+          title: '',
+          region: widget.dexId,
+          includeGenders: false,
+          includeRegional: false,
+          includeMega: false,
+          includeGMax: false,
+          includeOther: false,
+          isShinyDex: false,
+        ),
       );
 
       final preEvos = await DatabaseService.instance.getGen12PreEvolutions();

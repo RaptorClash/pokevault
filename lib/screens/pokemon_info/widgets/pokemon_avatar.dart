@@ -28,7 +28,8 @@ class PokemonAvatar extends StatelessWidget {
   Widget build(BuildContext context) {
     try {
       final provider = context.read<DexProvider>();
-      final p = provider.allPokemon.firstWhere((p) => p.id == id);
+      final p = provider.allPokemon.where((poke) => poke.id == id).firstOrNull;
+      if (p == null) return const SizedBox.shrink();
       bool showAsShiny = isShiny && !isCarrier;
 
       final String imgUrl =

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../models/dex_view_models.dart';
 import '../../../models/pokemon.dart';
+import '../../../models/user_dex.dart';
 import '../../../providers/dex_provider.dart';
 import '../../../l10n/app_translations.dart';
 import '../../../utils/notification_helper.dart';
@@ -20,6 +21,8 @@ import 'special_obtainable_card.dart';
 class PokemonInfoPage extends StatelessWidget {
   final DexDisplayEntry entry;
   final String dexId;
+  final String? selectionActionLabel;
+  final ValueChanged<String>? onSelectionAction;
   final bool? manualShinyToggle;
   final VoidCallback onShinyToggled;
   final VoidCallback onIgnore;
@@ -44,6 +47,8 @@ class PokemonInfoPage extends StatelessWidget {
     super.key,
     required this.entry,
     required this.dexId,
+    this.selectionActionLabel,
+    this.onSelectionAction,
     required this.manualShinyToggle,
     required this.onShinyToggled,
     required this.onIgnore,
@@ -68,7 +73,20 @@ class PokemonInfoPage extends StatelessWidget {
   Widget build(BuildContext context) {
     try {
       final provider = context.watch<DexProvider>();
-      final liveDex = provider.userDexes.firstWhere((d) => d.id == dexId);
+      final liveDex = provider.userDexes.firstWhere(
+        (d) => d.id == dexId,
+        orElse: () => UserDex(
+          id: dexId,
+          title: 'Dex',
+          region: dexId,
+          includeGenders: true,
+          includeRegional: true,
+          includeMega: true,
+          includeGMax: true,
+          includeOther: true,
+          isShinyDex: false,
+        ),
+      );
       final isCaught = liveDex.caughtIds.contains(entry.uniqueId);
       final isShiny = liveDex.shinyIds.contains(entry.uniqueId);
       final isAlpha = liveDex.alphaIds.contains(entry.uniqueId);
@@ -203,7 +221,25 @@ class PokemonInfoPage extends StatelessWidget {
             ),
 
             const SizedBox(height: 16),
-            IgnorePokemonButton(ignoreBtnKey: ignoreBtnKey, onIgnore: onIgnore),
+            if (selectionActionLabel != null && onSelectionAction != null)
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  icon: const Icon(Icons.add),
+                  label: Text(selectionActionLabel!),
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    backgroundColor: Theme.of(context).colorScheme.primary,
+                    foregroundColor: Theme.of(context).colorScheme.onPrimary,
+                  ),
+                  onPressed: () {
+                    final idToReturn = wantShiny ? 'shiny:${entry.uniqueId}' : entry.uniqueId;
+                    onSelectionAction!(idToReturn);
+                  },
+                ),
+              )
+            else
+              IgnorePokemonButton(ignoreBtnKey: ignoreBtnKey, onIgnore: onIgnore),
             const SizedBox(height: 32),
           ],
         ),

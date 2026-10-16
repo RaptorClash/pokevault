@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import '../../models/user_dex.dart';
 import '../../models/pokemon.dart';
 import '../../models/dex_view_models.dart';
@@ -18,10 +17,13 @@ import '../../utils/shiny_logic_helper.dart';
 import '../ignored_list/ignored_list_screen.dart';
 import 'dex_box_view.dart';
 import 'dex_list_view.dart';
+import 'pokemon_search_selection.dart';
 import 'route_tracker_screen.dart';
 import '../pokemon_info/pokemon_info_screen.dart';
 import '../../services/database_service.dart';
 import 'dex_sort_settings_screen.dart';
+import 'box_edit_screen.dart';
+import '../../utils/box_sequence_manager.dart';
 
 class DexScreen extends StatefulWidget {
   final UserDex initialDex;
@@ -49,6 +51,12 @@ class _DexScreenState extends State<DexScreen> {
 
   bool _isLoadingData = true;
   bool _isCalculatingBoxes = false;
+  bool _pendingRecalculate = false;
+  bool _isEditMode = false;
+  final Set<String> _selectedForEdit = {};
+  bool _isMoveTargetMode = false;
+  List<CustomBoxState>? _customBoxesSnapshot;
+  int _lastBoxIndex = 0;
   late int _lastIgnoredCount;
   List<DexDisplayEntry> _rawEntries = [];
   List<BoxData> _boxes = [];
@@ -66,12 +74,28 @@ class _DexScreenState extends State<DexScreen> {
 
   bool _showFakeMenu = false;
   String? _tutorialTargetId;
+  int _lastCustomBoxesCount = 0;
 
   @override
   void initState() {
     super.initState();
     _lastIgnoredCount = widget.initialDex.ignoredIds.length;
+    _lastCustomBoxesCount = widget.initialDex.customBoxes.fold(0, (sum, b) => sum + b.pokemonIds.length);
+    _pageController.addListener(() {
+      if (_pageController.hasClients && _pageController.page != null) {
+        _lastBoxIndex = _pageController.page!.round();
+      }
+    });
     _initializeDataAsync();
+  }
+
+  @override
+  void dispose() {
+    _debounce?.cancel();
+    _searchController.dispose();
+    _pageController.dispose();
+    _customBoxesSnapshot = null;
+    super.dispose();
   }
 
   Future<void> _initializeDataAsync() async {
@@ -96,6 +120,47 @@ class _DexScreenState extends State<DexScreen> {
       final baseList = _rawEntries
           .where((e) => !widget.initialDex.ignoredIds.contains(e.uniqueId))
           .toList();
+
+      if (widget.initialDex.customBoxes.isNotEmpty) {
+        bool migrated = false;
+        for (var box in widget.initialDex.customBoxes) {
+          for (int i = 0; i < box.pokemonIds.length; i++) {
+            String id = box.pokemonIds[i];
+            if (id.isNotEmpty && !DexLogicHelper.isPlaceholder(id)) {
+              String newId = id;
+              if (!id.contains('__')) {
+                newId = '${id}__${DateTime.now().millisecondsSinceEpoch}_${UniqueKey().hashCode}_$i';
+                box.pokemonIds[i] = newId;
+                migrated = true;
+              }
+              final baseId = DexLogicHelper.getBaseId(newId);
+              final prefix = '${baseId}__';
+              if (widget.initialDex.caughtIds.contains(baseId) &&
+                  !widget.initialDex.caughtIds.any((cid) => cid.startsWith(prefix))) {
+                widget.initialDex.caughtIds.add(newId);
+                DatabaseService.instance.savePokemonStatus(widget.initialDex.id, newId, isCaught: true);
+                migrated = true;
+              }
+              if (widget.initialDex.shinyIds.contains(baseId) &&
+                  !widget.initialDex.shinyIds.any((sid) => sid.startsWith(prefix))) {
+                widget.initialDex.shinyIds.add(newId);
+                DatabaseService.instance.savePokemonStatus(widget.initialDex.id, newId, isShiny: true);
+                migrated = true;
+              }
+              if (widget.initialDex.alphaIds.contains(baseId) &&
+                  !widget.initialDex.alphaIds.any((aid) => aid.startsWith(prefix))) {
+                widget.initialDex.alphaIds.add(newId);
+                DatabaseService.instance.savePokemonStatus(widget.initialDex.id, newId, isAlpha: true);
+                migrated = true;
+              }
+            }
+          }
+        }
+        if (migrated) {
+          DatabaseService.instance.saveUserDex(widget.initialDex);
+        }
+        DexLogicHelper.enforceAutoFlow(widget.initialDex);
+      }
 
       _boxes = await DexLogicHelper.generateBoxesInBackground(
         baseList,
@@ -126,7 +191,16 @@ class _DexScreenState extends State<DexScreen> {
   }
 
   Future<void> _recalculateBoxesAsync(UserDex liveDex) async {
-    if (!mounted || _isCalculatingBoxes) return;
+    if (!mounted) return;
+    if (_isCalculatingBoxes) {
+      _pendingRecalculate = true;
+      return;
+    }
+    
+    int savedPage = _pageController.hasClients
+        ? (_pageController.page?.round() ?? _lastBoxIndex)
+        : _lastBoxIndex;
+
     setState(() => _isCalculatingBoxes = true);
 
     try {
@@ -135,6 +209,47 @@ class _DexScreenState extends State<DexScreen> {
           .toList();
 
       final lang = context.read<SettingsProvider>().currentLanguage;
+
+      if (liveDex.customBoxes.isNotEmpty) {
+        bool migrated = false;
+        for (var box in liveDex.customBoxes) {
+          for (int i = 0; i < box.pokemonIds.length; i++) {
+            String id = box.pokemonIds[i];
+            if (id.isNotEmpty && !DexLogicHelper.isPlaceholder(id)) {
+              String newId = id;
+              if (!id.contains('__')) {
+                newId = '${id}__${DateTime.now().millisecondsSinceEpoch}_${UniqueKey().hashCode}_$i';
+                box.pokemonIds[i] = newId;
+                migrated = true;
+              }
+              final baseId = DexLogicHelper.getBaseId(newId);
+              final prefix = '${baseId}__';
+              if (liveDex.caughtIds.contains(baseId) &&
+                  !liveDex.caughtIds.any((cid) => cid.startsWith(prefix))) {
+                liveDex.caughtIds.add(newId);
+                DatabaseService.instance.savePokemonStatus(liveDex.id, newId, isCaught: true);
+                migrated = true;
+              }
+              if (liveDex.shinyIds.contains(baseId) &&
+                  !liveDex.shinyIds.any((sid) => sid.startsWith(prefix))) {
+                liveDex.shinyIds.add(newId);
+                DatabaseService.instance.savePokemonStatus(liveDex.id, newId, isShiny: true);
+                migrated = true;
+              }
+              if (liveDex.alphaIds.contains(baseId) &&
+                  !liveDex.alphaIds.any((aid) => aid.startsWith(prefix))) {
+                liveDex.alphaIds.add(newId);
+                DatabaseService.instance.savePokemonStatus(liveDex.id, newId, isAlpha: true);
+                migrated = true;
+              }
+            }
+          }
+        }
+        if (migrated && !_isEditMode) {
+          DatabaseService.instance.saveUserDex(liveDex);
+        }
+        DexLogicHelper.enforceAutoFlow(liveDex);
+      }
 
       final newBoxes = await DexLogicHelper.generateBoxesInBackground(
         baseList,
@@ -148,12 +263,295 @@ class _DexScreenState extends State<DexScreen> {
           _boxes = newBoxes;
           _isCalculatingBoxes = false;
         });
+
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted) return;
+          if (_pageController.hasClients && _boxes.isNotEmpty) {
+            int targetPage = savedPage;
+            if (targetPage >= _boxes.length) {
+              targetPage = _boxes.length - 1;
+            }
+            if (targetPage < 0) {
+              targetPage = 0;
+            }
+            if (_pageController.page?.round() != targetPage) {
+              _pageController.jumpToPage(targetPage);
+            }
+            _lastBoxIndex = targetPage;
+          }
+        });
       }
     } catch (e) {
       if (mounted) {
         NotificationHelper.showError('${Translator.get('error')} $e');
         setState(() => _isCalculatingBoxes = false);
       }
+    } finally {
+      if (mounted && _pendingRecalculate) {
+        _pendingRecalculate = false;
+        _recalculateBoxesAsync(liveDex);
+      }
+    }
+  }
+
+  Future<void> _handleSaveEditMode(UserDex liveDex) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(
+          Translator.get('edit_mode_save_title', fallback: 'Änderungen speichern?'),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: Text(Translator.get('cancel', fallback: 'Abbrechen')),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: Text(Translator.get('yes', fallback: 'Ja')),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && mounted) {
+      setState(() {
+        _isEditMode = false;
+        _selectedForEdit.clear();
+        _isMoveTargetMode = false;
+        _customBoxesSnapshot = null;
+      });
+      await DatabaseService.instance.saveUserDex(liveDex);
+      if (mounted) {
+        await _recalculateBoxesAsync(liveDex);
+      }
+    }
+  }
+
+  Future<void> _handleCancelEditMode(UserDex liveDex) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(
+          Translator.get(
+            'edit_mode_discard_title',
+            fallback: 'Möchtest du alle Änderungen verwerfen?',
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: Text(Translator.get('cancel', fallback: 'Abbrechen')),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+            ),
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: Text(Translator.get('discard', fallback: 'Verwerfen')),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && mounted) {
+      setState(() {
+        if (_customBoxesSnapshot != null) {
+          liveDex.customBoxes =
+              _customBoxesSnapshot!.map((b) => b.copyWith()).toList();
+        }
+        _customBoxesSnapshot = null;
+        _selectedForEdit.clear();
+        _isMoveTargetMode = false;
+        _isEditMode = false;
+      });
+      liveDex.caughtIds.removeWhere((id) =>
+          id.contains('__') &&
+          !liveDex.customBoxes.expand((b) => b.pokemonIds).contains(id));
+      liveDex.shinyIds.removeWhere((id) =>
+          id.contains('__') &&
+          !liveDex.customBoxes.expand((b) => b.pokemonIds).contains(id));
+      liveDex.alphaIds.removeWhere((id) =>
+          id.contains('__') &&
+          !liveDex.customBoxes.expand((b) => b.pokemonIds).contains(id));
+      await DatabaseService.instance.saveUserDex(liveDex);
+      if (mounted) {
+        await _recalculateBoxesAsync(liveDex);
+      }
+    }
+  }
+
+  void _ensureCustomBoxesInitialized(UserDex liveDex) {
+    if (liveDex.customBoxes.isNotEmpty) return;
+    int c = 0;
+    liveDex.customBoxes = _boxes.map((b) {
+      return CustomBoxState(
+        title: b.title,
+        pokemonIds: b.entries.map((e) {
+          if (e.uniqueId.isEmpty) return '';
+          if (e.uniqueId.contains('__')) return e.uniqueId;
+          final instanceId = '${e.uniqueId}__${DateTime.now().millisecondsSinceEpoch}_${c++}';
+          if (liveDex.caughtIds.contains(e.uniqueId) && !liveDex.caughtIds.contains(instanceId)) {
+            liveDex.caughtIds.add(instanceId);
+            DatabaseService.instance.savePokemonStatus(liveDex.id, instanceId, isCaught: true);
+          }
+          if (liveDex.shinyIds.contains(e.uniqueId) && !liveDex.shinyIds.contains(instanceId)) {
+            liveDex.shinyIds.add(instanceId);
+            DatabaseService.instance.savePokemonStatus(liveDex.id, instanceId, isShiny: true);
+          }
+          if (liveDex.alphaIds.contains(e.uniqueId) && !liveDex.alphaIds.contains(instanceId)) {
+            liveDex.alphaIds.add(instanceId);
+            DatabaseService.instance.savePokemonStatus(liveDex.id, instanceId, isAlpha: true);
+          }
+          return instanceId;
+        }).toList(),
+        regionKey: b.regionKey,
+      );
+    }).toList();
+  }
+
+  void _executeMoveMultipleToSlot(
+    UserDex liveDex,
+    List<String> sourceIds,
+    int targetBoxIndex,
+    int? targetSlotIndex,
+  ) {
+    if (sourceIds.isEmpty) return;
+
+    _ensureCustomBoxesInitialized(liveDex);
+
+    BoxSequenceManager.moveMultiplePokemon(
+      dex: liveDex,
+      sourceIds: sourceIds,
+      targetBoxIndex: targetBoxIndex,
+      targetSlotIndex: targetSlotIndex,
+    );
+
+    if (liveDex.customBoxes.isNotEmpty && liveDex.customBoxes.first.autoFlow) {
+      for (var b in liveDex.customBoxes) {
+        b.autoFlow = false;
+      }
+    }
+
+    if (!_isEditMode) {
+      DatabaseService.instance.saveUserDex(liveDex);
+    }
+
+    _selectedForEdit.clear();
+    _isMoveTargetMode = false;
+    _lastBoxIndex = targetBoxIndex;
+    if (_pageController.hasClients && targetBoxIndex < _boxes.length) {
+      _pageController.jumpToPage(targetBoxIndex);
+    }
+    _recalculateBoxesAsync(liveDex);
+  }
+
+  void _executeMoveSelectedToSlot(UserDex liveDex, int targetBoxIndex, int targetSlotIndex) {
+    if (_selectedForEdit.isEmpty) return;
+
+    final sortedKeys = _selectedForEdit.toList()
+      ..sort((a, b) {
+        final pA = a.split('_').map(int.parse).toList();
+        final pB = b.split('_').map(int.parse).toList();
+        if (pA[0] != pB[0]) return pA[0].compareTo(pB[0]);
+        return pA[1].compareTo(pB[1]);
+      });
+
+    final selectedIds = <String>[];
+    for (final key in sortedKeys) {
+      final parts = key.split('_').map(int.parse).toList();
+      final bIdx = parts[0];
+      final sIdx = parts[1];
+      if (bIdx < liveDex.customBoxes.length && sIdx < liveDex.customBoxes[bIdx].pokemonIds.length) {
+        final id = liveDex.customBoxes[bIdx].pokemonIds[sIdx];
+        if (id.isNotEmpty) {
+          selectedIds.add(id);
+        }
+      } else if (bIdx < _boxes.length && sIdx < _boxes[bIdx].entries.length) {
+        final id = _boxes[bIdx].entries[sIdx].uniqueId;
+        if (id.isNotEmpty) {
+          selectedIds.add(id);
+        }
+      }
+    }
+
+    _executeMoveMultipleToSlot(liveDex, selectedIds, targetBoxIndex, targetSlotIndex);
+  }
+
+  void _executeMoveSelectedToBox(UserDex liveDex, int targetBoxIndex) {
+    if (_selectedForEdit.isEmpty) return;
+
+    final sortedKeys = _selectedForEdit.toList()
+      ..sort((a, b) {
+        final pA = a.split('_').map(int.parse).toList();
+        final pB = b.split('_').map(int.parse).toList();
+        if (pA[0] != pB[0]) return pA[0].compareTo(pB[0]);
+        return pA[1].compareTo(pB[1]);
+      });
+
+    final selectedIds = <String>[];
+    for (final key in sortedKeys) {
+      final parts = key.split('_').map(int.parse).toList();
+      final bIdx = parts[0];
+      final sIdx = parts[1];
+      if (bIdx < liveDex.customBoxes.length && sIdx < liveDex.customBoxes[bIdx].pokemonIds.length) {
+        final id = liveDex.customBoxes[bIdx].pokemonIds[sIdx];
+        if (id.isNotEmpty) {
+          selectedIds.add(id);
+        }
+      } else if (bIdx < _boxes.length && sIdx < _boxes[bIdx].entries.length) {
+        final id = _boxes[bIdx].entries[sIdx].uniqueId;
+        if (id.isNotEmpty) {
+          selectedIds.add(id);
+        }
+      }
+    }
+
+    _executeMoveMultipleToSlot(liveDex, selectedIds, targetBoxIndex, null);
+  }
+
+  Future<void> _showMoveToBoxDialog(UserDex liveDex) async {
+    final boxCount = liveDex.customBoxes.isNotEmpty
+        ? liveDex.customBoxes.length
+        : _boxes.length;
+
+    final selectedBox = await showDialog<int>(
+      context: context,
+      builder: (ctx) {
+        return AlertDialog(
+          title: Text(Translator.get('select_target_box', fallback: 'Zielbox auswählen')),
+          content: SizedBox(
+            width: 320,
+            child: ListView.builder(
+              shrinkWrap: true,
+              itemCount: boxCount,
+              itemBuilder: (context, i) {
+                final title = liveDex.customBoxes.isNotEmpty
+                    ? liveDex.customBoxes[i].title
+                    : _boxes[i].title;
+                return ListTile(
+                  leading: const Icon(Icons.inbox),
+                  title: Text(title),
+                  onTap: () => Navigator.of(ctx).pop(i),
+                );
+              },
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(ctx).pop(null),
+              child: Text(Translator.get('cancel', fallback: 'Abbrechen')),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (selectedBox != null && mounted) {
+      setState(() {
+        _executeMoveSelectedToBox(liveDex, selectedBox);
+      });
     }
   }
 
@@ -384,14 +782,6 @@ class _DexScreenState extends State<DexScreen> {
     await _recalculateBoxesAsync(liveDex);
   }
 
-  @override
-  void dispose() {
-    _debounce?.cancel();
-    _pageController.dispose();
-    _searchController.dispose();
-    super.dispose();
-  }
-
   bool _matchesSearch(
     DexDisplayEntry entry,
     UserDex liveDex,
@@ -442,11 +832,11 @@ class _DexScreenState extends State<DexScreen> {
               match = true;
             }
           } else if (term == 'shiny') {
-            if (liveDex.shinyIds.contains(entry.uniqueId)) match = true;
+            if (DexLogicHelper.isPokemonShiny(liveDex, entry.uniqueId)) match = true;
           } else if (term == 'caught') {
-            if (liveDex.caughtIds.contains(entry.uniqueId)) match = true;
+            if (DexLogicHelper.isPokemonCaught(liveDex, entry.uniqueId)) match = true;
           } else if (term == 'uncaught' || term == 'missing') {
-            if (!liveDex.caughtIds.contains(entry.uniqueId)) match = true;
+            if (!DexLogicHelper.isPokemonCaught(liveDex, entry.uniqueId)) match = true;
           } else if (term == 'mega' || term == 'gmax') {
             if (entry.uniqueId.contains(term)) match = true;
           } else {
@@ -538,12 +928,7 @@ class _DexScreenState extends State<DexScreen> {
                 if (term.contains('*')) {
                   try {
                     String rStr =
-                        '^' +
-                        term
-                            .split('*')
-                            .map((s) => RegExp.escape(s))
-                            .join('.*') +
-                        '\$';
+                        '^${term.split('*').map((s) => RegExp.escape(s)).join('.*')}\$';
                     if (RegExp(rStr).hasMatch(searchableText)) {
                       match = true;
                     }
@@ -594,7 +979,7 @@ class _DexScreenState extends State<DexScreen> {
                 '1-151',
                 Translator.get(
                   'search_help_range',
-                  fallback: 'Zeigt Pokémon im ID-Bereich.',
+                  fallback: 'Zeigt PokÃ©mon im ID-Bereich.',
                 ),
               ),
               _helpItem(
@@ -629,7 +1014,7 @@ class _DexScreenState extends State<DexScreen> {
                 'shiny & kanto',
                 Translator.get(
                   'search_help_and',
-                  fallback: 'Mit "&" müssen beide Begriffe zutreffen.',
+                  fallback: 'Mit "&" mÃ¼ssen beide Begriffe zutreffen.',
                 ),
               ),
               _helpItem(
@@ -689,20 +1074,30 @@ class _DexScreenState extends State<DexScreen> {
       orElse: () => widget.initialDex,
     );
 
-    if (liveDex.ignoredIds.length != _lastIgnoredCount) {
+    int currentCustomBoxesCount = liveDex.customBoxes.fold(0, (sum, b) => sum + b.pokemonIds.length);
+    if (liveDex.ignoredIds.length != _lastIgnoredCount || currentCustomBoxesCount != _lastCustomBoxesCount) {
       _lastIgnoredCount = liveDex.ignoredIds.length;
+      _lastCustomBoxesCount = currentCustomBoxesCount;
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _recalculateBoxesAsync(liveDex);
       });
     }
 
-    final caughtCount = liveDex.caughtIds.length;
-    final baseList = _rawEntries
+    List<DexDisplayEntry> baseList = _rawEntries
         .where((e) => !liveDex.ignoredIds.contains(e.uniqueId))
         .toList();
+        
+    if (liveDex.customBoxes.isNotEmpty) {
+      baseList = _boxes
+          .expand((b) => b.entries)
+          .where((e) => e.uniqueId.isNotEmpty && !e.isPlaceholder)
+          .toList();
+    }
+
+    final caughtCount = baseList.where((e) => DexLogicHelper.isPokemonCaught(liveDex, e.uniqueId)).length;
 
     final filteredList = baseList.where((entry) {
-      final isCaught = liveDex.caughtIds.contains(entry.uniqueId);
+      final isCaught = DexLogicHelper.isPokemonCaught(liveDex, entry.uniqueId);
       if (_filter == 'caught' && !isCaught) return false;
       if (_filter == 'uncaught' && isCaught) return false;
 
@@ -838,158 +1233,591 @@ class _DexScreenState extends State<DexScreen> {
           ),
         ),
         Expanded(
-          child: _isCalculatingBoxes
-              ? const Center(child: CircularProgressIndicator())
-              : (_isBoxView
-                    ? DexBoxView(
-                        firstItemKey: _firstPokemonKey,
-                        tutorialTargetId: _tutorialTargetId,
-                        boxes: _boxes,
-                        liveDex: liveDex,
-                        provider: provider,
-                        pageController: _pageController,
-                        separateForms: _separateForms,
-                        highlightedIds: highlightedIds,
-                        isSearchActive: isSearchActive,
-                      )
-                    : DexListView(
-                        firstItemKey: _firstPokemonKey,
-                        tutorialTargetId: _tutorialTargetId,
-                        displayList: filteredList,
-                        liveDex: liveDex,
-                        provider: provider,
-                      )),
+          child: Stack(
+            children: [
+              _isBoxView
+                  ? DexBoxView(
+                      firstItemKey: _firstPokemonKey,
+                      tutorialTargetId: _tutorialTargetId,
+                      boxes: _boxes,
+                      liveDex: liveDex,
+                      provider: provider,
+                      pageController: _pageController,
+                      separateForms: _separateForms,
+                      highlightedIds: highlightedIds,
+                      isSearchActive: isSearchActive,
+                      isEditMode: _isEditMode,
+                      selectedForEdit: _selectedForEdit,
+                      onSelectionChanged: (boxIndex, itemIndex) {
+                        if (_isMoveTargetMode) {
+                          setState(() {
+                            _executeMoveSelectedToSlot(liveDex, boxIndex, itemIndex);
+                          });
+                          return;
+                        }
+                        setState(() {
+                          final key = '${boxIndex}_$itemIndex';
+                          if (_selectedForEdit.contains(key)) {
+                            _selectedForEdit.remove(key);
+                          } else {
+                            _selectedForEdit.add(key);
+                          }
+                        });
+                      },
+                      onInsertPokemon: (boxIndex, insertIndex) async {
+                        if (_isEditMode && _selectedForEdit.isNotEmpty) {
+                          setState(() {
+                            _executeMoveSelectedToSlot(liveDex, boxIndex, insertIndex);
+                          });
+                          return;
+                        }
+                        final selectedId = await Navigator.of(context).push<String>(
+                          MaterialPageRoute(
+                            builder: (ctx) => PokemonSearchSelectionScreen(
+                              allAvailableEntries: _rawEntries,
+                              dexId: liveDex.id,
+                              initialShiny: liveDex.isShinyDex,
+                            ),
+                          ),
+                        );
+                        if (selectedId != null && selectedId.isNotEmpty && mounted) {
+                          setState(() {
+                            _ensureCustomBoxesInitialized(liveDex);
+
+                            if (selectedId == 'placeholder') {
+                              final instanceId =
+                                  'placeholder__${DateTime.now().millisecondsSinceEpoch}_${UniqueKey().hashCode}';
+
+                              if (boxIndex < liveDex.customBoxes.length) {
+                                final box = liveDex.customBoxes[boxIndex];
+                                if (insertIndex < box.pokemonIds.length &&
+                                    (DexLogicHelper.isPlaceholder(box.pokemonIds[insertIndex]) ||
+                                     box.pokemonIds[insertIndex].isEmpty)) {
+                                  box.pokemonIds[insertIndex] = instanceId;
+                                } else {
+                                  BoxSequenceManager.insertWithShiftAndOverflow(
+                                    dex: liveDex,
+                                    boxIndex: boxIndex,
+                                    slotIndex: insertIndex,
+                                    pokemonId: instanceId,
+                                  );
+                                }
+                              }
+
+                              if (!_isEditMode) {
+                                DatabaseService.instance.saveUserDex(liveDex);
+                              }
+                            } else {
+                              final isShinySelection = selectedId.startsWith('shiny:');
+                              final cleanSelectedId = isShinySelection ? selectedId.substring(6) : selectedId;
+                              DexLogicHelper.ensurePrimaryInstancePersisted(liveDex, cleanSelectedId);
+                              final instanceId = '${cleanSelectedId}__${DateTime.now().millisecondsSinceEpoch}_${UniqueKey().hashCode}';
+
+                              if (boxIndex < liveDex.customBoxes.length) {
+                                final box = liveDex.customBoxes[boxIndex];
+                                if (insertIndex < box.pokemonIds.length &&
+                                    (DexLogicHelper.isPlaceholder(box.pokemonIds[insertIndex]) ||
+                                     box.pokemonIds[insertIndex].isEmpty)) {
+                                  box.pokemonIds[insertIndex] = instanceId;
+                                } else {
+                                  BoxSequenceManager.insertWithShiftAndOverflow(
+                                    dex: liveDex,
+                                    boxIndex: boxIndex,
+                                    slotIndex: insertIndex,
+                                    pokemonId: instanceId,
+                                  );
+                                }
+                              }
+
+                              if (isShinySelection && !liveDex.shinyIds.contains(instanceId)) {
+                                liveDex.shinyIds.add(instanceId);
+                                DatabaseService.instance.savePokemonStatus(liveDex.id, instanceId, isShiny: true);
+                              } else if (!isShinySelection && liveDex.shinyIds.contains(instanceId)) {
+                                liveDex.shinyIds.remove(instanceId);
+                                DatabaseService.instance.savePokemonStatus(liveDex.id, instanceId, isShiny: false);
+                              }
+                              if (!_isEditMode) {
+                                DatabaseService.instance.saveUserDex(liveDex);
+                              }
+                            }
+                          });
+                          _recalculateBoxesAsync(liveDex);
+                        }
+                      },
+                      onMovePokemon: (sourceId, targetBox, targetIndex) {
+                        setState(() {
+                          _ensureCustomBoxesInitialized(liveDex);
+
+                          BoxSequenceManager.movePokemon(
+                            dex: liveDex,
+                            sourceId: sourceId,
+                            targetBoxIndex: targetBox,
+                            targetSlotIndex: targetIndex,
+                          );
+
+                          if (liveDex.customBoxes.isNotEmpty && liveDex.customBoxes.first.autoFlow) {
+                            for (var b in liveDex.customBoxes) {
+                              b.autoFlow = false;
+                            }
+                          }
+
+                          if (!_isEditMode) {
+                            DatabaseService.instance.saveUserDex(liveDex);
+                          } else if (_selectedForEdit.isNotEmpty) {
+                            _selectedForEdit.clear();
+                          }
+                        });
+                        _recalculateBoxesAsync(liveDex);
+                      },
+                      onSwapPokemon: (sourceId, targetBox, targetIndex) {
+                        setState(() {
+                          _ensureCustomBoxesInitialized(liveDex);
+
+                          BoxSequenceManager.swapPokemon(
+                            dex: liveDex,
+                            sourceId: sourceId,
+                            targetBoxIndex: targetBox,
+                            targetSlotIndex: targetIndex,
+                          );
+
+                          if (liveDex.customBoxes.isNotEmpty && liveDex.customBoxes.first.autoFlow) {
+                            for (var b in liveDex.customBoxes) {
+                              b.autoFlow = false;
+                            }
+                          }
+
+                          if (!_isEditMode) {
+                            DatabaseService.instance.saveUserDex(liveDex);
+                          } else if (_selectedForEdit.isNotEmpty) {
+                            _selectedForEdit.clear();
+                          }
+                        });
+                        _recalculateBoxesAsync(liveDex);
+                      },
+                      onMoveMultiplePokemon: (sourceIds, targetBox, targetIndex) {
+                        setState(() {
+                          _executeMoveMultipleToSlot(liveDex, sourceIds, targetBox, targetIndex);
+                        });
+                      },
+                    )
+                  : DexListView(
+                      firstItemKey: _firstPokemonKey,
+                      tutorialTargetId: _tutorialTargetId,
+                      displayList: filteredList,
+                      liveDex: liveDex,
+                      provider: provider,
+                    ),
+              if (_isCalculatingBoxes)
+                const Positioned(
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  child: LinearProgressIndicator(minHeight: 2),
+                ),
+              if (_isEditMode && _selectedForEdit.isNotEmpty)
+                Positioned(
+                  left: 16,
+                  right: 16,
+                  bottom: 16,
+                  child: Material(
+                    elevation: 6,
+                    borderRadius: BorderRadius.circular(16),
+                    color: Theme.of(context).cardColor,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: Theme.of(context).colorScheme.primary.withAlpha(80),
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  '${_selectedForEdit.length} Pokémon ${Translator.get('selected', fallback: 'ausgewählt')}',
+                                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                                ),
+                                if (_isMoveTargetMode)
+                                  Text(
+                                    Translator.get('tap_target_slot', fallback: 'Tippe auf Ziel-Slot...'),
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      color: Theme.of(context).colorScheme.primary,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                              ],
+                            ),
+                          ),
+                          IconButton(
+                            icon: Icon(
+                              _isMoveTargetMode ? Icons.check_circle : Icons.open_with,
+                              color: _isMoveTargetMode ? Theme.of(context).colorScheme.primary : null,
+                            ),
+                            tooltip: Translator.get('move_selected_block', fallback: 'Hierhin verschieben'),
+                            onPressed: () {
+                              setState(() {
+                                _isMoveTargetMode = !_isMoveTargetMode;
+                              });
+                            },
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.drive_file_move_outlined),
+                            tooltip: Translator.get('move_selected_to_box', fallback: 'In Box verschieben...'),
+                            onPressed: () => _showMoveToBoxDialog(liveDex),
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.delete_outline),
+                            tooltip: Translator.get('box_edit_remove_selected', fallback: 'Löschen'),
+                            onPressed: () {
+                              setState(() {
+                                _ensureCustomBoxesInitialized(liveDex);
+
+                                BoxSequenceManager.batchRemoveWithShiftBack(
+                                  dex: liveDex,
+                                  selectedKeys: _selectedForEdit.toList(),
+                                );
+
+                                if (!_isEditMode) {
+                                  DatabaseService.instance.saveUserDex(liveDex);
+                                }
+                                _selectedForEdit.clear();
+                                _isMoveTargetMode = false;
+                              });
+                              _recalculateBoxesAsync(liveDex);
+                            },
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.close),
+                            tooltip: Translator.get('cancel_selection', fallback: 'Auswahl aufheben'),
+                            onPressed: () {
+                              setState(() {
+                                _selectedForEdit.clear();
+                                _isMoveTargetMode = false;
+                              });
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          ),
         ),
       ],
     );
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(liveDex.title, style: const TextStyle(fontSize: 18)),
-            Text(
-              '$caughtCount / $totalCount ${Translator.get('caught')}',
-              style: const TextStyle(fontSize: 12),
-            ),
-          ],
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.location_on),
-            tooltip: Translator.get('route_tracker'),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => RouteTrackerScreen(
-                    liveDex: liveDex,
-                    displayEntries: _rawEntries,
-                  ),
-                ),
-              );
-            },
-          ),
-          PopupMenuButton<String>(
-            key: _sortMenuKey,
-            icon: const Icon(Icons.sort),
-            tooltip: Translator.get('tooltip_view_sort'),
-            onSelected: (value) {
-              if (value == 'toggle_view') _toggleBoxView();
-              if (value == 'toggle_sort') _toggleSeparateForms();
-              if (value == 'advanced_sort') {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => DexSortSettingsScreen(dex: liveDex),
-                  ),
-                ).then((_) {
-                  _recalculateBoxesAsync(liveDex);
-                });
-              }
-              if (value == 'ignored_list') {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => IgnoredListScreen(
-                      dexId: liveDex.id,
-                      allRawEntries: _rawEntries,
-                    ),
-                  ),
-                );
-              }
-            },
-            itemBuilder: (context) => [
-              PopupMenuItem(
-                value: 'toggle_view',
-                child: Row(
-                  children: [
-                    Icon(_isBoxView ? Icons.list : Icons.grid_view, size: 20),
-                    const SizedBox(width: 8),
-                    Text(
-                      _isBoxView
-                          ? Translator.get('view_list')
-                          : Translator.get('view_box'),
-                    ),
-                  ],
-                ),
+    return PopScope(
+      canPop: !_isEditMode,
+      onPopInvokedWithResult: (bool didPop, dynamic result) async {
+        if (didPop) return;
+        if (_isEditMode) {
+          await _handleCancelEditMode(liveDex);
+        }
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          leading: _isEditMode
+              ? IconButton(
+                  icon: const BackButtonIcon(),
+                  tooltip: MaterialLocalizations.of(context).backButtonTooltip,
+                  onPressed: () => _handleCancelEditMode(liveDex),
+                )
+              : null,
+          title: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                liveDex.title,
+                style: const TextStyle(fontSize: 18),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
-              PopupMenuItem(
-                value: 'toggle_sort',
-                child: Row(
-                  children: [
-                    Icon(
-                      _separateForms
-                          ? Icons.format_list_numbered
-                          : Icons.category,
-                      size: 20,
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      _separateForms
-                          ? Translator.get('sort_dex')
-                          : Translator.get('sort_forms'),
-                    ),
-                  ],
-                ),
-              ),
-              const PopupMenuDivider(),
-              PopupMenuItem(
-                value: 'advanced_sort',
-                child: Row(
-                  children: [
-                    const Icon(Icons.tune, size: 20),
-                    const SizedBox(width: 8),
-                    Text(
-                      Translator.get(
-                        'advanced_sort_title',
-                        fallback: 'Erweiterte Sortierung',
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const PopupMenuDivider(),
-              PopupMenuItem(
-                value: 'ignored_list',
-                child: Row(
-                  children: [
-                    const Icon(Icons.visibility_off, size: 20),
-                    const SizedBox(width: 8),
-                    Text(
-                      Translator.get(
-                        'ignored_list_title',
-                        fallback: 'Ausgeblendete Pokemon',
-                      ),
-                    ),
-                  ],
-                ),
+              Text(
+                '$caughtCount / $totalCount ${Translator.get('caught')}',
+                style: const TextStyle(fontSize: 12),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
             ],
           ),
-        ],
-      ),
+          actions: [
+            if (_isEditMode && _selectedForEdit.isNotEmpty)
+              IconButton(
+                icon: const Icon(Icons.delete),
+                tooltip: Translator.get('box_edit_remove_selected'),
+                onPressed: () {
+                  setState(() {
+                    _ensureCustomBoxesInitialized(liveDex);
+
+                    BoxSequenceManager.batchRemoveWithShiftBack(
+                      dex: liveDex,
+                      selectedKeys: _selectedForEdit.toList(),
+                    );
+
+                    if (!_isEditMode) {
+                      DatabaseService.instance.saveUserDex(liveDex);
+                    }
+                    _selectedForEdit.clear();
+                  });
+                  _recalculateBoxesAsync(liveDex);
+                },
+              ),
+            if (_isEditMode)
+              IconButton(
+                icon: const Icon(Icons.add),
+                tooltip: Translator.get('add_pokemon', fallback: 'Hinzufügen'),
+                onPressed: () async {
+                  final targetBoxIndex = _pageController.hasClients
+                      ? (_pageController.page?.round() ?? _lastBoxIndex)
+                      : _lastBoxIndex;
+
+                  final selectedId = await Navigator.of(context).push<String>(
+                    MaterialPageRoute(
+                      builder: (ctx) => PokemonSearchSelectionScreen(
+                        allAvailableEntries: _rawEntries,
+                        dexId: liveDex.id,
+                        initialShiny: liveDex.isShinyDex,
+                      ),
+                    ),
+                  );
+                  if (selectedId != null && selectedId.isNotEmpty && mounted) {
+                    setState(() {
+                      int currentBoxIndex = targetBoxIndex;
+                      _ensureCustomBoxesInitialized(liveDex);
+
+                      if (currentBoxIndex < liveDex.customBoxes.length) {
+                        final box = liveDex.customBoxes[currentBoxIndex];
+                        int targetSlot = box.pokemonIds.indexOf("");
+                        if (targetSlot == -1) {
+                          targetSlot = box.pokemonIds.length;
+                        }
+
+                        if (selectedId == 'placeholder') {
+                          final instanceId =
+                              'placeholder__${DateTime.now().millisecondsSinceEpoch}_${UniqueKey().hashCode}';
+
+                          if (targetSlot < box.pokemonIds.length && box.pokemonIds[targetSlot].isEmpty) {
+                            box.pokemonIds[targetSlot] = instanceId;
+                          } else {
+                            BoxSequenceManager.insertWithShiftAndOverflow(
+                              dex: liveDex,
+                              boxIndex: currentBoxIndex,
+                              slotIndex: targetSlot,
+                              pokemonId: instanceId,
+                            );
+                          }
+
+                          if (!_isEditMode) {
+                            DatabaseService.instance.saveUserDex(liveDex);
+                          }
+                        } else {
+                          final isShinySelection = selectedId.startsWith('shiny:');
+                          final cleanSelectedId = isShinySelection ? selectedId.substring(6) : selectedId;
+                          DexLogicHelper.ensurePrimaryInstancePersisted(liveDex, cleanSelectedId);
+                          final instanceId =
+                              '${cleanSelectedId}__${DateTime.now().millisecondsSinceEpoch}_${UniqueKey().hashCode}';
+
+                          if (targetSlot < box.pokemonIds.length && box.pokemonIds[targetSlot].isEmpty) {
+                            box.pokemonIds[targetSlot] = instanceId;
+                          } else {
+                            BoxSequenceManager.insertWithShiftAndOverflow(
+                              dex: liveDex,
+                              boxIndex: currentBoxIndex,
+                              slotIndex: targetSlot,
+                              pokemonId: instanceId,
+                            );
+                          }
+
+                          if (isShinySelection && !liveDex.shinyIds.contains(instanceId)) {
+                            liveDex.shinyIds.add(instanceId);
+                            DatabaseService.instance.savePokemonStatus(liveDex.id, instanceId, isShiny: true);
+                          } else if (!isShinySelection && liveDex.shinyIds.contains(instanceId)) {
+                            liveDex.shinyIds.remove(instanceId);
+                            DatabaseService.instance.savePokemonStatus(liveDex.id, instanceId, isShiny: false);
+                          }
+
+                          if (!_isEditMode) {
+                            DatabaseService.instance.saveUserDex(liveDex);
+                          }
+                        }
+                      }
+                    });
+                    _recalculateBoxesAsync(liveDex);
+                  }
+                },
+              ),
+            if (!_isEditMode)
+              IconButton(
+                icon: const Icon(Icons.checklist),
+                tooltip: Translator.get('box_edit_manage_content'),
+                onPressed: () {
+                  setState(() {
+                    if (liveDex.customBoxes.isEmpty) {
+                      _ensureCustomBoxesInitialized(liveDex);
+                      DatabaseService.instance.saveUserDex(liveDex);
+                    }
+                    _customBoxesSnapshot =
+                        liveDex.customBoxes.map((b) => b.copyWith()).toList();
+                    _isEditMode = true;
+                    _isBoxView = true;
+                  });
+                },
+              ),
+            IconButton(
+              icon: const Icon(Icons.edit_note),
+              tooltip: Translator.get('box_edit_title'),
+              onPressed: () async {
+                await Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) =>
+                        BoxEditScreen(dex: liveDex, initialBoxes: _boxes),
+                  ),
+                );
+                // Neu berechnen, falls Boxen verschoben/gelöscht/umbenannt wurden
+                if (mounted) {
+                  setState(() {});
+                  _recalculateBoxesAsync(liveDex);
+                }
+              },
+            ),
+            IconButton(
+              icon: const Icon(Icons.location_on),
+              tooltip: Translator.get('route_tracker'),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => RouteTrackerScreen(
+                      liveDex: liveDex,
+                      displayEntries: _rawEntries,
+                    ),
+                  ),
+                );
+              },
+            ),
+            PopupMenuButton<String>(
+              key: _sortMenuKey,
+              icon: const Icon(Icons.sort),
+              tooltip: Translator.get('tooltip_view_sort'),
+              onSelected: (value) {
+                if (value == 'toggle_view') _toggleBoxView();
+                if (value == 'toggle_sort') _toggleSeparateForms();
+                if (value == 'advanced_sort') {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) =>
+                          DexSortSettingsScreen(dex: liveDex),
+                    ),
+                  ).then((_) {
+                    _recalculateBoxesAsync(liveDex);
+                  });
+                }
+                if (value == 'ignored_list') {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => IgnoredListScreen(
+                        dexId: liveDex.id,
+                        allRawEntries: _rawEntries,
+                      ),
+                    ),
+                  );
+                }
+              },
+              itemBuilder: (context) => [
+                PopupMenuItem(
+                  value: 'toggle_view',
+                  child: Row(
+                    children: [
+                      Icon(
+                        _isBoxView ? Icons.list : Icons.grid_view,
+                        size: 20,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        _isBoxView
+                            ? Translator.get('view_list')
+                            : Translator.get('view_box'),
+                      ),
+                    ],
+                  ),
+                ),
+                PopupMenuItem(
+                  value: 'toggle_sort',
+                  child: Row(
+                    children: [
+                      Icon(
+                        _separateForms
+                            ? Icons.format_list_numbered
+                            : Icons.category,
+                        size: 20,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        _separateForms
+                            ? Translator.get('sort_dex')
+                            : Translator.get('sort_forms'),
+                      ),
+                    ],
+                  ),
+                ),
+                const PopupMenuDivider(),
+                PopupMenuItem(
+                  value: 'advanced_sort',
+                  child: Row(
+                    children: [
+                      const Icon(Icons.tune, size: 20),
+                      const SizedBox(width: 8),
+                      Text(
+                        Translator.get(
+                          'advanced_sort_title',
+                          fallback: 'Erweiterte Sortierung',
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const PopupMenuDivider(),
+                PopupMenuItem(
+                  value: 'ignored_list',
+                  child: Row(
+                    children: [
+                      const Icon(Icons.visibility_off, size: 20),
+                      const SizedBox(width: 8),
+                      Text(
+                        Translator.get(
+                          'ignored_list_title',
+                          fallback: 'Ausgeblendete Pokemon',
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            if (_isEditMode) ...[
+              IconButton(
+                icon: const Icon(Icons.close),
+                tooltip: Translator.get('cancel', fallback: 'Abbrechen'),
+                onPressed: () => _handleCancelEditMode(liveDex),
+              ),
+              IconButton(
+                icon: const Icon(Icons.check),
+                tooltip: Translator.get('save', fallback: 'Speichern'),
+                onPressed: () => _handleSaveEditMode(liveDex),
+              ),
+            ],
+          ],
+        ),
       body: Stack(
         children: [
           bodyContent,
@@ -1128,6 +1956,12 @@ class _DexScreenState extends State<DexScreen> {
             ),
         ],
       ),
-    );
-  }
+    ),
+  );
 }
+}
+
+
+
+
+

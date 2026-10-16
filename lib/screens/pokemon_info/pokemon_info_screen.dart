@@ -1,14 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../models/dex_view_models.dart';
+import '../../models/user_dex.dart';
 import '../../providers/dex_provider.dart';
 import '../../providers/tutorial_provider.dart';
 import '../../models/tutorial_step.dart';
 import '../../widgets/tutorial/tutorial_overlay.dart';
 import '../../l10n/app_translations.dart';
+import '../../services/database_service.dart';
 import 'utils/pokemon_info_keys.dart';
 import 'dialogs/ignore_pokemon_dialog.dart';
 import 'widgets/pokemon_info_page.dart';
+import '../../utils/box_sequence_manager.dart';
 
 class PokemonInfoScreen extends StatefulWidget {
   final List<DexDisplayEntry> entries;
@@ -17,6 +20,9 @@ class PokemonInfoScreen extends StatefulWidget {
   final List<BoxData>? boxes;
   final bool isBoxView;
   final ValueChanged<int>? onPageChanged;
+  final String? selectionActionLabel;
+  final ValueChanged<String>? onSelectionAction;
+  final bool? initialShiny;
 
   const PokemonInfoScreen({
     super.key,
@@ -26,6 +32,9 @@ class PokemonInfoScreen extends StatefulWidget {
     this.boxes,
     this.isBoxView = false,
     this.onPageChanged,
+    this.selectionActionLabel,
+    this.onSelectionAction,
+    this.initialShiny,
   });
 
   @override
@@ -43,6 +52,7 @@ class _PokemonInfoScreenState extends State<PokemonInfoScreen> {
   void initState() {
     super.initState();
     _currentIndex = widget.initialIndex;
+    _manualShinyToggle = widget.initialShiny;
     _pageController = PageController(initialPage: widget.initialIndex);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -253,7 +263,7 @@ class _PokemonInfoScreenState extends State<PokemonInfoScreen> {
         onPageChanged: (index) {
           setState(() {
             _currentIndex = index;
-            _manualShinyToggle = null;
+            _manualShinyToggle = widget.initialShiny;
           });
           if (widget.onPageChanged != null) widget.onPageChanged!(index);
         },
@@ -265,16 +275,113 @@ class _PokemonInfoScreenState extends State<PokemonInfoScreen> {
           return PokemonInfoPage(
             entry: entry,
             dexId: widget.dexId,
+            selectionActionLabel: widget.selectionActionLabel,
+            onSelectionAction: widget.onSelectionAction,
             manualShinyToggle: _manualShinyToggle,
             onShinyToggled: () => setState(
               () => _manualShinyToggle = !(_manualShinyToggle ?? false),
             ),
-            onIgnore: () => IgnorePokemonDialog.show(
-              context,
-              provider: context.read<DexProvider>(),
-              entry: entry,
-              dexId: widget.dexId,
-            ),
+            onIgnore: () {
+              bool isCustomBoxes = false;
+              int? bIndex;
+              int? iIndex;
+              
+              final provider = context.read<DexProvider>();
+              final liveDex = provider.userDexes.firstWhere(
+                (d) => d.id == widget.dexId,
+                orElse: () => UserDex(
+                  id: widget.dexId,
+                  title: 'Dex',
+                  region: widget.dexId,
+                  includeGenders: true,
+                  includeRegional: true,
+                  includeMega: true,
+                  includeGMax: true,
+                  includeOther: true,
+                  isShinyDex: false,
+                ),
+              );
+              
+              if (widget.isBoxView && widget.boxes != null && liveDex.customBoxes.isNotEmpty) {
+                 isCustomBoxes = true;
+                 int count = 0;
+                 for (int b = 0; b < widget.boxes!.length; b++) {
+                   final box = widget.boxes![b];
+                   if (_currentIndex < count + box.entries.length) {
+                     bIndex = b;
+                     iIndex = _currentIndex - count;
+                     break;
+                   }
+                   count += box.entries.length;
+                 }
+              }
+
+              if (isCustomBoxes && bIndex != null && iIndex != null) {
+                int targetBoxIndex = bIndex;
+                int targetSlotIndex = iIndex;
+
+                // Verify exact slot matching entry.uniqueId (handles filtered search lists)
+                if (targetBoxIndex >= liveDex.customBoxes.length ||
+                    targetSlotIndex >= liveDex.customBoxes[targetBoxIndex].pokemonIds.length ||
+                    liveDex.customBoxes[targetBoxIndex].pokemonIds[targetSlotIndex] != entry.uniqueId) {
+                  for (int b = 0; b < liveDex.customBoxes.length; b++) {
+                    final s = liveDex.customBoxes[b].pokemonIds.indexOf(entry.uniqueId);
+                    if (s != -1) {
+                      targetBoxIndex = b;
+                      targetSlotIndex = s;
+                      break;
+                    }
+                  }
+                }
+
+                showDialog(
+                  context: context,
+                  builder: (ctx) => AlertDialog(
+                    title: Text(Translator.get('remove_from_box_title', fallback: 'Pokémon entfernen')),
+                    content: Text(Translator.get('remove_from_box_desc', fallback: 'Möchtest du dieses Pokémon nur aus dieser Box entfernen oder komplett aus dem Pokédex ausblenden?')),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(ctx),
+                        child: Text(Translator.get('cancel')),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          if (targetBoxIndex < liveDex.customBoxes.length &&
+                              targetSlotIndex < liveDex.customBoxes[targetBoxIndex].pokemonIds.length) {
+                            BoxSequenceManager.removeWithShiftBack(
+                              dex: liveDex,
+                              boxIndex: targetBoxIndex,
+                              slotIndex: targetSlotIndex,
+                            );
+                            DatabaseService.instance.saveUserDex(liveDex);
+                            provider.forceRefresh();
+                          }
+                          Navigator.pop(ctx);
+                          Navigator.pop(context);
+                        },
+                        child: Text(Translator.get('remove_from_box_only', fallback: 'Nur aus Box')),
+                      ),
+                      TextButton(
+                        style: TextButton.styleFrom(foregroundColor: Theme.of(context).colorScheme.error),
+                        onPressed: () {
+                          provider.ignorePokemon(widget.dexId, entry.uniqueId);
+                          Navigator.pop(ctx);
+                          Navigator.pop(context);
+                        },
+                        child: Text(Translator.get('ignore_pokemon', fallback: 'Komplett ausblenden')),
+                      ),
+                    ],
+                  ),
+                );
+              } else {
+                IgnorePokemonDialog.show(
+                  context,
+                  provider: provider,
+                  entry: entry,
+                  dexId: widget.dexId,
+                );
+              }
+            },
             shinyToggleKey: _keys.get(_keys.shinyToggle, id),
             alphaToggleKey: _keys.get(_keys.alphaToggle, id),
             basicInfoKey: _keys.get(_keys.basicInfo, id),

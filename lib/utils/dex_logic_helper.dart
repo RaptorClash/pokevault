@@ -32,6 +32,33 @@ class GenerateBoxesArgs {
   );
 }
 
+class _ParsedBoxName {
+  final String prefix;
+  final int? index;
+  final String? suffix;
+  
+  _ParsedBoxName(this.prefix, this.index, this.suffix);
+  
+  String get groupKey {
+    if (suffix != null && !RegExp(r'^\(\s*\d+\s*-\s*\d+\s*\)$').hasMatch(suffix!)) {
+      return '$prefix $suffix'.trim();
+    }
+    return prefix.trim();
+  }
+}
+
+_ParsedBoxName _parseBoxName(String title) {
+  final reg = RegExp(r'^(.*?)(?:\s+(\d+))?(?:\s*(\(.*?\)))?$');
+  final match = reg.firstMatch(title);
+  if (match != null) {
+    String prefix = match.group(1)?.trim() ?? title;
+    int? index = match.group(2) != null ? int.tryParse(match.group(2)!) : null;
+    String? suffix = match.group(3)?.trim();
+    return _ParsedBoxName(prefix, index, suffix);
+  }
+  return _ParsedBoxName(title, null, null);
+}
+
 class DexLogicHelper {
   static final List<int> _useHomeSpritesIds = [
     201,
@@ -115,6 +142,104 @@ class DexLogicHelper {
       args.pokemonList,
       args.specialObtainables,
     );
+  }
+
+  static void enforceAutoFlow(UserDex dex) {
+    if (dex.customBoxes.isEmpty) return;
+    
+    // Check if autoFlow is enabled globally (stored in first box)
+    bool isAutoFlow = dex.customBoxes.first.autoFlow;
+    if (!isAutoFlow) return;
+
+    Map<String, List<CustomBoxState>> groups = {};
+    for (var box in dex.customBoxes) {
+      final parsed = _parseBoxName(box.title);
+      groups.putIfAbsent(parsed.groupKey, () => []).add(box);
+    }
+    
+    List<CustomBoxState> newBoxes = [];
+    Set<String> processedGroups = {};
+    
+    for (var originalBox in dex.customBoxes) {
+      final parsed = _parseBoxName(originalBox.title);
+      final key = parsed.groupKey;
+      
+      if (processedGroups.contains(key)) continue;
+      processedGroups.add(key);
+      
+      List<CustomBoxState> groupBoxes = groups[key]!;
+      List<String> allIds = [];
+      for (var b in groupBoxes) {
+        allIds.addAll(b.pokemonIds.where((id) => id.isNotEmpty));
+      }
+      
+      bool usesRange = false;
+      bool originallyHadIndex = false;
+      if (groupBoxes.isNotEmpty) {
+        final firstParsed = _parseBoxName(groupBoxes.first.title);
+        if (firstParsed.suffix != null && RegExp(r'^\(\s*\d+\s*-\s*\d+\s*\)$').hasMatch(firstParsed.suffix!)) {
+          usesRange = true;
+        }
+        if (firstParsed.index != null) {
+          originallyHadIndex = true;
+        }
+      }
+      
+      int currentIdIdx = 0;
+      int boxIdx = 0;
+      
+      while (currentIdIdx < allIds.length || boxIdx < groupBoxes.length) {
+        CustomBoxState currentBox;
+        if (boxIdx < groupBoxes.length) {
+          currentBox = groupBoxes[boxIdx];
+        } else {
+          currentBox = CustomBoxState(
+            title: '', // will be set below
+            pokemonIds: [],
+            columns: groupBoxes.last.columns,
+            rows: groupBoxes.last.rows,
+            autoFlow: true,
+            regionKey: groupBoxes.last.regionKey,
+          );
+        }
+        
+        int capacity = currentBox.columns * currentBox.rows;
+        int take = capacity;
+        if (currentIdIdx + take > allIds.length) {
+          take = allIds.length - currentIdIdx;
+        }
+        
+        List<String> newIds = allIds.sublist(currentIdIdx, currentIdIdx + take);
+        while (newIds.length < capacity) {
+          newIds.add("");
+        }
+        currentBox.pokemonIds = newIds;
+        
+        int displayIndex = boxIdx + 1;
+        
+        if (boxIdx == 0 && currentIdIdx + take >= allIds.length && !usesRange && !originallyHadIndex && groupBoxes.length == 1) {
+           currentBox.title = groupBoxes[0].title;
+        } else {
+           String newTitle = key;
+           if (originallyHadIndex || groupBoxes.length > 1 || boxIdx > 0) {
+             newTitle += ' $displayIndex';
+           }
+           
+           if (usesRange) {
+             int start = currentIdIdx + 1;
+             int end = currentIdIdx + capacity;
+             newTitle += ' ($start-$end)';
+           }
+           currentBox.title = newTitle;
+        }
+        
+        newBoxes.add(currentBox);
+        currentIdIdx += take;
+        boxIdx++;
+      }
+    }
+    
+    dex.customBoxes = newBoxes;
   }
 
   static Future<List<BoxData>> generateBoxesInBackground(
@@ -390,11 +515,283 @@ class DexLogicHelper {
     return chunks;
   }
 
+  /// Extracts the base ID from a potentially composite instance ID.
+  /// E.g. '1_normal__1728412345_0' -> '1_normal', '1_normal' -> '1_normal',
+  /// 'shiny:1_normal' -> '1_normal'.
+  static String getBaseId(String uniqueId) {
+    if (uniqueId.isEmpty) return '';
+    var clean = uniqueId;
+    if (clean.startsWith('shiny:')) {
+      clean = clean.substring(6);
+    }
+    final separatorIndex = clean.indexOf('__');
+    if (separatorIndex != -1) {
+      return clean.substring(0, separatorIndex);
+    }
+    return clean;
+  }
+
+  /// Centralized helper to check if a Pokémon is marked as caught in [dex].
+  /// Centralized check whether a uniqueId represents a fixed placeholder slot.
+  static bool isPlaceholder(String? uniqueId) {
+    if (uniqueId == null || uniqueId.isEmpty) return false;
+    var clean = uniqueId;
+    if (clean.startsWith('shiny:')) {
+      clean = clean.substring(6);
+    }
+    return clean == 'placeholder' ||
+        clean.startsWith('placeholder__') ||
+        clean.startsWith('placeholder') ||
+        clean == 'empty_placeholder' ||
+        clean.startsWith('empty_placeholder');
+  }
+
+  /// Standardizes caught evaluation across the entire app by handling both
+  /// Standardizes caught evaluation across the entire app by handling both
+  /// canonical base IDs (e.g. '1_normal') and custom box instance IDs
+  /// (e.g. '1_normal__1728412345_0').
+  static bool isPokemonCaught(UserDex dex, String uniqueId) {
+    if (uniqueId.isEmpty || isPlaceholder(uniqueId)) return false;
+    if (dex.caughtIds.contains(uniqueId)) return true;
+    final cleanId = uniqueId.startsWith('shiny:') ? uniqueId.substring(6) : uniqueId;
+    if (dex.caughtIds.contains(cleanId)) return true;
+
+    final isComposite = cleanId.contains('__');
+    final baseId = getBaseId(cleanId);
+
+    if (!isComposite) {
+      final prefix = '${cleanId}__';
+      return dex.caughtIds.any((id) => id.startsWith(prefix));
+    }
+
+    if (!dex.caughtIds.contains(baseId)) {
+      return false;
+    }
+
+    // baseId is in caughtIds.
+    // If instance-level tracking is active for this baseId (at least one instance is explicitly in caughtIds),
+    // then only the instances explicitly in caughtIds are considered caught.
+    final prefix = '${baseId}__';
+    if (dex.caughtIds.any((id) => id.startsWith(prefix))) {
+      return false;
+    }
+
+    // If no instance of baseId is explicitly in caughtIds, check customBoxes:
+    if (dex.customBoxes.isNotEmpty) {
+      final allInstancesOfBase = dex.customBoxes
+          .expand((b) => b.pokemonIds)
+          .where((id) => !isPlaceholder(id) && getBaseId(id) == baseId)
+          .toList();
+
+      if (allInstancesOfBase.isNotEmpty) {
+        // The first/primary instance inherits caught status from baseId.
+        // Duplicate/subsequent instances in custom boxes remain uncaught.
+        return allInstancesOfBase.first == cleanId;
+      }
+    }
+
+    // Default/standard boxes (or single instance outside customBoxes):
+    return true;
+  }
+
+  /// Centralized helper to check if a Pokémon is marked as shiny in [dex].
+  static bool isPokemonShiny(UserDex dex, String uniqueId) {
+    if (uniqueId.isEmpty || isPlaceholder(uniqueId)) return false;
+    if (uniqueId.startsWith('shiny:')) return true;
+    if (dex.shinyIds.contains(uniqueId)) return true;
+    final cleanId = uniqueId.startsWith('shiny:') ? uniqueId.substring(6) : uniqueId;
+    if (dex.shinyIds.contains(cleanId)) return true;
+
+    final isComposite = cleanId.contains('__');
+    final baseId = getBaseId(cleanId);
+
+    if (!isComposite) {
+      final prefix = '${cleanId}__';
+      return dex.shinyIds.any((id) => id.startsWith(prefix));
+    }
+
+    if (!dex.shinyIds.contains(baseId)) {
+      return false;
+    }
+
+    final prefix = '${baseId}__';
+    if (dex.shinyIds.any((id) => id.startsWith(prefix))) {
+      return false;
+    }
+
+    if (dex.customBoxes.isNotEmpty) {
+      final allInstancesOfBase = dex.customBoxes
+          .expand((b) => b.pokemonIds)
+          .where((id) => !isPlaceholder(id) && getBaseId(id) == baseId)
+          .toList();
+
+      if (allInstancesOfBase.isNotEmpty) {
+        return allInstancesOfBase.first == cleanId;
+      }
+    }
+
+    return true;
+  }
+
+  /// Centralized helper to check if a Pokémon is marked as alpha in [dex].
+  static bool isPokemonAlpha(UserDex dex, String uniqueId) {
+    if (uniqueId.isEmpty || isPlaceholder(uniqueId)) return false;
+    if (dex.alphaIds.contains(uniqueId)) return true;
+    final cleanId = uniqueId.startsWith('shiny:') ? uniqueId.substring(6) : uniqueId;
+    if (dex.alphaIds.contains(cleanId)) return true;
+
+    final isComposite = cleanId.contains('__');
+    final baseId = getBaseId(cleanId);
+
+    if (!isComposite) {
+      final prefix = '${cleanId}__';
+      return dex.alphaIds.any((id) => id.startsWith(prefix));
+    }
+
+    if (!dex.alphaIds.contains(baseId)) {
+      return false;
+    }
+
+    final prefix = '${baseId}__';
+    if (dex.alphaIds.any((id) => id.startsWith(prefix))) {
+      return false;
+    }
+
+    if (dex.customBoxes.isNotEmpty) {
+      final allInstancesOfBase = dex.customBoxes
+          .expand((b) => b.pokemonIds)
+          .where((id) => !isPlaceholder(id) && getBaseId(id) == baseId)
+          .toList();
+
+      if (allInstancesOfBase.isNotEmpty) {
+        return allInstancesOfBase.first == cleanId;
+      }
+    }
+
+    return true;
+  }
+
+  /// Ensures that if [baseId] is caught in [dex] (in legacy format without instance-level IDs),
+  /// the existing primary instance in [dex.customBoxes] is explicitly recorded in [caughtIds]
+  /// (and [shinyIds], [alphaIds]) before a new instance of [baseId] is inserted.
+  static void ensurePrimaryInstancePersisted(UserDex dex, String baseId, [DatabaseService? databaseService]) {
+    if (dex.customBoxes.isEmpty || baseId.isEmpty) return;
+    final allInstances = dex.customBoxes
+        .expand((b) => b.pokemonIds)
+        .where((id) => !isPlaceholder(id) && getBaseId(id) == baseId)
+        .toList();
+    if (allInstances.isEmpty) return;
+    final primary = allInstances.first;
+    final prefix = '${baseId}__';
+    final db = databaseService ?? DatabaseService.instance;
+
+    if (dex.caughtIds.contains(baseId) && !dex.caughtIds.any((id) => id.startsWith(prefix))) {
+      if (!dex.caughtIds.contains(primary)) {
+        dex.caughtIds.add(primary);
+        try {
+          db.savePokemonStatus(dex.id, primary, isCaught: true).catchError((_) {});
+        } catch (_) {}
+      }
+    }
+    if (dex.shinyIds.contains(baseId) && !dex.shinyIds.any((id) => id.startsWith(prefix))) {
+      if (!dex.shinyIds.contains(primary)) {
+        dex.shinyIds.add(primary);
+        try {
+          db.savePokemonStatus(dex.id, primary, isShiny: true).catchError((_) {});
+        } catch (_) {}
+      }
+    }
+    if (dex.alphaIds.contains(baseId) && !dex.alphaIds.any((id) => id.startsWith(prefix))) {
+      if (!dex.alphaIds.contains(primary)) {
+        dex.alphaIds.add(primary);
+        try {
+          db.savePokemonStatus(dex.id, primary, isAlpha: true).catchError((_) {});
+        } catch (_) {}
+      }
+    }
+  }
+
+  /// Returns the total count of caught Pokémon in [dex].
+  /// Accurately counts caught box slots if custom boxes exist, or caught unique species.
+  static int getCaughtCount(UserDex dex) {
+    if (dex.customBoxes.isNotEmpty) {
+      return dex.customBoxes
+          .expand((b) => b.pokemonIds)
+          .where((id) =>
+              id.isNotEmpty &&
+              !isPlaceholder(id) &&
+              !dex.ignoredIds.contains(id) &&
+              !dex.ignoredIds.contains(getBaseId(id)) &&
+              isPokemonCaught(dex, id))
+          .length;
+    }
+    return dex.caughtIds
+        .map((id) => getBaseId(id))
+        .where((id) =>
+            id.isNotEmpty &&
+            !isPlaceholder(id) &&
+            !dex.ignoredIds.contains(id))
+        .toSet()
+        .length;
+  }
+
   static List<BoxData> generateBoxes(
     List<DexDisplayEntry> entries,
     bool separateForms,
     UserDex liveDex,
   ) {
+    if (liveDex.customBoxes.isNotEmpty) {
+      List<BoxData> customBoxesList = [];
+      for (var cb in liveDex.customBoxes) {
+        List<DexDisplayEntry> boxEntries = [];
+        for (var id in cb.pokemonIds) {
+          if (id.isEmpty) {
+            boxEntries.add(DexDisplayEntry.emptyEntry);
+          } else if (isPlaceholder(id)) {
+            boxEntries.add(DexDisplayEntry.placeholderEntry(id));
+          } else {
+            try {
+              final baseId = getBaseId(id);
+              final originalEntry = entries.firstWhere((e) => e.uniqueId == baseId);
+              final isShiny = isPokemonShiny(liveDex, id);
+              String imgUrl = originalEntry.imageUrl;
+              if (isShiny && !imgUrl.contains('/shiny/')) {
+                if (imgUrl.contains('official-artwork/')) {
+                  imgUrl = imgUrl.replaceFirst('official-artwork/', 'official-artwork/shiny/');
+                } else if (imgUrl.contains('home/female/')) {
+                  imgUrl = imgUrl.replaceFirst('home/female/', 'home/shiny/female/');
+                } else if (imgUrl.contains('home/')) {
+                  imgUrl = imgUrl.replaceFirst('home/', 'home/shiny/');
+                }
+              } else if (!isShiny && imgUrl.contains('/shiny/')) {
+                if (imgUrl.contains('/shiny/female/')) {
+                  imgUrl = imgUrl.replaceFirst('/shiny/female/', '/female/');
+                } else {
+                  imgUrl = imgUrl.replaceFirst('/shiny/', '/');
+                }
+              }
+              boxEntries.add(DexDisplayEntry(
+                pokemon: originalEntry.pokemon,
+                uniqueId: id,
+                displaySuffix: originalEntry.displaySuffix,
+                imageUrl: imgUrl,
+              ));
+            } catch (_) {
+              boxEntries.add(DexDisplayEntry.emptyEntry);
+            }
+          }
+        }
+        
+        int capacity = cb.columns * cb.rows;
+        while (boxEntries.length < capacity) {
+          boxEntries.add(DexDisplayEntry.emptyEntry);
+        }
+        
+        customBoxesList.add(BoxData(cb.title, cb.regionKey, boxEntries, cb.columns));
+      }
+      return customBoxesList;
+    }
+
     List<BoxData> boxes = [];
     bool isOriginalKantoJohto =
         liveDex.region == 'kanto_regional' ||
@@ -868,3 +1265,4 @@ class DexLogicHelper {
     return regionCheck.isNotEmpty;
   }
 }
+
