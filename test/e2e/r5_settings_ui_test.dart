@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:pokevault/screens/dex/box_edit_screen.dart';
-import 'e2e_test_helper.dart';
+import 'helpers/e2e_test_helper.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();

@@ -37,8 +37,8 @@ class _CreateDexBottomSheetState extends State<CreateDexBottomSheet> {
   final GlobalKey _otherKey = GlobalKey();
   final GlobalKey _saveKey = GlobalKey();
 
-  final ExpansionTileController _expansionController =
-      ExpansionTileController();
+  final ExpansibleController _expansionController =
+      ExpansibleController();
   final TextEditingController nameController = TextEditingController();
 
   late DexGroup selectedGroup;

@@ -24,27 +24,7 @@ class _MovesDexScreenState extends State<MovesDexScreen> {
 
   final FocusNode _searchFocusNode = FocusNode();
 
-  final List<String> _types = [
-    'all',
-    'normal',
-    'fire',
-    'water',
-    'electric',
-    'grass',
-    'ice',
-    'fighting',
-    'poison',
-    'ground',
-    'flying',
-    'psychic',
-    'bug',
-    'rock',
-    'ghost',
-    'dragon',
-    'dark',
-    'steel',
-    'fairy',
-  ];
+
 
   @override
   void initState() {
@@ -62,11 +42,9 @@ class _MovesDexScreenState extends State<MovesDexScreen> {
   Future<void> _loadMoves() async {
     final moves = await DatabaseService.instance.getAllMoves();
     if (mounted) {
-      setState(() {
-        _allMoves = moves;
-        _applyFiltersAndSort();
-        _isLoading = false;
-      });
+      _allMoves = moves;
+      _isLoading = false;
+      _applyFiltersAndSort();
     }
   }
 
@@ -195,7 +173,7 @@ class _MovesDexScreenState extends State<MovesDexScreen> {
 
     return PopScope(
       canPop: !_searchFocusNode.hasFocus,
-      onPopInvoked: (didPop) {
+      onPopInvokedWithResult: (didPop, result) {
         if (!didPop) {
           _searchFocusNode.unfocus();
         }

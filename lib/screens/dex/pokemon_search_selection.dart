@@ -5,6 +5,7 @@ import '../../models/dex_view_models.dart';
 import '../../models/pokemon.dart';
 import '../../providers/dex_provider.dart';
 import '../../l10n/app_translations.dart';
+import '../../i18n/strings.g.dart';
 import '../../utils/dex_logic_helper.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../pokemon_info/pokemon_info_screen.dart';
@@ -334,9 +335,9 @@ class _PokemonSearchSelectionScreenState
     if (q.length < 3) return false;
 
     final dePlaceholder =
-        Translator.get('placeholder', fallback: 'Platzhalter').toLowerCase();
+        t.placeholder.toLowerCase();
     final deInsert =
-        Translator.get('insert_placeholder', fallback: 'Platzhalter einfügen').toLowerCase();
+        t.insert_placeholder.toLowerCase();
 
     final terms = [
       dePlaceholder,
@@ -417,7 +418,7 @@ class _PokemonSearchSelectionScreenState
 
               // Name / Label
               Text(
-                Translator.get('placeholder', fallback: 'Platzhalter'),
+                t.placeholder,
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.bold,
@@ -458,7 +459,7 @@ class _PokemonSearchSelectionScreenState
 
   @override
   Widget build(BuildContext context) {
-    final isEn = Translator.currentLanguage == 'en';
+    final isEn = LocaleSettings.currentLocale == AppLocale.en;
     final theme = Theme.of(context);
 
     return Scaffold(
@@ -467,10 +468,7 @@ class _PokemonSearchSelectionScreenState
           controller: _searchController,
           autofocus: false,
           decoration: InputDecoration(
-            hintText: Translator.get(
-              'search_pokemon_hint',
-              fallback: 'Name oder Pokédex-Nr. suchen...',
-            ),
+            hintText: t.search_pokemon_hint,
             border: InputBorder.none,
             hintStyle: TextStyle(
               color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
@@ -512,7 +510,7 @@ class _PokemonSearchSelectionScreenState
             key: const Key('insert_placeholder_button'),
             icon: const Icon(Icons.crop_free, size: 18),
             label: Text(
-              Translator.get('placeholder', fallback: 'Platzhalter'),
+              t.placeholder,
               style: const TextStyle(fontWeight: FontWeight.bold),
             ),
             onPressed: () {
@@ -546,7 +544,7 @@ class _PokemonSearchSelectionScreenState
                       Padding(
                         padding: const EdgeInsets.only(right: 6),
                         child: Text(
-                          Translator.get('filter_regions', fallback: 'Regionen:'),
+                          t.filter_regions,
                           style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.bold,
@@ -599,7 +597,7 @@ class _PokemonSearchSelectionScreenState
                       Padding(
                         padding: const EdgeInsets.only(right: 6),
                         child: Text(
-                          Translator.get('filter_forms', fallback: 'Formen:'),
+                          t.filter_forms,
                           style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.bold,
@@ -609,10 +607,13 @@ class _PokemonSearchSelectionScreenState
                       ),
                       ..._forms.map((form) {
                         final key = form['key']!;
-                        final label = Translator.get(
-                          'form_$key',
-                          fallback: isEn ? form['labelEn']! : form['labelDe']!,
-                        );
+                        final label = switch (key) {
+                          'normal' => t.form_normal,
+                          'mega' => t.form_mega,
+                          'gmax' => t.form_gmax,
+                          'regional' => t.form_regional,
+                          _ => isEn ? form['labelEn']! : form['labelDe']!,
+                        };
                         final isSelected = _selectedForms.contains(key);
                         return Padding(
                           padding: const EdgeInsets.only(right: 6),
@@ -655,7 +656,7 @@ class _PokemonSearchSelectionScreenState
                       Padding(
                         padding: const EdgeInsets.only(right: 6),
                         child: Text(
-                          Translator.get('filter_gender', fallback: isEn ? 'Gender:' : 'Geschlecht:'),
+                          t.filter_gender,
                           style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.bold,
@@ -665,10 +666,13 @@ class _PokemonSearchSelectionScreenState
                       ),
                       ..._genders.map((gen) {
                         final key = gen['key']!;
-                        final label = Translator.get(
-                          'gender_$key',
-                          fallback: isEn ? gen['labelEn']! : gen['labelDe']!,
-                        );
+                        final label = switch (key) {
+                          'male' => t.gender_male,
+                          'female' => t.gender_female,
+                          'genderless' => t.gender_genderless,
+                          'differences' => t.gender_differences,
+                          _ => isEn ? gen['labelEn']! : gen['labelDe']!,
+                        };
                         final isSelected = _selectedGenders.contains(key);
                         return Padding(
                           padding: const EdgeInsets.only(right: 6),
@@ -711,7 +715,7 @@ class _PokemonSearchSelectionScreenState
                       Padding(
                         padding: const EdgeInsets.only(right: 6),
                         child: Text(
-                          Translator.get('filter_variant', fallback: isEn ? 'Variant:' : 'Variante:'),
+                          t.filter_variant,
                           style: const TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.bold,
@@ -723,7 +727,7 @@ class _PokemonSearchSelectionScreenState
                         padding: const EdgeInsets.only(right: 6),
                         child: FilterChip(
                           key: const Key('variant_normal_chip'),
-                          label: Text(Translator.get('variant_normal', fallback: 'Standard')),
+                          label: Text(t.variant_normal),
                           selected: !_isShinyMode,
                           visualDensity: VisualDensity.compact,
                           showCheckmark: false,
@@ -749,7 +753,7 @@ class _PokemonSearchSelectionScreenState
                         child: FilterChip(
                           key: const Key('variant_shiny_chip'),
                           avatar: const Icon(Icons.star, size: 14, color: Colors.amber),
-                          label: Text(Translator.get('variant_shiny', fallback: isEn ? 'Shiny' : 'Schillernd')),
+                          label: Text(t.variant_shiny),
                           selected: _isShinyMode,
                           visualDensity: VisualDensity.compact,
                           showCheckmark: false,
@@ -813,10 +817,7 @@ class _PokemonSearchSelectionScreenState
                           Icon(Icons.filter_alt_off, size: 14, color: theme.colorScheme.primary),
                           const SizedBox(width: 4),
                           Text(
-                            Translator.get(
-                              'reset_filters',
-                              fallback: isEn ? 'Reset filters' : 'Filter zurücksetzen',
-                            ),
+                            t.reset_filters,
                             style: TextStyle(
                               fontSize: 12,
                               color: theme.colorScheme.primary,

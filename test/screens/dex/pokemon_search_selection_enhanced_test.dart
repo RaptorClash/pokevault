@@ -10,7 +10,7 @@ import 'package:pokevault/providers/tutorial_provider.dart';
 import 'package:pokevault/screens/dex/pokemon_search_selection.dart';
 import 'package:pokevault/screens/pokemon_info/pokemon_info_screen.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
-import '../../e2e/e2e_test_helper.dart';
+import '../../e2e/helpers/e2e_test_helper.dart';
 
 class MockTutorialProvider extends Mock implements TutorialProvider {}
 

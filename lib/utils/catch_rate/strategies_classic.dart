@@ -103,12 +103,15 @@ class Gen2Strategy extends CatchRateStrategy {
     }
 
     String? glitchWarning;
-    if (params.ballId == 'love')
+    if (params.ballId == 'love') {
       glitchWarning = Translator.get('glitch_gen2_love');
-    if (params.ballId == 'moon')
+    }
+    if (params.ballId == 'moon') {
       glitchWarning = Translator.get('glitch_gen2_moon');
-    if (params.ballId == 'fast')
+    }
+    if (params.ballId == 'fast') {
       glitchWarning = Translator.get('glitch_gen2_fast');
+    }
 
     double ballBonus = 1.0;
     int baseRate = params.pokemon.captureRate;

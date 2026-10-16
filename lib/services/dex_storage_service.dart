@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:typed_data';
 import 'package:universal_io/io.dart';
 import 'package:flutter/foundation.dart';
 import 'package:share_plus/share_plus.dart';
@@ -43,7 +42,7 @@ class DexStorageService {
           mimeType: 'application/json',
         );
 
-        await Share.shareXFiles([xFile], text: Translator.get('share_text'));
+        await SharePlus.instance.share(ShareParams(files: [xFile], text: Translator.get('share_text')));
 
         NotificationHelper.showSuccess(
           Translator.get('backup_success', fallback: 'Backup heruntergeladen!'),
@@ -85,24 +84,30 @@ class DexStorageService {
           final directory = await getTemporaryDirectory();
           final file = File('${directory.path}/$fileName');
           await file.writeAsString(jsonString);
-          await Share.shareXFiles([
-            XFile(file.path),
-          ], text: Translator.get('share_text'));
+          await SharePlus.instance.share(
+            ShareParams(
+              files: [XFile(file.path)],
+              text: Translator.get('share_text'),
+            ),
+          );
         }
       } else {
         final directory = await getTemporaryDirectory();
         final file = File('${directory.path}/$fileName');
         await file.writeAsString(jsonString);
-        await Share.shareXFiles([
-          XFile(file.path),
-        ], text: Translator.get('share_text'));
+        await SharePlus.instance.share(
+          ShareParams(
+            files: [XFile(file.path)],
+            text: Translator.get('share_text'),
+          ),
+        );
       }
     } catch (e) {
       NotificationHelper.showError("${Translator.get('error_export')} $e");
     }
   }
 
-  static Future<dynamic> importDexes(DexProvider provider) async {
+  static Future<Map<String, dynamic>?> importDexes(DexProvider provider) async {
     try {
       final XTypeGroup typeGroup = XTypeGroup(
         label: Translator.get('json_files'),
@@ -115,7 +120,15 @@ class DexStorageService {
 
       if (file != null) {
         final String jsonString = await file.readAsString();
-        return jsonDecode(jsonString);
+        final dynamic decoded = jsonDecode(jsonString);
+        if (decoded is Map<String, dynamic>) {
+          return decoded;
+        } else {
+          NotificationHelper.showError(
+            Translator.get('error_import', fallback: 'Fehler beim Importieren der Datei.'),
+          );
+          return null;
+        }
       }
     } catch (e) {
       NotificationHelper.showError("${Translator.get('error_import')} $e");

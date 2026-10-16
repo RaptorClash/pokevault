@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../../models/user_dex.dart';
 import '../../models/dex_view_models.dart';
 import '../../utils/dex_logic_helper.dart';
-import '../../l10n/app_translations.dart';
+import '../../i18n/strings.g.dart';
 import '../../services/database_service.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'pokemon_search_selection.dart';
@@ -144,7 +144,7 @@ class _BoxContentEditScreenState extends State<BoxContentEditScreen> {
           IconButton(
             key: const Key('box_content_insert_placeholder'),
             icon: const Icon(Icons.crop_free),
-            tooltip: Translator.get('insert_placeholder', fallback: 'Platzhalter einfügen'),
+            tooltip: t.insert_placeholder,
             onPressed: () => _insertPlaceholder(),
           ),
         ],
@@ -237,9 +237,9 @@ class _BoxContentEditScreenState extends State<BoxContentEditScreen> {
             title: Text(
               entry != null 
                   ? (entry.isPlaceholder
-                      ? Translator.get('placeholder', fallback: 'Platzhalter')
-                      : (Translator.currentLanguage == 'en' ? entry.pokemon.nameEn : entry.pokemon.nameDe))
-                  : Translator.get('box_edit_empty_slot', fallback: 'Leerer Platz'),
+                      ? t.placeholder
+                      : (LocaleSettings.currentLocale == AppLocale.en ? entry.pokemon.nameEn : entry.pokemon.nameDe))
+                  : t.box_edit_empty_slot,
               style: TextStyle(
                 color: entry != null ? Colors.white : Colors.white54,
               ),
@@ -247,7 +247,7 @@ class _BoxContentEditScreenState extends State<BoxContentEditScreen> {
             subtitle: entry != null 
                 ? Text(
                     entry.isPlaceholder
-                        ? Translator.get('placeholder_desc', fallback: 'Fixierte Lücke (geschützt vor Auto-Shift)')
+                        ? t.placeholder_desc
                         : (entry.displaySuffix.isNotEmpty ? '#${entry.pokemon.id} ${entry.displaySuffix}' : '#${entry.pokemon.id}'),
                   )
                 : null,
@@ -255,7 +255,7 @@ class _BoxContentEditScreenState extends State<BoxContentEditScreen> {
                 ? IconButton(
                     icon: const Icon(Icons.clear, color: Colors.redAccent),
                     onPressed: () => _clearSlot(index),
-                    tooltip: Translator.get('remove', fallback: 'Entfernen'),
+                    tooltip: t.box_edit_remove,
                   )
                 : null,
             onTap: () => _pickPokemon(index),

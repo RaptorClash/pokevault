@@ -72,10 +72,11 @@ class SettingsProvider with ChangeNotifier {
       tm = prefs.getString('themeMode') ?? 'system';
     } catch (_) {
       int oldTheme = prefs.getInt('themeMode') ?? 0;
-      if (oldTheme == 1)
+      if (oldTheme == 1) {
         tm = 'light';
-      else if (oldTheme == 2)
+      } else if (oldTheme == 2) {
         tm = 'dark';
+      }
       await prefs.setString('themeMode', tm);
     }
 

@@ -8,7 +8,7 @@ import 'package:pokevault/models/user_dex.dart';
 import 'package:pokevault/screens/dex/dex_box_view.dart';
 import 'package:pokevault/utils/box_sequence_manager.dart';
 import 'package:pokevault/utils/dex_logic_helper.dart';
-import '../../e2e/e2e_test_helper.dart';
+import '../../e2e/helpers/e2e_test_helper.dart';
 
 /// Interactive stateful harness that connects [DexBoxView] to [BoxSequenceManager]
 /// exactly as [DexScreen] does.
@@ -539,7 +539,7 @@ void main() {
         child: DexBoxViewTestHarness(
           initialDex: liveDex,
           isEditMode: false, // EDIT MODE OFF
-          onMoveCallbackSpy: (_, __, ___) => moveCallCount++,
+          onMoveCallbackSpy: (_, _, _) => moveCallCount++,
         ),
         mockDexProvider: mockProvider,
         mockSettingsProvider: mockSettings,
@@ -576,7 +576,7 @@ void main() {
         child: DexBoxViewTestHarness(
           initialDex: liveDex,
           isEditMode: true,
-          onMoveCallbackSpy: (_, __, ___) => moveCallCount++,
+          onMoveCallbackSpy: (_, _, _) => moveCallCount++,
         ),
         mockDexProvider: mockProvider,
         mockSettingsProvider: mockSettings,
@@ -697,7 +697,7 @@ void main() {
         child: DexBoxViewTestHarness(
           initialDex: liveDex,
           isEditMode: true,
-          onMoveCallbackSpy: (_, __, ___) => moveCallCount++,
+          onMoveCallbackSpy: (_, _, _) => moveCallCount++,
         ),
         mockDexProvider: mockProvider,
         mockSettingsProvider: mockSettings,

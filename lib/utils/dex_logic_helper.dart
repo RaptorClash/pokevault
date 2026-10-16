@@ -423,16 +423,18 @@ class DexLogicHelper {
         g.contains('blattgrün') ||
         g.contains('let\'s go') ||
         g.contains('pikachu') ||
-        g.contains('evoli'))
+        g.contains('evoli')) {
       return 'kanto';
+    }
     if (g.contains('gold') ||
         g.contains('silver') ||
         g.contains('crystal') ||
         g.contains('silber') ||
         g.contains('kristall') ||
         g.contains('heartgold') ||
-        g.contains('soulsilver'))
+        g.contains('soulsilver')) {
       return 'johto';
+    }
     if (g.contains('ruby') ||
         g.contains('sapphire') ||
         g.contains('emerald') ||
@@ -443,39 +445,45 @@ class DexLogicHelper {
         g.contains('alpha') ||
         g.contains('colosseum') ||
         g.contains('xd') ||
-        g.contains('gale of darkness'))
+        g.contains('gale of darkness')) {
       return 'hoenn';
+    }
     if (g.contains('diamond') ||
         g.contains('pearl') ||
         g.contains('platinum') ||
         g.contains('diamant') ||
         g.contains('platin') ||
         g.contains('strahlender') ||
-        g.contains('leuchtende'))
+        g.contains('leuchtende')) {
       return 'sinnoh';
+    }
     if (g.contains('black') ||
         g.contains('white') ||
         g.contains('schwarz') ||
         g.contains('weiß') ||
-        g.contains('weiss'))
+        g.contains('weiss')) {
       return 'unova';
+    }
     if (g.contains('x') || g.contains('y')) return 'kalos';
     if (g.contains('sun') ||
         g.contains('moon') ||
         g.contains('sonne') ||
-        g.contains('mond'))
+        g.contains('mond')) {
       return 'alola';
+    }
     if (g.contains('sword') ||
         g.contains('shield') ||
         g.contains('schwert') ||
-        g.contains('schild'))
+        g.contains('schild')) {
       return 'galar';
+    }
     if (g.contains('arceus') || g.contains('hisui')) return 'hisui';
     if (g.contains('scarlet') ||
         g.contains('violet') ||
         g.contains('karmesin') ||
-        g.contains('purpur'))
+        g.contains('purpur')) {
       return 'paldea';
+    }
     if (g.contains('z-a')) return 'lumiose';
     return 'unknown';
   }
@@ -519,8 +527,9 @@ class DexLogicHelper {
       if (f.formType == 'regional') {
         if (liveDex.regionalSort == 'origin') return _getBaseRegion(p.id);
 
-        if (f.name.contains('alola') || f.name.contains('totem'))
+        if (f.name.contains('alola') || f.name.contains('totem')) {
           return 'alola';
+        }
         if (f.name.contains('galar')) return 'galar';
         if (f.name.contains('hisui')) return 'hisui';
         if (f.name.contains('paldea')) return 'paldea';
@@ -550,8 +559,9 @@ class DexLogicHelper {
     if (uniqueId.contains('_special_')) {
       if (uniqueId.contains('_n_')) return 'n_pokemon';
       if (uniqueId.contains('_trade_')) return 'trades';
-      if (uniqueId.contains('_colosseum_') || uniqueId.contains('_xd_'))
+      if (uniqueId.contains('_colosseum_') || uniqueId.contains('_xd_')) {
         return 'orre';
+      }
       if (uniqueId.contains('_gift_')) return 'gifts';
       return 'special';
     }
@@ -1154,8 +1164,9 @@ class DexLogicHelper {
           bool isBaseForm =
               form.name == 'normal' || p.forms.first.name == form.name;
           if ((p.id == 1007 || p.id == 1008 || p.id == 664 || p.id == 665) &&
-              !isBaseForm)
+              !isBaseForm) {
             continue;
+          }
           if (isMegaDex && form.formType != 'mega') continue;
 
           bool isNativeRegional = isNativeRegionalForm(form, liveDex.region);
@@ -1170,10 +1181,12 @@ class DexLogicHelper {
 
           if (form.formType == 'regional' &&
               !liveDex.includeRegional &&
-              !isNativeRegional)
+              !isNativeRegional) {
             continue;
-          if (form.formType == 'mega' && !liveDex.includeMega && !isMegaDex)
+          }
+          if (form.formType == 'mega' && !liveDex.includeMega && !isMegaDex) {
             continue;
+          }
           if (form.formType == 'gmax' && !liveDex.includeGMax) continue;
           if (form.formType == 'other' &&
               !liveDex.includeOther &&
@@ -1186,15 +1199,17 @@ class DexLogicHelper {
           );
           if (form.exclusiveRegions.isNotEmpty &&
               !isNationalDex &&
-              !isWhitelistedForThisDex)
+              !isWhitelistedForThisDex) {
             continue;
+          }
 
           if (!isNationalDex &&
               !isWhitelistedForThisDex &&
               form.minGen > dexGen &&
               !isMegaDex &&
-              !isIcognitoDex)
+              !isIcognitoDex) {
             continue;
+          }
 
           bool hideSuffix = form.name == 'normal';
           String suffix = hideSuffix
@@ -1211,11 +1226,13 @@ class DexLogicHelper {
             String formSuffix = '';
             if (!isBaseForm || isIcognitoDex) {
               formSuffix = '-${form.name}';
-              if (p.id == 774 && form.name.contains('meteor'))
+              if (p.id == 774 && form.name.contains('meteor')) {
                 formSuffix = '-meteor';
+              }
               if (p.id == 718 && form.name.contains('10')) formSuffix = '-10';
-              if (p.id == 718 && form.name.contains('complete'))
+              if (p.id == 718 && form.name.contains('complete')) {
                 formSuffix = '-complete';
+              }
               if (p.id == 201 && form.name == 'a') formSuffix = '';
             }
             specificImageUrl =
@@ -1324,11 +1341,13 @@ class DexLogicHelper {
           }
 
           String specGameTag = '';
-          if (gameVer.toLowerCase().contains('colosseum'))
+          if (gameVer.toLowerCase().contains('colosseum')) {
             specGameTag = 'colosseum';
+          }
           if (gameVer.toLowerCase().contains('xd') ||
-              gameVer.toLowerCase().contains('gale of darkness'))
+              gameVer.toLowerCase().contains('gale of darkness')) {
             specGameTag = 'xd';
+          }
           if (specGameTag.isNotEmpty) specType = specGameTag;
 
           String suffix = '';

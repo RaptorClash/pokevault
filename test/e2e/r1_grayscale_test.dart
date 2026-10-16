@@ -5,7 +5,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:pokevault/screens/dex/dex_box_view.dart';
 import 'package:pokevault/screens/dex/dex_list_view.dart';
 import 'package:pokevault/models/dex_view_models.dart';
-import 'e2e_test_helper.dart';
+import 'helpers/e2e_test_helper.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();

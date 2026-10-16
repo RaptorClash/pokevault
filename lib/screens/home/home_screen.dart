@@ -718,7 +718,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
     return PopScope(
       canPop: canPop,
-      onPopInvoked: (didPop) {
+      onPopInvokedWithResult: (didPop, result) {
         if (didPop) return;
 
         if (_isSelectionMode) {
@@ -999,8 +999,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           left: 16,
                           right: 16,
                         ),
-                        onReorder: (oldIndex, newIndex) {
-                          if (newIndex > oldIndex) newIndex -= 1;
+                        onReorderItem: (oldIndex, newIndex) {
                           provider.reorderItem(
                             _currentFolderId,
                             oldIndex,

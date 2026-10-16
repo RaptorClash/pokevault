@@ -29,12 +29,15 @@ class MigrationService {
         for (var d in decodedDexes) {
           UserDex dex = UserDex.fromJson(d as Map<String, dynamic>);
           await db.saveUserDex(dex);
-          for (var uid in dex.caughtIds)
+          for (var uid in dex.caughtIds) {
             await db.savePokemonStatus(dex.id, uid, isCaught: true);
-          for (var uid in dex.shinyIds)
+          }
+          for (var uid in dex.shinyIds) {
             await db.savePokemonStatus(dex.id, uid, isShiny: true);
-          for (var uid in dex.ignoredIds)
+          }
+          for (var uid in dex.ignoredIds) {
             await db.savePokemonStatus(dex.id, uid, isIgnored: true);
+          }
         }
       }
 

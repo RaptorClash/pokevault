@@ -39,11 +39,9 @@ class _AbilitiesDexScreenState extends State<AbilitiesDexScreen> {
   Future<void> _loadAbilities() async {
     final abilities = await DatabaseService.instance.getAllAbilities();
     if (mounted) {
-      setState(() {
-        _allAbilities = abilities;
-        _applyFiltersAndSort();
-        _isLoading = false;
-      });
+      _allAbilities = abilities;
+      _isLoading = false;
+      _applyFiltersAndSort();
     }
   }
 
@@ -110,7 +108,7 @@ class _AbilitiesDexScreenState extends State<AbilitiesDexScreen> {
 
     return PopScope(
       canPop: !_searchFocusNode.hasFocus,
-      onPopInvoked: (didPop) {
+      onPopInvokedWithResult: (didPop, result) {
         if (!didPop) {
           _searchFocusNode.unfocus();
         }

@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'package:universal_io/io.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path_provider/path_provider.dart';
@@ -242,8 +241,10 @@ class UpdateHelper {
     if (kIsWeb) return;
 
     String savePath = await downloadOnly(url, version, extension, onProgress);
-    if (Platform.isWindows && extension == '.zip') {
+    if (Platform.isWindows && extension.toLowerCase() == '.zip') {
       await _installWindowsUpdate(savePath);
+    } else if (Platform.isLinux && extension.toLowerCase() == '.appimage') {
+      await _installLinuxUpdate(savePath);
     } else {
       await OpenFilex.open(savePath);
     }
@@ -299,7 +300,6 @@ Set WshShell = Nothing
 
   static Future<void> _installLinuxUpdate(
     String newFilePath,
-    String extension,
   ) async {
     String currentExe = Platform.resolvedExecutable;
     Directory tempDir = await getTemporaryDirectory();

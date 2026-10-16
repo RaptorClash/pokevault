@@ -3,13 +3,13 @@ import '../../../../models/pokemon.dart';
 import '../../../../utils/shiny_logic_helper.dart';
 import '../../../../l10n/app_translations.dart';
 
-class Gen8_5ShinyGuide extends StatelessWidget {
+class Gen85ShinyGuide extends StatelessWidget {
   final Pokemon pokemon;
   final List<String> shinyCategories;
   final String title;
   final Future<void> Function(String) onLaunchUrl;
 
-  const Gen8_5ShinyGuide({
+  const Gen85ShinyGuide({
     super.key,
     required this.pokemon,
     required this.shinyCategories,

@@ -5,7 +5,7 @@ import 'package:pokevault/models/dex_view_models.dart';
 import 'package:pokevault/models/user_dex.dart';
 import 'package:pokevault/screens/dex/dex_box_view.dart';
 import 'package:pokevault/utils/box_sequence_manager.dart';
-import '../../e2e/e2e_test_helper.dart';
+import '../../e2e/helpers/e2e_test_helper.dart';
 
 /// Challenger test harness for adversarial verification of R1 and R2
 class ChallengerDexWorkflowHarness extends StatefulWidget {

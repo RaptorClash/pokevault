@@ -116,7 +116,11 @@ class Translator {
   }
 
   static set currentLanguage(String lang) {
-    LocaleSettings.setLocaleRaw(lang);
+    if (lang == 'de') {
+      LocaleSettings.setLocale(AppLocale.de);
+    } else {
+      LocaleSettings.setLocale(AppLocale.en);
+    }
     DataTranslator.currentLanguage = lang;
   }
 

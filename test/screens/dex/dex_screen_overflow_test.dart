@@ -7,7 +7,7 @@ import 'package:pokevault/models/user_dex.dart';
 import 'package:pokevault/screens/dex/dex_box_view.dart';
 import 'package:pokevault/utils/box_sequence_manager.dart';
 import 'package:pokevault/utils/dex_logic_helper.dart';
-import '../../e2e/e2e_test_helper.dart';
+import '../../e2e/helpers/e2e_test_helper.dart';
 
 /// Interactive UI test harness mirroring the exact state management,
 /// asynchronous recalculation queue, PageController preservation,

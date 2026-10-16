@@ -10,7 +10,7 @@ import 'package:pokevault/screens/dex/pokemon_search_selection.dart';
 import 'package:pokevault/screens/dex/dex_box_view.dart';
 import 'package:pokevault/screens/dex/box_content_edit_screen.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
-import '../../e2e/e2e_test_helper.dart';
+import '../../e2e/helpers/e2e_test_helper.dart';
 
 Pokemon _makePokemon({
   required int id,

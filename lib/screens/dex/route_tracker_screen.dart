@@ -533,7 +533,7 @@ class _RouteTrackerScreenState extends State<RouteTrackerScreen> {
                 _hideCompleted = val;
               });
             },
-            activeColor: Theme.of(context).colorScheme.primary,
+            activeThumbColor: Theme.of(context).colorScheme.primary,
           ),
           const Divider(height: 1),
 

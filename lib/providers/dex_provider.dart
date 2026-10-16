@@ -47,6 +47,20 @@ class DexProvider extends ChangeNotifier with WidgetsBindingObserver {
 
   void forceRefresh() { notifyListeners(); }
 
+  Future<void> updateSortSettings({
+    required UserDex dex,
+    required String megaSort,
+    required String gmaxSort,
+    required String regionalSort,
+  }) async {
+    dex.megaSort = megaSort;
+    dex.gmaxSort = gmaxSort;
+    dex.regionalSort = regionalSort;
+    await db.saveUserDex(dex);
+    triggerAutoUpload();
+    notifyListeners();
+  }
+
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
@@ -255,7 +269,9 @@ class DexProvider extends ChangeNotifier with WidgetsBindingObserver {
     }
 
     structure.remove(folderId);
-    structure.values.forEach((list) => list.remove(folderId));
+    for (var list in structure.values) {
+      list.remove(folderId);
+    }
 
     folders.removeWhere((f) => f.id == folderId);
     notifyListeners();
@@ -287,8 +303,9 @@ class DexProvider extends ChangeNotifier with WidgetsBindingObserver {
     if (oldIndex < 0 ||
         oldIndex >= list.length ||
         newIndex < 0 ||
-        newIndex > list.length)
+        newIndex > list.length) {
       return;
+    }
 
     final item = list.removeAt(oldIndex);
     list.insert(newIndex, item);
@@ -302,8 +319,9 @@ class DexProvider extends ChangeNotifier with WidgetsBindingObserver {
     if (parentId == potentialChildId) return true;
     final children = structure[parentId] ?? [];
     for (String child in children) {
-      if (child.startsWith('folder_') && isDescendant(child, potentialChildId))
+      if (child.startsWith('folder_') && isDescendant(child, potentialChildId)) {
         return true;
+      }
     }
     return false;
   }
@@ -654,7 +672,7 @@ class DexProvider extends ChangeNotifier with WidgetsBindingObserver {
 
   Future<void> importJsonData() async {
     final data = await DexStorageService.importDexes(this);
-    if (data != null) {
+    if (data is Map<String, dynamic>) {
       await db.clearUserData();
 
       folders.clear();
@@ -675,12 +693,15 @@ class DexProvider extends ChangeNotifier with WidgetsBindingObserver {
           userDexes.add(d);
           await db.saveUserDex(d);
 
-          for (var uid in d.caughtIds)
+          for (var uid in d.caughtIds) {
             await db.savePokemonStatus(d.id, uid, isCaught: true);
-          for (var uid in d.shinyIds)
+          }
+          for (var uid in d.shinyIds) {
             await db.savePokemonStatus(d.id, uid, isShiny: true);
-          for (var uid in d.ignoredIds)
+          }
+          for (var uid in d.ignoredIds) {
             await db.savePokemonStatus(d.id, uid, isIgnored: true);
+          }
         }
       }
 
@@ -750,21 +771,27 @@ class DexProvider extends ChangeNotifier with WidgetsBindingObserver {
           ...rDex.ignoredIds,
         }.toList();
         await db.saveUserDex(localDex);
-        for (var uid in rDex.caughtIds)
+        for (var uid in rDex.caughtIds) {
           await db.savePokemonStatus(localDex.id, uid, isCaught: true);
-        for (var uid in rDex.shinyIds)
+        }
+        for (var uid in rDex.shinyIds) {
           await db.savePokemonStatus(localDex.id, uid, isShiny: true);
-        for (var uid in rDex.ignoredIds)
+        }
+        for (var uid in rDex.ignoredIds) {
           await db.savePokemonStatus(localDex.id, uid, isIgnored: true);
+        }
       } else {
         userDexes.add(rDex);
         await db.saveUserDex(rDex);
-        for (var uid in rDex.caughtIds)
+        for (var uid in rDex.caughtIds) {
           await db.savePokemonStatus(rDex.id, uid, isCaught: true);
-        for (var uid in rDex.shinyIds)
+        }
+        for (var uid in rDex.shinyIds) {
           await db.savePokemonStatus(rDex.id, uid, isShiny: true);
-        for (var uid in rDex.ignoredIds)
+        }
+        for (var uid in rDex.ignoredIds) {
           await db.savePokemonStatus(rDex.id, uid, isIgnored: true);
+        }
       }
     }
     final remoteFolders = (cloudData['folders'] as List)

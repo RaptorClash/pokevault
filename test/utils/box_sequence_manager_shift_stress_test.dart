@@ -235,8 +235,8 @@ void main() {
 
     test('2.3 Heavy Randomized Batch Removal Stress (4 boxes x 10 items, 25 removals)', () {
       final rng = Random(42);
-      final totalBoxes = 4;
-      final boxCap = 10;
+      const totalBoxes = 4;
+      const boxCap = 10;
       final allItems = List.generate(totalBoxes * boxCap, (i) => 'MON_${i + 1}');
 
       final boxes = List.generate(totalBoxes, (bIdx) {

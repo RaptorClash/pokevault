@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:pokevault/screens/dex/dex_box_view.dart';
-import 'e2e_test_helper.dart';
-import 'e2e_box_actions.dart';
+import 'helpers/e2e_test_helper.dart';
+import 'helpers/e2e_box_actions.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();

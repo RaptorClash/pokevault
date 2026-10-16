@@ -4,9 +4,9 @@
 /// To regenerate, run: `dart run slang`
 ///
 /// Locales: 2
-/// Strings: 2514 (1257 per locale)
+/// Strings: 2602 (1301 per locale)
 ///
-/// Built on 2026-10-16 at 08:26 UTC
+/// Built on 2026-10-16 at 15:42 UTC
 
 // coverage:ignore-file
 // ignore_for_file: type=lint
@@ -220,10 +220,10 @@ class Translations implements BaseTranslations<AppLocale, Translations> {
 	String get exact_pokedex => 'Genauer Pokédex';
 	String get include_forms => 'Formen auswählen';
 	String get include_genders => 'Geschlechter (M/W)';
-	String get form_regional => 'Regionalformen (Alola, Galar...)';
+	String get form_regional => 'Regionalformen';
 	String get form_regional_short => 'Regionalformen';
-	String get form_mega => 'Mega-Entwicklungen';
-	String get form_gmax => 'Gigadynamax (G-Max)';
+	String get form_mega => 'Mega';
+	String get form_gmax => 'Gigadynamax';
 	String get form_other => 'Sonstige (Kostüme, Pokusan...)';
 	String get form_other_short => 'Sonstige (Kostüme...)';
 	String get delete_confirm_title => 'Dex löschen?';
@@ -1405,6 +1405,50 @@ class Translations implements BaseTranslations<AppLocale, Translations> {
 	String get encounter_trade => 'In-Game Tausch';
 	String get encounter_game_corner => 'Spielhalle';
 	String get encounter_glitch_8f => '8F Item Underflow Glitch';
+	String get box_edit_settings_header => 'Box-Verwaltung Einstellungen';
+	String get box_edit_auto_shift_title => 'Auto-Verschieben von Pokémon';
+	String get box_edit_auto_shift_subtitle => 'Verschiebt Pokémon beim Einfügen vorwärts und beim Entfernen rückwärts, um Lücken zu schließen.';
+	String get box_edit_strict_limits_title => 'Strikte Kapazitätsgrenzen';
+	String get box_edit_strict_limits_subtitle => 'Erzwingt feste Box-Kapazitätsgrenzen (Spalten × Zeilen) und leitet Überlauf in die nächste verknüpfte Box weiter.';
+	String get box_edit_pattern_auto_create_title => 'Musterbasierte Auto-Erstellung';
+	String get box_edit_pattern_auto_create_subtitle => 'Erstellt automatisch eine neue Folgebox (z. B. „Kanto 4“), wenn die letzte verknüpfte Box überläuft.';
+	String get box_edit_auto_delete_empty_title => 'Leere Boxen automatisch löschen';
+	String get box_edit_auto_delete_empty_subtitle => 'Löscht leere Folgeboxen automatisch nach dem Nachrücken von Pokémon (Stammbox bleibt erhalten).';
+	String get edit_mode_save_title => 'Änderungen speichern?';
+	String get edit_mode_discard_title => 'Möchtest du alle Änderungen verwerfen?';
+	String get yes => 'Ja';
+	String get discard => 'Verwerfen';
+	String get box_action_swap => 'Tauschen';
+	String get move_selected_block => 'Hierhin verschieben';
+	String get move_selected_to_box => 'In Box verschieben...';
+	String get tap_target_slot => 'Tippe auf Ziel-Slot...';
+	String get select_target_box => 'Zielbox auswählen';
+	String get cancel_selection => 'Auswahl aufheben';
+	String get insert_placeholder => 'Platzhalter einfügen';
+	String get placeholder => 'Platzhalter';
+	String get placeholder_desc => 'Fixierte Lücke (geschützt vor Auto-Shift)';
+	String get search_pokemon_hint => 'Name oder Pokédex-Nr. suchen...';
+	String get all_regions => 'Alle Regionen';
+	String get all_forms => 'Alle Formen';
+	String get form_normal => 'Normal';
+	String get filter_regions => 'Regionen';
+	String get filter_forms => 'Formen';
+	String get filter_gender => 'Geschlecht';
+	String get gender_male => 'Männlich (♂)';
+	String get gender_female => 'Weiblich (♀)';
+	String get gender_differences => 'Unterschiede';
+	String get filter_variant => 'Variante';
+	String get variant_normal => 'Standard';
+	String get variant_shiny => 'Schillernd';
+	String get box_menu => 'Box-Menü';
+	String get reset_filters => 'Filter zurücksetzen';
+	String get grid_size_title => 'Rastergröße ändern';
+	String get grid_columns => 'Spalten';
+	String get grid_rows => 'Reihen';
+	String get grid_apply_all => 'Für alle Boxen übernehmen';
+	String get grid_columns_tooltip => 'Spaltenanzahl ändern';
+	String get box_edit_empty_slot => 'Leerer Platz';
+	String get box_edit_remove => 'Entfernen';
 }
 
 // Path: <root>
@@ -1505,10 +1549,10 @@ class _StringsEn extends Translations {
 	@override String get exact_pokedex => 'Exact Pokédex';
 	@override String get include_forms => 'Select Forms';
 	@override String get include_genders => 'Genders (M/F)';
-	@override String get form_regional => 'Regional forms (Alola, Galar...)';
+	@override String get form_regional => 'Regional';
 	@override String get form_regional_short => 'Regional forms';
-	@override String get form_mega => 'Mega Evolutions';
-	@override String get form_gmax => 'Gigantamax (G-Max)';
+	@override String get form_mega => 'Mega';
+	@override String get form_gmax => 'Gigantamax';
 	@override String get form_other => 'Other (Costumes, Alcremie...)';
 	@override String get form_other_short => 'Other (Costumes...)';
 	@override String get delete_confirm_title => 'Delete Dex?';
@@ -2690,6 +2734,50 @@ class _StringsEn extends Translations {
 	@override String get box_edit_insert_pokemon => 'Insert Pokémon Here';
 	@override String get region_moves_dex => 'Moves Dex';
 	@override String get region_abilities_dex => 'Abilities Dex';
+	@override String get box_edit_settings_header => 'Box Management Settings';
+	@override String get box_edit_auto_shift_title => 'Auto-Shift Pokémon';
+	@override String get box_edit_auto_shift_subtitle => 'Shift Pokémon forward on insertion and backward on removal to close gaps.';
+	@override String get box_edit_strict_limits_title => 'Strict Capacity Limits';
+	@override String get box_edit_strict_limits_subtitle => 'Enforce fixed box grid limits (columns × rows) and spill overflow into the next linked box.';
+	@override String get box_edit_pattern_auto_create_title => 'Pattern-Based Auto-Creation';
+	@override String get box_edit_pattern_auto_create_subtitle => 'Automatically create the next sequence box (e.g. \'Kanto 4\') when the last linked box overflows.';
+	@override String get box_edit_auto_delete_empty_title => 'Auto-Delete Empty Boxes';
+	@override String get box_edit_auto_delete_empty_subtitle => 'Automatically delete empty sequence boxes when Pokémon are pulled back (preserves root box).';
+	@override String get edit_mode_save_title => 'Save changes?';
+	@override String get edit_mode_discard_title => 'Do you want to discard all changes?';
+	@override String get yes => 'Yes';
+	@override String get discard => 'Discard';
+	@override String get box_action_swap => 'Swap';
+	@override String get move_selected_block => 'Move here';
+	@override String get move_selected_to_box => 'Move to box...';
+	@override String get tap_target_slot => 'Tap target slot...';
+	@override String get select_target_box => 'Select target box';
+	@override String get cancel_selection => 'Cancel selection';
+	@override String get insert_placeholder => 'Insert Placeholder';
+	@override String get placeholder => 'Placeholder';
+	@override String get placeholder_desc => 'Fixed gap (protected from auto-shift)';
+	@override String get search_pokemon_hint => 'Search name or dex number...';
+	@override String get all_regions => 'All Regions';
+	@override String get all_forms => 'All Forms';
+	@override String get form_normal => 'Normal';
+	@override String get filter_regions => 'Regions';
+	@override String get filter_forms => 'Forms';
+	@override String get filter_gender => 'Gender';
+	@override String get gender_male => 'Male (♂)';
+	@override String get gender_female => 'Female (♀)';
+	@override String get gender_differences => 'Differences';
+	@override String get filter_variant => 'Variant';
+	@override String get variant_normal => 'Standard';
+	@override String get variant_shiny => 'Shiny';
+	@override String get box_menu => 'Box Menu';
+	@override String get reset_filters => 'Reset filters';
+	@override String get grid_size_title => 'Change Grid Size';
+	@override String get grid_columns => 'Columns';
+	@override String get grid_rows => 'Rows';
+	@override String get grid_apply_all => 'Apply to all boxes';
+	@override String get grid_columns_tooltip => 'Change Grid Columns';
+	@override String get box_edit_empty_slot => 'Empty Slot';
+	@override String get box_edit_remove => 'Remove';
 }
 
 /// Flat map(s) containing all translations.
@@ -2770,10 +2858,10 @@ extension on Translations {
 			case 'exact_pokedex': return 'Genauer Pokédex';
 			case 'include_forms': return 'Formen auswählen';
 			case 'include_genders': return 'Geschlechter (M/W)';
-			case 'form_regional': return 'Regionalformen (Alola, Galar...)';
+			case 'form_regional': return 'Regionalformen';
 			case 'form_regional_short': return 'Regionalformen';
-			case 'form_mega': return 'Mega-Entwicklungen';
-			case 'form_gmax': return 'Gigadynamax (G-Max)';
+			case 'form_mega': return 'Mega';
+			case 'form_gmax': return 'Gigadynamax';
 			case 'form_other': return 'Sonstige (Kostüme, Pokusan...)';
 			case 'form_other_short': return 'Sonstige (Kostüme...)';
 			case 'delete_confirm_title': return 'Dex löschen?';
@@ -3955,6 +4043,50 @@ extension on Translations {
 			case 'encounter_trade': return 'In-Game Tausch';
 			case 'encounter_game_corner': return 'Spielhalle';
 			case 'encounter_glitch_8f': return '8F Item Underflow Glitch';
+			case 'box_edit_settings_header': return 'Box-Verwaltung Einstellungen';
+			case 'box_edit_auto_shift_title': return 'Auto-Verschieben von Pokémon';
+			case 'box_edit_auto_shift_subtitle': return 'Verschiebt Pokémon beim Einfügen vorwärts und beim Entfernen rückwärts, um Lücken zu schließen.';
+			case 'box_edit_strict_limits_title': return 'Strikte Kapazitätsgrenzen';
+			case 'box_edit_strict_limits_subtitle': return 'Erzwingt feste Box-Kapazitätsgrenzen (Spalten × Zeilen) und leitet Überlauf in die nächste verknüpfte Box weiter.';
+			case 'box_edit_pattern_auto_create_title': return 'Musterbasierte Auto-Erstellung';
+			case 'box_edit_pattern_auto_create_subtitle': return 'Erstellt automatisch eine neue Folgebox (z. B. „Kanto 4“), wenn die letzte verknüpfte Box überläuft.';
+			case 'box_edit_auto_delete_empty_title': return 'Leere Boxen automatisch löschen';
+			case 'box_edit_auto_delete_empty_subtitle': return 'Löscht leere Folgeboxen automatisch nach dem Nachrücken von Pokémon (Stammbox bleibt erhalten).';
+			case 'edit_mode_save_title': return 'Änderungen speichern?';
+			case 'edit_mode_discard_title': return 'Möchtest du alle Änderungen verwerfen?';
+			case 'yes': return 'Ja';
+			case 'discard': return 'Verwerfen';
+			case 'box_action_swap': return 'Tauschen';
+			case 'move_selected_block': return 'Hierhin verschieben';
+			case 'move_selected_to_box': return 'In Box verschieben...';
+			case 'tap_target_slot': return 'Tippe auf Ziel-Slot...';
+			case 'select_target_box': return 'Zielbox auswählen';
+			case 'cancel_selection': return 'Auswahl aufheben';
+			case 'insert_placeholder': return 'Platzhalter einfügen';
+			case 'placeholder': return 'Platzhalter';
+			case 'placeholder_desc': return 'Fixierte Lücke (geschützt vor Auto-Shift)';
+			case 'search_pokemon_hint': return 'Name oder Pokédex-Nr. suchen...';
+			case 'all_regions': return 'Alle Regionen';
+			case 'all_forms': return 'Alle Formen';
+			case 'form_normal': return 'Normal';
+			case 'filter_regions': return 'Regionen';
+			case 'filter_forms': return 'Formen';
+			case 'filter_gender': return 'Geschlecht';
+			case 'gender_male': return 'Männlich (♂)';
+			case 'gender_female': return 'Weiblich (♀)';
+			case 'gender_differences': return 'Unterschiede';
+			case 'filter_variant': return 'Variante';
+			case 'variant_normal': return 'Standard';
+			case 'variant_shiny': return 'Schillernd';
+			case 'box_menu': return 'Box-Menü';
+			case 'reset_filters': return 'Filter zurücksetzen';
+			case 'grid_size_title': return 'Rastergröße ändern';
+			case 'grid_columns': return 'Spalten';
+			case 'grid_rows': return 'Reihen';
+			case 'grid_apply_all': return 'Für alle Boxen übernehmen';
+			case 'grid_columns_tooltip': return 'Spaltenanzahl ändern';
+			case 'box_edit_empty_slot': return 'Leerer Platz';
+			case 'box_edit_remove': return 'Entfernen';
 			default: return null;
 		}
 	}
@@ -4035,10 +4167,10 @@ extension on _StringsEn {
 			case 'exact_pokedex': return 'Exact Pokédex';
 			case 'include_forms': return 'Select Forms';
 			case 'include_genders': return 'Genders (M/F)';
-			case 'form_regional': return 'Regional forms (Alola, Galar...)';
+			case 'form_regional': return 'Regional';
 			case 'form_regional_short': return 'Regional forms';
-			case 'form_mega': return 'Mega Evolutions';
-			case 'form_gmax': return 'Gigantamax (G-Max)';
+			case 'form_mega': return 'Mega';
+			case 'form_gmax': return 'Gigantamax';
 			case 'form_other': return 'Other (Costumes, Alcremie...)';
 			case 'form_other_short': return 'Other (Costumes...)';
 			case 'delete_confirm_title': return 'Delete Dex?';
@@ -5220,6 +5352,50 @@ extension on _StringsEn {
 			case 'box_edit_insert_pokemon': return 'Insert Pokémon Here';
 			case 'region_moves_dex': return 'Moves Dex';
 			case 'region_abilities_dex': return 'Abilities Dex';
+			case 'box_edit_settings_header': return 'Box Management Settings';
+			case 'box_edit_auto_shift_title': return 'Auto-Shift Pokémon';
+			case 'box_edit_auto_shift_subtitle': return 'Shift Pokémon forward on insertion and backward on removal to close gaps.';
+			case 'box_edit_strict_limits_title': return 'Strict Capacity Limits';
+			case 'box_edit_strict_limits_subtitle': return 'Enforce fixed box grid limits (columns × rows) and spill overflow into the next linked box.';
+			case 'box_edit_pattern_auto_create_title': return 'Pattern-Based Auto-Creation';
+			case 'box_edit_pattern_auto_create_subtitle': return 'Automatically create the next sequence box (e.g. \'Kanto 4\') when the last linked box overflows.';
+			case 'box_edit_auto_delete_empty_title': return 'Auto-Delete Empty Boxes';
+			case 'box_edit_auto_delete_empty_subtitle': return 'Automatically delete empty sequence boxes when Pokémon are pulled back (preserves root box).';
+			case 'edit_mode_save_title': return 'Save changes?';
+			case 'edit_mode_discard_title': return 'Do you want to discard all changes?';
+			case 'yes': return 'Yes';
+			case 'discard': return 'Discard';
+			case 'box_action_swap': return 'Swap';
+			case 'move_selected_block': return 'Move here';
+			case 'move_selected_to_box': return 'Move to box...';
+			case 'tap_target_slot': return 'Tap target slot...';
+			case 'select_target_box': return 'Select target box';
+			case 'cancel_selection': return 'Cancel selection';
+			case 'insert_placeholder': return 'Insert Placeholder';
+			case 'placeholder': return 'Placeholder';
+			case 'placeholder_desc': return 'Fixed gap (protected from auto-shift)';
+			case 'search_pokemon_hint': return 'Search name or dex number...';
+			case 'all_regions': return 'All Regions';
+			case 'all_forms': return 'All Forms';
+			case 'form_normal': return 'Normal';
+			case 'filter_regions': return 'Regions';
+			case 'filter_forms': return 'Forms';
+			case 'filter_gender': return 'Gender';
+			case 'gender_male': return 'Male (♂)';
+			case 'gender_female': return 'Female (♀)';
+			case 'gender_differences': return 'Differences';
+			case 'filter_variant': return 'Variant';
+			case 'variant_normal': return 'Standard';
+			case 'variant_shiny': return 'Shiny';
+			case 'box_menu': return 'Box Menu';
+			case 'reset_filters': return 'Reset filters';
+			case 'grid_size_title': return 'Change Grid Size';
+			case 'grid_columns': return 'Columns';
+			case 'grid_rows': return 'Rows';
+			case 'grid_apply_all': return 'Apply to all boxes';
+			case 'grid_columns_tooltip': return 'Change Grid Columns';
+			case 'box_edit_empty_slot': return 'Empty Slot';
+			case 'box_edit_remove': return 'Remove';
 			default: return null;
 		}
 	}

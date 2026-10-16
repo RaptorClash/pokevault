@@ -6,7 +6,7 @@ import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:pokevault/models/user_dex.dart';
 import 'package:pokevault/screens/dex/box_edit_screen.dart';
 import 'package:pokevault/l10n/app_translations.dart';
-import '../../e2e/e2e_test_helper.dart';
+import '../../e2e/helpers/e2e_test_helper.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();

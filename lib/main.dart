@@ -13,6 +13,7 @@ import 'screens/home/home_screen.dart';
 import 'utils/notification_helper.dart';
 import 'i18n/strings.g.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 
 void main() async {
   FlutterError.onError = (FlutterErrorDetails details) {
@@ -73,10 +74,19 @@ class PokedexApp extends StatelessWidget {
   Widget build(BuildContext context) {
     final themeProvider = Provider.of<ThemeProvider>(context);
     final settingsProvider = context.watch<SettingsProvider>();
+    Locale? appLocale;
+    try {
+      appLocale = TranslationProvider.of(context).flutterLocale;
+    } catch (_) {
+      appLocale = LocaleSettings.currentLocale.flutterLocale;
+    }
 
     return MaterialApp(
       title: 'Poke Vault',
       debugShowCheckedModeBanner: false,
+      locale: appLocale,
+      supportedLocales: AppLocaleUtils.supportedLocales,
+      localizationsDelegates: GlobalMaterialLocalizations.delegates,
       scaffoldMessengerKey: NotificationHelper.scaffoldMessengerKey,
       scrollBehavior: AppScrollBehavior(),
       navigatorKey: appNavigatorKey,

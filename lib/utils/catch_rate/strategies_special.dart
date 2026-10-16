@@ -158,10 +158,11 @@ class Gen85Strategy extends CatchRateStrategy {
     double hisuiModifier = 1.0;
     if (params.hisuiCatchStatus == 1) {
       hisuiModifier = 1.5;
-    } else if (params.hisuiCatchStatus == 2)
+    } else if (params.hisuiCatchStatus == 2) {
       hisuiModifier = 2.0;
-    else if (params.hisuiCatchStatus == 3)
+    } else if (params.hisuiCatchStatus == 3) {
       hisuiModifier = 1.25;
+    }
 
     double ballBonus = 1.0;
     switch (params.ballId) {
@@ -353,8 +354,9 @@ class Gen95Strategy extends CatchRateStrategy {
     } else {
       if (params.statusType == 2) {
         statusBonus = 1.5;
-      } else if (params.statusType == 1)
+      } else if (params.statusType == 1) {
         statusBonus = 1.2;
+      }
     }
 
     double shinyBonus = params.isTargetShiny ? 3.0 : 1.0;
@@ -376,26 +378,29 @@ class Gen95Strategy extends CatchRateStrategy {
     double rankPenalty = 1.0;
     if (rank == -1) {
       rankPenalty = 0.7;
-    } else if (rank == -2)
+    } else if (rank == -2) {
       rankPenalty = 0.5;
-    else if (rank == -3)
+    } else if (rank == -3) {
       rankPenalty = 0.3;
-    else if (rank <= -4)
+    } else if (rank <= -4) {
       rankPenalty = 0.1;
+    }
 
     double plushBonus = 1.0;
     if (params.plushLevel == 1) {
       plushBonus = 1.1;
-    } else if (params.plushLevel == 2)
+    } else if (params.plushLevel == 2) {
       plushBonus = 1.2;
-    else if (params.plushLevel == 3)
+    } else if (params.plushLevel == 3) {
       plushBonus = 1.35;
+    }
 
     double donutPenaltyVal = 1.0;
     if (params.donutPenalty == 1) {
       donutPenaltyVal = 0.9;
-    } else if (params.donutPenalty == 2)
+    } else if (params.donutPenalty == 2) {
       donutPenaltyVal = 0.3;
+    }
 
     double hpFactor = (3.0 * 100.0 - 2.0 * params.hpPercent) / (3.0 * 100.0);
 

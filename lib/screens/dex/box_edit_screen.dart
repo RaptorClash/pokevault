@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../models/user_dex.dart';
 import '../../models/dex_view_models.dart';
-import '../../l10n/app_translations.dart';
+import '../../i18n/strings.g.dart';
 import '../../services/database_service.dart';
 import '../../utils/dex_logic_helper.dart';
 import 'box_content_edit_screen.dart';
@@ -94,16 +94,16 @@ class _BoxEditScreenState extends State<BoxEditScreen> {
       builder: (context) {
         String newName = '';
         return AlertDialog(
-          title: Text(Translator.get('box_edit_add_box')),
+          title: Text(t.box_edit_add_box),
           content: TextField(
             autofocus: true,
             onChanged: (val) => newName = val,
-            decoration: InputDecoration(hintText: Translator.get('box_edit_rename_box')),
+            decoration: InputDecoration(hintText: t.box_edit_rename_box),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: Text(Translator.get('cancel')),
+              child: Text(t.cancel),
             ),
             ElevatedButton(
               onPressed: () {
@@ -122,7 +122,7 @@ class _BoxEditScreenState extends State<BoxEditScreen> {
                   Navigator.pop(context);
                 }
               },
-              child: Text(Translator.get('create')),
+              child: Text(t.create),
             ),
           ],
         );
@@ -136,7 +136,7 @@ class _BoxEditScreenState extends State<BoxEditScreen> {
       builder: (context) {
         String newName = widget.dex.customBoxes[index].title;
         return AlertDialog(
-          title: Text(Translator.get('box_edit_rename_box')),
+          title: Text(t.box_edit_rename_box),
           content: TextField(
             autofocus: true,
             controller: TextEditingController(text: newName),
@@ -145,7 +145,7 @@ class _BoxEditScreenState extends State<BoxEditScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: Text(Translator.get('cancel')),
+              child: Text(t.cancel),
             ),
             ElevatedButton(
               onPressed: () {
@@ -157,7 +157,7 @@ class _BoxEditScreenState extends State<BoxEditScreen> {
                   Navigator.pop(context);
                 }
               },
-              child: Text(Translator.get('edit')),
+              child: Text(t.edit),
             ),
           ],
         );
@@ -179,7 +179,7 @@ class _BoxEditScreenState extends State<BoxEditScreen> {
         return StatefulBuilder(
           builder: (context, setDialogState) {
             return AlertDialog(
-              title: Text(Translator.currentLanguage == 'de' ? 'Rastergröße ändern' : 'Change Grid Size'),
+              title: Text(t.grid_size_title),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -190,7 +190,7 @@ class _BoxEditScreenState extends State<BoxEditScreen> {
                           controller: colsController,
                           keyboardType: TextInputType.number,
                           decoration: InputDecoration(
-                            labelText: Translator.currentLanguage == 'de' ? 'Spalten' : 'Columns',
+                            labelText: t.grid_columns,
                           ),
                           onChanged: (val) {
                             int? parsed = int.tryParse(val);
@@ -204,7 +204,7 @@ class _BoxEditScreenState extends State<BoxEditScreen> {
                           controller: rowsController,
                           keyboardType: TextInputType.number,
                           decoration: InputDecoration(
-                            labelText: Translator.currentLanguage == 'de' ? 'Reihen' : 'Rows',
+                            labelText: t.grid_rows,
                           ),
                           onChanged: (val) {
                             int? parsed = int.tryParse(val);
@@ -216,7 +216,7 @@ class _BoxEditScreenState extends State<BoxEditScreen> {
                   ),
                   const SizedBox(height: 16),
                   CheckboxListTile(
-                    title: Text(Translator.currentLanguage == 'de' ? 'Für alle Boxen übernehmen' : 'Apply to all boxes'),
+                    title: Text(t.grid_apply_all),
                     value: applyToAll,
                     onChanged: (val) {
                       setDialogState(() => applyToAll = val ?? false);
@@ -227,7 +227,7 @@ class _BoxEditScreenState extends State<BoxEditScreen> {
               actions: [
                 TextButton(
                   onPressed: () => Navigator.pop(context),
-                  child: Text(Translator.get('cancel')),
+                  child: Text(t.cancel),
                 ),
                 ElevatedButton(
                   onPressed: () {
@@ -248,7 +248,7 @@ class _BoxEditScreenState extends State<BoxEditScreen> {
                     });
                     Navigator.pop(context);
                   },
-                  child: Text(Translator.get('save', fallback: 'Speichern')),
+                  child: Text(t.save),
                 ),
               ],
             );
@@ -275,7 +275,7 @@ class _BoxEditScreenState extends State<BoxEditScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(Translator.get('box_edit_title')),
+        title: Text(t.box_edit_title),
         actions: [
           IconButton(
             icon: const Icon(Icons.restore),
@@ -289,7 +289,7 @@ class _BoxEditScreenState extends State<BoxEditScreen> {
                   actions: [
                     TextButton(
                       onPressed: () => Navigator.pop(ctx),
-                      child: Text(Translator.get('cancel')),
+                      child: Text(t.cancel),
                     ),
                     ElevatedButton(
                       style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
@@ -329,7 +329,7 @@ class _BoxEditScreenState extends State<BoxEditScreen> {
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
-                        Translator.get('box_edit_settings_header'),
+                        t.box_edit_settings_header,
                         style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -340,29 +340,29 @@ class _BoxEditScreenState extends State<BoxEditScreen> {
               const Divider(height: 1),
               SwitchListTile(
                 dense: true,
-                title: Text(Translator.get('box_edit_auto_shift_title')),
-                subtitle: Text(Translator.get('box_edit_auto_shift_subtitle')),
+                title: Text(t.box_edit_auto_shift_title),
+                subtitle: Text(t.box_edit_auto_shift_subtitle),
                 value: _autoShift,
                 onChanged: (val) => _updateSettings(autoShift: val),
               ),
               SwitchListTile(
                 dense: true,
-                title: Text(Translator.get('box_edit_strict_limits_title')),
-                subtitle: Text(Translator.get('box_edit_strict_limits_subtitle')),
+                title: Text(t.box_edit_strict_limits_title),
+                subtitle: Text(t.box_edit_strict_limits_subtitle),
                 value: _strictLimits,
                 onChanged: (val) => _updateSettings(strictLimits: val),
               ),
               SwitchListTile(
                 dense: true,
-                title: Text(Translator.get('box_edit_pattern_auto_create_title')),
-                subtitle: Text(Translator.get('box_edit_pattern_auto_create_subtitle')),
+                title: Text(t.box_edit_pattern_auto_create_title),
+                subtitle: Text(t.box_edit_pattern_auto_create_subtitle),
                 value: _patternAutoCreate,
                 onChanged: (val) => _updateSettings(patternAutoCreate: val),
               ),
               SwitchListTile(
                 dense: true,
-                title: Text(Translator.get('box_edit_auto_delete_empty_title')),
-                subtitle: Text(Translator.get('box_edit_auto_delete_empty_subtitle')),
+                title: Text(t.box_edit_auto_delete_empty_title),
+                subtitle: Text(t.box_edit_auto_delete_empty_subtitle),
                 value: _autoDeleteEmpty,
                 onChanged: (val) => _updateSettings(autoDeleteEmpty: val),
               ),
@@ -415,17 +415,17 @@ class _BoxEditScreenState extends State<BoxEditScreen> {
                   IconButton(
                     icon: const Icon(Icons.grid_view, size: 20),
                     onPressed: () => _showGridSettingsDialog(index),
-                    tooltip: Translator.currentLanguage == 'de' ? 'Spaltenanzahl ändern' : 'Change Grid Columns',
+                    tooltip: t.grid_columns_tooltip,
                   ),
                   IconButton(
                     icon: const Icon(Icons.edit, size: 20),
                     onPressed: () => _renameBox(index),
-                    tooltip: Translator.get('box_edit_rename_box'),
+                    tooltip: t.box_edit_rename_box,
                   ),
                   IconButton(
                     icon: const Icon(Icons.delete, size: 20, color: Colors.redAccent),
                     onPressed: () => _deleteBox(index),
-                    tooltip: Translator.get('box_edit_delete_box'),
+                    tooltip: t.box_edit_delete_box,
                   ),
                 ],
               ),
@@ -435,7 +435,7 @@ class _BoxEditScreenState extends State<BoxEditScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: _addBox,
-        tooltip: Translator.get('box_edit_add_box'),
+        tooltip: t.box_edit_add_box,
         child: const Icon(Icons.add),
       ),
     );

@@ -11,6 +11,7 @@ import 'package:pokevault/providers/dex_provider.dart';
 import 'package:pokevault/providers/settings_provider.dart';
 import 'package:pokevault/providers/tutorial_provider.dart';
 import 'package:pokevault/l10n/app_translations.dart';
+import 'package:pokevault/i18n/strings.g.dart';
 
 class MockDexProvider extends Mock implements DexProvider {}
 class MockSettingsProvider extends Mock implements SettingsProvider {}
@@ -180,14 +181,16 @@ Widget wrapWithApp({
   when(() => settingsProvider.currentLanguage).thenReturn(language);
   when(() => tutorialProvider.hasSeenFeature(any())).thenReturn(true);
 
-  return MultiProvider(
-    providers: [
-      ChangeNotifierProvider<DexProvider>.value(value: dexProvider),
-      ChangeNotifierProvider<SettingsProvider>.value(value: settingsProvider),
-      ChangeNotifierProvider<TutorialProvider>.value(value: tutorialProvider),
-    ],
-    child: MaterialApp(
-      home: Scaffold(body: child),
+  return TranslationProvider(
+    child: MultiProvider(
+      providers: [
+        ChangeNotifierProvider<DexProvider>.value(value: dexProvider),
+        ChangeNotifierProvider<SettingsProvider>.value(value: settingsProvider),
+        ChangeNotifierProvider<TutorialProvider>.value(value: tutorialProvider),
+      ],
+      child: MaterialApp(
+        home: Scaffold(body: child),
+      ),
     ),
   );
 }

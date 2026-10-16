@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pokevault/models/dex_view_models.dart';
 import 'package:pokevault/utils/dex_logic_helper.dart';
-import '../e2e/e2e_test_helper.dart';
+import '../e2e/helpers/e2e_test_helper.dart';
 
 void main() {
   test('Test custom_empty dex generation with buildDisplayEntries', () {

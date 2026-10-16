@@ -1,8 +1,39 @@
+import 'dart:async';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pokevault/widgets/dialogs/update_dialog.dart';
 import 'package:pokevault/utils/update_helper.dart';
 import 'package:pokevault/l10n/app_translations.dart';
+
+class _MockHttpOverrides extends HttpOverrides {
+  @override
+  HttpClient createHttpClient(SecurityContext? context) => _MockHttpClient();
+}
+
+class _MockHttpClient implements HttpClient {
+  @override
+  Future<HttpClientRequest> getUrl(Uri url) async => _MockHttpClientRequest();
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => null;
+}
+
+class _MockHttpClientRequest implements HttpClientRequest {
+  @override
+  final HttpHeaders headers = _MockHttpHeaders();
+
+  @override
+  Future<HttpClientResponse> close() => Completer<HttpClientResponse>().future;
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => null;
+}
+
+class _MockHttpHeaders implements HttpHeaders {
+  @override
+  dynamic noSuchMethod(Invocation invocation) => null;
+}
 
 void main() {
   group('UpdateDialog UI Tests', () {
@@ -15,7 +46,12 @@ void main() {
     );
 
     setUp(() {
+      HttpOverrides.global = _MockHttpOverrides();
       Translator.currentLanguage = 'de';
+    });
+
+    tearDown(() {
+      HttpOverrides.global = null;
     });
 
     testWidgets('Zeigt Versionsinfos und Buttons im Initialzustand', (
@@ -52,10 +88,6 @@ void main() {
 
       expect(find.byType(TextButton), findsNothing);
       expect(find.byType(ElevatedButton), findsNothing);
-
-      for (int i = 0; i < 4; i++) {
-        await tester.pump(const Duration(seconds: 2));
-      }
     });
   });
 }

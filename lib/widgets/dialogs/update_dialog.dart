@@ -102,7 +102,9 @@ class _UpdateDialogState extends State<UpdateDialog> {
                     });
                   },
                 );
-                if (mounted) Navigator.pop(context);
+                if (context.mounted) {
+                  Navigator.pop(context);
+                }
               } catch (e) {
                 if (mounted) {
                   setState(() {

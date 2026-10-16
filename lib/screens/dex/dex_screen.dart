@@ -10,6 +10,7 @@ import '../../providers/tutorial_provider.dart';
 import '../../models/tutorial_step.dart';
 import '../../widgets/tutorial/tutorial_overlay.dart';
 import '../../l10n/app_translations.dart';
+import '../../i18n/strings.g.dart';
 import '../../utils/dex_logic_helper.dart';
 import '../../utils/notification_helper.dart';
 import '../../screens/pokemon_info/widgets/breeding_data.dart';
@@ -233,17 +234,15 @@ class _DexScreenState extends State<DexScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text(
-          Translator.get('edit_mode_save_title', fallback: 'Änderungen speichern?'),
-        ),
+        title: Text(t.edit_mode_save_title),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(false),
-            child: Text(Translator.get('cancel', fallback: 'Abbrechen')),
+            child: Text(t.cancel),
           ),
           ElevatedButton(
             onPressed: () => Navigator.of(ctx).pop(true),
-            child: Text(Translator.get('yes', fallback: 'Ja')),
+            child: Text(t.yes),
           ),
         ],
       ),
@@ -277,16 +276,11 @@ class _DexScreenState extends State<DexScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text(
-          Translator.get(
-            'edit_mode_discard_title',
-            fallback: 'Möchtest du alle Änderungen verwerfen?',
-          ),
-        ),
+        title: Text(t.edit_mode_discard_title),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(false),
-            child: Text(Translator.get('cancel', fallback: 'Abbrechen')),
+            child: Text(t.cancel),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
@@ -294,7 +288,7 @@ class _DexScreenState extends State<DexScreen> {
               foregroundColor: Colors.white,
             ),
             onPressed: () => Navigator.of(ctx).pop(true),
-            child: Text(Translator.get('discard', fallback: 'Verwerfen')),
+            child: Text(t.discard),
           ),
         ],
       ),
@@ -449,7 +443,7 @@ class _DexScreenState extends State<DexScreen> {
       context: context,
       builder: (ctx) {
         return AlertDialog(
-          title: Text(Translator.get('select_target_box', fallback: 'Zielbox auswählen')),
+          title: Text(t.select_target_box),
           content: SizedBox(
             width: 320,
             child: ListView.builder(
@@ -470,7 +464,7 @@ class _DexScreenState extends State<DexScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.of(ctx).pop(null),
-              child: Text(Translator.get('cancel', fallback: 'Abbrechen')),
+              child: Text(t.cancel),
             ),
           ],
         );
@@ -1419,7 +1413,7 @@ class _DexScreenState extends State<DexScreen> {
                                 ),
                                 if (_isMoveTargetMode)
                                   Text(
-                                    Translator.get('tap_target_slot', fallback: 'Tippe auf Ziel-Slot...'),
+                                    t.tap_target_slot,
                                     style: TextStyle(
                                       fontSize: 11,
                                       color: Theme.of(context).colorScheme.primary,
@@ -1434,7 +1428,7 @@ class _DexScreenState extends State<DexScreen> {
                               _isMoveTargetMode ? Icons.check_circle : Icons.open_with,
                               color: _isMoveTargetMode ? Theme.of(context).colorScheme.primary : null,
                             ),
-                            tooltip: Translator.get('move_selected_block', fallback: 'Hierhin verschieben'),
+                            tooltip: t.move_selected_block,
                             onPressed: () {
                               setState(() {
                                 _isMoveTargetMode = !_isMoveTargetMode;
@@ -1443,12 +1437,12 @@ class _DexScreenState extends State<DexScreen> {
                           ),
                           IconButton(
                             icon: const Icon(Icons.drive_file_move_outlined),
-                            tooltip: Translator.get('move_selected_to_box', fallback: 'In Box verschieben...'),
+                            tooltip: t.move_selected_to_box,
                             onPressed: () => _showMoveToBoxDialog(liveDex),
                           ),
                           IconButton(
                             icon: const Icon(Icons.delete_outline),
-                            tooltip: Translator.get('box_edit_remove_selected', fallback: 'Löschen'),
+                            tooltip: t.box_edit_remove_selected,
                             onPressed: () {
                               setState(() {
                                 _ensureCustomBoxesInitialized(liveDex);
@@ -1469,7 +1463,7 @@ class _DexScreenState extends State<DexScreen> {
                           ),
                           IconButton(
                             icon: const Icon(Icons.close),
-                            tooltip: Translator.get('cancel_selection', fallback: 'Auswahl aufheben'),
+                            tooltip: t.cancel_selection,
                             onPressed: () {
                               setState(() {
                                 _selectedForEdit.clear();
@@ -1526,7 +1520,7 @@ class _DexScreenState extends State<DexScreen> {
             if (_isEditMode && _selectedForEdit.isNotEmpty)
               IconButton(
                 icon: const Icon(Icons.delete),
-                tooltip: Translator.get('box_edit_remove_selected'),
+                tooltip: t.box_edit_remove_selected,
                 onPressed: () {
                   setState(() {
                     _ensureCustomBoxesInitialized(liveDex);
@@ -1631,7 +1625,7 @@ class _DexScreenState extends State<DexScreen> {
             if (!_isEditMode)
               IconButton(
                 icon: const Icon(Icons.checklist),
-                tooltip: Translator.get('box_edit_manage_content'),
+                tooltip: t.box_edit_manage_content,
                 onPressed: () {
                   setState(() {
                     _wasCustomBoxesEmptyOriginally = liveDex.customBoxes.isEmpty;
@@ -1648,7 +1642,7 @@ class _DexScreenState extends State<DexScreen> {
             if (!_isEditMode)
               IconButton(
                 icon: const Icon(Icons.edit_note),
-                tooltip: Translator.get('box_edit_title'),
+                tooltip: t.box_edit_title,
                 onPressed: () async {
                   await Navigator.push(
                     context,
@@ -1785,12 +1779,12 @@ class _DexScreenState extends State<DexScreen> {
             if (_isEditMode) ...[
               IconButton(
                 icon: const Icon(Icons.close),
-                tooltip: Translator.get('cancel', fallback: 'Abbrechen'),
+                tooltip: t.cancel,
                 onPressed: () => _handleCancelEditMode(liveDex),
               ),
               IconButton(
                 icon: const Icon(Icons.check),
-                tooltip: Translator.get('save', fallback: 'Speichern'),
+                tooltip: t.save,
                 onPressed: () => _handleSaveEditMode(liveDex),
               ),
             ],
