@@ -39,6 +39,7 @@ void main() {
       when(() => mockDb.getAllPokemon()).thenAnswer((_) async => []);
       when(() => mockDb.getAllDexOrders()).thenAnswer((_) async => {});
       when(() => mockDb.getBallUrls()).thenAnswer((_) async => {});
+      when(() => mockDb.getAllRibbons()).thenAnswer((_) async => []);
       when(() => mockDb.getAllUserDexes()).thenAnswer((_) async => []);
       when(() => mockDb.getAllFolders()).thenAnswer((_) async => []);
       when(() => mockDb.getStructure()).thenAnswer((_) async => {'root': []});

@@ -136,17 +136,7 @@ class _MarksWidgetState extends State<MarksWidget> {
     final provider = context.watch<DexProvider>();
     final liveDex = provider.userDexes.firstWhere(
       (d) => d.id == widget.dexId,
-      orElse: () => UserDex(
-        id: widget.dexId,
-        title: '',
-        region: widget.dexId,
-        includeGenders: false,
-        includeRegional: false,
-        includeMega: false,
-        includeGMax: false,
-        includeOther: false,
-        isShinyDex: false,
-      ),
+      orElse: () => UserDex.fallback(widget.dexId),
     );
 
     List<String> earnedRibbons =

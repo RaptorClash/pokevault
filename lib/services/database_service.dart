@@ -1,4 +1,4 @@
-﻿import 'dart:convert';
+import 'dart:convert';
 import 'package:universal_io/io.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
@@ -9,7 +9,6 @@ import '../models/pokemon.dart';
 import '../models/user_dex.dart';
 import '../utils/notification_helper.dart';
 import '../l10n/app_translations.dart';
-import 'dart:typed_data';
 import 'package:sqflite_common_ffi_web/sqflite_ffi_web.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/special_dex_models.dart';
@@ -256,7 +255,7 @@ class DatabaseService {
         await db.execute("ALTER TABLE user_dexes ADD COLUMN custom_boxes TEXT DEFAULT '[]'");
         debugPrint("Datenbank erfolgreich auf Version 8 (Custom Boxes) migriert!");
       } catch (e) {
-        debugPrint("Migrations-Fehler V8: `$e");
+        debugPrint("Migrations-Fehler V8: $e");
       }
     }
   }
@@ -502,6 +501,34 @@ class DatabaseService {
       'caught_languages': l,
       'updated_at': DateTime.now().toUtc().millisecondsSinceEpoch,
     }, conflictAlgorithm: ConflictAlgorithm.replace);
+  }
+
+  Future<int> cleanupOrphanedPokemon(String dexId, Set<String> activeUniqueIds) async {
+    final db = await instance.userDatabase;
+    final rows = await db.query(
+      'user_pokemon',
+      columns: ['unique_id'],
+      where: 'dex_id = ?',
+      whereArgs: [dexId],
+    );
+
+    int deletedCount = 0;
+    final batch = db.batch();
+    for (final row in rows) {
+      final uId = row['unique_id'] as String? ?? '';
+      if (uId.contains('__') && !activeUniqueIds.contains(uId)) {
+        batch.delete(
+          'user_pokemon',
+          where: 'dex_id = ? AND unique_id = ?',
+          whereArgs: [dexId, uId],
+        );
+        deletedCount++;
+      }
+    }
+    if (deletedCount > 0) {
+      await batch.commit(noResult: true);
+    }
+    return deletedCount;
   }
 
   Future<List<DexFolder>> getAllFolders() async {

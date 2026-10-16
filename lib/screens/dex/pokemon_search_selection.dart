@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../models/dex_view_models.dart';
@@ -49,6 +50,7 @@ class PokemonSearchSelectionScreen extends StatefulWidget {
 class _PokemonSearchSelectionScreenState
     extends State<PokemonSearchSelectionScreen> {
   final TextEditingController _searchController = TextEditingController();
+  Timer? _debounceTimer;
   String _searchQuery = '';
   final Set<String> _selectedRegions = {};
   final Set<String> _selectedForms = {};
@@ -92,8 +94,20 @@ class _PokemonSearchSelectionScreenState
 
   @override
   void dispose() {
+    _debounceTimer?.cancel();
     _searchController.dispose();
     super.dispose();
+  }
+
+  void _onSearchChanged(String val) {
+    _debounceTimer?.cancel();
+    _debounceTimer = Timer(const Duration(milliseconds: 200), () {
+      if (!mounted) return;
+      setState(() {
+        _searchQuery = val.trim().toLowerCase();
+      });
+      _applyFilter();
+    });
   }
 
   PokemonForm? _getEntryForm(DexDisplayEntry entry) {
@@ -465,6 +479,7 @@ class _PokemonSearchSelectionScreenState
                 ? IconButton(
                     icon: const Icon(Icons.clear),
                     onPressed: () {
+                      _debounceTimer?.cancel();
                       _searchController.clear();
                       setState(() {
                         _searchQuery = '';
@@ -475,10 +490,7 @@ class _PokemonSearchSelectionScreenState
                 : null,
           ),
           style: TextStyle(color: theme.colorScheme.onSurface),
-          onChanged: (val) {
-            _searchQuery = val.trim().toLowerCase();
-            _applyFilter();
-          },
+          onChanged: _onSearchChanged,
         ),
         actions: [
           IconButton(
@@ -783,6 +795,7 @@ class _PokemonSearchSelectionScreenState
                     _isShinyMode != widget.initialShiny)
                   InkWell(
                     onTap: () {
+                      _debounceTimer?.cancel();
                       _searchController.clear();
                       setState(() {
                         _searchQuery = '';

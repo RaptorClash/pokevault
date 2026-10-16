@@ -64,6 +64,8 @@ void main() {
                   provider: mockProvider,
                   caughtStatusKey: GlobalKey(),
                   shinyStatusKey: GlobalKey(),
+                  isAlpha: false,
+                  alphaToggleKey: GlobalKey(),
                 ),
               ),
             ),

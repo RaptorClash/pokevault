@@ -40,17 +40,7 @@ class TeraTypeWidget extends StatelessWidget {
     final provider = context.watch<DexProvider>();
     final liveDex = provider.userDexes.firstWhere(
       (d) => d.id == dexId,
-      orElse: () => UserDex(
-        id: dexId,
-        title: '',
-        region: dexId,
-        includeGenders: false,
-        includeRegional: false,
-        includeMega: false,
-        includeGMax: false,
-        includeOther: false,
-        isShinyDex: false,
-      ),
+      orElse: () => UserDex.fallback(dexId),
     );
     final caughtTeras = liveDex.caughtTeraTypes[entry.uniqueId] ?? [];
 

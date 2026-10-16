@@ -46,6 +46,34 @@ class _BatchTarget {
   _BatchTarget(this.boxIndex, this.slotIndex, this.box, this.pokemonId);
 }
 
+class BoxSlotDragData {
+  final int boxIndex;
+  final int slotIndex;
+  final String uniqueId;
+
+  const BoxSlotDragData({
+    required this.boxIndex,
+    required this.slotIndex,
+    required this.uniqueId,
+  });
+
+  static const String prefix = 'SLOT:';
+
+  static String serialize(int boxIndex, int slotIndex, String uniqueId) =>
+      '$prefix$boxIndex:$slotIndex:$uniqueId';
+
+  static BoxSlotDragData? tryParse(String? data) {
+    if (data == null || !data.startsWith(prefix)) return null;
+    final parts = data.substring(prefix.length).split(':');
+    if (parts.length < 3) return null;
+    final b = int.tryParse(parts[0]);
+    final s = int.tryParse(parts[1]);
+    if (b == null || s == null) return null;
+    final uId = parts.sublist(2).join(':');
+    return BoxSlotDragData(boxIndex: b, slotIndex: s, uniqueId: uId);
+  }
+}
+
 class BoxSequenceManager {
   static final _pureRangeRegex = RegExp(r'^\s*(\d+)\s*[\-–—]\s*(\d+)\s*$');
   static final _prefixRangeParenRegex = RegExp(
@@ -520,36 +548,52 @@ class BoxSequenceManager {
     required String sourceId,
     required int targetBoxIndex,
     required int targetSlotIndex,
+    int? sourceBoxIndex,
+    int? sourceSlotIndex,
   }) {
     if (dex.customBoxes.isEmpty) return;
     if (targetBoxIndex < 0 || targetBoxIndex >= dex.customBoxes.length) return;
 
-    int? sBox;
-    int? sIndex;
-    for (int i = 0; i < dex.customBoxes.length; i++) {
-      final box = dex.customBoxes[i];
-      final idx = box.pokemonIds.indexOf(sourceId);
-      if (idx != -1) {
-        sBox = i;
-        sIndex = idx;
-        break;
-      }
-    }
-    if (sBox == null || sIndex == null) {
-      final baseId = DexLogicHelper.getBaseId(sourceId);
+    int? sBox = sourceBoxIndex;
+    int? sIndex = sourceSlotIndex;
+    if (sBox == null ||
+        sIndex == null ||
+        sBox < 0 ||
+        sBox >= dex.customBoxes.length ||
+        sIndex < 0 ||
+        sIndex >= dex.customBoxes[sBox].pokemonIds.length ||
+        (dex.customBoxes[sBox].pokemonIds[sIndex] != sourceId &&
+            DexLogicHelper.getBaseId(dex.customBoxes[sBox].pokemonIds[sIndex]) !=
+                DexLogicHelper.getBaseId(sourceId))) {
+      sBox = null;
+      sIndex = null;
       for (int i = 0; i < dex.customBoxes.length; i++) {
         final box = dex.customBoxes[i];
-        for (int j = 0; j < box.pokemonIds.length; j++) {
-          if (box.pokemonIds[j].isNotEmpty &&
-              DexLogicHelper.getBaseId(box.pokemonIds[j]) == baseId) {
-            sBox = i;
-            sIndex = j;
-            sourceId = box.pokemonIds[j];
-            break;
-          }
+        final idx = box.pokemonIds.indexOf(sourceId);
+        if (idx != -1) {
+          sBox = i;
+          sIndex = idx;
+          break;
         }
-        if (sBox != null) break;
       }
+      if (sBox == null || sIndex == null) {
+        final baseId = DexLogicHelper.getBaseId(sourceId);
+        for (int i = 0; i < dex.customBoxes.length; i++) {
+          final box = dex.customBoxes[i];
+          for (int j = 0; j < box.pokemonIds.length; j++) {
+            if (box.pokemonIds[j].isNotEmpty &&
+                DexLogicHelper.getBaseId(box.pokemonIds[j]) == baseId) {
+              sBox = i;
+              sIndex = j;
+              sourceId = box.pokemonIds[j];
+              break;
+            }
+          }
+          if (sBox != null) break;
+        }
+      }
+    } else {
+      sourceId = dex.customBoxes[sBox].pokemonIds[sIndex];
     }
     if (sBox == null || sIndex == null) return;
 
@@ -633,9 +677,22 @@ class BoxSequenceManager {
     required String sourceId,
     required int targetBoxIndex,
     required int targetSlotIndex,
+    int? sourceBoxIndex,
+    int? sourceSlotIndex,
   }) {
     if (dex.customBoxes.isEmpty) return;
     if (targetBoxIndex < 0 || targetBoxIndex >= dex.customBoxes.length) return;
+
+    if (sourceBoxIndex != null && sourceSlotIndex != null) {
+      swapPokemonByIndices(
+        dex: dex,
+        sourceBoxIndex: sourceBoxIndex,
+        sourceSlotIndex: sourceSlotIndex,
+        targetBoxIndex: targetBoxIndex,
+        targetSlotIndex: targetSlotIndex,
+      );
+      return;
+    }
 
     int? sBox;
     int? sIndex;

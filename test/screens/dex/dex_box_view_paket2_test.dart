@@ -230,7 +230,7 @@ void main() {
       final addIcons = find.byIcon(Icons.add);
       expect(addIcons, findsWidgets);
 
-      // Verify that the GestureDetector has at least 44x44 touch target
+      // Verify that the GestureDetector has a 28x28 touch target to avoid card overlap
       final plusGestureFinders = find.ancestor(
         of: addIcons.first,
         matching: find.byType(GestureDetector),
@@ -243,10 +243,10 @@ void main() {
       );
       final containers = tester.widgetList<Container>(containerFinder);
       final touchTarget = containers.firstWhere(
-        (c) => (c.constraints?.minWidth ?? 0) >= 44 || (c.constraints?.maxWidth ?? 0) >= 44,
+        (c) => (c.constraints?.minWidth ?? 0) >= 28 || (c.constraints?.maxWidth ?? 0) >= 28,
         orElse: () => Container(),
       );
-      expect(touchTarget.constraints?.maxWidth, greaterThanOrEqualTo(44.0));
+      expect(touchTarget.constraints?.maxWidth, equals(28.0));
 
       // Tap the + button
       await tester.tap(addIcons.first);

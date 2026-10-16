@@ -89,6 +89,22 @@ class DexBoxView extends StatefulWidget {
   )?
   onSwapPokemon;
   final void Function(
+    String sourceUniqueId,
+    int targetBoxIndex,
+    int targetIndex,
+    int? sourceBoxIndex,
+    int? sourceSlotIndex,
+  )?
+  onMovePokemonWithSource;
+  final void Function(
+    String sourceUniqueId,
+    int targetBoxIndex,
+    int targetIndex,
+    int? sourceBoxIndex,
+    int? sourceSlotIndex,
+  )?
+  onSwapPokemonWithSource;
+  final void Function(
     List<String> sourceUniqueIds,
     int targetBoxIndex,
     int targetIndex,
@@ -112,6 +128,8 @@ class DexBoxView extends StatefulWidget {
     this.onInsertPokemon,
     this.onMovePokemon,
     this.onSwapPokemon,
+    this.onMovePokemonWithSource,
+    this.onSwapPokemonWithSource,
     this.onMoveMultiplePokemon,
   });
 
@@ -140,6 +158,15 @@ class _DexBoxViewState extends State<DexBoxView> {
 
   static String createMultiDragData(List<String> ids) {
     return '$multiDragPrefix${ids.join('|||')}';
+  }
+
+  static bool isSameSlotDragData(String? data, int targetBoxIndex, int targetSlotIndex, String targetUniqueId) {
+    if (data == null) return false;
+    final slot = BoxSlotDragData.tryParse(data);
+    if (slot != null) {
+      return slot.boxIndex == targetBoxIndex && slot.slotIndex == targetSlotIndex;
+    }
+    return data == targetUniqueId;
   }
 
   List<String> getSelectedPokemonIds() {
@@ -196,6 +223,22 @@ class _DexBoxViewState extends State<DexBoxView> {
   get onMovePokemon => widget.onMovePokemon;
   void Function(String sourceUniqueId, int targetBoxIndex, int targetIndex)?
   get onSwapPokemon => widget.onSwapPokemon;
+  void Function(
+    String sourceUniqueId,
+    int targetBoxIndex,
+    int targetIndex,
+    int? sourceBoxIndex,
+    int? sourceSlotIndex,
+  )?
+  get onMovePokemonWithSource => widget.onMovePokemonWithSource;
+  void Function(
+    String sourceUniqueId,
+    int targetBoxIndex,
+    int targetIndex,
+    int? sourceBoxIndex,
+    int? sourceSlotIndex,
+  )?
+  get onSwapPokemonWithSource => widget.onSwapPokemonWithSource;
   void Function(List<String> sourceUniqueIds, int targetBoxIndex, int targetIndex)?
   get onMoveMultiplePokemon => widget.onMoveMultiplePokemon;
 
@@ -656,11 +699,23 @@ class _DexBoxViewState extends State<DexBoxView> {
                                 }
                                 return;
                               }
-                              onMovePokemon?.call(
-                                details.data,
-                                boxIndex,
-                                index,
-                              );
+                              final slotData = BoxSlotDragData.tryParse(details.data);
+                              final cleanId = slotData?.uniqueId ?? details.data;
+                              if (onMovePokemonWithSource != null) {
+                                onMovePokemonWithSource!(
+                                  cleanId,
+                                  boxIndex,
+                                  index,
+                                  slotData?.boxIndex,
+                                  slotData?.slotIndex,
+                                );
+                              } else {
+                                onMovePokemon?.call(
+                                  cleanId,
+                                  boxIndex,
+                                  index,
+                                );
+                              }
                             },
                             builder: (context, candidateData, rejectedData) {
                               final bool isTargeted = candidateData.isNotEmpty;
@@ -1123,7 +1178,11 @@ class _DexBoxViewState extends State<DexBoxView> {
                                   : const <String>[];
                               final String dragData = isMultiDrag
                                   ? createMultiDragData(multiIds)
-                                  : entry.uniqueId;
+                                  : BoxSlotDragData.serialize(
+                                      boxIndex,
+                                      index,
+                                      entry.uniqueId,
+                                    );
                               final bool isGhosted = _isDragging &&
                                   _draggedMultiIds.contains(entry.uniqueId);
 
@@ -1225,7 +1284,7 @@ class _DexBoxViewState extends State<DexBoxView> {
                                             }
                                             return false;
                                           }
-                                          if (details.data != entry.uniqueId) {
+                                          if (!isSameSlotDragData(details.data, boxIndex, index, entry.uniqueId)) {
                                             HapticFeedback.selectionClick();
                                             return true;
                                           }
@@ -1279,7 +1338,7 @@ class _DexBoxViewState extends State<DexBoxView> {
                                             }
                                             return;
                                           }
-                                          if (details.data != entry.uniqueId) {
+                                          if (!isSameSlotDragData(details.data, boxIndex, index, entry.uniqueId)) {
                                             HapticFeedback.lightImpact();
                                             final ro = itemContext.findRenderObject();
                                             bool isEdge = _hoveredIsEdge;
@@ -1294,10 +1353,41 @@ class _DexBoxViewState extends State<DexBoxView> {
                                               _hoveredBoxIndex = null;
                                               _hoveredIsEdge = false;
                                             });
-                                            if (onSwapPokemon != null && !isEdge) {
-                                              onSwapPokemon!(details.data, boxIndex, index);
+                                            final slotData = BoxSlotDragData.tryParse(details.data);
+                                            final cleanId = slotData?.uniqueId ?? details.data;
+                                            final bool hasSwap = onSwapPokemon != null || onSwapPokemonWithSource != null;
+                                            if (hasSwap && !isEdge) {
+                                              if (onSwapPokemonWithSource != null) {
+                                                onSwapPokemonWithSource!(
+                                                  cleanId,
+                                                  boxIndex,
+                                                  index,
+                                                  slotData?.boxIndex,
+                                                  slotData?.slotIndex,
+                                                );
+                                              } else {
+                                                onSwapPokemon?.call(
+                                                  cleanId,
+                                                  boxIndex,
+                                                  index,
+                                                );
+                                              }
                                             } else {
-                                              onMovePokemon?.call(details.data, boxIndex, index);
+                                              if (onMovePokemonWithSource != null) {
+                                                onMovePokemonWithSource!(
+                                                  cleanId,
+                                                  boxIndex,
+                                                  index,
+                                                  slotData?.boxIndex,
+                                                  slotData?.slotIndex,
+                                                );
+                                              } else {
+                                                onMovePokemon?.call(
+                                                  cleanId,
+                                                  boxIndex,
+                                                  index,
+                                                );
+                                              }
                                             }
                                           }
                                         },
@@ -1306,16 +1396,17 @@ class _DexBoxViewState extends State<DexBoxView> {
                                               candidateData.any((d) => isMultiDragData(d));
                                           final bool isTargeted = isMulti ||
                                               (candidateData.isNotEmpty &&
-                                                  !candidateData.contains(entry.uniqueId));
+                                                  !isSameSlotDragData(candidateData.first, boxIndex, index, entry.uniqueId));
                                           final bool isHoveredSlot =
                                               isTargeted && _hoveredSlotIndex == index && _hoveredBoxIndex == boxIndex;
 
+                                          final bool hasSwapTarget = onSwapPokemon != null || onSwapPokemonWithSource != null;
                                           final bool isSwapTarget =
-                                              !isMulti && onSwapPokemon != null && isHoveredSlot && !_hoveredIsEdge;
+                                              !isMulti && hasSwapTarget && isHoveredSlot && !_hoveredIsEdge;
                                           final bool isInsertTarget = isTargeted &&
                                               (isMulti
                                                   ? isHoveredSlot
-                                                  : (onSwapPokemon == null ? true : (isHoveredSlot && _hoveredIsEdge)));
+                                                  : (!hasSwapTarget ? true : (isHoveredSlot && _hoveredIsEdge)));
 
                                           final hoveredCard = AnimatedSlide(
                                             offset: isInsertTarget
@@ -1491,13 +1582,13 @@ class _DexBoxViewState extends State<DexBoxView> {
                                       ),
                                     ),
 
-                                    // Static circular '+' insert button with >= 44x44 touch target
+                                    // Static circular '+' insert button
                                     if (!_isDragging && index % box.crossAxisCount != 0)
                                       Positioned(
-                                        left: -27,
+                                        left: -19,
                                         top: 0,
                                         bottom: 0,
-                                        width: 44,
+                                        width: 28,
                                         child: Center(
                                           child: GestureDetector(
                                             behavior: HitTestBehavior.opaque,
@@ -1506,13 +1597,8 @@ class _DexBoxViewState extends State<DexBoxView> {
                                               index,
                                             ),
                                             child: Container(
-                                              width: 44,
-                                              height: 44,
-                                              color: Colors.transparent,
-                                              alignment: Alignment.center,
-                                              child: Container(
-                                                width: 28,
-                                                height: 28,
+                                              width: 28,
+                                              height: 28,
                                                 decoration: BoxDecoration(
                                                   color: Theme.of(context).colorScheme.surface,
                                                   shape: BoxShape.circle,
@@ -1532,7 +1618,6 @@ class _DexBoxViewState extends State<DexBoxView> {
                                             ),
                                           ),
                                         ),
-                                      ),
                                   ],
                                 );
                             },

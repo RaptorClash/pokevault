@@ -1,52 +1,56 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:pokevault/models/user_dex.dart';
-import 'package:pokevault/models/pokemon.dart';
+import 'package:pokevault/models/dex_view_models.dart';
 import 'package:pokevault/utils/dex_logic_helper.dart';
+import '../e2e/e2e_test_helper.dart';
 
 void main() {
-  test('Test custom_empty dex generation', () {
-    UserDex dex = UserDex(
-      id: 'test',
-      title: 'test',
+  test('Test custom_empty dex generation with buildDisplayEntries', () {
+    final dex = createTestUserDex(
+      id: 'test_empty',
+      title: 'Empty Dex',
       region: 'custom_empty',
-      includeGenders: false,
-      includeRegional: false,
-      includeMega: false,
-      includeGMax: false,
-      includeOther: false,
-      isShinyDex: false,
-      caughtIds: [],
-      shinyIds: [],
-      ignoredIds: [],
-      customBoxes: []
     );
 
-    List<Pokemon> pokemonList = [
-      Pokemon(
-        id: 1,
-        nameDe: 'Bisasam',
-        nameEn: 'Bulbasaur',
-        hasGenderDifferences: false,
-        genderRate: 1,
-        captureRate: 45,
-        evolutionChainId: 1,
-        eggGroups: ['monster', 'plant'],
-        weight: 69.0,
-        speed: 45,
-        forms: [
-          PokemonForm(
-            name: 'normal',
-            formType: 'normal',
-            minGen: 1,
-            imageId: 1,
-            types: ['grass', 'poison'],
-            exclusiveRegions: [],
-          )
-        ]
-      )
+    final pokemonList = [
+      createTestPokemon(id: 1, nameDe: 'Bisasam', nameEn: 'Bulbasaur'),
     ];
 
-    var entries = DexLogicHelper.buildDisplayEntries(dex, pokemonList, []);
-    print('Entries length: ${entries.length}');
+    final entries = DexLogicHelper.buildDisplayEntries(dex, pokemonList, []);
+    expect(entries.length, equals(1));
+    expect(entries.first.pokemon.id, equals(1));
+    expect(entries.first.uniqueId, equals('1_normal'));
+    expect(entries.first.pokemon.nameEn, equals('Bulbasaur'));
+  });
+
+  test('Test custom_empty dex custom boxes generation from entries', () {
+    final dex = createTestUserDex(
+      id: 'test_custom',
+      title: 'Custom Boxes Dex',
+      region: 'custom_empty',
+    );
+
+    final poke = createTestPokemon(id: 1, nameDe: 'Bisasam', nameEn: 'Bulbasaur');
+    final List<DexDisplayEntry> entries = [
+      createTestEntry(pokemon: poke, uniqueId: '1_normal'),
+    ];
+
+    final boxes = DexLogicHelper.initializeCustomBoxesFromEntries(dex, entries);
+    expect(boxes.length, equals(1));
+    expect(boxes.first.pokemonIds.length, equals(1));
+    expect(boxes.first.pokemonIds.first.startsWith('1_normal__'), isTrue);
+  });
+
+  test('Test custom_empty dex produces empty entries and empty boxes when input is empty', () {
+    final dex = createTestUserDex(
+      id: 'test_truly_empty',
+      title: 'Truly Empty Dex',
+      region: 'custom_empty',
+    );
+
+    final entries = DexLogicHelper.buildDisplayEntries(dex, [], []);
+    expect(entries, isEmpty);
+
+    final boxes = DexLogicHelper.initializeCustomBoxesFromEntries(dex, []);
+    expect(boxes, isEmpty);
   });
 }

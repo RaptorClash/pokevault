@@ -6,16 +6,20 @@ import 'package:shared_preferences/shared_preferences.dart'; // NEU
 import 'package:pokevault/screens/home/home_screen.dart';
 import 'package:pokevault/providers/dex_provider.dart';
 import 'package:pokevault/providers/tutorial_provider.dart';
+import 'package:pokevault/providers/settings_provider.dart';
 import 'package:pokevault/l10n/app_translations.dart';
 
 class MockDexProvider extends Mock implements DexProvider {}
 
 class MockTutorialProvider extends Mock implements TutorialProvider {}
 
+class MockSettingsProvider extends Mock implements SettingsProvider {}
+
 void main() {
   group('HomeScreen Integration/UI Tests', () {
     late MockDexProvider mockDexProvider;
     late MockTutorialProvider mockTutorialProvider;
+    late MockSettingsProvider mockSettingsProvider;
 
     setUp(() {
       // WICHTIG: Mock für SharedPreferences, damit _checkWebWarning() nicht crasht
@@ -24,11 +28,15 @@ void main() {
       Translator.currentLanguage = 'de';
       mockDexProvider = MockDexProvider();
       mockTutorialProvider = MockTutorialProvider();
+      mockSettingsProvider = MockSettingsProvider();
 
       when(() => mockTutorialProvider.hasSeenFeature(any())).thenReturn(true);
       when(() => mockDexProvider.userDexes).thenReturn([]);
       when(() => mockDexProvider.folders).thenReturn([]);
       when(() => mockDexProvider.structure).thenReturn({'root': []});
+      when(() => mockSettingsProvider.autoSyncEnabled).thenReturn(false);
+      when(() => mockSettingsProvider.googleClientId).thenReturn('');
+      when(() => mockSettingsProvider.googleClientSecret).thenReturn('');
     });
 
     Widget buildHomeScreen() {
@@ -38,6 +46,9 @@ void main() {
             ChangeNotifierProvider<DexProvider>.value(value: mockDexProvider),
             ChangeNotifierProvider<TutorialProvider>.value(
               value: mockTutorialProvider,
+            ),
+            ChangeNotifierProvider<SettingsProvider>.value(
+              value: mockSettingsProvider,
             ),
           ],
           child: const HomeScreen(),

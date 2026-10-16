@@ -30,33 +30,17 @@ class _BoxEditScreenState extends State<BoxEditScreen> {
   void initState() {
     super.initState();
     if (widget.dex.customBoxes.isEmpty && widget.initialBoxes.isNotEmpty) {
-      int c = 0;
-      widget.dex.customBoxes = widget.initialBoxes.map((b) => CustomBoxState(
-        title: b.title,
-        pokemonIds: b.entries.map((e) {
-          if (e.uniqueId.isEmpty) return '';
-          if (e.uniqueId.contains('__')) return e.uniqueId;
-          final instanceId = '${e.uniqueId}__${DateTime.now().millisecondsSinceEpoch}_${c++}';
-          if (widget.dex.caughtIds.contains(e.uniqueId) && !widget.dex.caughtIds.contains(instanceId)) {
-            widget.dex.caughtIds.add(instanceId);
-            DatabaseService.instance.savePokemonStatus(widget.dex.id, instanceId, isCaught: true);
-          }
-          if (widget.dex.shinyIds.contains(e.uniqueId) && !widget.dex.shinyIds.contains(instanceId)) {
-            widget.dex.shinyIds.add(instanceId);
-            DatabaseService.instance.savePokemonStatus(widget.dex.id, instanceId, isShiny: true);
-          }
-          if (widget.dex.alphaIds.contains(e.uniqueId) && !widget.dex.alphaIds.contains(instanceId)) {
-            widget.dex.alphaIds.add(instanceId);
-            DatabaseService.instance.savePokemonStatus(widget.dex.id, instanceId, isAlpha: true);
-          }
-          return instanceId;
-        }).toList(),
-        regionKey: b.regionKey,
-        autoShift: _autoShift,
-        strictLimits: _strictLimits,
-        patternAutoCreate: _patternAutoCreate,
-        autoDeleteEmpty: _autoDeleteEmpty,
-      )).toList();
+      widget.dex.customBoxes = DexLogicHelper.initializeCustomBoxesFromEntries(
+        widget.dex,
+        const [],
+        boxes: widget.initialBoxes,
+      );
+      for (var box in widget.dex.customBoxes) {
+        box.autoShift = _autoShift;
+        box.strictLimits = _strictLimits;
+        box.patternAutoCreate = _patternAutoCreate;
+        box.autoDeleteEmpty = _autoDeleteEmpty;
+      }
       DatabaseService.instance.saveUserDex(widget.dex);
     }
 
@@ -276,7 +260,14 @@ class _BoxEditScreenState extends State<BoxEditScreen> {
 
   void _deleteBox(int index) {
     setState(() {
-      widget.dex.customBoxes.removeAt(index); DatabaseService.instance.saveUserDex(widget.dex);
+      widget.dex.customBoxes.removeAt(index);
+      final activeIds = widget.dex.customBoxes
+          .expand((b) => b.pokemonIds)
+          .where((id) => id.isNotEmpty && !DexLogicHelper.isPlaceholder(id))
+          .toSet();
+      DexLogicHelper.pruneOrphanedInstances(widget.dex, activeIds);
+      DatabaseService.instance.saveUserDex(widget.dex);
+      DatabaseService.instance.cleanupOrphanedPokemon(widget.dex.id, activeIds);
     });
   }
 
@@ -305,7 +296,9 @@ class _BoxEditScreenState extends State<BoxEditScreen> {
                       onPressed: () {
                         setState(() {
                           widget.dex.customBoxes.clear();
+                          DexLogicHelper.pruneOrphanedInstances(widget.dex, const {});
                           DatabaseService.instance.saveUserDex(widget.dex);
+                          DatabaseService.instance.cleanupOrphanedPokemon(widget.dex.id, const {});
                         });
                         Navigator.pop(ctx); // Close dialog
                         Navigator.pop(context); // Go back to dex screen to trigger recalculation

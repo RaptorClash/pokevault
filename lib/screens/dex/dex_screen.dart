@@ -56,6 +56,7 @@ class _DexScreenState extends State<DexScreen> {
   final Set<String> _selectedForEdit = {};
   bool _isMoveTargetMode = false;
   List<CustomBoxState>? _customBoxesSnapshot;
+  bool _wasCustomBoxesEmptyOriginally = false;
   int _lastBoxIndex = 0;
   late int _lastIgnoredCount;
   List<DexDisplayEntry> _rawEntries = [];
@@ -122,40 +123,7 @@ class _DexScreenState extends State<DexScreen> {
           .toList();
 
       if (widget.initialDex.customBoxes.isNotEmpty) {
-        bool migrated = false;
-        for (var box in widget.initialDex.customBoxes) {
-          for (int i = 0; i < box.pokemonIds.length; i++) {
-            String id = box.pokemonIds[i];
-            if (id.isNotEmpty && !DexLogicHelper.isPlaceholder(id)) {
-              String newId = id;
-              if (!id.contains('__')) {
-                newId = '${id}__${DateTime.now().millisecondsSinceEpoch}_${UniqueKey().hashCode}_$i';
-                box.pokemonIds[i] = newId;
-                migrated = true;
-              }
-              final baseId = DexLogicHelper.getBaseId(newId);
-              final prefix = '${baseId}__';
-              if (widget.initialDex.caughtIds.contains(baseId) &&
-                  !widget.initialDex.caughtIds.any((cid) => cid.startsWith(prefix))) {
-                widget.initialDex.caughtIds.add(newId);
-                DatabaseService.instance.savePokemonStatus(widget.initialDex.id, newId, isCaught: true);
-                migrated = true;
-              }
-              if (widget.initialDex.shinyIds.contains(baseId) &&
-                  !widget.initialDex.shinyIds.any((sid) => sid.startsWith(prefix))) {
-                widget.initialDex.shinyIds.add(newId);
-                DatabaseService.instance.savePokemonStatus(widget.initialDex.id, newId, isShiny: true);
-                migrated = true;
-              }
-              if (widget.initialDex.alphaIds.contains(baseId) &&
-                  !widget.initialDex.alphaIds.any((aid) => aid.startsWith(prefix))) {
-                widget.initialDex.alphaIds.add(newId);
-                DatabaseService.instance.savePokemonStatus(widget.initialDex.id, newId, isAlpha: true);
-                migrated = true;
-              }
-            }
-          }
-        }
+        final migrated = DexLogicHelper.migrateCustomBoxInstances(widget.initialDex);
         if (migrated) {
           DatabaseService.instance.saveUserDex(widget.initialDex);
         }
@@ -211,40 +179,7 @@ class _DexScreenState extends State<DexScreen> {
       final lang = context.read<SettingsProvider>().currentLanguage;
 
       if (liveDex.customBoxes.isNotEmpty) {
-        bool migrated = false;
-        for (var box in liveDex.customBoxes) {
-          for (int i = 0; i < box.pokemonIds.length; i++) {
-            String id = box.pokemonIds[i];
-            if (id.isNotEmpty && !DexLogicHelper.isPlaceholder(id)) {
-              String newId = id;
-              if (!id.contains('__')) {
-                newId = '${id}__${DateTime.now().millisecondsSinceEpoch}_${UniqueKey().hashCode}_$i';
-                box.pokemonIds[i] = newId;
-                migrated = true;
-              }
-              final baseId = DexLogicHelper.getBaseId(newId);
-              final prefix = '${baseId}__';
-              if (liveDex.caughtIds.contains(baseId) &&
-                  !liveDex.caughtIds.any((cid) => cid.startsWith(prefix))) {
-                liveDex.caughtIds.add(newId);
-                DatabaseService.instance.savePokemonStatus(liveDex.id, newId, isCaught: true);
-                migrated = true;
-              }
-              if (liveDex.shinyIds.contains(baseId) &&
-                  !liveDex.shinyIds.any((sid) => sid.startsWith(prefix))) {
-                liveDex.shinyIds.add(newId);
-                DatabaseService.instance.savePokemonStatus(liveDex.id, newId, isShiny: true);
-                migrated = true;
-              }
-              if (liveDex.alphaIds.contains(baseId) &&
-                  !liveDex.alphaIds.any((aid) => aid.startsWith(prefix))) {
-                liveDex.alphaIds.add(newId);
-                DatabaseService.instance.savePokemonStatus(liveDex.id, newId, isAlpha: true);
-                migrated = true;
-              }
-            }
-          }
-        }
+        final migrated = DexLogicHelper.migrateCustomBoxInstances(liveDex);
         if (migrated && !_isEditMode) {
           DatabaseService.instance.saveUserDex(liveDex);
         }
@@ -315,13 +250,23 @@ class _DexScreenState extends State<DexScreen> {
     );
 
     if (confirmed == true && mounted) {
+      final activeIds = liveDex.customBoxes
+          .expand((b) => b.pokemonIds)
+          .where((id) => id.isNotEmpty && !DexLogicHelper.isPlaceholder(id))
+          .toSet();
+
       setState(() {
         _isEditMode = false;
         _selectedForEdit.clear();
         _isMoveTargetMode = false;
         _customBoxesSnapshot = null;
+        _wasCustomBoxesEmptyOriginally = false;
       });
+
+      DexLogicHelper.pruneOrphanedInstances(liveDex, activeIds);
+
       await DatabaseService.instance.saveUserDex(liveDex);
+      await DatabaseService.instance.cleanupOrphanedPokemon(liveDex.id, activeIds);
       if (mounted) {
         await _recalculateBoxesAsync(liveDex);
       }
@@ -356,26 +301,30 @@ class _DexScreenState extends State<DexScreen> {
     );
 
     if (confirmed == true && mounted) {
+      final activeIds = <String>{};
       setState(() {
-        if (_customBoxesSnapshot != null) {
+        if (_wasCustomBoxesEmptyOriginally) {
+          liveDex.customBoxes = [];
+        } else if (_customBoxesSnapshot != null) {
           liveDex.customBoxes =
               _customBoxesSnapshot!.map((b) => b.copyWith()).toList();
+          activeIds.addAll(
+            liveDex.customBoxes
+                .expand((b) => b.pokemonIds)
+                .where((id) => id.isNotEmpty && !DexLogicHelper.isPlaceholder(id)),
+          );
         }
         _customBoxesSnapshot = null;
+        _wasCustomBoxesEmptyOriginally = false;
         _selectedForEdit.clear();
         _isMoveTargetMode = false;
         _isEditMode = false;
       });
-      liveDex.caughtIds.removeWhere((id) =>
-          id.contains('__') &&
-          !liveDex.customBoxes.expand((b) => b.pokemonIds).contains(id));
-      liveDex.shinyIds.removeWhere((id) =>
-          id.contains('__') &&
-          !liveDex.customBoxes.expand((b) => b.pokemonIds).contains(id));
-      liveDex.alphaIds.removeWhere((id) =>
-          id.contains('__') &&
-          !liveDex.customBoxes.expand((b) => b.pokemonIds).contains(id));
+
+      DexLogicHelper.pruneOrphanedInstances(liveDex, activeIds);
+
       await DatabaseService.instance.saveUserDex(liveDex);
+      await DatabaseService.instance.cleanupOrphanedPokemon(liveDex.id, activeIds);
       if (mounted) {
         await _recalculateBoxesAsync(liveDex);
       }
@@ -384,31 +333,11 @@ class _DexScreenState extends State<DexScreen> {
 
   void _ensureCustomBoxesInitialized(UserDex liveDex) {
     if (liveDex.customBoxes.isNotEmpty) return;
-    int c = 0;
-    liveDex.customBoxes = _boxes.map((b) {
-      return CustomBoxState(
-        title: b.title,
-        pokemonIds: b.entries.map((e) {
-          if (e.uniqueId.isEmpty) return '';
-          if (e.uniqueId.contains('__')) return e.uniqueId;
-          final instanceId = '${e.uniqueId}__${DateTime.now().millisecondsSinceEpoch}_${c++}';
-          if (liveDex.caughtIds.contains(e.uniqueId) && !liveDex.caughtIds.contains(instanceId)) {
-            liveDex.caughtIds.add(instanceId);
-            DatabaseService.instance.savePokemonStatus(liveDex.id, instanceId, isCaught: true);
-          }
-          if (liveDex.shinyIds.contains(e.uniqueId) && !liveDex.shinyIds.contains(instanceId)) {
-            liveDex.shinyIds.add(instanceId);
-            DatabaseService.instance.savePokemonStatus(liveDex.id, instanceId, isShiny: true);
-          }
-          if (liveDex.alphaIds.contains(e.uniqueId) && !liveDex.alphaIds.contains(instanceId)) {
-            liveDex.alphaIds.add(instanceId);
-            DatabaseService.instance.savePokemonStatus(liveDex.id, instanceId, isAlpha: true);
-          }
-          return instanceId;
-        }).toList(),
-        regionKey: b.regionKey,
-      );
-    }).toList();
+    liveDex.customBoxes = DexLogicHelper.initializeCustomBoxesFromEntries(
+      liveDex,
+      const [],
+      boxes: _boxes,
+    );
   }
 
   void _executeMoveMultipleToSlot(
@@ -1094,7 +1023,35 @@ class _DexScreenState extends State<DexScreen> {
           .toList();
     }
 
-    final caughtCount = baseList.where((e) => DexLogicHelper.isPokemonCaught(liveDex, e.uniqueId)).length;
+    final occupiedCustomPokemonIds = liveDex.customBoxes
+        .expand((b) => b.pokemonIds)
+        .where((id) => id.isNotEmpty && !DexLogicHelper.isPlaceholder(id))
+        .toList();
+
+    int caughtCount = baseList
+        .where((e) => DexLogicHelper.isPokemonCaught(liveDex, e.uniqueId))
+        .length;
+    int totalCount = baseList.length;
+
+    if (liveDex.region == 'custom_empty') {
+      totalCount = baseList.isNotEmpty
+          ? baseList.length
+          : occupiedCustomPokemonIds.length;
+      caughtCount = baseList.isNotEmpty
+          ? baseList
+              .where((e) => DexLogicHelper.isPokemonCaught(liveDex, e.uniqueId))
+              .length
+          : occupiedCustomPokemonIds
+              .where((id) => DexLogicHelper.isPokemonCaught(liveDex, id))
+              .length;
+    } else if (liveDex.customBoxes.isNotEmpty) {
+      if (occupiedCustomPokemonIds.length > totalCount) {
+        totalCount = occupiedCustomPokemonIds.length;
+      }
+    }
+    if (caughtCount > totalCount) {
+      totalCount = caughtCount;
+    }
 
     final filteredList = baseList.where((entry) {
       final isCaught = DexLogicHelper.isPokemonCaught(liveDex, entry.uniqueId);
@@ -1108,8 +1065,6 @@ class _DexScreenState extends State<DexScreen> {
         settingsProvider.currentLanguage,
       );
     }).toList();
-
-    final totalCount = baseList.length;
 
     final bool isSearchActive =
         _searchQuery.trim().isNotEmpty || _filter != 'all';
@@ -1344,13 +1299,19 @@ class _DexScreenState extends State<DexScreen> {
                           _recalculateBoxesAsync(liveDex);
                         }
                       },
-                      onMovePokemon: (sourceId, targetBox, targetIndex) {
+                      onMovePokemonWithSource: (sourceId, targetBox, targetIndex, sourceBox, sourceSlot) {
+                        final slotDrag = BoxSlotDragData.tryParse(sourceId);
+                        final actualSourceId = slotDrag != null ? slotDrag.uniqueId : sourceId;
+                        final actualSourceBox = sourceBox ?? slotDrag?.boxIndex;
+                        final actualSourceSlot = sourceSlot ?? slotDrag?.slotIndex;
                         setState(() {
                           _ensureCustomBoxesInitialized(liveDex);
 
                           BoxSequenceManager.movePokemon(
                             dex: liveDex,
-                            sourceId: sourceId,
+                            sourceId: actualSourceId,
+                            sourceBoxIndex: actualSourceBox,
+                            sourceSlotIndex: actualSourceSlot,
                             targetBoxIndex: targetBox,
                             targetSlotIndex: targetIndex,
                           );
@@ -1369,16 +1330,30 @@ class _DexScreenState extends State<DexScreen> {
                         });
                         _recalculateBoxesAsync(liveDex);
                       },
-                      onSwapPokemon: (sourceId, targetBox, targetIndex) {
+                      onSwapPokemonWithSource: (sourceId, targetBox, targetIndex, sourceBox, sourceSlot) {
+                        final slotDrag = BoxSlotDragData.tryParse(sourceId);
+                        final actualSourceId = slotDrag != null ? slotDrag.uniqueId : sourceId;
+                        final actualSourceBox = sourceBox ?? slotDrag?.boxIndex;
+                        final actualSourceSlot = sourceSlot ?? slotDrag?.slotIndex;
                         setState(() {
                           _ensureCustomBoxesInitialized(liveDex);
 
-                          BoxSequenceManager.swapPokemon(
-                            dex: liveDex,
-                            sourceId: sourceId,
-                            targetBoxIndex: targetBox,
-                            targetSlotIndex: targetIndex,
-                          );
+                          if (actualSourceBox != null && actualSourceSlot != null) {
+                            BoxSequenceManager.swapPokemonByIndices(
+                              dex: liveDex,
+                              sourceBoxIndex: actualSourceBox,
+                              sourceSlotIndex: actualSourceSlot,
+                              targetBoxIndex: targetBox,
+                              targetSlotIndex: targetIndex,
+                            );
+                          } else {
+                            BoxSequenceManager.swapPokemon(
+                              dex: liveDex,
+                              sourceId: actualSourceId,
+                              targetBoxIndex: targetBox,
+                              targetSlotIndex: targetIndex,
+                            );
+                          }
 
                           if (liveDex.customBoxes.isNotEmpty && liveDex.customBoxes.first.autoFlow) {
                             for (var b in liveDex.customBoxes) {
@@ -1659,9 +1634,9 @@ class _DexScreenState extends State<DexScreen> {
                 tooltip: Translator.get('box_edit_manage_content'),
                 onPressed: () {
                   setState(() {
+                    _wasCustomBoxesEmptyOriginally = liveDex.customBoxes.isEmpty;
                     if (liveDex.customBoxes.isEmpty) {
                       _ensureCustomBoxesInitialized(liveDex);
-                      DatabaseService.instance.saveUserDex(liveDex);
                     }
                     _customBoxesSnapshot =
                         liveDex.customBoxes.map((b) => b.copyWith()).toList();
@@ -1670,40 +1645,43 @@ class _DexScreenState extends State<DexScreen> {
                   });
                 },
               ),
-            IconButton(
-              icon: const Icon(Icons.edit_note),
-              tooltip: Translator.get('box_edit_title'),
-              onPressed: () async {
-                await Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) =>
-                        BoxEditScreen(dex: liveDex, initialBoxes: _boxes),
-                  ),
-                );
-                // Neu berechnen, falls Boxen verschoben/gelöscht/umbenannt wurden
-                if (mounted) {
-                  setState(() {});
-                  _recalculateBoxesAsync(liveDex);
-                }
-              },
-            ),
-            IconButton(
-              icon: const Icon(Icons.location_on),
-              tooltip: Translator.get('route_tracker'),
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => RouteTrackerScreen(
-                      liveDex: liveDex,
-                      displayEntries: _rawEntries,
+            if (!_isEditMode)
+              IconButton(
+                icon: const Icon(Icons.edit_note),
+                tooltip: Translator.get('box_edit_title'),
+                onPressed: () async {
+                  await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) =>
+                          BoxEditScreen(dex: liveDex, initialBoxes: _boxes),
                     ),
-                  ),
-                );
-              },
-            ),
-            PopupMenuButton<String>(
+                  );
+                  // Neu berechnen, falls Boxen verschoben/gelöscht/umbenannt wurden
+                  if (mounted) {
+                    setState(() {});
+                    _recalculateBoxesAsync(liveDex);
+                  }
+                },
+              ),
+            if (!_isEditMode)
+              IconButton(
+                icon: const Icon(Icons.location_on),
+                tooltip: Translator.get('route_tracker'),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => RouteTrackerScreen(
+                        liveDex: liveDex,
+                        displayEntries: _rawEntries,
+                      ),
+                    ),
+                  );
+                },
+              ),
+            if (!_isEditMode)
+              PopupMenuButton<String>(
               key: _sortMenuKey,
               icon: const Icon(Icons.sort),
               tooltip: Translator.get('tooltip_view_sort'),

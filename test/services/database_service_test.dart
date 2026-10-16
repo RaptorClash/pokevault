@@ -16,11 +16,13 @@ class MockPathProviderPlatform extends Fake
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  test('Test saveUserDex', () async {
+  setUpAll(() {
     sqfliteFfiInit();
     databaseFactory = databaseFactoryFfi;
     PathProviderPlatform.instance = MockPathProviderPlatform();
+  });
 
+  test('Test saveUserDex persists custom box behavioral flags', () async {
     final dex = UserDex(
       id: 'test_dex_persist',
       title: 'Persist Dex',
@@ -43,17 +45,42 @@ void main() {
       ],
     );
 
-    print('Calling saveUserDex...');
     await DatabaseService.instance.saveUserDex(dex);
-    print('saveUserDex succeeded!');
 
     final dexes = await DatabaseService.instance.getAllUserDexes();
-    print('getAllUserDexes returned ${dexes.length} dexes');
     final loaded = dexes.firstWhere((d) => d.id == 'test_dex_persist');
     expect(loaded.customBoxes.first.autoShift, isFalse);
     expect(loaded.customBoxes.first.strictLimits, isFalse);
     expect(loaded.customBoxes.first.patternAutoCreate, isTrue);
     expect(loaded.customBoxes.first.autoDeleteEmpty, isFalse);
-    print('All assertions passed!');
+  });
+
+  test('cleanupOrphanedPokemon removes unreferenced instance records', () async {
+    const dexId = 'test_cleanup_dex';
+
+    // Insert test status rows directly or via savePokemonStatus
+    await DatabaseService.instance.savePokemonStatus(dexId, '1', isCaught: true);
+    await DatabaseService.instance.savePokemonStatus(dexId, '1__dup1', isCaught: true);
+    await DatabaseService.instance.savePokemonStatus(dexId, '1__dup2', isCaught: true);
+    await DatabaseService.instance.savePokemonStatus(dexId, '2__dup1', isCaught: true);
+
+    // Active unique IDs contains '1__dup1', while '1__dup2' and '2__dup1' are orphaned
+    final activeIds = {'1', '1__dup1'};
+    final deleted = await DatabaseService.instance.cleanupOrphanedPokemon(dexId, activeIds);
+    expect(deleted, equals(2));
+
+    final db = await DatabaseService.instance.userDatabase;
+    final remaining = await db.query(
+      'user_pokemon',
+      columns: ['unique_id'],
+      where: 'dex_id = ?',
+      whereArgs: [dexId],
+    );
+    final remainingIds = remaining.map((r) => r['unique_id'] as String).toSet();
+
+    expect(remainingIds.contains('1'), isTrue, reason: 'Base Pokémon without __ is preserved');
+    expect(remainingIds.contains('1__dup1'), isTrue, reason: 'Active duplicate is preserved');
+    expect(remainingIds.contains('1__dup2'), isFalse, reason: 'Orphaned duplicate is deleted');
+    expect(remainingIds.contains('2__dup1'), isFalse, reason: 'Orphaned duplicate is deleted');
   });
 }

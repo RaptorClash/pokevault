@@ -289,17 +289,7 @@ class _PokemonInfoScreenState extends State<PokemonInfoScreen> {
               final provider = context.read<DexProvider>();
               final liveDex = provider.userDexes.firstWhere(
                 (d) => d.id == widget.dexId,
-                orElse: () => UserDex(
-                  id: widget.dexId,
-                  title: 'Dex',
-                  region: widget.dexId,
-                  includeGenders: true,
-                  includeRegional: true,
-                  includeMega: true,
-                  includeGMax: true,
-                  includeOther: true,
-                  isShinyDex: false,
-                ),
+                orElse: () => UserDex.fallback(widget.dexId),
               );
               
               if (widget.isBoxView && widget.boxes != null && liveDex.customBoxes.isNotEmpty) {

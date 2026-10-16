@@ -75,17 +75,7 @@ class PokemonInfoPage extends StatelessWidget {
       final provider = context.watch<DexProvider>();
       final liveDex = provider.userDexes.firstWhere(
         (d) => d.id == dexId,
-        orElse: () => UserDex(
-          id: dexId,
-          title: 'Dex',
-          region: dexId,
-          includeGenders: true,
-          includeRegional: true,
-          includeMega: true,
-          includeGMax: true,
-          includeOther: true,
-          isShinyDex: false,
-        ),
+        orElse: () => UserDex.fallback(dexId),
       );
       final isCaught = liveDex.caughtIds.contains(entry.uniqueId);
       final isShiny = liveDex.shinyIds.contains(entry.uniqueId);

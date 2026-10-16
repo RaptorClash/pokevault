@@ -4,11 +4,12 @@ import 'package:pokevault/utils/shiny_logic_helper.dart';
 
 void main() {
   group('ShinyLogicHelper Tests', () {
-    test('isHuntableInGen1 erkennt korrekte Pokémon', () {
-      expect(ShinyLogicHelper.isHuntableInGen1(1), isTrue);
-      expect(ShinyLogicHelper.isHuntableInGen1(150), isTrue);
-      expect(ShinyLogicHelper.isHuntableInGen1(151), isFalse);
-    });
+    const preEvolutions = <int, Map<String, dynamic>>{
+      26: {'pre': 25, 'req': 'Thunder Stone'},
+      25: {'pre': 172, 'req': 'Friendship'},
+      3: {'pre': 2, 'req': 'Level 32'},
+      2: {'pre': 1, 'req': 'Level 16'},
+    };
 
     test('getSoftResetCombo gibt richtige Tastenkombinationen zurück', () {
       expect(
@@ -83,13 +84,13 @@ void main() {
     });
 
     test('getBaseForm navigiert den Stammbaum nach unten', () {
-      expect(ShinyLogicHelper.getBaseForm(26), 172);
-      expect(ShinyLogicHelper.getBaseForm(3), 1);
-      expect(ShinyLogicHelper.getBaseForm(150), 150);
+      expect(ShinyLogicHelper.getBaseForm(26, preEvolutions), 172);
+      expect(ShinyLogicHelper.getBaseForm(3, preEvolutions), 1);
+      expect(ShinyLogicHelper.getBaseForm(150, preEvolutions), 150);
     });
 
     test('getEvolutionPath baut den korrekten Evolutions-Weg', () {
-      final path = ShinyLogicHelper.getEvolutionPath(172, 26);
+      final path = ShinyLogicHelper.getEvolutionPath(172, 26, preEvolutions);
 
       expect(path.length, 2);
 
@@ -100,12 +101,6 @@ void main() {
       expect(path[1]['from'], 25);
       expect(path[1]['to'], 26);
       expect(path[1]['req'], 'Thunder Stone');
-    });
-
-    test('getDefaultLevel gibt korrektes Level zurück', () {
-      expect(ShinyLogicHelper.getDefaultLevel(1), 5);
-      expect(ShinyLogicHelper.getDefaultLevel(150), 70);
-      expect(ShinyLogicHelper.getDefaultLevel(999), 15);
     });
   });
 }

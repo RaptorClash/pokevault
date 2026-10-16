@@ -106,17 +106,7 @@ class _BreedingCalculatorWidgetState extends State<BreedingCalculatorWidget> {
       final dexProvider = Provider.of<DexProvider>(context, listen: false);
       final liveDex = dexProvider.userDexes.firstWhere(
         (d) => d.id == widget.dexId,
-        orElse: () => UserDex(
-          id: widget.dexId,
-          title: '',
-          region: widget.dexId,
-          includeGenders: false,
-          includeRegional: false,
-          includeMega: false,
-          includeGMax: false,
-          includeOther: false,
-          isShinyDex: false,
-        ),
+        orElse: () => UserDex.fallback(widget.dexId),
       );
 
       final preEvos = await DatabaseService.instance.getGen12PreEvolutions();

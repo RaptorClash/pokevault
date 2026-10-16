@@ -144,6 +144,129 @@ class DexLogicHelper {
     );
   }
 
+  static List<CustomBoxState> initializeCustomBoxesFromEntries(
+    UserDex dex,
+    List<DexDisplayEntry> entries, {
+    int boxCapacity = 30,
+    List<BoxData>? boxes,
+  }) {
+    int c = 0;
+    if (boxes != null && boxes.isNotEmpty) {
+      return boxes.map((b) => CustomBoxState(
+        title: b.title,
+        pokemonIds: b.entries.map((e) {
+          if (e.uniqueId.isEmpty) return '';
+          if (e.uniqueId.contains('__')) return e.uniqueId;
+          final instanceId = '${e.uniqueId}__${DateTime.now().millisecondsSinceEpoch}_${c++}';
+          if (dex.caughtIds.contains(e.uniqueId) && !dex.caughtIds.contains(instanceId)) {
+            dex.caughtIds.add(instanceId);
+            DatabaseService.instance.savePokemonStatus(dex.id, instanceId, isCaught: true);
+          }
+          if (dex.shinyIds.contains(e.uniqueId) && !dex.shinyIds.contains(instanceId)) {
+            dex.shinyIds.add(instanceId);
+            DatabaseService.instance.savePokemonStatus(dex.id, instanceId, isShiny: true);
+          }
+          if (dex.alphaIds.contains(e.uniqueId) && !dex.alphaIds.contains(instanceId)) {
+            dex.alphaIds.add(instanceId);
+            DatabaseService.instance.savePokemonStatus(dex.id, instanceId, isAlpha: true);
+          }
+          return instanceId;
+        }).toList(),
+        regionKey: b.regionKey,
+      )).toList();
+    }
+
+    List<CustomBoxState> result = [];
+    int boxNumber = 1;
+    for (int i = 0; i < entries.length; i += boxCapacity) {
+      final chunk = entries.sublist(
+        i,
+        (i + boxCapacity > entries.length) ? entries.length : i + boxCapacity,
+      );
+      final pIds = chunk.map((e) {
+        if (e.uniqueId.isEmpty) return '';
+        if (e.uniqueId.contains('__')) return e.uniqueId;
+        final instanceId = '${e.uniqueId}__${DateTime.now().millisecondsSinceEpoch}_${c++}';
+        if (dex.caughtIds.contains(e.uniqueId) && !dex.caughtIds.contains(instanceId)) {
+          dex.caughtIds.add(instanceId);
+          DatabaseService.instance.savePokemonStatus(dex.id, instanceId, isCaught: true);
+        }
+        if (dex.shinyIds.contains(e.uniqueId) && !dex.shinyIds.contains(instanceId)) {
+          dex.shinyIds.add(instanceId);
+          DatabaseService.instance.savePokemonStatus(dex.id, instanceId, isShiny: true);
+        }
+        if (dex.alphaIds.contains(e.uniqueId) && !dex.alphaIds.contains(instanceId)) {
+          dex.alphaIds.add(instanceId);
+          DatabaseService.instance.savePokemonStatus(dex.id, instanceId, isAlpha: true);
+        }
+        return instanceId;
+      }).toList();
+      result.add(CustomBoxState(
+        title: 'Box $boxNumber',
+        pokemonIds: pIds,
+        regionKey: dex.region,
+      ));
+      boxNumber++;
+    }
+    return result;
+  }
+
+  static bool migrateCustomBoxInstances(UserDex dex) {
+    if (dex.customBoxes.isEmpty) return false;
+    bool migrated = false;
+    for (var box in dex.customBoxes) {
+      for (int i = 0; i < box.pokemonIds.length; i++) {
+        String id = box.pokemonIds[i];
+        if (id.isNotEmpty && !DexLogicHelper.isPlaceholder(id)) {
+          String newId = id;
+          if (!id.contains('__')) {
+            newId = '${id}__${DateTime.now().millisecondsSinceEpoch}_${UniqueKey().hashCode}_$i';
+            box.pokemonIds[i] = newId;
+            migrated = true;
+          }
+          final baseId = DexLogicHelper.getBaseId(newId);
+          final prefix = '${baseId}__';
+          if (dex.caughtIds.contains(baseId) &&
+              !dex.caughtIds.any((cid) => cid.startsWith(prefix))) {
+            dex.caughtIds.add(newId);
+            DatabaseService.instance.savePokemonStatus(dex.id, newId, isCaught: true);
+            migrated = true;
+          }
+          if (dex.shinyIds.contains(baseId) &&
+              !dex.shinyIds.any((sid) => sid.startsWith(prefix))) {
+            dex.shinyIds.add(newId);
+            DatabaseService.instance.savePokemonStatus(dex.id, newId, isShiny: true);
+            migrated = true;
+          }
+          if (dex.alphaIds.contains(baseId) &&
+              !dex.alphaIds.any((aid) => aid.startsWith(prefix))) {
+            dex.alphaIds.add(newId);
+            DatabaseService.instance.savePokemonStatus(dex.id, newId, isAlpha: true);
+            migrated = true;
+          }
+        }
+      }
+    }
+    return migrated;
+  }
+
+  /// Prunes in-memory collections of [dex] to remove any duplicate instances
+  /// (IDs containing '__') that are not present in [activeUniqueIds].
+  static void pruneOrphanedInstances(UserDex dex, Set<String> activeUniqueIds) {
+    dex.caughtIds.removeWhere(
+        (id) => id.contains('__') && !activeUniqueIds.contains(id));
+    dex.shinyIds.removeWhere(
+        (id) => id.contains('__') && !activeUniqueIds.contains(id));
+    dex.alphaIds.removeWhere(
+        (id) => id.contains('__') && !activeUniqueIds.contains(id));
+    dex.caughtRibbons.removeWhere(
+        (id, _) => id.contains('__') && !activeUniqueIds.contains(id));
+    dex.caughtTeraTypes.removeWhere(
+        (id, _) => id.contains('__') && !activeUniqueIds.contains(id));
+    dex.caughtLanguages.removeWhere(
+        (id, _) => id.contains('__') && !activeUniqueIds.contains(id));
+  }
+
   static void enforceAutoFlow(UserDex dex) {
     if (dex.customBoxes.isEmpty) return;
     
