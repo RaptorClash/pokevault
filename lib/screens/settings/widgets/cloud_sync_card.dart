@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../../../l10n/app_translations.dart';
 import '../../../../providers/settings_provider.dart';
 import '../../../../providers/dex_provider.dart';
+import '../../../../providers/shiny_hunt_provider.dart';
 import '../../../../services/google_drive_sync_service.dart';
 import '../../../../services/database_service.dart';
 import '../../../../utils/notification_helper.dart';
@@ -199,12 +200,17 @@ class _CloudSyncCardState extends State<CloudSyncCard> {
                             ),
                           );
                           try {
+                            final shinyHuntProvider =
+                                context.read<ShinyHuntProvider>();
+                            await shinyHuntProvider.flushPendingWrites();
                             final cloudData = await GoogleDriveSyncService
                                 .instance
                                 .downloadBackup();
                             if (cloudData != null) {
                               await dexProvider.mergeCloudData(cloudData);
+                              await shinyHuntProvider.loadHunts();
                             }
+                            await shinyHuntProvider.flushPendingWrites();
                             final Map<String, dynamic> exportData =
                                 await DatabaseService.instance
                                     .exportCloudSyncData();

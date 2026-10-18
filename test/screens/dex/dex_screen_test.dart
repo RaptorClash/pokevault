@@ -166,6 +166,17 @@ void main() {
     HttpOverrides.global = _MockHttpOverrides();
     sqfliteFfiInit();
     databaseFactory = databaseFactoryFfi;
+    registerFallbackValue(UserDex(
+      id: 'dummy',
+      title: 'dummy',
+      region: 'kanto',
+      includeGenders: false,
+      includeRegional: false,
+      includeMega: false,
+      includeGMax: false,
+      includeOther: false,
+      isShinyDex: false,
+    ));
 
     tempDir = Directory.systemTemp.createTempSync('pokevault_dex_screen_test_');
     PathProviderPlatform.instance = MockPathProviderPlatform(tempDir);
@@ -218,6 +229,7 @@ void main() {
     when(() => mockDexProvider.folders).thenReturn([]);
     when(() => mockDexProvider.structure).thenReturn({'root': [testDex.id]});
     when(() => mockDexProvider.allAvailableDexes).thenReturn({'kanto': [1, 4, 7]});
+    when(() => mockDexProvider.saveUserDexAndSync(any())).thenAnswer((_) async {});
   });
 
   Widget buildDexScreen({UserDex? dex}) {

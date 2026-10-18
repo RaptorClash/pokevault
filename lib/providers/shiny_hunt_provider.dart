@@ -14,6 +14,7 @@ class ShinyHuntProvider extends ChangeNotifier with WidgetsBindingObserver {
   final Set<String> _pendingDirtyHuntIds = {};
   Timer? _sqliteDebounceTimer;
   Timer? _cloudDebounceTimer;
+  Completer<void>? _flushCompleter;
 
   // Active Timer & AFK Protection
   Timer? _oneSecondTimer;
@@ -25,15 +26,36 @@ class ShinyHuntProvider extends ChangeNotifier with WidgetsBindingObserver {
   Future<void> get initialized => _initFuture ?? Future.value();
 
   final bool _enableTimer;
+  DexProvider? _attachedDexProvider;
 
-  ShinyHuntProvider({DatabaseService? databaseService, bool enableTimer = true})
-      : db = databaseService ?? DatabaseService.instance,
+  ShinyHuntProvider({
+    DatabaseService? databaseService,
+    bool enableTimer = true,
+    DexProvider? dexProvider,
+  })  : db = databaseService ?? DatabaseService.instance,
         _enableTimer = enableTimer {
     WidgetsBinding.instance.addObserver(this);
+    if (dexProvider != null) {
+      attachDexProvider(dexProvider);
+    }
     _initFuture = loadHunts();
     if (enableTimer) {
       _startOneSecondTimer();
     }
+  }
+
+  void attachDexProvider(DexProvider dexProvider) {
+    _attachedDexProvider = dexProvider;
+    dexProvider.registerBeforeUploadHook(flushPendingWrites);
+    dexProvider.registerBeforeMergeHook(flushPendingWrites);
+    dexProvider.registerCloudDataMergedHook(loadHunts);
+  }
+
+  void detachDexProvider() {
+    _attachedDexProvider?.unregisterBeforeUploadHook(flushPendingWrites);
+    _attachedDexProvider?.unregisterBeforeMergeHook(flushPendingWrites);
+    _attachedDexProvider?.unregisterCloudDataMergedHook(loadHunts);
+    _attachedDexProvider = null;
   }
 
   bool get isLoading => _isLoading;
@@ -68,6 +90,9 @@ class ShinyHuntProvider extends ChangeNotifier with WidgetsBindingObserver {
   }
 
   Future<void> loadHunts() async {
+    if (_pendingDirtyHuntIds.isNotEmpty) {
+      await flushPendingWrites();
+    }
     _isLoading = true;
     notifyListeners();
     try {
@@ -296,15 +321,29 @@ class ShinyHuntProvider extends ChangeNotifier with WidgetsBindingObserver {
     _sqliteDebounceTimer?.cancel();
     _sqliteDebounceTimer = null;
 
-    if (_pendingDirtyHuntIds.isEmpty) return;
+    if (_pendingDirtyHuntIds.isEmpty) {
+      if (_flushCompleter != null) {
+        await _flushCompleter!.future;
+      }
+      return;
+    }
 
-    final idsToFlush = List<String>.from(_pendingDirtyHuntIds);
-    _pendingDirtyHuntIds.clear();
+    final completer = Completer<void>();
+    _flushCompleter = completer;
+    try {
+      final idsToFlush = List<String>.from(_pendingDirtyHuntIds);
+      _pendingDirtyHuntIds.clear();
 
-    for (final id in idsToFlush) {
-      final hunt = getHuntById(id);
-      if (hunt != null) {
-        await db.saveShinyHunt(hunt);
+      for (final id in idsToFlush) {
+        final hunt = getHuntById(id);
+        if (hunt != null) {
+          await db.saveShinyHunt(hunt);
+        }
+      }
+    } finally {
+      completer.complete();
+      if (_flushCompleter == completer) {
+        _flushCompleter = null;
       }
     }
   }
@@ -312,6 +351,7 @@ class ShinyHuntProvider extends ChangeNotifier with WidgetsBindingObserver {
   Future<void> _executeCloudUpload() async {
     try {
       if (GoogleDriveSyncService.instance.isSignedIn) {
+        await flushPendingWrites();
         final exportData = await db.exportCloudSyncData();
         await GoogleDriveSyncService.instance.uploadBackup(exportData);
       }
@@ -321,14 +361,24 @@ class ShinyHuntProvider extends ChangeNotifier with WidgetsBindingObserver {
   }
 
   void _triggerCloudSyncLater({bool immediate = false}) {
-    _cloudDebounceTimer?.cancel();
     if (!_enableTimer) return;
+    if (_attachedDexProvider != null) {
+      if (immediate) {
+        flushPendingWrites().then((_) {
+          _attachedDexProvider?.triggerAutoUpload();
+        });
+      } else {
+        _attachedDexProvider!.triggerAutoUpload();
+      }
+      return;
+    }
+    _cloudDebounceTimer?.cancel();
     if (immediate) {
       _executeCloudUpload();
       return;
     }
-    // Entkoppelter Cloud Sync Debounce (30 Sekunden nach dem letzten Tap)
-    _cloudDebounceTimer = Timer(const Duration(seconds: 30), () {
+    // Entkoppelter Cloud Sync Debounce (3 Sekunden)
+    _cloudDebounceTimer = Timer(const Duration(seconds: 3), () {
       _executeCloudUpload();
     });
   }
@@ -373,6 +423,7 @@ class ShinyHuntProvider extends ChangeNotifier with WidgetsBindingObserver {
 
   @override
   void dispose() {
+    detachDexProvider();
     WidgetsBinding.instance.removeObserver(this);
     _sqliteDebounceTimer?.cancel();
     _cloudDebounceTimer?.cancel();

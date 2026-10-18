@@ -50,3 +50,13 @@ appimage-builder-cache/
 appimage-build/
 *.AppImage
 *.tar.gz
+
+# Database files (portable local database folder)
+/database/
+*.sqlite
+*.sqlite-wal
+*.sqlite-shm
+!assets/db/pokedex.sqlite
+
+.agents
+AGENTS.md

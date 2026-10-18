@@ -97,7 +97,7 @@ DexDisplayEntry createTestEntry({
 BoxData createTestBoxData({
   required String title,
   required List<DexDisplayEntry> entries,
-  int crossAxisCount = 5,
+  int crossAxisCount = 6,
   String regionKey = 'custom',
 }) {
   return BoxData(title, regionKey, entries, crossAxisCount);
@@ -107,8 +107,8 @@ BoxData createTestBoxData({
 CustomBoxState createTestCustomBox({
   required String title,
   required List<String> pokemonIds,
-  int columns = 5,
-  int rows = 6,
+  int columns = 6,
+  int rows = 5,
   bool autoFlow = false,
   bool autoShift = true,
   bool strictLimits = true,
@@ -163,6 +163,17 @@ UserDex createTestUserDex({
   );
 }
 
+bool _dexFallbackRegistered = false;
+
+void _ensureDexFallbackRegistered() {
+  if (!_dexFallbackRegistered) {
+    try {
+      registerFallbackValue(createTestUserDex(id: 'dummy', title: 'dummy'));
+      _dexFallbackRegistered = true;
+    } catch (_) {}
+  }
+}
+
 /// Wraps a widget with the required MaterialApp and Provider tree for widget testing.
 Widget wrapWithApp({
   required Widget child,
@@ -171,6 +182,7 @@ Widget wrapWithApp({
   MockTutorialProvider? mockTutorialProvider,
   String language = 'en',
 }) {
+  _ensureDexFallbackRegistered();
   SharedPreferences.setMockInitialValues({});
   Translator.currentLanguage = language;
 
@@ -180,6 +192,7 @@ Widget wrapWithApp({
 
   when(() => settingsProvider.currentLanguage).thenReturn(language);
   when(() => tutorialProvider.hasSeenFeature(any())).thenReturn(true);
+  when(() => dexProvider.saveUserDexAndSync(any())).thenAnswer((_) async {});
 
   return TranslationProvider(
     child: MultiProvider(

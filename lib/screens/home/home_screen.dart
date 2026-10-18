@@ -102,12 +102,18 @@ class _HomeScreenState extends State<HomeScreen> {
       );
 
       if (isConnected) {
+        if (mounted) {
+          await context.read<ShinyHuntProvider>().flushPendingWrites();
+        }
         final cloudData = await GoogleDriveSyncService.instance
             .downloadBackup();
         if (cloudData != null) {
           await dexProvider.mergeCloudData(cloudData);
         }
 
+        if (mounted) {
+          await context.read<ShinyHuntProvider>().flushPendingWrites();
+        }
         final Map<String, dynamic> exportData = await DatabaseService.instance
             .exportCloudSyncData();
         await GoogleDriveSyncService.instance.uploadBackup(exportData);

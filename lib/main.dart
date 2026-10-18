@@ -56,7 +56,10 @@ void main() async {
             ChangeNotifierProvider(create: (context) => DexProvider()),
             ChangeNotifierProvider(create: (_) => TutorialProvider(prefs)),
             ChangeNotifierProvider(create: (_) => SettingsProvider()),
-            ChangeNotifierProvider(create: (_) => ShinyHuntProvider()),
+            ChangeNotifierProvider(create: (context) {
+              final dexProvider = context.read<DexProvider>();
+              return ShinyHuntProvider(dexProvider: dexProvider);
+            }),
           ],
           child: const PokedexApp(),
         ),

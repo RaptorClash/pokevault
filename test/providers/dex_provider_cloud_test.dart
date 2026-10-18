@@ -181,5 +181,24 @@ void main() {
         verify(() => mockDb.getAllUserDexes()).called(greaterThan(1));
       },
     );
+
+    test(
+      'Forward compatibility: Leitet zukuenftiges V3-Backup (z. B. von neuerem Android) an DatabaseService weiter',
+      () async {
+        final Map<String, dynamic> mockV3CloudData = {
+          'format_version': 3,
+          'user_dexes': [],
+          'folders': [],
+          'folder_structure': [],
+          'user_pokemon': [],
+          'future_table': [],
+        };
+
+        await provider.mergeCloudData(mockV3CloudData);
+
+        verify(() => mockDb.mergeCloudSyncData(mockV3CloudData)).called(1);
+        verify(() => mockDb.getAllUserDexes()).called(greaterThan(1));
+      },
+    );
   });
 }

@@ -25,6 +25,9 @@ class DexProvider extends ChangeNotifier with WidgetsBindingObserver {
 
   bool _isInitialized = false;
   bool get isInitialized => _isInitialized;
+  bool _isDisposed = false;
+  Future<void>? _initFuture;
+  Future<void> get initialized => _initFuture ?? Future.value();
 
   bool isMigrating = false;
 
@@ -37,9 +40,50 @@ class DexProvider extends ChangeNotifier with WidgetsBindingObserver {
   bool _hasPendingChanges = false;
   List<Ribbon> allRibbons = [];
 
+  final List<Future<void> Function()> _beforeUploadHooks = [];
+  final List<Future<void> Function()> _beforeMergeHooks = [];
+  final List<Future<void> Function()> _cloudDataMergedHooks = [];
+
+  void registerBeforeUploadHook(Future<void> Function() hook) {
+    if (!_beforeUploadHooks.contains(hook)) {
+      _beforeUploadHooks.add(hook);
+    }
+  }
+
+  void unregisterBeforeUploadHook(Future<void> Function() hook) {
+    _beforeUploadHooks.remove(hook);
+  }
+
+  void registerBeforeMergeHook(Future<void> Function() hook) {
+    if (!_beforeMergeHooks.contains(hook)) {
+      _beforeMergeHooks.add(hook);
+    }
+  }
+
+  void unregisterBeforeMergeHook(Future<void> Function() hook) {
+    _beforeMergeHooks.remove(hook);
+  }
+
+  void registerCloudDataMergedHook(Future<void> Function() hook) {
+    if (!_cloudDataMergedHooks.contains(hook)) {
+      _cloudDataMergedHooks.add(hook);
+    }
+  }
+
+  void unregisterCloudDataMergedHook(Future<void> Function() hook) {
+    _cloudDataMergedHooks.remove(hook);
+  }
+
+  @visibleForTesting
+  Future<void> runBeforeUploadHooksForTesting() async {
+    for (final hook in _beforeUploadHooks) {
+      await hook();
+    }
+  }
+
   DexProvider({DatabaseService? databaseService})
     : db = databaseService ?? DatabaseService.instance {
-    _init();
+    _initFuture = _init();
     WidgetsBinding.instance.addObserver(this);
     _downloadTimer = Timer.periodic(const Duration(seconds: 60), (_) {
       _checkForRemoteUpdates();
@@ -64,6 +108,7 @@ class DexProvider extends ChangeNotifier with WidgetsBindingObserver {
 
   @override
   void dispose() {
+    _isDisposed = true;
     WidgetsBinding.instance.removeObserver(this);
     _uploadDebouncer?.cancel();
     _downloadTimer?.cancel();
@@ -152,9 +197,11 @@ class DexProvider extends ChangeNotifier with WidgetsBindingObserver {
       structure = await db.getStructure();
       allRibbons = await db.getAllRibbons();
 
+      if (_isDisposed) return;
       _isInitialized = true;
       notifyListeners();
     } catch (e, stacktrace) {
+      if (_isDisposed) return;
       NotificationHelper.showError("Fehler beim Laden der App-Daten: $e");
       debugPrint("Init Error: $e\n$stacktrace");
     }
@@ -185,7 +232,7 @@ class DexProvider extends ChangeNotifier with WidgetsBindingObserver {
       shinyIds: [],
       ignoredIds: [],
       customBoxes: region == 'custom_empty'
-          ? [CustomBoxState(title: "Box 1", pokemonIds: [], regionKey: region)]
+          ? [CustomBoxState(title: "Box 1", pokemonIds: [], regionKey: region, columns: 6, rows: 5)]
           : [],
     );
     userDexes.add(newDex);
@@ -193,6 +240,18 @@ class DexProvider extends ChangeNotifier with WidgetsBindingObserver {
 
     db.saveUserDex(newDex);
     db.saveStructure(structure);
+    triggerAutoUpload();
+    notifyListeners();
+  }
+
+  Future<void> saveUserDexAndSync(UserDex dex) async {
+    final index = userDexes.indexWhere((d) => d.id == dex.id);
+    if (index != -1) {
+      userDexes[index] = dex;
+    } else {
+      userDexes.add(dex);
+    }
+    await db.saveUserDex(dex);
     triggerAutoUpload();
     notifyListeners();
   }
@@ -799,8 +858,17 @@ class DexProvider extends ChangeNotifier with WidgetsBindingObserver {
 
   Future<void> mergeCloudData(Map<String, dynamic> cloudData) async {
     try {
-      if (cloudData.containsKey('format_version') &&
-          cloudData['format_version'] == 2) {
+      for (final hook in _beforeMergeHooks) {
+        try {
+          await hook();
+        } catch (e) {
+          debugPrint('Error in beforeMergeHook: $e');
+        }
+      }
+
+      final formatVersion =
+          (cloudData['format_version'] as num?)?.toInt() ?? 0;
+      if (cloudData.containsKey('format_version') && formatVersion >= 2) {
         await db.mergeCloudSyncData(cloudData);
       } else {
         if (userDexes.isEmpty && folders.isEmpty) {
@@ -815,6 +883,14 @@ class DexProvider extends ChangeNotifier with WidgetsBindingObserver {
       }
 
       await reloadFromDatabase();
+
+      for (final hook in _cloudDataMergedHooks) {
+        try {
+          await hook();
+        } catch (e) {
+          debugPrint('Error in cloudDataMergedHook: $e');
+        }
+      }
     } catch (e) {
       debugPrint("Merge Error: $e");
       rethrow;
@@ -895,6 +971,13 @@ class DexProvider extends ChangeNotifier with WidgetsBindingObserver {
 
     _isSyncing = true;
     try {
+      for (final hook in _beforeUploadHooks) {
+        try {
+          await hook();
+        } catch (e) {
+          debugPrint('Error in beforeUploadHook: $e');
+        }
+      }
       final Map<String, dynamic> exportData = await db.exportCloudSyncData();
       bool success = await GoogleDriveSyncService.instance.uploadBackup(
         exportData,

@@ -222,10 +222,103 @@ class GoogleDriveSyncService {
     await prefs.remove('drive_expiry');
   }
 
+  /// Führt einen Field-Level Patch-Merge durch, um Cloud-Felder und unbekannte Tabellen
+  /// neuerer App-Versionen beim Upload nicht zu überschreiben.
+  static Map<String, dynamic> mergeForUpload(
+    Map<String, dynamic> localData,
+    Map<String, dynamic>? remoteData,
+  ) {
+    if (remoteData == null || remoteData.isEmpty) {
+      return Map<String, dynamic>.from(localData);
+    }
+
+    final result = Map<String, dynamic>.from(remoteData);
+
+    final localV = (localData['format_version'] as num?)?.toInt() ?? 1;
+    final remoteV = (remoteData['format_version'] as num?)?.toInt() ?? 1;
+    result['format_version'] = localV > remoteV ? localV : remoteV;
+
+    for (final entry in localData.entries) {
+      final table = entry.key;
+      if (table == 'format_version') continue;
+
+      final localList = (entry.value as List?)
+              ?.map((e) => Map<String, dynamic>.from(e as Map))
+              .toList() ??
+          <Map<String, dynamic>>[];
+
+      if (!result.containsKey(table) || result[table] is! List) {
+        result[table] = localList;
+        continue;
+      }
+
+      final remoteList = (result[table] as List)
+          .map((e) => Map<String, dynamic>.from(e as Map))
+          .toList();
+
+      final pks = _getPrimaryKeysForTable(table);
+
+      String makeKey(Map<String, dynamic> item) {
+        return pks.map((k) => item[k]?.toString() ?? '').join(':::');
+      }
+
+      final remoteMap = <String, Map<String, dynamic>>{};
+      for (final rItem in remoteList) {
+        remoteMap[makeKey(rItem)] = rItem;
+      }
+
+      for (final lItem in localList) {
+        final key = makeKey(lItem);
+        if (remoteMap.containsKey(key)) {
+          final rItem = remoteMap[key]!;
+          final rUpdated = (rItem['updated_at'] as num?)?.toInt() ?? 0;
+          final lUpdated = (lItem['updated_at'] as num?)?.toInt() ?? 0;
+          if (lUpdated >= rUpdated) {
+            // Local is newer or equal: patch remote item with local fields,
+            // preserving any fields in remote that local does not know about.
+            final patched = Map<String, dynamic>.from(rItem);
+            patched.addAll(lItem);
+            remoteMap[key] = patched;
+          }
+        } else {
+          // New local item
+          remoteMap[key] = Map<String, dynamic>.from(lItem);
+        }
+      }
+
+      result[table] = remoteMap.values.toList();
+    }
+
+    return result;
+  }
+
+  static List<String> _getPrimaryKeysForTable(String table) {
+    switch (table) {
+      case 'user_dexes':
+      case 'folders':
+      case 'shiny_hunts':
+        return ['id'];
+      case 'folder_structure':
+        return ['parent_id', 'child_id'];
+      case 'user_pokemon':
+        return ['dex_id', 'unique_id'];
+      default:
+        return ['id'];
+    }
+  }
+
   Future<bool> uploadBackup(Map<String, dynamic> data) async {
     if (_driveApi == null) return false;
     try {
-      final jsonStr = jsonEncode(data);
+      Map<String, dynamic>? existingRemote;
+      try {
+        existingRemote = await downloadBackup();
+      } catch (e) {
+        debugPrint("Could not fetch remote backup for patch merge: $e");
+      }
+
+      final mergedData = mergeForUpload(data, existingRemote);
+      final jsonStr = jsonEncode(mergedData);
       final List<int> bytes = utf8.encode(jsonStr);
       final stream = Stream.value(bytes);
 

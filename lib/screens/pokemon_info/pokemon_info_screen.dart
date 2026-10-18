@@ -7,7 +7,6 @@ import '../../providers/tutorial_provider.dart';
 import '../../models/tutorial_step.dart';
 import '../../widgets/tutorial/tutorial_overlay.dart';
 import '../../l10n/app_translations.dart';
-import '../../services/database_service.dart';
 import 'utils/pokemon_info_keys.dart';
 import 'dialogs/ignore_pokemon_dialog.dart';
 import 'widgets/pokemon_info_page.dart';
@@ -343,7 +342,7 @@ class _PokemonInfoScreenState extends State<PokemonInfoScreen> {
                               boxIndex: targetBoxIndex,
                               slotIndex: targetSlotIndex,
                             );
-                            DatabaseService.instance.saveUserDex(liveDex);
+                            provider.saveUserDexAndSync(liveDex);
                             provider.forceRefresh();
                           }
                           Navigator.pop(ctx);

@@ -1070,6 +1070,23 @@ def main():
     except Exception as e:
         print(f"Fehler beim verarbeiten der Spezialerhaltung: {e}")
 
+    print("\n7. Erstelle Performance-Indizes und optimiere Datenbank...")
+    indices = [
+        "CREATE INDEX IF NOT EXISTS idx_pokemon_moves_move_id ON pokemon_moves (move_id);",
+        "CREATE INDEX IF NOT EXISTS idx_pokemon_moves_poke_vg ON pokemon_moves (pokemon_id, version_group);",
+        "CREATE INDEX IF NOT EXISTS idx_pokemon_abilities_ability_id ON pokemon_abilities (ability_id);",
+        "CREATE INDEX IF NOT EXISTS idx_pokemon_abilities_poke_id ON pokemon_abilities (pokemon_id);",
+        "CREATE INDEX IF NOT EXISTS idx_encounters_poke_id ON encounters (pokemon_id);",
+        "CREATE INDEX IF NOT EXISTS idx_forms_poke_id ON forms (pokemon_id);",
+        "CREATE INDEX IF NOT EXISTS idx_dex_orders_name_order ON dex_orders (dex_name, order_index);",
+        "CREATE INDEX IF NOT EXISTS idx_special_dexes_name ON special_dexes (dex_name);",
+        "CREATE INDEX IF NOT EXISTS idx_shiny_categories_poke_id ON shiny_categories (pokemon_id);",
+        "CREATE INDEX IF NOT EXISTS idx_special_obtainable_poke_id ON special_obtainable (pokemon_id);",
+    ]
+    for idx_sql in indices:
+        c.execute(idx_sql)
+    c.execute("PRAGMA optimize;")
+
     conn.commit()
     conn.close()
     print("\nDatenbank erfolgreich aktualisiert!")

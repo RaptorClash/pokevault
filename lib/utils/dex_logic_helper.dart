@@ -173,6 +173,12 @@ class DexLogicHelper {
           return instanceId;
         }).toList(),
         regionKey: b.regionKey,
+        columns: b.crossAxisCount,
+        rows: (b.entries.isNotEmpty &&
+                b.entries.length % b.crossAxisCount == 0 &&
+                b.entries.length ~/ b.crossAxisCount > 0)
+            ? b.entries.length ~/ b.crossAxisCount
+            : 5,
       )).toList();
     }
 
@@ -205,15 +211,31 @@ class DexLogicHelper {
         title: 'Box $boxNumber',
         pokemonIds: pIds,
         regionKey: dex.region,
+        columns: (boxCapacity == 20) ? 4 : 6,
+        rows: 5,
       ));
       boxNumber++;
     }
     return result;
   }
 
-  static bool migrateCustomBoxInstances(UserDex dex) {
+  /// Migrates legacy 30-capacity custom boxes (columns: 5, rows: 6) to standard 6x5 dimensions.
+  static bool migrateCustomBoxesDefaultDimensions(UserDex dex) {
     if (dex.customBoxes.isEmpty) return false;
     bool migrated = false;
+    for (var box in dex.customBoxes) {
+      if (box.columns == 5 && box.rows == 6) {
+        box.columns = 6;
+        box.rows = 5;
+        migrated = true;
+      }
+    }
+    return migrated;
+  }
+
+  static bool migrateCustomBoxInstances(UserDex dex) {
+    if (dex.customBoxes.isEmpty) return false;
+    bool migrated = migrateCustomBoxesDefaultDimensions(dex);
     for (var box in dex.customBoxes) {
       for (int i = 0; i < box.pokemonIds.length; i++) {
         String id = box.pokemonIds[i];
@@ -977,7 +999,7 @@ class DexLogicHelper {
         liveDex.region == 'kanto_regional' ||
         liveDex.region == 'johto_regional';
     int capacity = isOriginalKantoJohto ? 20 : 30;
-    int crossAxis = isOriginalKantoJohto ? 4 : 5;
+    int crossAxis = isOriginalKantoJohto ? 4 : 6;
 
     if (!separateForms) {
       List<DexDisplayEntry> baseEntries = [];

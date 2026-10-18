@@ -2,9 +2,7 @@ import 'dart:convert';
 import 'package:universal_io/io.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
-import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
-import 'package:path_provider/path_provider.dart';
 import '../models/pokemon.dart';
 import '../models/user_dex.dart';
 import '../utils/notification_helper.dart';
@@ -14,11 +12,23 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../models/special_dex_models.dart';
 import '../models/ribbon.dart';
 import '../models/shiny_hunt.dart';
+import 'database_path_helper.dart';
 
 class DatabaseService {
   static final DatabaseService instance = DatabaseService._init();
   static Database? _appDatabase;
   static Database? _userDatabase;
+  static Future<void>? _migrationFuture;
+
+  static Future<void> _ensureMigration() {
+    _migrationFuture ??= DatabasePathHelper.migrateLegacyDocumentsDatabasesIfNeeded();
+    return _migrationFuture!;
+  }
+
+  @visibleForTesting
+  static void resetMigrationForTesting() {
+    _migrationFuture = null;
+  }
 
   DatabaseService._init();
 
@@ -38,15 +48,16 @@ class DatabaseService {
     _userDatabase = db;
   }
 
-  static const int _currentAppDbVersion = 23;
+  static const int _currentAppDbVersion = 24;
 
   Future<Database> _initAppDB(String fileName) async {
+    await _ensureMigration();
+
     String path = fileName;
     DatabaseFactory factory = kIsWeb ? databaseFactoryFfiWeb : databaseFactory;
 
     if (!kIsWeb) {
-      Directory documentsDirectory = await getApplicationDocumentsDirectory();
-      path = join(documentsDirectory.path, fileName);
+      path = await DatabasePathHelper.resolveDatabasePath(fileName);
     }
 
     final prefs = await SharedPreferences.getInstance();
@@ -55,6 +66,20 @@ class DatabaseService {
 
     if (!dbExists || storedDbVersion < _currentAppDbVersion) {
       try {
+        if (_appDatabase != null && _appDatabase!.isOpen) {
+          await _appDatabase!.close();
+          _appDatabase = null;
+        }
+        if (!kIsWeb) {
+          for (final ext in ['-wal', '-shm']) {
+            final aux = File('$path$ext');
+            if (aux.existsSync()) {
+              try {
+                aux.deleteSync();
+              } catch (_) {}
+            }
+          }
+        }
         ByteData data = await rootBundle.load('assets/db/$fileName');
         Uint8List bytes = data.buffer.asUint8List(
           data.offsetInBytes,
@@ -72,7 +97,16 @@ class DatabaseService {
 
     return await factory.openDatabase(
       path,
-      options: OpenDatabaseOptions(version: 1),
+      options: OpenDatabaseOptions(
+        version: 1,
+        onDowngrade: (db, oldVersion, newVersion) async {},
+        onOpen: (db) async {
+          await db.execute('PRAGMA busy_timeout = 5000;');
+          await db.execute('PRAGMA synchronous = NORMAL;');
+          await db.execute('PRAGMA temp_store = MEMORY;');
+          await ensureAppDatabaseIndexes(db);
+        },
+      ),
     );
   }
 
@@ -83,25 +117,37 @@ class DatabaseService {
   }
 
   Future<Database> _initUserDB(String fileName) async {
+    await _ensureMigration();
+
     String path = fileName;
     DatabaseFactory factory = kIsWeb ? databaseFactoryFfiWeb : databaseFactory;
 
     if (!kIsWeb) {
-      Directory documentsDirectory = await getApplicationDocumentsDirectory();
-      path = join(documentsDirectory.path, fileName);
+      path = await DatabasePathHelper.resolveDatabasePath(fileName);
     }
 
     return await factory.openDatabase(
       path,
       options: OpenDatabaseOptions(
         version: 10,
-        onCreate: _createUserDataTables,
-        onUpgrade: _upgradeUserDataTables,
+        onCreate: createUserDataTables,
+        onUpgrade: upgradeUserDataTables,
+        onDowngrade: downgradeUserDataTables,
+        onOpen: (db) async {
+          await db.execute('PRAGMA busy_timeout = 5000;');
+          if (!kIsWeb) {
+            await db.execute('PRAGMA journal_mode = WAL;');
+          }
+          await db.execute('PRAGMA synchronous = NORMAL;');
+          await _cleanOrphanedUserDataBeforeFk(db);
+          await db.execute('PRAGMA foreign_keys = ON;');
+          await ensureUserDataIndexes(db);
+        },
       ),
     );
   }
 
-  Future<void> _createUserDataTables(Database db, int version) async {
+  static Future<void> createUserDataTables(Database db, int version) async {
     try {
       await db.execute('''
         CREATE TABLE IF NOT EXISTS user_dexes (
@@ -194,7 +240,83 @@ class DatabaseService {
     }
   }
 
-  Future<void> _upgradeUserDataTables(
+  static Future<void> addColumnIfNotExists(
+    DatabaseExecutor db,
+    String table,
+    String column,
+    String definition,
+  ) async {
+    final info = await db.rawQuery('PRAGMA table_info($table)');
+    final exists = info.any((row) => row['name']?.toString().toLowerCase() == column.toLowerCase());
+    if (!exists) {
+      await db.execute('ALTER TABLE $table ADD COLUMN $column $definition');
+    }
+  }
+
+  static Future<void> downgradeUserDataTables(
+    Database db,
+    int oldVersion,
+    int newVersion,
+  ) async {
+    debugPrint("Downgrade von Version $oldVersion auf $newVersion erkannt. Bestehende Daten bleiben erhalten.");
+  }
+
+  static Future<void> _cleanOrphanedUserDataBeforeFk(DatabaseExecutor db) async {
+    try {
+      await db.execute('''
+        DELETE FROM folder_structure
+        WHERE parent_id != 'root'
+        AND parent_id NOT IN (SELECT id FROM folders)
+      ''');
+      await db.execute('''
+        UPDATE shiny_hunts
+        SET target_dex_id = NULL
+        WHERE target_dex_id IS NOT NULL
+        AND target_dex_id != ''
+        AND target_dex_id NOT IN (SELECT id FROM user_dexes)
+      ''');
+    } catch (e) {
+      debugPrint("Bereinigung verwaister Datensätze: $e");
+    }
+  }
+
+  static Future<void> _createIndexIfTableExists(
+    DatabaseExecutor db,
+    String table,
+    String indexName,
+    String columns,
+  ) async {
+    final info = await db.rawQuery("PRAGMA table_info('$table')");
+    if (info.isNotEmpty) {
+      await db.execute('CREATE INDEX IF NOT EXISTS $indexName ON $table ($columns);');
+    }
+  }
+
+  static Future<void> ensureUserDataIndexes(DatabaseExecutor db) async {
+    await _createIndexIfTableExists(db, 'folder_structure', 'idx_folder_structure_child', 'child_id');
+    await _createIndexIfTableExists(db, 'folder_structure', 'idx_folder_structure_parent_order', 'parent_id, deleted_at, order_index');
+    await _createIndexIfTableExists(db, 'shiny_hunts', 'idx_shiny_hunts_deleted_updated', 'deleted_at, updated_at DESC');
+    await _createIndexIfTableExists(db, 'shiny_hunts', 'idx_shiny_hunts_status', 'status, deleted_at');
+    await _createIndexIfTableExists(db, 'shiny_hunts', 'idx_shiny_hunts_target_dex', 'target_dex_id');
+    await _createIndexIfTableExists(db, 'user_dexes', 'idx_user_dexes_deleted_updated', 'deleted_at, updated_at DESC');
+    await _createIndexIfTableExists(db, 'folders', 'idx_folders_deleted_updated', 'deleted_at, updated_at DESC');
+  }
+
+  static Future<void> ensureAppDatabaseIndexes(DatabaseExecutor db) async {
+    await _createIndexIfTableExists(db, 'pokemon_moves', 'idx_pokemon_moves_move_id', 'move_id');
+    await _createIndexIfTableExists(db, 'pokemon_moves', 'idx_pokemon_moves_poke_vg', 'pokemon_id, version_group');
+    await _createIndexIfTableExists(db, 'pokemon_abilities', 'idx_pokemon_abilities_ability_id', 'ability_id');
+    await _createIndexIfTableExists(db, 'pokemon_abilities', 'idx_pokemon_abilities_poke_id', 'pokemon_id');
+    await _createIndexIfTableExists(db, 'encounters', 'idx_encounters_poke_id', 'pokemon_id');
+    await _createIndexIfTableExists(db, 'forms', 'idx_forms_poke_id', 'pokemon_id');
+    await _createIndexIfTableExists(db, 'dex_orders', 'idx_dex_orders_name_order', 'dex_name, order_index');
+    await _createIndexIfTableExists(db, 'special_dexes', 'idx_special_dexes_name', 'dex_name');
+    await _createIndexIfTableExists(db, 'shiny_categories', 'idx_shiny_categories_poke_id', 'pokemon_id');
+    await _createIndexIfTableExists(db, 'special_obtainable', 'idx_special_obtainable_poke_id', 'pokemon_id');
+    await db.execute('PRAGMA optimize;');
+  }
+
+  static Future<void> upgradeUserDataTables(
     Database db,
     int oldVersion,
     int newVersion,
@@ -202,42 +324,24 @@ class DatabaseService {
     if (oldVersion < 2) {
       int now = DateTime.now().toUtc().millisecondsSinceEpoch;
       try {
-        await db.execute(
-          'ALTER TABLE user_dexes ADD COLUMN updated_at INTEGER DEFAULT $now',
-        );
-        await db.execute(
-          'ALTER TABLE user_dexes ADD COLUMN deleted_at INTEGER DEFAULT 0',
-        );
-        await db.execute(
-          'ALTER TABLE folders ADD COLUMN updated_at INTEGER DEFAULT $now',
-        );
-        await db.execute(
-          'ALTER TABLE folders ADD COLUMN deleted_at INTEGER DEFAULT 0',
-        );
-        await db.execute(
-          'ALTER TABLE folder_structure ADD COLUMN updated_at INTEGER DEFAULT $now',
-        );
-        await db.execute(
-          'ALTER TABLE folder_structure ADD COLUMN deleted_at INTEGER DEFAULT 0',
-        );
-        await db.execute(
-          'ALTER TABLE user_pokemon ADD COLUMN updated_at INTEGER DEFAULT $now',
-        );
+        await addColumnIfNotExists(db, 'user_dexes', 'updated_at', 'INTEGER DEFAULT $now');
+        await addColumnIfNotExists(db, 'user_dexes', 'deleted_at', 'INTEGER DEFAULT 0');
+        await addColumnIfNotExists(db, 'folders', 'updated_at', 'INTEGER DEFAULT $now');
+        await addColumnIfNotExists(db, 'folders', 'deleted_at', 'INTEGER DEFAULT 0');
+        await addColumnIfNotExists(db, 'folder_structure', 'updated_at', 'INTEGER DEFAULT $now');
+        await addColumnIfNotExists(db, 'folder_structure', 'deleted_at', 'INTEGER DEFAULT 0');
+        await addColumnIfNotExists(db, 'user_pokemon', 'updated_at', 'INTEGER DEFAULT $now');
         debugPrint(
           "Datenbank erfolgreich auf Version 2 (Offline-First) migriert!",
         );
       } catch (e) {
-        debugPrint("Migrations-Fehler (Spalten existieren evtl. schon): $e");
+        debugPrint("Migrations-Fehler V2: $e");
       }
     }
     if (oldVersion < 3) {
       try {
-        await db.execute(
-          "ALTER TABLE user_dexes ADD COLUMN view_mode TEXT DEFAULT 'list'",
-        );
-        await db.execute(
-          "ALTER TABLE user_dexes ADD COLUMN sort_mode TEXT DEFAULT 'dex'",
-        );
+        await addColumnIfNotExists(db, 'user_dexes', 'view_mode', "TEXT DEFAULT 'list'");
+        await addColumnIfNotExists(db, 'user_dexes', 'sort_mode', "TEXT DEFAULT 'dex'");
         debugPrint(
           "Datenbank erfolgreich auf Version 3 (Sort/View-Modes) migriert!",
         );
@@ -247,12 +351,8 @@ class DatabaseService {
     }
     if (oldVersion < 4) {
       try {
-        await db.execute(
-          "ALTER TABLE user_pokemon ADD COLUMN caught_ribbons TEXT DEFAULT ''",
-        );
-        await db.execute(
-          "ALTER TABLE user_pokemon ADD COLUMN caught_tera_types TEXT DEFAULT ''",
-        );
+        await addColumnIfNotExists(db, 'user_pokemon', 'caught_ribbons', "TEXT DEFAULT ''");
+        await addColumnIfNotExists(db, 'user_pokemon', 'caught_tera_types', "TEXT DEFAULT ''");
         debugPrint(
           "Datenbank erfolgreich auf Version 4 (Ribbons & Tera) migriert!",
         );
@@ -262,9 +362,7 @@ class DatabaseService {
     }
     if (oldVersion < 5) {
       try {
-        await db.execute(
-          "ALTER TABLE user_pokemon ADD COLUMN is_alpha INTEGER DEFAULT 0",
-        );
+        await addColumnIfNotExists(db, 'user_pokemon', 'is_alpha', "INTEGER DEFAULT 0");
         debugPrint(
           "Datenbank erfolgreich auf Version 5 (Alpha Status) migriert!",
         );
@@ -274,9 +372,7 @@ class DatabaseService {
     }
     if (oldVersion < 6) {
       try {
-        await db.execute(
-          "ALTER TABLE user_pokemon ADD COLUMN caught_languages TEXT DEFAULT ''",
-        );
+        await addColumnIfNotExists(db, 'user_pokemon', 'caught_languages', "TEXT DEFAULT ''");
         debugPrint("Datenbank erfolgreich auf Version 6 (Sprachen) migriert!");
       } catch (e) {
         debugPrint("Migrations-Fehler V6: $e");
@@ -284,9 +380,9 @@ class DatabaseService {
     }
     if (oldVersion < 7) {
       try {
-        await db.execute("ALTER TABLE user_dexes ADD COLUMN mega_sort TEXT DEFAULT 'origin'");
-        await db.execute("ALTER TABLE user_dexes ADD COLUMN gmax_sort TEXT DEFAULT 'origin'");
-        await db.execute("ALTER TABLE user_dexes ADD COLUMN regional_sort TEXT DEFAULT 'mechanic'");
+        await addColumnIfNotExists(db, 'user_dexes', 'mega_sort', "TEXT DEFAULT 'origin'");
+        await addColumnIfNotExists(db, 'user_dexes', 'gmax_sort', "TEXT DEFAULT 'origin'");
+        await addColumnIfNotExists(db, 'user_dexes', 'regional_sort', "TEXT DEFAULT 'mechanic'");
         debugPrint("Datenbank erfolgreich auf Version 7 (Sortiereinstellungen) migriert!");
       } catch (e) {
         debugPrint("Migrations-Fehler V7: $e");
@@ -294,7 +390,7 @@ class DatabaseService {
     }
     if (oldVersion < 8) {
       try {
-        await db.execute("ALTER TABLE user_dexes ADD COLUMN custom_boxes TEXT DEFAULT '[]'");
+        await addColumnIfNotExists(db, 'user_dexes', 'custom_boxes', "TEXT DEFAULT '[]'");
         debugPrint("Datenbank erfolgreich auf Version 8 (Custom Boxes) migriert!");
       } catch (e) {
         debugPrint("Migrations-Fehler V8: $e");
@@ -339,7 +435,7 @@ class DatabaseService {
     }
     if (oldVersion < 10) {
       try {
-        await db.execute('ALTER TABLE shiny_hunts ADD COLUMN hunting_type TEXT');
+        await addColumnIfNotExists(db, 'shiny_hunts', 'hunting_type', 'TEXT');
         debugPrint("Datenbank erfolgreich auf Version 10 (Shiny Hunt Jagdart) migriert!");
       } catch (e) {
         debugPrint("Migrations-Fehler V10: $e");
@@ -520,11 +616,20 @@ class DatabaseService {
     dexMap['updated_at'] = DateTime.now().toUtc().millisecondsSinceEpoch;
     dexMap['deleted_at'] = 0;
 
-    await db.insert(
-      'user_dexes',
-      dexMap,
-      conflictAlgorithm: ConflictAlgorithm.replace,
-    );
+    final cols = dexMap.keys.toList();
+    final placeholders = cols.map((_) => '?').join(', ');
+    final updateSets = cols
+        .where((c) => c != 'id')
+        .map((c) => '$c = excluded.$c')
+        .join(', ');
+
+    final sql = '''
+      INSERT INTO user_dexes (${cols.join(', ')})
+      VALUES ($placeholders)
+      ON CONFLICT(id) DO UPDATE SET $updateSets
+    ''';
+
+    await db.rawInsert(sql, cols.map((c) => dexMap[c]).toList());
   }
 
   Future<void> deleteUserDex(String dexId) async {
@@ -583,7 +688,7 @@ class DatabaseService {
     if (teraTypes != null) t = teraTypes.join(',');
     if (languages != null) l = languages.join(',');
 
-    await db.insert('user_pokemon', {
+    final data = {
       'dex_id': dexId,
       'unique_id': uniqueId,
       'is_caught': caught,
@@ -594,7 +699,22 @@ class DatabaseService {
       'caught_tera_types': t,
       'caught_languages': l,
       'updated_at': DateTime.now().toUtc().millisecondsSinceEpoch,
-    }, conflictAlgorithm: ConflictAlgorithm.replace);
+    };
+
+    final cols = data.keys.toList();
+    final placeholders = cols.map((_) => '?').join(', ');
+    final updateSets = cols
+        .where((c) => c != 'dex_id' && c != 'unique_id')
+        .map((c) => '$c = excluded.$c')
+        .join(', ');
+
+    final sql = '''
+      INSERT INTO user_pokemon (${cols.join(', ')})
+      VALUES ($placeholders)
+      ON CONFLICT(dex_id, unique_id) DO UPDATE SET $updateSets
+    ''';
+
+    await db.rawInsert(sql, cols.map((c) => data[c]).toList());
   }
 
   Future<int> cleanupOrphanedPokemon(String dexId, Set<String> activeUniqueIds) async {
@@ -641,11 +761,20 @@ class DatabaseService {
     folderMap['updated_at'] = DateTime.now().toUtc().millisecondsSinceEpoch;
     folderMap['deleted_at'] = 0;
 
-    await db.insert(
-      'folders',
-      folderMap,
-      conflictAlgorithm: ConflictAlgorithm.replace,
-    );
+    final cols = folderMap.keys.toList();
+    final placeholders = cols.map((_) => '?').join(', ');
+    final updateSets = cols
+        .where((c) => c != 'id')
+        .map((c) => '$c = excluded.$c')
+        .join(', ');
+
+    final sql = '''
+      INSERT INTO folders (${cols.join(', ')})
+      VALUES ($placeholders)
+      ON CONFLICT(id) DO UPDATE SET $updateSets
+    ''';
+
+    await db.rawInsert(sql, cols.map((c) => folderMap[c]).toList());
   }
 
   Future<void> deleteFolder(String folderId, {bool recursive = false}) async {
@@ -712,13 +841,14 @@ class DatabaseService {
     Batch batch = db.batch();
     structure.forEach((parentId, children) {
       for (int i = 0; i < children.length; i++) {
-        batch.insert('folder_structure', {
-          'parent_id': parentId,
-          'child_id': children[i],
-          'order_index': i,
-          'updated_at': now,
-          'deleted_at': 0,
-        }, conflictAlgorithm: ConflictAlgorithm.replace);
+        batch.rawInsert('''
+          INSERT INTO folder_structure (parent_id, child_id, order_index, updated_at, deleted_at)
+          VALUES (?, ?, ?, ?, 0)
+          ON CONFLICT(parent_id, child_id) DO UPDATE SET
+            order_index = excluded.order_index,
+            updated_at = excluded.updated_at,
+            deleted_at = 0
+        ''', [parentId, children[i], i, now]);
       }
     });
     await batch.commit(noResult: true);
@@ -749,11 +879,21 @@ class DatabaseService {
     final db = await instance.userDatabase;
     final map = hunt.toMap();
     map['updated_at'] = DateTime.now().toUtc().millisecondsSinceEpoch;
-    await db.insert(
-      'shiny_hunts',
-      map,
-      conflictAlgorithm: ConflictAlgorithm.replace,
-    );
+
+    final cols = map.keys.toList();
+    final placeholders = cols.map((_) => '?').join(', ');
+    final updateSets = cols
+        .where((c) => c != 'id')
+        .map((c) => '$c = excluded.$c')
+        .join(', ');
+
+    final sql = '''
+      INSERT INTO shiny_hunts (${cols.join(', ')})
+      VALUES ($placeholders)
+      ON CONFLICT(id) DO UPDATE SET $updateSets
+    ''';
+
+    await db.rawInsert(sql, cols.map((c) => map[c]).toList());
   }
 
   Future<void> deleteShinyHunt(String id, {bool softDelete = true}) async {
@@ -777,11 +917,14 @@ class DatabaseService {
 
   Future<void> clearUserData() async {
     final db = await instance.userDatabase;
-    await db.delete('user_dexes');
-    await db.delete('folders');
-    await db.delete('folder_structure');
-    await db.delete('user_pokemon');
-    await db.delete('shiny_hunts');
+    await db.transaction((txn) async {
+      await txn.execute('PRAGMA defer_foreign_keys = ON;');
+      await txn.delete('user_pokemon');
+      await txn.delete('folder_structure');
+      await txn.delete('shiny_hunts');
+      await txn.delete('folders');
+      await txn.delete('user_dexes');
+    });
   }
 
   Future<Map<String, dynamic>> exportCloudSyncData() async {
@@ -799,16 +942,46 @@ class DatabaseService {
   Future<void> mergeCloudSyncData(Map<String, dynamic> cloudData) async {
     final db = await instance.userDatabase;
     await db.transaction((txn) async {
+      await txn.execute('PRAGMA defer_foreign_keys = ON;');
+
+      final Map<String, Set<String>> cachedColumns = {};
+      Future<Set<String>> getLocalColumns(String table) async {
+        if (cachedColumns.containsKey(table)) return cachedColumns[table]!;
+        final info = await txn.rawQuery("PRAGMA table_info('$table')");
+        final cols = info.map((r) => r['name'].toString().toLowerCase()).toSet();
+        cachedColumns[table] = cols;
+        return cols;
+      }
+
       Future<void> mergeTable(
         String tableName,
         List<String> primaryKeys,
         List<dynamic>? remoteRows,
       ) async {
         if (remoteRows == null) return;
+        final localCols = await getLocalColumns(tableName);
+        if (localCols.isEmpty) return; // Table not present in local schema, skip safely
+
         for (var row in remoteRows) {
-          final remoteRow = Map<String, dynamic>.from(row);
+          final remoteRow = Map<String, dynamic>.from(row as Map);
+          final filteredRow = <String, dynamic>{};
+          for (final entry in remoteRow.entries) {
+            if (localCols.contains(entry.key.toLowerCase())) {
+              filteredRow[entry.key] = entry.value;
+            }
+          }
+
+          bool hasAllPks = true;
+          for (final pk in primaryKeys) {
+            if (!filteredRow.containsKey(pk)) {
+              hasAllPks = false;
+              break;
+            }
+          }
+          if (!hasAllPks) continue;
+
           final whereClause = primaryKeys.map((k) => '$k = ?').join(' AND ');
-          final whereArgs = primaryKeys.map((k) => remoteRow[k]).toList();
+          final whereArgs = primaryKeys.map((k) => filteredRow[k]).toList();
 
           final localResult = await txn.query(
             tableName,
@@ -817,20 +990,16 @@ class DatabaseService {
           );
 
           if (localResult.isEmpty) {
-            await txn.insert(
-              tableName,
-              remoteRow,
-              conflictAlgorithm: ConflictAlgorithm.replace,
-            );
+            await txn.insert(tableName, filteredRow);
           } else {
             final localRow = localResult.first;
             final localUpdated = (localRow['updated_at'] as num?)?.toInt() ?? 0;
             final remoteUpdated =
-                (remoteRow['updated_at'] as num?)?.toInt() ?? 0;
+                (filteredRow['updated_at'] as num?)?.toInt() ?? 0;
             if (remoteUpdated > localUpdated) {
               await txn.update(
                 tableName,
-                remoteRow,
+                filteredRow,
                 where: whereClause,
                 whereArgs: whereArgs,
               );
@@ -839,17 +1008,18 @@ class DatabaseService {
         }
       }
 
-      await mergeTable('user_dexes', ['id'], cloudData['user_dexes'] as List?);
+      // Order of syncing respects foreign keys
       await mergeTable('folders', ['id'], cloudData['folders'] as List?);
+      await mergeTable('user_dexes', ['id'], cloudData['user_dexes'] as List?);
       await mergeTable('folder_structure', [
         'parent_id',
         'child_id',
       ], cloudData['folder_structure'] as List?);
+      await mergeTable('shiny_hunts', ['id'], cloudData['shiny_hunts'] as List?);
       await mergeTable('user_pokemon', [
         'dex_id',
         'unique_id',
       ], cloudData['user_pokemon'] as List?);
-      await mergeTable('shiny_hunts', ['id'], cloudData['shiny_hunts'] as List?);
     });
   }
 

@@ -6,8 +6,8 @@ void main() {
   group('CustomBoxState Model Settings & Serialization', () {
     test('Default values match specification', () {
       final box = CustomBoxState(title: 'Box 1', pokemonIds: []);
-      expect(box.columns, equals(5));
-      expect(box.rows, equals(6));
+      expect(box.columns, equals(6));
+      expect(box.rows, equals(5));
       expect(box.capacity, equals(30));
       expect(box.autoFlow, isFalse);
       expect(box.autoShift, isTrue);

@@ -80,6 +80,14 @@ class _DexScreenState extends State<DexScreen> {
   String? _tutorialTargetId;
   int _lastCustomBoxesCount = 0;
 
+  Future<void> _saveDex(UserDex dex) async {
+    try {
+      await context.read<DexProvider>().saveUserDexAndSync(dex);
+    } on ProviderNotFoundException {
+      await DatabaseService.instance.saveUserDex(dex);
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -128,7 +136,7 @@ class _DexScreenState extends State<DexScreen> {
       if (widget.initialDex.customBoxes.isNotEmpty) {
         final migrated = DexLogicHelper.migrateCustomBoxInstances(widget.initialDex);
         if (migrated) {
-          DatabaseService.instance.saveUserDex(widget.initialDex);
+          _saveDex(widget.initialDex);
         }
         DexLogicHelper.enforceAutoFlow(widget.initialDex);
       }
@@ -184,7 +192,7 @@ class _DexScreenState extends State<DexScreen> {
       if (liveDex.customBoxes.isNotEmpty) {
         final migrated = DexLogicHelper.migrateCustomBoxInstances(liveDex);
         if (migrated && !_isEditMode) {
-          DatabaseService.instance.saveUserDex(liveDex);
+          _saveDex(liveDex);
         }
         DexLogicHelper.enforceAutoFlow(liveDex);
       }
@@ -266,7 +274,7 @@ class _DexScreenState extends State<DexScreen> {
 
       DexLogicHelper.pruneOrphanedInstances(liveDex, activeIds);
 
-      await DatabaseService.instance.saveUserDex(liveDex);
+      await _saveDex(liveDex);
       await DatabaseService.instance.cleanupOrphanedPokemon(liveDex.id, activeIds);
       if (mounted) {
         await _recalculateBoxesAsync(liveDex);
@@ -319,7 +327,7 @@ class _DexScreenState extends State<DexScreen> {
 
       DexLogicHelper.pruneOrphanedInstances(liveDex, activeIds);
 
-      await DatabaseService.instance.saveUserDex(liveDex);
+      await _saveDex(liveDex);
       await DatabaseService.instance.cleanupOrphanedPokemon(liveDex.id, activeIds);
       if (mounted) {
         await _recalculateBoxesAsync(liveDex);
@@ -360,7 +368,7 @@ class _DexScreenState extends State<DexScreen> {
     }
 
     if (!_isEditMode) {
-      DatabaseService.instance.saveUserDex(liveDex);
+      _saveDex(liveDex);
     }
 
     _selectedForEdit.clear();
@@ -686,7 +694,7 @@ class _DexScreenState extends State<DexScreen> {
       orElse: () => widget.initialDex,
     );
     liveDex.viewMode = _isBoxView ? 'box' : 'list';
-    await DatabaseService.instance.saveUserDex(liveDex);
+    await _saveDex(liveDex);
   }
 
   Future<void> _toggleSeparateForms() async {
@@ -702,7 +710,7 @@ class _DexScreenState extends State<DexScreen> {
       orElse: () => widget.initialDex,
     );
     liveDex.sortMode = _separateForms ? 'dex' : 'forms';
-    await DatabaseService.instance.saveUserDex(liveDex);
+    await _saveDex(liveDex);
 
     await _recalculateBoxesAsync(liveDex);
   }
@@ -1247,7 +1255,7 @@ class _DexScreenState extends State<DexScreen> {
                               }
 
                               if (!_isEditMode) {
-                                DatabaseService.instance.saveUserDex(liveDex);
+                                _saveDex(liveDex);
                               }
                             } else {
                               final isShinySelection = selectedId.startsWith('shiny:');
@@ -1279,7 +1287,7 @@ class _DexScreenState extends State<DexScreen> {
                                 DatabaseService.instance.savePokemonStatus(liveDex.id, instanceId, isShiny: false);
                               }
                               if (!_isEditMode) {
-                                DatabaseService.instance.saveUserDex(liveDex);
+                                _saveDex(liveDex);
                               }
                             }
                           });
@@ -1310,7 +1318,7 @@ class _DexScreenState extends State<DexScreen> {
                           }
 
                           if (!_isEditMode) {
-                            DatabaseService.instance.saveUserDex(liveDex);
+                            _saveDex(liveDex);
                           } else if (_selectedForEdit.isNotEmpty) {
                             _selectedForEdit.clear();
                           }
@@ -1349,7 +1357,7 @@ class _DexScreenState extends State<DexScreen> {
                           }
 
                           if (!_isEditMode) {
-                            DatabaseService.instance.saveUserDex(liveDex);
+                            _saveDex(liveDex);
                           } else if (_selectedForEdit.isNotEmpty) {
                             _selectedForEdit.clear();
                           }
@@ -1446,7 +1454,7 @@ class _DexScreenState extends State<DexScreen> {
                                 );
 
                                 if (!_isEditMode) {
-                                  DatabaseService.instance.saveUserDex(liveDex);
+                                  _saveDex(liveDex);
                                 }
                                 _selectedForEdit.clear();
                                 _isMoveTargetMode = false;
@@ -1524,7 +1532,7 @@ class _DexScreenState extends State<DexScreen> {
                     );
 
                     if (!_isEditMode) {
-                      DatabaseService.instance.saveUserDex(liveDex);
+                      _saveDex(liveDex);
                     }
                     _selectedForEdit.clear();
                   });
@@ -1577,7 +1585,7 @@ class _DexScreenState extends State<DexScreen> {
                           }
 
                           if (!_isEditMode) {
-                            DatabaseService.instance.saveUserDex(liveDex);
+                            _saveDex(liveDex);
                           }
                         } else {
                           final isShinySelection = selectedId.startsWith('shiny:');
@@ -1606,7 +1614,7 @@ class _DexScreenState extends State<DexScreen> {
                           }
 
                           if (!_isEditMode) {
-                            DatabaseService.instance.saveUserDex(liveDex);
+                            _saveDex(liveDex);
                           }
                         }
                       }

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../models/user_dex.dart';
 import '../../models/dex_view_models.dart';
+import '../../providers/dex_provider.dart';
 import '../../utils/dex_logic_helper.dart';
 import '../../i18n/strings.g.dart';
 import '../../services/database_service.dart';
@@ -52,7 +54,11 @@ class _BoxContentEditScreenState extends State<BoxContentEditScreen> {
 
   void _saveData() {
     widget.dex.customBoxes[widget.boxIndex].pokemonIds = _slots.map((s) => s.pokemonId).toList();
-    DatabaseService.instance.saveUserDex(widget.dex);
+    try {
+      context.read<DexProvider>().saveUserDexAndSync(widget.dex);
+    } on ProviderNotFoundException {
+      DatabaseService.instance.saveUserDex(widget.dex);
+    }
   }
 
   Future<void> _pickPokemon(int index) async {
@@ -117,7 +123,11 @@ class _BoxContentEditScreenState extends State<BoxContentEditScreen> {
       slotIndex: index,
     );
 
-    DatabaseService.instance.saveUserDex(widget.dex);
+    try {
+      context.read<DexProvider>().saveUserDexAndSync(widget.dex);
+    } on ProviderNotFoundException {
+      DatabaseService.instance.saveUserDex(widget.dex);
+    }
 
     // If targetBox was deleted by empty box cleanup, exit the content edit screen
     if (!widget.dex.customBoxes.contains(targetBox)) {

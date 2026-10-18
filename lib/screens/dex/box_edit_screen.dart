@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../models/user_dex.dart';
 import '../../models/dex_view_models.dart';
+import '../../providers/dex_provider.dart';
 import '../../i18n/strings.g.dart';
 import '../../services/database_service.dart';
 import '../../utils/dex_logic_helper.dart';
@@ -26,6 +28,14 @@ class _BoxEditScreenState extends State<BoxEditScreen> {
   bool _patternAutoCreate = true;
   bool _autoDeleteEmpty = true;
 
+  void _saveDex() {
+    try {
+      context.read<DexProvider>().saveUserDexAndSync(widget.dex);
+    } on ProviderNotFoundException {
+      DatabaseService.instance.saveUserDex(widget.dex);
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -41,7 +51,7 @@ class _BoxEditScreenState extends State<BoxEditScreen> {
         box.patternAutoCreate = _patternAutoCreate;
         box.autoDeleteEmpty = _autoDeleteEmpty;
       }
-      DatabaseService.instance.saveUserDex(widget.dex);
+      _saveDex();
     }
 
     if (widget.dex.customBoxes.isNotEmpty) {
@@ -84,7 +94,7 @@ class _BoxEditScreenState extends State<BoxEditScreen> {
           box.autoDeleteEmpty = autoDeleteEmpty;
         }
       }
-      DatabaseService.instance.saveUserDex(widget.dex);
+      _saveDex();
     });
   }
 
@@ -117,7 +127,7 @@ class _BoxEditScreenState extends State<BoxEditScreen> {
                       patternAutoCreate: _patternAutoCreate,
                       autoDeleteEmpty: _autoDeleteEmpty,
                     ));
-                    DatabaseService.instance.saveUserDex(widget.dex);
+                    _saveDex();
                   });
                   Navigator.pop(context);
                 }
@@ -152,7 +162,7 @@ class _BoxEditScreenState extends State<BoxEditScreen> {
                 if (newName.isNotEmpty) {
                   setState(() {
                     widget.dex.customBoxes[index].title = newName;
-                    DatabaseService.instance.saveUserDex(widget.dex);
+                    _saveDex();
                   });
                   Navigator.pop(context);
                 }
@@ -244,7 +254,7 @@ class _BoxEditScreenState extends State<BoxEditScreen> {
                       if (widget.dex.customBoxes.isNotEmpty && widget.dex.customBoxes.first.autoFlow) {
                         DexLogicHelper.enforceAutoFlow(widget.dex);
                       }
-                      DatabaseService.instance.saveUserDex(widget.dex);
+                      _saveDex();
                     });
                     Navigator.pop(context);
                   },
@@ -266,7 +276,7 @@ class _BoxEditScreenState extends State<BoxEditScreen> {
           .where((id) => id.isNotEmpty && !DexLogicHelper.isPlaceholder(id))
           .toSet();
       DexLogicHelper.pruneOrphanedInstances(widget.dex, activeIds);
-      DatabaseService.instance.saveUserDex(widget.dex);
+      _saveDex();
       DatabaseService.instance.cleanupOrphanedPokemon(widget.dex.id, activeIds);
     });
   }
@@ -288,7 +298,7 @@ class _BoxEditScreenState extends State<BoxEditScreen> {
                   content: const Text('Möchtest du alle deine benutzerdefinierten Boxen löschen und das Layout auf den Standard-Pokédex zurücksetzen? Deine gefangenen Pokémon bleiben dabei erhalten!'),
                   actions: [
                     TextButton(
-                      onPressed: () => Navigator.pop(ctx),
+                       onPressed: () => Navigator.pop(ctx),
                       child: Text(t.cancel),
                     ),
                     ElevatedButton(
@@ -297,7 +307,7 @@ class _BoxEditScreenState extends State<BoxEditScreen> {
                         setState(() {
                           widget.dex.customBoxes.clear();
                           DexLogicHelper.pruneOrphanedInstances(widget.dex, const {});
-                          DatabaseService.instance.saveUserDex(widget.dex);
+                          _saveDex();
                           DatabaseService.instance.cleanupOrphanedPokemon(widget.dex.id, const {});
                         });
                         Navigator.pop(ctx); // Close dialog
@@ -374,7 +384,7 @@ class _BoxEditScreenState extends State<BoxEditScreen> {
           setState(() {
             final item = widget.dex.customBoxes.removeAt(oldIndex);
             widget.dex.customBoxes.insert(newIndex, item);
-            DatabaseService.instance.saveUserDex(widget.dex);
+            _saveDex();
           });
         },
         itemBuilder: (context, index) {
