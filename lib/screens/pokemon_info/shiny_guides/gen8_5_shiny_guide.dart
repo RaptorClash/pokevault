@@ -8,6 +8,7 @@ class Gen85ShinyGuide extends StatelessWidget {
   final List<String> shinyCategories;
   final String title;
   final Future<void> Function(String) onLaunchUrl;
+  final Widget? extraAction;
 
   const Gen85ShinyGuide({
     super.key,
@@ -15,6 +16,7 @@ class Gen85ShinyGuide extends StatelessWidget {
     required this.shinyCategories,
     required this.title,
     required this.onLaunchUrl,
+    this.extraAction,
   });
 
   @override
@@ -106,6 +108,11 @@ class Gen85ShinyGuide extends StatelessWidget {
           content.add(buildInfoBox(Icons.radar, 'shiny_gen85_pla_outbreaks_title', 'shiny_gen85_pla_outbreaks_desc', Colors.deepOrange));
           content.add(buildLinkBtn(Icons.forum, 'shiny_gen8_pla_link_reddit', 'https://www.reddit.com/r/PokemonLegendsArceus/comments/1lqhvyh/the_right_method_to_shiny_hunting_since_111/?show=original'));
           content.add(buildLinkBtn(Icons.language, 'shiny_gen8_pla_link_bisafans', 'https://community.bisafans.de/forum/index.php?thread/340909-shiny-hunting-in-version-1-1-1/'));
+        }
+
+        if (extraAction != null) {
+          content.add(const SizedBox(height: 12));
+          content.add(extraAction!);
         }
 
         return ExpansionTile(

@@ -17,6 +17,7 @@ import './marks_widget.dart';
 import './matching_balls_widget.dart';
 import 'language_widget.dart';
 import 'special_obtainable_card.dart';
+import 'pokemon_shiny_hunts_card.dart';
 
 class PokemonInfoPage extends StatelessWidget {
   final DexDisplayEntry entry;
@@ -198,6 +199,11 @@ class PokemonInfoPage extends StatelessWidget {
             Container(
               key: shinyGuideKey,
               child: ShinyGuideWidget(entry: entry, dexId: dexId),
+            ),
+
+            PokemonShinyHuntsCard(
+              entry: entry,
+              dexId: dexId,
             ),
 
             const SizedBox(height: 16),

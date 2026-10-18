@@ -27,6 +27,8 @@ import 'widgets/breadcrumb_bar.dart';
 import 'package:flutter/services.dart';
 import '../moves/moves_dex_screen.dart';
 import '../abilities/abilities_dex_screen.dart';
+import '../../providers/shiny_hunt_provider.dart';
+import '../shiny_hunt/shiny_hunts_hub_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   final String currentFolderId;
@@ -856,6 +858,33 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ]
                 : [
+                    Builder(
+                      builder: (context) {
+                        ShinyHuntProvider? huntProvider;
+                        try {
+                          huntProvider = Provider.of<ShinyHuntProvider>(context);
+                        } catch (_) {
+                          huntProvider = null;
+                        }
+                        final count = huntProvider?.activeHunts.length ?? 0;
+                        return IconButton(
+                          icon: Badge(
+                            isLabelVisible: count > 0,
+                            label: Text('$count'),
+                            child: const Icon(Icons.auto_awesome),
+                          ),
+                          tooltip: Translator.get('shiny_hunt_badge_tooltip'),
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const ShinyHuntsHubScreen(),
+                              ),
+                            );
+                          },
+                        );
+                      },
+                    ),
                     if (_currentFolderId == 'root')
                       IconButton(
                         key: _settingsActionKey,

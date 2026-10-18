@@ -8,6 +8,7 @@ class Gen8ShinyGuide extends StatelessWidget {
   final List<String> shinyCategories;
   final String title;
   final Future<void> Function(String) onLaunchUrl;
+  final Widget? extraAction;
 
   const Gen8ShinyGuide({
     super.key,
@@ -15,6 +16,7 @@ class Gen8ShinyGuide extends StatelessWidget {
     required this.shinyCategories,
     required this.title,
     required this.onLaunchUrl,
+    this.extraAction,
   });
 
   @override
@@ -127,6 +129,11 @@ class Gen8ShinyGuide extends StatelessWidget {
             content.add(buildLinkBtn(Icons.play_circle_filled, 'shiny_gen8_radar_link_yt_en', 'https://www.youtube.com/watch?v=wnaS_WhyNMs'));
             content.add(const SizedBox(height: 8));
           }
+        }
+
+        if (extraAction != null) {
+          content.add(const SizedBox(height: 12));
+          content.add(extraAction!);
         }
 
         return ExpansionTile(

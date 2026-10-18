@@ -5,6 +5,7 @@ import 'package:share_plus/share_plus.dart';
 import 'package:path_provider/path_provider.dart';
 
 import '../models/user_dex.dart';
+import '../models/shiny_hunt.dart';
 import '../utils/notification_helper.dart';
 import 'package:file_selector/file_selector.dart';
 import '../providers/dex_provider.dart';
@@ -21,10 +22,17 @@ class DexStorageService {
     DexProvider provider,
   ) async {
     try {
+      List<ShinyHunt> shinyHunts = [];
+      try {
+        shinyHunts = await provider.db.getAllShinyHunts();
+      } catch (_) {
+        shinyHunts = [];
+      }
       final Map<String, dynamic> exportData = {
         'dexes': dexes.map((d) => d.toJson()).toList(),
         'folders': provider.folders.map((f) => f.toJson()).toList(),
         'structure': provider.structure,
+        'shiny_hunts': shinyHunts.map((h) => h.toMap()).toList(),
       };
 
       // Schwere Arbeit in einen Hintergrund-Isolate auslagern

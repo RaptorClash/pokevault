@@ -9,6 +9,7 @@ class Gen5ShinyGuide extends StatelessWidget {
   final List<String> shinyCategories;
   final String title;
   final Future<void> Function(String) onLaunchUrl;
+  final Widget? extraAction;
 
   const Gen5ShinyGuide({
     super.key,
@@ -16,6 +17,7 @@ class Gen5ShinyGuide extends StatelessWidget {
     required this.shinyCategories,
     required this.title,
     required this.onLaunchUrl,
+    this.extraAction,
   });
 
   @override
@@ -150,6 +152,11 @@ class Gen5ShinyGuide extends StatelessWidget {
           content.add(buildLinkBtn(Icons.play_circle_filled, 'shiny_gen5_rng_link_blisy', 'https://www.youtube.com/watch?v=Yy1YNz0oBls&list=PL4o9bTT3px_jOygj-x_vlYkNLtRsRXAPn'));
           content.add(buildLinkBtn(Icons.article, 'shiny_gen5_rng_link_retail', 'https://retailrng.com/bw/beginner/introduction/'));
           content.add(buildLinkBtn(Icons.article, 'shiny_gen5_rng_link_smogon', 'https://www.smogon.com/ingame/rng/bw_rng_intro'));
+        }
+
+        if (extraAction != null) {
+          content.add(const SizedBox(height: 12));
+          content.add(extraAction!);
         }
 
         return ExpansionTile(

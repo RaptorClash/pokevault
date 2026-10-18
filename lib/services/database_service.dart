@@ -13,6 +13,7 @@ import 'package:sqflite_common_ffi_web/sqflite_ffi_web.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/special_dex_models.dart';
 import '../models/ribbon.dart';
+import '../models/shiny_hunt.dart';
 
 class DatabaseService {
   static final DatabaseService instance = DatabaseService._init();
@@ -22,7 +23,7 @@ class DatabaseService {
   DatabaseService._init();
 
   Future<Database> get appDatabase async {
-    if (_appDatabase != null) return _appDatabase!;
+    if (_appDatabase != null && _appDatabase!.isOpen) return _appDatabase!;
     _appDatabase = await _initAppDB('pokedex.sqlite');
     return _appDatabase!;
   }
@@ -30,6 +31,11 @@ class DatabaseService {
   @visibleForTesting
   static void setAppDatabaseForTesting(Database? db) {
     _appDatabase = db;
+  }
+
+  @visibleForTesting
+  static void setUserDatabaseForTesting(Database? db) {
+    _userDatabase = db;
   }
 
   static const int _currentAppDbVersion = 23;
@@ -71,7 +77,7 @@ class DatabaseService {
   }
 
   Future<Database> get userDatabase async {
-    if (_userDatabase != null) return _userDatabase!;
+    if (_userDatabase != null && _userDatabase!.isOpen) return _userDatabase!;
     _userDatabase = await _initUserDB('user_data.sqlite');
     return _userDatabase!;
   }
@@ -88,7 +94,7 @@ class DatabaseService {
     return await factory.openDatabase(
       path,
       options: OpenDatabaseOptions(
-        version: 8,
+        version: 10,
         onCreate: _createUserDataTables,
         onUpgrade: _upgradeUserDataTables,
       ),
@@ -150,6 +156,37 @@ class DatabaseService {
           caught_languages TEXT DEFAULT '',
           updated_at INTEGER DEFAULT 0,
           PRIMARY KEY (dex_id, unique_id)
+        )
+      ''');
+      await db.execute('''
+        CREATE TABLE IF NOT EXISTS shiny_hunts (
+          id TEXT PRIMARY KEY,
+          title TEXT,
+          pokemon_id INTEGER,
+          pokemon_name TEXT,
+          pokemon_form_id INTEGER,
+          target_dex_id TEXT,
+          target_unique_id TEXT,
+          game TEXT,
+          generation REAL,
+          method TEXT,
+          has_shiny_charm INTEGER DEFAULT 0,
+          base_odds REAL,
+          spawns_per_encounter INTEGER DEFAULT 1,
+          current_encounters INTEGER DEFAULT 0,
+          prior_phase_encounters INTEGER DEFAULT 0,
+          increment_step INTEGER DEFAULT 1,
+          status TEXT DEFAULT 'active',
+          phase INTEGER DEFAULT 1,
+          phase_history TEXT DEFAULT '[]',
+          total_time_seconds INTEGER DEFAULT 0,
+          ball_used TEXT,
+          notes TEXT,
+          hunting_type TEXT,
+          created_at INTEGER,
+          updated_at INTEGER,
+          completed_at INTEGER,
+          deleted_at INTEGER DEFAULT 0
         )
       ''');
     } catch (e) {
@@ -263,6 +300,51 @@ class DatabaseService {
         debugPrint("Migrations-Fehler V8: $e");
       }
     }
+    if (oldVersion < 9) {
+      try {
+        await db.execute('''
+          CREATE TABLE IF NOT EXISTS shiny_hunts (
+            id TEXT PRIMARY KEY,
+            title TEXT,
+            pokemon_id INTEGER,
+            pokemon_name TEXT,
+            pokemon_form_id INTEGER,
+            target_dex_id TEXT,
+            target_unique_id TEXT,
+            game TEXT,
+            generation REAL,
+            method TEXT,
+            has_shiny_charm INTEGER DEFAULT 0,
+            base_odds REAL,
+            spawns_per_encounter INTEGER DEFAULT 1,
+            current_encounters INTEGER DEFAULT 0,
+            prior_phase_encounters INTEGER DEFAULT 0,
+            increment_step INTEGER DEFAULT 1,
+            status TEXT DEFAULT 'active',
+            phase INTEGER DEFAULT 1,
+            phase_history TEXT DEFAULT '[]',
+            total_time_seconds INTEGER DEFAULT 0,
+            ball_used TEXT,
+            notes TEXT,
+            created_at INTEGER,
+            updated_at INTEGER,
+            completed_at INTEGER,
+            deleted_at INTEGER DEFAULT 0
+          )
+        ''');
+        debugPrint("Datenbank erfolgreich auf Version 9 (Shiny Hunts) migriert!");
+      } catch (e) {
+        debugPrint("Migrations-Fehler V9: $e");
+      }
+    }
+    if (oldVersion < 10) {
+      try {
+        await db.execute('ALTER TABLE shiny_hunts ADD COLUMN hunting_type TEXT');
+        debugPrint("Datenbank erfolgreich auf Version 10 (Shiny Hunt Jagdart) migriert!");
+      } catch (e) {
+        debugPrint("Migrations-Fehler V10: $e");
+      }
+    }
   }
 
   Future<List<Pokemon>> getAllPokemon() async {
@@ -362,11 +444,18 @@ class DatabaseService {
 
   Future<Map<String, dynamic>?> getMatchingBalls(String uniqueId) async {
     final db = await instance.appDatabase;
-    final maps = await db.query(
+    var maps = await db.query(
       'matching_balls',
       where: 'unique_id = ?',
       whereArgs: [uniqueId],
     );
+    if (maps.isEmpty && !uniqueId.contains('_')) {
+      maps = await db.query(
+        'matching_balls',
+        where: 'unique_id = ?',
+        whereArgs: ['${uniqueId}_normal'],
+      );
+    }
     if (maps.isNotEmpty) {
       String nb = maps.first['normal_balls']?.toString() ?? 'any_ball';
       String sb = maps.first['shiny_balls']?.toString() ?? 'any_ball';
@@ -635,12 +724,64 @@ class DatabaseService {
     await batch.commit(noResult: true);
   }
 
+  Future<List<ShinyHunt>> getAllShinyHunts({bool includeDeleted = false}) async {
+    final db = await instance.userDatabase;
+    final maps = await db.query(
+      'shiny_hunts',
+      where: includeDeleted ? null : 'deleted_at = 0',
+      orderBy: 'updated_at DESC',
+    );
+    return maps.map((m) => ShinyHunt.fromMap(m)).toList();
+  }
+
+  Future<ShinyHunt?> getShinyHunt(String id) async {
+    final db = await instance.userDatabase;
+    final maps = await db.query(
+      'shiny_hunts',
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+    if (maps.isEmpty) return null;
+    return ShinyHunt.fromMap(maps.first);
+  }
+
+  Future<void> saveShinyHunt(ShinyHunt hunt) async {
+    final db = await instance.userDatabase;
+    final map = hunt.toMap();
+    map['updated_at'] = DateTime.now().toUtc().millisecondsSinceEpoch;
+    await db.insert(
+      'shiny_hunts',
+      map,
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+  }
+
+  Future<void> deleteShinyHunt(String id, {bool softDelete = true}) async {
+    final db = await instance.userDatabase;
+    if (softDelete) {
+      final now = DateTime.now().toUtc().millisecondsSinceEpoch;
+      await db.update(
+        'shiny_hunts',
+        {'deleted_at': now, 'updated_at': now},
+        where: 'id = ?',
+        whereArgs: [id],
+      );
+    } else {
+      await db.delete(
+        'shiny_hunts',
+        where: 'id = ?',
+        whereArgs: [id],
+      );
+    }
+  }
+
   Future<void> clearUserData() async {
     final db = await instance.userDatabase;
     await db.delete('user_dexes');
     await db.delete('folders');
     await db.delete('folder_structure');
     await db.delete('user_pokemon');
+    await db.delete('shiny_hunts');
   }
 
   Future<Map<String, dynamic>> exportCloudSyncData() async {
@@ -651,6 +792,7 @@ class DatabaseService {
       'folders': await db.query('folders'),
       'folder_structure': await db.query('folder_structure'),
       'user_pokemon': await db.query('user_pokemon'),
+      'shiny_hunts': await db.query('shiny_hunts'),
     };
   }
 
@@ -707,6 +849,7 @@ class DatabaseService {
         'dex_id',
         'unique_id',
       ], cloudData['user_pokemon'] as List?);
+      await mergeTable('shiny_hunts', ['id'], cloudData['shiny_hunts'] as List?);
     });
   }
 

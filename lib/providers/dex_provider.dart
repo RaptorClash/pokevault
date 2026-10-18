@@ -12,6 +12,7 @@ import 'package:flutter/widgets.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../services/google_drive_sync_service.dart';
 import '../models/ribbon.dart';
+import '../models/shiny_hunt.dart';
 
 class DexProvider extends ChangeNotifier with WidgetsBindingObserver {
   List<UserDex> userDexes = [];
@@ -648,6 +649,66 @@ class DexProvider extends ChangeNotifier with WidgetsBindingObserver {
     notifyListeners();
   }
 
+  Future<void> markPokemonCaughtAndShiny(String dexId, String uniqueId) async {
+    final dexIndex = userDexes.indexWhere((d) => d.id == dexId);
+    if (dexIndex == -1) return;
+    final dex = userDexes[dexIndex];
+
+    final isInstance = uniqueId.contains('__');
+    final baseId = DexLogicHelper.getBaseId(uniqueId);
+
+    // 1. Mark as Caught
+    if (!dex.caughtIds.contains(uniqueId)) {
+      dex.caughtIds.add(uniqueId);
+    }
+    await db.savePokemonStatus(dexId, uniqueId, isCaught: true);
+
+    if (isInstance) {
+      if (baseId.isNotEmpty && !dex.caughtIds.contains(baseId)) {
+        dex.caughtIds.add(baseId);
+        await db.savePokemonStatus(dexId, baseId, isCaught: true);
+      }
+    } else {
+      for (var box in dex.customBoxes) {
+        for (var id in box.pokemonIds) {
+          if (id.contains('__') && DexLogicHelper.getBaseId(id) == baseId) {
+            if (!dex.caughtIds.contains(id)) {
+              dex.caughtIds.add(id);
+            }
+            await db.savePokemonStatus(dexId, id, isCaught: true);
+          }
+        }
+      }
+    }
+
+    // 2. Mark as Shiny
+    if (!dex.shinyIds.contains(uniqueId)) {
+      dex.shinyIds.add(uniqueId);
+    }
+    await db.savePokemonStatus(dexId, uniqueId, isShiny: true);
+
+    if (isInstance) {
+      if (baseId.isNotEmpty && !dex.shinyIds.contains(baseId)) {
+        dex.shinyIds.add(baseId);
+        await db.savePokemonStatus(dexId, baseId, isShiny: true);
+      }
+    } else {
+      for (var box in dex.customBoxes) {
+        for (var id in box.pokemonIds) {
+          if (id.contains('__') && DexLogicHelper.getBaseId(id) == baseId) {
+            if (!dex.shinyIds.contains(id)) {
+              dex.shinyIds.add(id);
+            }
+            await db.savePokemonStatus(dexId, id, isShiny: true);
+          }
+        }
+      }
+    }
+
+    triggerAutoUpload();
+    notifyListeners();
+  }
+
   void ignorePokemon(String dexId, String pokemonUniqueId) {
     final dexIndex = userDexes.indexWhere((d) => d.id == dexId);
     if (dexIndex == -1) return;
@@ -714,6 +775,13 @@ class DexProvider extends ChangeNotifier with WidgetsBindingObserver {
       } else {
         structure['root'] = userDexes.map((d) => d.id).toList();
         await db.saveStructure(structure);
+      }
+
+      if (data['shiny_hunts'] != null) {
+        for (var hData in data['shiny_hunts']) {
+          final h = ShinyHunt.fromMap(Map<String, dynamic>.from(hData));
+          await db.saveShinyHunt(h);
+        }
       }
 
       notifyListeners();

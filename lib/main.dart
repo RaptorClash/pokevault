@@ -10,6 +10,7 @@ import 'providers/theme_provider.dart';
 import 'providers/dex_provider.dart';
 import 'providers/tutorial_provider.dart';
 import 'providers/settings_provider.dart';
+import 'providers/shiny_hunt_provider.dart';
 import 'screens/home/home_screen.dart';
 import 'utils/notification_helper.dart';
 import 'i18n/strings.g.dart';
@@ -55,6 +56,7 @@ void main() async {
             ChangeNotifierProvider(create: (context) => DexProvider()),
             ChangeNotifierProvider(create: (_) => TutorialProvider(prefs)),
             ChangeNotifierProvider(create: (_) => SettingsProvider()),
+            ChangeNotifierProvider(create: (_) => ShinyHuntProvider()),
           ],
           child: const PokedexApp(),
         ),

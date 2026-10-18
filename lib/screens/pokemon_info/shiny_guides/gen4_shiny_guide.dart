@@ -9,6 +9,7 @@ class Gen4ShinyGuide extends StatelessWidget {
   final List<String> shinyCategories;
   final String title;
   final Future<void> Function(String) onLaunchUrl;
+  final Widget? extraAction;
 
   const Gen4ShinyGuide({
     super.key,
@@ -16,6 +17,7 @@ class Gen4ShinyGuide extends StatelessWidget {
     required this.shinyCategories,
     required this.title,
     required this.onLaunchUrl,
+    this.extraAction,
   });
 
   @override
@@ -166,6 +168,11 @@ class Gen4ShinyGuide extends StatelessWidget {
         List<int> gen4Roamers = [144, 145, 146, 243, 244, 380, 381, 481, 488];
         if (gen4Roamers.contains(id) && hasEncounterThisGen) {
           content.add(buildInfoBox(Icons.map, 'shiny_gen4_roamer_title', 'shiny_gen4_roamer_desc', Colors.deepOrange));
+        }
+
+        if (extraAction != null) {
+          content.add(const SizedBox(height: 12));
+          content.add(extraAction!);
         }
 
         return ExpansionTile(

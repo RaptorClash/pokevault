@@ -8,6 +8,7 @@ class Gen95ShinyGuide extends StatelessWidget {
   final List<String> shinyCategories;
   final String title;
   final Future<void> Function(String) onLaunchUrl;
+  final Widget? extraAction;
 
   const Gen95ShinyGuide({
     super.key,
@@ -15,6 +16,7 @@ class Gen95ShinyGuide extends StatelessWidget {
     required this.shinyCategories,
     required this.title,
     required this.onLaunchUrl,
+    this.extraAction,
   });
 
   @override
@@ -108,6 +110,11 @@ class Gen95ShinyGuide extends StatelessWidget {
           content.add(buildLinkBtn(Icons.forum, 'shiny_gen95_link_reddit', 'https://www.reddit.com/r/PokemonZA/comments/1of201i/best_shiny_hunting_locationsmethods/'));
           content.add(buildLinkBtn(Icons.language, 'shiny_gen95_link_ign', 'https://www.ign.com/wikis/pokemon-legends-z-a/How_to_Shiny_Hunt_(Shiny_Pokemon_Guide)'));
           content.add(buildLinkBtn(Icons.play_circle_filled, 'shiny_gen95_link_yt_de', 'https://www.youtube.com/watch?v=6Z6nbxlK3J8'));
+        }
+
+        if (extraAction != null) {
+          content.add(const SizedBox(height: 12));
+          content.add(extraAction!);
         }
 
         return ExpansionTile(

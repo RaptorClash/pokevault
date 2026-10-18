@@ -8,6 +8,7 @@ class Gen75ShinyGuide extends StatelessWidget {
   final List<String> shinyCategories;
   final String title;
   final Future<void> Function(String) onLaunchUrl;
+  final Widget? extraAction;
 
   const Gen75ShinyGuide({
     super.key,
@@ -15,6 +16,7 @@ class Gen75ShinyGuide extends StatelessWidget {
     required this.shinyCategories,
     required this.title,
     required this.onLaunchUrl,
+    this.extraAction,
   });
 
   @override
@@ -228,6 +230,11 @@ class Gen75ShinyGuide extends StatelessWidget {
               ),
             );
           }
+        }
+
+        if (extraAction != null) {
+          content.add(const SizedBox(height: 12));
+          content.add(extraAction!);
         }
 
         return ExpansionTile(

@@ -25,6 +25,8 @@ import '../../services/database_service.dart';
 import 'dex_sort_settings_screen.dart';
 import 'box_edit_screen.dart';
 import '../../utils/box_sequence_manager.dart';
+import '../../providers/shiny_hunt_provider.dart';
+import '../shiny_hunt/shiny_hunts_hub_screen.dart';
 
 class DexScreen extends StatefulWidget {
   final UserDex initialDex;
@@ -1662,6 +1664,34 @@ class _DexScreenState extends State<DexScreen> {
                         displayEntries: _rawEntries,
                       ),
                     ),
+                  );
+                },
+              ),
+            if (!_isEditMode)
+              Builder(
+                builder: (context) {
+                  ShinyHuntProvider? huntProvider;
+                  try {
+                    huntProvider = Provider.of<ShinyHuntProvider>(context);
+                  } catch (_) {
+                    huntProvider = null;
+                  }
+                  final count = huntProvider?.activeHunts.length ?? 0;
+                  return IconButton(
+                    icon: Badge(
+                      isLabelVisible: count > 0,
+                      label: Text('$count'),
+                      child: const Icon(Icons.auto_awesome),
+                    ),
+                    tooltip: Translator.get('shiny_hunt_badge_tooltip'),
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const ShinyHuntsHubScreen(),
+                        ),
+                      );
+                    },
                   );
                 },
               ),

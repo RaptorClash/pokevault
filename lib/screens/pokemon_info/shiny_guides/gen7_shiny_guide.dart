@@ -9,6 +9,7 @@ class Gen7ShinyGuide extends StatelessWidget {
   final List<String> shinyCategories;
   final String title;
   final Future<void> Function(String) onLaunchUrl;
+  final Widget? extraAction;
 
   const Gen7ShinyGuide({
     super.key,
@@ -16,6 +17,7 @@ class Gen7ShinyGuide extends StatelessWidget {
     required this.shinyCategories,
     required this.title,
     required this.onLaunchUrl,
+    this.extraAction,
   });
 
   @override
@@ -161,6 +163,11 @@ class Gen7ShinyGuide extends StatelessWidget {
           if (hasWildSpawn && !shinyCategories.contains('legendary_mythical')) {
             content.add(buildInfoBox(Icons.holiday_village, 'shiny_gen7_pelago_title', 'shiny_gen7_pelago_desc', Colors.green));
           }
+        }
+
+        if (extraAction != null) {
+          content.add(const SizedBox(height: 12));
+          content.add(extraAction!);
         }
 
         return ExpansionTile(

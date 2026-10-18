@@ -3,6 +3,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../models/dex_view_models.dart';
 import '../../l10n/app_translations.dart';
 import '../../utils/notification_helper.dart';
+import '../../utils/shiny_logic_helper.dart';
 import '../../services/database_service.dart';
 import './shiny_guides/gen1_shiny_guide.dart';
 import './shiny_guides/gen2_shiny_guide.dart';
@@ -16,6 +17,9 @@ import './shiny_guides/gen8_shiny_guide.dart';
 import './shiny_guides/gen8_5_shiny_guide.dart';
 import './shiny_guides/gen9_shiny_guide.dart';
 import './shiny_guides/gen9_5_shiny_guide.dart';
+import '../../models/shiny_hunt.dart';
+import '../shiny_hunt/dialogs/create_edit_hunt_dialog.dart';
+import '../shiny_hunt/shiny_hunt_counter_screen.dart';
 
 class ShinyGuideWidget extends StatefulWidget {
   final DexDisplayEntry entry;
@@ -81,6 +85,56 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
     }
   }
 
+  Widget _buildStartHuntButton(
+    BuildContext context,
+    double gen, {
+    String? method,
+    double? baseOdds,
+    int? spawns,
+    String? game,
+    String? buttonLabel,
+  }) {
+    return SizedBox(
+      width: double.infinity,
+      child: OutlinedButton.icon(
+        icon: const Icon(Icons.track_changes, color: Colors.amber),
+        label: Text(
+          buttonLabel ?? Translator.get('shiny_hunt_start_from_guide', fallback: '🎯 Hunt starten'),
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
+        style: OutlinedButton.styleFrom(
+          side: const BorderSide(color: Colors.amber),
+          padding: const EdgeInsets.symmetric(vertical: 10),
+        ),
+        onPressed: () async {
+          final createdHunt = await showDialog<ShinyHunt?>(
+            context: context,
+            builder: (ctx) => CreateEditHuntDialog(
+              initialPokemonId: widget.entry.pokemon.id,
+              initialPokemonName: widget.entry.pokemon.nameDe,
+              initialFormId: (widget.entry.resolvedForm?.imageId != null && widget.entry.resolvedForm!.imageId > 0)
+                  ? widget.entry.resolvedForm!.imageId
+                  : widget.entry.pokemon.id,
+              initialDexId: widget.dexId,
+              initialUniqueId: widget.entry.uniqueId,
+              initialGeneration: gen,
+              initialMethod: method,
+              initialBaseOdds: baseOdds,
+              initialSpawns: spawns,
+              initialGame: game,
+            ),
+          );
+          if (createdHunt != null && context.mounted) {
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (_) => ShinyHuntCounterScreen(huntId: createdHunt.id),
+              ),
+            );
+          }
+        },
+      ),
+    );
+  }
 
   bool _shouldShowGen(double gen) {
     if (gen == 2 &&
@@ -171,10 +225,40 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
                     onLaunchUrl: _launchURL,
                   ),
                 ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                  child: _buildStartHuntButton(context, 1.0),
+                ),
               ],
             ),
           );
         } else if (gen == 2.0) {
+          final isBaby = widget.entry.pokemon.id <= 251 && ShinyLogicHelper.isBaby(widget.entry.pokemon.id);
+          final isBreedable = widget.entry.pokemon.id <= 251 &&
+              (ShinyLogicHelper.isBreedable(widget.entry.pokemon) || ShinyLogicHelper.isBaby(widget.entry.pokemon.id));
+          List<Widget> gen2Actions = [];
+          if (isBaby) {
+            gen2Actions.add(_buildStartHuntButton(
+              context,
+              2.0,
+              method: 'Kurioses Ei / Odd Egg (Kristall)',
+              baseOdds: 100.0 / 14.0,
+              buttonLabel: Translator.get('shiny_hunt_start_odd_egg'),
+            ));
+            gen2Actions.add(const SizedBox(height: 8));
+          }
+          if (isBreedable) {
+            gen2Actions.add(_buildStartHuntButton(
+              context,
+              2.0,
+              method: 'Shiny-Zucht / Ditto-Glitch',
+              baseOdds: 64.0,
+              buttonLabel: Translator.get('shiny_hunt_start_ditto_glitch'),
+            ));
+            gen2Actions.add(const SizedBox(height: 8));
+          }
+          gen2Actions.add(_buildStartHuntButton(context, 2.0));
+
           genTiles.add(
             ExpansionTile(
               title: Text(
@@ -189,6 +273,10 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
                     dexId: widget.dexId,
                     onLaunchUrl: _launchURL,
                   ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                  child: Column(children: gen2Actions),
                 ),
               ],
             ),
@@ -205,16 +293,52 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
                   padding: const EdgeInsets.all(16.0),
                   child: Gen3ShinyGuide(onLaunchUrl: _launchURL),
                 ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                  child: _buildStartHuntButton(context, 3.0),
+                ),
               ],
             ),
           );
         } else if (gen == 4.0) {
+          final id = widget.entry.pokemon.id;
+          final isHgssStarter = id == 152 || id == 155 || id == 158;
+          final hasGenderVariation = widget.entry.pokemon.genderRate > 0 &&
+              widget.entry.pokemon.genderRate < 8 &&
+              !_shinyCategories.contains('legendary_mythical');
+
+          List<Widget> gen4Actions = [];
+          if (isHgssStarter) {
+            gen4Actions.add(_buildStartHuntButton(
+              context,
+              4.0,
+              method: 'HGSS Starter Soft Reset',
+              baseOdds: 8192.0,
+              spawns: 3,
+              game: 'HeartGold / SoulSilver',
+              buttonLabel: Translator.get('shiny_hunt_start_hgss_starters'),
+            ));
+            gen4Actions.add(const SizedBox(height: 8));
+          }
+          if (hasGenderVariation) {
+            gen4Actions.add(_buildStartHuntButton(
+              context,
+              4.0,
+              method: 'Cute Charm Glitch',
+              baseOdds: 100.0 / 21.34,
+              buttonLabel: Translator.get('shiny_hunt_start_ccg'),
+            ));
+            gen4Actions.add(const SizedBox(height: 8));
+          }
+          gen4Actions.add(_buildStartHuntButton(context, 4.0));
+
           genTiles.add(
             Gen4ShinyGuide(
               pokemon: widget.entry.pokemon,
               shinyCategories: _shinyCategories,
               title: resolvedTitle,
               onLaunchUrl: _launchURL,
+              extraAction: Column(children: gen4Actions),
             ),
           );
         } else if (gen == 5.0) {
@@ -224,6 +348,7 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
               shinyCategories: _shinyCategories,
               title: resolvedTitle,
               onLaunchUrl: _launchURL,
+              extraAction: _buildStartHuntButton(context, 5.0),
             ),
           );
         } else if (gen == 6.0) {
@@ -233,6 +358,7 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
               shinyCategories: _shinyCategories,
               title: resolvedTitle,
               onLaunchUrl: _launchURL,
+              extraAction: _buildStartHuntButton(context, 6.0),
             ),
           );
         } else if (gen == 7.0) {
@@ -242,6 +368,7 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
               shinyCategories: _shinyCategories,
               title: resolvedTitle,
               onLaunchUrl: _launchURL,
+              extraAction: _buildStartHuntButton(context, 7.0),
             ),
           );
         } else if (gen == 7.5) {
@@ -251,6 +378,11 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
               shinyCategories: _shinyCategories,
               title: resolvedTitle,
               onLaunchUrl: _launchURL,
+              extraAction: _buildStartHuntButton(
+                context,
+                7.5,
+                game: "Let's Go, Pikachu! / Evoli!",
+              ),
             ),
           );
         } else if (gen == 8.0) {
@@ -260,6 +392,11 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
               shinyCategories: _shinyCategories,
               title: resolvedTitle,
               onLaunchUrl: _launchURL,
+              extraAction: _buildStartHuntButton(
+                context,
+                8.0,
+                game: 'Schwert / Schild',
+              ),
             ),
           );
         } else if (gen == 8.5) {
@@ -269,6 +406,11 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
               shinyCategories: _shinyCategories,
               title: resolvedTitle,
               onLaunchUrl: _launchURL,
+              extraAction: _buildStartHuntButton(
+                context,
+                8.5,
+                game: 'Legenden: Arceus',
+              ),
             ),
           );
         } else if (gen == 9.0) {
@@ -278,6 +420,11 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
               shinyCategories: _shinyCategories,
               title: resolvedTitle,
               onLaunchUrl: _launchURL,
+              extraAction: _buildStartHuntButton(
+                context,
+                9.0,
+                game: 'Karmesin / Purpur',
+              ),
             ),
           );
         } else if (gen == 9.5) {
@@ -287,6 +434,11 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
               shinyCategories: _shinyCategories,
               title: resolvedTitle,
               onLaunchUrl: _launchURL,
+              extraAction: _buildStartHuntButton(
+                context,
+                9.5,
+                game: 'Legenden: Z-A',
+              ),
             ),
           );
         }

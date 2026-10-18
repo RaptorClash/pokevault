@@ -9,6 +9,7 @@ class Gen6ShinyGuide extends StatelessWidget {
   final List<String> shinyCategories;
   final String title;
   final Future<void> Function(String) onLaunchUrl;
+  final Widget? extraAction;
 
   const Gen6ShinyGuide({
     super.key,
@@ -16,6 +17,7 @@ class Gen6ShinyGuide extends StatelessWidget {
     required this.shinyCategories,
     required this.title,
     required this.onLaunchUrl,
+    this.extraAction,
   });
 
   @override
@@ -187,6 +189,11 @@ class Gen6ShinyGuide extends StatelessWidget {
           if (hasORASGrassEncounter || hasXYGrassEncounter || hasFishingEncounter) {
             content.add(buildLinkBtn(Icons.language, 'shiny_gen6_chaining_link_wiki', 'https://www.pokewiki.de/Shiny-Chaining'));
           }
+        }
+
+        if (extraAction != null) {
+          content.add(const SizedBox(height: 12));
+          content.add(extraAction!);
         }
 
         return ExpansionTile(

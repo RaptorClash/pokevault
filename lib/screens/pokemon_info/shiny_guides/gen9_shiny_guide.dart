@@ -8,6 +8,7 @@ class Gen9ShinyGuide extends StatelessWidget {
   final List<String> shinyCategories;
   final String title;
   final Future<void> Function(String) onLaunchUrl;
+  final Widget? extraAction;
 
   const Gen9ShinyGuide({
     super.key,
@@ -15,6 +16,7 @@ class Gen9ShinyGuide extends StatelessWidget {
     required this.shinyCategories,
     required this.title,
     required this.onLaunchUrl,
+    this.extraAction,
   });
 
   @override
@@ -127,6 +129,11 @@ class Gen9ShinyGuide extends StatelessWidget {
           content.add(buildLinkBtn(Icons.language, 'shiny_gen9_link_bisa', 'https://www.bisafans.de/spiele/editionen/karmesin-purpur/shiny-pokemon.php'));
           content.add(buildLinkBtn(Icons.language, 'shiny_gen9_link_sandwich', 'https://www.polygon.com/pokemon-scarlet-violet-guide/23472506/sandwich-recipes-ingredients-list-meal-powers'));
           content.add(buildLinkBtn(Icons.play_circle_filled, 'shiny_gen9_link_outbreak', 'https://www.youtube.com/watch?v=kYJzXvG22iY'));
+        }
+
+        if (extraAction != null) {
+          content.add(const SizedBox(height: 12));
+          content.add(extraAction!);
         }
 
         return ExpansionTile(
