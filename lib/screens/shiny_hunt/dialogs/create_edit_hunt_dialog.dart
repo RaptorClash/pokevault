@@ -502,8 +502,25 @@ class _CreateEditHuntDialogState extends State<CreateEditHuntDialog> {
         }
       }
 
+      // 7. Silph Scope / Pokémon-Turm: only for #92, #93, #104, #105
+      if (nameLower.contains('silph scope') || nameLower.contains('pokémon-turm')) {
+        if (![92, 93, 104, 105].contains(_pokemonId)) {
+          return false;
+        }
+      }
+
       return true;
     }).toList();
+
+    if (_generation == 1.0 && [92, 93, 104, 105].contains(_pokemonId)) {
+      _availablePresets.sort((a, b) {
+        final aIsSilph = a.name.toLowerCase().contains('silph scope') || a.name.toLowerCase().contains('pokémon-turm');
+        final bIsSilph = b.name.toLowerCase().contains('silph scope') || b.name.toLowerCase().contains('pokémon-turm');
+        if (aIsSilph && !bIsSilph) return -1;
+        if (!aIsSilph && bIsSilph) return 1;
+        return 0;
+      });
+    }
 
     final currentMethod = _selectedMethod;
     if (currentMethod == null || !_availablePresets.any((p) => p.name == currentMethod)) {

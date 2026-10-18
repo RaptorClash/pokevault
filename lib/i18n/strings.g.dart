@@ -4,9 +4,9 @@
 /// To regenerate, run: `dart run slang`
 ///
 /// Locales: 2
-/// Strings: 3012 (1506 per locale)
+/// Strings: 3024 (1512 per locale)
 ///
-/// Built on 2026-10-18 at 11:46 UTC
+/// Built on 2026-10-18 at 15:47 UTC
 
 // coverage:ignore-file
 // ignore_for_file: type=lint
@@ -493,6 +493,8 @@ class Translations implements BaseTranslations<AppLocale, Translations> {
 	String get credit_inspi_sub => 'Community Google Sheet für Tracker-Basis';
 	String get credit_shiny_gen1_title => 'Gen 1 Shiny Hunting';
 	String get credit_shiny_gen1_sub => 'BlueMoonFalls Guide für DV-Werte';
+	String get credit_shiny_silph_scope_title => 'Silph Scope Shiny Hunting';
+	String get credit_shiny_silph_scope_sub => 'Porygondolier (Gen 1 DV-Reroll Entdeckung)';
 	String get credit_glitch_gen2_title => 'Gen 2 Mail Writer Codes';
 	String get credit_glitch_gen2_sub => 'GlitchCity Wiki für Gen 3 Shiny Starter';
 	String get credit_balls_title => 'Matching Balls Guide';
@@ -673,6 +675,9 @@ class Translations implements BaseTranslations<AppLocale, Translations> {
 	String get tutorial_mew_video_de => 'Video Tutorial (DE) - LEOsMIND';
 	String get tutorial_mew_video_en => 'Video Tutorial (EN) - Austin John';
 	String get tutorial_mew_text_en => 'Text Tutorial (EN) - extratricky';
+	String get tutorials_silph_scope => 'Pokémon-Turm Silph Scope Tutorial:';
+	String get tutorial_silph_scope_video_en => 'Video Tutorial (EN) - Porygondolier';
+	String get shiny_gen1_silph_scope_desc => 'Im Pokémon-Turm (Lavandia) sorgt das Silph Scope beim Identifizieren der Geister für einen DV-Reroll. Dadurch können Nebulak, Alpollo, Tragosso und Knogga regulär als Shiny mit der Chance 1:8192 gefangen werden!';
 	String get method_starter => 'Starter';
 	String get method_gift => 'Geschenk';
 	String get method_trade => 'NPC-Tausch';
@@ -1617,6 +1622,7 @@ class Translations implements BaseTranslations<AppLocale, Translations> {
 	String get shiny_hunt_start_ditto_glitch => '🎯 Hunt starten: Shiny-Zucht / Ditto-Glitch (1/64)';
 	String get shiny_hunt_start_ccg => '🎯 Hunt starten: Cute Charm Glitch (21,34%)';
 	String get shiny_hunt_start_hgss_starters => '🎯 Hunt starten: Starter Soft Reset (k=3)';
+	String get shiny_hunt_start_silph_scope => '🎯 Hunt starten: Silph Scope Reroll';
 	String get shiny_hunt_target_dex_none => 'Kein Dex (Nicht verknüpft)';
 	String get shiny_hunt_search_hint => 'Hunts durchsuchen (Pokémon, Spiel, Notiz)...';
 	String get shiny_hunt_finish_btn => 'Beenden';
@@ -2027,6 +2033,8 @@ class _StringsEn extends Translations {
 	@override String get credit_inspi_sub => 'Community Google Sheet for tracker base';
 	@override String get credit_shiny_gen1_title => 'Gen 1 Shiny Hunting';
 	@override String get credit_shiny_gen1_sub => 'BlueMoonFalls guide for DV values';
+	@override String get credit_shiny_silph_scope_title => 'Silph Scope Shiny Hunting';
+	@override String get credit_shiny_silph_scope_sub => 'Porygondolier (Gen 1 DV reroll discovery)';
 	@override String get credit_glitch_gen2_title => 'Gen 2 Mail Writer Codes';
 	@override String get credit_glitch_gen2_sub => 'GlitchCity Wiki for Gen 3 Shiny Starters';
 	@override String get credit_balls_title => 'Matching Balls Guide';
@@ -2219,6 +2227,9 @@ class _StringsEn extends Translations {
 	@override String get tutorial_mew_video_de => 'Video Tutorial (DE) - LEOsMIND';
 	@override String get tutorial_mew_video_en => 'Video Tutorial (EN) - Austin John';
 	@override String get tutorial_mew_text_en => 'Text Tutorial (EN) - extratricky';
+	@override String get tutorials_silph_scope => 'Pokémon Tower Silph Scope Tutorial:';
+	@override String get tutorial_silph_scope_video_en => 'Video Tutorial (EN) - Porygondolier';
+	@override String get shiny_gen1_silph_scope_desc => 'In Pokémon Tower (Lavender Town), the Silph Scope triggers a DV reroll when identifying ghosts. This allows Gastly, Haunter, Cubone, and Marowak to legitimately roll shiny DVs with standard 1:8192 odds!';
 	@override String get method_starter => 'Starter';
 	@override String get method_gift => 'Gift';
 	@override String get method_trade => 'NPC Trade';
@@ -3151,6 +3162,7 @@ class _StringsEn extends Translations {
 	@override String get shiny_hunt_start_ditto_glitch => '🎯 Start Hunt: Shiny Breeding / Ditto Glitch (1/64)';
 	@override String get shiny_hunt_start_ccg => '🎯 Start Hunt: Cute Charm Glitch (21.34%)';
 	@override String get shiny_hunt_start_hgss_starters => '🎯 Start Hunt: Starter Soft Reset (k=3)';
+	@override String get shiny_hunt_start_silph_scope => '🎯 Start Hunt: Silph Scope Reroll';
 	@override String get shiny_hunt_target_dex_none => 'No Dex (Unlinked)';
 	@override String get shiny_hunt_search_hint => 'Search hunts (Pokémon, game, notes)...';
 	@override String get shiny_hunt_finish_btn => 'Finish';
@@ -3541,6 +3553,8 @@ extension on Translations {
 			case 'credit_inspi_sub': return 'Community Google Sheet für Tracker-Basis';
 			case 'credit_shiny_gen1_title': return 'Gen 1 Shiny Hunting';
 			case 'credit_shiny_gen1_sub': return 'BlueMoonFalls Guide für DV-Werte';
+			case 'credit_shiny_silph_scope_title': return 'Silph Scope Shiny Hunting';
+			case 'credit_shiny_silph_scope_sub': return 'Porygondolier (Gen 1 DV-Reroll Entdeckung)';
 			case 'credit_glitch_gen2_title': return 'Gen 2 Mail Writer Codes';
 			case 'credit_glitch_gen2_sub': return 'GlitchCity Wiki für Gen 3 Shiny Starter';
 			case 'credit_balls_title': return 'Matching Balls Guide';
@@ -3721,6 +3735,9 @@ extension on Translations {
 			case 'tutorial_mew_video_de': return 'Video Tutorial (DE) - LEOsMIND';
 			case 'tutorial_mew_video_en': return 'Video Tutorial (EN) - Austin John';
 			case 'tutorial_mew_text_en': return 'Text Tutorial (EN) - extratricky';
+			case 'tutorials_silph_scope': return 'Pokémon-Turm Silph Scope Tutorial:';
+			case 'tutorial_silph_scope_video_en': return 'Video Tutorial (EN) - Porygondolier';
+			case 'shiny_gen1_silph_scope_desc': return 'Im Pokémon-Turm (Lavandia) sorgt das Silph Scope beim Identifizieren der Geister für einen DV-Reroll. Dadurch können Nebulak, Alpollo, Tragosso und Knogga regulär als Shiny mit der Chance 1:8192 gefangen werden!';
 			case 'method_starter': return 'Starter';
 			case 'method_gift': return 'Geschenk';
 			case 'method_trade': return 'NPC-Tausch';
@@ -4665,6 +4682,7 @@ extension on Translations {
 			case 'shiny_hunt_start_ditto_glitch': return '🎯 Hunt starten: Shiny-Zucht / Ditto-Glitch (1/64)';
 			case 'shiny_hunt_start_ccg': return '🎯 Hunt starten: Cute Charm Glitch (21,34%)';
 			case 'shiny_hunt_start_hgss_starters': return '🎯 Hunt starten: Starter Soft Reset (k=3)';
+			case 'shiny_hunt_start_silph_scope': return '🎯 Hunt starten: Silph Scope Reroll';
 			case 'shiny_hunt_target_dex_none': return 'Kein Dex (Nicht verknüpft)';
 			case 'shiny_hunt_search_hint': return 'Hunts durchsuchen (Pokémon, Spiel, Notiz)...';
 			case 'shiny_hunt_finish_btn': return 'Beenden';
@@ -5055,6 +5073,8 @@ extension on _StringsEn {
 			case 'credit_inspi_sub': return 'Community Google Sheet for tracker base';
 			case 'credit_shiny_gen1_title': return 'Gen 1 Shiny Hunting';
 			case 'credit_shiny_gen1_sub': return 'BlueMoonFalls guide for DV values';
+			case 'credit_shiny_silph_scope_title': return 'Silph Scope Shiny Hunting';
+			case 'credit_shiny_silph_scope_sub': return 'Porygondolier (Gen 1 DV reroll discovery)';
 			case 'credit_glitch_gen2_title': return 'Gen 2 Mail Writer Codes';
 			case 'credit_glitch_gen2_sub': return 'GlitchCity Wiki for Gen 3 Shiny Starters';
 			case 'credit_balls_title': return 'Matching Balls Guide';
@@ -5247,6 +5267,9 @@ extension on _StringsEn {
 			case 'tutorial_mew_video_de': return 'Video Tutorial (DE) - LEOsMIND';
 			case 'tutorial_mew_video_en': return 'Video Tutorial (EN) - Austin John';
 			case 'tutorial_mew_text_en': return 'Text Tutorial (EN) - extratricky';
+			case 'tutorials_silph_scope': return 'Pokémon Tower Silph Scope Tutorial:';
+			case 'tutorial_silph_scope_video_en': return 'Video Tutorial (EN) - Porygondolier';
+			case 'shiny_gen1_silph_scope_desc': return 'In Pokémon Tower (Lavender Town), the Silph Scope triggers a DV reroll when identifying ghosts. This allows Gastly, Haunter, Cubone, and Marowak to legitimately roll shiny DVs with standard 1:8192 odds!';
 			case 'method_starter': return 'Starter';
 			case 'method_gift': return 'Gift';
 			case 'method_trade': return 'NPC Trade';
@@ -6179,6 +6202,7 @@ extension on _StringsEn {
 			case 'shiny_hunt_start_ditto_glitch': return '🎯 Start Hunt: Shiny Breeding / Ditto Glitch (1/64)';
 			case 'shiny_hunt_start_ccg': return '🎯 Start Hunt: Cute Charm Glitch (21.34%)';
 			case 'shiny_hunt_start_hgss_starters': return '🎯 Start Hunt: Starter Soft Reset (k=3)';
+			case 'shiny_hunt_start_silph_scope': return '🎯 Start Hunt: Silph Scope Reroll';
 			case 'shiny_hunt_target_dex_none': return 'No Dex (Unlinked)';
 			case 'shiny_hunt_search_hint': return 'Search hunts (Pokémon, game, notes)...';
 			case 'shiny_hunt_finish_btn': return 'Finish';

@@ -10,6 +10,7 @@ import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:pokevault/providers/dex_provider.dart';
 import 'package:pokevault/services/database_service.dart';
 import 'package:pokevault/screens/pokemon_info/shiny_guide_widget.dart';
+import 'package:pokevault/screens/shiny_hunt/dialogs/create_edit_hunt_dialog.dart';
 import 'package:pokevault/l10n/app_translations.dart';
 import '../../../e2e/helpers/e2e_test_helper.dart';
 
@@ -210,6 +211,70 @@ void main() {
     await tester.pump(const Duration(milliseconds: 300));
     await tester.tap(find.text('Generation 3'));
     await tester.pump(const Duration(milliseconds: 300));
+
+    await tester.runAsync(() async {
+      await Future.delayed(const Duration(milliseconds: 200));
+    });
+    await tester.pump(const Duration(seconds: 15));
+  });
+
+  testWidgets('ShinyGuideWidget renders Silph Scope hunt button for Gastly in Gen 1', (
+    WidgetTester tester,
+  ) async {
+    tester.view.physicalSize = const Size(800, 3000);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(() => tester.view.resetPhysicalSize());
+
+    final entry = createTestEntry(
+      pokemon: createTestPokemon(id: 92, nameDe: 'Nebulak'),
+      uniqueId: '92',
+    );
+
+    when(() => mockDexProvider.userDexes).thenReturn([]);
+    when(() => mockDexProvider.allPokemon).thenReturn([
+      createTestPokemon(id: 1, nameDe: 'Bisasam'),
+      createTestPokemon(id: 25, nameDe: 'Pikachu'),
+      createTestPokemon(id: 92, nameDe: 'Nebulak'),
+    ]);
+
+    await tester.pumpWidget(
+      ChangeNotifierProvider<DexProvider>.value(
+        value: mockDexProvider,
+        child: MaterialApp(
+          home: Scaffold(
+            body: SingleChildScrollView(
+              child: ShinyGuideWidget(entry: entry, dexId: 'kanto_dex'),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    await waitForLoaded(tester);
+    await tester.pump(const Duration(milliseconds: 300));
+
+    // Open main guide
+    await tester.tap(find.text(Translator.get('shiny_guide_title')));
+    await tester.pump(const Duration(milliseconds: 300));
+
+    // Tap Gen 1
+    await tester.ensureVisible(find.text('Generation 1'));
+    await tester.pump(const Duration(milliseconds: 300));
+    await tester.tap(find.text('Generation 1'));
+    await tester.pump(const Duration(milliseconds: 300));
+
+    final silphBtn = find.text(Translator.get('shiny_hunt_start_silph_scope'));
+    expect(silphBtn, findsOneWidget);
+    expect(find.text(Translator.get('tutorials_silph_scope')), findsOneWidget);
+
+    await tester.ensureVisible(silphBtn);
+    await tester.pump(const Duration(milliseconds: 300));
+    await tester.tap(silphBtn);
+    await tester.pump(const Duration(milliseconds: 500));
+
+    expect(find.byType(CreateEditHuntDialog), findsOneWidget);
+    expect(find.text('Pokémon-Turm / Silph Scope'), findsWidgets);
+    expect(find.textContaining('Rot / Blau / Gelb'), findsWidgets);
 
     await tester.runAsync(() async {
       await Future.delayed(const Duration(milliseconds: 200));

@@ -48,7 +48,7 @@ class DatabaseService {
     _userDatabase = db;
   }
 
-  static const int _currentAppDbVersion = 24;
+  static const int _currentAppDbVersion = 25;
 
   Future<Database> _initAppDB(String fileName) async {
     await _ensureMigration();
@@ -313,6 +313,40 @@ class DatabaseService {
     await _createIndexIfTableExists(db, 'special_dexes', 'idx_special_dexes_name', 'dex_name');
     await _createIndexIfTableExists(db, 'shiny_categories', 'idx_shiny_categories_poke_id', 'pokemon_id');
     await _createIndexIfTableExists(db, 'special_obtainable', 'idx_special_obtainable_poke_id', 'pokemon_id');
+
+    try {
+      final info = await db.rawQuery("PRAGMA table_info(shiny_categories)");
+      if (info.isNotEmpty) {
+        for (final id in [92, 93, 104, 105]) {
+          await db.execute('''
+            INSERT INTO shiny_categories (pokemon_id, category)
+            SELECT $id, 'gen1_huntable'
+            WHERE NOT EXISTS (
+              SELECT 1 FROM shiny_categories WHERE pokemon_id = $id AND category = 'gen1_huntable'
+            );
+          ''');
+        }
+      }
+      final dlInfo = await db.rawQuery("PRAGMA table_info(default_levels)");
+      if (dlInfo.isNotEmpty) {
+        final defLevels = {92: 20, 93: 23, 104: 20, 105: 30};
+        for (final entry in defLevels.entries) {
+          await db.execute('''
+            INSERT INTO default_levels (pokemon_id, default_level)
+            SELECT ${entry.key}, ${entry.value}
+            WHERE NOT EXISTS (
+              SELECT 1 FROM default_levels WHERE pokemon_id = ${entry.key}
+            );
+          ''');
+          await db.execute('''
+            UPDATE default_levels
+            SET default_level = ${entry.value}
+            WHERE pokemon_id = ${entry.key};
+          ''');
+        }
+      }
+    } catch (_) {}
+
     await db.execute('PRAGMA optimize;');
   }
 

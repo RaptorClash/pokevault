@@ -310,4 +310,14 @@ void main() {
       expect(effProb, closeTo(0.632, 0.001));
     });
   });
+
+  group('ShinyHuntOddsHelper - Gen 1 Presets', () {
+    test('getPresetsForGameAndGen includes Pokémon-Turm / Silph Scope for Gen 1', () {
+      final presets = ShinyHuntOddsHelper.getPresetsForGameAndGen('Rot / Blau / Gelb', 1.0);
+      expect(presets.any((p) => p.name == 'Pokémon-Turm / Silph Scope'), isTrue);
+      final silphPreset = presets.firstWhere((p) => p.name == 'Pokémon-Turm / Silph Scope');
+      expect(silphPreset.defaultBaseOdds, equals(8192.0));
+      expect(silphPreset.description, contains('Silph Scope'));
+    });
+  });
 }

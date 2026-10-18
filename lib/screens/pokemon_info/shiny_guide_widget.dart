@@ -209,6 +209,25 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
             : fallbackTitle;
 
         if (gen == 1.0) {
+          final isTowerGhost = [92, 93, 104, 105].contains(widget.entry.pokemon.id);
+          List<Widget> gen1Actions = [];
+          if (isTowerGhost) {
+            gen1Actions.add(_buildStartHuntButton(
+              context,
+              1.0,
+              method: 'Pokémon-Turm / Silph Scope',
+              baseOdds: 8192.0,
+              game: 'Rot / Blau / Gelb',
+              buttonLabel: Translator.get('shiny_hunt_start_silph_scope'),
+            ));
+            gen1Actions.add(const SizedBox(height: 8));
+          }
+          gen1Actions.add(_buildStartHuntButton(
+            context,
+            1.0,
+            game: 'Rot / Blau / Gelb',
+          ));
+
           genTiles.add(
             ExpansionTile(
               title: Text(
@@ -227,7 +246,7 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
                 ),
                 Padding(
                   padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                  child: _buildStartHuntButton(context, 1.0),
+                  child: Column(children: gen1Actions),
                 ),
               ],
             ),

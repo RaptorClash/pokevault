@@ -329,6 +329,13 @@ class CreditsCard extends StatelessWidget {
               ),
               const Divider(height: 1),
               _buildCreditLink(
+                'credit_shiny_silph_scope_title',
+                'credit_shiny_silph_scope_sub',
+                Icons.play_circle_filled,
+                'https://youtu.be/2s6QxW-3BcE?is=T0lmNtgkVIMapARw',
+              ),
+              const Divider(height: 1),
+              _buildCreditLink(
                 'credit_glitch_gen2_title',
                 'credit_glitch_gen2_sub',
                 Icons.bug_report_rounded,

@@ -153,7 +153,9 @@ class _Gen1ShinyGuideState extends State<Gen1ShinyGuide> {
   @override
   Widget build(BuildContext context) {
     try {
-      final isHuntable = widget.shinyCategories.contains('gen1_huntable');
+      final isHuntable = widget.shinyCategories.contains('gen1_huntable') ||
+          [92, 93, 104, 105].contains(widget.pokemon.id);
+      final isTowerGhost = [92, 93, 104, 105].contains(widget.pokemon.id);
       final statusWidget = Text(
         isHuntable
             ? (Translator.get(
@@ -249,6 +251,53 @@ class _Gen1ShinyGuideState extends State<Gen1ShinyGuide> {
                       : 'https://bulbapedia.bulbagarden.net/wiki/Mew_glitch';
                   widget.onLaunchUrl(url);
                 },
+              ),
+            ),
+          ],
+          if (isTowerGhost) ...[
+            const SizedBox(height: 8),
+            Container(
+              padding: const EdgeInsets.all(12),
+              margin: const EdgeInsets.only(bottom: 12),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.3),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(
+                  color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.5),
+                ),
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(
+                    Icons.visibility,
+                    color: Theme.of(context).colorScheme.primary,
+                    size: 20,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      Translator.get('shiny_gen1_silph_scope_desc'),
+                      style: const TextStyle(
+                        fontStyle: FontStyle.italic,
+                        fontSize: 13,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Text(
+              Translator.get('tutorials_silph_scope'),
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                icon: const Icon(Icons.play_circle_filled),
+                label: Text(Translator.get('tutorial_silph_scope_video_en')),
+                onPressed: () => widget.onLaunchUrl('https://youtu.be/2s6QxW-3BcE?is=T0lmNtgkVIMapARw'),
               ),
             ),
           ],

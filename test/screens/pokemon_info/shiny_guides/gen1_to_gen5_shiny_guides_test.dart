@@ -142,6 +142,56 @@ void main() {
       expect(launchedUrls, contains('https://www.youtube.com/watch?v=jJro6Hx4IfQ'));
     });
 
+    testWidgets('Renders Silph Scope tutorial and info box for Nebulak, Alpollo, Tragosso, Knogga', (tester) async {
+      for (final id in [92, 93, 104, 105]) {
+        final launchedUrls = <String>[];
+        final pokemon = createTestPokemon(id: id, nameDe: 'Poke_$id');
+
+        await tester.pumpWidget(
+          wrapWithProvider(
+            Gen1ShinyGuide(
+              pokemon: pokemon,
+              shinyCategories: const ['gen1_huntable'],
+              initialLevel: 20,
+              onLaunchUrl: (url) async => launchedUrls.add(url),
+            ),
+          ),
+        );
+
+        await settleDb(tester);
+
+        expect(find.text(Translator.get('tutorials_silph_scope')), findsOneWidget);
+        expect(find.text(Translator.get('tutorial_silph_scope_video_en')), findsOneWidget);
+        expect(find.text(Translator.get('shiny_gen1_silph_scope_desc')), findsOneWidget);
+
+        await tester.tap(find.text(Translator.get('tutorial_silph_scope_video_en')));
+        await tester.pump();
+
+        expect(launchedUrls, contains('https://youtu.be/2s6QxW-3BcE?is=T0lmNtgkVIMapARw'));
+      }
+    });
+
+    testWidgets('Does not render Silph Scope tutorial for other Pokemon', (tester) async {
+      final launchedUrls = <String>[];
+      final bulbasaur = createTestPokemon(id: 1, nameDe: 'Bisasam');
+
+      await tester.pumpWidget(
+        wrapWithProvider(
+          Gen1ShinyGuide(
+            pokemon: bulbasaur,
+            shinyCategories: const ['gen1_huntable'],
+            initialLevel: 5,
+            onLaunchUrl: (url) async => launchedUrls.add(url),
+          ),
+        ),
+      );
+
+      await settleDb(tester);
+
+      expect(find.text(Translator.get('tutorials_silph_scope')), findsNothing);
+      expect(find.text(Translator.get('tutorial_silph_scope_video_en')), findsNothing);
+    });
+
     testWidgets('Renders non-huntable status when category is missing', (tester) async {
       final pokemon = createTestPokemon(id: 144, nameDe: 'Arktos');
 
@@ -159,6 +209,25 @@ void main() {
       await settleDb(tester);
 
       expect(find.text(Translator.get('shiny_huntable_no', fallback: 'Shiny Huntable: Nein')), findsOneWidget);
+    });
+
+    testWidgets('Renders huntable status for Gastly even if shinyCategories is empty', (tester) async {
+      final gastly = createTestPokemon(id: 92, nameDe: 'Nebulak');
+
+      await tester.pumpWidget(
+        wrapWithProvider(
+          Gen1ShinyGuide(
+            pokemon: gastly,
+            shinyCategories: const [],
+            initialLevel: 20,
+            onLaunchUrl: (_) async {},
+          ),
+        ),
+      );
+
+      await settleDb(tester);
+
+      expect(find.text(Translator.get('shiny_gen1_huntable_yes')), findsOneWidget);
     });
   });
 

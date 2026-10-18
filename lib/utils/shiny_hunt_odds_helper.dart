@@ -549,6 +549,11 @@ class ShinyHuntOddsHelper {
         description: 'Über DVs in Gen 1 bestimmt (1/8192)',
         defaultBaseOdds: 8192.0,
       ));
+      presets.add(const ShinyMethodPreset(
+        name: 'Pokémon-Turm / Silph Scope',
+        description: 'DV-Reroll durch Silph Scope im Pokémon-Turm (1/8192)',
+        defaultBaseOdds: 8192.0,
+      ));
       _addCustomPreset(presets);
       return presets;
     }

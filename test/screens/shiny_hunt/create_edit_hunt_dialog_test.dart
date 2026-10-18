@@ -173,6 +173,19 @@ class FakeDexProvider extends ChangeNotifier implements DexProvider {
           speed: 90,
           forms: [],
         ),
+        Pokemon(
+          id: 92,
+          nameDe: 'Nebulak',
+          nameEn: 'Gastly',
+          hasGenderDifferences: false,
+          genderRate: 4,
+          captureRate: 190,
+          evolutionChainId: 42,
+          eggGroups: ['Amorphous'],
+          weight: 0.1,
+          speed: 80,
+          forms: [],
+        ),
       ];
 
   @override
@@ -395,6 +408,113 @@ void main() {
       expect(returnedHunt!.pokemonId, equals(25));
       expect(returnedHunt!.pokemonName, equals('Pikachu'));
       expect(returnedHunt!.game, equals('Karmesin / Purpur'));
+    });
+
+    testWidgets('Shows Pokémon-Turm / Silph Scope method for Gastly in Gen 1', (tester) async {
+      tester.view.physicalSize = const Size(1200, 1600);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() => tester.view.resetPhysicalSize());
+
+      await tester.pumpWidget(
+        buildTestDialog(
+          const CreateEditHuntDialog(
+            initialPokemonId: 92,
+            initialPokemonName: 'Nebulak',
+            initialGame: 'Rot / Blau / Gelb',
+            initialGeneration: 1.0,
+          ),
+        ),
+      );
+      await pumpView(tester);
+
+      final methodDropdown = find.byWidgetPredicate(
+        (w) => w is DropdownButtonFormField<String> && (w.key?.toString().contains('method') ?? false),
+      );
+      expect(methodDropdown, findsOneWidget);
+
+      await tester.tap(methodDropdown);
+      await pumpView(tester);
+
+      expect(find.text('Pokémon-Turm / Silph Scope'), findsWidgets);
+    });
+
+    testWidgets('Does not show Pokémon-Turm / Silph Scope method for Pikachu in Gen 1', (tester) async {
+      tester.view.physicalSize = const Size(1200, 1600);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() => tester.view.resetPhysicalSize());
+
+      await tester.pumpWidget(
+        buildTestDialog(
+          const CreateEditHuntDialog(
+            initialPokemonId: 25,
+            initialPokemonName: 'Pikachu',
+            initialGame: 'Rot / Blau / Gelb',
+            initialGeneration: 1.0,
+          ),
+        ),
+      );
+      await pumpView(tester);
+
+      final methodDropdown = find.byWidgetPredicate(
+        (w) => w is DropdownButtonFormField<String> && (w.key?.toString().contains('method') ?? false),
+      );
+      expect(methodDropdown, findsOneWidget);
+
+      await tester.tap(methodDropdown);
+      await pumpView(tester);
+
+      expect(find.text('Pokémon-Turm / Silph Scope'), findsNothing);
+    });
+
+    testWidgets('Defaults to Pokémon-Turm / Silph Scope for Gastly in Gen 1', (tester) async {
+      tester.view.physicalSize = const Size(1200, 1600);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() => tester.view.resetPhysicalSize());
+
+      ShinyHunt? returnedHunt;
+      await tester.pumpWidget(
+        MultiProvider(
+          providers: [
+            ChangeNotifierProvider<ShinyHuntProvider>.value(value: huntProvider),
+            ChangeNotifierProvider<DexProvider>.value(value: dexProvider),
+          ],
+          child: MaterialApp(
+            home: Scaffold(
+              body: Builder(
+                builder: (ctx) => ElevatedButton(
+                  onPressed: () async {
+                    returnedHunt = await showDialog<ShinyHunt?>(
+                      context: ctx,
+                      builder: (_) => const CreateEditHuntDialog(
+                        initialPokemonId: 92,
+                        initialPokemonName: 'Nebulak',
+                        initialGame: 'Rot / Blau / Gelb',
+                        initialGeneration: 1.0,
+                      ),
+                    );
+                  },
+                  child: const Text('Open Dialog'),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      await pumpView(tester);
+
+      await tester.tap(find.text('Open Dialog'));
+      await pumpView(tester);
+
+      final startBtn = find.widgetWithText(ElevatedButton, 'Starten');
+      expect(startBtn, findsOneWidget);
+      await tester.tap(startBtn);
+      await pumpView(tester);
+
+      expect(returnedHunt, isNotNull);
+      expect(returnedHunt!.method, equals('Pokémon-Turm / Silph Scope'));
+      expect(returnedHunt!.baseOdds, equals(8192.0));
+      expect(returnedHunt!.game, equals('Rot / Blau / Gelb'));
+      expect(returnedHunt!.generation, equals(1.0));
     });
   });
 }
