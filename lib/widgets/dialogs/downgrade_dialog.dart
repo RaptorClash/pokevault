@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../l10n/app_translations.dart';
 import '../../utils/notification_helper.dart';
 import '../../utils/update_helper.dart';
@@ -21,38 +23,42 @@ class _DowngradeDialogState extends State<DowngradeDialog> {
   DowngradeStep _currentStep = DowngradeStep.info;
   double _progress = 0.0;
   String _savedPath = '';
+  bool _isBackingUp = false;
 
   @override
   Widget build(BuildContext context) {
-    return AlertDialog(
-      title: Text(
-        _currentStep == DowngradeStep.backup
-            ? (Translator.get(
-                'downgrade_backup_title',
-                fallback: 'Vorher Backup erstellen?',
-              ))
-            : _currentStep == DowngradeStep.finalWarning
-            ? (Translator.get(
-                'downgrade_final_warning_title',
-                fallback: 'Letzte Warnung',
-              ))
-            : _currentStep == DowngradeStep.success
-            ? 'Download abgeschlossen!'
-            : (Translator.get(
-                'attention_downgrade',
-                fallback: 'Achtung: Downgrade',
-              )),
-        style: TextStyle(
-          color: _currentStep == DowngradeStep.finalWarning
-              ? Colors.redAccent
-              : (_currentStep == DowngradeStep.success ? Colors.green : null),
+    return PopScope(
+      canPop: _currentStep != DowngradeStep.downloading && !_isBackingUp,
+      child: AlertDialog(
+        title: Text(
+          _currentStep == DowngradeStep.backup
+              ? (Translator.get(
+                  'downgrade_backup_title',
+                  fallback: 'Vorher Backup erstellen?',
+                ))
+              : _currentStep == DowngradeStep.finalWarning
+              ? (Translator.get(
+                  'downgrade_final_warning_title',
+                  fallback: 'Letzte Warnung',
+                ))
+              : _currentStep == DowngradeStep.success
+              ? 'Download abgeschlossen!'
+              : (Translator.get(
+                  'attention_downgrade',
+                  fallback: 'Achtung: Downgrade',
+                )),
+          style: TextStyle(
+            color: _currentStep == DowngradeStep.finalWarning
+                ? Colors.redAccent
+                : (_currentStep == DowngradeStep.success ? Colors.green : null),
+          ),
         ),
+        content: SizedBox(
+          width: double.maxFinite,
+          child: SingleChildScrollView(child: _buildContent(context)),
+        ),
+        actions: _buildActions(context),
       ),
-      content: SizedBox(
-        width: double.maxFinite,
-        child: SingleChildScrollView(child: _buildContent(context)),
-      ),
-      actions: _buildActions(context),
     );
   }
 
@@ -104,7 +110,45 @@ class _DowngradeDialogState extends State<DowngradeDialog> {
             style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
           ),
           const SizedBox(height: 12),
-          Text(widget.releaseInfo.releaseNotes),
+          MarkdownBody(
+            data: UpdateHelper.filterReleaseNotes(
+              widget.releaseInfo.releaseNotes,
+              Translator.currentLanguage,
+            ),
+            selectable: true,
+            softLineBreak: true,
+            styleSheet: MarkdownStyleSheet.fromTheme(
+              Theme.of(context),
+            ).copyWith(
+              p: Theme.of(context).textTheme.bodyMedium?.copyWith(fontSize: 14),
+              h1: Theme.of(context).textTheme.titleLarge?.copyWith(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+              h2: Theme.of(context).textTheme.titleMedium?.copyWith(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+              ),
+              h3: Theme.of(context).textTheme.titleSmall?.copyWith(
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+              ),
+              listBullet:
+                  Theme.of(context).textTheme.bodyMedium?.copyWith(fontSize: 14),
+            ),
+            onTapLink: (text, href, title) async {
+              if (href != null) {
+                final uri = Uri.tryParse(href);
+                if (uri != null) {
+                  try {
+                    await launchUrl(uri, mode: LaunchMode.externalApplication);
+                  } catch (e) {
+                    debugPrint('Could not launch URL: $e');
+                  }
+                }
+              }
+            },
+          ),
           const SizedBox(height: 16),
           Container(
             padding: const EdgeInsets.all(12),
@@ -197,8 +241,15 @@ class _DowngradeDialogState extends State<DowngradeDialog> {
     } else if (_currentStep == DowngradeStep.backup) {
       return [
         TextButton(
-          onPressed: () =>
-              setState(() => _currentStep = DowngradeStep.finalWarning),
+          onPressed: _isBackingUp
+              ? null
+              : () => setState(() => _currentStep = DowngradeStep.info),
+          child: Text(Translator.get('back', fallback: 'Zurück')),
+        ),
+        TextButton(
+          onPressed: _isBackingUp
+              ? null
+              : () => setState(() => _currentStep = DowngradeStep.finalWarning),
           child: Text(
             Translator.get(
               'downgrade_backup_skip',
@@ -207,27 +258,59 @@ class _DowngradeDialogState extends State<DowngradeDialog> {
           ),
         ),
         ElevatedButton(
-          onPressed: () async {
-            final provider = Provider.of<DexProvider>(context, listen: false);
-            await DexStorageService.exportDexes(provider.userDexes, provider);
-            if (mounted) {
-              setState(() => _currentStep = DowngradeStep.finalWarning);
-            }
-          },
+          onPressed: _isBackingUp
+              ? null
+              : () async {
+                  setState(() => _isBackingUp = true);
+                  try {
+                    final provider =
+                        Provider.of<DexProvider?>(context, listen: false);
+                    if (provider != null) {
+                      await DexStorageService.exportDexes(
+                        provider.userDexes,
+                        provider,
+                      );
+                    }
+                    if (mounted) {
+                      setState(() {
+                        _isBackingUp = false;
+                        _currentStep = DowngradeStep.finalWarning;
+                      });
+                    }
+                  } catch (e) {
+                    if (mounted) {
+                      setState(() => _isBackingUp = false);
+                      NotificationHelper.showError('${Translator.get('error')} $e');
+                    }
+                  }
+                },
           style: ElevatedButton.styleFrom(
             backgroundColor: Theme.of(context).colorScheme.primary,
             foregroundColor: Theme.of(context).colorScheme.onPrimary,
           ),
-          child: Text(
-            Translator.get(
-              'downgrade_backup_create',
-              fallback: 'Backup erstellen',
-            ),
-          ),
+          child: _isBackingUp
+              ? const SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: Colors.white,
+                  ),
+                )
+              : Text(
+                  Translator.get(
+                    'downgrade_backup_create',
+                    fallback: 'Backup erstellen',
+                  ),
+                ),
         ),
       ];
     } else {
       return [
+        TextButton(
+          onPressed: () => setState(() => _currentStep = DowngradeStep.backup),
+          child: Text(Translator.get('back', fallback: 'Zurück')),
+        ),
         TextButton(
           onPressed: () => Navigator.pop(context),
           child: Text(Translator.get('cancel')),

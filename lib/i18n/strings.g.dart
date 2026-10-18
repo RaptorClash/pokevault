@@ -4,9 +4,9 @@
 /// To regenerate, run: `dart run slang`
 ///
 /// Locales: 2
-/// Strings: 3024 (1512 per locale)
+/// Strings: 3030 (1515 per locale)
 ///
-/// Built on 2026-10-18 at 15:47 UTC
+/// Built on 2026-10-18 at 17:24 UTC
 
 // coverage:ignore-file
 // ignore_for_file: type=lint
@@ -155,6 +155,7 @@ class Translations implements BaseTranslations<AppLocale, Translations> {
 	String get create_dex_title => 'Neuen Dex anlegen';
 	String get create_dex_hint => 'Name (z.B. Mein Run)';
 	String get cancel => 'Abbrechen';
+	String get back => 'Zurück';
 	String get create => 'Erstellen';
 	String get region => 'Region';
 	String get caught => 'Gefangen';
@@ -754,6 +755,8 @@ class Translations implements BaseTranslations<AppLocale, Translations> {
 	String get up_to_date => 'Die App ist auf dem neuesten Stand.';
 	String get new_version => 'Neue Version';
 	String get update_backup_warning => 'Tipp: Exportiere zur Sicherheit deine PokéDexe über die Einstellungen (Datenverwaltung), bevor du das Update durchführst!';
+	String get update_backup_button => 'Backup jetzt erstellen';
+	String get update_backup_done => 'Backup erstellt ✓';
 	String get downgrades_title => 'Vorherige Versionen (Downgrades)';
 	String get attention_downgrade => 'Achtung: Downgrade';
 	String get downgrade_warning_text => 'Du bist dabei, auf eine ältere Version der App zurückzukehren. Dabei können neue Funktionen verloren gehen oder Inkompatibilitäten auftreten.\n\nWICHTIG FÜR ANDROID: Android blockiert direkte Downgrades. Du musst die App erst deinstallieren und die heruntergeladene APK manuell installieren.\n\nBitte exportiere VORHER unbedingt deine Dexe in den Einstellungen als Backup!';
@@ -1695,6 +1698,7 @@ class _StringsEn extends Translations {
 	@override String get create_dex_title => 'Create new Dex';
 	@override String get create_dex_hint => 'Name (e.g. My Run)';
 	@override String get cancel => 'Cancel';
+	@override String get back => 'Back';
 	@override String get create => 'Create';
 	@override String get region => 'Region';
 	@override String get caught => 'Caught';
@@ -2306,6 +2310,8 @@ class _StringsEn extends Translations {
 	@override String get up_to_date => 'The app is up to date.';
 	@override String get new_version => 'New Version';
 	@override String get update_backup_warning => 'Tip: Please export your PokéDexes via the settings (Data Management) as a backup before updating!';
+	@override String get update_backup_button => 'Create backup now';
+	@override String get update_backup_done => 'Backup created ✓';
 	@override String get downgrades_title => 'Previous versions (downgrades)';
 	@override String get attention_downgrade => 'Attention: Downgrade';
 	@override String get downgrade_warning_text => 'You are about to revert to an older version of the app. This may result in the loss of new features or cause incompatibilities.\n\nIMPORTANT FOR ANDROID: Android blocks direct downgrades. You must first uninstall the app and manually install the downloaded APK.\n\nPlease make sure to export your Pokédexes in the settings as a backup beforehand!';
@@ -3215,6 +3221,7 @@ extension on Translations {
 			case 'create_dex_title': return 'Neuen Dex anlegen';
 			case 'create_dex_hint': return 'Name (z.B. Mein Run)';
 			case 'cancel': return 'Abbrechen';
+			case 'back': return 'Zurück';
 			case 'create': return 'Erstellen';
 			case 'region': return 'Region';
 			case 'caught': return 'Gefangen';
@@ -3814,6 +3821,8 @@ extension on Translations {
 			case 'up_to_date': return 'Die App ist auf dem neuesten Stand.';
 			case 'new_version': return 'Neue Version';
 			case 'update_backup_warning': return 'Tipp: Exportiere zur Sicherheit deine PokéDexe über die Einstellungen (Datenverwaltung), bevor du das Update durchführst!';
+			case 'update_backup_button': return 'Backup jetzt erstellen';
+			case 'update_backup_done': return 'Backup erstellt ✓';
 			case 'downgrades_title': return 'Vorherige Versionen (Downgrades)';
 			case 'attention_downgrade': return 'Achtung: Downgrade';
 			case 'downgrade_warning_text': return 'Du bist dabei, auf eine ältere Version der App zurückzukehren. Dabei können neue Funktionen verloren gehen oder Inkompatibilitäten auftreten.\n\nWICHTIG FÜR ANDROID: Android blockiert direkte Downgrades. Du musst die App erst deinstallieren und die heruntergeladene APK manuell installieren.\n\nBitte exportiere VORHER unbedingt deine Dexe in den Einstellungen als Backup!';
@@ -4735,6 +4744,7 @@ extension on _StringsEn {
 			case 'create_dex_title': return 'Create new Dex';
 			case 'create_dex_hint': return 'Name (e.g. My Run)';
 			case 'cancel': return 'Cancel';
+			case 'back': return 'Back';
 			case 'create': return 'Create';
 			case 'region': return 'Region';
 			case 'caught': return 'Caught';
@@ -5346,6 +5356,8 @@ extension on _StringsEn {
 			case 'up_to_date': return 'The app is up to date.';
 			case 'new_version': return 'New Version';
 			case 'update_backup_warning': return 'Tip: Please export your PokéDexes via the settings (Data Management) as a backup before updating!';
+			case 'update_backup_button': return 'Create backup now';
+			case 'update_backup_done': return 'Backup created ✓';
 			case 'downgrades_title': return 'Previous versions (downgrades)';
 			case 'attention_downgrade': return 'Attention: Downgrade';
 			case 'downgrade_warning_text': return 'You are about to revert to an older version of the app. This may result in the loss of new features or cause incompatibilities.\n\nIMPORTANT FOR ANDROID: Android blocks direct downgrades. You must first uninstall the app and manually install the downloaded APK.\n\nPlease make sure to export your Pokédexes in the settings as a backup beforehand!';

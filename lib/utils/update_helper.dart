@@ -327,4 +327,192 @@ rm -f "$shPath"
     await Process.start('sh', [shPath], mode: ProcessStartMode.detached);
     exit(0);
   }
+
+  /// Filters the release notes by language.
+  /// If the release notes contain language-specific sections (e.g. `## 🇬🇧 English`, `## 🇩🇪 Deutsch`),
+  /// only the section matching [targetLang] is shown.
+  /// If [targetLang] is not found, it falls back to 'en' (English).
+  /// If neither is found or no language headers exist, the original notes are returned.
+  static String filterReleaseNotes(String notes, String targetLang) {
+    if (notes.trim().isEmpty) return notes;
+
+    final normalizedNotes = notes.replaceAll('\r\n', '\n').replaceAll('\r', '\n');
+    final lines = normalizedNotes.split('\n');
+    final headerRegex = RegExp(r'^(#{1,6})\s+(.+)$');
+
+    // First pass: find all language headers and determine language header level
+    int? langHeaderLevel;
+    final List<int> langHeaderIndices = [];
+    final List<String> langHeaderLangs = [];
+
+    for (int i = 0; i < lines.length; i++) {
+      final match = headerRegex.firstMatch(lines[i]);
+      if (match != null) {
+        final level = match.group(1)!.length;
+        final title = match.group(2)!.trim();
+        final lang = _detectLanguage(title);
+
+        if (lang != null) {
+          if (langHeaderLevel == null) {
+            langHeaderLevel = level;
+            langHeaderIndices.add(i);
+            langHeaderLangs.add(lang);
+          } else if (level <= langHeaderLevel) {
+            langHeaderIndices.add(i);
+            langHeaderLangs.add(lang);
+          }
+        }
+      }
+    }
+
+    // If no language headers were found, return the notes as is (with normalized newlines)
+    if (langHeaderIndices.isEmpty) {
+      return normalizedNotes;
+    }
+
+    // Preamble: lines before the first language header
+    final preamble = lines.sublist(0, langHeaderIndices.first).join('\n').trim();
+
+    // Parse sections
+    final Map<String, String> sections = {};
+    String? commonFooter;
+
+    for (int k = 0; k < langHeaderIndices.length; k++) {
+      final startIndex = langHeaderIndices[k];
+      final currentLang = langHeaderLangs[k];
+      int endIndex = lines.length;
+
+      if (k + 1 < langHeaderIndices.length) {
+        endIndex = langHeaderIndices[k + 1];
+      } else {
+        // Last language section: check if there's a common footer after it
+        for (int j = startIndex + 1; j < lines.length; j++) {
+          final line = lines[j];
+          final match = headerRegex.firstMatch(line);
+          final isFooterHeader =
+              match != null && match.group(1)!.length <= langHeaderLevel!;
+          final isGithubChangelog =
+              line.trim().startsWith('**Full Changelog**:');
+          if (isFooterHeader || isGithubChangelog) {
+            endIndex = j;
+            commonFooter = lines.sublist(j).join('\n').trim();
+            break;
+          }
+        }
+      }
+
+      var sectionLines = lines.sublist(startIndex, endIndex);
+      // Remove trailing horizontal rules / dividers and empty lines
+      while (sectionLines.isNotEmpty &&
+          (sectionLines.last.trim().isEmpty ||
+              RegExp(r'^[-*_]{3,}$').hasMatch(sectionLines.last.trim()))) {
+        sectionLines = sectionLines.sublist(0, sectionLines.length - 1);
+      }
+      final sectionText = sectionLines.join('\n').trim();
+      sections[currentLang] = sectionText;
+    }
+
+    // Select the best matching section:
+    // 1. Target language exact / prefix (e.g. 'de' for 'de_DE' / 'de-AT')
+    // 2. English ('en')
+    // 3. First available language section
+    String selectedSection = '';
+    final normalizedTarget = targetLang.toLowerCase().trim();
+    final cleanTarget = normalizedTarget.split(RegExp(r'[-_]')).first;
+
+    if (sections.containsKey(normalizedTarget)) {
+      selectedSection = sections[normalizedTarget]!;
+    } else if (sections.containsKey(cleanTarget)) {
+      selectedSection = sections[cleanTarget]!;
+    } else if (sections.containsKey('en')) {
+      selectedSection = sections['en']!;
+    } else if (sections.isNotEmpty) {
+      selectedSection = sections.values.first;
+    }
+
+    // Build final output
+    final parts = <String>[];
+    if (preamble.isNotEmpty) {
+      parts.add(preamble);
+    }
+    if (selectedSection.isNotEmpty) {
+      parts.add(selectedSection);
+    }
+    if (commonFooter != null && commonFooter.isNotEmpty) {
+      parts.add(commonFooter);
+    }
+
+    return parts.join('\n\n');
+  }
+
+  static bool _hasLangTag(String title, String code) {
+    final lower = title.toLowerCase().trim();
+    if (lower == code) return true;
+    if (RegExp(r'[\[\(\{]' + code + r'[\]\)\}]').hasMatch(lower)) return true;
+    if (RegExp(r'^' + code + r'\s*[:\-\–\|\/]').hasMatch(lower)) return true;
+    if (RegExp(r'[:\-\–\|\/]\s*' + code + r'$').hasMatch(lower)) return true;
+    if (RegExp(r'^' + code + r'\s+').hasMatch(lower)) return true;
+    return false;
+  }
+
+  static String? _detectLanguage(String title) {
+    final lower = title.toLowerCase();
+
+    // German
+    if (title.contains('🇩🇪') ||
+        title.contains('🇦🇹') ||
+        title.contains('🇨🇭') ||
+        lower.contains('deutsch') ||
+        lower.contains('german') ||
+        _hasLangTag(title, 'de')) {
+      return 'de';
+    }
+
+    // English
+    if (title.contains('🇬🇧') ||
+        title.contains('🇺🇸') ||
+        lower.contains('english') ||
+        lower.contains('englisch') ||
+        _hasLangTag(title, 'en')) {
+      return 'en';
+    }
+
+    // Spanish
+    if (title.contains('🇪🇸') ||
+        title.contains('🇲🇽') ||
+        lower.contains('español') ||
+        lower.contains('espanol') ||
+        lower.contains('spanish') ||
+        _hasLangTag(title, 'es')) {
+      return 'es';
+    }
+
+    // French
+    if (title.contains('🇫🇷') ||
+        lower.contains('français') ||
+        lower.contains('francais') ||
+        lower.contains('french') ||
+        _hasLangTag(title, 'fr')) {
+      return 'fr';
+    }
+
+    // Italian
+    if (title.contains('🇮🇹') ||
+        lower.contains('italiano') ||
+        lower.contains('italian') ||
+        _hasLangTag(title, 'it')) {
+      return 'it';
+    }
+
+    // Japanese
+    if (title.contains('🇯🇵') ||
+        lower.contains('japanese') ||
+        lower.contains('japanisch') ||
+        title.contains('日本語') ||
+        _hasLangTag(title, 'ja')) {
+      return 'ja';
+    }
+
+    return null;
+  }
 }
