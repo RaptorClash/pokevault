@@ -5,7 +5,15 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../models/user_dex.dart';
 import 'database_service.dart';
 
+/// Service handling one-time legacy data migration from SharedPreferences to SQLite.
+///
+/// Migrates Dexes, folders, and folder structures previously serialized as JSON strings
+/// in [SharedPreferences] into normalized [DatabaseService] SQLite tables.
 class MigrationService {
+  /// Checks whether legacy JSON data exists in SharedPreferences and migrates it to [db].
+  ///
+  /// Returns `true` if migration occurred successfully, or `false` if already migrated
+  /// or no legacy data was found.
   static Future<bool> migrateOldDataIfNeeded(DatabaseService db) async {
     final prefs = await SharedPreferences.getInstance();
     bool isMigrated = prefs.getBool('migrated_to_sqlite_v2') ?? false;

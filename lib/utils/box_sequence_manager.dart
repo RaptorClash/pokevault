@@ -1,24 +1,51 @@
 import '../models/user_dex.dart';
 import 'dex_logic_helper.dart';
 
+/// Pattern classification for box titles to detect sequential ordering.
 enum BoxPatternType {
+  /// Simple numbered boxes (e.g. "Box 1", "Box 2").
   numbered,
+
+  /// Pure numeric range boxes without text prefix (e.g. "1-30", "31-60").
   pureRange,
+
+  /// Range boxes with an alphanumeric prefix (e.g. "Kanto 1-30", "Gen 1 (1-30)").
   prefixRange,
+
+  /// Standalone boxes that do not belong to any auto-shifting sequence (e.g. "Shinies", "Trade").
   standalone,
 }
 
+/// Extracted metadata from a parsed box title pattern.
 class BoxPatternInfo {
+  /// The detected pattern classification type.
   final BoxPatternType type;
+
+  /// Normalized prefix or grouping key used to identify sequence siblings.
   final String groupKey;
+
+  /// Numeric sequence index (e.g. 1 for "Box 1").
   final int? index;
+
+  /// Starting range number (e.g. 1 for "1-30").
   final int? rangeStart;
+
+  /// Ending range number (e.g. 30 for "1-30").
   final int? rangeEnd;
+
+  /// Step size between consecutive range intervals (e.g. 30 for "1-30").
   final int? step;
+
+  /// Raw textual prefix before numbers or parenthesized range.
   final String prefix;
+
+  /// Zero-padding width if numbers are padded (e.g. 3 for "Box 001").
   final int padWidth;
+
+  /// Whether the range bounds were enclosed in parentheses.
   final bool hasParens;
 
+  /// Creates a [BoxPatternInfo] instance with extracted pattern fields.
   const BoxPatternInfo({
     required this.type,
     required this.groupKey,
@@ -46,22 +73,32 @@ class _BatchTarget {
   _BatchTarget(this.boxIndex, this.slotIndex, this.box, this.pokemonId);
 }
 
+/// Encapsulates drag-and-drop payload data for a Pokémon box slot.
 class BoxSlotDragData {
+  /// Index of the source box in the dex box list.
   final int boxIndex;
+
+  /// Index of the source slot inside the box.
   final int slotIndex;
+
+  /// Unique identifier of the dragged Pokémon.
   final String uniqueId;
 
+  /// Creates a [BoxSlotDragData] payload.
   const BoxSlotDragData({
     required this.boxIndex,
     required this.slotIndex,
     required this.uniqueId,
   });
 
+  /// String prefix identifying a serialized slot drag payload.
   static const String prefix = 'SLOT:';
 
+  /// Serializes box, slot, and Pokémon ID into a transferable string format.
   static String serialize(int boxIndex, int slotIndex, String uniqueId) =>
       '$prefix$boxIndex:$slotIndex:$uniqueId';
 
+  /// Attempts to parse a serialized drag string back into a [BoxSlotDragData] instance.
   static BoxSlotDragData? tryParse(String? data) {
     if (data == null || !data.startsWith(prefix)) return null;
     final parts = data.substring(prefix.length).split(':');
@@ -74,6 +111,7 @@ class BoxSlotDragData {
   }
 }
 
+/// Manages intelligent box sequencing, cascading item overflow, auto-shifting, and range title generation.
 class BoxSequenceManager {
   static final _pureRangeRegex = RegExp(r'^\s*(\d+)\s*[\-–—]\s*(\d+)\s*$');
   static final _prefixRangeParenRegex = RegExp(

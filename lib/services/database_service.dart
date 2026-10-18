@@ -14,7 +14,19 @@ import '../models/ribbon.dart';
 import '../models/shiny_hunt.dart';
 import 'database_path_helper.dart';
 
+/// Central database service providing access to the application's SQLite databases.
+///
+/// Implements a dual-database architecture:
+/// 1. **Reference Database** (`pokedex.sqlite` accessed via [appDatabase]):
+///    A read-only database extracted from assets containing all static game data,
+///    including Pokémon definitions, forms, moves, abilities, ribbons, marks,
+///    encounters, catch rates, and legal Pokéballs.
+/// 2. **User Database** (`user_data.sqlite` accessed via [userDatabase]):
+///    A read-write database persisting user-created Dexes, custom folder hierarchies,
+///    caught statuses, shiny tracking, and active Shiny Hunts. Features idempotent
+///    schema migrations and downgrade tolerance.
 class DatabaseService {
+  /// The singleton instance of [DatabaseService].
   static final DatabaseService instance = DatabaseService._init();
   static Database? _appDatabase;
   static Database? _userDatabase;
@@ -32,6 +44,10 @@ class DatabaseService {
 
   DatabaseService._init();
 
+  /// Returns the read-only application database (`pokedex.sqlite`).
+  ///
+  /// Automatically checks for bundle asset updates against the stored version
+  /// and applies indexes upon opening.
   Future<Database> get appDatabase async {
     if (_appDatabase != null && _appDatabase!.isOpen) return _appDatabase!;
     _appDatabase = await _initAppDB('pokedex.sqlite');
@@ -110,6 +126,10 @@ class DatabaseService {
     );
   }
 
+  /// Returns the read-write user database (`user_data.sqlite`).
+  ///
+  /// Opens with WAL journal mode, enables foreign keys, performs idempotent
+  /// schema upgrades, and verifies secondary indexes.
   Future<Database> get userDatabase async {
     if (_userDatabase != null && _userDatabase!.isOpen) return _userDatabase!;
     _userDatabase = await _initUserDB('user_data.sqlite');
@@ -147,6 +167,7 @@ class DatabaseService {
     );
   }
 
+  /// Creates all core user data tables (`user_dexes`, `folders`, `folder_structure`, `user_pokemon`, `shiny_hunts`).
   static Future<void> createUserDataTables(Database db, int version) async {
     try {
       await db.execute('''
@@ -240,6 +261,7 @@ class DatabaseService {
     }
   }
 
+  /// Adds a new column to [table] if it does not already exist.
   static Future<void> addColumnIfNotExists(
     DatabaseExecutor db,
     String table,
@@ -253,6 +275,10 @@ class DatabaseService {
     }
   }
 
+  /// Handles database downgrade scenarios non-destructively.
+  ///
+  /// Prevents crashes when switching to older app versions by preserving
+  /// all existing tables, columns, and rows without data loss.
   static Future<void> downgradeUserDataTables(
     Database db,
     int oldVersion,
@@ -292,6 +318,9 @@ class DatabaseService {
     }
   }
 
+  /// Ensures high-performance B-tree indexes are present on user data tables.
+  ///
+  /// Optimizes queries across folders, shiny hunts, and dex listings.
   static Future<void> ensureUserDataIndexes(DatabaseExecutor db) async {
     await _createIndexIfTableExists(db, 'folder_structure', 'idx_folder_structure_child', 'child_id');
     await _createIndexIfTableExists(db, 'folder_structure', 'idx_folder_structure_parent_order', 'parent_id, deleted_at, order_index');
@@ -302,6 +331,9 @@ class DatabaseService {
     await _createIndexIfTableExists(db, 'folders', 'idx_folders_deleted_updated', 'deleted_at, updated_at DESC');
   }
 
+  /// Ensures composite and lookup indexes are created on large static app database tables.
+  ///
+  /// Speeds up join operations on moves, abilities, forms, and encounters.
   static Future<void> ensureAppDatabaseIndexes(DatabaseExecutor db) async {
     await _createIndexIfTableExists(db, 'pokemon_moves', 'idx_pokemon_moves_move_id', 'move_id');
     await _createIndexIfTableExists(db, 'pokemon_moves', 'idx_pokemon_moves_poke_vg', 'pokemon_id, version_group');
@@ -350,6 +382,7 @@ class DatabaseService {
     await db.execute('PRAGMA optimize;');
   }
 
+  /// Upgrades user database schema sequentially across versions using idempotent alter table statements.
   static Future<void> upgradeUserDataTables(
     Database db,
     int oldVersion,
@@ -477,6 +510,7 @@ class DatabaseService {
     }
   }
 
+  /// Returns all Pokémon from the reference database including their forms.
   Future<List<Pokemon>> getAllPokemon() async {
     final db = await instance.appDatabase;
     final pokeMaps = await db.query('pokemon');
@@ -498,6 +532,7 @@ class DatabaseService {
         .toList();
   }
 
+  /// Returns an index mapping of all regional and special Pokédex names to ordered lists of Pokémon IDs.
   Future<Map<String, List<int>>> getAllDexOrders() async {
     final db = await instance.appDatabase;
     final maps = await db.query(
@@ -523,6 +558,7 @@ class DatabaseService {
     return result;
   }
 
+  /// Returns a map associating Pokéball identifiers with their icon URLs.
   Future<Map<String, String>> getBallUrls() async {
     final db = await instance.appDatabase;
     final maps = await db.query('ball_urls');
@@ -534,6 +570,7 @@ class DatabaseService {
     return result;
   }
 
+  /// Returns wild encounter locations and methods for [pokemonId] grouped by generation and version.
   Future<Map<String, Map<String, List<String>>>?> getEncounters(
     int pokemonId,
   ) async {
@@ -558,6 +595,7 @@ class DatabaseService {
     return result;
   }
 
+  /// Returns the parsed JSON evolution chain for [chainId], or `null` if not found.
   Future<Map<String, dynamic>?> getEvolutionChain(int chainId) async {
     if (chainId == -1) return null;
     final db = await instance.appDatabase;
@@ -572,6 +610,7 @@ class DatabaseService {
     return null;
   }
 
+  /// Returns legal and recommended Pokéball lists for [uniqueId] in normal and shiny variations.
   Future<Map<String, dynamic>?> getMatchingBalls(String uniqueId) async {
     final db = await instance.appDatabase;
     var maps = await db.query(
@@ -597,6 +636,7 @@ class DatabaseService {
     return null;
   }
 
+  /// Returns all active [UserDex] instances and their associated Pokémon states.
   Future<List<UserDex>> getAllUserDexes() async {
     final db = await instance.userDatabase;
     final dexMaps = await db.query(
@@ -637,6 +677,7 @@ class DatabaseService {
     return dexes;
   }
 
+  /// Inserts or updates the [dex] configuration non-destructively in local SQLite.
   Future<void> saveUserDex(UserDex dex) async {
     final db = await instance.userDatabase;
     Map<String, dynamic> dexMap = dex.toMap();
@@ -666,6 +707,7 @@ class DatabaseService {
     await db.rawInsert(sql, cols.map((c) => dexMap[c]).toList());
   }
 
+  /// Soft-deletes the user Dex identified by [dexId] and removes it from folder structures.
   Future<void> deleteUserDex(String dexId) async {
     final db = await instance.userDatabase;
     int now = DateTime.now().toUtc().millisecondsSinceEpoch;
@@ -683,6 +725,7 @@ class DatabaseService {
     );
   }
 
+  /// Persists caught, shiny, alpha, ribbon, tera, and language attributes for a Pokémon in a Dex.
   Future<void> savePokemonStatus(
     String dexId,
     String uniqueId, {

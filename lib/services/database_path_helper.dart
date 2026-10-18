@@ -3,7 +3,20 @@ import 'package:universal_io/io.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 
+/// Helper for resolving portable SQLite database paths and migrating legacy locations.
+///
+/// Ensures database files (`user_data.sqlite` and `pokedex.sqlite`) are stored
+/// in a portable directory adjacent to the executable or project workspace,
+/// rather than polluting the user's system Documents directory.
+///
+/// Path resolution rules:
+/// * **Web**: Returns empty string (in-memory or IndexedDB handled via FFI Web).
+/// * **Development (Desktop)**: `<project_root>/database` if `pubspec.yaml` is present.
+/// * **Release / Portable (Desktop)**: `<exe_dir>/database` next to the executable.
+/// * **Read-Only Fallback**: `<app_support_dir>/database` if target directory lacks write permission.
+/// * **Mobile (Android/iOS)**: `<app_support_dir>/database`.
 class DatabasePathHelper {
+  /// Test override for simulating a specific working directory.
   @visibleForTesting
   static Directory? overrideCurrentDirectory;
 
@@ -38,7 +51,10 @@ class DatabasePathHelper {
     return Platform.isWindows || Platform.isLinux || Platform.isMacOS;
   }
 
-  /// Resolves the portable database directory path.
+  /// Resolves the portable database directory path for the current platform.
+  ///
+  /// Verifies directory existence and write permissions via a probe file before returning.
+  /// Falls back to application support directory if the primary location is read-only.
   static Future<String> resolveDatabaseDirectory() async {
     if (kIsWeb) return '';
 
@@ -103,14 +119,21 @@ class DatabasePathHelper {
     return dbDir.path;
   }
 
-  /// Resolves the absolute path for a database file.
+  /// Resolves the absolute path for a SQLite database file with the given [fileName].
+  ///
+  /// On Web, returns [fileName] directly since virtual storage is used.
+  /// On Desktop and Mobile, joins [fileName] with [resolveDatabaseDirectory].
   static Future<String> resolveDatabasePath(String fileName) async {
     if (kIsWeb) return fileName;
     final dir = await resolveDatabaseDirectory();
     return p.join(dir, fileName);
   }
 
-  /// Migrates user_data.sqlite and pokedex.sqlite (plus WAL & SHM) from the Documents directory.
+  /// Migrates `user_data.sqlite` and `pokedex.sqlite` (plus WAL & SHM) from the Documents directory.
+  ///
+  /// Inspects the legacy Documents folder for previously stored databases, copies them
+  /// safely to the new portable database directory, resolves modification timestamp
+  /// conflicts with automatic backups, and removes obsolete files after verification.
   static Future<void> migrateLegacyDocumentsDatabasesIfNeeded() async {
     if (kIsWeb) return;
     if (overrideDocumentsDirectory == null && Platform.environment.containsKey('FLUTTER_TEST')) {

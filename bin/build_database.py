@@ -1,3 +1,14 @@
+"""Compiles the offline pokedex.sqlite SQLite database for PokéVault.
+
+Aggregates data from multiple sources:
+- Local PokeAPI JSON dumps (`bin/api-data/`).
+- External HTML reference scrapers (Bulbapedia ribbons/trades, PokéWiki marks/ribbons).
+- Legal matching Pokéballs spreadsheet (`bin/Legal_Matching_Pokeballs.xlsx`).
+- Regional dex orders, encounters, evolution trees, abilities, and moves.
+
+Outputs the unified `assets/db/pokedex.sqlite` database bundle.
+"""
+
 import urllib.request
 import urllib.error
 import json
@@ -12,10 +23,12 @@ from database_constants import *
 POKEMON_NAME_TO_ID = {}
 
 def normalize_name(name):
+    """Normalizes Pokémon names for alphanumeric dictionary lookups."""
     n = name.lower().replace('♀', 'f').replace('♂', 'm')
     return re.sub(r'[^a-z0-9]', '', n)
 
 def get_id_by_name(name):
+    """Resolves national Pokédex ID by normalized Pokémon name."""
     n = normalize_name(name)
     if not n: return -1 
     return POKEMON_NAME_TO_ID.get(n, -1)
@@ -23,6 +36,7 @@ def get_id_by_name(name):
 API_CACHE = {}
 
 def fetch_json(url_or_path):
+    """Fetches PokeAPI JSON data, preferring local submodule cache files over network requests."""
     if url_or_path.startswith("/api/v2/"):
         url_or_path = "https://pokeapi.co" + url_or_path
 
@@ -561,6 +575,12 @@ def scrape_shiny_locks(html_path):
     return locks
         
 def main():
+    """Compiles the complete pokedex.sqlite SQLite database from raw sources.
+
+    Creates schemas, runs HTML scrapers, parses Excel legal Pokéballs,
+    inserts Pokémon entities, forms, ribbons, marks, moves, abilities,
+    and builds required indexes.
+    """
     os.makedirs('assets/db', exist_ok=True)
 
     if os.path.exists('assets/db/pokedex.sqlite'):

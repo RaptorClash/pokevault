@@ -1,3 +1,10 @@
+"""Automated scraper and updater for Pokédex reference assets.
+
+Fetches external web documentation, HTML tables, and Excel sheets (Bulbapedia,
+PokéWiki, Bisafans) into the `bin/` directory and synchronizes Git submodules
+prior to executing database compilation (`bin/build_database.py`).
+"""
+
 import os
 import urllib.request
 import subprocess
@@ -71,6 +78,7 @@ DOWNLOADS = [
 
 
 def download_file(url, filepath):
+    """Downloads a file from [url] and writes it to [filepath]."""
     print(f"Lade herunter: {filepath}...")
     req = urllib.request.Request(
         url, headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"}
@@ -90,6 +98,7 @@ def download_file(url, filepath):
 
 
 def main():
+    """Executes file downloads and updates git submodules."""
     os.makedirs(BIN_DIR, exist_ok=True)
 
     print("=== DATEIEN WERDEN HERUNTERGELADEN ===")

@@ -9,6 +9,7 @@ import '../../../../utils/update_helper.dart';
 import '../../../../services/dex_storage_service.dart';
 import '../../../widgets/dialogs/update_dialog.dart';
 import '../downgrade_screen.dart';
+import '../controls_guide_screen.dart';
 import 'settings_helper.dart';
 
 class UpdatesCard extends StatelessWidget {
@@ -114,6 +115,32 @@ class GeneralCard extends StatelessWidget {
                 subtitle: Text(Translator.get('current_language')),
                 trailing: const Icon(Icons.arrow_forward_ios, size: 16),
                 onTap: () => _showLanguageDialog(context, settingsProvider),
+              ),
+              const Divider(height: 1),
+              ListTile(
+                leading: const Icon(
+                  Icons.sports_esports_outlined,
+                  color: Colors.blueAccent,
+                ),
+                title: Text(
+                  Translator.get(
+                    'controls_guide_title',
+                    fallback: 'Bedienung & Tastaturkürzel',
+                  ),
+                ),
+                subtitle: Text(
+                  Translator.get(
+                    'controls_guide_sub',
+                    fallback: 'Shortcuts, Maus- & Touch-Gesten',
+                  ),
+                ),
+                trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const ControlsGuideScreen(),
+                  ),
+                ),
               ),
               const Divider(height: 1),
               ListTile(

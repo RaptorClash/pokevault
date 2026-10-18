@@ -14,23 +14,47 @@ import '../services/google_drive_sync_service.dart';
 import '../models/ribbon.dart';
 import '../models/shiny_hunt.dart';
 
+/// Primary application state provider managing user Dexes, folders, and cloud synchronization.
+///
+/// Coordinates:
+/// * Loading static Pokédex reference data from SQLite.
+/// * Managing user-created Dexes, caught/shiny status mutations, and box configurations.
+/// * Managing folder hierarchies and custom ordering.
+/// * Periodic and debounced cloud synchronization with Google Drive.
+/// * Lifecycle hooks for dependent providers (e.g. [ShinyHuntProvider]).
 class DexProvider extends ChangeNotifier with WidgetsBindingObserver {
+  /// All user-created Pokédex configurations loaded from local storage.
   List<UserDex> userDexes = [];
+
+  /// User-created folder containers for organizing Dexes.
   List<DexFolder> folders = [];
+
+  /// Adjacency-list mapping representing the visual folder and Dex hierarchy.
   Map<String, List<String>> structure = {'root': []};
 
+  /// Cached master list of all Pokémon entities from the reference database.
   List<Pokemon> allPokemon = [];
+
+  /// Mapping of regional Dex keys to ordered lists of national Pokémon IDs.
   Map<String, List<int>> allAvailableDexes = {};
+
+  /// Mapping of Pokéball identifiers to their image asset/network URLs.
   Map<String, String> ballUrls = {};
 
   bool _isInitialized = false;
+
+  /// Whether the initial database and cache loading sequence has completed.
   bool get isInitialized => _isInitialized;
   bool _isDisposed = false;
   Future<void>? _initFuture;
+
+  /// Future that completes when the provider is fully initialized.
   Future<void> get initialized => _initFuture ?? Future.value();
 
+  /// Whether an active legacy data migration is currently in progress.
   bool isMigrating = false;
 
+  /// Underlying SQLite database service instance.
   final DatabaseService db;
 
   Timer? _uploadDebouncer;
@@ -38,38 +62,46 @@ class DexProvider extends ChangeNotifier with WidgetsBindingObserver {
   DateTime? _lastSyncTime;
   bool _isSyncing = false;
   bool _hasPendingChanges = false;
+
+  /// Master list of all available ribbons in the franchise.
   List<Ribbon> allRibbons = [];
 
   final List<Future<void> Function()> _beforeUploadHooks = [];
   final List<Future<void> Function()> _beforeMergeHooks = [];
   final List<Future<void> Function()> _cloudDataMergedHooks = [];
 
+  /// Registers an asynchronous callback executed immediately before uploading local data to cloud.
   void registerBeforeUploadHook(Future<void> Function() hook) {
     if (!_beforeUploadHooks.contains(hook)) {
       _beforeUploadHooks.add(hook);
     }
   }
 
+  /// Removes a previously registered upload hook callback.
   void unregisterBeforeUploadHook(Future<void> Function() hook) {
     _beforeUploadHooks.remove(hook);
   }
 
+  /// Registers an asynchronous callback executed before merging downloaded cloud data.
   void registerBeforeMergeHook(Future<void> Function() hook) {
     if (!_beforeMergeHooks.contains(hook)) {
       _beforeMergeHooks.add(hook);
     }
   }
 
+  /// Removes a previously registered merge hook callback.
   void unregisterBeforeMergeHook(Future<void> Function() hook) {
     _beforeMergeHooks.remove(hook);
   }
 
+  /// Registers an asynchronous callback executed after cloud data has been merged.
   void registerCloudDataMergedHook(Future<void> Function() hook) {
     if (!_cloudDataMergedHooks.contains(hook)) {
       _cloudDataMergedHooks.add(hook);
     }
   }
 
+  /// Removes a previously registered cloud data merged callback.
   void unregisterCloudDataMergedHook(Future<void> Function() hook) {
     _cloudDataMergedHooks.remove(hook);
   }
@@ -90,8 +122,10 @@ class DexProvider extends ChangeNotifier with WidgetsBindingObserver {
     });
   }
 
+  /// Triggers a state refresh by notifying all active listeners.
   void forceRefresh() { notifyListeners(); }
 
+  /// Updates sorting preferences (mega, gigantamax, and regional) for [dex] and persists them.
   Future<void> updateSortSettings({
     required UserDex dex,
     required String megaSort,
@@ -207,6 +241,7 @@ class DexProvider extends ChangeNotifier with WidgetsBindingObserver {
     }
   }
 
+  /// Creates and persists a new [UserDex] configuration and adds it to [folderId].
   void createDex(
     String title,
     String region,
@@ -244,6 +279,7 @@ class DexProvider extends ChangeNotifier with WidgetsBindingObserver {
     notifyListeners();
   }
 
+  /// Saves the [dex] state to local SQLite and triggers an automated debounced cloud upload.
   Future<void> saveUserDexAndSync(UserDex dex) async {
     final index = userDexes.indexWhere((d) => d.id == dex.id);
     if (index != -1) {
@@ -256,6 +292,7 @@ class DexProvider extends ChangeNotifier with WidgetsBindingObserver {
     notifyListeners();
   }
 
+  /// Updates settings and metadata for the existing Dex with [id].
   void updateDex(
     String id,
     String title,
@@ -290,6 +327,7 @@ class DexProvider extends ChangeNotifier with WidgetsBindingObserver {
     }
   }
 
+  /// Deletes the Dex with [id] from local memory, database, and folder structure.
   void deleteDex(String id) {
     userDexes.removeWhere((d) => d.id == id);
     for (var key in structure.keys) {
@@ -301,6 +339,7 @@ class DexProvider extends ChangeNotifier with WidgetsBindingObserver {
     notifyListeners();
   }
 
+  /// Creates a new visual folder container with [title] inside [currentFolderId].
   void createFolder(String title, String currentFolderId) {
     final folder = DexFolder(id: 'folder_${const Uuid().v4()}', title: title);
     folders.add(folder);
@@ -312,6 +351,7 @@ class DexProvider extends ChangeNotifier with WidgetsBindingObserver {
     notifyListeners();
   }
 
+  /// Renames the folder identified by [id] to [newTitle].
   void renameFolder(String id, String newTitle) {
     final idx = folders.indexWhere((f) => f.id == id);
     if (idx != -1) {
@@ -322,6 +362,7 @@ class DexProvider extends ChangeNotifier with WidgetsBindingObserver {
     }
   }
 
+  /// Deletes the folder with [folderId], optionally rescuing child elements to the root level.
   Future<void> deleteFolder(String folderId, bool recursive) async {
     if (!recursive) {
       final childrenToRescue = structure[folderId] ?? [];
@@ -339,6 +380,7 @@ class DexProvider extends ChangeNotifier with WidgetsBindingObserver {
     await db.deleteFolder(folderId, recursive: recursive);
   }
 
+  /// Moves an item (Dex or folder) identified by [itemId] into [newParentId].
   void moveItem(String itemId, String newParentId) {
     for (var key in structure.keys) {
       structure[key]?.remove(itemId);
@@ -349,6 +391,7 @@ class DexProvider extends ChangeNotifier with WidgetsBindingObserver {
     notifyListeners();
   }
 
+  /// Updates the visual order of child items under [parentId] to match [newOrder].
   void updateStructureOrder(String parentId, List<String> newOrder) {
     structure[parentId] = newOrder;
     db.saveStructure(structure);
@@ -356,6 +399,7 @@ class DexProvider extends ChangeNotifier with WidgetsBindingObserver {
     notifyListeners();
   }
 
+  /// Reorders an item within [folderId] from [oldIndex] to [newIndex].
   void reorderItem(String folderId, int oldIndex, int newIndex) {
     if (!structure.containsKey(folderId)) return;
 
@@ -375,6 +419,7 @@ class DexProvider extends ChangeNotifier with WidgetsBindingObserver {
     notifyListeners();
   }
 
+  /// Returns whether [potentialChildId] is a nested descendant of [parentId].
   bool isDescendant(String parentId, String potentialChildId) {
     if (parentId == potentialChildId) return true;
     final children = structure[parentId] ?? [];
@@ -386,6 +431,7 @@ class DexProvider extends ChangeNotifier with WidgetsBindingObserver {
     return false;
   }
 
+  /// Toggles the caught status of [pokemonUniqueId] within the Dex identified by [dexId].
   void togglePokemon(String dexId, String pokemonUniqueId) {
     final dexIndex = userDexes.indexWhere((d) => d.id == dexId);
     if (dexIndex == -1) return;

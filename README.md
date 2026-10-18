@@ -4,6 +4,7 @@
 
 **PokéVault** is a comprehensive, fully customizable companion app for Pokémon Trainers, Completionists, and Shiny Hunters, built with Flutter. Whether you are aiming for a Regional Dex, a National Dex, a Form Dex, or a Shiny Dex – PokéVault helps you keep track of your progress with ease and provides the ultimate toolset for your shiny hunts.
 
+[![CI Quality Gate](https://github.com/RaptorClash/pokevault/actions/workflows/ci.yml/badge.svg)](https://github.com/RaptorClash/pokevault/actions/workflows/ci.yml)
 ![Flutter](https://img.shields.io/badge/Made%20with-Flutter-02569B?logo=flutter)
 ![Dart](https://img.shields.io/badge/Dart-0175C2?logo=dart)
 ![Platform](https://img.shields.io/badge/Platform-Android%20%7C%20Windows%20%7C%20Linux%20%7C%20Web-lightgrey)
@@ -19,6 +20,7 @@
 * **📊 Advanced Catch Rate Calculator:** Accurate capture rate calculations spanning every generation, including special mechanics for *Pokémon Legends: Arceus* and *Pokémon Legends: Z-A*.
 * **🧬 Shiny Breeding & Path Calculator:** Computes multi-step breeding chains (including Ditto and Baby Pokémon) and displays accurate probability odds.
 * **📖 Extensive Shiny Hunting Guides:** Step-by-step instructions for generation-specific methods (e.g., Pokéradar, DexNav, Sandwich Recipes).
+* **🎮 In-App Shortcuts & Gestures Guide:** Dedicated guide in Settings displaying platform-adaptive keyboard shortcuts, mouse controls, and touch gestures.
 * **☁️ Cloud Sync & Offline-First:** 100% Offline Capable with a robust local SQLite database. Optional seamless backup and restore via your personal Google Drive.
 * **Full Customization:** Supports Dark/Light mode and custom accent & background colors.
 * **Multilingual:** Available in English and German.
@@ -100,6 +102,10 @@ appimage-builder --recipe AppImageBuilder.yml
 ```bash
 flutter build web --release
 ```
+
+## 📚 Architecture & Documentation
+* [Architecture Guide (`ARCHITECTURE.md`)](ARCHITECTURE.md): Comprehensive system overview, state architecture (Provider), database dual-persistence model, cloud sync merge algorithm, and test quality gates.
+* [Database Generator Pipeline (`bin/README.md`)](bin/README.md): Detailed documentation of offline PokeAPI JSON parsing, web scrapers, legal Pokéball data, and database compilation steps.
 
 ## 🤝 Contributing Data (Community Fixes)
 Missing encounters or do you have better Matching Ball suggestions? You can easily add or correct these data in the JSON files located in the `bin/` directory (if applicable) or contribute directly via Issues/Pull Requests.

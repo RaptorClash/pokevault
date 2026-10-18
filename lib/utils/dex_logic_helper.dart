@@ -6,11 +6,21 @@ import '../l10n/app_translations.dart';
 import 'notification_helper.dart';
 import '../services/database_service.dart';
 
+/// Arguments bundle passed to background isolate for computing display entries.
 class BuildEntriesArgs {
+  /// The user's Pokédex configuration and status tracking.
   final UserDex liveDex;
+
+  /// The master list of Pokémon definitions.
   final List<Pokemon> pokemonList;
+
+  /// Active application language code (e.g. 'de', 'en').
   final String language;
+
+  /// List of special obtainability entries from database.
   final List<Map<String, dynamic>> specialObtainables;
+
+  /// Creates a [BuildEntriesArgs] isolate payload.
   BuildEntriesArgs(
     this.liveDex,
     this.pokemonList,
@@ -19,11 +29,21 @@ class BuildEntriesArgs {
   );
 }
 
+/// Arguments bundle passed to background isolate for generating box layouts.
 class GenerateBoxesArgs {
+  /// Prepared list of display entries to distribute across boxes.
   final List<DexDisplayEntry> entries;
+
+  /// Whether regional/alternate forms should be placed in distinct boxes.
   final bool separateForms;
+
+  /// The user's Pokédex configuration.
   final UserDex liveDex;
+
+  /// Active application language code.
   final String language;
+
+  /// Creates a [GenerateBoxesArgs] isolate payload.
   GenerateBoxesArgs(
     this.entries,
     this.separateForms,
@@ -59,6 +79,8 @@ _ParsedBoxName _parseBoxName(String title) {
   return _ParsedBoxName(title, null, null);
 }
 
+/// Provides business logic for Pokédex filtering, box layout calculation,
+/// caught status resolution, and instance migration.
 class DexLogicHelper {
   static final List<int> _useHomeSpritesIds = [
     201,
@@ -116,6 +138,8 @@ class DexLogicHelper {
     1024,
   ];
 
+  /// Asynchronously compiles the display entries for a given Pokédex configuration
+  /// on a background isolate, catching and notifying of any errors.
   static Future<List<DexDisplayEntry>> buildEntriesInBackground(
     UserDex liveDex,
     List<Pokemon> pokemonList,
@@ -144,6 +168,8 @@ class DexLogicHelper {
     );
   }
 
+  /// Initializes a list of [CustomBoxState] boxes from the given [entries],
+  /// assigning unique instance IDs (`__<timestamp>_<index>`) to each item.
   static List<CustomBoxState> initializeCustomBoxesFromEntries(
     UserDex dex,
     List<DexDisplayEntry> entries, {
@@ -233,6 +259,8 @@ class DexLogicHelper {
     return migrated;
   }
 
+  /// Migrates legacy custom box items to unique composite instance IDs (`__<ts>_<hash>_<idx>`),
+  /// preserving existing caught, shiny, and alpha statuses in SQLite.
   static bool migrateCustomBoxInstances(UserDex dex) {
     if (dex.customBoxes.isEmpty) return false;
     bool migrated = migrateCustomBoxesDefaultDimensions(dex);
@@ -289,6 +317,7 @@ class DexLogicHelper {
         (id, _) => id.contains('__') && !activeUniqueIds.contains(id));
   }
 
+  /// Compresses and redistributes Pokémon across sequentially linked boxes when auto-flow is active.
   static void enforceAutoFlow(UserDex dex) {
     if (dex.customBoxes.isEmpty) return;
     
@@ -387,6 +416,7 @@ class DexLogicHelper {
     dex.customBoxes = newBoxes;
   }
 
+  /// Asynchronously generates standard box layouts for given entries on a background isolate.
   static Future<List<BoxData>> generateBoxesInBackground(
     List<DexDisplayEntry> entries,
     bool separateForms,
@@ -409,6 +439,7 @@ class DexLogicHelper {
     return generateBoxes(args.entries, args.separateForms, args.liveDex);
   }
 
+  /// Translates or capitalizes a Pokémon form identifier for localized user display.
   static String getFormDisplayName(String form) {
     try {
       final key = 'form_name_${form.toLowerCase()}';
@@ -420,6 +451,7 @@ class DexLogicHelper {
     return form.isEmpty ? '' : form[0].toUpperCase() + form.substring(1);
   }
 
+  /// Returns the highest Pokémon generation number associated with a Pokédex region.
   static int getMaxGenForDex(String region) {
     if (region.contains('national_overall')) return 99;
     if (region.contains('kanto')) return 1;
@@ -732,8 +764,7 @@ class DexLogicHelper {
     );
   }
 
-  /// Centralized helper to check if a Pokémon is marked as caught in [dex].
-  /// Centralized check whether a uniqueId represents a fixed placeholder slot.
+  /// Centralized check whether a [uniqueId] represents a fixed placeholder slot.
   static bool isPlaceholder(String? uniqueId) {
     if (uniqueId == null || uniqueId.isEmpty) return false;
     var clean = uniqueId;
@@ -747,7 +778,6 @@ class DexLogicHelper {
         clean.startsWith('empty_placeholder');
   }
 
-  /// Standardizes caught evaluation across the entire app by handling both
   /// Standardizes caught evaluation across the entire app by handling both
   /// canonical base IDs (e.g. '1_normal') and custom box instance IDs
   /// (e.g. '1_normal__1728412345_0').
@@ -936,6 +966,8 @@ class DexLogicHelper {
         .length;
   }
 
+  /// Groups [entries] into a list of [BoxData] representations,
+  /// honoring custom box configurations or falling back to standard regional bucketing.
   static List<BoxData> generateBoxes(
     List<DexDisplayEntry> entries,
     bool separateForms,
@@ -1162,6 +1194,8 @@ class DexLogicHelper {
     return boxes;
   }
 
+  /// Constructs the flat list of [DexDisplayEntry] items for the current [liveDex],
+  /// including base Pokémon, enabled regional/cosmetic forms, and special obtainables.
   static List<DexDisplayEntry> buildDisplayEntries(
     UserDex liveDex,
     List<Pokemon> pokemonList,
@@ -1448,6 +1482,8 @@ class DexLogicHelper {
     return entries;
   }
 
+  /// Evaluates whether a Pokémon entry is eligible for Alpha status
+  /// based on whether it appears in the Hisui or Lumiose regional dexes.
   static Future<bool> isAlphaEligible(DexDisplayEntry entry) async {
     if (entry.uniqueId.contains('_special_')) {
       return false;

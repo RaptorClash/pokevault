@@ -4,6 +4,7 @@
 
 **PokéVault** ist ein umfassender, vollständig anpassbarer Begleiter für Pokémon-Trainer, Sammler und Shiny-Hunter, entwickelt mit Flutter. Egal, ob du einen regionalen Dex, einen nationalen Dex, einen Form-Dex oder einen Shiny-Dex planst – PokéVault hilft dir dabei, deinen Fortschritt ganz einfach im Blick zu behalten und liefert dir die nötigen Werkzeuge für deine Shiny-Jagd.
 
+[![CI Quality Gate](https://github.com/RaptorClash/pokevault/actions/workflows/ci.yml/badge.svg)](https://github.com/RaptorClash/pokevault/actions/workflows/ci.yml)
 ![Flutter](https://img.shields.io/badge/Made%20with-Flutter-02569B?logo=flutter)
 ![Dart](https://img.shields.io/badge/Dart-0175C2?logo=dart)
 ![Platform](https://img.shields.io/badge/Platform-Android%20%7C%20Windows%20%7C%20Linux%20%7C%20Web-lightgrey)
@@ -19,6 +20,7 @@
 * **📊 Fortschrittlicher Fangraten-Rechner:** Präzise Berechnung der Fangwahrscheinlichkeit über alle Generationen hinweg, inkl. spezieller Mechaniken aus *Pokémon Legenden: Arceus* und *Pokémon Legenden: Z-A*.
 * **🧬 Shiny-Zucht & Routen-Rechner:** Berechnet mehrstufige Zuchtketten (inkl. Ditto und Baby-Pokémon) und zeigt exakte Wahrscheinlichkeiten für die Ziel-Nachkommen an.
 * **📖 Ausführliche Shiny-Hunting-Guides:** Schritt-für-Schritt-Anleitungen für generationsspezifische Methoden (z. B. PokéRadar, DexNav, Sandwich-Rezepte).
+* **🎮 In-App Bedienung & Shortcuts Übersicht:** Eigener Screen in den Einstellungen mit plattform-adaptiven Shortcuts, Mausbefehlen und Touch-Gesten.
 * **☁️ Cloud Sync & Offline-First:** 100% Offline-fähig mit lokaler SQLite-Datenbank. Optionale Synchronisierung über dein privates Google Drive.
 * **Volle Personalisierung:** Unterstützt Dark/Light Mode sowie individuell anpassbare Akzent- und Hintergrundfarben.
 * **Mehrsprachig:** Verfügbar auf Deutsch und Englisch.
@@ -100,6 +102,10 @@ appimage-builder --recipe AppImageBuilder.yml
 ```bash
 flutter build web --release
 ```
+
+## 📚 Architektur & Dokumentation
+* [Architektur-Leitfaden (`ARCHITECTURE.md`)](ARCHITECTURE.md): Detaillierte Übersicht über Systemarchitektur, Provider-State-Management, persistente SQLite-Speicherung, Cloud-Sync-Merge-Algorithmus und Test-Quality-Gates.
+* [Datenbank-Generierungs-Pipeline (`bin/README.md`)](bin/README.md): Dokumentation der Offline-PokeAPI-Datenaufbereitung, Scraper, Matching-Balls-Import und Datenbank-Kompilierung.
 
 ## 🤝 Daten ergänzen (Community Contributions)
 Fehlen dir Fundorte oder passen die Matching Balls nicht? Du kannst diese Daten in den JSON-Dateien im Verzeichnis `bin/` ergänzen (falls vorhanden) oder direkt über Issues/Pull Requests beitragen.

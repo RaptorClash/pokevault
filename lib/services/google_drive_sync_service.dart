@@ -9,7 +9,13 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:extension_google_sign_in_as_googleapis_auth/extension_google_sign_in_as_googleapis_auth.dart';
 
+/// Service managing cloud synchronization with the user's private Google Drive AppData folder.
+///
+/// Features cross-platform OAuth2 authentication (loopback HTTP server on desktop/mobile
+/// and Google Sign-In on Web) and resilient field-level patch merging to prevent
+/// overwriting schema fields or entities introduced by other platform versions.
 class GoogleDriveSyncService {
+  /// The singleton instance of [GoogleDriveSyncService].
   static final GoogleDriveSyncService instance = GoogleDriveSyncService._init();
   GoogleDriveSyncService._init();
 
@@ -18,8 +24,15 @@ class GoogleDriveSyncService {
   drive.DriveApi? get _driveApi =>
       _authClient != null ? drive.DriveApi(_authClient!) : null;
 
+  /// Whether the user currently has an active, authenticated Google Drive session.
   bool get isSignedIn => _authClient != null;
 
+  /// Authenticates with Google Drive using the provided OAuth [clientId] and [clientSecret].
+  ///
+  /// On Desktop and Mobile, spawns a temporary localhost loopback server on port 8080
+  /// to receive the OAuth2 authorization code callback.
+  /// On Web, utilizes the [GoogleSignIn] plugin.
+  /// Returns `"OK"` on success, or an error description string on failure.
   Future<String> signIn(String clientId, String clientSecret) async {
     clientId = clientId.trim();
     clientSecret = clientSecret.trim();
@@ -210,6 +223,7 @@ class GoogleDriveSyncService {
     );
   }
 
+  /// Revokes active session tokens, closes the HTTP auth client, and clears stored credentials.
   Future<void> signOut() async {
     if (kIsWeb && _webSignIn != null) {
       await _webSignIn!.signOut();
@@ -222,8 +236,17 @@ class GoogleDriveSyncService {
     await prefs.remove('drive_expiry');
   }
 
-  /// Führt einen Field-Level Patch-Merge durch, um Cloud-Felder und unbekannte Tabellen
-  /// neuerer App-Versionen beim Upload nicht zu überschreiben.
+  /// Performs a resilient field-level patch merge between [localData] and [remoteData].
+  ///
+  /// Protects against schema regressions and field loss across multi-device usage.
+  /// If [remoteData] contains newer records or fields unknown to this client version
+  /// (e.g., added by a newer Android release), they are preserved during upload.
+  ///
+  /// Merging rules:
+  /// * The highest `format_version` is retained.
+  /// * For existing entities matched by primary key, fields are patched only if
+  ///   the local `updated_at` timestamp is greater than or equal to the remote timestamp.
+  /// * Unknown remote tables and columns remain untouched.
   static Map<String, dynamic> mergeForUpload(
     Map<String, dynamic> localData,
     Map<String, dynamic>? remoteData,
@@ -307,6 +330,10 @@ class GoogleDriveSyncService {
     }
   }
 
+  /// Uploads user data to `pokevault_sync.json` in the Google Drive AppData folder.
+  ///
+  /// Automatically pulls the current remote file first, invokes [mergeForUpload] to
+  /// protect cloud state, and overwrites the file in place.
   Future<bool> uploadBackup(Map<String, dynamic> data) async {
     if (_driveApi == null) return false;
     try {
@@ -349,6 +376,9 @@ class GoogleDriveSyncService {
     }
   }
 
+  /// Downloads the existing backup JSON from the Google Drive AppData folder.
+  ///
+  /// Returns decoded JSON map if found, or `null` if no remote backup exists or on error.
   Future<Map<String, dynamic>?> downloadBackup() async {
     if (_driveApi == null) return null;
     try {
@@ -379,8 +409,10 @@ class GoogleDriveSyncService {
     return null;
   }
 
-  /// Prüft, ob es in der Cloud eine neuere Version gibt.
-  /// Gibt das Datum der letzten Änderung zurück, oder null.
+  /// Checks the modification timestamp of the remote backup in Google Drive.
+  ///
+  /// Fetches only the metadata (`id`, `modifiedTime`) to minimize network bandwidth.
+  /// Returns the remote [DateTime] if the file exists, or `null` if not found or on error.
   Future<DateTime?> getRemoteModifiedTime() async {
     if (_driveApi == null) return null;
     try {

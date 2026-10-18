@@ -16,7 +16,16 @@ String _encodeJsonTask(Map<String, dynamic> data) {
   return jsonEncode(data);
 }
 
+/// Service providing file export and import functionality for local JSON backups.
+///
+/// Offloads JSON encoding to a background isolate via [compute] to prevent UI jank.
+/// Adapts file storage strategy to the target platform (Direct file writing on Desktop,
+/// native Android public download storage with fallback sharing, and SharePlus on iOS/Web).
 class DexStorageService {
+  /// Exports all Dexes, folders, structure, and shiny hunts to a JSON backup file.
+  ///
+  /// Serializes the [dexes] list and additional data retrieved from [provider] in a
+  /// background isolate, then delivers or shares the resulting file based on platform.
   static Future<void> exportDexes(
     List<UserDex> dexes,
     DexProvider provider,
@@ -115,6 +124,9 @@ class DexStorageService {
     }
   }
 
+  /// Opens a file picker for the user to select a JSON backup file and decodes its payload.
+  ///
+  /// Returns the parsed [Map] containing exported Dexes and data, or `null` if cancelled or invalid.
   static Future<Map<String, dynamic>?> importDexes(DexProvider provider) async {
     try {
       final XTypeGroup typeGroup = XTypeGroup(

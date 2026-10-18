@@ -5,13 +5,21 @@ import '../models/shiny_hunt.dart';
 import 'shiny_logic_helper.dart';
 import '../l10n/app_translations.dart';
 
+/// Categorizes shiny hunt encounter progress relative to statistical odds.
 enum OddsClassification {
+  /// The encounter count is strictly below the statistical expectation (< 100%).
   underOdds,
+
+  /// The encounter count is between 100% and 200% of expected odds.
   atOdds,
+
+  /// The encounter count exceeds twice the statistical expectation (> 200%).
   overOdds,
 }
 
+/// Helper extension providing presentation labels and color codes for odds classifications.
 extension OddsClassificationExtension on OddsClassification {
+  /// Human-readable label for the classification.
   String get label {
     switch (this) {
       case OddsClassification.underOdds:
@@ -23,28 +31,46 @@ extension OddsClassificationExtension on OddsClassification {
     }
   }
 
+  /// Theme color associated with the classification state.
   Color get color {
     switch (this) {
       case OddsClassification.underOdds:
-        return const Color(0xFF4CAF50); // Grün
+        return const Color(0xFF4CAF50); // Green
       case OddsClassification.atOdds:
-        return const Color(0xFFFFB300); // Gelb/Bernstein
+        return const Color(0xFFFFB300); // Amber
       case OddsClassification.overOdds:
-        return const Color(0xFFE53935); // Rot
+        return const Color(0xFFE53935); // Red
     }
   }
 }
 
+/// Predefined shiny hunting method configuration with base odds and modifiers.
 class ShinyMethodPreset {
+  /// Display name of the hunting method.
   final String name;
+
+  /// Optional descriptive explanation of how the method works.
   final String? description;
+
+  /// Default denominator for the base shiny probability (e.g. 4096.0 for 1/4096).
   final double defaultBaseOdds;
+
+  /// Default number of Pokémon encountered per increment cycle.
   final int defaultSpawns;
+
+  /// Whether the method utilizes a cumulative catch or encounter chain.
   final bool isChainMethod;
+
+  /// The maximum chain length after which odds no longer improve.
   final int? maxChain;
+
+  /// Denominator for base odds when the Shiny Charm item is held.
   final double? oddsWithCharm;
+
+  /// Warning or requirement note displayed to the user.
   final String? warningNote;
 
+  /// Creates a [ShinyMethodPreset].
   const ShinyMethodPreset({
     required this.name,
     this.description,
@@ -56,6 +82,7 @@ class ShinyMethodPreset {
     this.warningNote,
   });
 
+  /// Computes the effective base odds taking into account [hasShinyCharm].
   double effectiveOdds(bool hasShinyCharm) {
     if (hasShinyCharm && oddsWithCharm != null) {
       return oddsWithCharm!;
@@ -64,9 +91,10 @@ class ShinyMethodPreset {
   }
 }
 
+/// Calculates binomial shiny encounter probabilities, chain multipliers, and game-specific presets.
 class ShinyHuntOddsHelper {
-  /// Berechnet die Wahrscheinlichkeit, bei [rolls] Versuchen mindestens ein Shiny zu finden:
-  /// P(X >= 1) = 1 - (1 - 1/baseOdds)^rolls
+  /// Calculates the cumulative binomial probability of finding at least one shiny in [rolls]:
+  /// `P(X >= 1) = 1 - (1 - 1/baseOdds)^rolls`.
   static double calculateProbability(double baseOdds, int rolls) {
     if (rolls <= 0 || baseOdds <= 0) return 0.0;
     if (baseOdds <= 1.0) return 1.0;
@@ -75,13 +103,13 @@ class ShinyHuntOddsHelper {
     if (p >= 1.0) return 1.0;
 
     final q = 1.0 - p;
-    // Schutz vor numerischer Auslöschung bei sehr großen Exponenten
+    // Guard against numerical underflow with high exponents
     final noShinyProb = pow(q, rolls).toDouble();
     return (1.0 - noShinyProb).clamp(0.0, 1.0);
   }
 
-  /// Berechnet die Gegenwahrscheinlichkeit (bisher noch KEIN Shiny):
-  /// P(X = 0) = (1 - 1/baseOdds)^rolls
+  /// Calculates the complementary probability of encountering zero shinies in [rolls]:
+  /// `P(X = 0) = (1 - 1/baseOdds)^rolls`.
   static double calculateComplementProbability(double baseOdds, int rolls) {
     if (rolls <= 0 || baseOdds <= 0) return 1.0;
     if (baseOdds <= 1.0) return 0.0;
@@ -93,13 +121,13 @@ class ShinyHuntOddsHelper {
     return pow(q, rolls).toDouble().clamp(0.0, 1.0);
   }
 
-  /// Verhältnis aus absolvierten Würfen und Basis-Quote (z. B. 5120 / 4096 = 1.25x)
+  /// Calculates the ratio of completed rolls to expected base odds (e.g. 5120 / 4096 = 1.25x).
   static double calculateOddsRatio(int rolls, double baseOdds) {
     if (baseOdds <= 0) return 0.0;
     return rolls / baseOdds;
   }
 
-  /// Klassifizierung: Under Odds (<100%), At Odds (100%..200%), Over Odds (>200%)
+  /// Categorizes progress into Under Odds (<1.0x), At Odds (1.0x..2.0x), or Over Odds (>2.0x).
   static OddsClassification getClassification(int rolls, double baseOdds) {
     if (baseOdds <= 0) return OddsClassification.underOdds;
     final ratio = rolls / baseOdds;
@@ -112,7 +140,7 @@ class ShinyHuntOddsHelper {
     }
   }
 
-  /// Prüft, ob eine Methode eine Kettenmethode mit ansteigender Wahrscheinlichkeit ist
+  /// Checks whether a given method identifier represents a chaining method.
   static bool isChainMethod(String method) {
     final lower = method.toLowerCase().replaceAll('.', '');
     return lower.contains('radar') ||
@@ -126,7 +154,7 @@ class ShinyHuntOddsHelper {
         lower.contains('dexnav');
   }
 
-  /// Berechnet die effektive Wahrscheinlichkeit (unterstützt dynamische Ketten sowie statische Quoten)
+  /// Computes the effective probability of finding a shiny for [hunt], supporting dynamic chain steps.
   static double calculateEffectiveProbability(ShinyHunt hunt) {
     if (isChainMethod(hunt.method) && hunt.baseOdds > 1500.0) {
       return calculateDynamicChainProbability(

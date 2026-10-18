@@ -1,9 +1,25 @@
+"""Updates the evolution chains in pokedex.sqlite from PokeAPI JSON dumps.
+
+Parses JSON data files from `bin/api-data/data/api/v2/evolution-chain/*/index.json`,
+extracts triggers, conditions, items, happiness, and relative stats into a structured
+tree, and inserts/replaces the serialized JSON in the `evolutions` SQLite table.
+"""
+
 import os
 import json
 import sqlite3
 import glob
 
 def parse_chain(node):
+    """Recursively parses an evolution chain node from the PokeAPI schema.
+
+    Args:
+        node: A dictionary representing an evolution chain node with 'species',
+              'evolution_details', and 'evolves_to'.
+
+    Returns:
+        A dictionary containing 'species_id', 'is_baby', 'details', and recursive 'evolves_to'.
+    """
     species_url = node['species']['url']
     species_id = int(species_url.strip('/').split('/')[-1])
     evolves_to = [parse_chain(n) for n in node.get('evolves_to', [])]
@@ -47,6 +63,7 @@ def parse_chain(node):
     }
 
 def main():
+    """Scans evolution chain files and updates pokedex.sqlite evolutions table."""
     db_path = 'assets/db/pokedex.sqlite'
     if not os.path.exists(db_path):
         raise FileNotFoundError(f"Database not found at {db_path}")

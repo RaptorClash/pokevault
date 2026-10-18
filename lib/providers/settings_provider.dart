@@ -4,18 +4,30 @@ import '../l10n/app_translations.dart';
 import '../services/google_drive_sync_service.dart';
 import 'dart:ui' as ui;
 
+/// Provider managing persistent user preferences such as theme, language, and cloud credentials.
+///
+/// Persists values in [SharedPreferences] and keeps [Translator] in sync when language changes.
 class SettingsProvider with ChangeNotifier {
+  /// The active UI theme mode (light, dark, or system).
   ThemeMode themeMode = ThemeMode.system;
+
+  /// The active two-letter ISO language code (`"de"` or `"en"`).
   String currentLanguage = 'en';
 
   String _googleClientId = '';
   bool _autoSyncEnabled = false;
 
+  /// Google OAuth2 Client ID for Drive synchronization.
   String get googleClientId => _googleClientId;
+
+  /// Whether automated background sync is enabled on state mutations.
   bool get autoSyncEnabled => _autoSyncEnabled;
   String _googleClientSecret = '';
+
+  /// Google OAuth2 Client Secret for Drive synchronization.
   String get googleClientSecret => _googleClientSecret;
 
+  /// Updates and persists the Google OAuth2 [id].
   Future<void> setGoogleClientId(String id) async {
     _googleClientId = id;
     notifyListeners();
@@ -23,6 +35,7 @@ class SettingsProvider with ChangeNotifier {
     await prefs.setString('googleClientId', id);
   }
 
+  /// Enables or disables automated background cloud sync.
   Future<void> setAutoSyncEnabled(bool enabled) async {
     _autoSyncEnabled = enabled;
     notifyListeners();
@@ -30,6 +43,7 @@ class SettingsProvider with ChangeNotifier {
     await prefs.setBool('autoSyncEnabled', enabled);
   }
 
+  /// Updates and persists the Google OAuth2 client [secret].
   Future<void> setGoogleClientSecret(String secret) async {
     _googleClientSecret = secret;
     notifyListeners();
@@ -98,6 +112,7 @@ class SettingsProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  /// Changes the active language to [lang] (e.g. `"de"` or `"en"`) and updates translations.
   void setLanguage(String lang) async {
     currentLanguage = lang;
     Translator.currentLanguage = lang;
@@ -106,6 +121,7 @@ class SettingsProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  /// Toggles between light and dark theme mode.
   void toggleTheme() async {
     themeMode = themeMode == ThemeMode.dark ? ThemeMode.light : ThemeMode.dark;
     final prefs = await SharedPreferences.getInstance();

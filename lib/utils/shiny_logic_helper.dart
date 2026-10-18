@@ -1,7 +1,10 @@
 import '../services/database_service.dart';
 import '../models/pokemon.dart';
 
+/// Provides game-specific shiny hunting mechanics, soft-reset button shortcuts,
+/// breeding eligibility checks, and evolutionary path traversal.
 class ShinyLogicHelper {
+  /// Determines whether a Pokémon encounter in a given generation is stationary or a gift.
   static Future<bool> isStaticEncounter(int dexId, String gen) async {
     final encounters = await DatabaseService.instance.getEncounters(dexId);
     if (encounters != null && encounters.containsKey(gen)) {
@@ -29,6 +32,7 @@ class ShinyLogicHelper {
     return false;
   }
 
+  /// Returns the hardware button combination used to soft-reset the game in [gen].
   static String getSoftResetCombo(String gen) {
     switch (gen) {
       case 'gen_1':
@@ -48,6 +52,7 @@ class ShinyLogicHelper {
     }
   }
 
+  /// Checks whether a Pokémon is capable of breeding eggs.
   static bool isBreedable(Pokemon pokemon) {
     bool hasNoEggs = pokemon.eggGroups.any((g) {
       final lower = g.toLowerCase();
@@ -66,10 +71,12 @@ class ShinyLogicHelper {
     return true;
   }
 
+  /// Checks whether a Pokémon is classified as a baby species.
   static bool isBaby(int dexId) {
     return [172, 173, 174, 175, 236, 238, 239, 240].contains(dexId);
   }
 
+  /// Resolves the adult stage corresponding to a baby Pokémon species.
   static int getAdultForBaby(int babyId) {
     const Map<int, int> babyToAdult = {
       172: 25,
@@ -84,6 +91,7 @@ class ShinyLogicHelper {
     return babyToAdult[babyId] ?? babyId;
   }
 
+  /// Traverses backwards through pre-evolutions to find the root evolutionary species.
   static int getBaseForm(int id, Map<int, Map<String, dynamic>> preEvolutions) {
     int curr = id;
     while (preEvolutions.containsKey(curr)) {
@@ -92,6 +100,7 @@ class ShinyLogicHelper {
     return curr;
   }
 
+  /// Traces the sequence of evolution steps required to reach [targetId] from [baseId].
   static List<Map<String, dynamic>> getEvolutionPath(
     int baseId,
     int targetId,
@@ -114,6 +123,7 @@ class ShinyLogicHelper {
     return steps;
   }
 
+  /// Loads encounter data and regional distribution flags for Generation 8 titles.
   static Future<Map<String, dynamic>> fetchGen8Data(int id) async {
     final encounters = await DatabaseService.instance.getEncounters(id);
     final db = await DatabaseService.instance.appDatabase;
@@ -145,6 +155,7 @@ class ShinyLogicHelper {
     };
   }
 
+  /// Loads encounter data and regional distribution flags for Generation 9 titles.
   static Future<Map<String, dynamic>> fetchGen9Data(int id) async {
     final encounters = await DatabaseService.instance.getEncounters(id);
     final db = await DatabaseService.instance.appDatabase;

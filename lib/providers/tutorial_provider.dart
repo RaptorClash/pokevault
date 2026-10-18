@@ -1,13 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+/// Manages the state of onboarding hints, feature guides, and tutorials.
+///
+/// Persists completion flags and multi-step progress in [SharedPreferences].
 class TutorialProvider extends ChangeNotifier {
   final SharedPreferences _prefs;
 
+  /// Creates a [TutorialProvider] with the given [SharedPreferences] instance.
   TutorialProvider(this._prefs);
 
+  /// Retrieves the current step number reached in a multi-step feature walkthrough.
   int getFeatureStep(String id) => _prefs.getInt(id) ?? 0;
 
+  /// Checks whether a specific feature guide has already been shown or dismissed.
   bool hasSeenFeature(String id) {
     if (_prefs.getBool('skip_all_tutorials') == true) {
       return true;
@@ -15,16 +21,19 @@ class TutorialProvider extends ChangeNotifier {
     return _prefs.getBool(id) ?? false;
   }
 
+  /// Marks a specific feature walkthrough or tooltip as seen.
   Future<void> markFeatureAsSeen(String id) async {
     await _prefs.setBool(id, true);
     notifyListeners();
   }
 
+  /// Resets the seen state for a specific tutorial feature.
   Future<void> resetTutorial(String id) async {
     await _prefs.remove(id);
     notifyListeners();
   }
 
+  /// Resets all tutorial and walkthrough flags without clearing user preferences.
   Future<void> resetAllTutorials() async {
     final allKeys = _prefs.getKeys();
 
@@ -55,11 +64,13 @@ class TutorialProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Updates the progress step index of an active multi-step walkthrough.
   Future<void> updateFatureStep(String id, int step) async {
     await _prefs.setInt(id, step);
     notifyListeners();
   }
 
+  /// Globally disables all in-app tutorials and tooltips.
   Future<void> skipAllTutorials() async {
     await _prefs.setBool('skip_all_tutorials', true);
     notifyListeners();

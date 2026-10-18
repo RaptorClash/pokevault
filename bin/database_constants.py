@@ -1,3 +1,15 @@
+"""Database build constants and game metadata definitions.
+
+This module provides hardcoded lookup tables, mappings, and shiny hunt rule sets
+used during SQLite database compilation (`bin/build_database.py`), including:
+- Form whitelists for regional Pokédex ordering.
+- Game version to Generation mapping.
+- Hardcoded regional ordering sequences (e.g. Lumiose, Mega Dex).
+- Type-to-Pokéball matching aesthetics.
+- Pre-evolution requirements and default encounter levels.
+- Shiny hunt lock lists across Generations 5 through 9.
+"""
+
 EXCEL_PATH = 'bin/Legal_Matching_Pokeballs.xlsx'
 CUSTOM_JSON_PATH = 'bin/custom_matching_balls.json'
 LOCAL_BULBA_PATH = 'bin/List of Ribbons in the games - Bulbapedia, the community-driven Pokémon encyclopedia.html'

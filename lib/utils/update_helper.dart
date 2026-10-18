@@ -6,13 +6,24 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:open_filex/open_filex.dart';
 
+/// Encapsulates metadata and download URLs for an application release.
 class UpdateInfo {
+  /// Git tag or version string (e.g. 'v1.4.0').
   final String version;
+
+  /// Human-readable release title.
   final String title;
+
+  /// Markdown release notes and changelog text.
   final String releaseNotes;
+
+  /// Direct HTTP download URL for the target platform binary.
   final String downloadUrl;
+
+  /// File extension of the release asset (e.g. '.apk', '.zip', '.appimage').
   final String extension;
 
+  /// Creates an [UpdateInfo] container.
   UpdateInfo({
     required this.version,
     required this.title,
@@ -22,10 +33,12 @@ class UpdateInfo {
   });
 }
 
+/// Checks for updates against GitHub Releases, downloads installers, and executes updates.
 class UpdateHelper {
   static const String _repoOwner = 'RaptorClash';
   static const String _repoName = 'pokevault';
 
+  /// Fetches all GitHub releases and matches available assets for the current platform.
   static Future<List<UpdateInfo>> getAllReleases() async {
     if (kIsWeb) return [];
     try {
@@ -88,6 +101,7 @@ class UpdateHelper {
     return [];
   }
 
+  /// Checks GitHub for the latest release and compares semantic versions to detect updates.
   static Future<UpdateInfo?> checkForUpdate() async {
     if (kIsWeb) return null;
     try {
@@ -172,6 +186,7 @@ class UpdateHelper {
     return false;
   }
 
+  /// Downloads the release artifact from [url] with retry logic and progress reporting.
   static Future<String> downloadOnly(
     String url,
     String version,
@@ -232,6 +247,7 @@ class UpdateHelper {
     throw Exception('Download fehlgeschlagen.');
   }
 
+  /// Downloads the update artifact and triggers the OS installer or self-extraction script.
   static Future<void> downloadAndInstallUpdate(
     String url,
     String version,
