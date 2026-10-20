@@ -1492,6 +1492,7 @@ class DexLogicHelper {
     final db = await DatabaseService.instance.appDatabase;
     final specialCheck = await db.query(
       'special_dexes',
+      columns: ['pokemon_id'],
       where: 'pokemon_id = ? AND (dex_name = ? OR dex_name = ?)',
       whereArgs: [entry.pokemon.id, 'legendary-dex', 'mythical-dex'],
       limit: 1,
@@ -1500,6 +1501,7 @@ class DexLogicHelper {
 
     final regionCheck = await db.query(
       'dex_orders',
+      columns: ['pokemon_id'],
       where:
           'pokemon_id = ? AND (dex_name = ? OR dex_name = ? OR dex_name = ?)',
       whereArgs: [

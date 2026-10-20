@@ -64,7 +64,9 @@ class DatabaseService {
     _userDatabase = db;
   }
 
-  static const int _currentAppDbVersion = 25;
+  @visibleForTesting
+  static const int currentAppDbVersion = 26;
+  static const int _currentAppDbVersion = currentAppDbVersion;
 
   Future<Database> _initAppDB(String fileName) async {
     await _ensureMigration();
@@ -134,6 +136,18 @@ class DatabaseService {
     if (_userDatabase != null && _userDatabase!.isOpen) return _userDatabase!;
     _userDatabase = await _initUserDB('user_data.sqlite');
     return _userDatabase!;
+  }
+
+  /// Runs VACUUM on the user database to reclaim storage space from deleted entries.
+  /// Also checkpoints and truncates the WAL file on non-web platforms.
+  Future<void> vacuumUserDatabase() async {
+    final db = await userDatabase;
+    await db.execute('VACUUM;');
+    if (!kIsWeb) {
+      try {
+        await db.execute('PRAGMA wal_checkpoint(TRUNCATE);');
+      } catch (_) {}
+    }
   }
 
   Future<Database> _initUserDB(String fileName) async {
@@ -314,6 +328,14 @@ class DatabaseService {
   ) async {
     final info = await db.rawQuery("PRAGMA table_info('$table')");
     if (info.isNotEmpty) {
+      final idxInfo = await db.rawQuery("PRAGMA index_info('$indexName')");
+      if (idxInfo.isNotEmpty) {
+        final existingCols = idxInfo.map((r) => r['name']?.toString().toLowerCase()).toList();
+        final targetCols = columns.split(',').map((c) => c.trim().toLowerCase().split(' ').first).toList();
+        if (existingCols.join(',') != targetCols.join(',')) {
+          await db.execute('DROP INDEX IF EXISTS $indexName;');
+        }
+      }
       await db.execute('CREATE INDEX IF NOT EXISTS $indexName ON $table ($columns);');
     }
   }
@@ -342,7 +364,9 @@ class DatabaseService {
     await _createIndexIfTableExists(db, 'encounters', 'idx_encounters_poke_id', 'pokemon_id');
     await _createIndexIfTableExists(db, 'forms', 'idx_forms_poke_id', 'pokemon_id');
     await _createIndexIfTableExists(db, 'dex_orders', 'idx_dex_orders_name_order', 'dex_name, order_index');
+    await _createIndexIfTableExists(db, 'dex_orders', 'idx_dex_orders_poke_dex', 'pokemon_id, dex_name, order_index');
     await _createIndexIfTableExists(db, 'special_dexes', 'idx_special_dexes_name', 'dex_name');
+    await _createIndexIfTableExists(db, 'special_dexes', 'idx_special_dexes_poke_dex', 'pokemon_id, dex_name');
     await _createIndexIfTableExists(db, 'shiny_categories', 'idx_shiny_categories_poke_id', 'pokemon_id');
     await _createIndexIfTableExists(db, 'special_obtainable', 'idx_special_obtainable_poke_id', 'pokemon_id');
 

@@ -1099,12 +1099,15 @@ def main():
         "CREATE INDEX IF NOT EXISTS idx_encounters_poke_id ON encounters (pokemon_id);",
         "CREATE INDEX IF NOT EXISTS idx_forms_poke_id ON forms (pokemon_id);",
         "CREATE INDEX IF NOT EXISTS idx_dex_orders_name_order ON dex_orders (dex_name, order_index);",
+        "CREATE INDEX IF NOT EXISTS idx_dex_orders_poke_dex ON dex_orders (pokemon_id, dex_name, order_index);",
         "CREATE INDEX IF NOT EXISTS idx_special_dexes_name ON special_dexes (dex_name);",
+        "CREATE INDEX IF NOT EXISTS idx_special_dexes_poke_dex ON special_dexes (pokemon_id, dex_name);",
         "CREATE INDEX IF NOT EXISTS idx_shiny_categories_poke_id ON shiny_categories (pokemon_id);",
         "CREATE INDEX IF NOT EXISTS idx_special_obtainable_poke_id ON special_obtainable (pokemon_id);",
     ]
     for idx_sql in indices:
         c.execute(idx_sql)
+    c.execute("ANALYZE;")
     c.execute("PRAGMA optimize;")
 
     conn.commit()

@@ -140,6 +140,7 @@ class _CatchRateCalculatorState extends State<CatchRateCalculator> {
 
       final zaCheck = await db.query(
         'dex_orders',
+        columns: ['pokemon_id'],
         where: 'pokemon_id = ? AND (dex_name = ? OR dex_name = ?)',
         whereArgs: [
           widget.pokemon.id,
@@ -156,6 +157,7 @@ class _CatchRateCalculatorState extends State<CatchRateCalculator> {
 
       final hisuiCheck = await db.query(
         'dex_orders',
+        columns: ['pokemon_id'],
         where: 'pokemon_id = ? AND dex_name = ?',
         whereArgs: [widget.pokemon.id, 'hisui_regional'],
         limit: 1,
@@ -167,6 +169,7 @@ class _CatchRateCalculatorState extends State<CatchRateCalculator> {
 
       final swshCheck = await db.query(
         'dex_orders',
+        columns: ['pokemon_id'],
         where: 'pokemon_id = ? AND dex_name IN (?, ?, ?)',
         whereArgs: [
           widget.pokemon.id,

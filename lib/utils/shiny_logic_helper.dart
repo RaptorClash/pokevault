@@ -130,6 +130,7 @@ class ShinyLogicHelper {
 
     final hisuiCheck = await db.query(
       'dex_orders',
+      columns: ['pokemon_id'],
       where: 'pokemon_id = ? AND dex_name = ?',
       whereArgs: [id, 'hisui_regional'],
       limit: 1,
@@ -137,6 +138,7 @@ class ShinyLogicHelper {
 
     final swshCheck = await db.query(
       'dex_orders',
+      columns: ['pokemon_id'],
       where: 'pokemon_id = ? AND dex_name IN (?, ?, ?)',
       whereArgs: [
         id,
@@ -162,6 +164,7 @@ class ShinyLogicHelper {
 
     final svCheck = await db.query(
       'dex_orders',
+      columns: ['pokemon_id'],
       where: 'pokemon_id = ? AND dex_name IN (?, ?, ?)',
       whereArgs: [
         id,
@@ -174,6 +177,7 @@ class ShinyLogicHelper {
 
     final plzaCheck = await db.query(
       'dex_orders',
+      columns: ['pokemon_id'],
       where: 'pokemon_id = ? AND dex_name IN (?, ?)',
       whereArgs: [id, 'lumiose_regional', 'lumiose_dimensions_regional'],
       limit: 1,
