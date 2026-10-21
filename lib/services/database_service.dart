@@ -32,6 +32,26 @@ class DatabaseService {
   static Database? _userDatabase;
   static Future<void>? _migrationFuture;
 
+  // In-memory caches for static pokedex reference data to eliminate repeated SQLite querying
+  List<Ribbon>? _cachedRibbons;
+  final Map<int, List<String>> _versionGroupsCache = {};
+  final Map<int, Map<String, dynamic>?> _evolutionChainCache = {};
+  final Map<String, Map<String, dynamic>?> _matchingBallsCache = {};
+  final Map<int, Map<String, Map<String, List<String>>>?> _encountersCache = {};
+  final Map<int, int> _defaultLevelsCache = {};
+  final Map<int, List<String>> _shinyCategoriesCache = {};
+
+  /// Clears in-memory caches of static reference data.
+  void clearMemoryCache() {
+    _cachedRibbons = null;
+    _versionGroupsCache.clear();
+    _evolutionChainCache.clear();
+    _matchingBallsCache.clear();
+    _encountersCache.clear();
+    _defaultLevelsCache.clear();
+    _shinyCategoriesCache.clear();
+  }
+
   static Future<void> _ensureMigration() {
     _migrationFuture ??= DatabasePathHelper.migrateLegacyDocumentsDatabasesIfNeeded();
     return _migrationFuture!;
@@ -599,6 +619,9 @@ class DatabaseService {
   Future<Map<String, Map<String, List<String>>>?> getEncounters(
     int pokemonId,
   ) async {
+    if (_encountersCache.containsKey(pokemonId)) {
+      return _encountersCache[pokemonId];
+    }
     final db = await instance.appDatabase;
     final maps = await db.query(
       'encounters',
@@ -606,7 +629,10 @@ class DatabaseService {
       whereArgs: [pokemonId],
     );
 
-    if (maps.isEmpty) return null;
+    if (maps.isEmpty) {
+      _encountersCache[pokemonId] = null;
+      return null;
+    }
 
     Map<String, Map<String, List<String>>> result = {};
     for (var map in maps) {
@@ -617,12 +643,16 @@ class DatabaseService {
       result.putIfAbsent(gen, () => {});
       result[gen]![version] = locData.split('|||||');
     }
+    _encountersCache[pokemonId] = result;
     return result;
   }
 
   /// Returns the parsed JSON evolution chain for [chainId], or `null` if not found.
   Future<Map<String, dynamic>?> getEvolutionChain(int chainId) async {
     if (chainId == -1) return null;
+    if (_evolutionChainCache.containsKey(chainId)) {
+      return _evolutionChainCache[chainId];
+    }
     final db = await instance.appDatabase;
     final maps = await db.query(
       'evolutions',
@@ -630,13 +660,19 @@ class DatabaseService {
       whereArgs: [chainId],
     );
     if (maps.isNotEmpty) {
-      return jsonDecode(maps.first['chain_json']?.toString() ?? '{}');
+      final res = jsonDecode(maps.first['chain_json']?.toString() ?? '{}');
+      _evolutionChainCache[chainId] = res;
+      return res;
     }
+    _evolutionChainCache[chainId] = null;
     return null;
   }
 
   /// Returns legal and recommended Pokéball lists for [uniqueId] in normal and shiny variations.
   Future<Map<String, dynamic>?> getMatchingBalls(String uniqueId) async {
+    if (_matchingBallsCache.containsKey(uniqueId)) {
+      return _matchingBallsCache[uniqueId];
+    }
     final db = await instance.appDatabase;
     var maps = await db.query(
       'matching_balls',
@@ -653,11 +689,14 @@ class DatabaseService {
     if (maps.isNotEmpty) {
       String nb = maps.first['normal_balls']?.toString() ?? 'any_ball';
       String sb = maps.first['shiny_balls']?.toString() ?? 'any_ball';
-      return {
+      final res = {
         'normal': nb == 'any_ball' ? [] : nb.split(','),
         'shiny': sb == 'any_ball' ? [] : sb.split(','),
       };
+      _matchingBallsCache[uniqueId] = res;
+      return res;
     }
+    _matchingBallsCache[uniqueId] = null;
     return null;
   }
 
@@ -1159,23 +1198,33 @@ class DatabaseService {
   }
 
   Future<int> getDefaultLevel(int pokemonId) async {
+    if (_defaultLevelsCache.containsKey(pokemonId)) {
+      return _defaultLevelsCache[pokemonId]!;
+    }
     final db = await instance.appDatabase;
     final maps = await db.query(
       'default_levels',
       where: 'pokemon_id = ?',
       whereArgs: [pokemonId],
     );
-    return maps.isNotEmpty ? (maps.first['default_level'] as num).toInt() : 15;
+    final res = maps.isNotEmpty ? (maps.first['default_level'] as num).toInt() : 15;
+    _defaultLevelsCache[pokemonId] = res;
+    return res;
   }
 
   Future<List<String>> getShinyCategories(int pokemonId) async {
+    if (_shinyCategoriesCache.containsKey(pokemonId)) {
+      return _shinyCategoriesCache[pokemonId]!;
+    }
     final db = await instance.appDatabase;
     final maps = await db.query(
       'shiny_categories',
       where: 'pokemon_id = ?',
       whereArgs: [pokemonId],
     );
-    return maps.map((m) => m['category'] as String).toList();
+    final res = maps.map((m) => m['category'] as String).toList();
+    _shinyCategoriesCache[pokemonId] = res;
+    return res;
   }
 
   Future<List<PokeAbility>> getAllAbilities() async {
@@ -1255,12 +1304,19 @@ class DatabaseService {
   }
 
   Future<List<Ribbon>> getAllRibbons() async {
+    if (_cachedRibbons != null) {
+      return _cachedRibbons!;
+    }
     final db = await instance.appDatabase;
     final maps = await db.query('ribbons');
-    return maps.map((m) => Ribbon.fromMap(m)).toList();
+    _cachedRibbons = maps.map((m) => Ribbon.fromMap(m)).toList();
+    return _cachedRibbons!;
   }
 
   Future<List<String>> getAvailableVersionGroups(int pokemonId) async {
+    if (_versionGroupsCache.containsKey(pokemonId)) {
+      return _versionGroupsCache[pokemonId]!;
+    }
     final db = await instance.appDatabase;
     final maps = await db.query(
       'pokemon_moves',
@@ -1269,7 +1325,9 @@ class DatabaseService {
       whereArgs: [pokemonId],
       distinct: true,
     );
-    return maps.map((m) => m['version_group'] as String).toList();
+    final res = maps.map((m) => m['version_group'] as String).toList();
+    _versionGroupsCache[pokemonId] = res;
+    return res;
   }
 
   Future<int> getBasePokemonId(int chainId) async {

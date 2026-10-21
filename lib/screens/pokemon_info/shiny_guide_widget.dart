@@ -169,9 +169,8 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
         child: Center(child: CircularProgressIndicator()),
       );
     }
-    List<Widget> genTiles = [];
 
-    List<double> generations = [
+    const List<double> generations = [
       1.0,
       2.0,
       3.0,
@@ -185,6 +184,10 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
       9.0,
       9.5,
     ];
+
+    if (!generations.any(_shouldShowGen)) return const SizedBox.shrink();
+
+    List<Widget> genTiles = [];
 
     for (double gen in generations) {
       if (_shouldShowGen(gen)) {
@@ -471,6 +474,7 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
       elevation: 2,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: ExpansionTile(
+        maintainState: false,
         leading: const Icon(Icons.auto_awesome, color: Colors.amber),
         title: Text(
           Translator.get('shiny_guide_title'),

@@ -3,6 +3,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../l10n/app_translations.dart';
 import '../../../services/database_service.dart';
 import '../../../utils/notification_helper.dart';
+import 'lazy_expansion_card.dart';
 
 class GameVersion {
   final Color bgColor;
@@ -448,36 +449,31 @@ class EncountersWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
+    return LazyExpansionCard(
       key: encountersKey,
-      margin: const EdgeInsets.only(bottom: 16),
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: ExpansionTile(
-        leading: const Icon(Icons.map, color: Colors.blue),
-        title: Text(
-          Translator.get(
-            'encounters_title',
-            fallback: 'Fundorte & Begegnungen',
-          ),
-          style: const TextStyle(fontWeight: FontWeight.bold),
+      leading: const Icon(Icons.map, color: Colors.blue),
+      title: Text(
+        Translator.get(
+          'encounters_title',
+          fallback: 'Fundorte & Begegnungen',
         ),
-        children: [
-          FutureBuilder<Map<String, Map<String, List<String>>>?>(
-            future: DatabaseService.instance.getEncounters(pokemonId),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Padding(
-                  padding: EdgeInsets.all(16.0),
-                  child: Center(child: CircularProgressIndicator()),
-                );
-              }
-              final data = snapshot.data ?? {};
-              return Column(children: _buildEncountersList(context, data));
-            },
-          ),
-        ],
+        style: const TextStyle(fontWeight: FontWeight.bold),
       ),
+      builder: (context) {
+        return FutureBuilder<Map<String, Map<String, List<String>>>?>(
+          future: DatabaseService.instance.getEncounters(pokemonId),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Padding(
+                padding: EdgeInsets.all(16.0),
+                child: Center(child: CircularProgressIndicator()),
+              );
+            }
+            final data = snapshot.data ?? {};
+            return Column(children: _buildEncountersList(context, data));
+          },
+        );
+      },
     );
   }
 }

@@ -6,6 +6,7 @@ import '../../../utils/notification_helper.dart';
 import '../../../utils/catch_rate/models.dart';
 import '../../../utils/catch_rate/strategy_base.dart';
 import '../../../services/database_service.dart';
+import '../../../widgets/universal_poke_image.dart';
 import 'catch_rate_ui_components.dart';
 
 class CatchRateCalculator extends StatefulWidget {
@@ -503,13 +504,14 @@ class _CatchRateCalculatorState extends State<CatchRateCalculator> {
                             color: Theme.of(context).colorScheme.primary,
                           ),
                           const SizedBox(width: 8),
-                          Image.network(
-                            'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/${selectedBallOption.spriteId}.png',
+                          UniversalPokeImage(
+                            imageUrl:
+                                'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/${selectedBallOption.spriteId}.png',
                             width: 36,
                             height: 36,
-                            fit: BoxFit.contain,
-                            errorBuilder: (c, e, s) =>
-                                const SizedBox(width: 36, height: 36),
+                            cacheWidth: 72,
+                            cacheHeight: 72,
+                            errorIconSize: 24,
                           ),
                         ],
                       ),
@@ -561,12 +563,14 @@ class _CatchRateCalculatorState extends State<CatchRateCalculator> {
                         itemBuilder: (BuildContext context, int index) {
                           final BallOption option = options.elementAt(index);
                           return ListTile(
-                            leading: Image.network(
-                              'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/${option.spriteId}.png',
+                            leading: UniversalPokeImage(
+                              imageUrl:
+                                  'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/${option.spriteId}.png',
                               width: 40,
                               height: 40,
-                              errorBuilder: (c, e, s) =>
-                                  const Icon(Icons.catching_pokemon),
+                              cacheWidth: 80,
+                              cacheHeight: 80,
+                              errorIconSize: 24,
                             ),
                             title: Text(_getBallName(option)),
                             onTap: () {

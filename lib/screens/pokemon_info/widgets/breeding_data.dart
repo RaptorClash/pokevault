@@ -1,4 +1,4 @@
-import '../../../models/pokemon.dart';
+﻿import '../../../models/pokemon.dart';
 import '../../../utils/shiny_logic_helper.dart';
 import '../../../l10n/app_translations.dart';
 import '../../../providers/dex_provider.dart';

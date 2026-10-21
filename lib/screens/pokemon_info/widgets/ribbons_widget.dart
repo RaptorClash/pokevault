@@ -165,7 +165,7 @@ class _RibbonsWidgetState extends State<RibbonsWidget> {
       elevation: 2,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: ExpansionTile(
-        maintainState: true,
+        maintainState: false,
         leading: const Icon(Icons.workspace_premium, color: Colors.amber),
         title: Row(
           children: [
@@ -214,22 +214,24 @@ class _RibbonsWidgetState extends State<RibbonsWidget> {
               },
             ),
           ),
-          GridView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            padding: const EdgeInsets.all(16.0),
-            gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-              maxCrossAxisExtent: 95,
-              crossAxisSpacing: 8,
-              mainAxisSpacing: 8,
-              childAspectRatio: 0.8,
+          RepaintBoundary(
+            child: GridView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              padding: const EdgeInsets.all(16.0),
+              gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+                maxCrossAxisExtent: 95,
+                crossAxisSpacing: 8,
+                mainAxisSpacing: 8,
+                childAspectRatio: 0.8,
+              ),
+              itemCount: filteredRibbons.length,
+              itemBuilder: (context, index) {
+                final r = filteredRibbons[index];
+                final isEarned = earnedRibbons.contains(r.id);
+                return _buildItemCard(r, lang, isEarned, earnedRibbons, liveDex);
+              },
             ),
-            itemCount: filteredRibbons.length,
-            itemBuilder: (context, index) {
-              final r = filteredRibbons[index];
-              final isEarned = earnedRibbons.contains(r.id);
-              return _buildItemCard(r, lang, isEarned, earnedRibbons, liveDex);
-            },
           ),
         ],
       ),
@@ -284,6 +286,8 @@ class _RibbonsWidgetState extends State<RibbonsWidget> {
                     imageUrl: ribbon.imageUrl,
                     width: 48,
                     height: 48,
+                    placeholder: (context, url) =>
+                        const SizedBox(width: 48, height: 48),
                   ),
                 ),
               ),

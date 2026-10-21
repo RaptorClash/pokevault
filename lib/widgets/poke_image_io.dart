@@ -51,8 +51,8 @@ Widget buildPokeImage({
           width: width,
           height: height,
           fit: fit,
-          memCacheWidth: cacheWidth,
-          memCacheHeight: cacheHeight,
+          memCacheWidth: effectiveCacheWidth,
+          memCacheHeight: effectiveCacheHeight,
           placeholder:
               placeholder ??
               (context, url) => const Center(

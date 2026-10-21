@@ -7,6 +7,7 @@ import '../../../providers/dex_provider.dart';
 import '../../../providers/settings_provider.dart';
 import '../../../services/database_service.dart';
 import 'pokemon_avatar.dart';
+import 'lazy_expansion_card.dart';
 
 class BreedingInfoWidget extends StatelessWidget {
   final Pokemon pokemon;
@@ -523,21 +524,17 @@ class BreedingInfoWidget extends StatelessWidget {
           .join(', ');
     }
 
-    return Card(
-      margin: const EdgeInsets.only(bottom: 16),
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: ExpansionTile(
-        leading: const Icon(Icons.egg_alt, color: Colors.green),
-        title: Text(
-          Translator.get(
-            'breeding_info_title',
-            fallback: 'Zucht und Entwicklung',
-          ),
-          style: const TextStyle(fontWeight: FontWeight.bold),
+    return LazyExpansionCard(
+      leading: const Icon(Icons.egg_alt, color: Colors.green),
+      title: Text(
+        Translator.get(
+          'breeding_info_title',
+          fallback: 'Zucht und Entwicklung',
         ),
-        children: [
-          Container(
+        style: const TextStyle(fontWeight: FontWeight.bold),
+      ),
+      builder: (context) {
+        return Container(
             width: double.infinity,
             padding: const EdgeInsets.all(16.0),
             decoration: BoxDecoration(
@@ -646,11 +643,10 @@ class BreedingInfoWidget extends StatelessWidget {
                   ),
               ],
             ),
-          ),
-        ],
-      ),
-    );
-  }
+          );
+        },
+      );
+    }
 
   Widget _buildInfoRow(
     BuildContext context,

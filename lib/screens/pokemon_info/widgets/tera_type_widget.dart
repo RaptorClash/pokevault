@@ -6,6 +6,8 @@ import '../../../models/user_dex.dart';
 import '../../../providers/dex_provider.dart';
 import '../../../l10n/app_translations.dart';
 import '../../../utils/shiny_logic_helper.dart';
+import '../../../widgets/universal_poke_image.dart';
+import 'lazy_expansion_card.dart';
 
 class TeraTypeWidget extends StatelessWidget {
   final DexDisplayEntry entry;
@@ -66,92 +68,80 @@ class TeraTypeWidget extends StatelessWidget {
             .where((t) => caughtTeras.contains(t))
             .length;
 
-        return Card(
-          margin: const EdgeInsets.only(bottom: 16),
-          elevation: 2,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: ExpansionTile(
-            leading: const Icon(Icons.diamond_outlined, color: Colors.cyan),
-            title: Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    Translator.get(
-                      'tera_types_title',
-                      fallback: 'Terakristallisierung',
-                    ),
-                    style: const TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.green.withValues(alpha: 0.2),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Text(
-                    '$earnedCount / ${displayTypes.length}',
-                    style: const TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.green,
-                    ),
-                  ),
-                ),
-              ],
+        return LazyExpansionCard(
+          leading: const Icon(Icons.diamond_outlined, color: Colors.cyan),
+          title: Text(
+            Translator.get(
+              'tera_types_title',
+              fallback: 'Terakristallisierung',
             ),
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: displayTypes.map((type) {
-                    bool isCaught = caughtTeras.contains(type);
-                    String iconUrl =
-                        'https://www.serebii.net/pokedex-sv/type/tera/$type.png';
-
-                    return FilterChip(
-                      avatar: Image.network(
-                        iconUrl,
-                        width: 24,
-                        height: 24,
-                        errorBuilder: (c, e, s) =>
-                            const Icon(Icons.diamond, size: 16),
-                      ),
-                      label: Text(
-                        Translator.get(
-                          'type_$type',
-                          fallback: type.toUpperCase(),
-                        ),
-                        style: TextStyle(
-                          color: isCaught ? Colors.green : null,
-                          fontWeight: isCaught
-                              ? FontWeight.bold
-                              : FontWeight.normal,
-                        ),
-                      ),
-                      selected: isCaught,
-                      selectedColor: Colors.green.withValues(alpha: 0.2),
-                      side: BorderSide(
-                        color: isCaught ? Colors.green : Colors.transparent,
-                        width: 1.5,
-                      ),
-                      showCheckmark: false,
-                      onSelected: (_) {
-                        provider.toggleTeraType(dexId, entry.uniqueId, type);
-                      },
-                    );
-                  }).toList(),
-                ),
-              ),
-            ],
+            style: const TextStyle(fontWeight: FontWeight.bold),
           ),
+          trailing: Container(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 8,
+              vertical: 4,
+            ),
+            decoration: BoxDecoration(
+              color: Colors.green.withValues(alpha: 0.2),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Text(
+              '$earnedCount / ${displayTypes.length}',
+              style: const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+                color: Colors.green,
+              ),
+            ),
+          ),
+          builder: (context) {
+            return Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: displayTypes.map((type) {
+                  bool isCaught = caughtTeras.contains(type);
+                  String iconUrl =
+                      'https://www.serebii.net/pokedex-sv/type/tera/$type.png';
+
+                  return FilterChip(
+                    avatar: UniversalPokeImage(
+                      imageUrl: iconUrl,
+                      width: 24,
+                      height: 24,
+                      cacheWidth: 48,
+                      cacheHeight: 48,
+                      errorIconSize: 16,
+                    ),
+                    label: Text(
+                      Translator.get(
+                        'type_$type',
+                        fallback: type.toUpperCase(),
+                      ),
+                      style: TextStyle(
+                        color: isCaught ? Colors.green : null,
+                        fontWeight: isCaught
+                            ? FontWeight.bold
+                            : FontWeight.normal,
+                      ),
+                    ),
+                    selected: isCaught,
+                    selectedColor: Colors.green.withValues(alpha: 0.2),
+                    side: BorderSide(
+                      color: isCaught ? Colors.green : Colors.transparent,
+                      width: 1.5,
+                    ),
+                    showCheckmark: false,
+                    onSelected: (_) {
+                      provider.toggleTeraType(dexId, entry.uniqueId, type);
+                    },
+                  );
+                }).toList(),
+              ),
+            );
+          },
         );
       },
     );

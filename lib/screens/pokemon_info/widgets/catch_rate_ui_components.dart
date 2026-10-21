@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import '../../../l10n/app_translations.dart';
 import '../../../utils/catch_rate/models.dart';
 import '../../../utils/catch_rate/strategy_base.dart';

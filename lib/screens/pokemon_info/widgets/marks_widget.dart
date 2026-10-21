@@ -159,7 +159,7 @@ class _MarksWidgetState extends State<MarksWidget> {
       elevation: 2,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: ExpansionTile(
-        maintainState: true,
+        maintainState: false,
         leading: const Icon(Icons.stars, color: Colors.deepPurpleAccent),
         title: Row(
           children: [
@@ -208,22 +208,24 @@ class _MarksWidgetState extends State<MarksWidget> {
               },
             ),
           ),
-          GridView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            padding: const EdgeInsets.all(16.0),
-            gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-              maxCrossAxisExtent: 95,
-              crossAxisSpacing: 8,
-              mainAxisSpacing: 8,
-              childAspectRatio: 0.8,
+          RepaintBoundary(
+            child: GridView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              padding: const EdgeInsets.all(16.0),
+              gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+                maxCrossAxisExtent: 95,
+                crossAxisSpacing: 8,
+                mainAxisSpacing: 8,
+                childAspectRatio: 0.8,
+              ),
+              itemCount: filteredMarks.length,
+              itemBuilder: (context, index) {
+                final m = filteredMarks[index];
+                final isEarned = earnedRibbons.contains(m.id);
+                return _buildItemCard(m, lang, isEarned, earnedRibbons, liveDex);
+              },
             ),
-            itemCount: filteredMarks.length,
-            itemBuilder: (context, index) {
-              final m = filteredMarks[index];
-              final isEarned = earnedRibbons.contains(m.id);
-              return _buildItemCard(m, lang, isEarned, earnedRibbons, liveDex);
-            },
           ),
         ],
       ),
@@ -277,6 +279,8 @@ class _MarksWidgetState extends State<MarksWidget> {
                     imageUrl: mark.imageUrl,
                     width: 48,
                     height: 48,
+                    placeholder: (context, url) =>
+                        const SizedBox(width: 48, height: 48),
                   ),
                 ),
               ),

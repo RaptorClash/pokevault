@@ -19,6 +19,7 @@ import 'language_widget.dart';
 import 'special_obtainable_card.dart';
 import 'pokemon_shiny_hunts_card.dart';
 import 'gender_differences_card.dart';
+import 'lazy_expansion_card.dart';
 
 class PokemonInfoPage extends StatelessWidget {
   final DexDisplayEntry entry;
@@ -143,27 +144,20 @@ class PokemonInfoPage extends StatelessWidget {
               ),
 
             if (!isSpecial) ...[
-              Card(
+              LazyExpansionCard(
                 key: catchCalcKey,
-                margin: const EdgeInsets.only(bottom: 16),
-                elevation: 2,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+                leading: const Icon(
+                  Icons.calculate_outlined,
+                  color: Colors.purple,
                 ),
-                child: ExpansionTile(
-                  leading: const Icon(
-                    Icons.calculate_outlined,
-                    color: Colors.purple,
+                title: Text(
+                  Translator.get(
+                    'catch_calculator_title',
+                    fallback: 'Ultimativer Fangratenrechner',
                   ),
-                  title: Text(
-                    Translator.get(
-                      'catch_calculator_title',
-                      fallback: 'Ultimativer Fangratenrechner',
-                    ),
-                    style: const TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                  children: [CatchRateCalculator(pokemon: entry.pokemon)],
+                  style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
+                builder: (context) => CatchRateCalculator(pokemon: entry.pokemon),
               ),
               MatchingBallsWidget(
                 entry: entry,
