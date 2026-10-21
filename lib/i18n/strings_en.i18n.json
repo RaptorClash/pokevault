@@ -1578,5 +1578,9 @@
   "controls_ability_toggle_click": "Left Click / Tap",
   "controls_ability_toggle_desc": "Toggle status (e.g. Mastered / Seen)",
   "controls_ability_details_click": "Right Click / Long Press",
-  "controls_ability_details_desc": "Open details view for the ability or move"
+  "controls_ability_details_desc": "Open details view for the ability or move",
+  "gender_differences_title": "Gender Differences",
+  "gender_differences_subtitle": "Visual differences between genders",
+  "gender_differences_note": "Note",
+  "gender_differences_loading": "Loading gender differences..."
 }

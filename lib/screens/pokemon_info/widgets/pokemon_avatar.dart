@@ -83,6 +83,8 @@ class PokemonAvatar extends StatelessWidget {
                     padding: EdgeInsets.all(4.0 * sizeScale),
                     child: UniversalPokeImage(
                       imageUrl: imgUrl,
+                      width: 52 * sizeScale,
+                      height: 52 * sizeScale,
                       errorIconSize: 24 * sizeScale,
                       placeholder: (context, url) => Padding(
                         padding: EdgeInsets.all(8.0 * sizeScale),

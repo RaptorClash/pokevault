@@ -9,20 +9,27 @@ Widget buildPokeImage({
   BoxFit fit = BoxFit.contain,
   double errorIconSize = 24.0,
   Widget Function(BuildContext, String)? placeholder,
+  int? cacheWidth,
+  int? cacheHeight,
 }) {
   final double pixelRatio = MediaQuery.of(context).devicePixelRatio;
-  final int? cacheWidth = width != null ? (width * pixelRatio).toInt() : null;
-  final int? cacheHeight = height != null
-      ? (height * pixelRatio).toInt()
-      : null;
+  final int? resolvedCacheWidth =
+      cacheWidth ?? (width != null ? (width * pixelRatio).toInt() : null);
+  final int? resolvedCacheHeight =
+      cacheHeight ?? (height != null ? (height * pixelRatio).toInt() : null);
+
+  final int? effectiveCacheWidth =
+      resolvedCacheWidth ?? (resolvedCacheHeight == null ? 400 : null);
+  final int? effectiveCacheHeight =
+      resolvedCacheHeight ?? (resolvedCacheWidth == null ? 400 : null);
 
   return Image.network(
     imageUrl,
     width: width,
     height: height,
     fit: fit,
-    cacheWidth: cacheWidth,
-    cacheHeight: cacheHeight,
+    cacheWidth: effectiveCacheWidth,
+    cacheHeight: effectiveCacheHeight,
     errorBuilder: (context, error, stackTrace) {
       if (fallbackUrl != null && fallbackUrl.isNotEmpty) {
         return Image.network(

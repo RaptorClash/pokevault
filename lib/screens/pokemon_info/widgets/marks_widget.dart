@@ -273,7 +273,11 @@ class _MarksWidgetState extends State<MarksWidget> {
               Expanded(
                 child: Padding(
                   padding: const EdgeInsets.all(8.0),
-                  child: UniversalPokeImage(imageUrl: mark.imageUrl),
+                  child: UniversalPokeImage(
+                    imageUrl: mark.imageUrl,
+                    width: 48,
+                    height: 48,
+                  ),
                 ),
               ),
               Padding(

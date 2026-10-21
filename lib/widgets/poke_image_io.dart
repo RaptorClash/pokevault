@@ -10,21 +10,30 @@ Widget buildPokeImage({
   BoxFit fit = BoxFit.contain,
   double errorIconSize = 24.0,
   Widget Function(BuildContext, String)? placeholder,
+  int? cacheWidth,
+  int? cacheHeight,
 }) {
   final double pixelRatio = MediaQuery.of(context).devicePixelRatio;
 
-  final int? cacheWidth = width != null ? (width * pixelRatio).toInt() : null;
-  final int? cacheHeight = height != null
-      ? (height * pixelRatio).toInt()
-      : null;
+  final int? resolvedCacheWidth =
+      cacheWidth ?? (width != null ? (width * pixelRatio).toInt() : null);
+  final int? resolvedCacheHeight =
+      cacheHeight ?? (height != null ? (height * pixelRatio).toInt() : null);
+
+  // Safety fallback: if no dimensions are given, clamp decoding to max 400x400
+  // to prevent uncompressed full-res sprites from causing 1GB RAM spikes.
+  final int? effectiveCacheWidth =
+      resolvedCacheWidth ?? (resolvedCacheHeight == null ? 400 : null);
+  final int? effectiveCacheHeight =
+      resolvedCacheHeight ?? (resolvedCacheWidth == null ? 400 : null);
 
   return CachedNetworkImage(
     imageUrl: imageUrl,
     width: width,
     height: height,
     fit: fit,
-    memCacheWidth: cacheWidth,
-    memCacheHeight: cacheHeight,
+    memCacheWidth: effectiveCacheWidth,
+    memCacheHeight: effectiveCacheHeight,
     fadeInDuration: const Duration(milliseconds: 200),
     placeholder:
         placeholder ??

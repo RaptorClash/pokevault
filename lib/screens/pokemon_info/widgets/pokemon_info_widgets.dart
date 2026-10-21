@@ -112,6 +112,8 @@ class PokemonHeaderWidget extends StatelessWidget {
               child: UniversalPokeImage(
                 imageUrl: currentImageUrl,
                 fallbackUrl: fallbackUrl,
+                width: 200,
+                height: 200,
                 errorIconSize: 60,
                 placeholder: (context, url) =>
                     const Center(child: CircularProgressIndicator()),

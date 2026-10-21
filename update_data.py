@@ -74,6 +74,14 @@ DOWNLOADS = [
         "url": "https://www.pokewiki.de/Ns_Pok%C3%A9mon",
         "filename": "Ns Pokémon – PokéWiki.html",
     },
+    {
+        "url": "https://www.pokewiki.de/Geschlechtsunterschiede",
+        "filename": "Geschlechtsunterschiede – PokéWiki.html",
+    },
+    {
+        "url": "https://bulbapedia.bulbagarden.net/wiki/List_of_Pok%C3%A9mon_with_gender_differences",
+        "filename": "List of Pokémon with gender differences - Bulbapedia, the community-driven Pokémon encyclopedia.html",
+    },
 ]
 
 

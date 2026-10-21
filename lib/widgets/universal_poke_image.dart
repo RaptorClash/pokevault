@@ -10,6 +10,8 @@ class UniversalPokeImage extends StatelessWidget {
   final BoxFit fit;
   final double errorIconSize;
   final Widget Function(BuildContext, String)? placeholder;
+  final int? cacheWidth;
+  final int? cacheHeight;
 
   const UniversalPokeImage({
     super.key,
@@ -20,6 +22,8 @@ class UniversalPokeImage extends StatelessWidget {
     this.fit = BoxFit.contain,
     this.errorIconSize = 24.0,
     this.placeholder,
+    this.cacheWidth,
+    this.cacheHeight,
   });
 
   @override
@@ -33,6 +37,8 @@ class UniversalPokeImage extends StatelessWidget {
       fit: fit,
       errorIconSize: errorIconSize,
       placeholder: placeholder,
+      cacheWidth: cacheWidth,
+      cacheHeight: cacheHeight,
     );
   }
 }

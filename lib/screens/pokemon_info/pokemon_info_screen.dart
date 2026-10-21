@@ -191,6 +191,7 @@ class _PokemonInfoScreenState extends State<PokemonInfoScreen> {
   @override
   void dispose() {
     _pageController.dispose();
+    PaintingBinding.instance.imageCache.clearLiveImages();
     super.dispose();
   }
 
@@ -259,11 +260,20 @@ class _PokemonInfoScreenState extends State<PokemonInfoScreen> {
       ),
       body: PageView.builder(
         controller: _pageController,
+        findChildIndexCallback: (Key key) {
+          if (key is ValueKey<String>) {
+            final int idx =
+                widget.entries.indexWhere((e) => e.uniqueId == key.value);
+            return idx != -1 ? idx : null;
+          }
+          return null;
+        },
         onPageChanged: (index) {
           setState(() {
             _currentIndex = index;
             _manualShinyToggle = widget.initialShiny;
           });
+          PaintingBinding.instance.imageCache.clearLiveImages();
           if (widget.onPageChanged != null) widget.onPageChanged!(index);
         },
         itemCount: widget.entries.length,
@@ -272,6 +282,7 @@ class _PokemonInfoScreenState extends State<PokemonInfoScreen> {
           final id = entry.uniqueId;
 
           return PokemonInfoPage(
+            key: ValueKey(id),
             entry: entry,
             dexId: widget.dexId,
             selectionActionLabel: widget.selectionActionLabel,

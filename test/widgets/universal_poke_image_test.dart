@@ -29,5 +29,74 @@ void main() {
         expect(find.byType(CachedNetworkImage), findsOneWidget);
       }
     });
+
+    testWidgets('Setzt memCacheWidth und memCacheHeight basierend auf width und height', (
+      WidgetTester tester,
+    ) async {
+      if (kIsWeb) return;
+
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: Scaffold(
+            body: UniversalPokeImage(
+              imageUrl: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/25.png',
+              width: 84,
+              height: 84,
+            ),
+          ),
+        ),
+      );
+
+      final cachedImage = tester.widget<CachedNetworkImage>(find.byType(CachedNetworkImage));
+      expect(cachedImage.width, 84.0);
+      expect(cachedImage.height, 84.0);
+      expect(cachedImage.memCacheWidth, isNotNull);
+      expect(cachedImage.memCacheHeight, isNotNull);
+    });
+
+    testWidgets('Verwendet explizite cacheWidth und cacheHeight wenn angegeben', (
+      WidgetTester tester,
+    ) async {
+      if (kIsWeb) return;
+
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: Scaffold(
+            body: UniversalPokeImage(
+              imageUrl: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/25.png',
+              cacheWidth: 168,
+              cacheHeight: 168,
+            ),
+          ),
+        ),
+      );
+
+      final cachedImage = tester.widget<CachedNetworkImage>(find.byType(CachedNetworkImage));
+      expect(cachedImage.memCacheWidth, 168);
+      expect(cachedImage.memCacheHeight, 168);
+    });
+
+    testWidgets('Wendet sichere Standardbegrenzung an wenn width und height null sind', (
+      WidgetTester tester,
+    ) async {
+      if (kIsWeb) return;
+
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: Scaffold(
+            body: UniversalPokeImage(
+              imageUrl: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/25.png',
+            ),
+          ),
+        ),
+      );
+
+      final cachedImage = tester.widget<CachedNetworkImage>(find.byType(CachedNetworkImage));
+      // Darf niemals null sein, um unkomprimierte 1GB-Spikes zu verhindern
+      expect(cachedImage.memCacheWidth, isNotNull);
+      expect(cachedImage.memCacheHeight, isNotNull);
+      expect(cachedImage.memCacheWidth, lessThanOrEqualTo(400));
+      expect(cachedImage.memCacheHeight, lessThanOrEqualTo(400));
+    });
   });
 }

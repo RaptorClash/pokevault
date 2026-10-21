@@ -4,9 +4,9 @@
 /// To regenerate, run: `dart run slang`
 ///
 /// Locales: 2
-/// Strings: 3148 (1574 per locale)
+/// Strings: 3156 (1578 per locale)
 ///
-/// Built on 2026-10-18 at 18:14 UTC
+/// Built on 2026-10-20 at 18:42 UTC
 
 // coverage:ignore-file
 // ignore_for_file: type=lint
@@ -1722,6 +1722,10 @@ class Translations implements BaseTranslations<AppLocale, Translations> {
 	String get controls_ability_toggle_desc => 'Status (z. B. Beherrscht / Gesehen) umschalten';
 	String get controls_ability_details_click => 'Rechtsklick / Langer Druck';
 	String get controls_ability_details_desc => 'Detailansicht der Fähigkeit oder Attacke öffnen';
+	String get gender_differences_title => 'Geschlechtsunterschiede';
+	String get gender_differences_subtitle => 'Optische Unterschiede zwischen den Geschlechtern';
+	String get gender_differences_note => 'Hinweis';
+	String get gender_differences_loading => 'Lade Geschlechtsunterschiede...';
 }
 
 // Path: <root>
@@ -3324,6 +3328,10 @@ class _StringsEn extends Translations {
 	@override String get controls_ability_toggle_desc => 'Toggle status (e.g. Mastered / Seen)';
 	@override String get controls_ability_details_click => 'Right Click / Long Press';
 	@override String get controls_ability_details_desc => 'Open details view for the ability or move';
+	@override String get gender_differences_title => 'Gender Differences';
+	@override String get gender_differences_subtitle => 'Visual differences between genders';
+	@override String get gender_differences_note => 'Note';
+	@override String get gender_differences_loading => 'Loading gender differences...';
 }
 
 /// Flat map(s) containing all translations.
@@ -4906,6 +4914,10 @@ extension on Translations {
 			case 'controls_ability_toggle_desc': return 'Status (z. B. Beherrscht / Gesehen) umschalten';
 			case 'controls_ability_details_click': return 'Rechtsklick / Langer Druck';
 			case 'controls_ability_details_desc': return 'Detailansicht der Fähigkeit oder Attacke öffnen';
+			case 'gender_differences_title': return 'Geschlechtsunterschiede';
+			case 'gender_differences_subtitle': return 'Optische Unterschiede zwischen den Geschlechtern';
+			case 'gender_differences_note': return 'Hinweis';
+			case 'gender_differences_loading': return 'Lade Geschlechtsunterschiede...';
 			default: return null;
 		}
 	}
@@ -6488,6 +6500,10 @@ extension on _StringsEn {
 			case 'controls_ability_toggle_desc': return 'Toggle status (e.g. Mastered / Seen)';
 			case 'controls_ability_details_click': return 'Right Click / Long Press';
 			case 'controls_ability_details_desc': return 'Open details view for the ability or move';
+			case 'gender_differences_title': return 'Gender Differences';
+			case 'gender_differences_subtitle': return 'Visual differences between genders';
+			case 'gender_differences_note': return 'Note';
+			case 'gender_differences_loading': return 'Loading gender differences...';
 			default: return null;
 		}
 	}

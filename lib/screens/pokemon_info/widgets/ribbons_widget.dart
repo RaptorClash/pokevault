@@ -280,7 +280,11 @@ class _RibbonsWidgetState extends State<RibbonsWidget> {
               Expanded(
                 child: Padding(
                   padding: const EdgeInsets.all(8.0),
-                  child: UniversalPokeImage(imageUrl: ribbon.imageUrl),
+                  child: UniversalPokeImage(
+                    imageUrl: ribbon.imageUrl,
+                    width: 48,
+                    height: 48,
+                  ),
                 ),
               ),
               Padding(

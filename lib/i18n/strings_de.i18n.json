@@ -1578,5 +1578,9 @@
   "controls_ability_toggle_click": "Linksklick / Antippen",
   "controls_ability_toggle_desc": "Status (z. B. Beherrscht / Gesehen) umschalten",
   "controls_ability_details_click": "Rechtsklick / Langer Druck",
-  "controls_ability_details_desc": "Detailansicht der Fähigkeit oder Attacke öffnen"
+  "controls_ability_details_desc": "Detailansicht der Fähigkeit oder Attacke öffnen",
+  "gender_differences_title": "Geschlechtsunterschiede",
+  "gender_differences_subtitle": "Optische Unterschiede zwischen den Geschlechtern",
+  "gender_differences_note": "Hinweis",
+  "gender_differences_loading": "Lade Geschlechtsunterschiede..."
 }

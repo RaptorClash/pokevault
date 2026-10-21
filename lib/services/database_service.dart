@@ -65,7 +65,7 @@ class DatabaseService {
   }
 
   @visibleForTesting
-  static const int currentAppDbVersion = 26;
+  static const int currentAppDbVersion = 27;
   static const int _currentAppDbVersion = currentAppDbVersion;
 
   Future<Database> _initAppDB(String fileName) async {
@@ -369,6 +369,7 @@ class DatabaseService {
     await _createIndexIfTableExists(db, 'special_dexes', 'idx_special_dexes_poke_dex', 'pokemon_id, dex_name');
     await _createIndexIfTableExists(db, 'shiny_categories', 'idx_shiny_categories_poke_id', 'pokemon_id');
     await _createIndexIfTableExists(db, 'special_obtainable', 'idx_special_obtainable_poke_id', 'pokemon_id');
+    await _createIndexIfTableExists(db, 'gender_differences', 'idx_gender_differences_pokemon_id', 'pokemon_id');
 
     try {
       final info = await db.rawQuery("PRAGMA table_info(shiny_categories)");
@@ -1291,6 +1292,26 @@ class DatabaseService {
   Future<List<Map<String, dynamic>>> getSpecialObtainables() async {
     final db = await instance.appDatabase;
     return await db.query('special_obtainable');
+  }
+
+  /// Retrieves localized gender difference descriptions for a given [pokemonId],
+  /// or `null` if the Pokémon species does not exhibit gender differences.
+  Future<Map<String, String>?> getGenderDifference(int pokemonId) async {
+    if (pokemonId <= 0) return null;
+    final db = await instance.appDatabase;
+    final res = await db.query(
+      'gender_differences',
+      where: 'pokemon_id = ?',
+      whereArgs: [pokemonId],
+      limit: 1,
+    );
+    if (res.isNotEmpty) {
+      return {
+        'de': res.first['difference_de']?.toString() ?? '',
+        'en': res.first['difference_en']?.toString() ?? '',
+      };
+    }
+    return null;
   }
 }
 

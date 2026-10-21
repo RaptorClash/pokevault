@@ -574,6 +574,70 @@ def scrape_shiny_locks(html_path):
     print(f"-> {len(locks)} Shiny-Sperren erfolgreich eingelesen.")
     return locks
         
+def scrape_gender_differences(pokewiki_path, bulbapedia_path, cur):
+    print("-> Scrape Geschlechtsunterschiede aus PokéWiki & Bulbapedia...")
+    if not os.path.exists(pokewiki_path) or not os.path.exists(bulbapedia_path):
+        print(f"WARNUNG: HTML-Dateien für Geschlechtsunterschiede nicht gefunden: {pokewiki_path}, {bulbapedia_path}")
+        return []
+
+    de_to_id = {
+        row[0].lower(): row[1]
+        for row in cur.execute("SELECT name_de, id FROM pokemon").fetchall()
+    }
+
+    # 1. Bulbapedia (Englisch)
+    with open(bulbapedia_path, "r", encoding="utf-8") as f:
+        soup_b = BeautifulSoup(f.read(), "html.parser")
+
+    bulba = {}
+    for t in soup_b.find_all("table"):
+        rows = t.find_all("tr")
+        for i, r in enumerate(rows):
+            cells = r.find_all(["td", "th"])
+            if len(cells) >= 2:
+                txt0 = cells[0].get_text(strip=True)
+                # 4-stellige Pokédex-Nummer filtert Hauptspiele und schließt Anime-Tabellen aus
+                if re.match(r"^\d{4}$", txt0):
+                    pid = int(txt0)
+                    desc = ""
+                    if i + 1 < len(rows):
+                        next_cells = rows[i + 1].find_all(["td", "th"])
+                        if len(next_cells) == 1 or (
+                            len(next_cells) >= 1 and "colspan" in next_cells[0].attrs
+                        ):
+                            desc = next_cells[0].get_text(separator=" ", strip=True)
+                    bulba[pid] = desc
+
+    # 2. PokéWiki (Deutsch)
+    with open(pokewiki_path, "r", encoding="utf-8") as f:
+        soup_p = BeautifulSoup(f.read(), "html.parser")
+
+    wiki = {}
+    for t in soup_p.find_all("table"):
+        for r in t.find_all("tr")[1:]:
+            cells = r.find_all(["td", "th"])
+            if len(cells) >= 4:
+                name_raw = cells[0].get_text(strip=True)
+                norm_name = name_raw.lower()
+                if norm_name in de_to_id:
+                    pid = de_to_id[norm_name]
+                    desc_de = cells[3].get_text(separator=" ", strip=True)
+                    if len(cells) >= 5:
+                        note = cells[4].get_text(separator=" ", strip=True)
+                        if note:
+                            desc_de += f"\n\nHinweis: {note}"
+                    wiki[pid] = desc_de
+
+    all_pids = sorted(set(bulba.keys()) | set(wiki.keys()))
+    results = []
+    for pid in all_pids:
+        desc_de = wiki.get(pid, "")
+        desc_en = bulba.get(pid, "")
+        results.append((pid, desc_de, desc_en))
+
+    print(f"-> {len(results)} Pokémon mit Geschlechtsunterschieden erfolgreich eingelesen.")
+    return results
+
 def main():
     """Compiles the complete pokedex.sqlite SQLite database from raw sources.
 
@@ -648,6 +712,11 @@ def main():
         );
         CREATE TABLE IF NOT EXISTS pokemon_moves (
             pokemon_id INTEGER, move_id INTEGER, learn_method TEXT, level_learned INTEGER, version_group TEXT
+        );
+                CREATE TABLE IF NOT EXISTS gender_differences (
+            pokemon_id INTEGER PRIMARY KEY,
+            difference_de TEXT,
+            difference_en TEXT
         );
         CREATE TABLE IF NOT EXISTS special_obtainable (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -1090,6 +1159,18 @@ def main():
     except Exception as e:
         print(f"Fehler beim verarbeiten der Spezialerhaltung: {e}")
 
+    print("\n6.5. Verarbeite Geschlechtsunterschiede...")
+    try:
+        gender_diffs = scrape_gender_differences(
+            'bin/Geschlechtsunterschiede – PokéWiki.html',
+            'bin/List of Pokémon with gender differences - Bulbapedia, the community-driven Pokémon encyclopedia.html',
+            c
+        )
+        for g_pid, g_de, g_en in gender_diffs:
+            c.execute('INSERT INTO gender_differences (pokemon_id, difference_de, difference_en) VALUES (?, ?, ?)', (g_pid, g_de, g_en))
+    except Exception as e:
+        print(f"Fehler beim Verarbeiten der Geschlechtsunterschiede: {e}")
+
     print("\n7. Erstelle Performance-Indizes und optimiere Datenbank...")
     indices = [
         "CREATE INDEX IF NOT EXISTS idx_pokemon_moves_move_id ON pokemon_moves (move_id);",
@@ -1104,6 +1185,8 @@ def main():
         "CREATE INDEX IF NOT EXISTS idx_special_dexes_poke_dex ON special_dexes (pokemon_id, dex_name);",
         "CREATE INDEX IF NOT EXISTS idx_shiny_categories_poke_id ON shiny_categories (pokemon_id);",
         "CREATE INDEX IF NOT EXISTS idx_special_obtainable_poke_id ON special_obtainable (pokemon_id);",
+        "CREATE INDEX IF NOT EXISTS idx_gender_differences_pokemon_id ON gender_differences (pokemon_id);",
+
     ]
     for idx_sql in indices:
         c.execute(idx_sql)

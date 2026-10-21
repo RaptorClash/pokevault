@@ -18,6 +18,7 @@ import './matching_balls_widget.dart';
 import 'language_widget.dart';
 import 'special_obtainable_card.dart';
 import 'pokemon_shiny_hunts_card.dart';
+import 'gender_differences_card.dart';
 
 class PokemonInfoPage extends StatelessWidget {
   final DexDisplayEntry entry;
@@ -134,6 +135,12 @@ class PokemonInfoPage extends StatelessWidget {
                 currentForm: currentForm,
               ),
             ),
+
+            if (entry.pokemon.hasGenderDifferences)
+              GenderDifferencesCard(
+                entry: entry,
+                wantShiny: wantShiny,
+              ),
 
             if (!isSpecial) ...[
               Card(
