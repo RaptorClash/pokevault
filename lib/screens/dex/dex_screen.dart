@@ -27,6 +27,7 @@ import 'box_edit_screen.dart';
 import '../../utils/box_sequence_manager.dart';
 import '../../providers/shiny_hunt_provider.dart';
 import '../shiny_hunt/shiny_hunts_hub_screen.dart';
+import 'widgets/dex_progress_dialog.dart';
 
 class DexScreen extends StatefulWidget {
   final UserDex initialDex;
@@ -1048,6 +1049,9 @@ class _DexScreenState extends State<DexScreen> {
       totalCount = caughtCount;
     }
 
+    final double progressRatio = totalCount > 0 ? (caughtCount / totalCount).clamp(0.0, 1.0) : 0.0;
+    final String progressPercent = (progressRatio * 100).toStringAsFixed(1);
+
     final filteredList = baseList.where((entry) {
       final isCaught = DexLogicHelper.isPokemonCaught(liveDex, entry.uniqueId);
       if (_filter == 'caught' && !isCaught) return false;
@@ -1500,22 +1504,67 @@ class _DexScreenState extends State<DexScreen> {
                   onPressed: () => _handleCancelEditMode(liveDex),
                 )
               : null,
-          title: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                liveDex.title,
-                style: const TextStyle(fontSize: 18),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
+          title: Tooltip(
+            message: Translator.get('dex_progress_tooltip'),
+            child: InkWell(
+              borderRadius: BorderRadius.circular(8),
+              onTap: () {
+                DexProgressDialog.show(
+                  context,
+                  liveDex: liveDex,
+                  entries: baseList,
+                  onFilterSelected: (filter) {
+                    setState(() {
+                      _filter = filter;
+                    });
+                  },
+                );
+              },
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Flexible(
+                          child: Text(
+                            liveDex.title,
+                            style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        const Icon(Icons.arrow_drop_down, size: 18, color: Colors.white70),
+                      ],
+                    ),
+                    const SizedBox(height: 1),
+                    Text(
+                      '$caughtCount / $totalCount ${Translator.get('caught')} ($progressPercent%)',
+                      style: const TextStyle(fontSize: 11, color: Colors.white70),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 3),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(4),
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 140),
+                        child: LinearProgressIndicator(
+                          value: progressRatio,
+                          minHeight: 3.5,
+                          backgroundColor: Colors.white24,
+                          valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF10B981)),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
-              Text(
-                '$caughtCount / $totalCount ${Translator.get('caught')}',
-                style: const TextStyle(fontSize: 12),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ],
+            ),
           ),
           actions: [
             if (_isEditMode && _selectedForEdit.isNotEmpty)
@@ -1621,6 +1670,23 @@ class _DexScreenState extends State<DexScreen> {
                     });
                     _recalculateBoxesAsync(liveDex);
                   }
+                },
+              ),
+            if (!_isEditMode)
+              IconButton(
+                icon: const Icon(Icons.bar_chart),
+                tooltip: Translator.get('dex_progress_tooltip'),
+                onPressed: () {
+                  DexProgressDialog.show(
+                    context,
+                    liveDex: liveDex,
+                    entries: baseList,
+                    onFilterSelected: (filter) {
+                      setState(() {
+                        _filter = filter;
+                      });
+                    },
+                  );
                 },
               ),
             if (!_isEditMode)

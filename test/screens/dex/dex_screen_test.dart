@@ -455,4 +455,111 @@ void main() {
 
     await tester.pump(const Duration(seconds: 15));
   });
+
+  testWidgets('Tippen auf AppBar-Titel oeffnet DexProgressDialog', (
+    WidgetTester tester,
+  ) async {
+    await pumpAndLoad(tester);
+
+    // Mini progress bar and caught counter with percentage are visible in AppBar
+    expect(find.byType(LinearProgressIndicator), findsWidgets);
+    expect(find.textContaining('1 / 3'), findsWidgets);
+
+    // Tap on the title area
+    await tester.tap(find.textContaining('Kanto Test Dex'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+
+    // Dex-Fortschritt & Statistiken dialog is shown
+    expect(find.text(Translator.get('dex_progress_title')), findsOneWidget);
+    expect(find.textContaining('33.3%'), findsWidgets);
+
+    // Close dialog
+    await tester.tap(find.text(Translator.get('dex_progress_close')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+
+    expect(find.text(Translator.get('dex_progress_title')), findsNothing);
+
+    await tester.pump(const Duration(seconds: 15));
+  });
+
+  testWidgets('Statistik-Icon in AppBar oeffnet Dialog und filtert ueber "Nur Fehlende anzeigen"', (
+    WidgetTester tester,
+  ) async {
+    await pumpAndLoad(tester);
+
+    // Tap on bar_chart icon in AppBar actions
+    await tester.tap(find.byIcon(Icons.bar_chart));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+
+    expect(find.text(Translator.get('dex_progress_title')), findsOneWidget);
+
+    // Tap on "Nur Fehlende anzeigen"
+    await tester.tap(find.text(Translator.get('dex_progress_show_missing')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+
+    // Dialog is closed and Dex is filtered: only Glumanda and Schiggy shown, Bisasam hidden
+    expect(find.text(Translator.get('dex_progress_title')), findsNothing);
+    expect(find.widgetWithText(Card, 'Bisasam'), findsNothing);
+    expect(find.widgetWithText(Card, 'Glumanda'), findsOneWidget);
+    expect(find.widgetWithText(Card, 'Schiggy'), findsOneWidget);
+
+    await tester.pump(const Duration(seconds: 15));
+  });
+
+  testWidgets('AppBar-Titel hat Tooltip und "Alle anzeigen" im Dialog setzt Filter zurueck', (
+    WidgetTester tester,
+  ) async {
+    await pumpAndLoad(tester);
+
+    // Verify tooltip on title
+    expect(find.byTooltip(Translator.get('dex_progress_tooltip')), findsWidgets);
+
+    // First filter to missing
+    await tester.tap(find.byIcon(Icons.bar_chart));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+
+    await tester.tap(find.text(Translator.get('dex_progress_show_missing')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(find.widgetWithText(Card, 'Bisasam'), findsNothing);
+
+    // Open dialog again and tap "Alle anzeigen"
+    await tester.tap(find.byTooltip(Translator.get('dex_progress_tooltip')).first);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+
+    await tester.tap(find.text(Translator.get('dex_progress_show_all')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+
+    // All Pokemon visible again
+    expect(find.widgetWithText(Card, 'Bisasam'), findsOneWidget);
+    expect(find.widgetWithText(Card, 'Glumanda'), findsOneWidget);
+    expect(find.widgetWithText(Card, 'Schiggy'), findsOneWidget);
+
+    await tester.pump(const Duration(seconds: 15));
+  });
+
+  testWidgets('DexScreen auf 320px schmalem Bildschirm rendert ohne Overflow in AppBar', (
+    WidgetTester tester,
+  ) async {
+    tester.view.physicalSize = const Size(320.0, 600.0);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
+
+    await pumpAndLoad(tester);
+
+    expect(tester.takeException(), isNull);
+    expect(find.textContaining('1 / 3'), findsWidgets);
+
+    await tester.pump(const Duration(seconds: 15));
+  });
 }
