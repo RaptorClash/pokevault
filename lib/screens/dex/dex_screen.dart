@@ -28,6 +28,7 @@ import '../../utils/box_sequence_manager.dart';
 import '../../providers/shiny_hunt_provider.dart';
 import '../shiny_hunt/shiny_hunts_hub_screen.dart';
 import 'widgets/dex_progress_dialog.dart';
+import 'widgets/dex_completion_card_dialog.dart';
 
 class DexScreen extends StatefulWidget {
   final UserDex initialDex;
@@ -1689,6 +1690,19 @@ class _DexScreenState extends State<DexScreen> {
                   );
                 },
               ),
+            if (!_isEditMode && MediaQuery.sizeOf(context).width >= 360)
+              IconButton(
+                key: const Key('dex_appbar_share_card_button'),
+                icon: const Icon(Icons.share),
+                tooltip: Translator.get('share_dex_card', fallback: 'Erfolgs-Grafik teilen...'),
+                onPressed: () {
+                  DexCompletionCardDialog.show(
+                    context,
+                    liveDex: liveDex,
+                    entries: baseList,
+                  );
+                },
+              ),
             if (!_isEditMode)
               IconButton(
                 icon: const Icon(Icons.checklist),
@@ -1788,6 +1802,13 @@ class _DexScreenState extends State<DexScreen> {
                     _recalculateBoxesAsync(liveDex);
                   });
                 }
+                if (value == 'share_card') {
+                  DexCompletionCardDialog.show(
+                    context,
+                    liveDex: liveDex,
+                    entries: baseList,
+                  );
+                }
                 if (value == 'ignored_list') {
                   Navigator.push(
                     context,
@@ -1871,6 +1892,24 @@ class _DexScreenState extends State<DexScreen> {
                           Translator.get(
                             'ignored_list_title',
                             fallback: 'Ausgeblendete Pokemon',
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const PopupMenuDivider(),
+                PopupMenuItem(
+                  value: 'share_card',
+                  child: Row(
+                    children: [
+                      const Icon(Icons.share, size: 20),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          Translator.get(
+                            'share_dex_card',
+                            fallback: 'Erfolgs-Grafik teilen...',
                           ),
                         ),
                       ),

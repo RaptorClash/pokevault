@@ -35,12 +35,16 @@ class PokemonSearchSelectionScreen extends StatefulWidget {
   final List<DexDisplayEntry> allAvailableEntries;
   final String? dexId;
   final bool initialShiny;
+  final bool allowNone;
+  final bool showPlaceholder;
 
   const PokemonSearchSelectionScreen({
     super.key,
     required this.allAvailableEntries,
     this.dexId,
     this.initialShiny = false,
+    this.allowNone = false,
+    this.showPlaceholder = true,
   });
 
   @override
@@ -314,6 +318,7 @@ class _PokemonSearchSelectionScreenState
   }
 
   bool get _shouldShowPlaceholderCard {
+    if (!widget.showPlaceholder) return false;
     if (_searchQuery.isEmpty) return true;
     final q = _searchQuery.toLowerCase().trim();
     if (q == '#---' || q == '---') return true;
@@ -339,6 +344,120 @@ class _PokemonSearchSelectionScreenState
     ];
 
     return terms.any((term) => term.startsWith(q) || q.contains(term));
+  }
+
+  bool get _shouldShowNoneCard {
+    if (!widget.allowNone) return false;
+    if (_searchQuery.isEmpty) return true;
+    final q = _searchQuery.toLowerCase().trim();
+    final terms = [
+      'kein',
+      'keine',
+      'none',
+      'ohne',
+      'without',
+      'watermark',
+      'wasserzeichen',
+      'leer',
+      'frei',
+      'block',
+      '#---',
+    ];
+    return terms.any((term) => term.startsWith(q) || q.contains(term));
+  }
+
+  Widget _buildNoneCard(BuildContext context, ThemeData theme, bool isEn) {
+    return Card(
+      key: const Key('pokemon_search_none_card'),
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(
+          color: theme.colorScheme.error.withValues(alpha: 0.5),
+          width: 1.5,
+        ),
+      ),
+      color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.35),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: () {
+          Navigator.of(context).pop('none');
+        },
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    '#---',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                      color: theme.colorScheme.error.withValues(alpha: 0.7),
+                    ),
+                  ),
+                  Icon(
+                    Icons.block,
+                    size: 14,
+                    color: theme.colorScheme.error.withValues(alpha: 0.7),
+                  ),
+                ],
+              ),
+              Expanded(
+                child: Center(
+                  child: Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: theme.colorScheme.error.withValues(alpha: 0.1),
+                    ),
+                    child: Icon(
+                      Icons.block,
+                      size: 32,
+                      color: theme.colorScheme.error,
+                    ),
+                  ),
+                ),
+              ),
+              Text(
+                isEn ? 'No Pokémon' : 'Kein Pokémon',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                  color: theme.colorScheme.error,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 4),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 6,
+                  vertical: 2,
+                ),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.error.withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Text(
+                  (isEn ? 'NO WATERMARK' : 'KEIN WASSERZEICHEN').toUpperCase(),
+                  style: TextStyle(
+                    color: theme.colorScheme.error,
+                    fontSize: 8.5,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   Widget _buildPlaceholderCard(BuildContext context, ThemeData theme, bool isEn) {
@@ -491,17 +610,30 @@ class _PokemonSearchSelectionScreenState
               });
             },
           ),
-          TextButton.icon(
-            key: const Key('insert_placeholder_button'),
-            icon: const Icon(Icons.crop_free, size: 18),
-            label: Text(
-              t.placeholder,
-              style: const TextStyle(fontWeight: FontWeight.bold),
+          if (widget.allowNone)
+            TextButton.icon(
+              key: const Key('select_none_pokemon_button'),
+              icon: const Icon(Icons.block, size: 18),
+              label: Text(
+                isEn ? 'No Pokémon' : 'Kein Pokémon',
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
+              onPressed: () {
+                Navigator.of(context).pop('none');
+              },
             ),
-            onPressed: () {
-              Navigator.of(context).pop('placeholder');
-            },
-          ),
+          if (widget.showPlaceholder)
+            TextButton.icon(
+              key: const Key('insert_placeholder_button'),
+              icon: const Icon(Icons.crop_free, size: 18),
+              label: Text(
+                t.placeholder,
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
+              onPressed: () {
+                Navigator.of(context).pop('placeholder');
+              },
+            ),
         ],
       ),
       body: Column(
@@ -819,7 +951,7 @@ class _PokemonSearchSelectionScreenState
 
           // Grid View
           Expanded(
-            child: (_filteredEntries.isEmpty && !_shouldShowPlaceholderCard)
+            child: (_filteredEntries.isEmpty && !_shouldShowPlaceholderCard && !_shouldShowNoneCard)
                 ? Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -842,8 +974,10 @@ class _PokemonSearchSelectionScreenState
                 : LayoutBuilder(
                     builder: (context, constraints) {
                       final crossAxisCount = (constraints.maxWidth / 120).floor().clamp(2, 6);
+                      final showNone = _shouldShowNoneCard;
                       final showPlaceholder = _shouldShowPlaceholderCard;
-                      final totalCount = _filteredEntries.length + (showPlaceholder ? 1 : 0);
+                      final leadingSpecialCount = (showNone ? 1 : 0) + (showPlaceholder ? 1 : 0);
+                      final totalCount = _filteredEntries.length + leadingSpecialCount;
                       return GridView.builder(
                         padding: const EdgeInsets.all(8),
                         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
@@ -854,11 +988,15 @@ class _PokemonSearchSelectionScreenState
                         ),
                         itemCount: totalCount,
                         itemBuilder: (context, index) {
-                          if (showPlaceholder && index == 0) {
+                          if (showNone && index == 0) {
+                            return _buildNoneCard(context, theme, isEn);
+                          }
+
+                          if (showPlaceholder && index == (showNone ? 1 : 0)) {
                             return _buildPlaceholderCard(context, theme, isEn);
                           }
 
-                          final entryIndex = showPlaceholder ? index - 1 : index;
+                          final entryIndex = index - leadingSpecialCount;
                           final entry = _filteredEntries[entryIndex];
                           final name = isEn ? entry.pokemon.nameEn : entry.pokemon.nameDe;
                           final types = _getEntryTypes(entry);

@@ -12,6 +12,7 @@ import '../../models/user_dex.dart';
 import '../../models/tutorial_step.dart';
 import '../../widgets/tutorial/tutorial_overlay.dart';
 import '../dex/dex_screen.dart';
+import '../dex/widgets/dex_completion_card_dialog.dart';
 import '../settings/settings_screen.dart';
 import '../../utils/update_helper.dart';
 import '../../widgets/dialogs/update_dialog.dart';
@@ -656,6 +657,8 @@ class _HomeScreenState extends State<HomeScreen> {
             }, _clearSelection),
             onDelete: () =>
                 HomeDialogs.confirmDeleteDex(context, provider, item),
+            onShareCard: () =>
+                DexCompletionCardDialog.show(context, liveDex: item),
           ),
         );
       }

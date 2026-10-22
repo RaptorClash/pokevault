@@ -157,6 +157,7 @@ class DexCard extends StatelessWidget {
   final VoidCallback onEdit;
   final VoidCallback onMove;
   final VoidCallback onDelete;
+  final VoidCallback? onShareCard;
 
   const DexCard({
     super.key,
@@ -172,6 +173,7 @@ class DexCard extends StatelessWidget {
     required this.onEdit,
     required this.onMove,
     required this.onDelete,
+    this.onShareCard,
   });
 
   @override
@@ -213,11 +215,22 @@ class DexCard extends StatelessWidget {
               PopupMenuButton<String>(
                 icon: const Icon(Icons.more_vert),
                 onSelected: (value) {
+                  if (value == 'share_card') onShareCard?.call();
                   if (value == 'edit') onEdit();
                   if (value == 'move') onMove();
                   if (value == 'delete') onDelete();
                 },
                 itemBuilder: (context) => [
+                  PopupMenuItem(
+                    value: 'share_card',
+                    child: Row(
+                      children: [
+                        const Icon(Icons.share, size: 20),
+                        const SizedBox(width: 8),
+                        Text(Translator.get('share_dex_card_btn', fallback: 'Erfolgs-Grafik')),
+                      ],
+                    ),
+                  ),
                   const PopupMenuItem(
                     value: 'edit',
                     child: Row(

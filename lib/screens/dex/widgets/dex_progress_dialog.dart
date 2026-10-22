@@ -4,6 +4,7 @@ import '../../../models/dex_view_models.dart';
 import '../../../models/user_dex.dart';
 import '../../../utils/dex_progress_helper.dart';
 import '../../../l10n/app_translations.dart';
+import 'dex_completion_card_dialog.dart';
 
 /// Interactive modal dashboard presenting overall dex completion,
 /// generation breakdowns, type coverage, and variants distribution.
@@ -205,6 +206,18 @@ class _DexProgressDialogState extends State<DexProgressDialog> {
                 ),
               ],
             ),
+          ),
+          IconButton(
+            key: const Key('dex_progress_header_share_button'),
+            icon: const Icon(Icons.share, size: 20),
+            tooltip: Translator.get('share_dex_card', fallback: 'Erfolgs-Grafik teilen...'),
+            onPressed: () {
+              DexCompletionCardDialog.show(
+                context,
+                liveDex: widget.liveDex,
+                entries: widget.entries,
+              );
+            },
           ),
           IconButton(
             icon: const Icon(Icons.close),
@@ -727,6 +740,32 @@ class _DexProgressDialogState extends State<DexProgressDialog> {
             onPressed: () {
               Navigator.of(context).pop();
               widget.onFilterSelected?.call('all');
+            },
+          ),
+
+          // Action: Share Card
+          OutlinedButton.icon(
+            key: const Key('dex_progress_footer_share_button'),
+            style: OutlinedButton.styleFrom(
+              backgroundColor: const Color(0xFF6366F1).withValues(alpha: 0.12),
+              foregroundColor: const Color(0xFF818CF8),
+              side: BorderSide(color: const Color(0xFF6366F1).withValues(alpha: 0.3)),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              minimumSize: Size.zero,
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            ),
+            icon: const Icon(Icons.share, size: 14),
+            label: Text(
+              Translator.get('share_dex_card_btn', fallback: 'Erfolgs-Grafik'),
+              style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
+            ),
+            onPressed: () {
+              DexCompletionCardDialog.show(
+                context,
+                liveDex: widget.liveDex,
+                entries: widget.entries,
+              );
             },
           ),
 
