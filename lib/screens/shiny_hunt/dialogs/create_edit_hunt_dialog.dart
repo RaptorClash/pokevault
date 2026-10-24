@@ -167,6 +167,13 @@ class _CreateEditHuntDialogState extends State<CreateEditHuntDialog> {
           ? (forms.first.imageId > 0 ? forms.first.imageId : pokeId)
           : pokeId;
 
+      final form = forms.firstOrNull;
+      if (form != null) {
+        _targetUniqueId = '${pokeId}_${form.name}';
+      } else {
+        _targetUniqueId = '${pokeId}_normal';
+      }
+
       final games = _availableGames;
       if (!games.any((g) => g.name == _selectedGame)) {
         final fallbackGame = games.isNotEmpty ? games.first : _allGames.last;
@@ -184,6 +191,13 @@ class _CreateEditHuntDialogState extends State<CreateEditHuntDialog> {
     super.didChangeDependencies();
     if (!_isInitialDexChecked) {
       _isInitialDexChecked = true;
+      if (_selectedDexId == null && widget.existingHunt == null && widget.initialDexId == null) {
+        final dexProvider = Provider.of<DexProvider>(context, listen: false);
+        if (dexProvider.userDexes.isNotEmpty) {
+          final shinyDex = dexProvider.userDexes.where((d) => d.isShinyDex).firstOrNull;
+          _selectedDexId = (shinyDex ?? dexProvider.userDexes.first).id;
+        }
+      }
       if (_selectedDexId != null && widget.existingHunt == null) {
         final dexProvider = Provider.of<DexProvider>(context, listen: false);
         final dex = dexProvider.userDexes.where((d) => d.id == _selectedDexId).firstOrNull;
@@ -212,6 +226,17 @@ class _CreateEditHuntDialogState extends State<CreateEditHuntDialog> {
         final forms = dexProvider.allPokemon.where((p) => p.id == _pokemonId).firstOrNull?.forms ?? [];
         if (forms.isNotEmpty) {
           _pokemonFormId = forms.first.imageId > 0 ? forms.first.imageId : _pokemonId;
+        }
+      }
+
+      if (_pokemonId != null && (_targetUniqueId == null || _targetUniqueId!.isEmpty)) {
+        final dexProvider = Provider.of<DexProvider>(context, listen: false);
+        final forms = dexProvider.allPokemon.where((p) => p.id == _pokemonId).firstOrNull?.forms ?? [];
+        final matched = forms.where((f) => (f.imageId > 0 ? f.imageId : _pokemonId!) == _pokemonFormId).firstOrNull ?? forms.firstOrNull;
+        if (matched != null) {
+          _targetUniqueId = '${_pokemonId}_${matched.name}';
+        } else {
+          _targetUniqueId = '${_pokemonId}_normal';
         }
       }
 
@@ -706,6 +731,7 @@ class _CreateEditHuntDialogState extends State<CreateEditHuntDialog> {
                                     setState(() {
                                       _pokemonId = null;
                                       _pokemonFormId = null;
+                                      _targetUniqueId = null;
                                       _shinyCategories = [];
                                       _encounters = null;
                                       _updatePresets();
@@ -758,6 +784,14 @@ class _CreateEditHuntDialogState extends State<CreateEditHuntDialog> {
                                   onChanged: (newFormId) {
                                     setState(() {
                                       _pokemonFormId = newFormId;
+                                      if (_pokemonId != null) {
+                                        final matchedForm = uniqueForms.where((f) => (f.imageId > 0 ? f.imageId : _pokemonId!) == newFormId).firstOrNull;
+                                        if (matchedForm != null) {
+                                          _targetUniqueId = '${_pokemonId}_${matchedForm.name}';
+                                        } else {
+                                          _targetUniqueId = '${_pokemonId}_normal';
+                                        }
+                                      }
                                       _titleController.text = _generateSuggestedTitle(forms: uniqueForms);
                                     });
                                   },
@@ -1180,6 +1214,23 @@ class _CreateEditHuntDialogState extends State<CreateEditHuntDialog> {
                               ? ShinyHuntOddsHelper.inferHuntingTypeFromMethod(_selectedMethod ?? '')
                               : _selectedHuntingType;
 
+                          String? resolvedUid = _targetUniqueId;
+                          if (resolvedUid == null || resolvedUid.isEmpty) {
+                            if (_pokemonId != null) {
+                              DexProvider? dp;
+                              try {
+                                dp = Provider.of<DexProvider>(context, listen: false);
+                              } catch (_) {}
+                              final forms = dp?.allPokemon.where((p) => p.id == _pokemonId).firstOrNull?.forms ?? [];
+                              final matched = forms.where((f) => (f.imageId > 0 ? f.imageId : _pokemonId!) == _pokemonFormId).firstOrNull ?? forms.firstOrNull;
+                              if (matched != null) {
+                                resolvedUid = '${_pokemonId}_${matched.name}';
+                              } else {
+                                resolvedUid = '${_pokemonId}_normal';
+                              }
+                            }
+                          }
+
                           if (widget.existingHunt != null) {
                             final updated = widget.existingHunt!.copyWith(
                               title: _titleController.text.trim().isNotEmpty
@@ -1197,7 +1248,7 @@ class _CreateEditHuntDialogState extends State<CreateEditHuntDialog> {
                               spawnsPerEncounter: _spawnsPerEncounter,
                               incrementStep: _incrementStep,
                               targetDexId: _selectedDexId,
-                              targetUniqueId: _targetUniqueId,
+                              targetUniqueId: resolvedUid,
                               updatedAt: now,
                             );
                             await huntProvider.updateHunt(updated);
@@ -1224,7 +1275,7 @@ class _CreateEditHuntDialogState extends State<CreateEditHuntDialog> {
                               spawnsPerEncounter: _spawnsPerEncounter,
                               incrementStep: _incrementStep,
                               targetDexId: _selectedDexId,
-                              targetUniqueId: _targetUniqueId,
+                              targetUniqueId: resolvedUid,
                               createdAt: now,
                               updatedAt: now,
                             );

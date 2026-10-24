@@ -183,7 +183,7 @@ class DatabaseService {
     return await factory.openDatabase(
       path,
       options: OpenDatabaseOptions(
-        version: 10,
+        version: 11,
         onCreate: createUserDataTables,
         onUpgrade: upgradeUserDataTables,
         onDowngrade: downgradeUserDataTables,
@@ -280,6 +280,7 @@ class DatabaseService {
           status TEXT DEFAULT 'active',
           phase INTEGER DEFAULT 1,
           phase_history TEXT DEFAULT '[]',
+          pause_history TEXT DEFAULT '[]',
           total_time_seconds INTEGER DEFAULT 0,
           ball_used TEXT,
           notes TEXT,
@@ -551,6 +552,14 @@ class DatabaseService {
         debugPrint("Datenbank erfolgreich auf Version 10 (Shiny Hunt Jagdart) migriert!");
       } catch (e) {
         debugPrint("Migrations-Fehler V10: $e");
+      }
+    }
+    if (oldVersion < 11) {
+      try {
+        await addColumnIfNotExists(db, 'shiny_hunts', 'pause_history', "TEXT DEFAULT '[]'");
+        debugPrint("Datenbank erfolgreich auf Version 11 (Shiny Hunt Pause History) migriert!");
+      } catch (e) {
+        debugPrint("Migrations-Fehler V11: $e");
       }
     }
   }

@@ -11,6 +11,8 @@ import 'utils/pokemon_info_keys.dart';
 import 'dialogs/ignore_pokemon_dialog.dart';
 import 'widgets/pokemon_info_page.dart';
 import '../../utils/box_sequence_manager.dart';
+import '../../utils/dex_logic_helper.dart';
+import '../../models/pokemon.dart';
 
 class PokemonInfoScreen extends StatefulWidget {
   final List<DexDisplayEntry> entries;
@@ -22,6 +24,7 @@ class PokemonInfoScreen extends StatefulWidget {
   final String? selectionActionLabel;
   final ValueChanged<String>? onSelectionAction;
   final bool? initialShiny;
+  final bool isGenderFallbackRoute;
 
   const PokemonInfoScreen({
     super.key,
@@ -34,6 +37,7 @@ class PokemonInfoScreen extends StatefulWidget {
     this.selectionActionLabel,
     this.onSelectionAction,
     this.initialShiny,
+    this.isGenderFallbackRoute = false,
   });
 
   @override
@@ -186,6 +190,181 @@ class _PokemonInfoScreenState extends State<PokemonInfoScreen> {
         },
       ),
     ];
+  }
+
+  DexDisplayEntry _createGenderDisplayEntry(Pokemon pokemon, bool isFemale, [PokemonForm? currentForm]) {
+    final hasExplicitGenderForms = pokemon.forms.any(
+      (f) => f.name.toLowerCase() == 'male' || f.name.toLowerCase() == 'female',
+    );
+
+    final formName = currentForm?.name.toLowerCase();
+    final isSpecificForm = formName != null &&
+        formName != 'normal' &&
+        formName != 'male' &&
+        formName != 'female';
+
+    String suffix = isFemale ? ' ♀' : ' ♂';
+    String uniqueId;
+    if (isSpecificForm) {
+      suffix = ' (${DexLogicHelper.getFormDisplayName(currentForm!.name)})$suffix';
+      uniqueId = '${pokemon.id}_${currentForm.name}_${isFemale ? "f" : "m"}';
+    } else if (hasExplicitGenderForms) {
+      uniqueId = '${pokemon.id}_${isFemale ? "female" : "male"}';
+    } else {
+      uniqueId = '${pokemon.id}_${isFemale ? "f" : "m"}';
+    }
+
+    final PokemonForm? form = currentForm ??
+        pokemon.forms.where(
+          (f) => f.name.toLowerCase() == (isFemale ? 'female' : 'male'),
+        ).firstOrNull ??
+        pokemon.forms.where(
+          (f) => f.formType == 'normal',
+        ).firstOrNull ??
+        (pokemon.forms.isNotEmpty ? pokemon.forms.first : null);
+
+    final isShiny = _manualShinyToggle ?? false;
+    final femaleShinyPath = isShiny ? 'shiny/female/' : 'female/';
+    final shinyPath = isShiny ? 'shiny/' : '';
+
+    String imageUrl;
+    if (isFemale) {
+      if (hasExplicitGenderForms) {
+        imageUrl = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/home/$shinyPath${pokemon.id}-female.png';
+      } else {
+        imageUrl = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/home/$femaleShinyPath${pokemon.id}.png';
+      }
+    } else {
+      if (hasExplicitGenderForms) {
+        imageUrl = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/home/$shinyPath${pokemon.id}-male.png';
+      } else if (form != null && form.imageId != pokemon.id && form.imageId > 0) {
+        imageUrl = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/$shinyPath${form.imageId}.png';
+      } else {
+        imageUrl = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/$shinyPath${pokemon.id}.png';
+      }
+    }
+
+    return DexDisplayEntry(
+      pokemon: pokemon,
+      uniqueId: uniqueId,
+      displaySuffix: suffix,
+      imageUrl: imageUrl,
+      form: form,
+    );
+  }
+
+  void _navigateToGender(Pokemon pokemon, String targetGender) {
+    final isTargetFemale = targetGender.toLowerCase() == 'female' || targetGender.toLowerCase() == 'f';
+
+    // 1. Check if the current entry already matches the target gender
+    final currentEntry = widget.entries[_currentIndex];
+    final currentBaseId = DexLogicHelper.getBaseId(currentEntry.uniqueId).toLowerCase();
+    final currentIsFemale = currentBaseId.endsWith('_f') ||
+        currentBaseId.endsWith('_female') ||
+        currentEntry.resolvedForm?.name.toLowerCase() == 'female';
+
+    if (currentIsFemale == isTargetFemale && currentEntry.pokemon.id == pokemon.id) {
+      return;
+    }
+
+    // 2. If this screen was opened as a gender fallback, pop back to the parent screen
+    if (widget.isGenderFallbackRoute && Navigator.of(context).canPop()) {
+      Navigator.of(context).pop();
+      return;
+    }
+
+    // 3. Find the best matching candidate in widget.entries (prioritizing same form and closest distance)
+    final currentForm = currentEntry.resolvedForm ?? currentEntry.form;
+    final currentFormName = currentForm?.name.toLowerCase();
+    final isSpecificForm = currentFormName != null &&
+        currentFormName != 'normal' &&
+        currentFormName != 'male' &&
+        currentFormName != 'female';
+
+    int targetIndex = -1;
+    int minDistance = 999999;
+
+    for (int i = 0; i < widget.entries.length; i++) {
+      final e = widget.entries[i];
+      if (e.pokemon.id != pokemon.id) continue;
+
+      final bId = DexLogicHelper.getBaseId(e.uniqueId).toLowerCase();
+      final isEntryFemale = bId.endsWith('_f') ||
+          bId.endsWith('_female') ||
+          e.resolvedForm?.name.toLowerCase() == 'female';
+
+      if (isTargetFemale) {
+        if (!isEntryFemale) continue;
+      } else {
+        if (isEntryFemale) continue;
+        final formType = e.resolvedForm?.formType.toLowerCase();
+        final eName = e.resolvedForm?.name.toLowerCase();
+        final isMaleLike = bId.endsWith('_m') ||
+            bId.endsWith('_male') ||
+            eName == 'male' ||
+            formType == 'normal' ||
+            eName == 'normal' ||
+            formType == null;
+        if (!isMaleLike) continue;
+      }
+
+      // Check form compatibility
+      final eForm = e.resolvedForm ?? e.form;
+      final eFormName = eForm?.name.toLowerCase();
+      if (isSpecificForm) {
+        final matchesForm = eFormName == currentFormName ||
+            bId.contains('_${currentFormName}_') ||
+            bId.startsWith('${pokemon.id}_$currentFormName');
+        if (!matchesForm) continue;
+      } else {
+        // Current entry is normal/base form -> do not jump to regional/mega forms!
+        final isNormalLike = eFormName == null ||
+            eFormName == 'normal' ||
+            eFormName == 'male' ||
+            eFormName == 'female' ||
+            eForm?.formType == 'normal';
+        if (!isNormalLike) continue;
+      }
+
+      final distance = (i - _currentIndex).abs();
+      if (distance < minDistance) {
+        minDistance = distance;
+        targetIndex = i;
+      }
+    }
+
+    // 4. If found in entries, navigate to that page
+    if (targetIndex != -1) {
+      if (_pageController.hasClients) {
+        if ((targetIndex - _currentIndex).abs() <= 3) {
+          _pageController.animateToPage(
+            targetIndex,
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeInOut,
+          );
+        } else {
+          _pageController.jumpToPage(targetIndex);
+        }
+      }
+      return;
+    }
+
+    // 5. If not found in entries (e.g. non-gender dex or filtered search):
+    // Push a new PokemonInfoScreen with the target gender variant.
+    final targetEntry = _createGenderDisplayEntry(pokemon, isTargetFemale, currentEntry.resolvedForm);
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => PokemonInfoScreen(
+          entries: [targetEntry],
+          initialIndex: 0,
+          dexId: widget.dexId,
+          initialShiny: _manualShinyToggle,
+          isGenderFallbackRoute: true,
+          selectionActionLabel: widget.selectionActionLabel,
+          onSelectionAction: widget.onSelectionAction,
+        ),
+      ),
+    );
   }
 
   @override
@@ -399,6 +578,7 @@ class _PokemonInfoScreenState extends State<PokemonInfoScreen> {
             encountersKey: _keys.get(_keys.encounters, id),
             shinyGuideKey: _keys.get(_keys.shinyGuide, id),
             ignoreBtnKey: _keys.get(_keys.ignoreBtn, id),
+            onNavigateToGender: (gender) => _navigateToGender(entry.pokemon, gender),
           );
         },
       ),

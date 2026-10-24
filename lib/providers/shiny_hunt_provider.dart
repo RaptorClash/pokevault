@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/widgets.dart';
 import '../models/shiny_hunt.dart';
+import '../models/pokemon.dart';
 import '../services/database_service.dart';
 import '../services/google_drive_sync_service.dart';
 import 'dex_provider.dart';
@@ -152,6 +153,9 @@ class ShinyHuntProvider extends ChangeNotifier with WidgetsBindingObserver {
 
     if (hunt.isPaused) {
       hunt.status = 'active';
+      if (hunt.pauseHistory.isNotEmpty && hunt.pauseHistory.last.resumedAt == null) {
+        hunt.pauseHistory.last.resumedAt = DateTime.now();
+      }
     }
     hunt.currentEncounters += hunt.incrementStep;
     hunt.updatedAt = DateTime.now();
@@ -200,7 +204,12 @@ class ShinyHuntProvider extends ChangeNotifier with WidgetsBindingObserver {
     final hunt = getHuntById(huntId);
     if (hunt == null) return;
 
-    hunt.status = 'paused';
+    if (hunt.status != 'paused') {
+      hunt.status = 'paused';
+      final intervals = List<ShinyPauseInterval>.from(hunt.pauseHistory);
+      intervals.add(ShinyPauseInterval(pausedAt: DateTime.now()));
+      hunt.pauseHistory = intervals;
+    }
     hunt.updatedAt = DateTime.now();
     notifyListeners();
     await flushPendingWrites();
@@ -213,7 +222,12 @@ class ShinyHuntProvider extends ChangeNotifier with WidgetsBindingObserver {
     final hunt = getHuntById(huntId);
     if (hunt == null) return;
 
-    hunt.status = 'active';
+    if (hunt.isPaused) {
+      hunt.status = 'active';
+      if (hunt.pauseHistory.isNotEmpty && hunt.pauseHistory.last.resumedAt == null) {
+        hunt.pauseHistory.last.resumedAt = DateTime.now();
+      }
+    }
     hunt.updatedAt = DateTime.now();
     registerInteraction();
     notifyListeners();
@@ -249,7 +263,9 @@ class ShinyHuntProvider extends ChangeNotifier with WidgetsBindingObserver {
     hunt.updatedAt = DateTime.now();
 
     if (syncToDex && targetDexId != null && dexProvider != null && caughtPokemonId != null) {
-      await dexProvider.markPokemonCaughtAndShiny(targetDexId, caughtPokemonId.toString());
+      final poke = dexProvider.allPokemon.where((p) => p.id == caughtPokemonId).firstOrNull;
+      final formName = poke?.forms.firstOrNull?.name ?? 'normal';
+      await dexProvider.markPokemonCaughtAndShiny(targetDexId, '${caughtPokemonId}_$formName');
     }
 
     notifyListeners();
@@ -272,6 +288,9 @@ class ShinyHuntProvider extends ChangeNotifier with WidgetsBindingObserver {
     if (hunt == null) return;
 
     hunt.status = 'completed';
+    if (hunt.pauseHistory.isNotEmpty && hunt.pauseHistory.last.resumedAt == null) {
+      hunt.pauseHistory.last.resumedAt = DateTime.now();
+    }
     if (ballUsed != null) {
       hunt.ballUsed = ballUsed;
     }
@@ -284,14 +303,24 @@ class ShinyHuntProvider extends ChangeNotifier with WidgetsBindingObserver {
     }
 
     if (targetDexId != null && dexProvider != null) {
-      String uid = targetUniqueId ?? hunt.pokemonId.toString();
-      if (targetUniqueId == null && hunt.pokemonFormId != null && hunt.pokemonFormId! > 0) {
+      String uid = targetUniqueId ?? hunt.targetUniqueId ?? '';
+      if (uid.isEmpty || !uid.contains('_')) {
         final poke = dexProvider.allPokemon.where((p) => p.id == hunt.pokemonId).firstOrNull;
-        final form = poke?.forms.where((f) => (f.imageId > 0 ? f.imageId : poke.id) == hunt.pokemonFormId).firstOrNull;
-        if (form != null && form.name != 'normal') {
+        PokemonForm? form;
+        if (hunt.pokemonFormId != null && hunt.pokemonFormId! > 0) {
+          form = poke?.forms.where((f) => (f.imageId > 0 ? f.imageId : poke.id) == hunt.pokemonFormId).firstOrNull;
+        }
+        form ??= poke?.forms.firstOrNull;
+        if (form != null) {
           uid = '${hunt.pokemonId}_${form.name}';
+        } else {
+          uid = '${hunt.pokemonId}_normal';
         }
       }
+
+      hunt.targetDexId = targetDexId;
+      hunt.targetUniqueId = uid;
+
       await dexProvider.markPokemonCaughtAndShiny(targetDexId, uid);
     }
 

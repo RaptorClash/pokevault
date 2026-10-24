@@ -14,6 +14,7 @@ import 'package:pokevault/models/user_dex.dart';
 import 'package:pokevault/providers/dex_provider.dart';
 import 'package:pokevault/providers/shiny_hunt_provider.dart';
 import 'package:pokevault/screens/shiny_hunt/dialogs/create_edit_hunt_dialog.dart';
+import 'package:pokevault/screens/shiny_hunt/dialogs/shiny_hunt_timeline_dialog.dart';
 import 'package:pokevault/screens/shiny_hunt/shiny_hunt_counter_screen.dart';
 import 'package:pokevault/screens/shiny_hunt/shiny_hunts_hub_screen.dart';
 import 'package:pokevault/services/database_service.dart';
@@ -198,6 +199,8 @@ void main() {
     String? ballUsed,
     String? huntingType,
     DateTime? completedAt,
+    DateTime? createdAt,
+    List<ShinyPauseInterval> pauseHistory = const [],
     String? notes,
   }) async {
     final now = DateTime.now();
@@ -218,8 +221,9 @@ void main() {
       ballUsed: ballUsed,
       huntingType: huntingType,
       completedAt: completedAt,
+      pauseHistory: pauseHistory,
       notes: notes,
-      createdAt: now,
+      createdAt: createdAt ?? now,
       updatedAt: now,
     );
     await huntProvider.createHunt(hunt);
@@ -441,5 +445,88 @@ void main() {
     await pumpView(tester);
 
     expect(find.byType(ShinyHuntCounterScreen), findsOneWidget);
+  });
+
+  testWidgets('Active hunt card displays start date and pause badge opening ShinyHuntTimelineDialog', (tester) async {
+    final start = DateTime(2026, 10, 20, 10, 0);
+    final p1Start = DateTime(2026, 10, 21, 12, 0);
+    final p1End = DateTime(2026, 10, 21, 13, 0);
+    await createHunt(
+      id: 'active-timeline-test',
+      pokemonName: 'Glurak',
+      createdAt: start,
+      pauseHistory: [
+        ShinyPauseInterval(pausedAt: p1Start, resumedAt: p1End),
+      ],
+      encounters: 50,
+    );
+    await tester.pumpWidget(buildHubWidget());
+    await pumpView(tester);
+
+    expect(find.textContaining('20.10.2026'), findsOneWidget);
+    expect(find.textContaining('1 Pause'), findsOneWidget);
+
+    await tester.tap(find.textContaining('1 Pause'));
+    await pumpView(tester);
+
+    expect(find.byType(ShinyHuntTimelineDialog), findsOneWidget);
+    expect(find.text(Translator.get('shiny_hunt_timeline_title', fallback: 'Hunt-Zeiten & Pausen')), findsOneWidget);
+  });
+
+  testWidgets('Paused tab displays pause timestamp and history button opening ShinyHuntTimelineDialog', (tester) async {
+    final start = DateTime(2026, 10, 20, 10, 0);
+    final pauseStart = DateTime(2026, 10, 22, 14, 30);
+    await createHunt(
+      id: 'paused-timeline-test',
+      pokemonName: 'Pikachu',
+      pokemonId: 25,
+      status: 'paused',
+      createdAt: start,
+      pauseHistory: [
+        ShinyPauseInterval(pausedAt: pauseStart),
+      ],
+      encounters: 120,
+    );
+    await tester.pumpWidget(buildHubWidget(initialTabIndex: 1));
+    await pumpView(tester);
+
+    expect(find.textContaining('Pausiert seit 22.10.2026'), findsOneWidget);
+
+    final historyBtn = find.byIcon(Icons.history_rounded);
+    expect(historyBtn, findsOneWidget);
+    await tester.tap(historyBtn);
+    await pumpView(tester);
+
+    expect(find.byType(ShinyHuntTimelineDialog), findsOneWidget);
+    expect(find.text(Translator.get('shiny_hunt_timeline_title', fallback: 'Hunt-Zeiten & Pausen')), findsOneWidget);
+  });
+
+  testWidgets('Completed tab displays timeline button opening ShinyHuntTimelineDialog', (tester) async {
+    final start = DateTime(2026, 10, 18, 9, 0);
+    final p1Start = DateTime(2026, 10, 19, 10, 0);
+    final p1End = DateTime(2026, 10, 19, 12, 0);
+    final completed = DateTime(2026, 10, 24, 15, 30);
+    await createHunt(
+      id: 'completed-timeline-test',
+      pokemonName: 'Glurak',
+      status: 'completed',
+      createdAt: start,
+      completedAt: completed,
+      pauseHistory: [
+        ShinyPauseInterval(pausedAt: p1Start, resumedAt: p1End),
+      ],
+      encounters: 500,
+      ballUsed: 'master_ball',
+    );
+    await tester.pumpWidget(buildHubWidget(initialTabIndex: 2));
+    await pumpView(tester);
+
+    final historyBtn = find.byIcon(Icons.history_rounded);
+    expect(historyBtn, findsOneWidget);
+    await tester.tap(historyBtn);
+    await pumpView(tester);
+
+    expect(find.byType(ShinyHuntTimelineDialog), findsOneWidget);
+    expect(find.text(Translator.get('shiny_hunt_timeline_title', fallback: 'Hunt-Zeiten & Pausen')), findsOneWidget);
   });
 }

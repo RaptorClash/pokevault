@@ -8,6 +8,7 @@ import '../../l10n/app_translations.dart';
 import '../../widgets/universal_poke_image.dart';
 import 'shiny_hunt_counter_screen.dart';
 import 'dialogs/create_edit_hunt_dialog.dart';
+import 'dialogs/shiny_hunt_timeline_dialog.dart';
 
 class ShinyHuntsHubScreen extends StatefulWidget {
   final int initialTabIndex;
@@ -81,6 +82,19 @@ class _ShinyHuntsHubScreenState extends State<ShinyHuntsHubScreen>
         ],
       ),
     );
+  }
+
+  String _formatDate(DateTime dt) {
+    return '${dt.day.toString().padLeft(2, '0')}.${dt.month.toString().padLeft(2, '0')}.${dt.year}';
+  }
+
+  String _formatDateTime(DateTime dt) {
+    final d = dt.day.toString().padLeft(2, '0');
+    final m = dt.month.toString().padLeft(2, '0');
+    final y = dt.year.toString();
+    final hh = dt.hour.toString().padLeft(2, '0');
+    final mm = dt.minute.toString().padLeft(2, '0');
+    return '$d.$m.$y $hh:$mm';
   }
 
   List<ShinyHunt> _filterHunts(List<ShinyHunt> hunts) {
@@ -376,6 +390,69 @@ class _ShinyHuntsHubScreenState extends State<ShinyHuntsHubScreen>
                               '${hunt.game} • ${hunt.method}',
                               style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
                             ),
+                            const SizedBox(height: 3),
+                            Row(
+                              children: [
+                                InkWell(
+                                  onTap: () => ShinyHuntTimelineDialog.show(context, hunt),
+                                  borderRadius: BorderRadius.circular(4),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(Icons.schedule, size: 12, color: Colors.grey.shade600),
+                                      const SizedBox(width: 4),
+                                      Text(
+                                        '${Translator.get('shiny_hunt_started', fallback: 'Start')}: ${_formatDate(hunt.createdAt)}',
+                                        style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                InkWell(
+                                  onTap: () => ShinyHuntTimelineDialog.show(context, hunt),
+                                  borderRadius: BorderRadius.circular(4),
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                                    decoration: BoxDecoration(
+                                      color: hunt.pauseHistory.isNotEmpty
+                                          ? Colors.orange.withValues(alpha: 0.12)
+                                          : Colors.grey.withValues(alpha: 0.1),
+                                      borderRadius: BorderRadius.circular(4),
+                                      border: Border.all(
+                                        color: hunt.pauseHistory.isNotEmpty
+                                            ? Colors.orange.withValues(alpha: 0.3)
+                                            : Colors.grey.withValues(alpha: 0.3),
+                                        width: 0.8,
+                                      ),
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Icon(
+                                          hunt.pauseHistory.isNotEmpty ? Icons.history_toggle_off : Icons.history_rounded,
+                                          size: 11,
+                                          color: hunt.pauseHistory.isNotEmpty ? Colors.orange.shade800 : Colors.grey.shade600,
+                                        ),
+                                        const SizedBox(width: 3),
+                                        Text(
+                                          hunt.pauseHistory.isNotEmpty
+                                              ? '${hunt.pauseHistory.length} ${hunt.pauseHistory.length == 1 ? 'Pause' : 'Pausen'}'
+                                              : Translator.get('shiny_hunt_timeline_btn', fallback: 'Zeiten'),
+                                          style: TextStyle(
+                                            fontSize: 10,
+                                            fontWeight: FontWeight.w600,
+                                            color: hunt.pauseHistory.isNotEmpty
+                                                ? Colors.orange.shade900
+                                                : Colors.grey.shade700,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
                             const SizedBox(height: 4),
                             Text(
                               '${hunt.currentEncounters} Encounters (${hunt.currentPhaseRolls} Rolls)',
@@ -479,10 +556,40 @@ class _ShinyHuntsHubScreenState extends State<ShinyHuntsHubScreen>
                   height: 48,
                 ),
                 title: Text(hunt.title.isNotEmpty ? hunt.title : hunt.pokemonName),
-                subtitle: Text('${hunt.currentEncounters} Encounters • ${hunt.game}'),
+                subtitle: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('${hunt.currentEncounters} Encounters • ${hunt.game}'),
+                    const SizedBox(height: 3),
+                    Row(
+                      children: [
+                        Icon(Icons.pause_circle_outline, size: 12, color: Colors.orange.shade700),
+                        const SizedBox(width: 4),
+                        Expanded(
+                          child: Text(
+                            hunt.pauseHistory.isNotEmpty
+                                ? '${Translator.get('shiny_hunt_paused_since', fallback: 'Pausiert seit')} ${_formatDateTime(hunt.pauseHistory.last.pausedAt)}'
+                                : Translator.get('shiny_hunt_tab_paused', fallback: 'Pausiert'),
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w500,
+                              color: Colors.orange.shade800,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
                 trailing: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
+                    IconButton(
+                      icon: const Icon(Icons.history_rounded, color: Colors.grey),
+                      tooltip: Translator.get('shiny_hunt_timeline_title', fallback: 'Timeline & Pausen'),
+                      onPressed: () => ShinyHuntTimelineDialog.show(context, hunt),
+                    ),
                     IconButton(
                       icon: const Icon(Icons.play_arrow, color: Colors.green),
                       tooltip: Translator.get('shiny_hunt_resume'),
@@ -586,6 +693,47 @@ class _ShinyHuntsHubScreenState extends State<ShinyHuntsHubScreen>
                         Text(
                           '${hunt.totalEncounters} Encounters • ${hunt.game}',
                           style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
+                        ),
+                        const SizedBox(height: 3),
+                        Row(
+                          children: [
+                            Icon(Icons.schedule, size: 12, color: Colors.grey.shade600),
+                            const SizedBox(width: 4),
+                            Text(
+                              '${Translator.get('shiny_hunt_started', fallback: 'Start')}: ${_formatDate(hunt.createdAt)}',
+                              style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
+                            ),
+                            if (hunt.pauseHistory.isNotEmpty) ...[
+                              const SizedBox(width: 8),
+                              InkWell(
+                                onTap: () => ShinyHuntTimelineDialog.show(context, hunt),
+                                borderRadius: BorderRadius.circular(4),
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                                  decoration: BoxDecoration(
+                                    color: Colors.purple.withValues(alpha: 0.12),
+                                    borderRadius: BorderRadius.circular(4),
+                                    border: Border.all(color: Colors.purple.withValues(alpha: 0.3), width: 0.8),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      const Icon(Icons.history_toggle_off, size: 11, color: Colors.purple),
+                                      const SizedBox(width: 3),
+                                      Text(
+                                        '${hunt.pauseHistory.length} ${hunt.pauseHistory.length == 1 ? 'Pause' : 'Pausen'}',
+                                        style: const TextStyle(
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.w600,
+                                          color: Colors.purple,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ],
                         ),
                         if (dateLabel != null) ...[
                           const SizedBox(height: 3),
@@ -716,6 +864,11 @@ class _ShinyHuntsHubScreenState extends State<ShinyHuntsHubScreen>
                   Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
+                      IconButton(
+                        icon: const Icon(Icons.history_rounded, color: Colors.purple),
+                        tooltip: Translator.get('shiny_hunt_timeline_title', fallback: 'Timeline & Pausen'),
+                        onPressed: () => ShinyHuntTimelineDialog.show(context, hunt),
+                      ),
                       IconButton(
                         icon: const Icon(Icons.refresh_rounded, color: Colors.amber),
                         tooltip: Translator.get('shiny_hunt_reopen_btn', fallback: 'Hunt wieder aufnehmen'),

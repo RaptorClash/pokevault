@@ -1,4 +1,5 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import '../../../models/dex_view_models.dart';
@@ -6,17 +7,20 @@ import '../../../providers/settings_provider.dart';
 import '../../../services/database_service.dart';
 import '../../../widgets/universal_poke_image.dart';
 import '../../../i18n/strings.g.dart';
+import '../../../utils/dex_logic_helper.dart';
 
 /// Card displayed within the Pokémon Info Screen for species exhibiting
 /// visual gender differences between male and female forms.
 class GenderDifferencesCard extends StatefulWidget {
   final DexDisplayEntry entry;
   final bool wantShiny;
+  final void Function(String targetGender)? onNavigateToGender;
 
   const GenderDifferencesCard({
     super.key,
     required this.entry,
     this.wantShiny = false,
+    this.onNavigateToGender,
   });
 
   @override
@@ -73,8 +77,34 @@ class _GenderDifferencesCardState extends State<GenderDifferencesCard> {
   }
 
   String _resolveFemaleFallbackUrl() {
+    final hasFemaleForm = widget.entry.pokemon.forms.any((f) => f.name == 'female');
+    if (hasFemaleForm) {
+      final shinyPath = widget.wantShiny ? 'shiny/' : '';
+      return 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/$shinyPath${widget.entry.pokemon.id}-female.png';
+    }
     final shinyFemalePath = widget.wantShiny ? 'shiny/female/' : 'female/';
     return 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/$shinyFemalePath${widget.entry.pokemon.id}.png';
+  }
+
+  bool get _isCurrentFemale {
+    final baseId = DexLogicHelper.getBaseId(widget.entry.uniqueId).toLowerCase();
+    if (baseId.endsWith('_f') || baseId.endsWith('_female')) return true;
+    final formName = widget.entry.resolvedForm?.name.toLowerCase();
+    if (formName == 'female') return true;
+    return false;
+  }
+
+  bool get _isCurrentMale => !_isCurrentFemale;
+
+  void _handleGenderTap(String targetGender) {
+    final isTargetFemale = targetGender.toLowerCase() == 'female' || targetGender.toLowerCase() == 'f';
+    if ((isTargetFemale && _isCurrentFemale) || (!isTargetFemale && _isCurrentMale)) {
+      return;
+    }
+    HapticFeedback.lightImpact();
+    if (widget.onNavigateToGender != null) {
+      widget.onNavigateToGender!(targetGender);
+    }
   }
 
   @override
@@ -160,42 +190,100 @@ class _GenderDifferencesCardState extends State<GenderDifferencesCard> {
                       children: [
                         // Male side
                         Expanded(
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
-                            decoration: BoxDecoration(
-                              color: Colors.blue.withValues(alpha: 0.08),
+                          child: Tooltip(
+                            triggerMode: TooltipTriggerMode.manual,
+                            message: _isCurrentMale
+                                ? (isDe ? 'Aktuell ausgewählt' : 'Currently selected')
+                                : (isDe ? 'Zu Männlich wechseln' : 'Switch to Male'),
+                            child: Material(
+                              color: _isCurrentMale
+                                  ? Colors.blue.withValues(alpha: 0.16)
+                                  : Colors.blue.withValues(alpha: 0.06),
                               borderRadius: BorderRadius.circular(12),
-                              border: Border.all(
-                                color: Colors.blueAccent.withValues(alpha: 0.3),
-                              ),
-                            ),
-                            child: Column(
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                              child: InkWell(
+                                key: const Key('gender_diff_male_action'),
+                                onTap: () => _handleGenderTap('male'),
+                                onSecondaryTap: () => _handleGenderTap('male'),
+                                onLongPress: () => _handleGenderTap('male'),
+                                borderRadius: BorderRadius.circular(12),
+                                mouseCursor: _isCurrentMale
+                                    ? SystemMouseCursors.basic
+                                    : SystemMouseCursors.click,
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
                                   decoration: BoxDecoration(
-                                    color: Colors.blueAccent.withValues(alpha: 0.2),
-                                    borderRadius: BorderRadius.circular(10),
-                                  ),
-                                  child: Text(
-                                    trans.gender_male,
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 12,
-                                      color: Colors.blueAccent,
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(
+                                      color: _isCurrentMale
+                                          ? Colors.blueAccent
+                                          : Colors.blueAccent.withValues(alpha: 0.3),
+                                      width: _isCurrentMale ? 2.0 : 1.0,
                                     ),
                                   ),
+                                  child: Column(
+                                    children: [
+                                      FittedBox(
+                                        fit: BoxFit.scaleDown,
+                                        child: Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                        decoration: BoxDecoration(
+                                          color: _isCurrentMale
+                                              ? Colors.blueAccent.withValues(alpha: 0.3)
+                                              : Colors.blueAccent.withValues(alpha: 0.15),
+                                          borderRadius: BorderRadius.circular(10),
+                                        ),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            if (_isCurrentMale) ...[
+                                              const Icon(
+                                                Icons.check_circle,
+                                                size: 13,
+                                                color: Colors.blueAccent,
+                                              ),
+                                              const SizedBox(width: 4),
+                                            ],
+                                            Text(
+                                              trans.gender_male,
+                                              style: const TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 12,
+                                                color: Colors.blueAccent,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                       ),
+                                      ),
+                                      const SizedBox(height: 8),
+                                      UniversalPokeImage(
+                                        imageUrl: maleImg,
+                                        fallbackUrl: maleFallback,
+                                        width: 84,
+                                        height: 84,
+                                        fit: BoxFit.contain,
+                                        errorIconSize: 32,
+                                      ),
+                                      const SizedBox(height: 4),
+                                      FittedBox(
+                                        fit: BoxFit.scaleDown,
+                                        child: Text(
+                                          _isCurrentMale
+                                              ? (isDe ? 'Aktiv' : 'Active')
+                                              : (isDe ? 'Wechseln' : 'Switch'),
+                                          style: TextStyle(
+                                            fontSize: 10,
+                                            fontWeight: _isCurrentMale ? FontWeight.bold : FontWeight.normal,
+                                            color: _isCurrentMale
+                                                ? Colors.blueAccent
+                                                : Theme.of(context).hintColor,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                                 ),
-                                const SizedBox(height: 8),
-                                UniversalPokeImage(
-                                  imageUrl: maleImg,
-                                  fallbackUrl: maleFallback,
-                                  width: 84,
-                                  height: 84,
-                                  fit: BoxFit.contain,
-                                  errorIconSize: 32,
-                                ),
-                              ],
+                              ),
                             ),
                           ),
                         ),
@@ -203,42 +291,100 @@ class _GenderDifferencesCardState extends State<GenderDifferencesCard> {
 
                         // Female side
                         Expanded(
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
-                            decoration: BoxDecoration(
-                              color: Colors.pink.withValues(alpha: 0.08),
+                          child: Tooltip(
+                            triggerMode: TooltipTriggerMode.manual,
+                            message: _isCurrentFemale
+                                ? (isDe ? 'Aktuell ausgewählt' : 'Currently selected')
+                                : (isDe ? 'Zu Weiblich wechseln' : 'Switch to Female'),
+                            child: Material(
+                              color: _isCurrentFemale
+                                  ? Colors.pink.withValues(alpha: 0.16)
+                                  : Colors.pink.withValues(alpha: 0.06),
                               borderRadius: BorderRadius.circular(12),
-                              border: Border.all(
-                                color: Colors.pinkAccent.withValues(alpha: 0.3),
-                              ),
-                            ),
-                            child: Column(
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                              child: InkWell(
+                                key: const Key('gender_diff_female_action'),
+                                onTap: () => _handleGenderTap('female'),
+                                onSecondaryTap: () => _handleGenderTap('female'),
+                                onLongPress: () => _handleGenderTap('female'),
+                                borderRadius: BorderRadius.circular(12),
+                                mouseCursor: _isCurrentFemale
+                                    ? SystemMouseCursors.basic
+                                    : SystemMouseCursors.click,
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
                                   decoration: BoxDecoration(
-                                    color: Colors.pinkAccent.withValues(alpha: 0.2),
-                                    borderRadius: BorderRadius.circular(10),
-                                  ),
-                                  child: Text(
-                                    trans.gender_female,
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 12,
-                                      color: Colors.pinkAccent,
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(
+                                      color: _isCurrentFemale
+                                          ? Colors.pinkAccent
+                                          : Colors.pinkAccent.withValues(alpha: 0.3),
+                                      width: _isCurrentFemale ? 2.0 : 1.0,
                                     ),
                                   ),
+                                  child: Column(
+                                    children: [
+                                      FittedBox(
+                                        fit: BoxFit.scaleDown,
+                                        child: Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                          decoration: BoxDecoration(
+                                            color: _isCurrentFemale
+                                                ? Colors.pinkAccent.withValues(alpha: 0.3)
+                                                : Colors.pinkAccent.withValues(alpha: 0.15),
+                                            borderRadius: BorderRadius.circular(10),
+                                          ),
+                                          child: Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              if (_isCurrentFemale) ...[
+                                                const Icon(
+                                                  Icons.check_circle,
+                                                  size: 13,
+                                                  color: Colors.pinkAccent,
+                                                ),
+                                                const SizedBox(width: 4),
+                                              ],
+                                              Text(
+                                                trans.gender_female,
+                                                style: const TextStyle(
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: 12,
+                                                  color: Colors.pinkAccent,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(height: 8),
+                                      UniversalPokeImage(
+                                        imageUrl: femaleImg,
+                                        fallbackUrl: femaleFallback,
+                                        width: 84,
+                                        height: 84,
+                                        fit: BoxFit.contain,
+                                        errorIconSize: 32,
+                                      ),
+                                      const SizedBox(height: 4),
+                                      FittedBox(
+                                        fit: BoxFit.scaleDown,
+                                        child: Text(
+                                          _isCurrentFemale
+                                              ? (isDe ? 'Aktiv' : 'Active')
+                                              : (isDe ? 'Wechseln' : 'Switch'),
+                                          style: TextStyle(
+                                            fontSize: 10,
+                                            fontWeight: _isCurrentFemale ? FontWeight.bold : FontWeight.normal,
+                                            color: _isCurrentFemale
+                                                ? Colors.pinkAccent
+                                                : Theme.of(context).hintColor,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                                 ),
-                                const SizedBox(height: 8),
-                                UniversalPokeImage(
-                                  imageUrl: femaleImg,
-                                  fallbackUrl: femaleFallback,
-                                  width: 84,
-                                  height: 84,
-                                  fit: BoxFit.contain,
-                                  errorIconSize: 32,
-                                ),
-                              ],
+                              ),
                             ),
                           ),
                         ),

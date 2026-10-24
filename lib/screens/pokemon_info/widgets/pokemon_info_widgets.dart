@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../models/dex_view_models.dart';
 import '../../../models/pokemon.dart';
@@ -305,7 +305,7 @@ class PokemonStatusTogglesWidget extends StatelessWidget {
               value: isCaught,
               activeThumbColor: Colors.green,
               onChanged: (val) {
-                provider.togglePokemon(dexId, entry.uniqueId);
+                provider.togglePokemon(dexId, entry.uniqueId, targetState: val);
               },
             ),
           ),
@@ -325,7 +325,7 @@ class PokemonStatusTogglesWidget extends StatelessWidget {
               value: isShiny,
               activeThumbColor: Colors.amber,
               onChanged: (val) {
-                provider.toggleShiny(dexId, entry.uniqueId);
+                provider.toggleShiny(dexId, entry.uniqueId, targetState: val);
               },
             ),
           ),
@@ -358,7 +358,7 @@ class PokemonStatusTogglesWidget extends StatelessWidget {
                   value: isAlpha,
                   activeThumbColor: Colors.red,
                   onChanged: (val) {
-                    provider.toggleAlpha(dexId, entry.uniqueId);
+                    provider.toggleAlpha(dexId, entry.uniqueId, targetState: val);
                   },
                 ),
               );

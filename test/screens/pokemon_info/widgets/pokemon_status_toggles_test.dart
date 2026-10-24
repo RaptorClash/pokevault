@@ -15,8 +15,8 @@ void main() {
 
     setUp(() {
       mockProvider = MockDexProvider();
-      when(() => mockProvider.togglePokemon(any(), any())).thenAnswer((_) {});
-      when(() => mockProvider.toggleShiny(any(), any())).thenAnswer((_) {});
+      when(() => mockProvider.togglePokemon(any(), any(), targetState: any(named: 'targetState'))).thenAnswer((_) {});
+      when(() => mockProvider.toggleShiny(any(), any(), targetState: any(named: 'targetState'))).thenAnswer((_) {});
     });
 
     final expectedTranslations = {
@@ -77,7 +77,7 @@ void main() {
           await tester.pumpAndSettle();
 
           verify(
-            () => mockProvider.togglePokemon('dex_123', '1_normal'),
+            () => mockProvider.togglePokemon('dex_123', '1_normal', targetState: any(named: 'targetState')),
           ).called(1);
 
           clearInteractions(mockProvider);

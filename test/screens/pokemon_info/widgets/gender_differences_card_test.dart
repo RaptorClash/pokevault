@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
@@ -164,11 +165,13 @@ void main() {
     required Pokemon pokemon,
     bool wantShiny = false,
     String language = 'de',
+    String? uniqueId,
+    void Function(String)? onNavigateToGender,
   }) {
     LocaleSettings.setLocale(language == 'de' ? AppLocale.de : AppLocale.en);
     final entry = DexDisplayEntry(
       pokemon: pokemon,
-      uniqueId: '${pokemon.id}',
+      uniqueId: uniqueId ?? '${pokemon.id}',
       displaySuffix: '',
       imageUrl: 'https://example.com/${pokemon.id}.png',
     );
@@ -184,6 +187,7 @@ void main() {
               child: GenderDifferencesCard(
                 entry: entry,
                 wantShiny: wantShiny,
+                onNavigateToGender: onNavigateToGender,
               ),
             ),
           ),
@@ -343,6 +347,277 @@ void main() {
       expect(imageWidgets.length, 2);
       expect(imageWidgets[0].fallbackUrl, contains('sprites/pokemon/shiny/25.png'));
       expect(imageWidgets[1].fallbackUrl, contains('sprites/pokemon/shiny/female/25.png'));
+    });
+
+    testWidgets('Markiert Männlich als Aktiv und Weiblich als Wechsel-Ziel wenn entry uniqueId männlich ist', (tester) async {
+      final diffPokemon = Pokemon(
+        id: 3,
+        nameDe: 'Bisaflor',
+        nameEn: 'Venusaur',
+        hasGenderDifferences: true,
+        genderRate: 1,
+        captureRate: 45,
+        evolutionChainId: 1,
+        eggGroups: ['Monster', 'Grass'],
+        weight: 100.0,
+        speed: 80,
+        forms: [],
+      );
+
+      await tester.pumpWidget(buildTestWidget(
+        pokemon: diffPokemon,
+        uniqueId: '3_m',
+      ));
+      await pumpAsyncDB(tester);
+
+      await tester.tap(find.byType(ExpansionTile));
+      await tester.pump(const Duration(milliseconds: 300));
+
+      expect(find.byKey(const Key('gender_diff_male_action')), findsOneWidget);
+      expect(find.byKey(const Key('gender_diff_female_action')), findsOneWidget);
+
+      expect(find.text('Aktiv'), findsOneWidget);
+      expect(find.text('Wechseln'), findsOneWidget);
+      expect(find.byIcon(Icons.check_circle), findsOneWidget);
+    });
+
+    testWidgets('Markiert Weiblich als Aktiv und Männlich als Wechsel-Ziel wenn entry uniqueId weiblich ist', (tester) async {
+      final diffPokemon = Pokemon(
+        id: 3,
+        nameDe: 'Bisaflor',
+        nameEn: 'Venusaur',
+        hasGenderDifferences: true,
+        genderRate: 1,
+        captureRate: 45,
+        evolutionChainId: 1,
+        eggGroups: ['Monster', 'Grass'],
+        weight: 100.0,
+        speed: 80,
+        forms: [],
+      );
+
+      await tester.pumpWidget(buildTestWidget(
+        pokemon: diffPokemon,
+        uniqueId: '3_f',
+      ));
+      await pumpAsyncDB(tester);
+
+      await tester.tap(find.byType(ExpansionTile));
+      await tester.pump(const Duration(milliseconds: 300));
+
+      expect(find.text('Aktiv'), findsOneWidget);
+      expect(find.text('Wechseln'), findsOneWidget);
+      expect(find.byIcon(Icons.check_circle), findsOneWidget);
+    });
+
+    testWidgets('Klick / Tap auf weibliche Karte ruft onNavigateToGender("female") auf', (tester) async {
+      final diffPokemon = Pokemon(
+        id: 3,
+        nameDe: 'Bisaflor',
+        nameEn: 'Venusaur',
+        hasGenderDifferences: true,
+        genderRate: 1,
+        captureRate: 45,
+        evolutionChainId: 1,
+        eggGroups: ['Monster', 'Grass'],
+        weight: 100.0,
+        speed: 80,
+        forms: [],
+      );
+
+      String? selectedGender;
+      await tester.pumpWidget(buildTestWidget(
+        pokemon: diffPokemon,
+        uniqueId: '3_m',
+        onNavigateToGender: (gender) => selectedGender = gender,
+      ));
+      await pumpAsyncDB(tester);
+
+      await tester.tap(find.byType(ExpansionTile));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 250));
+      await tester.pump();
+
+      await tester.tap(find.byKey(const Key('gender_diff_female_action')));
+      await tester.pump();
+
+      expect(selectedGender, 'female');
+    });
+
+    testWidgets('Rechtsklick (Secondary Tap) auf weibliche Karte ruft onNavigateToGender("female") auf', (tester) async {
+      final diffPokemon = Pokemon(
+        id: 3,
+        nameDe: 'Bisaflor',
+        nameEn: 'Venusaur',
+        hasGenderDifferences: true,
+        genderRate: 1,
+        captureRate: 45,
+        evolutionChainId: 1,
+        eggGroups: ['Monster', 'Grass'],
+        weight: 100.0,
+        speed: 80,
+        forms: [],
+      );
+
+      String? selectedGender;
+      await tester.pumpWidget(buildTestWidget(
+        pokemon: diffPokemon,
+        uniqueId: '3_m',
+        onNavigateToGender: (gender) => selectedGender = gender,
+      ));
+      await pumpAsyncDB(tester);
+
+      await tester.tap(find.byType(ExpansionTile));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 250));
+      await tester.pump();
+
+      // Simulate secondary tap (right click)
+      final femaleActionFinder = find.byKey(const Key('gender_diff_female_action'));
+      final TestGesture gesture = await tester.startGesture(
+        tester.getCenter(femaleActionFinder),
+        buttons: kSecondaryMouseButton,
+      );
+      await gesture.up();
+      await tester.pump();
+
+      expect(selectedGender, 'female');
+    });
+
+    testWidgets('Long Press auf weibliche Karte ruft onNavigateToGender("female") auf', (tester) async {
+      final diffPokemon = Pokemon(
+        id: 3,
+        nameDe: 'Bisaflor',
+        nameEn: 'Venusaur',
+        hasGenderDifferences: true,
+        genderRate: 1,
+        captureRate: 45,
+        evolutionChainId: 1,
+        eggGroups: ['Monster', 'Grass'],
+        weight: 100.0,
+        speed: 80,
+        forms: [],
+      );
+
+      String? selectedGender;
+      await tester.pumpWidget(buildTestWidget(
+        pokemon: diffPokemon,
+        uniqueId: '3_m',
+        onNavigateToGender: (gender) => selectedGender = gender,
+      ));
+      await pumpAsyncDB(tester);
+
+      await tester.tap(find.byType(ExpansionTile));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 250));
+      await tester.pump();
+
+      await tester.longPress(find.byKey(const Key('gender_diff_female_action')));
+      await tester.pump();
+
+      expect(selectedGender, 'female');
+    });
+
+    testWidgets('Klick auf bereits aktive männliche Karte ruft onNavigateToGender nicht auf', (tester) async {
+      final diffPokemon = Pokemon(
+        id: 3,
+        nameDe: 'Bisaflor',
+        nameEn: 'Venusaur',
+        hasGenderDifferences: true,
+        genderRate: 1,
+        captureRate: 45,
+        evolutionChainId: 1,
+        eggGroups: ['Monster', 'Grass'],
+        weight: 100.0,
+        speed: 80,
+        forms: [],
+      );
+
+      String? selectedGender;
+      await tester.pumpWidget(buildTestWidget(
+        pokemon: diffPokemon,
+        uniqueId: '3_m',
+        onNavigateToGender: (gender) => selectedGender = gender,
+      ));
+      await pumpAsyncDB(tester);
+
+      await tester.tap(find.byType(ExpansionTile));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 250));
+      await tester.pump();
+
+      await tester.tap(find.byKey(const Key('gender_diff_male_action')));
+      await tester.pump();
+
+      expect(selectedGender, isNull);
+    });
+
+    testWidgets('Englische Lokalisierung zeigt Active und Switch', (tester) async {
+      final diffPokemon = Pokemon(
+        id: 3,
+        nameDe: 'Bisaflor',
+        nameEn: 'Venusaur',
+        hasGenderDifferences: true,
+        genderRate: 1,
+        captureRate: 45,
+        evolutionChainId: 1,
+        eggGroups: ['Monster', 'Grass'],
+        weight: 100.0,
+        speed: 80,
+        forms: [],
+      );
+
+      await tester.pumpWidget(buildTestWidget(
+        pokemon: diffPokemon,
+        uniqueId: '3_m',
+        language: 'en',
+      ));
+      await pumpAsyncDB(tester);
+
+      await tester.tap(find.byType(ExpansionTile));
+      await tester.pump(const Duration(milliseconds: 300));
+
+      expect(find.text('Active'), findsOneWidget);
+      expect(find.text('Switch'), findsOneWidget);
+    });
+
+    testWidgets('Kleiner Bildschirm (320x480) mit 1.5x TextScale wirft keine RenderFlex Overflows', (tester) async {
+      tester.view.physicalSize = const Size(320, 480);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() => tester.view.resetPhysicalSize());
+
+      final diffPokemon = Pokemon(
+        id: 3,
+        nameDe: 'Bisaflor',
+        nameEn: 'Venusaur',
+        hasGenderDifferences: true,
+        genderRate: 1,
+        captureRate: 45,
+        evolutionChainId: 1,
+        eggGroups: ['Monster', 'Grass'],
+        weight: 100.0,
+        speed: 80,
+        forms: [],
+      );
+
+      await tester.pumpWidget(
+        MediaQuery(
+          data: const MediaQueryData(
+            size: Size(320, 480),
+            textScaler: TextScaler.linear(1.5),
+          ),
+          child: buildTestWidget(
+            pokemon: diffPokemon,
+            uniqueId: '3_m',
+          ),
+        ),
+      );
+      await pumpAsyncDB(tester);
+
+      await tester.tap(find.byType(ExpansionTile));
+      await tester.pump(const Duration(milliseconds: 300));
+
+      expect(tester.takeException(), isNull);
     });
   });
 }

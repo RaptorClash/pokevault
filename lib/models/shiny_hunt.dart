@@ -54,6 +54,50 @@ class ShinyPhaseEntry {
   }
 }
 
+class ShinyPauseInterval {
+  final DateTime pausedAt;
+  DateTime? resumedAt;
+
+  ShinyPauseInterval({
+    required this.pausedAt,
+    this.resumedAt,
+  });
+
+  Map<String, dynamic> toMap() => {
+    'paused_at': pausedAt.millisecondsSinceEpoch,
+    'resumed_at': resumedAt?.millisecondsSinceEpoch,
+  };
+
+  factory ShinyPauseInterval.fromMap(Map<String, dynamic> map) => ShinyPauseInterval(
+    pausedAt: DateTime.fromMillisecondsSinceEpoch(
+      (map['paused_at'] as num?)?.toInt() ?? 0,
+    ),
+    resumedAt: map['resumed_at'] != null
+        ? DateTime.fromMillisecondsSinceEpoch((map['resumed_at'] as num).toInt())
+        : null,
+  );
+
+  Map<String, dynamic> toJson() => toMap();
+  factory ShinyPauseInterval.fromJson(Map<String, dynamic> json) =>
+      ShinyPauseInterval.fromMap(json);
+
+  Duration? get duration {
+    if (resumedAt == null) return null;
+    final diff = resumedAt!.difference(pausedAt);
+    return diff.isNegative ? Duration.zero : diff;
+  }
+
+  ShinyPauseInterval copyWith({
+    DateTime? pausedAt,
+    DateTime? resumedAt,
+  }) {
+    return ShinyPauseInterval(
+      pausedAt: pausedAt ?? this.pausedAt,
+      resumedAt: resumedAt ?? this.resumedAt,
+    );
+  }
+}
+
 class ShinyHunt {
   final String id;
   String title;
@@ -74,6 +118,7 @@ class ShinyHunt {
   String status; // 'active', 'paused', 'completed', 'failed'
   int phase;
   List<ShinyPhaseEntry> phaseHistory;
+  List<ShinyPauseInterval> pauseHistory;
   int totalTimeSeconds;
   String? ballUsed;
   String? notes;
@@ -103,6 +148,7 @@ class ShinyHunt {
     this.status = 'active',
     this.phase = 1,
     List<ShinyPhaseEntry>? phaseHistory,
+    List<ShinyPauseInterval>? pauseHistory,
     this.totalTimeSeconds = 0,
     this.ballUsed,
     this.notes,
@@ -111,7 +157,8 @@ class ShinyHunt {
     required this.updatedAt,
     this.completedAt,
     this.deletedAt = 0,
-  }) : phaseHistory = phaseHistory ?? [];
+  })  : phaseHistory = phaseHistory != null ? List<ShinyPhaseEntry>.from(phaseHistory) : [],
+        pauseHistory = pauseHistory != null ? List<ShinyPauseInterval>.from(pauseHistory) : [];
 
   // Berechnete Werte für aktuelle Phase vs. Gesamt-Hunt
   int get currentPhaseRolls => currentEncounters * spawnsPerEncounter;
@@ -146,6 +193,7 @@ class ShinyHunt {
       'status': status,
       'phase': phase,
       'phase_history': jsonEncode(phaseHistory.map((p) => p.toMap()).toList()),
+      'pause_history': jsonEncode(pauseHistory.map((p) => p.toMap()).toList()),
       'total_time_seconds': totalTimeSeconds,
       'ball_used': ballUsed,
       'notes': notes,
@@ -177,6 +225,25 @@ class ShinyHunt {
       }
     }
 
+    List<ShinyPauseInterval> parsedPauseHistory = [];
+    final rawPauseHistory = map['pause_history'];
+    if (rawPauseHistory != null) {
+      if (rawPauseHistory is String && rawPauseHistory.isNotEmpty) {
+        try {
+          final decoded = jsonDecode(rawPauseHistory);
+          if (decoded is List) {
+            parsedPauseHistory = decoded
+                .map((item) => ShinyPauseInterval.fromMap(Map<String, dynamic>.from(item)))
+                .toList();
+          }
+        } catch (_) {}
+      } else if (rawPauseHistory is List) {
+        parsedPauseHistory = rawPauseHistory
+            .map((item) => ShinyPauseInterval.fromMap(Map<String, dynamic>.from(item)))
+            .toList();
+      }
+    }
+
     return ShinyHunt(
       id: map['id']?.toString() ?? '',
       title: map['title']?.toString() ?? '',
@@ -197,6 +264,7 @@ class ShinyHunt {
       status: map['status']?.toString() ?? 'active',
       phase: (map['phase'] as num?)?.toInt() ?? 1,
       phaseHistory: parsedHistory,
+      pauseHistory: parsedPauseHistory,
       totalTimeSeconds: (map['total_time_seconds'] as num?)?.toInt() ?? 0,
       ballUsed: map['ball_used']?.toString(),
       notes: map['notes']?.toString(),
@@ -237,6 +305,7 @@ class ShinyHunt {
     String? status,
     int? phase,
     List<ShinyPhaseEntry>? phaseHistory,
+    List<ShinyPauseInterval>? pauseHistory,
     int? totalTimeSeconds,
     String? ballUsed,
     String? notes,
@@ -266,6 +335,7 @@ class ShinyHunt {
       status: status ?? this.status,
       phase: phase ?? this.phase,
       phaseHistory: phaseHistory ?? List.from(this.phaseHistory),
+      pauseHistory: pauseHistory ?? List.from(this.pauseHistory),
       totalTimeSeconds: totalTimeSeconds ?? this.totalTimeSeconds,
       ballUsed: ballUsed ?? this.ballUsed,
       notes: notes ?? this.notes,

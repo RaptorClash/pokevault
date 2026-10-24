@@ -778,6 +778,52 @@ class DexLogicHelper {
         clean.startsWith('empty_placeholder');
   }
 
+  /// Checks whether the form suffix in [uniqueId] represents a secondary/alternate
+  /// variant (regional, mega, gmax, totem, battle form) rather than a base form.
+  static bool isSecondaryForm(String uniqueId) {
+    final clean = getBaseId(uniqueId);
+    if (!clean.contains('_')) return false;
+    final formName = clean.substring(clean.indexOf('_') + 1).toLowerCase();
+    if (formName == 'normal' || formName == 'male' || formName == 'm') return false;
+    return formName.contains('alola') ||
+        formName.contains('galar') ||
+        formName.contains('hisui') ||
+        formName.contains('paldea') ||
+        formName.contains('mega') ||
+        formName.contains('gmax') ||
+        formName.contains('totem') ||
+        formName.contains('cap') ||
+        formName.contains('origin') ||
+        formName.contains('therian') ||
+        formName.contains('sky') ||
+        formName.contains('resolute') ||
+        formName.contains('pirouette') ||
+        formName.contains('blade') ||
+        formName.contains('zen') ||
+        formName.contains('complete') ||
+        formName.contains('10') ||
+        formName.contains('school') ||
+        formName.contains('busted') ||
+        formName.contains('hero') ||
+        formName.contains('rapid-strike') ||
+        formName.contains('low-key') ||
+        formName.contains('midnight') ||
+        formName.contains('dusk') ||
+        formName.contains('pom-pom') ||
+        formName.contains('pau') ||
+        formName.contains('sensu') ||
+        formName.contains('three-segment') ||
+        formName.contains('four-family') ||
+        formName.contains('droopy') ||
+        formName.contains('stretchy') ||
+        formName.contains('bloodmoon') ||
+        formName.contains('cornerstone') ||
+        formName.contains('wellspring') ||
+        formName.contains('hearthflame') ||
+        formName.contains('stellar') ||
+        formName.contains('terastal');
+  }
+
   /// Standardizes caught evaluation across the entire app by handling both
   /// canonical base IDs (e.g. '1_normal') and custom box instance IDs
   /// (e.g. '1_normal__1728412345_0').
@@ -789,13 +835,40 @@ class DexLogicHelper {
 
     final isComposite = cleanId.contains('__');
     final baseId = getBaseId(cleanId);
+    final rawNumber = cleanId.split('_').first;
+    final isGenderVariant = cleanId.endsWith('_m') || cleanId.endsWith('_f');
 
     if (!isComposite) {
+      if (!isSecondaryForm(cleanId) && !isGenderVariant &&
+          (dex.caughtIds.contains(rawNumber) || dex.caughtIds.contains('${rawNumber}_normal'))) {
+        return true;
+      }
+      if (!cleanId.contains('_') &&
+          dex.caughtIds.any((id) => id == cleanId || id.startsWith('${cleanId}_'))) {
+        return true;
+      }
       final prefix = '${cleanId}__';
-      return dex.caughtIds.any((id) => id.startsWith(prefix));
+      if (dex.caughtIds.any((id) => id.startsWith(prefix))) {
+        return true;
+      }
+      if (!isSecondaryForm(cleanId) && !isGenderVariant) {
+        final legacyPrefix = '${rawNumber}__';
+        if (dex.caughtIds.any((id) => id.startsWith(legacyPrefix))) {
+          return true;
+        }
+      }
+      return false;
     }
 
-    if (!dex.caughtIds.contains(baseId)) {
+    final rawBaseNumber = baseId.split('_').first;
+    final isBaseGenderVariant = baseId.endsWith('_m') || baseId.endsWith('_f');
+    final bool hasBaseCaught = dex.caughtIds.contains(baseId) ||
+        (!isSecondaryForm(baseId) && !isBaseGenderVariant &&
+            (dex.caughtIds.contains(rawBaseNumber) || dex.caughtIds.contains('${rawBaseNumber}_normal'))) ||
+        (!baseId.contains('_') &&
+            dex.caughtIds.any((id) => id == baseId || id.startsWith('${baseId}_')));
+
+    if (!hasBaseCaught) {
       return false;
     }
 
@@ -806,12 +879,28 @@ class DexLogicHelper {
     if (dex.caughtIds.any((id) => id.startsWith(prefix))) {
       return false;
     }
+    if (!isSecondaryForm(baseId) && !isBaseGenderVariant) {
+      final legacyPrefix = '${rawBaseNumber}__';
+      if (dex.caughtIds.any((id) => id.startsWith(legacyPrefix))) {
+        return false;
+      }
+    }
 
     // If no instance of baseId is explicitly in caughtIds, check customBoxes:
     if (dex.customBoxes.isNotEmpty) {
       final allInstancesOfBase = dex.customBoxes
           .expand((b) => b.pokemonIds)
-          .where((id) => !isPlaceholder(id) && getBaseId(id) == baseId)
+          .where((id) {
+            if (isPlaceholder(id)) return false;
+            final b = getBaseId(id);
+            final rawB = b.split('_').first;
+            return b == baseId ||
+                (rawB == rawBaseNumber &&
+                    !isSecondaryForm(baseId) &&
+                    !isSecondaryForm(b) &&
+                    !isBaseGenderVariant &&
+                    !(b.endsWith('_m') || b.endsWith('_f')));
+          })
           .toList();
 
       if (allInstancesOfBase.isNotEmpty) {
@@ -835,13 +924,40 @@ class DexLogicHelper {
 
     final isComposite = cleanId.contains('__');
     final baseId = getBaseId(cleanId);
+    final rawNumber = cleanId.split('_').first;
+    final isGenderVariant = cleanId.endsWith('_m') || cleanId.endsWith('_f');
 
     if (!isComposite) {
+      if (!isSecondaryForm(cleanId) && !isGenderVariant &&
+          (dex.shinyIds.contains(rawNumber) || dex.shinyIds.contains('${rawNumber}_normal'))) {
+        return true;
+      }
+      if (!cleanId.contains('_') &&
+          dex.shinyIds.any((id) => id == cleanId || id.startsWith('${cleanId}_'))) {
+        return true;
+      }
       final prefix = '${cleanId}__';
-      return dex.shinyIds.any((id) => id.startsWith(prefix));
+      if (dex.shinyIds.any((id) => id.startsWith(prefix))) {
+        return true;
+      }
+      if (!isSecondaryForm(cleanId) && !isGenderVariant) {
+        final legacyPrefix = '${rawNumber}__';
+        if (dex.shinyIds.any((id) => id.startsWith(legacyPrefix))) {
+          return true;
+        }
+      }
+      return false;
     }
 
-    if (!dex.shinyIds.contains(baseId)) {
+    final rawBaseNumber = baseId.split('_').first;
+    final isBaseGenderVariant = baseId.endsWith('_m') || baseId.endsWith('_f');
+    final bool hasBaseShiny = dex.shinyIds.contains(baseId) ||
+        (!isSecondaryForm(baseId) && !isBaseGenderVariant &&
+            (dex.shinyIds.contains(rawBaseNumber) || dex.shinyIds.contains('${rawBaseNumber}_normal'))) ||
+        (!baseId.contains('_') &&
+            dex.shinyIds.any((id) => id == baseId || id.startsWith('${baseId}_')));
+
+    if (!hasBaseShiny) {
       return false;
     }
 
@@ -849,11 +965,27 @@ class DexLogicHelper {
     if (dex.shinyIds.any((id) => id.startsWith(prefix))) {
       return false;
     }
+    if (!isSecondaryForm(baseId) && !isBaseGenderVariant) {
+      final legacyPrefix = '${rawBaseNumber}__';
+      if (dex.shinyIds.any((id) => id.startsWith(legacyPrefix))) {
+        return false;
+      }
+    }
 
     if (dex.customBoxes.isNotEmpty) {
       final allInstancesOfBase = dex.customBoxes
           .expand((b) => b.pokemonIds)
-          .where((id) => !isPlaceholder(id) && getBaseId(id) == baseId)
+          .where((id) {
+            if (isPlaceholder(id)) return false;
+            final b = getBaseId(id);
+            final rawB = b.split('_').first;
+            return b == baseId ||
+                (rawB == rawBaseNumber &&
+                    !isSecondaryForm(baseId) &&
+                    !isSecondaryForm(b) &&
+                    !isBaseGenderVariant &&
+                    !(b.endsWith('_m') || b.endsWith('_f')));
+          })
           .toList();
 
       if (allInstancesOfBase.isNotEmpty) {
@@ -873,13 +1005,40 @@ class DexLogicHelper {
 
     final isComposite = cleanId.contains('__');
     final baseId = getBaseId(cleanId);
+    final rawNumber = cleanId.split('_').first;
+    final isGenderVariant = cleanId.endsWith('_m') || cleanId.endsWith('_f');
 
     if (!isComposite) {
+      if (!isSecondaryForm(cleanId) && !isGenderVariant &&
+          (dex.alphaIds.contains(rawNumber) || dex.alphaIds.contains('${rawNumber}_normal'))) {
+        return true;
+      }
+      if (!cleanId.contains('_') &&
+          dex.alphaIds.any((id) => id == cleanId || id.startsWith('${cleanId}_'))) {
+        return true;
+      }
       final prefix = '${cleanId}__';
-      return dex.alphaIds.any((id) => id.startsWith(prefix));
+      if (dex.alphaIds.any((id) => id.startsWith(prefix))) {
+        return true;
+      }
+      if (!isSecondaryForm(cleanId) && !isGenderVariant) {
+        final legacyPrefix = '${rawNumber}__';
+        if (dex.alphaIds.any((id) => id.startsWith(legacyPrefix))) {
+          return true;
+        }
+      }
+      return false;
     }
 
-    if (!dex.alphaIds.contains(baseId)) {
+    final rawBaseNumber = baseId.split('_').first;
+    final isBaseGenderVariant = baseId.endsWith('_m') || baseId.endsWith('_f');
+    final bool hasBaseAlpha = dex.alphaIds.contains(baseId) ||
+        (!isSecondaryForm(baseId) && !isBaseGenderVariant &&
+            (dex.alphaIds.contains(rawBaseNumber) || dex.alphaIds.contains('${rawBaseNumber}_normal'))) ||
+        (!baseId.contains('_') &&
+            dex.alphaIds.any((id) => id == baseId || id.startsWith('${baseId}_')));
+
+    if (!hasBaseAlpha) {
       return false;
     }
 
@@ -887,11 +1046,27 @@ class DexLogicHelper {
     if (dex.alphaIds.any((id) => id.startsWith(prefix))) {
       return false;
     }
+    if (!isSecondaryForm(baseId) && !isBaseGenderVariant) {
+      final legacyPrefix = '${rawBaseNumber}__';
+      if (dex.alphaIds.any((id) => id.startsWith(legacyPrefix))) {
+        return false;
+      }
+    }
 
     if (dex.customBoxes.isNotEmpty) {
       final allInstancesOfBase = dex.customBoxes
           .expand((b) => b.pokemonIds)
-          .where((id) => !isPlaceholder(id) && getBaseId(id) == baseId)
+          .where((id) {
+            if (isPlaceholder(id)) return false;
+            final b = getBaseId(id);
+            final rawB = b.split('_').first;
+            return b == baseId ||
+                (rawB == rawBaseNumber &&
+                    !isSecondaryForm(baseId) &&
+                    !isSecondaryForm(b) &&
+                    !isBaseGenderVariant &&
+                    !(b.endsWith('_m') || b.endsWith('_f')));
+          })
           .toList();
 
       if (allInstancesOfBase.isNotEmpty) {

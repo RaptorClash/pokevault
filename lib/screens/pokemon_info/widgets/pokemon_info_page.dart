@@ -20,6 +20,7 @@ import 'special_obtainable_card.dart';
 import 'pokemon_shiny_hunts_card.dart';
 import 'gender_differences_card.dart';
 import 'lazy_expansion_card.dart';
+import '../../../utils/dex_logic_helper.dart';
 
 class PokemonInfoPage extends StatelessWidget {
   final DexDisplayEntry entry;
@@ -29,6 +30,7 @@ class PokemonInfoPage extends StatelessWidget {
   final bool? manualShinyToggle;
   final VoidCallback onShinyToggled;
   final VoidCallback onIgnore;
+  final void Function(String targetGender)? onNavigateToGender;
 
   final GlobalKey shinyToggleKey;
   final GlobalKey alphaToggleKey;
@@ -70,6 +72,7 @@ class PokemonInfoPage extends StatelessWidget {
     required this.shinyGuideKey,
     required this.ignoreBtnKey,
     required this.languageKey,
+    this.onNavigateToGender,
   });
 
   @override
@@ -80,9 +83,9 @@ class PokemonInfoPage extends StatelessWidget {
         (d) => d.id == dexId,
         orElse: () => UserDex.fallback(dexId),
       );
-      final isCaught = liveDex.caughtIds.contains(entry.uniqueId);
-      final isShiny = liveDex.shinyIds.contains(entry.uniqueId);
-      final isAlpha = liveDex.alphaIds.contains(entry.uniqueId);
+      final isCaught = DexLogicHelper.isPokemonCaught(liveDex, entry.uniqueId);
+      final isShiny = DexLogicHelper.isPokemonShiny(liveDex, entry.uniqueId);
+      final isAlpha = DexLogicHelper.isPokemonAlpha(liveDex, entry.uniqueId);
 
       final bool isSpecial = entry.uniqueId.contains('_special_');
       final wantShiny = manualShinyToggle ?? liveDex.isShinyDex;
@@ -141,6 +144,7 @@ class PokemonInfoPage extends StatelessWidget {
               GenderDifferencesCard(
                 entry: entry,
                 wantShiny: wantShiny,
+                onNavigateToGender: onNavigateToGender,
               ),
 
             if (!isSpecial) ...[
@@ -173,21 +177,15 @@ class PokemonInfoPage extends StatelessWidget {
               key: teraKey,
               child: TeraTypeWidget(entry: entry, dexId: dexId),
             ),
-            Container(
-              key: ribbonsKey,
-              child: RibbonsWidget(
-                entry: entry,
-                dexId: dexId,
-                ribbonsKey: ribbonsKey,
-              ),
+            RibbonsWidget(
+              entry: entry,
+              dexId: dexId,
+              ribbonsKey: ribbonsKey,
             ),
-            Container(
-              key: marksKey,
-              child: MarksWidget(
-                entry: entry,
-                dexId: dexId,
-                marksKey: marksKey,
-              ),
+            MarksWidget(
+              entry: entry,
+              dexId: dexId,
+              marksKey: marksKey,
             ),
 
             if (!isSpecial) ...[
