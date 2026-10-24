@@ -11,6 +11,8 @@ import 'package:pokevault/providers/settings_provider.dart';
 import 'package:pokevault/models/user_dex.dart';
 import 'package:pokevault/models/pokemon.dart';
 import 'package:pokevault/l10n/app_translations.dart';
+import 'package:pokevault/widgets/tutorial/rotom_update_welcome_dialog.dart';
+import 'package:pokevault/widgets/tutorial/tutorial_overlay.dart';
 
 class MockDexProvider extends Mock implements DexProvider {}
 
@@ -72,9 +74,12 @@ void main() {
       mockDexProvider = MockDexProvider();
       mockTutorialProvider = MockTutorialProvider();
       mockSettingsProvider = MockSettingsProvider();
+      TutorialOverlay.resetShowing();
 
       when(() => mockTutorialProvider.hasSeenFeature(any())).thenReturn(true);
       when(() => mockTutorialProvider.getFeatureStep(any())).thenReturn(0);
+      when(() => mockTutorialProvider.shouldShowV16UpdatePrompt).thenReturn(false);
+      when(() => mockTutorialProvider.isDeltaTourActive).thenReturn(false);
 
       when(() => mockSettingsProvider.autoSyncEnabled).thenReturn(false);
       when(() => mockSettingsProvider.googleClientId).thenReturn('');
@@ -308,6 +313,69 @@ void main() {
       // Should be back at root
       expect(find.text('Kanto Dex'), findsOneWidget);
       expect(find.text('Mein Ordner'), findsOneWidget);
+    });
+
+    testWidgets('Shows RotomUpdateWelcomeDialog when shouldShowV16UpdatePrompt is true', (
+      WidgetTester tester,
+    ) async {
+      when(() => mockTutorialProvider.shouldShowV16UpdatePrompt).thenReturn(true);
+      when(() => mockTutorialProvider.dismissV16UpdatePrompt()).thenAnswer((_) async {});
+      when(() => mockTutorialProvider.startV16DeltaTour()).thenAnswer((_) async {});
+
+      await tester.pumpWidget(buildHomeScreen());
+      await tester.pumpAndSettle();
+
+      expect(find.byType(RotomUpdateWelcomeDialog), findsOneWidget);
+      expect(find.textContaining('v1.6'), findsWidgets);
+    });
+
+    testWidgets('Shows Delta Tour starting with Shiny Hunt icon and advancing to newest dex', (
+      WidgetTester tester,
+    ) async {
+      when(() => mockTutorialProvider.isDeltaTourActive).thenReturn(true);
+      when(() => mockTutorialProvider.endDeltaTour()).thenAnswer((_) async {});
+
+      await tester.pumpWidget(buildHomeScreen());
+      await tester.pump(const Duration(milliseconds: 100));
+
+      expect(find.byType(TutorialOverlay), findsOneWidget);
+      // Step 1: Shiny Hunt icon in AppBar
+      expect(find.text(Translator.get('tutorial_v16_tour_shiny_title')), findsOneWidget);
+
+      // Tap 'Weiter' button to advance to step 2
+      final nextBtn = find.text('Weiter');
+      expect(nextBtn, findsOneWidget);
+      await tester.tap(nextBtn);
+      await tester.pump(const Duration(milliseconds: 300));
+
+      // Step 2: Newest Dex card
+      expect(find.text(Translator.get('tutorial_v16_tour_dex_title')), findsOneWidget);
+    });
+
+    testWidgets('Shows Delta Tour starting with Shiny Hunt icon and advancing to FAB when dexes empty', (
+      WidgetTester tester,
+    ) async {
+      when(() => mockDexProvider.userDexes).thenReturn([]);
+      when(() => mockDexProvider.folders).thenReturn([]);
+      when(() => mockDexProvider.structure).thenReturn({'root': []});
+      when(() => mockTutorialProvider.isDeltaTourActive).thenReturn(true);
+      when(() => mockTutorialProvider.endDeltaTour()).thenAnswer((_) async {});
+
+      await tester.pumpWidget(buildHomeScreen());
+      await tester.pump(const Duration(milliseconds: 100));
+
+      expect(find.byType(TutorialOverlay), findsOneWidget);
+      // Step 1: Shiny Hunt icon in AppBar
+      expect(find.text(Translator.get('tutorial_v16_tour_shiny_title')), findsOneWidget);
+
+      // Tap 'Weiter' button to advance to step 2
+      final nextBtn = find.text('Weiter');
+      expect(nextBtn, findsOneWidget);
+      await tester.tap(nextBtn);
+      await tester.pump(const Duration(milliseconds: 300));
+
+      // Step 2: FAB "+" button
+      expect(find.text(Translator.get('tutorial_v16_tour_fab_title')), findsOneWidget);
     });
   });
 }

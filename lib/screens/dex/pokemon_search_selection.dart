@@ -9,6 +9,9 @@ import '../../i18n/strings.g.dart';
 import '../../utils/dex_logic_helper.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../pokemon_info/pokemon_info_screen.dart';
+import '../../models/tutorial_step.dart';
+import '../../widgets/tutorial/tutorial_overlay.dart';
+import '../../providers/tutorial_provider.dart';
 
 const Map<String, Color> _typeColors = {
   'normal': Color(0xFFA8A77A),
@@ -95,6 +98,29 @@ class _PokemonSearchSelectionScreenState
     super.initState();
     _isShinyMode = widget.initialShiny;
     _filteredEntries = widget.allAvailableEntries;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      TutorialProvider? tut;
+      try {
+        tut = Provider.of<TutorialProvider>(context, listen: false);
+      } catch (_) {}
+      if (tut != null && !tut.hasSeenFeature('pokemon_search_selection')) {
+        TutorialOverlay.show(
+          context,
+          TutorialFeature(
+            id: 'pokemon_search_selection',
+            nameKey: 'tutorial_search_select_intro_title',
+            steps: [
+              TutorialStep(
+                targetKey: null,
+                titleKey: 'tutorial_search_select_intro_title',
+                textKey: 'tutorial_search_select_intro_text',
+              ),
+            ],
+          ),
+          () => tut?.markFeatureAsSeen('pokemon_search_selection'),
+        );
+      }
+    });
   }
 
   @override

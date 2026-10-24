@@ -17,6 +17,8 @@ import 'package:pokevault/screens/shiny_hunt/dialogs/record_phase_dialog.dart';
 import 'package:pokevault/screens/shiny_hunt/dialogs/shiny_catch_dialog.dart';
 import 'package:pokevault/screens/shiny_hunt/shiny_hunt_counter_screen.dart';
 import 'package:pokevault/services/database_service.dart';
+import 'package:pokevault/providers/tutorial_provider.dart';
+import 'package:pokevault/widgets/tutorial/tutorial_overlay.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 // ignore: depend_on_referenced_packages
 import 'package:wakelock_plus_platform_interface/wakelock_plus_platform_interface.dart';
@@ -224,11 +226,13 @@ void main() {
     return hunt;
   }
 
-  Widget buildTestWidget(String huntId) {
+  Widget buildTestWidget(String huntId, {TutorialProvider? tutorialProvider}) {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider<ShinyHuntProvider>.value(value: huntProvider),
         ChangeNotifierProvider<DexProvider>.value(value: dexProvider),
+        if (tutorialProvider != null)
+          ChangeNotifierProvider<TutorialProvider>.value(value: tutorialProvider),
       ],
       child: MaterialApp(
         home: ShinyHuntCounterScreen(huntId: huntId),
@@ -741,5 +745,54 @@ void main() {
     // Hunt should now be active again
     expect(huntProvider.getHuntById(hunt.id)!.isActive, isTrue);
     expect(find.text(Translator.get('shiny_hunt_tap_to_count')), findsOneWidget);
+  });
+
+  testWidgets('Triggers live TutorialOverlay for shiny_hunt_counter when not seen and marks as seen on completion', (tester) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('shiny_hunt_counter');
+    final tutProvider = TutorialProvider(prefs);
+    expect(tutProvider.hasSeenFeature('shiny_hunt_counter'), isFalse);
+
+    final hunt = await createTestHunt();
+    await tester.pumpWidget(buildTestWidget(hunt.id, tutorialProvider: tutProvider));
+    await pumpView(tester);
+
+    expect(find.byType(TutorialOverlay), findsOneWidget);
+    expect(find.text(Translator.get('tutorial_shiny_counter_title')), findsOneWidget);
+
+    // Skip / advance tutorial to complete
+    final skipBtn = find.text(Translator.get('tutorial_skip', fallback: 'Überspringen'));
+    expect(skipBtn, findsOneWidget);
+    await tester.tap(skipBtn);
+    await pumpView(tester);
+
+    expect(tutProvider.hasSeenFeature('shiny_hunt_counter'), isTrue);
+  });
+
+  testWidgets('Does not trigger live TutorialOverlay when shiny_hunt_counter has already been seen', (tester) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('shiny_hunt_counter', true);
+    final tutProvider = TutorialProvider(prefs);
+    expect(tutProvider.hasSeenFeature('shiny_hunt_counter'), isTrue);
+
+    final hunt = await createTestHunt();
+    await tester.pumpWidget(buildTestWidget(hunt.id, tutorialProvider: tutProvider));
+    await pumpView(tester);
+
+    expect(find.byType(TutorialOverlay), findsNothing);
+  });
+
+  testWidgets('Does not trigger live counter tutorial when opened for an already completed hunt', (tester) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('shiny_hunt_counter');
+    await prefs.remove('skip_all_tutorials');
+    final tutProvider = TutorialProvider(prefs);
+    expect(tutProvider.hasSeenFeature('shiny_hunt_counter'), isFalse);
+
+    final hunt = await createTestHunt(status: 'completed');
+    await tester.pumpWidget(buildTestWidget(hunt.id, tutorialProvider: tutProvider));
+    await pumpView(tester);
+
+    expect(find.byType(TutorialOverlay), findsNothing);
   });
 }

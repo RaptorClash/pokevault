@@ -18,6 +18,9 @@ class PokemonInfoKeys {
   final Map<String, GlobalKey> tera = {};
   final Map<String, GlobalKey> marks = {};
   final Map<String, GlobalKey> language = {};
+  final Map<String, GlobalKey> genderDifferences = {};
+  final Map<String, GlobalKey> specialObtainable = {};
+  final Map<String, GlobalKey> shinyHuntBtn = {};
 
   GlobalKey get(Map<String, GlobalKey> map, String id) {
     return map.putIfAbsent(id, () => GlobalKey());
@@ -42,5 +45,8 @@ class PokemonInfoKeys {
     tera.removeWhere((id, _) => !activeIds.contains(id));
     marks.removeWhere((id, _) => !activeIds.contains(id));
     language.removeWhere((id, _) => !activeIds.contains(id));
+    genderDifferences.removeWhere((id, _) => !activeIds.contains(id));
+    specialObtainable.removeWhere((id, _) => !activeIds.contains(id));
+    shinyHuntBtn.removeWhere((id, _) => !activeIds.contains(id));
   }
 }

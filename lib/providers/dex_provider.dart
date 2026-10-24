@@ -230,6 +230,7 @@ class DexProvider extends ChangeNotifier with WidgetsBindingObserver {
       folders = await db.getAllFolders();
       structure = await db.getStructure();
       allRibbons = await db.getAllRibbons();
+      sanitizeStructure();
 
       if (_isDisposed) return;
       _isInitialized = true;
@@ -407,9 +408,11 @@ class DexProvider extends ChangeNotifier with WidgetsBindingObserver {
     if (oldIndex < 0 ||
         oldIndex >= list.length ||
         newIndex < 0 ||
-        newIndex > list.length) {
+        newIndex >= list.length) {
       return;
     }
+
+    if (oldIndex == newIndex) return;
 
     final item = list.removeAt(oldIndex);
     list.insert(newIndex, item);
@@ -1037,7 +1040,51 @@ class DexProvider extends ChangeNotifier with WidgetsBindingObserver {
     userDexes = await db.getAllUserDexes();
     folders = await db.getAllFolders();
     structure = await db.getStructure();
+    sanitizeStructure();
     notifyListeners();
+  }
+
+  /// Sanitizes [structure] to remove orphaned IDs and ensure all folders/dexes are placed.
+  void sanitizeStructure() {
+    if (userDexes.isEmpty && folders.isEmpty) return;
+
+    final validFolderIds = folders.map((f) => f.id).toSet();
+    final validDexIds = userDexes.map((d) => d.id).toSet();
+    bool changed = false;
+
+    for (var key in structure.keys.toList()) {
+      if (key != 'root' && !validFolderIds.contains(key)) {
+        structure.remove(key);
+        changed = true;
+        continue;
+      }
+      final list = structure[key]!;
+      final originalLen = list.length;
+      list.retainWhere((id) =>
+          id.startsWith('folder_') ? validFolderIds.contains(id) : validDexIds.contains(id));
+      if (list.length != originalLen) {
+        changed = true;
+      }
+    }
+
+    structure.putIfAbsent('root', () => []);
+    final allReferencedIds = structure.values.expand((l) => l).toSet();
+    for (var folder in folders) {
+      if (!allReferencedIds.contains(folder.id)) {
+        structure['root']!.add(folder.id);
+        changed = true;
+      }
+    }
+    for (var dex in userDexes) {
+      if (!allReferencedIds.contains(dex.id)) {
+        structure['root']!.add(dex.id);
+        changed = true;
+      }
+    }
+
+    if (changed) {
+      db.saveStructure(structure);
+    }
   }
 
   Future<void> mergeCloudData(Map<String, dynamic> cloudData) async {

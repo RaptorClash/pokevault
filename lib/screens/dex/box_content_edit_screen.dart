@@ -9,6 +9,9 @@ import '../../services/database_service.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'pokemon_search_selection.dart';
 import '../../utils/box_sequence_manager.dart';
+import '../../models/tutorial_step.dart';
+import '../../widgets/tutorial/tutorial_overlay.dart';
+import '../../providers/tutorial_provider.dart';
 
 class SlotData {
   final String keyId;
@@ -40,6 +43,29 @@ class _BoxContentEditScreenState extends State<BoxContentEditScreen> {
   void initState() {
     super.initState();
     _initList();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      TutorialProvider? tut;
+      try {
+        tut = Provider.of<TutorialProvider>(context, listen: false);
+      } catch (_) {}
+      if (tut != null && !tut.hasSeenFeature('box_content_edit')) {
+        TutorialOverlay.show(
+          context,
+          TutorialFeature(
+            id: 'box_content_edit',
+            nameKey: 'tutorial_box_content_intro_title',
+            steps: [
+              TutorialStep(
+                targetKey: null,
+                titleKey: 'tutorial_box_content_intro_title',
+                textKey: 'tutorial_box_content_intro_text',
+              ),
+            ],
+          ),
+          () => tut?.markFeatureAsSeen('box_content_edit'),
+        );
+      }
+    });
   }
 
   void _initList() {

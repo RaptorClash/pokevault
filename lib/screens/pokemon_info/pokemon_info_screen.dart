@@ -77,7 +77,11 @@ class _PokemonInfoScreenState extends State<PokemonInfoScreen> {
           nameKey: 'tutorial_feature_details',
           steps: _buildTutorialSteps(currentId),
         ),
-        () => tutProvider.markFeatureAsSeen('pokemon_details'),
+        () {
+          tutProvider.markFeatureAsSeen('pokemon_details');
+          tutProvider.markFeatureAsSeen('gender_differences');
+          tutProvider.markFeatureAsSeen('special_obtainable');
+        },
       );
     }
   }
@@ -127,6 +131,20 @@ class _PokemonInfoScreenState extends State<PokemonInfoScreen> {
         requireTargetTap: false,
       ),
       TutorialStep(
+        targetKey: _keys.get(_keys.genderDifferences, currentId),
+        titleKey: 'tutorial_info_gender_title',
+        textKey: 'tutorial_info_gender_text',
+        requireTargetTap: false,
+      ),
+      TutorialStep(
+        targetKey: currentId.contains('_special_')
+            ? _keys.get(_keys.specialObtainable, currentId)
+            : null,
+        titleKey: 'tutorial_info_obtainable_title',
+        textKey: 'tutorial_info_obtainable_text',
+        requireTargetTap: false,
+      ),
+      TutorialStep(
         targetKey: _keys.get(_keys.catchCalc, currentId),
         titleKey: 'tutorial_info_catchcalc_title',
         textKey: 'tutorial_info_catchcalc_text',
@@ -172,6 +190,12 @@ class _PokemonInfoScreenState extends State<PokemonInfoScreen> {
         targetKey: _keys.get(_keys.shinyGuide, currentId),
         titleKey: 'tutorial_info_shinyguide_title',
         textKey: 'tutorial_info_shinyguide_text',
+        requireTargetTap: false,
+      ),
+      TutorialStep(
+        targetKey: _keys.get(_keys.shinyHuntBtn, currentId),
+        titleKey: 'tutorial_info_direct_hunt_title',
+        textKey: 'tutorial_info_direct_hunt_text',
         requireTargetTap: false,
       ),
       TutorialStep(
@@ -579,6 +603,9 @@ class _PokemonInfoScreenState extends State<PokemonInfoScreen> {
             shinyGuideKey: _keys.get(_keys.shinyGuide, id),
             ignoreBtnKey: _keys.get(_keys.ignoreBtn, id),
             onNavigateToGender: (gender) => _navigateToGender(entry.pokemon, gender),
+            genderDifferencesKey: _keys.get(_keys.genderDifferences, id),
+            specialObtainableKey: _keys.get(_keys.specialObtainable, id),
+            shinyHuntBtnKey: _keys.get(_keys.shinyHuntBtn, id),
           );
         },
       ),

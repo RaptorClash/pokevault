@@ -11,6 +11,9 @@ import '../../../utils/dex_logic_helper.dart';
 import '../../../services/database_service.dart';
 import '../../../l10n/app_translations.dart';
 import '../../../widgets/universal_poke_image.dart';
+import '../../../models/tutorial_step.dart';
+import '../../../widgets/tutorial/tutorial_overlay.dart';
+import '../../../providers/tutorial_provider.dart';
 
 class CreateEditHuntDialog extends StatefulWidget {
   final ShinyHunt? existingHunt;
@@ -58,6 +61,10 @@ class _GameOption {
 
 class _CreateEditHuntDialogState extends State<CreateEditHuntDialog> {
   final _formKey = GlobalKey<FormState>();
+  final GlobalKey _pokemonSectionKey = GlobalKey();
+  final GlobalKey _gameMethodSectionKey = GlobalKey();
+  final GlobalKey _paramsSectionKey = GlobalKey();
+  final GlobalKey _saveBtnKey = GlobalKey();
 
   static const List<_GameOption> _allGames = [
     _GameOption(name: 'Rot / Blau / Gelb', generation: 1.0, label: 'Gen 1: Rot / Blau / Gelb'),
@@ -350,6 +357,45 @@ class _CreateEditHuntDialogState extends State<CreateEditHuntDialog> {
     _stepController.text = _incrementStep.toString();
 
     _updatePresets();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      TutorialProvider? tut;
+      try {
+        tut = Provider.of<TutorialProvider>(context, listen: false);
+      } catch (_) {}
+      if (tut != null && !tut.hasSeenFeature('create_hunt_dialog')) {
+        TutorialOverlay.show(
+          context,
+          TutorialFeature(
+            id: 'create_hunt_dialog',
+            nameKey: 'tutorial_hunt_pokemon_title',
+            steps: [
+              TutorialStep(
+                targetKey: _pokemonSectionKey,
+                titleKey: 'tutorial_hunt_pokemon_title',
+                textKey: 'tutorial_hunt_pokemon_text',
+              ),
+              TutorialStep(
+                targetKey: _gameMethodSectionKey,
+                titleKey: 'tutorial_hunt_game_method_title',
+                textKey: 'tutorial_hunt_game_method_text',
+              ),
+              TutorialStep(
+                targetKey: _paramsSectionKey,
+                titleKey: 'tutorial_hunt_params_title',
+                textKey: 'tutorial_hunt_params_text',
+              ),
+              TutorialStep(
+                targetKey: _saveBtnKey,
+                titleKey: 'tutorial_hunt_save_title',
+                textKey: 'tutorial_hunt_save_text',
+              ),
+            ],
+          ),
+          () => tut?.markFeatureAsSeen('create_hunt_dialog'),
+        );
+      }
+    });
   }
 
   @override
@@ -657,8 +703,13 @@ class _CreateEditHuntDialogState extends State<CreateEditHuntDialog> {
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
 
-                  // 1. Pokémon Auswahl
-                  if (_pokemonId == null) ...[
+                  KeyedSubtree(
+                    key: _pokemonSectionKey,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        // 1. Pokémon Auswahl
+                        if (_pokemonId == null) ...[
                     Autocomplete<Pokemon>(
                       displayStringForOption: (option) => option.getName(lang),
                       optionsBuilder: (textEditingValue) {
@@ -813,6 +864,9 @@ class _CreateEditHuntDialogState extends State<CreateEditHuntDialog> {
                       border: const OutlineInputBorder(),
                     ),
                   ),
+                      ],
+                    ),
+                  ),
                   const SizedBox(height: 12),
 
                   // Ziel-Dex Auswahl (Smart Defaults)
@@ -863,83 +917,91 @@ class _CreateEditHuntDialogState extends State<CreateEditHuntDialog> {
                     const SizedBox(height: 12),
                   ],
 
-                  // 2. Spiel / Edition & Smart Skip
-                  if (!_showGameSelector) ...[
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                      decoration: BoxDecoration(
-                        color: Colors.blue.withValues(alpha: 0.08),
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: Colors.blue.withValues(alpha: 0.3)),
-                      ),
-                      child: Row(
-                        children: [
-                          const Icon(Icons.sports_esports, color: Colors.blueAccent, size: 20),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Text(
-                              'Spiel: $_selectedGame (Gen ${_generation.toString().replaceAll('.0', '')})',
-                              style: const TextStyle(fontWeight: FontWeight.w600),
+                  KeyedSubtree(
+                    key: _gameMethodSectionKey,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        // 2. Spiel / Edition & Smart Skip
+                        if (!_showGameSelector) ...[
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                            decoration: BoxDecoration(
+                              color: Colors.blue.withValues(alpha: 0.08),
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(color: Colors.blue.withValues(alpha: 0.3)),
+                            ),
+                            child: Row(
+                              children: [
+                                const Icon(Icons.sports_esports, color: Colors.blueAccent, size: 20),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    'Spiel: $_selectedGame (Gen ${_generation.toString().replaceAll('.0', '')})',
+                                    style: const TextStyle(fontWeight: FontWeight.w600),
+                                  ),
+                                ),
+                                TextButton(
+                                  onPressed: () => setState(() => _showGameSelector = true),
+                                  child: const Text('Ändern'),
+                                ),
+                              ],
                             ),
                           ),
-                          TextButton(
-                            onPressed: () => setState(() => _showGameSelector = true),
-                            child: const Text('Ändern'),
+                        ] else ...[
+                          DropdownButtonFormField<String>(
+                            isExpanded: true,
+                            key: ValueKey('game-$_selectedGame-$_generation-${_availableGames.length}'),
+                            initialValue: _availableGames.any((g) => g.name == _selectedGame)
+                                ? _selectedGame
+                                : (_availableGames.isNotEmpty ? _availableGames.first.name : null),
+                            decoration: InputDecoration(
+                              labelText: Translator.get('shiny_hunt_game'),
+                              border: const OutlineInputBorder(),
+                            ),
+                            items: _availableGames.map((g) {
+                              return DropdownMenuItem<String>(
+                                value: g.name,
+                                child: Text(g.label),
+                              );
+                            }).toList(),
+                            onChanged: (val) {
+                              if (val == null) return;
+                              final match = _availableGames.firstWhere((g) => g.name == val);
+                              _onGameChanged(match.name, match.generation);
+                            },
                           ),
                         ],
-                      ),
-                    ),
-                  ] else ...[
-                    DropdownButtonFormField<String>(
-                      isExpanded: true,
-                      key: ValueKey('game-$_selectedGame-$_generation-${_availableGames.length}'),
-                      initialValue: _availableGames.any((g) => g.name == _selectedGame)
-                          ? _selectedGame
-                          : (_availableGames.isNotEmpty ? _availableGames.first.name : null),
-                      decoration: InputDecoration(
-                        labelText: Translator.get('shiny_hunt_game'),
-                        border: const OutlineInputBorder(),
-                      ),
-                      items: _availableGames.map((g) {
-                        return DropdownMenuItem<String>(
-                          value: g.name,
-                          child: Text(g.label),
-                        );
-                      }).toList(),
-                      onChanged: (val) {
-                        if (val == null) return;
-                        final match = _availableGames.firstWhere((g) => g.name == val);
-                        _onGameChanged(match.name, match.generation);
-                      },
-                    ),
-                  ],
-                  const SizedBox(height: 12),
+                        const SizedBox(height: 12),
 
-                  // 3. Methode Dropdown
-                  DropdownButtonFormField<String>(
-                    isExpanded: true,
-                    key: ValueKey('method-$_selectedMethod-${_availablePresets.length}'),
-                    initialValue: _availablePresets.any((p) => p.name == _selectedMethod)
-                        ? _selectedMethod
-                        : (_availablePresets.isNotEmpty ? _availablePresets.first.name : null),
-                    decoration: InputDecoration(
-                      labelText: Translator.get('shiny_hunt_method'),
-                      border: const OutlineInputBorder(),
-                    ),
-                    items: _availablePresets.map((preset) {
-                      return DropdownMenuItem<String>(
-                        value: preset.name,
-                        child: Text(
-                          preset.name,
-                          overflow: TextOverflow.ellipsis,
+                        // 3. Methode Dropdown
+                        DropdownButtonFormField<String>(
+                          isExpanded: true,
+                          key: ValueKey('method-$_selectedMethod-${_availablePresets.length}'),
+                          initialValue: _availablePresets.any((p) => p.name == _selectedMethod)
+                              ? _selectedMethod
+                              : (_availablePresets.isNotEmpty ? _availablePresets.first.name : null),
+                          decoration: InputDecoration(
+                            labelText: Translator.get('shiny_hunt_method'),
+                            border: const OutlineInputBorder(),
+                          ),
+                          items: _availablePresets.map((preset) {
+                            return DropdownMenuItem<String>(
+                              value: preset.name,
+                              child: Text(
+                                preset.name,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            );
+                          }).toList(),
+                          onChanged: (methodName) {
+                            if (methodName == null) return;
+                            final preset = _availablePresets.firstWhere((p) => p.name == methodName);
+                            _onPresetSelected(preset);
+                          },
                         ),
-                      );
-                    }).toList(),
-                    onChanged: (methodName) {
-                      if (methodName == null) return;
-                      final preset = _availablePresets.firstWhere((p) => p.name == methodName);
-                      _onPresetSelected(preset);
-                    },
+                      ],
+                    ),
                   ),
                   const SizedBox(height: 12),
 
@@ -1057,48 +1119,51 @@ class _CreateEditHuntDialogState extends State<CreateEditHuntDialog> {
                   ],
 
                   // Feineinstellung: Basis-Quote (1/D) und Multi-Spawns (k)
-                  Row(
-                    children: [
-                      Expanded(
-                        flex: 2,
-                        child: TextFormField(
-                          controller: _customOddsController,
-                          decoration: InputDecoration(
-                            labelText: Translator.get('shiny_hunt_base_odds'),
-                            hintText: '4096.0',
-                            border: const OutlineInputBorder(),
-                            prefixText: '1 / ',
+                  KeyedSubtree(
+                    key: _paramsSectionKey,
+                    child: Row(
+                      children: [
+                        Expanded(
+                          flex: 2,
+                          child: TextFormField(
+                            controller: _customOddsController,
+                            decoration: InputDecoration(
+                              labelText: Translator.get('shiny_hunt_base_odds'),
+                              hintText: '4096.0',
+                              border: const OutlineInputBorder(),
+                              prefixText: '1 / ',
+                            ),
+                            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                            onChanged: (v) {
+                              final parsed = double.tryParse(v);
+                              if (parsed != null && parsed > 0) {
+                                _baseOdds = parsed;
+                              }
+                            },
                           ),
-                          keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                          onChanged: (v) {
-                            final parsed = double.tryParse(v);
-                            if (parsed != null && parsed > 0) {
-                              _baseOdds = parsed;
-                            }
-                          },
                         ),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        flex: 1,
-                        child: TextFormField(
-                          controller: _spawnsController,
-                          decoration: InputDecoration(
-                            labelText: Translator.get('shiny_hunt_spawns_per_step'),
-                            hintText: '1',
-                            border: const OutlineInputBorder(),
-                            prefixText: 'k = ',
+                        const SizedBox(width: 8),
+                        Expanded(
+                          flex: 1,
+                          child: TextFormField(
+                            controller: _spawnsController,
+                            decoration: InputDecoration(
+                              labelText: Translator.get('shiny_hunt_spawns_per_step'),
+                              hintText: '1',
+                              border: const OutlineInputBorder(),
+                              prefixText: 'k = ',
+                            ),
+                            keyboardType: TextInputType.number,
+                            onChanged: (v) {
+                              final parsed = int.tryParse(v);
+                              if (parsed != null && parsed > 0) {
+                                _spawnsPerEncounter = parsed;
+                              }
+                            },
                           ),
-                          keyboardType: TextInputType.number,
-                          onChanged: (v) {
-                            final parsed = int.tryParse(v);
-                            if (parsed != null && parsed > 0) {
-                              _spawnsPerEncounter = parsed;
-                            }
-                          },
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                   const SizedBox(height: 12),
 
@@ -1195,6 +1260,7 @@ class _CreateEditHuntDialogState extends State<CreateEditHuntDialog> {
                       ),
                       const SizedBox(width: 8),
                       ElevatedButton(
+                        key: _saveBtnKey,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.amber.shade700,
                           foregroundColor: Colors.white,

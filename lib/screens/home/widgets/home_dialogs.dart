@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../../../providers/tutorial_provider.dart';
+import '../../../models/tutorial_step.dart';
+import '../../../widgets/tutorial/tutorial_overlay.dart';
 import '../../../models/user_dex.dart';
 import '../../../providers/dex_provider.dart';
 import '../../../l10n/app_translations.dart';
@@ -48,42 +52,69 @@ class HomeDialogs {
         .toList();
   }
 
-  static void showCreateFolderDialog(
+  static Future<void> showCreateFolderDialog(
     BuildContext context,
     DexProvider provider,
     String currentFolderId,
-  ) {
+  ) async {
     final TextEditingController ctrl = TextEditingController();
-    showDialog(
+    final GlobalKey okKey = GlobalKey();
+    await showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Neuer Ordner'),
-        content: TextField(
-          controller: ctrl,
-          decoration: const InputDecoration(hintText: 'Ordnername'),
-          autofocus: true,
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: Text(Translator.get('cancel')),
+      builder: (ctx) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          TutorialProvider? tut;
+          try {
+            tut = Provider.of<TutorialProvider>(context, listen: false);
+          } catch (_) {}
+          if (tut != null && !tut.hasSeenFeature('create_folder_dialog')) {
+            TutorialOverlay.show(
+              ctx,
+              TutorialFeature(
+                id: 'create_folder_dialog',
+                nameKey: 'tutorial_folder_dialog_title',
+                steps: [
+                  TutorialStep(
+                    targetKey: okKey,
+                    titleKey: 'tutorial_folder_dialog_title',
+                    textKey: 'tutorial_folder_dialog_text',
+                  ),
+                ],
+              ),
+              () => tut?.markFeatureAsSeen('create_folder_dialog'),
+            );
+          }
+        });
+        return AlertDialog(
+          title: const Text('Neuer Ordner'),
+          content: TextField(
+            controller: ctrl,
+            decoration: const InputDecoration(hintText: 'Ordnername'),
+            autofocus: true,
           ),
-          ElevatedButton(
-            onPressed: () {
-              if (ctrl.text.isNotEmpty) {
-                try {
-                  provider.createFolder(ctrl.text, currentFolderId);
-                  Navigator.pop(ctx);
-                } catch (e) {
-                  Navigator.pop(ctx);
-                  NotificationHelper.showError('${Translator.get('error')} $e');
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: Text(Translator.get('cancel')),
+            ),
+            ElevatedButton(
+              key: okKey,
+              onPressed: () {
+                if (ctrl.text.isNotEmpty) {
+                  try {
+                    provider.createFolder(ctrl.text, currentFolderId);
+                    Navigator.pop(ctx);
+                  } catch (e) {
+                    Navigator.pop(ctx);
+                    NotificationHelper.showError('${Translator.get('error')} $e');
+                  }
                 }
-              }
-            },
-            child: const Text('OK'),
-          ),
-        ],
-      ),
+              },
+              child: const Text('OK'),
+            ),
+          ],
+        );
+      },
     );
   }
 

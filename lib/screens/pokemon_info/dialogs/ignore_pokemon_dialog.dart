@@ -22,10 +22,11 @@ class IgnorePokemonDialog {
       builder: (ctx) {
         if (showTutorial) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
-            final tutProvider = Provider.of<TutorialProvider>(
-              ctx,
-              listen: false,
-            );
+            TutorialProvider? tutProvider;
+            try {
+              tutProvider = Provider.of<TutorialProvider>(ctx, listen: false);
+            } catch (_) {}
+            if (tutProvider == null) return;
             TutorialOverlay.show(
               ctx,
               TutorialFeature(
@@ -39,14 +40,23 @@ class IgnorePokemonDialog {
                     requireTargetTap: true,
                     onTargetTap: () {
                       provider.ignorePokemon(dexId, entry.uniqueId);
-                      tutProvider.markFeatureAsSeen('ignore_confirm');
+                      tutProvider?.markFeatureAsSeen('ignore_confirm');
+                      tutProvider?.markFeatureAsSeen('pokemon_details');
+                      tutProvider?.markFeatureAsSeen('gender_differences');
+                      tutProvider?.markFeatureAsSeen('special_obtainable');
+                      TutorialOverlay.resetShowing();
                       Navigator.pop(ctx);
                       Navigator.pop(context);
                     },
                   ),
                 ],
               ),
-              () => tutProvider.markFeatureAsSeen('ignore_confirm'),
+              () {
+                tutProvider?.markFeatureAsSeen('ignore_confirm');
+                tutProvider?.markFeatureAsSeen('pokemon_details');
+                tutProvider?.markFeatureAsSeen('gender_differences');
+                tutProvider?.markFeatureAsSeen('special_obtainable');
+              },
             );
           });
         }
@@ -76,7 +86,16 @@ class IgnorePokemonDialog {
                 foregroundColor: Theme.of(context).colorScheme.onError,
               ),
               onPressed: () {
+                TutorialProvider? tutProvider;
+                try {
+                  tutProvider = Provider.of<TutorialProvider>(ctx, listen: false);
+                } catch (_) {}
                 provider.ignorePokemon(dexId, entry.uniqueId);
+                tutProvider?.markFeatureAsSeen('ignore_confirm');
+                tutProvider?.markFeatureAsSeen('pokemon_details');
+                tutProvider?.markFeatureAsSeen('gender_differences');
+                tutProvider?.markFeatureAsSeen('special_obtainable');
+                TutorialOverlay.resetShowing();
                 Navigator.pop(ctx);
                 Navigator.pop(context);
               },

@@ -22,6 +22,7 @@ import 'package:pokevault/screens/settings/widgets/misc_settings_cards.dart';
 import 'package:pokevault/screens/settings/widgets/settings_helper.dart';
 import 'package:pokevault/widgets/dialogs/downgrade_dialog.dart';
 import 'package:pokevault/widgets/dialogs/update_dialog.dart';
+import 'package:pokevault/widgets/tutorial/chapter_demo_dialog.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 import 'package:url_launcher_platform_interface/url_launcher_platform_interface.dart';
 import '../../e2e/helpers/e2e_test_helper.dart';
@@ -421,36 +422,21 @@ void main() {
       verify(() => mockSettingsProvider.setLanguage('en')).called(1);
     });
 
-    testWidgets('Reset tutorial tile calls resetAllTutorials', (tester) async {
+    testWidgets('Tutorial center tile opens TutorialSettingsScreen', (tester) async {
+      when(() => mockTutorialProvider.isChapterCompleted(any())).thenReturn(true);
       await tester.pumpWidget(buildApp(child: const GeneralCard()));
       await tester.pumpAndSettle();
 
-      final tutResetTile = find.widgetWithText(
+      final tutCenterTile = find.widgetWithText(
         ListTile,
-        Translator.get('tutorial_reset_title', fallback: 'Tutorial neustarten'),
+        Translator.get('tutorial_center_title', fallback: 'Tutorials & Anleitungen'),
       );
-      expect(tutResetTile, findsOneWidget);
+      expect(tutCenterTile, findsOneWidget);
 
-      await tester.tap(tutResetTile);
+      await tester.tap(tutCenterTile);
       await tester.pumpAndSettle();
 
-      verify(() => mockTutorialProvider.resetAllTutorials()).called(1);
-    });
-
-    testWidgets('Reset tutorial tile handles errors gracefully', (tester) async {
-      when(() => mockTutorialProvider.resetAllTutorials()).thenThrow(Exception('Reset failed'));
-
-      await tester.pumpWidget(buildApp(child: const GeneralCard()));
-      await tester.pumpAndSettle();
-
-      final tutResetTile = find.widgetWithText(
-        ListTile,
-        Translator.get('tutorial_reset_title', fallback: 'Tutorial neustarten'),
-      );
-      await tester.tap(tutResetTile);
-      await tester.pumpAndSettle();
-
-      verify(() => mockTutorialProvider.resetAllTutorials()).called(1);
+      expect(find.byType(TutorialSettingsScreen), findsOneWidget);
     });
   });
 
@@ -701,40 +687,43 @@ void main() {
   });
 
   group('TutorialSettingsScreen Tests', () {
-    testWidgets('TutorialSettingsScreen renders options and resets tutorials', (tester) async {
-      when(() => mockTutorialProvider.hasSeenFeature('home_screen')).thenReturn(true);
-      when(() => mockTutorialProvider.hasSeenFeature('pokemon_details')).thenReturn(false);
+    testWidgets('TutorialSettingsScreen renders chapters and handles reset all flow', (tester) async {
+      when(() => mockTutorialProvider.isChapterCompleted(any())).thenReturn(true);
+      when(() => mockTutorialProvider.resetAllTutorials()).thenAnswer((_) async {});
 
       await tester.pumpWidget(buildApp(child: const TutorialSettingsScreen(), isScreen: true));
       await tester.pumpAndSettle();
 
-      expect(find.text(Translator.get('tutorial_menu_title')), findsOneWidget);
-      expect(find.text(Translator.get('tutorial_replay_all')), findsOneWidget);
-      expect(find.text(Translator.get('tutorial_feature_home')), findsOneWidget);
-      expect(find.text(Translator.get('tutorial_feature_details')), findsOneWidget);
+      expect(find.text(Translator.get('tutorial_menu_title', fallback: 'Tutorials & Hilfe')), findsOneWidget);
+      expect(find.text(Translator.get('tutorial_replay_all', fallback: 'Alle Tutorials zurücksetzen')), findsWidgets);
 
-      // Seen feature has checkmark, unseen has outline
-      expect(find.byIcon(Icons.check_circle), findsOneWidget);
-      expect(find.byIcon(Icons.circle_outlined), findsOneWidget);
-
-      // Replay all
-      await tester.tap(find.text(Translator.get('tutorial_replay_all')));
+      // Tap Reset All button
+      final resetBtn = find.text(Translator.get('tutorial_replay_all', fallback: 'Alle Tutorials zurücksetzen'));
+      await tester.tap(resetBtn.first);
       await tester.pumpAndSettle();
+
+      // Confirmation dialog
+      expect(find.byType(AlertDialog), findsOneWidget);
+      final confirmBtn = find.text(Translator.get('reset', fallback: 'Zurücksetzen'));
+      await tester.tap(confirmBtn);
+      await tester.pumpAndSettle();
+
       verify(() => mockTutorialProvider.resetAllTutorials()).called(1);
-
-      // Reset home tutorial
-      await tester.tap(find.text(Translator.get('tutorial_feature_home')));
-      await tester.pumpAndSettle();
-      verify(() => mockTutorialProvider.resetTutorial('home_screen')).called(1);
     });
 
-    testWidgets('TutorialSettingsScreen resets pokemon details tutorial', (tester) async {
+    testWidgets('TutorialSettingsScreen opens ChapterDemoDialog when tapping replay', (tester) async {
+      when(() => mockTutorialProvider.isChapterCompleted(any())).thenReturn(true);
+
       await tester.pumpWidget(buildApp(child: const TutorialSettingsScreen(), isScreen: true));
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text(Translator.get('tutorial_feature_details')));
+      final replayButtons = find.text(Translator.get('tutorial_replay', fallback: 'Wiederholen'));
+      expect(replayButtons, findsWidgets);
+
+      await tester.tap(replayButtons.first);
       await tester.pumpAndSettle();
-      verify(() => mockTutorialProvider.resetTutorial('pokemon_details')).called(1);
+
+      expect(find.byType(ChapterDemoDialog), findsOneWidget);
     });
   });
 

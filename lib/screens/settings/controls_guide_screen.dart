@@ -1,6 +1,8 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../l10n/app_translations.dart';
+import '../../providers/tutorial_provider.dart';
 
 /// A dedicated screen presenting an overview of all mouse, keyboard, and touch controls.
 ///
@@ -29,6 +31,13 @@ class _ControlsGuideScreenState extends State<ControlsGuideScreen>
       vsync: this,
       initialIndex: isDesktop ? 0 : 1,
     );
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      try {
+        Provider.of<TutorialProvider>(context, listen: false)
+            .markFeatureAsSeen('controls_guide');
+      } catch (_) {}
+    });
   }
 
   bool _resolveIsDesktop() {

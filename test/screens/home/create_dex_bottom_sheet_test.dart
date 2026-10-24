@@ -292,4 +292,29 @@ void main() {
       findsOneWidget,
     );
   });
+
+  testWidgets('Tutorial on CreateDexBottomSheet has next button enabled so users are never trapped', (
+    WidgetTester tester,
+  ) async {
+    when(() => mockTutorialProvider.hasSeenFeature('create_dex_sheet')).thenReturn(false);
+    when(() => mockTutorialProvider.getFeatureStep('create_dex_sheet')).thenReturn(0);
+    when(() => mockTutorialProvider.markFeatureAsSeen('create_dex_sheet')).thenAnswer((_) async {});
+    when(() => mockTutorialProvider.updateFatureStep('create_dex_sheet', any())).thenAnswer((_) async {});
+
+    await tester.pumpWidget(createBottomSheetWidget());
+    // Wait for the 700ms tutorial timer
+    await tester.pump(const Duration(milliseconds: 800));
+    await tester.pump(const Duration(milliseconds: 200));
+
+    // Verify tutorial title is shown
+    expect(find.text(Translator.get('tutorial_create_step1_title')), findsOneWidget);
+
+    // Verify "Weiter" button is present and not hidden
+    final nextBtn = find.text('Weiter');
+    expect(nextBtn, findsOneWidget);
+
+    // Tapping Weiter advances without being blocked
+    await tester.tap(nextBtn);
+    await tester.pump(const Duration(milliseconds: 200));
+  });
 }

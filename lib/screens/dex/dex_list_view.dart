@@ -16,6 +16,7 @@ class DexListView extends StatelessWidget {
   final DexProvider provider;
   final GlobalKey? firstItemKey;
   final String? tutorialTargetId;
+  final VoidCallback? onInfoScreenReturned;
 
   const DexListView({
     super.key,
@@ -24,6 +25,7 @@ class DexListView extends StatelessWidget {
     required this.provider,
     this.firstItemKey,
     this.tutorialTargetId,
+    this.onInfoScreenReturned,
   });
 
   @override
@@ -76,7 +78,9 @@ class DexListView extends StatelessWidget {
                   isBoxView: false,
                 ),
               ),
-            );
+            ).then((_) {
+              onInfoScreenReturned?.call();
+            });
           }
 
           return Focus(
@@ -94,7 +98,11 @@ class DexListView extends StatelessWidget {
               return KeyEventResult.ignored;
             },
             child: InkWell(
-              key: (entry.uniqueId == tutorialTargetId && index == 0) ? firstItemKey : null,
+              key: (tutorialTargetId != null && entry.uniqueId == tutorialTargetId)
+                  ? firstItemKey
+                  : (tutorialTargetId == null && index == 0)
+                      ? firstItemKey
+                      : null,
               onTap: () => provider.togglePokemon(liveDex.id, entry.uniqueId),
               onSecondaryTap: openInfoScreen,
               onLongPress: openInfoScreen,

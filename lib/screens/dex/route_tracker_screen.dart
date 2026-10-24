@@ -6,6 +6,9 @@ import '../../providers/dex_provider.dart';
 import '../../providers/settings_provider.dart';
 import '../../services/database_service.dart';
 import '../../l10n/app_translations.dart';
+import '../../models/tutorial_step.dart';
+import '../../providers/tutorial_provider.dart';
+import '../../widgets/tutorial/tutorial_overlay.dart';
 
 class RawEncounter {
   final String version;
@@ -42,6 +45,9 @@ class _RouteTrackerScreenState extends State<RouteTrackerScreen> {
   List<String> _availableGames = [];
   String _searchQuery = '';
   final TextEditingController _searchController = TextEditingController();
+
+  final GlobalKey _filterHeaderKey = GlobalKey();
+  final GlobalKey _firstRouteKey = GlobalKey();
 
   @override
   void initState() {
@@ -310,6 +316,50 @@ class _RouteTrackerScreenState extends State<RouteTrackerScreen> {
         _allEncounters = tempEncounters;
         _isLoading = false;
       });
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          _showTutorialIfNeeded();
+        }
+      });
+    }
+  }
+
+  void _showTutorialIfNeeded() {
+    final TutorialProvider tutProvider;
+    try {
+      tutProvider = Provider.of<TutorialProvider>(context, listen: false);
+    } catch (_) {
+      return;
+    }
+
+    if (!tutProvider.hasSeenFeature('route_tracker')) {
+      final currentLang = Provider.of<SettingsProvider>(context, listen: false).currentLanguage;
+      final routesMap = _getFilteredRoutes(currentLang);
+      final hasRoutes = routesMap.isNotEmpty;
+
+      TutorialOverlay.show(
+        context,
+        TutorialFeature(
+          id: 'route_tracker',
+          nameKey: 'tutorial_chapter_route_tracker_title',
+          steps: [
+            TutorialStep(
+              targetKey: _filterHeaderKey,
+              titleKey: 'tutorial_route_filters_title',
+              textKey: 'tutorial_route_filters_text',
+              rotomMood: RotomMood.explaining,
+            ),
+            if (hasRoutes)
+              TutorialStep(
+                targetKey: _firstRouteKey,
+                titleKey: 'tutorial_route_spawns_title',
+                textKey: 'tutorial_route_spawns_text',
+                rotomMood: RotomMood.happy,
+              ),
+          ],
+        ),
+        () => tutProvider.markFeatureAsSeen('route_tracker'),
+      );
     }
   }
 
@@ -399,6 +449,7 @@ class _RouteTrackerScreenState extends State<RouteTrackerScreen> {
                     .length;
 
                 return Card(
+                  key: index == 2 ? _firstRouteKey : null,
                   margin: const EdgeInsets.symmetric(
                     horizontal: 16.0,
                     vertical: 6.0,
@@ -508,6 +559,7 @@ class _RouteTrackerScreenState extends State<RouteTrackerScreen> {
     var sortedGens = gamesByGen.keys.toList()..sort();
 
     return Card(
+      key: _filterHeaderKey,
       margin: const EdgeInsets.all(16.0),
       elevation: 0,
       shape: RoundedRectangleBorder(

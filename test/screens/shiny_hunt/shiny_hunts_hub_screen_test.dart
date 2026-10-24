@@ -18,6 +18,8 @@ import 'package:pokevault/screens/shiny_hunt/dialogs/shiny_hunt_timeline_dialog.
 import 'package:pokevault/screens/shiny_hunt/shiny_hunt_counter_screen.dart';
 import 'package:pokevault/screens/shiny_hunt/shiny_hunts_hub_screen.dart';
 import 'package:pokevault/services/database_service.dart';
+import 'package:pokevault/providers/tutorial_provider.dart';
+import 'package:pokevault/widgets/tutorial/tutorial_overlay.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 // ignore: depend_on_referenced_packages
 import 'package:wakelock_plus_platform_interface/wakelock_plus_platform_interface.dart';
@@ -230,11 +232,13 @@ void main() {
     return hunt;
   }
 
-  Widget buildHubWidget({int initialTabIndex = 0}) {
+  Widget buildHubWidget({int initialTabIndex = 0, TutorialProvider? tutorialProvider}) {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider<ShinyHuntProvider>.value(value: huntProvider),
         ChangeNotifierProvider<DexProvider>.value(value: dexProvider),
+        if (tutorialProvider != null)
+          ChangeNotifierProvider<TutorialProvider>.value(value: tutorialProvider),
       ],
       child: MaterialApp(
         home: ShinyHuntsHubScreen(initialTabIndex: initialTabIndex),
@@ -528,5 +532,38 @@ void main() {
 
     expect(find.byType(ShinyHuntTimelineDialog), findsOneWidget);
     expect(find.text(Translator.get('shiny_hunt_timeline_title', fallback: 'Hunt-Zeiten & Pausen')), findsOneWidget);
+  });
+
+  testWidgets('Triggers live TutorialOverlay for shiny_hunt_hub when not seen and marks as seen on completion', (tester) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('shiny_hunt_hub');
+    final tutProvider = TutorialProvider(prefs);
+    expect(tutProvider.hasSeenFeature('shiny_hunt_hub'), isFalse);
+
+    await tester.pumpWidget(buildHubWidget(tutorialProvider: tutProvider));
+    await pumpView(tester);
+
+    expect(find.byType(TutorialOverlay), findsOneWidget);
+    expect(find.text(Translator.get('tutorial_shiny_new_title')), findsOneWidget);
+
+    // Skip / advance tutorial to complete
+    final skipBtn = find.text(Translator.get('tutorial_skip', fallback: 'Überspringen'));
+    expect(skipBtn, findsOneWidget);
+    await tester.tap(skipBtn);
+    await pumpView(tester);
+
+    expect(tutProvider.hasSeenFeature('shiny_hunt_hub'), isTrue);
+  });
+
+  testWidgets('Does not trigger live TutorialOverlay when shiny_hunt_hub has already been seen', (tester) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('shiny_hunt_hub', true);
+    final tutProvider = TutorialProvider(prefs);
+    expect(tutProvider.hasSeenFeature('shiny_hunt_hub'), isTrue);
+
+    await tester.pumpWidget(buildHubWidget(tutorialProvider: tutProvider));
+    await pumpView(tester);
+
+    expect(find.byType(TutorialOverlay), findsNothing);
   });
 }

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../../l10n/app_translations.dart';
 import '../../../../providers/settings_provider.dart';
-import '../../../../providers/tutorial_provider.dart';
 import '../../../../providers/dex_provider.dart';
 import '../../../../utils/notification_helper.dart';
 import '../../../../utils/update_helper.dart';
@@ -10,6 +9,7 @@ import '../../../../services/dex_storage_service.dart';
 import '../../../widgets/dialogs/update_dialog.dart';
 import '../downgrade_screen.dart';
 import '../controls_guide_screen.dart';
+import '../tutorial_settings_screen.dart';
 import 'settings_helper.dart';
 
 class UpdatesCard extends StatelessWidget {
@@ -145,40 +145,28 @@ class GeneralCard extends StatelessWidget {
               const Divider(height: 1),
               ListTile(
                 leading: const Icon(
-                  Icons.lightbulb_outline,
+                  Icons.school_outlined,
                   color: Colors.amber,
                 ),
                 title: Text(
                   Translator.get(
-                    'tutorial_reset_title',
-                    fallback: 'Tutorial neustarten',
+                    'tutorial_center_title',
+                    fallback: 'Tutorials & Anleitungen',
                   ),
                 ),
                 subtitle: Text(
                   Translator.get(
-                    'tutorial_reset_sub',
-                    fallback: 'Setzt alle Hilfen zurück',
+                    'tutorial_center_subtitle',
+                    fallback: 'Interaktive Hilfen, Kapitel & v1.6 Neuheiten',
                   ),
                 ),
-                onTap: () async {
-                  try {
-                    final tutProvider = Provider.of<TutorialProvider>(
-                      context,
-                      listen: false,
-                    );
-                    await tutProvider.resetAllTutorials();
-                    NotificationHelper.showSuccess(
-                      Translator.get(
-                        'tutorial_reset_success',
-                        fallback: 'Tutorial wurde zurückgesetzt!',
-                      ),
-                    );
-                  } catch (e) {
-                    NotificationHelper.showError(
-                      '${Translator.get('error')} $e',
-                    );
-                  }
-                },
+                trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const TutorialSettingsScreen(),
+                  ),
+                ),
               ),
             ],
           ),

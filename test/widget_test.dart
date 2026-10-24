@@ -31,6 +31,8 @@ void main() {
       mockTutorialProvider = MockTutorialProvider();
 
       when(() => mockTutorialProvider.hasSeenFeature(any())).thenReturn(true);
+      when(() => mockTutorialProvider.shouldShowV16UpdatePrompt).thenReturn(false);
+      when(() => mockTutorialProvider.isDeltaTourActive).thenReturn(false);
       when(() => mockDexProvider.isInitialized).thenReturn(true);
       when(() => mockDexProvider.userDexes).thenReturn([]);
       when(() => mockDexProvider.folders).thenReturn([]);

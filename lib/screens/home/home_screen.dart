@@ -11,6 +11,7 @@ import '../../models/pokemon.dart';
 import '../../models/user_dex.dart';
 import '../../models/tutorial_step.dart';
 import '../../widgets/tutorial/tutorial_overlay.dart';
+import '../../widgets/tutorial/rotom_update_welcome_dialog.dart';
 import '../dex/dex_screen.dart';
 import '../dex/widgets/dex_completion_card_dialog.dart';
 import '../settings/settings_screen.dart';
@@ -19,6 +20,7 @@ import '../../widgets/dialogs/update_dialog.dart';
 import '../../utils/notification_helper.dart';
 import '../../utils/dex_logic_helper.dart';
 import 'edit_dex_dialog.dart';
+import 'create_dex_bottom_sheet.dart';
 import 'widgets/home_dialogs.dart';
 import 'widgets/home_ui_components.dart';
 import '../../services/google_drive_sync_service.dart';
@@ -46,6 +48,7 @@ class _HomeScreenState extends State<HomeScreen> {
   final GlobalKey _moveActionKey = GlobalKey();
   final GlobalKey _sortDropdownKey = GlobalKey();
   final GlobalKey _settingsActionKey = GlobalKey();
+  final GlobalKey _shinyHuntActionKey = GlobalKey();
   final Map<String, GlobalKey> _dexKeys = {};
   final Set<String> _selectedItemIds = {};
   String _searchQuery = '';
@@ -170,6 +173,83 @@ class _HomeScreenState extends State<HomeScreen> {
   void _showTutorialIfNeeded() {
     final tutProvider = Provider.of<TutorialProvider>(context, listen: false);
     final dexProvider = Provider.of<DexProvider>(context, listen: false);
+
+    if (tutProvider.shouldShowV16UpdatePrompt) {
+      RotomUpdateWelcomeDialog.show(
+        context,
+        onStartTour: () {
+          _showTutorialIfNeeded();
+        },
+      );
+      return;
+    }
+
+    if (tutProvider.isDeltaTourActive) {
+      if (dexProvider.userDexes.isNotEmpty) {
+        final newestDex = dexProvider.userDexes.last;
+        if (!_dexKeys.containsKey(newestDex.id)) {
+          _dexKeys[newestDex.id] = GlobalKey();
+        }
+        TutorialOverlay.show(
+          context,
+          TutorialFeature(
+            id: 'v16_delta_home',
+            nameKey: 'tutorial_feature_home',
+            steps: [
+              TutorialStep(
+                targetKey: _shinyHuntActionKey,
+                titleKey: 'tutorial_v16_tour_shiny_title',
+                textKey: 'tutorial_v16_tour_shiny_text',
+                rotomMood: RotomMood.explaining,
+                requireTargetTap: false,
+              ),
+              TutorialStep(
+                targetKey: _dexKeys[newestDex.id],
+                titleKey: 'tutorial_v16_tour_dex_title',
+                textKey: 'tutorial_v16_tour_dex_text',
+                rotomMood: RotomMood.happy,
+                requireTargetTap: true,
+                onTargetTap: () {
+                  tutProvider.endDeltaTour();
+                  _openDex(newestDex);
+                },
+              ),
+            ],
+          ),
+          () => tutProvider.endDeltaTour(),
+        );
+      } else {
+        TutorialOverlay.show(
+          context,
+          TutorialFeature(
+            id: 'v16_delta_home',
+            nameKey: 'tutorial_feature_home',
+            steps: [
+              TutorialStep(
+                targetKey: _shinyHuntActionKey,
+                titleKey: 'tutorial_v16_tour_shiny_title',
+                textKey: 'tutorial_v16_tour_shiny_text',
+                rotomMood: RotomMood.explaining,
+                requireTargetTap: false,
+              ),
+              TutorialStep(
+                targetKey: _fabKey,
+                titleKey: 'tutorial_v16_tour_fab_title',
+                textKey: 'tutorial_v16_tour_fab_text',
+                rotomMood: RotomMood.explaining,
+                requireTargetTap: true,
+                onTargetTap: () {
+                  tutProvider.endDeltaTour();
+                  _openCreateBottomSheet();
+                },
+              ),
+            ],
+          ),
+          () => tutProvider.endDeltaTour(),
+        );
+      }
+      return;
+    }
 
     if (!tutProvider.hasSeenFeature('home_screen')) {
       TutorialOverlay.show(
@@ -433,13 +513,32 @@ class _HomeScreenState extends State<HomeScreen> {
       builder: (ctx) => HomeBottomSheetMenu(
         provider: provider,
         currentFolderId: _currentFolderId,
-        onFolderCreate: () {
+        onFolderCreate: () async {
           Navigator.pop(ctx);
-          HomeDialogs.showCreateFolderDialog(
+          await HomeDialogs.showCreateFolderDialog(
             context,
             provider,
             _currentFolderId,
           );
+          TutorialOverlay.resetShowing();
+          Future.delayed(const Duration(milliseconds: 350), () {
+            if (mounted) _showTutorialIfNeeded();
+          });
+        },
+        onDexCreate: () {
+          showModalBottomSheet(
+            context: context,
+            isScrollControlled: true,
+            builder: (context) => CreateDexBottomSheet(
+              provider: provider,
+              currentFolderId: _currentFolderId,
+            ),
+          ).then((_) {
+            TutorialOverlay.resetShowing();
+            Future.delayed(const Duration(milliseconds: 350), () {
+              if (mounted) _showTutorialIfNeeded();
+            });
+          });
         },
       ),
     );
@@ -554,7 +653,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
         widgets.add(
           FolderCard(
-            key: ValueKey('${item.id}_${q}_$_isSelectionMode'),
+            key: ValueKey(item.id),
             folder: item,
             isRootLevel: isRootLevel,
             index: index,
@@ -575,7 +674,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           : _selectedItemIds.add(item.id);
                     });
                   }
-                : () {},
+                : null,
             onLongPress: isRootLevel
                 ? () => setState(() => _selectedItemIds.add(item.id))
                 : () {},
@@ -611,7 +710,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
         widgets.add(
           DexCard(
-            key: _dexKeys[item.id],
+            key: ValueKey(item.id),
+            tutorialTargetKey: _dexKeys[item.id],
             dex: item,
             regionName: regionName,
             isRootLevel: isRootLevel,
@@ -877,6 +977,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         }
                         final count = huntProvider?.activeHunts.length ?? 0;
                         return IconButton(
+                          key: _shinyHuntActionKey,
                           icon: Badge(
                             isLabelVisible: count > 0,
                             label: Text('$count'),
@@ -1038,11 +1139,27 @@ class _HomeScreenState extends State<HomeScreen> {
                           right: 16,
                         ),
                         onReorderItem: (oldIndex, newIndex) {
-                          provider.reorderItem(
-                            _currentFolderId,
-                            oldIndex,
-                            newIndex,
-                          );
+                          final items = _getSortedItems(provider, _currentFolderId);
+                          if (oldIndex < 0 ||
+                              oldIndex >= items.length ||
+                              newIndex < 0 ||
+                              newIndex >= items.length) {
+                            return;
+                          }
+                          final oldItem = items[oldIndex];
+                          final newItem = items[newIndex];
+                          final list = provider.structure[_currentFolderId];
+                          if (list != null) {
+                            final realOld = list.indexOf(oldItem.id);
+                            final realNew = list.indexOf(newItem.id);
+                            if (realOld != -1 && realNew != -1) {
+                              provider.reorderItem(
+                                _currentFolderId,
+                                realOld,
+                                realNew,
+                              );
+                            }
+                          }
                         },
                         children: _buildTree(provider, _currentFolderId, true),
                       )

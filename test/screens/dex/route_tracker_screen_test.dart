@@ -9,6 +9,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:pokevault/services/database_service.dart';
 import 'package:pokevault/screens/dex/route_tracker_screen.dart';
+import 'package:pokevault/widgets/tutorial/tutorial_overlay.dart';
 import 'package:pokevault/l10n/app_translations.dart';
 import '../../e2e/helpers/e2e_test_helper.dart';
 
@@ -280,6 +281,106 @@ void main() {
       // All routes should disappear
       expect(find.text('Viridian Forest'), findsNothing);
       expect(find.text(Translator.get('no_encounters_found')), findsOneWidget);
+    });
+
+    testWidgets('Triggers live TutorialOverlay for route_tracker when not seen and marks as seen on completion', (tester) async {
+      final poke = createTestPokemon(id: 25, nameDe: 'Pikachu', nameEn: 'Pikachu');
+      final entry = createTestEntry(pokemon: poke, uniqueId: '25');
+      final dex = createTestUserDex(id: 'dex_routes', region: 'kanto');
+
+      final mockTut = MockTutorialProvider();
+      when(() => mockTut.hasSeenFeature('route_tracker')).thenReturn(false);
+      when(() => mockTut.markFeatureAsSeen('route_tracker')).thenAnswer((_) async {});
+      when(() => mockTut.skipAllTutorials()).thenAnswer((_) async {});
+
+      await tester.pumpWidget(
+        wrapWithApp(
+          child: RouteTrackerScreen(
+            liveDex: dex,
+            displayEntries: [entry],
+          ),
+          mockDexProvider: mockDexProvider,
+          mockSettingsProvider: mockSettingsProvider,
+          mockTutorialProvider: mockTut,
+          language: 'de',
+        ),
+      );
+      await waitForRoutesLoaded(tester);
+      await tester.pump(const Duration(milliseconds: 300));
+
+      expect(find.byType(TutorialOverlay), findsOneWidget);
+      expect(find.text(Translator.get('tutorial_route_filters_title')), findsOneWidget);
+
+      final skipBtn = find.text(Translator.get('tutorial_skip', fallback: 'Überspringen'));
+      expect(skipBtn, findsOneWidget);
+      await tester.tap(skipBtn);
+      await tester.pump(const Duration(milliseconds: 300));
+
+      verify(() => mockTut.markFeatureAsSeen('route_tracker')).called(1);
+    });
+
+    testWidgets('Does not trigger live TutorialOverlay when route_tracker has already been seen', (tester) async {
+      final poke = createTestPokemon(id: 25, nameDe: 'Pikachu', nameEn: 'Pikachu');
+      final entry = createTestEntry(pokemon: poke, uniqueId: '25');
+      final dex = createTestUserDex(id: 'dex_routes', region: 'kanto');
+
+      final mockTut = MockTutorialProvider();
+      when(() => mockTut.hasSeenFeature('route_tracker')).thenReturn(true);
+
+      await tester.pumpWidget(
+        wrapWithApp(
+          child: RouteTrackerScreen(
+            liveDex: dex,
+            displayEntries: [entry],
+          ),
+          mockDexProvider: mockDexProvider,
+          mockSettingsProvider: mockSettingsProvider,
+          mockTutorialProvider: mockTut,
+          language: 'de',
+        ),
+      );
+      await waitForRoutesLoaded(tester);
+      await tester.pump(const Duration(milliseconds: 300));
+
+      expect(find.byType(TutorialOverlay), findsNothing);
+    });
+
+    testWidgets('Adversarial Test: RouteTrackerScreen with 0 encounters triggers tutorial with only filter header step', (tester) async {
+      final dex = createTestUserDex(id: 'dex_empty_routes', region: 'kanto');
+
+      final mockTut = MockTutorialProvider();
+      when(() => mockTut.hasSeenFeature('route_tracker')).thenReturn(false);
+      when(() => mockTut.markFeatureAsSeen('route_tracker')).thenAnswer((_) async {});
+      when(() => mockTut.skipAllTutorials()).thenAnswer((_) async {});
+
+      await tester.pumpWidget(
+        wrapWithApp(
+          child: RouteTrackerScreen(
+            liveDex: dex,
+            displayEntries: const [],
+          ),
+          mockDexProvider: mockDexProvider,
+          mockSettingsProvider: mockSettingsProvider,
+          mockTutorialProvider: mockTut,
+          language: 'de',
+        ),
+      );
+      await waitForRoutesLoaded(tester);
+      await tester.pump(const Duration(milliseconds: 300));
+
+      expect(find.byType(TutorialOverlay), findsOneWidget);
+      final overlay = tester.widget<TutorialOverlay>(find.byType(TutorialOverlay));
+      // Only 1 step should be present (filter header) because 0 routes exist
+      expect(overlay.feature.steps.length, equals(1));
+      expect(overlay.feature.steps.first.titleKey, equals('tutorial_route_filters_title'));
+
+      final skipBtn = find.text(Translator.get('tutorial_skip', fallback: 'Überspringen'));
+      expect(skipBtn, findsOneWidget);
+      await tester.tap(skipBtn);
+      await tester.pump(const Duration(milliseconds: 300));
+
+      verify(() => mockTut.markFeatureAsSeen('route_tracker')).called(1);
+      expect(tester.takeException(), isNull);
     });
   });
 }

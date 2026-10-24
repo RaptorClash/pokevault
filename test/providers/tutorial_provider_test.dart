@@ -163,5 +163,93 @@ void main() {
       expect(prefs.getBool('migrated_to_sqlite_v2'), isTrue);
       expect(notified, isTrue);
     });
+
+    test('shouldShowV16UpdatePrompt returns false for fresh users', () {
+      expect(tutorialProvider.shouldShowV16UpdatePrompt, isFalse);
+    });
+
+    test('shouldShowV16UpdatePrompt returns true for existing users with completed base tutorial', () async {
+      final existingPrefs = await SharedPreferences.getInstance();
+      await existingPrefs.clear();
+      await existingPrefs.setBool('home_screen', true);
+      final existingTut = TutorialProvider(existingPrefs);
+      expect(existingTut.shouldShowV16UpdatePrompt, isTrue);
+    });
+
+    test('shouldShowV16UpdatePrompt returns false if skipped or already announced', () async {
+      final existingPrefs = await SharedPreferences.getInstance();
+      await existingPrefs.clear();
+      await existingPrefs.setBool('home_screen', true);
+      final existingTut = TutorialProvider(existingPrefs);
+      expect(existingTut.shouldShowV16UpdatePrompt, isTrue);
+
+      await existingTut.dismissV16UpdatePrompt();
+      expect(existingTut.shouldShowV16UpdatePrompt, isFalse);
+    });
+
+    test('dismissV16UpdatePrompt marks prompt as seen and notifies', () async {
+      bool notified = false;
+      tutorialProvider.addListener(() => notified = true);
+
+      await tutorialProvider.dismissV16UpdatePrompt();
+      expect(tutorialProvider.isV16UpdateAnnounced, isTrue);
+      expect(notified, isTrue);
+    });
+
+    test('completeV16Tutorial updates completedTutorialVersion to 2', () async {
+      await tutorialProvider.completeV16Tutorial();
+      expect(tutorialProvider.completedTutorialVersion, equals(2));
+      expect(tutorialProvider.isV16UpdateAnnounced, isTrue);
+      expect(tutorialProvider.shouldShowV16UpdatePrompt, isFalse);
+    });
+
+    test('isChapterCompleted and resetChapter manage chapter feature keys', () async {
+      // module_box_management has keys: box_management, box_drag_shift
+      expect(tutorialProvider.isChapterCompleted('module_box_management'), isFalse);
+
+      await tutorialProvider.markFeatureAsSeen('box_management');
+      expect(tutorialProvider.isChapterCompleted('module_box_management'), isFalse);
+
+      await tutorialProvider.markFeatureAsSeen('box_drag_shift');
+      expect(tutorialProvider.isChapterCompleted('module_box_management'), isTrue);
+
+      bool notified = false;
+      tutorialProvider.addListener(() => notified = true);
+      await tutorialProvider.resetChapter('module_box_management');
+
+      expect(tutorialProvider.isChapterCompleted('module_box_management'), isFalse);
+      expect(tutorialProvider.hasSeenFeature('box_management'), isFalse);
+      expect(tutorialProvider.hasSeenFeature('box_drag_shift'), isFalse);
+      expect(notified, isTrue);
+    });
+
+    test('markChapterSeen marks all feature keys of a chapter', () async {
+      await tutorialProvider.markChapterSeen('module_box_management');
+      expect(tutorialProvider.hasSeenFeature('box_management'), isTrue);
+      expect(tutorialProvider.hasSeenFeature('box_drag_shift'), isTrue);
+      expect(tutorialProvider.isChapterCompleted('module_box_management'), isTrue);
+    });
+
+    test('startV16DeltaTour marks announcement and activates delta tour', () async {
+      await tutorialProvider.markChapterSeen('module_box_management');
+      await tutorialProvider.markChapterSeen('module_shiny_hunt');
+
+      await tutorialProvider.startV16DeltaTour();
+
+      expect(tutorialProvider.isV16UpdateAnnounced, isTrue);
+      expect(tutorialProvider.isDeltaTourActive, isTrue);
+      // Reset new feature keys for guided experience
+      expect(tutorialProvider.hasSeenFeature('box_management'), isFalse);
+      expect(tutorialProvider.hasSeenFeature('shiny_hunt_hub'), isFalse);
+    });
+
+    test('endDeltaTour deactivates the delta tour mode', () async {
+      await tutorialProvider.startV16DeltaTour();
+      expect(tutorialProvider.isDeltaTourActive, isTrue);
+
+      tutorialProvider.endDeltaTour();
+      expect(tutorialProvider.isDeltaTourActive, isFalse);
+    });
   });
 }
+

@@ -22,6 +22,7 @@ import 'package:pokevault/providers/tutorial_provider.dart';
 import 'package:pokevault/models/user_dex.dart';
 import 'package:pokevault/models/pokemon.dart';
 import 'package:pokevault/l10n/app_translations.dart';
+import 'package:pokevault/widgets/tutorial/tutorial_overlay.dart';
 
 class MockDexProvider extends Mock implements DexProvider {}
 
@@ -559,6 +560,42 @@ void main() {
 
     expect(tester.takeException(), isNull);
     expect(find.textContaining('1 / 3'), findsWidgets);
+
+    await tester.pump(const Duration(seconds: 15));
+  });
+
+  testWidgets('DexScreen triggers dex_appbar_tools tutorial after ignored_pokemon is seen', (
+    WidgetTester tester,
+  ) async {
+    when(() => mockTutorialProvider.hasSeenFeature('dex_screen')).thenReturn(true);
+    when(() => mockTutorialProvider.hasSeenFeature('pokemon_details')).thenReturn(true);
+    when(() => mockTutorialProvider.hasSeenFeature('ignored_pokemon')).thenReturn(true);
+    when(() => mockTutorialProvider.hasSeenFeature('dex_appbar_tools')).thenReturn(false);
+
+    await pumpAndLoad(tester);
+
+    expect(find.byType(TutorialOverlay), findsOneWidget);
+    final overlay = tester.widget<TutorialOverlay>(find.byType(TutorialOverlay));
+    expect(overlay.feature.id, equals('dex_appbar_tools'));
+    expect(overlay.feature.steps.length, equals(6));
+
+    await tester.pump(const Duration(seconds: 15));
+  });
+
+  testWidgets('DexScreen triggers dex_appbar_tools tutorial when ignored_pokemon was not seen but ignoredIds is empty', (
+    WidgetTester tester,
+  ) async {
+    when(() => mockTutorialProvider.hasSeenFeature('dex_screen')).thenReturn(true);
+    when(() => mockTutorialProvider.hasSeenFeature('pokemon_details')).thenReturn(true);
+    when(() => mockTutorialProvider.hasSeenFeature('ignored_pokemon')).thenReturn(false);
+    when(() => mockTutorialProvider.hasSeenFeature('dex_appbar_tools')).thenReturn(false);
+
+    await pumpAndLoad(tester);
+
+    expect(find.byType(TutorialOverlay), findsOneWidget);
+    final overlay = tester.widget<TutorialOverlay>(find.byType(TutorialOverlay));
+    expect(overlay.feature.id, equals('dex_appbar_tools'));
+    expect(overlay.feature.steps.length, equals(6));
 
     await tester.pump(const Duration(seconds: 15));
   });

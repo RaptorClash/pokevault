@@ -77,6 +77,12 @@ class _DexScreenState extends State<DexScreen> {
   final GlobalKey _fakeMenuFormsKey = GlobalKey();
   final GlobalKey _fakeMenuIgnoredKey = GlobalKey();
   final GlobalKey _searchBarKey = GlobalKey();
+  final GlobalKey _statsActionKey = GlobalKey();
+  final GlobalKey _shareActionKey = GlobalKey();
+  final GlobalKey _boxContentActionKey = GlobalKey();
+  final GlobalKey _boxEditActionKey = GlobalKey();
+  final GlobalKey _routeTrackerActionKey = GlobalKey();
+  final GlobalKey _shinyHuntActionKey = GlobalKey();
 
   bool _showFakeMenu = false;
   String? _tutorialTargetId;
@@ -493,6 +499,10 @@ class _DexScreenState extends State<DexScreen> {
   void _showTutorialIfNeeded() {
     final tutProvider = Provider.of<TutorialProvider>(context, listen: false);
     final dexProvider = Provider.of<DexProvider>(context, listen: false);
+    final liveDex = dexProvider.userDexes.firstWhere(
+      (d) => d.id == widget.initialDex.id,
+      orElse: () => widget.initialDex,
+    );
 
     if (!tutProvider.hasSeenFeature('dex_screen')) {
       TutorialOverlay.show(
@@ -562,14 +572,34 @@ class _DexScreenState extends State<DexScreen> {
               targetKey: _searchBarKey,
               titleKey: 'tutorial_dex_search_title',
               textKey: 'tutorial_dex_search_text',
-              requireTargetTap: false,
+              requireTargetTap: true,
+              onTargetTap: () {
+                final baseList = _rawEntries
+                    .where((e) => !liveDex.ignoredIds.contains(e.uniqueId))
+                    .toList();
+                String targetSearch = 'Gengar';
+                final hasGengar = baseList.any((e) =>
+                    e.pokemon.nameEn.toLowerCase() == 'gengar' ||
+                    e.pokemon.nameDe.toLowerCase() == 'gengar');
+                if (!hasGengar && baseList.isNotEmpty) {
+                  final target = baseList.length > 30 ? baseList[30] : baseList.last;
+                  final lang = context.read<SettingsProvider>().currentLanguage;
+                  targetSearch = lang == 'de' ? target.pokemon.nameDe : target.pokemon.nameEn;
+                }
+                _searchController.text = targetSearch;
+                setState(() => _searchQuery = targetSearch);
+                Future.delayed(const Duration(milliseconds: 700), () {
+                  if (mounted) _showPikachuFoundTutorial();
+                });
+              },
             ),
           ],
         ),
         () => tutProvider.markFeatureAsSeen('dex_screen'),
       );
     } else if (tutProvider.hasSeenFeature('pokemon_details') &&
-        !tutProvider.hasSeenFeature('ignored_pokemon')) {
+        !tutProvider.hasSeenFeature('ignored_pokemon') &&
+        liveDex.ignoredIds.isNotEmpty) {
       TutorialOverlay.show(
         context,
         TutorialFeature(
@@ -601,7 +631,10 @@ class _DexScreenState extends State<DexScreen> {
                     ),
                   ),
                 ).then((_) {
-                  if (mounted) _showTutorialIfNeeded();
+                  TutorialOverlay.resetShowing();
+                  Future.delayed(const Duration(milliseconds: 350), () {
+                    if (mounted) _showTutorialIfNeeded();
+                  });
                 });
               },
             ),
@@ -609,10 +642,74 @@ class _DexScreenState extends State<DexScreen> {
         ),
         () => tutProvider.markFeatureAsSeen('ignored_pokemon'),
       );
+    } else if ((tutProvider.hasSeenFeature('ignored_pokemon') ||
+            (tutProvider.hasSeenFeature('pokemon_details') &&
+                liveDex.ignoredIds.isEmpty)) &&
+        !tutProvider.hasSeenFeature('dex_appbar_tools')) {
+      TutorialOverlay.show(
+        context,
+        TutorialFeature(
+          id: 'dex_appbar_tools',
+          nameKey: 'tutorial_feature_details',
+          steps: [
+            TutorialStep(
+              targetKey: _statsActionKey,
+              titleKey: 'tutorial_appbar_stats_title',
+              textKey: 'tutorial_appbar_stats_text',
+              rotomMood: RotomMood.explaining,
+            ),
+            TutorialStep(
+              targetKey: _shareActionKey,
+              titleKey: 'tutorial_appbar_share_title',
+              textKey: 'tutorial_appbar_share_text',
+              rotomMood: RotomMood.happy,
+            ),
+            TutorialStep(
+              targetKey: _boxContentActionKey,
+              titleKey: 'tutorial_appbar_box_content_title',
+              textKey: 'tutorial_appbar_box_content_text',
+              rotomMood: RotomMood.thinking,
+            ),
+            TutorialStep(
+              targetKey: _boxEditActionKey,
+              titleKey: 'tutorial_appbar_box_edit_title',
+              textKey: 'tutorial_appbar_box_edit_text',
+              rotomMood: RotomMood.explaining,
+            ),
+            TutorialStep(
+              targetKey: _routeTrackerActionKey,
+              titleKey: 'tutorial_appbar_route_title',
+              textKey: 'tutorial_appbar_route_text',
+              rotomMood: RotomMood.explaining,
+            ),
+            TutorialStep(
+              targetKey: _shinyHuntActionKey,
+              titleKey: 'tutorial_appbar_shiny_title',
+              textKey: 'tutorial_appbar_shiny_text',
+              rotomMood: RotomMood.happy,
+            ),
+          ],
+        ),
+        () {
+          tutProvider.markFeatureAsSeen('dex_appbar_tools');
+          tutProvider.markFeatureAsSeen('ignored_pokemon');
+          tutProvider.markFeatureAsSeen('dex_statistics');
+          tutProvider.markFeatureAsSeen('completion_card');
+          tutProvider.markFeatureAsSeen('box_management');
+          tutProvider.markFeatureAsSeen('box_drag_shift');
+          tutProvider.markFeatureAsSeen('route_tracker');
+          tutProvider.markFeatureAsSeen('shiny_hunt_hub');
+          tutProvider.markFeatureAsSeen('shiny_hunt_counter');
+          tutProvider.markFeatureAsSeen('controls_guide');
+          tutProvider.markFeatureAsSeen('cloud_sync');
+          tutProvider.markFeatureAsSeen('data_backup');
+          tutProvider.completeV16Tutorial();
+        },
+      );
     }
   }
 
-  void _showMachomeiFoundTutorial() {
+  void _showPikachuFoundTutorial() {
     final tutProvider = Provider.of<TutorialProvider>(context, listen: false);
     final dexProvider = Provider.of<DexProvider>(context, listen: false);
     final settingsProvider = Provider.of<SettingsProvider>(
@@ -621,11 +718,16 @@ class _DexScreenState extends State<DexScreen> {
     );
     final lang = settingsProvider.currentLanguage;
 
+    final liveDex = dexProvider.userDexes.firstWhere(
+      (d) => d.id == widget.initialDex.id,
+      orElse: () => widget.initialDex,
+    );
+
     final baseList = _rawEntries
-        .where((e) => !widget.initialDex.ignoredIds.contains(e.uniqueId))
+        .where((e) => !liveDex.ignoredIds.contains(e.uniqueId))
         .toList();
     final filtered = baseList
-        .where((e) => _matchesSearch(e, widget.initialDex, dexProvider, lang))
+        .where((e) => _matchesSearch(e, liveDex, dexProvider, lang))
         .toList();
 
     if (filtered.isNotEmpty) {
@@ -637,7 +739,7 @@ class _DexScreenState extends State<DexScreen> {
     TutorialOverlay.show(
       context,
       TutorialFeature(
-        id: 'dex_machomei_found',
+        id: 'dex_pikachu_found',
         nameKey: 'tutorial_feature_details',
         steps: [
           TutorialStep(
@@ -663,15 +765,13 @@ class _DexScreenState extends State<DexScreen> {
                       builder: (context) => PokemonInfoScreen(
                         entries: listToUse,
                         initialIndex: targetIndex,
-                        dexId: widget.initialDex.id,
+                        dexId: liveDex.id,
                         isBoxView: _isBoxView,
                         boxes: _boxes,
                       ),
                     ),
                   ).then((_) {
-                    _searchController.clear();
-                    setState(() => _searchQuery = "");
-                    if (mounted) _showTutorialIfNeeded();
+                    _onInfoScreenReturned();
                   });
                 }
               } catch (e) {
@@ -681,8 +781,29 @@ class _DexScreenState extends State<DexScreen> {
           ),
         ],
       ),
-      () => tutProvider.markFeatureAsSeen('dex_machomei_found'),
+      () {
+        tutProvider.markFeatureAsSeen('dex_pikachu_found');
+        tutProvider.markFeatureAsSeen('dex_machomei_found');
+      },
     );
+  }
+
+  void _onInfoScreenReturned() {
+    _searchController.clear();
+    setState(() {
+      _searchQuery = "";
+      _tutorialTargetId = null;
+    });
+    final dexProvider = Provider.of<DexProvider>(context, listen: false);
+    final liveDex = dexProvider.userDexes.firstWhere(
+      (d) => d.id == widget.initialDex.id,
+      orElse: () => widget.initialDex,
+    );
+    _recalculateBoxesAsync(liveDex);
+    TutorialOverlay.resetShowing();
+    Future.delayed(const Duration(milliseconds: 350), () {
+      if (mounted) _showTutorialIfNeeded();
+    });
   }
 
   Future<void> _toggleBoxView() async {
@@ -1002,10 +1123,16 @@ class _DexScreenState extends State<DexScreen> {
 
     int currentCustomBoxesCount = liveDex.customBoxes.fold(0, (sum, b) => sum + b.pokemonIds.length);
     if (liveDex.ignoredIds.length != _lastIgnoredCount || currentCustomBoxesCount != _lastCustomBoxesCount) {
+      final ignoredChanged = liveDex.ignoredIds.length != _lastIgnoredCount;
       _lastIgnoredCount = liveDex.ignoredIds.length;
       _lastCustomBoxesCount = currentCustomBoxesCount;
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _recalculateBoxesAsync(liveDex);
+        if (ignoredChanged) {
+          Future.delayed(const Duration(milliseconds: 350), () {
+            if (mounted) _showTutorialIfNeeded();
+          });
+        }
       });
     }
 
@@ -1151,14 +1278,23 @@ class _DexScreenState extends State<DexScreen> {
                         listen: false,
                       );
                       if (tutProvider.hasSeenFeature('dex_screen') &&
+                          !tutProvider.hasSeenFeature('dex_pikachu_found') &&
                           !tutProvider.hasSeenFeature('dex_machomei_found')) {
                         final q = val.toLowerCase().trim();
-                        if (q == 'machomei' ||
+                        if (q == 'gengar' ||
+                            q == '094' ||
+                            q == '94' ||
+                            q == '#094' ||
+                            q == 'pikachu' ||
+                            q == '025' ||
+                            q == '25' ||
+                            q == '#025' ||
+                            q == 'machomei' ||
                             q == 'machamp' ||
                             q == '068' ||
                             q == '68' ||
                             q == '#068') {
-                          _showMachomeiFoundTutorial();
+                          _showPikachuFoundTutorial();
                         }
                       }
                     });
@@ -1201,6 +1337,7 @@ class _DexScreenState extends State<DexScreen> {
                       separateForms: _separateForms,
                       highlightedIds: highlightedIds,
                       isSearchActive: isSearchActive,
+                      onInfoScreenReturned: _onInfoScreenReturned,
                       isEditMode: _isEditMode,
                       selectedForEdit: _selectedForEdit,
                       onSelectionChanged: (boxIndex, itemIndex) {
@@ -1381,6 +1518,7 @@ class _DexScreenState extends State<DexScreen> {
                       displayList: filteredList,
                       liveDex: liveDex,
                       provider: provider,
+                      onInfoScreenReturned: _onInfoScreenReturned,
                     ),
               if (_isCalculatingBoxes)
                 const Positioned(
@@ -1675,6 +1813,7 @@ class _DexScreenState extends State<DexScreen> {
               ),
             if (!_isEditMode)
               IconButton(
+                key: _statsActionKey,
                 icon: const Icon(Icons.bar_chart),
                 tooltip: Translator.get('dex_progress_tooltip'),
                 onPressed: () {
@@ -1692,7 +1831,7 @@ class _DexScreenState extends State<DexScreen> {
               ),
             if (!_isEditMode && MediaQuery.sizeOf(context).width >= 360)
               IconButton(
-                key: const Key('dex_appbar_share_card_button'),
+                key: _shareActionKey,
                 icon: const Icon(Icons.share),
                 tooltip: Translator.get('share_dex_card', fallback: 'Erfolgs-Grafik teilen...'),
                 onPressed: () {
@@ -1705,6 +1844,7 @@ class _DexScreenState extends State<DexScreen> {
               ),
             if (!_isEditMode)
               IconButton(
+                key: _boxContentActionKey,
                 icon: const Icon(Icons.checklist),
                 tooltip: t.box_edit_manage_content,
                 onPressed: () {
@@ -1722,6 +1862,7 @@ class _DexScreenState extends State<DexScreen> {
               ),
             if (!_isEditMode)
               IconButton(
+                key: _boxEditActionKey,
                 icon: const Icon(Icons.edit_note),
                 tooltip: t.box_edit_title,
                 onPressed: () async {
@@ -1741,6 +1882,7 @@ class _DexScreenState extends State<DexScreen> {
               ),
             if (!_isEditMode)
               IconButton(
+                key: _routeTrackerActionKey,
                 icon: const Icon(Icons.location_on),
                 tooltip: Translator.get('route_tracker'),
                 onPressed: () {
@@ -1766,6 +1908,7 @@ class _DexScreenState extends State<DexScreen> {
                   }
                   final count = huntProvider?.activeHunts.length ?? 0;
                   return IconButton(
+                    key: _shinyHuntActionKey,
                     icon: Badge(
                       isLabelVisible: count > 0,
                       label: Text('$count'),

@@ -7,6 +7,9 @@ import '../../i18n/strings.g.dart';
 import '../../services/database_service.dart';
 import '../../utils/dex_logic_helper.dart';
 import 'box_content_edit_screen.dart';
+import '../../models/tutorial_step.dart';
+import '../../widgets/tutorial/tutorial_overlay.dart';
+import '../../providers/tutorial_provider.dart';
 
 class BoxEditScreen extends StatefulWidget {
   final UserDex dex;
@@ -61,6 +64,30 @@ class _BoxEditScreenState extends State<BoxEditScreen> {
       _patternAutoCreate = first.patternAutoCreate;
       _autoDeleteEmpty = first.autoDeleteEmpty;
     }
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      TutorialProvider? tut;
+      try {
+        tut = Provider.of<TutorialProvider>(context, listen: false);
+      } catch (_) {}
+      if (tut != null && !tut.hasSeenFeature('box_edit_screen')) {
+        TutorialOverlay.show(
+          context,
+          TutorialFeature(
+            id: 'box_edit_screen',
+            nameKey: 'tutorial_box_edit_intro_title',
+            steps: [
+              TutorialStep(
+                targetKey: null,
+                titleKey: 'tutorial_box_edit_intro_title',
+                textKey: 'tutorial_box_edit_intro_text',
+              ),
+            ],
+          ),
+          () => tut?.markFeatureAsSeen('box_edit_screen'),
+        );
+      }
+    });
   }
 
   void _updateSettings({

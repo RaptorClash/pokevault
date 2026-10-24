@@ -79,7 +79,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
           ],
         ),
-        () => tutProvider.markFeatureAsSeen('settings_screen'),
+        () {
+          tutProvider.markFeatureAsSeen('settings_screen');
+          tutProvider.markFeatureAsSeen('cloud_sync');
+          tutProvider.markFeatureAsSeen('data_backup');
+        },
       );
     }
   }

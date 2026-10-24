@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../models/shiny_hunt.dart';
+import '../../models/tutorial_step.dart';
 import '../../providers/dex_provider.dart';
 import '../../providers/shiny_hunt_provider.dart';
+import '../../providers/tutorial_provider.dart';
 import '../../utils/shiny_hunt_odds_helper.dart';
 import '../../l10n/app_translations.dart';
 import '../../widgets/universal_poke_image.dart';
+import '../../widgets/tutorial/tutorial_overlay.dart';
 import 'shiny_hunt_counter_screen.dart';
 import 'dialogs/create_edit_hunt_dialog.dart';
 import 'dialogs/shiny_hunt_timeline_dialog.dart';
@@ -25,6 +28,9 @@ class _ShinyHuntsHubScreenState extends State<ShinyHuntsHubScreen>
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
 
+  final GlobalKey _addHuntKey = GlobalKey();
+  final GlobalKey _tabBarKey = GlobalKey();
+
   @override
   void initState() {
     super.initState();
@@ -33,6 +39,43 @@ class _ShinyHuntsHubScreenState extends State<ShinyHuntsHubScreen>
       vsync: this,
       initialIndex: widget.initialTabIndex,
     );
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _showTutorialIfNeeded();
+    });
+  }
+
+  void _showTutorialIfNeeded() {
+    final TutorialProvider tutProvider;
+    try {
+      tutProvider = Provider.of<TutorialProvider>(context, listen: false);
+    } catch (_) {
+      return;
+    }
+
+    if (!tutProvider.hasSeenFeature('shiny_hunt_hub')) {
+      TutorialOverlay.show(
+        context,
+        TutorialFeature(
+          id: 'shiny_hunt_hub',
+          nameKey: 'tutorial_chapter_shiny_hunt_title',
+          steps: [
+            TutorialStep(
+              targetKey: _addHuntKey,
+              titleKey: 'tutorial_shiny_new_title',
+              textKey: 'tutorial_shiny_new_text',
+              rotomMood: RotomMood.explaining,
+            ),
+            TutorialStep(
+              targetKey: _tabBarKey,
+              titleKey: 'tutorial_shiny_hub_title',
+              textKey: 'tutorial_shiny_hub_text',
+              rotomMood: RotomMood.happy,
+            ),
+          ],
+        ),
+        () => tutProvider.markFeatureAsSeen('shiny_hunt_hub'),
+      );
+    }
   }
 
   @override
@@ -208,6 +251,7 @@ class _ShinyHuntsHubScreenState extends State<ShinyHuntsHubScreen>
           ],
         ),
         bottom: TabBar(
+          key: _tabBarKey,
           controller: _tabController,
           tabs: [
             Tab(
@@ -276,6 +320,7 @@ class _ShinyHuntsHubScreenState extends State<ShinyHuntsHubScreen>
               ],
             ),
       floatingActionButton: FloatingActionButton.extended(
+        key: _addHuntKey,
         onPressed: _openCreateDialog,
         backgroundColor: Colors.amber.shade700,
         foregroundColor: Colors.white,

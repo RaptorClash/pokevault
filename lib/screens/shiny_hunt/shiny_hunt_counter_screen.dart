@@ -3,12 +3,15 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 import '../../models/shiny_hunt.dart';
+import '../../models/tutorial_step.dart';
 import '../../providers/dex_provider.dart';
 import '../../providers/shiny_hunt_provider.dart';
+import '../../providers/tutorial_provider.dart';
 import '../../utils/shiny_hunt_odds_helper.dart';
 import '../../utils/dex_logic_helper.dart';
 import '../../l10n/app_translations.dart';
 import '../../widgets/universal_poke_image.dart';
+import '../../widgets/tutorial/tutorial_overlay.dart';
 import 'dialogs/create_edit_hunt_dialog.dart';
 import 'dialogs/record_phase_dialog.dart';
 import 'dialogs/shiny_catch_dialog.dart';
@@ -33,6 +36,10 @@ class _ShinyHuntCounterScreenState extends State<ShinyHuntCounterScreen> {
   bool _wakelockEnabled = true;
   int? _customStep;
 
+  final GlobalKey _counterAreaKey = GlobalKey();
+  final GlobalKey _buttonsKey = GlobalKey();
+  final GlobalKey _phasesActionsKey = GlobalKey();
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -47,8 +54,58 @@ class _ShinyHuntCounterScreenState extends State<ShinyHuntCounterScreen> {
         final huntProvider = Provider.of<ShinyHuntProvider>(context, listen: false);
         huntProvider.setActiveCounterHunt(widget.huntId);
         _applyWakelock();
+        _showTutorialIfNeeded();
       }
     });
+  }
+
+  void _showTutorialIfNeeded() {
+    final TutorialProvider tutProvider;
+    try {
+      tutProvider = Provider.of<TutorialProvider>(context, listen: false);
+    } catch (_) {
+      return;
+    }
+
+    ShinyHuntProvider? huntProvider;
+    try {
+      huntProvider = Provider.of<ShinyHuntProvider>(context, listen: false);
+    } catch (_) {
+      huntProvider = null;
+    }
+    final hunt = huntProvider?.getHuntById(widget.huntId);
+    if (hunt == null || hunt.isCompleted) return;
+
+    if (!tutProvider.hasSeenFeature('shiny_hunt_counter')) {
+      TutorialOverlay.show(
+        context,
+        TutorialFeature(
+          id: 'shiny_hunt_counter',
+          nameKey: 'tutorial_chapter_shiny_hunt_title',
+          steps: [
+            TutorialStep(
+              targetKey: _counterAreaKey,
+              titleKey: 'tutorial_shiny_counter_title',
+              textKey: 'tutorial_shiny_counter_text',
+              rotomMood: RotomMood.explaining,
+            ),
+            TutorialStep(
+              targetKey: _buttonsKey,
+              titleKey: 'tutorial_shiny_buttons_title',
+              textKey: 'tutorial_shiny_buttons_text',
+              rotomMood: RotomMood.thinking,
+            ),
+            TutorialStep(
+              targetKey: _phasesActionsKey,
+              titleKey: 'tutorial_shiny_phases_actions_title',
+              textKey: 'tutorial_shiny_phases_actions_text',
+              rotomMood: RotomMood.happy,
+            ),
+          ],
+        ),
+        () => tutProvider.markFeatureAsSeen('shiny_hunt_counter'),
+      );
+    }
   }
 
   @override
@@ -981,6 +1038,7 @@ class _ShinyHuntCounterScreenState extends State<ShinyHuntCounterScreen> {
                     final spacing = (maxH * 0.02).clamp(2.0, 12.0);
 
                     return GestureDetector(
+                      key: _counterAreaKey,
                       behavior: HitTestBehavior.opaque,
                       onTap: hunt.isCompleted
                           ? null
@@ -1148,6 +1206,7 @@ class _ShinyHuntCounterScreenState extends State<ShinyHuntCounterScreen> {
                 else ...[
                   // Schrittweiten-Leiste
                   Padding(
+                    key: _buttonsKey,
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
                     child: SingleChildScrollView(
                       scrollDirection: Axis.horizontal,
@@ -1216,54 +1275,62 @@ class _ShinyHuntCounterScreenState extends State<ShinyHuntCounterScreen> {
                         ),
                         const SizedBox(width: 8),
 
-                        // Phasen-Shiny
+                        // Phasen-Shiny & Shiny Gefangen
                         Expanded(
-                          child: OutlinedButton.icon(
-                            style: OutlinedButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(vertical: 12),
-                            ),
-                            onPressed: () {
-                              showDialog(
-                                context: context,
-                                builder: (_) => RecordPhaseDialog(hunt: hunt),
-                              );
-                            },
-                            icon: const Icon(Icons.history_toggle_off, size: 18),
-                            label: Text(
-                              Translator.get('shiny_hunt_record_phase_btn'),
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-
-                        // Shiny Gefangen!
-                        Expanded(
-                          flex: 2,
-                          child: ElevatedButton.icon(
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.amber.shade700,
-                              foregroundColor: Colors.white,
-                              padding: const EdgeInsets.symmetric(vertical: 12),
-                            ),
-                            onPressed: () async {
-                              final caught = await showDialog<bool>(
-                                context: context,
-                                builder: (_) => ShinyCatchDialog(hunt: hunt),
-                              );
-                              if (caught == true && context.mounted) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    backgroundColor: Colors.amber.shade800,
-                                    content: Text('🎉 Glückwunsch! ${hunt.pokemonName} wurde gefangen und der Hunt beendet!'),
+                          flex: 3,
+                          child: Container(
+                            key: _phasesActionsKey,
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: OutlinedButton.icon(
+                                    style: OutlinedButton.styleFrom(
+                                      padding: const EdgeInsets.symmetric(vertical: 12),
+                                    ),
+                                    onPressed: () {
+                                      showDialog(
+                                        context: context,
+                                        builder: (_) => RecordPhaseDialog(hunt: hunt),
+                                      );
+                                    },
+                                    icon: const Icon(Icons.history_toggle_off, size: 18),
+                                    label: Text(
+                                      Translator.get('shiny_hunt_record_phase_btn'),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
                                   ),
-                                );
-                              }
-                            },
-                            icon: const Icon(Icons.auto_awesome),
-                            label: Text(
-                              Translator.get('shiny_hunt_caught_btn'),
-                              style: const TextStyle(fontWeight: FontWeight.bold),
+                                ),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  flex: 2,
+                                  child: ElevatedButton.icon(
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Colors.amber.shade700,
+                                      foregroundColor: Colors.white,
+                                      padding: const EdgeInsets.symmetric(vertical: 12),
+                                    ),
+                                    onPressed: () async {
+                                      final caught = await showDialog<bool>(
+                                        context: context,
+                                        builder: (_) => ShinyCatchDialog(hunt: hunt),
+                                      );
+                                      if (caught == true && context.mounted) {
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          SnackBar(
+                                            backgroundColor: Colors.amber.shade800,
+                                            content: Text('🎉 Glückwunsch! ${hunt.pokemonName} wurde gefangen und der Hunt beendet!'),
+                                          ),
+                                        );
+                                      }
+                                    },
+                                    icon: const Icon(Icons.auto_awesome),
+                                    label: Text(
+                                      Translator.get('shiny_hunt_caught_btn'),
+                                      style: const TextStyle(fontWeight: FontWeight.bold),
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                         ),

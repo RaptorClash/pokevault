@@ -56,12 +56,9 @@ class DexBoxView extends StatefulWidget {
     int? sourceSlotIndex,
   )?
   onSwapPokemonWithSource;
-  final void Function(
-    List<String> sourceUniqueIds,
-    int targetBoxIndex,
-    int targetIndex,
-  )?
+  final void Function(List<String> sourceUniqueIds, int targetBoxIndex, int targetIndex)?
   onMoveMultiplePokemon;
+  final VoidCallback? onInfoScreenReturned;
 
   const DexBoxView({
     super.key,
@@ -83,6 +80,7 @@ class DexBoxView extends StatefulWidget {
     this.onMovePokemonWithSource,
     this.onSwapPokemonWithSource,
     this.onMoveMultiplePokemon,
+    this.onInfoScreenReturned,
   });
 
   @override
@@ -791,7 +789,9 @@ class _DexBoxViewState extends State<DexBoxView> {
                                 },
                               ),
                             ),
-                          );
+                          ).then((_) {
+                            widget.onInfoScreenReturned?.call();
+                          });
                         }
 
                         Widget card = Focus(
@@ -811,12 +811,11 @@ class _DexBoxViewState extends State<DexBoxView> {
                             return KeyEventResult.ignored;
                           },
                           child: InkWell(
-                            key:
-                                (entry.uniqueId == tutorialTargetId &&
-                                    boxIndex == 0 &&
-                                    index == 0)
+                            key: (tutorialTargetId != null && entry.uniqueId == tutorialTargetId)
                                 ? firstItemKey
-                                : null,
+                                : (tutorialTargetId == null && boxIndex == 0 && index == 0)
+                                    ? firstItemKey
+                                    : null,
                             onTap: isEditMode
                                 ? () =>
                                       onSelectionChanged?.call(boxIndex, index)

@@ -191,7 +191,10 @@ Widget wrapWithApp({
   final tutorialProvider = mockTutorialProvider ?? MockTutorialProvider();
 
   when(() => settingsProvider.currentLanguage).thenReturn(language);
-  when(() => tutorialProvider.hasSeenFeature(any())).thenReturn(true);
+  if (mockTutorialProvider == null) {
+    when(() => tutorialProvider.hasSeenFeature(any())).thenReturn(true);
+  }
+  when(() => tutorialProvider.skipAllTutorials()).thenAnswer((_) async {});
   when(() => dexProvider.saveUserDexAndSync(any())).thenAnswer((_) async {});
 
   return TranslationProvider(

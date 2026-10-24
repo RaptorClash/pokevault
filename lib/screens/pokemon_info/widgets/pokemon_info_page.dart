@@ -47,6 +47,9 @@ class PokemonInfoPage extends StatelessWidget {
   final GlobalKey encountersKey;
   final GlobalKey shinyGuideKey;
   final GlobalKey ignoreBtnKey;
+  final GlobalKey? genderDifferencesKey;
+  final GlobalKey? specialObtainableKey;
+  final GlobalKey? shinyHuntBtnKey;
 
   const PokemonInfoPage({
     super.key,
@@ -73,6 +76,9 @@ class PokemonInfoPage extends StatelessWidget {
     required this.ignoreBtnKey,
     required this.languageKey,
     this.onNavigateToGender,
+    this.genderDifferencesKey,
+    this.specialObtainableKey,
+    this.shinyHuntBtnKey,
   });
 
   @override
@@ -129,7 +135,11 @@ class PokemonInfoPage extends StatelessWidget {
               alphaToggleKey: alphaToggleKey,
             ),
 
-            if (isSpecial) SpecialObtainableCard(uniqueId: entry.uniqueId),
+            if (isSpecial)
+              SpecialObtainableCard(
+                key: specialObtainableKey,
+                uniqueId: entry.uniqueId,
+              ),
 
             const SizedBox(height: 32),
             Container(
@@ -142,6 +152,7 @@ class PokemonInfoPage extends StatelessWidget {
 
             if (entry.pokemon.hasGenderDifferences)
               GenderDifferencesCard(
+                key: genderDifferencesKey,
                 entry: entry,
                 wantShiny: wantShiny,
                 onNavigateToGender: onNavigateToGender,
@@ -201,6 +212,7 @@ class PokemonInfoPage extends StatelessWidget {
             ),
 
             PokemonShinyHuntsCard(
+              key: shinyHuntBtnKey,
               entry: entry,
               dexId: dexId,
             ),

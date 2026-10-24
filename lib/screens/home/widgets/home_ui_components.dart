@@ -18,7 +18,7 @@ class FolderCard extends StatelessWidget {
   final bool isSelectionMode;
   final bool initiallyExpanded;
   final bool showDragIndicator;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
   final VoidCallback onLongPress;
   final VoidCallback onOpenFolder;
   final VoidCallback onRename;
@@ -35,7 +35,7 @@ class FolderCard extends StatelessWidget {
     required this.isSelectionMode,
     required this.initiallyExpanded,
     required this.showDragIndicator,
-    required this.onTap,
+    this.onTap,
     required this.onLongPress,
     required this.onOpenFolder,
     required this.onRename,
@@ -113,15 +113,20 @@ class FolderCard extends StatelessWidget {
                 if (showDragIndicator)
                   ReorderableDragStartListener(
                     index: index,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 16,
-                      ),
-                      color: Colors.transparent,
-                      child: const Icon(
-                        Icons.drag_indicator,
-                        color: Colors.grey,
+                    child: GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: () {},
+                      onLongPress: () {},
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 16,
+                        ),
+                        color: Colors.transparent,
+                        child: const Icon(
+                          Icons.drag_indicator,
+                          color: Colors.grey,
+                        ),
                       ),
                     ),
                   ),
@@ -158,6 +163,7 @@ class DexCard extends StatelessWidget {
   final VoidCallback onMove;
   final VoidCallback onDelete;
   final VoidCallback? onShareCard;
+  final GlobalKey? tutorialTargetKey;
 
   const DexCard({
     super.key,
@@ -174,6 +180,7 @@ class DexCard extends StatelessWidget {
     required this.onMove,
     required this.onDelete,
     this.onShareCard,
+    this.tutorialTargetKey,
   });
 
   @override
@@ -194,6 +201,7 @@ class DexCard extends StatelessWidget {
         ),
       ),
       child: InkWell(
+        key: tutorialTargetKey,
         borderRadius: BorderRadius.circular(16),
         onLongPress: onLongPress,
         onTap: onTap,
@@ -266,13 +274,18 @@ class DexCard extends StatelessWidget {
               if (showDragIndicator)
                 ReorderableDragStartListener(
                   index: index,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 16,
+                  child: GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: () {},
+                    onLongPress: () {},
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 16,
+                      ),
+                      color: Colors.transparent,
+                      child: const Icon(Icons.drag_indicator, color: Colors.grey),
                     ),
-                    color: Colors.transparent,
-                    child: const Icon(Icons.drag_indicator, color: Colors.grey),
                   ),
                 ),
             ],
@@ -287,12 +300,14 @@ class HomeBottomSheetMenu extends StatefulWidget {
   final DexProvider provider;
   final String currentFolderId;
   final VoidCallback onFolderCreate;
+  final VoidCallback? onDexCreate;
 
   const HomeBottomSheetMenu({
     super.key,
     required this.provider,
     required this.currentFolderId,
     required this.onFolderCreate,
+    this.onDexCreate,
   });
 
   @override
@@ -301,6 +316,7 @@ class HomeBottomSheetMenu extends StatefulWidget {
 
 class _HomeBottomSheetMenuState extends State<HomeBottomSheetMenu> {
   final GlobalKey _createDexKey = GlobalKey();
+  final GlobalKey _createFolderKey = GlobalKey();
 
   @override
   void initState() {
@@ -325,14 +341,18 @@ class _HomeBottomSheetMenuState extends State<HomeBottomSheetMenu> {
                     try {
                       tutProvider.markFeatureAsSeen('home_bottom_sheet');
                       Navigator.pop(context);
-                      showModalBottomSheet(
-                        context: context,
-                        isScrollControlled: true,
-                        builder: (context) => CreateDexBottomSheet(
-                          provider: widget.provider,
-                          currentFolderId: widget.currentFolderId,
-                        ),
-                      );
+                      if (widget.onDexCreate != null) {
+                        widget.onDexCreate!();
+                      } else {
+                        showModalBottomSheet(
+                          context: context,
+                          isScrollControlled: true,
+                          builder: (context) => CreateDexBottomSheet(
+                            provider: widget.provider,
+                            currentFolderId: widget.currentFolderId,
+                          ),
+                        );
+                      }
                     } catch (e) {
                       NotificationHelper.showError(
                         '${Translator.get('error')} $e',
@@ -343,6 +363,32 @@ class _HomeBottomSheetMenuState extends State<HomeBottomSheetMenu> {
               ],
             ),
             () => tutProvider.markFeatureAsSeen('home_bottom_sheet'),
+          );
+        });
+      } else if (tutProvider.hasSeenFeature('home_organize_part1') &&
+          !tutProvider.hasSeenFeature('create_folder_step')) {
+        Future.delayed(const Duration(milliseconds: 400), () {
+          if (!mounted) return;
+          TutorialOverlay.show(
+            context,
+            TutorialFeature(
+              id: 'create_folder_step',
+              nameKey: 'tutorial_feature_home',
+              steps: [
+                TutorialStep(
+                  targetKey: _createFolderKey,
+                  titleKey: 'tutorial_folder_option_title',
+                  textKey: 'tutorial_folder_option_text',
+                  rotomMood: RotomMood.explaining,
+                  requireTargetTap: true,
+                  onTargetTap: () {
+                    tutProvider.markFeatureAsSeen('create_folder_step');
+                    widget.onFolderCreate();
+                  },
+                ),
+              ],
+            ),
+            () => tutProvider.markFeatureAsSeen('create_folder_step'),
           );
         });
       }
@@ -360,17 +406,22 @@ class _HomeBottomSheetMenuState extends State<HomeBottomSheetMenu> {
           title: const Text('Neuen Pokédex erstellen'),
           onTap: () {
             Navigator.pop(context);
-            showModalBottomSheet(
-              context: context,
-              isScrollControlled: true,
-              builder: (context) => CreateDexBottomSheet(
-                provider: widget.provider,
-                currentFolderId: widget.currentFolderId,
-              ),
-            );
+            if (widget.onDexCreate != null) {
+              widget.onDexCreate!();
+            } else {
+              showModalBottomSheet(
+                context: context,
+                isScrollControlled: true,
+                builder: (context) => CreateDexBottomSheet(
+                  provider: widget.provider,
+                  currentFolderId: widget.currentFolderId,
+                ),
+              );
+            }
           },
         ),
         ListTile(
+          key: _createFolderKey,
           leading: const Icon(Icons.folder, color: Colors.blueAccent),
           title: Text(
             Translator.get(

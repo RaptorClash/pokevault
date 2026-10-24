@@ -93,5 +93,48 @@ void main() {
       expect(provider.structure['root'], equals(['item2', 'item3', 'item1']));
       verify(() => mockDb.saveStructure(any())).called(greaterThan(0));
     });
+
+    test('reorderItem mit ungültigen Indizes wirft keine Exception', () {
+      provider.structure['root'] = ['item1', 'item2', 'item3'];
+
+      // newIndex >= list.length darf nicht abstürzen
+      expect(() => provider.reorderItem('root', 0, 3), returnsNormally);
+      expect(() => provider.reorderItem('root', 0, -1), returnsNormally);
+      expect(() => provider.reorderItem('root', -1, 1), returnsNormally);
+      expect(() => provider.reorderItem('root', 3, 1), returnsNormally);
+      expect(() => provider.reorderItem('nonexistent_folder', 0, 1), returnsNormally);
+    });
+
+    test('reorderItem mit gleichem Index ist No-Op', () {
+      provider.structure['root'] = ['item1', 'item2', 'item3'];
+      provider.reorderItem('root', 1, 1);
+      expect(provider.structure['root'], equals(['item1', 'item2', 'item3']));
+    });
+
+    test('sanitizeStructure bereinigt verwaiste IDs und ordnet nicht zugeordnete Dexe root zu', () {
+      final dex1 = UserDex(id: 'dex_1', title: 'Dex 1', region: 'kanto', includeGenders: false, includeRegional: false, includeMega: false, includeGMax: false, includeOther: false, isShinyDex: false, caughtIds: []);
+      final dex2 = UserDex(id: 'dex_2', title: 'Dex 2', region: 'kanto', includeGenders: false, includeRegional: false, includeMega: false, includeGMax: false, includeOther: false, isShinyDex: false, caughtIds: []);
+      final folderA = DexFolder(id: 'folder_a', title: 'Folder A');
+
+      provider.userDexes = [dex1, dex2];
+      provider.folders = [folderA];
+      provider.structure = {
+        'root': ['folder_a', 'orphaned_dex_id'],
+        'folder_a': ['dex_1'],
+        'folder_deleted': ['something'],
+      };
+
+      provider.sanitizeStructure();
+
+      // folder_deleted muss entfernt worden sein
+      expect(provider.structure.containsKey('folder_deleted'), isFalse);
+      // orphaned_dex_id muss aus root entfernt worden sein
+      expect(provider.structure['root'], isNot(contains('orphaned_dex_id')));
+      // dex_2 war nirgends zugeordnet und muss in root gelandet sein
+      expect(provider.structure['root'], contains('dex_2'));
+      // folder_a und dex_1 müssen erhalten bleiben
+      expect(provider.structure['root'], contains('folder_a'));
+      expect(provider.structure['folder_a'], contains('dex_1'));
+    });
   });
 }

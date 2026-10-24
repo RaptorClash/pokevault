@@ -16,6 +16,8 @@ class TutorialOverlay extends StatefulWidget {
   static Offset? lastTapPosition;
   static bool _isShowing = false;
 
+  static void resetShowing() => _isShowing = false;
+
   const TutorialOverlay({
     super.key,
     required this.feature,
@@ -115,6 +117,7 @@ class _TutorialOverlayState extends State<TutorialOverlay>
     WidgetsBinding.instance.removeObserver(this);
     _pulseController.dispose();
     _lightningController.dispose();
+    TutorialOverlay._isShowing = false;
     super.dispose();
   }
 
@@ -542,6 +545,38 @@ class _TutorialOverlayState extends State<TutorialOverlay>
     }
   }
 
+  void _prevStep() {
+    if (_isAdvancing || _currentIndex <= 0) return;
+    try {
+      setState(() {
+        _isAdvancing = true;
+        _currentIndex--;
+        _overrideText = null;
+        _easterEggTriggered = false;
+        _wrongTapCount = 0;
+      });
+      widget.onStepChanged?.call(_currentIndex);
+
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _calculateTargetRect();
+      });
+
+      final step = widget.feature.steps[_currentIndex];
+      Future.delayed(
+        Duration(milliseconds: step.preCalculateDelayMilliseconds),
+        () async {
+          if (!mounted) return;
+          await _scrollToTarget(step.targetKey);
+          if (!mounted) return;
+          _calculateTargetRect();
+          setState(() => _isAdvancing = false);
+        },
+      );
+    } catch (e) {
+      setState(() => _isAdvancing = false);
+    }
+  }
+
   void _skipTutorial() {
     if (mounted) {
       try {
@@ -601,6 +636,21 @@ class _TutorialOverlayState extends State<TutorialOverlay>
       calcBottom = screenHeight - _targetRect!.top + 30;
     } else {
       calcTop = _targetRect!.bottom + 30;
+    }
+
+    final screenWidth = MediaQuery.of(context).size.width;
+    final bubbleWidth = (screenWidth - 40).clamp(0.0, 580.0);
+
+    final double leftPos;
+    if (_easterEggPos != null) {
+      leftPos = _easterEggPos!.dx;
+    } else if (_targetRect != null) {
+      final targetCenter = _targetRect!.center.dx;
+      final idealLeft = targetCenter - (bubbleWidth / 2);
+      final maxLeft = (screenWidth - bubbleWidth - 20).clamp(20.0, double.infinity);
+      leftPos = idealLeft.clamp(20.0, maxLeft);
+    } else {
+      leftPos = (screenWidth - bubbleWidth) / 2;
     }
 
     return Material(
@@ -673,8 +723,8 @@ class _TutorialOverlayState extends State<TutorialOverlay>
                 curve: Curves.easeInOutBack,
                 top: calcTop,
                 bottom: calcBottom,
-                left: _easterEggPos != null ? _easterEggPos!.dx : 20,
-                width: MediaQuery.of(context).size.width - 40,
+                left: leftPos,
+                width: bubbleWidth,
                 child: TutorialBubble(
                   step: step,
                   showBubbleTop: showBubbleTop,
@@ -684,9 +734,12 @@ class _TutorialOverlayState extends State<TutorialOverlay>
                   easterEggTriggered: _easterEggTriggered,
                   overrideText: _overrideText,
                   targetRect: _targetRect,
+                  stepIndex: _currentIndex,
+                  totalSteps: widget.feature.steps.length,
                   pulseAnimation: _pulseController,
                   onSkip: _skipTutorial,
                   onNext: _nextStep,
+                  onPrev: _currentIndex > 0 ? _prevStep : null,
                 ),
               ),
             ],
