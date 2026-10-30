@@ -14,6 +14,7 @@ import 'package:pokevault/models/user_dex.dart';
 import 'package:pokevault/providers/dex_provider.dart';
 import 'package:pokevault/screens/pokemon_info/widgets/marks_widget.dart';
 import 'package:pokevault/screens/pokemon_info/widgets/ribbons_widget.dart';
+import 'package:pokevault/services/database_service.dart';
 import 'package:pokevault/widgets/universal_poke_image.dart';
 
 class MockDexProvider extends Mock implements DexProvider {}
@@ -46,7 +47,7 @@ void main() {
     sqfliteFfiInit();
     databaseFactory = databaseFactoryFfi;
     PathProviderPlatform.instance = MockPathProviderPlatform();
-    SharedPreferences.setMockInitialValues({'app_db_version': 27});
+    SharedPreferences.setMockInitialValues({'app_db_version': DatabaseService.currentAppDbVersion});
   });
 
   final testPokemon = Pokemon(

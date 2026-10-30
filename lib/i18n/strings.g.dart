@@ -4,9 +4,9 @@
 /// To regenerate, run: `dart run slang`
 ///
 /// Locales: 2
-/// Strings: 3494 (1747 per locale)
+/// Strings: 3532 (1766 per locale)
 ///
-/// Built on 2026-10-24 at 21:36 UTC
+/// Built on 2026-10-29 at 19:54 UTC
 
 // coverage:ignore-file
 // ignore_for_file: type=lint
@@ -221,6 +221,13 @@ class Translations implements BaseTranslations<AppLocale, Translations> {
 	String get exact_pokedex => 'Genauer Pokédex';
 	String get include_forms => 'Formen auswählen';
 	String get include_genders => 'Geschlechter (M/W)';
+	String get include_trades => 'In-Game Tausche';
+	String get include_gifts => 'Geschenkte Pokémon';
+	String get include_glitch => 'Glitch Pokémon (Game Boy)';
+	String get shiny_status => 'Shiny Status';
+	String get shiny_lock_badge => 'Shiny-Lock';
+	String get shiny_lock_banner => 'Shiny-Lock aktiv';
+	String get shiny_lock_banner_desc => 'Dieses Pokémon kann an dieser Stelle nicht in seiner schillernden Form erhalten werden.';
 	String get form_regional => 'Regionalformen';
 	String get form_regional_short => 'Regionalformen';
 	String get form_mega => 'Mega';
@@ -478,6 +485,9 @@ class Translations implements BaseTranslations<AppLocale, Translations> {
 	String get region_special_dex => 'Spezial Dexe';
 	String get region_mega_dex => 'Mega Dex';
 	String get region_icognito_dex => 'Unkown Dex';
+	String get region_glitch_dex => 'Glitch Dex';
+	String get form_name_vc_glitch => 'Game Boy (VC Glitch)';
+	String get form_vc_glitch => 'Game Boy (VC Glitch)';
 	String get appearance => 'Erscheinungsbild';
 	String get choose_accent_color => 'Akzentfarbe';
 	String get choose_bg_color => 'Hintergrundfarbe';
@@ -1235,6 +1245,12 @@ class Translations implements BaseTranslations<AppLocale, Translations> {
 	String get tutorial_create_step6_text => 'Sammelst du Shinys? Tippe auf den Schalter, um ihn zu aktivieren.';
 	String get tutorial_create_step7_title => 'Geschlechter';
 	String get tutorial_create_step7_text => 'Aktiviere auch die Geschlechter-Unterschiede durch einen Tipp auf den Schalter.';
+	String get tutorial_create_step_trades_title => 'In-Game Tausche';
+	String get tutorial_create_step_trades_text => 'Aktiviere diese Option, um besondere getauschte Pokémon mit vorgegebenen Werten und Spitznamen (z. B. Quaputzi \'Barabara\') aufzunehmen.';
+	String get tutorial_create_step_gifts_title => 'Geschenkte Pokémon';
+	String get tutorial_create_step_gifts_text => 'Aktiviere diese Option, um geschenkte Pokémon (z. B. Evoli im Prismania-Gebäude oder Fossilien) in deinen Pokédex aufzunehmen.';
+	String get tutorial_create_step7_glitch_title => 'Glitch-Pokémon';
+	String get tutorial_create_step7_glitch_text => 'Aktiviere diese Option, um Glitch-Pokémon (wie die Gen 2 VC Game Boy Icon Starter) in deinen Pokédex aufzunehmen.';
 	String get tutorial_create_step8_title => 'Spezielle Formen';
 	String get tutorial_create_step8_text => 'Tippe hier, um das Menü für spezielle Formen aufzuklappen.';
 	String get tutorial_create_step9_title => 'Regionalformen';
@@ -1640,6 +1656,9 @@ class Translations implements BaseTranslations<AppLocale, Translations> {
 	String get sort_mechanic_regional => 'Region der Form (z.B. Alola)';
 	String get cat_silvally => 'Amigento';
 	String get cat_arceus => 'Arceus';
+	String get cat_furfrou => 'Coiffwaff';
+	String get shiny_meltan_go_title => 'Pokémon GO Exklusivität';
+	String get shiny_meltan_go_desc => 'Meltan und Melmetal können aktuell ausschließlich in Pokémon GO schillernd erhalten werden (über die Wunderbox während zeitlich begrenzter Event-Zeiträume). In Let\'s Go, Pikachu & Evoli können sie nur von Pokémon GO übertragen werden.';
 	String get box_edit_title => 'Boxen bearbeiten';
 	String get box_edit_add_box => 'Box hinzufügen';
 	String get box_edit_rename_box => 'Box umbenennen';
@@ -1996,6 +2015,13 @@ class _StringsEn extends Translations {
 	@override String get exact_pokedex => 'Exact Pokédex';
 	@override String get include_forms => 'Select Forms';
 	@override String get include_genders => 'Genders (M/F)';
+	@override String get include_trades => 'In-Game Trades';
+	@override String get include_gifts => 'Gift Pokémon';
+	@override String get include_glitch => 'Glitch Pokémon (Game Boy)';
+	@override String get shiny_status => 'Shiny Status';
+	@override String get shiny_lock_badge => 'Shiny-Lock';
+	@override String get shiny_lock_banner => 'Shiny-Lock Active';
+	@override String get shiny_lock_banner_desc => 'This Pokémon cannot be obtained in its shiny form here.';
 	@override String get form_regional => 'Regional';
 	@override String get form_regional_short => 'Regional forms';
 	@override String get form_mega => 'Mega';
@@ -2253,6 +2279,9 @@ class _StringsEn extends Translations {
 	@override String get region_special_dex => 'Special Dex';
 	@override String get region_mega_dex => 'Mega Dex';
 	@override String get region_icognito_dex => 'Icognito Dex';
+	@override String get region_glitch_dex => 'Glitch Dex';
+	@override String get form_name_vc_glitch => 'Game Boy (VC Glitch)';
+	@override String get form_vc_glitch => 'Game Boy (VC Glitch)';
 	@override String get appearance => 'Appearance';
 	@override String get choose_accent_color => 'Accent Color';
 	@override String get choose_bg_color => 'Background Color';
@@ -3022,6 +3051,12 @@ class _StringsEn extends Translations {
 	@override String get tutorial_create_step6_text => 'Are you hunting shinies? Tap the switch to activate it.';
 	@override String get tutorial_create_step7_title => 'Genders';
 	@override String get tutorial_create_step7_text => 'Enable gender differences by tapping the switch.';
+	@override String get tutorial_create_step_trades_title => 'In-Game Trades';
+	@override String get tutorial_create_step_trades_text => 'Enable this to include special in-game trade Pokémon with fixed stats and nicknames (e.g. Poliwhirl \'Barabara\').';
+	@override String get tutorial_create_step_gifts_title => 'Gift Pokémon';
+	@override String get tutorial_create_step_gifts_text => 'Enable this to include gift Pokémon (e.g. Eevee in Celadon Mansion or revived fossils) in your Pokédex.';
+	@override String get tutorial_create_step7_glitch_title => 'Glitch Pokémon';
+	@override String get tutorial_create_step7_glitch_text => 'Enable this option to include glitch Pokémon (like the Gen 2 VC Game Boy icon starters) in your Pokédex.';
 	@override String get tutorial_create_step8_title => 'Special Forms';
 	@override String get tutorial_create_step8_text => 'Tap here to expand the menu for special forms.';
 	@override String get tutorial_create_step9_title => 'Regional Forms';
@@ -3425,6 +3460,9 @@ class _StringsEn extends Translations {
 	@override String get sort_mechanic_regional => 'Form Region (e.g. Alola)';
 	@override String get cat_silvally => 'Silvally';
 	@override String get cat_arceus => 'Arceus';
+	@override String get cat_furfrou => 'Furfrou';
+	@override String get shiny_meltan_go_title => 'Pokémon GO Exclusivity';
+	@override String get shiny_meltan_go_desc => 'Meltan and Melmetal can currently only be obtained shiny in Pokémon GO (via Mystery Box during limited event periods). In Let\'s Go, Pikachu & Eevee they can only be transferred from Pokémon GO.';
 	@override String get box_edit_title => 'Edit Boxes';
 	@override String get box_edit_add_box => 'Add Box';
 	@override String get box_edit_rename_box => 'Rename Box';
@@ -3751,6 +3789,13 @@ extension on Translations {
 			case 'exact_pokedex': return 'Genauer Pokédex';
 			case 'include_forms': return 'Formen auswählen';
 			case 'include_genders': return 'Geschlechter (M/W)';
+			case 'include_trades': return 'In-Game Tausche';
+			case 'include_gifts': return 'Geschenkte Pokémon';
+			case 'include_glitch': return 'Glitch Pokémon (Game Boy)';
+			case 'shiny_status': return 'Shiny Status';
+			case 'shiny_lock_badge': return 'Shiny-Lock';
+			case 'shiny_lock_banner': return 'Shiny-Lock aktiv';
+			case 'shiny_lock_banner_desc': return 'Dieses Pokémon kann an dieser Stelle nicht in seiner schillernden Form erhalten werden.';
 			case 'form_regional': return 'Regionalformen';
 			case 'form_regional_short': return 'Regionalformen';
 			case 'form_mega': return 'Mega';
@@ -4008,6 +4053,9 @@ extension on Translations {
 			case 'region_special_dex': return 'Spezial Dexe';
 			case 'region_mega_dex': return 'Mega Dex';
 			case 'region_icognito_dex': return 'Unkown Dex';
+			case 'region_glitch_dex': return 'Glitch Dex';
+			case 'form_name_vc_glitch': return 'Game Boy (VC Glitch)';
+			case 'form_vc_glitch': return 'Game Boy (VC Glitch)';
 			case 'appearance': return 'Erscheinungsbild';
 			case 'choose_accent_color': return 'Akzentfarbe';
 			case 'choose_bg_color': return 'Hintergrundfarbe';
@@ -4765,6 +4813,12 @@ extension on Translations {
 			case 'tutorial_create_step6_text': return 'Sammelst du Shinys? Tippe auf den Schalter, um ihn zu aktivieren.';
 			case 'tutorial_create_step7_title': return 'Geschlechter';
 			case 'tutorial_create_step7_text': return 'Aktiviere auch die Geschlechter-Unterschiede durch einen Tipp auf den Schalter.';
+			case 'tutorial_create_step_trades_title': return 'In-Game Tausche';
+			case 'tutorial_create_step_trades_text': return 'Aktiviere diese Option, um besondere getauschte Pokémon mit vorgegebenen Werten und Spitznamen (z. B. Quaputzi \'Barabara\') aufzunehmen.';
+			case 'tutorial_create_step_gifts_title': return 'Geschenkte Pokémon';
+			case 'tutorial_create_step_gifts_text': return 'Aktiviere diese Option, um geschenkte Pokémon (z. B. Evoli im Prismania-Gebäude oder Fossilien) in deinen Pokédex aufzunehmen.';
+			case 'tutorial_create_step7_glitch_title': return 'Glitch-Pokémon';
+			case 'tutorial_create_step7_glitch_text': return 'Aktiviere diese Option, um Glitch-Pokémon (wie die Gen 2 VC Game Boy Icon Starter) in deinen Pokédex aufzunehmen.';
 			case 'tutorial_create_step8_title': return 'Spezielle Formen';
 			case 'tutorial_create_step8_text': return 'Tippe hier, um das Menü für spezielle Formen aufzuklappen.';
 			case 'tutorial_create_step9_title': return 'Regionalformen';
@@ -5170,6 +5224,9 @@ extension on Translations {
 			case 'sort_mechanic_regional': return 'Region der Form (z.B. Alola)';
 			case 'cat_silvally': return 'Amigento';
 			case 'cat_arceus': return 'Arceus';
+			case 'cat_furfrou': return 'Coiffwaff';
+			case 'shiny_meltan_go_title': return 'Pokémon GO Exklusivität';
+			case 'shiny_meltan_go_desc': return 'Meltan und Melmetal können aktuell ausschließlich in Pokémon GO schillernd erhalten werden (über die Wunderbox während zeitlich begrenzter Event-Zeiträume). In Let\'s Go, Pikachu & Evoli können sie nur von Pokémon GO übertragen werden.';
 			case 'box_edit_title': return 'Boxen bearbeiten';
 			case 'box_edit_add_box': return 'Box hinzufügen';
 			case 'box_edit_rename_box': return 'Box umbenennen';
@@ -5506,6 +5563,13 @@ extension on _StringsEn {
 			case 'exact_pokedex': return 'Exact Pokédex';
 			case 'include_forms': return 'Select Forms';
 			case 'include_genders': return 'Genders (M/F)';
+			case 'include_trades': return 'In-Game Trades';
+			case 'include_gifts': return 'Gift Pokémon';
+			case 'include_glitch': return 'Glitch Pokémon (Game Boy)';
+			case 'shiny_status': return 'Shiny Status';
+			case 'shiny_lock_badge': return 'Shiny-Lock';
+			case 'shiny_lock_banner': return 'Shiny-Lock Active';
+			case 'shiny_lock_banner_desc': return 'This Pokémon cannot be obtained in its shiny form here.';
 			case 'form_regional': return 'Regional';
 			case 'form_regional_short': return 'Regional forms';
 			case 'form_mega': return 'Mega';
@@ -5763,6 +5827,9 @@ extension on _StringsEn {
 			case 'region_special_dex': return 'Special Dex';
 			case 'region_mega_dex': return 'Mega Dex';
 			case 'region_icognito_dex': return 'Icognito Dex';
+			case 'region_glitch_dex': return 'Glitch Dex';
+			case 'form_name_vc_glitch': return 'Game Boy (VC Glitch)';
+			case 'form_vc_glitch': return 'Game Boy (VC Glitch)';
 			case 'appearance': return 'Appearance';
 			case 'choose_accent_color': return 'Accent Color';
 			case 'choose_bg_color': return 'Background Color';
@@ -6532,6 +6599,12 @@ extension on _StringsEn {
 			case 'tutorial_create_step6_text': return 'Are you hunting shinies? Tap the switch to activate it.';
 			case 'tutorial_create_step7_title': return 'Genders';
 			case 'tutorial_create_step7_text': return 'Enable gender differences by tapping the switch.';
+			case 'tutorial_create_step_trades_title': return 'In-Game Trades';
+			case 'tutorial_create_step_trades_text': return 'Enable this to include special in-game trade Pokémon with fixed stats and nicknames (e.g. Poliwhirl \'Barabara\').';
+			case 'tutorial_create_step_gifts_title': return 'Gift Pokémon';
+			case 'tutorial_create_step_gifts_text': return 'Enable this to include gift Pokémon (e.g. Eevee in Celadon Mansion or revived fossils) in your Pokédex.';
+			case 'tutorial_create_step7_glitch_title': return 'Glitch Pokémon';
+			case 'tutorial_create_step7_glitch_text': return 'Enable this option to include glitch Pokémon (like the Gen 2 VC Game Boy icon starters) in your Pokédex.';
 			case 'tutorial_create_step8_title': return 'Special Forms';
 			case 'tutorial_create_step8_text': return 'Tap here to expand the menu for special forms.';
 			case 'tutorial_create_step9_title': return 'Regional Forms';
@@ -6935,6 +7008,9 @@ extension on _StringsEn {
 			case 'sort_mechanic_regional': return 'Form Region (e.g. Alola)';
 			case 'cat_silvally': return 'Silvally';
 			case 'cat_arceus': return 'Arceus';
+			case 'cat_furfrou': return 'Furfrou';
+			case 'shiny_meltan_go_title': return 'Pokémon GO Exclusivity';
+			case 'shiny_meltan_go_desc': return 'Meltan and Melmetal can currently only be obtained shiny in Pokémon GO (via Mystery Box during limited event periods). In Let\'s Go, Pikachu & Eevee they can only be transferred from Pokémon GO.';
 			case 'box_edit_title': return 'Edit Boxes';
 			case 'box_edit_add_box': return 'Add Box';
 			case 'box_edit_rename_box': return 'Rename Box';

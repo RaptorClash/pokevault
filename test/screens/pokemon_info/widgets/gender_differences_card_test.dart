@@ -14,6 +14,7 @@ import 'package:pokevault/models/pokemon.dart';
 import 'package:pokevault/models/dex_view_models.dart';
 import 'package:pokevault/providers/settings_provider.dart';
 import 'package:pokevault/screens/pokemon_info/widgets/gender_differences_card.dart';
+import 'package:pokevault/services/database_service.dart';
 import 'package:pokevault/widgets/universal_poke_image.dart';
 import 'package:pokevault/i18n/strings.g.dart';
 
@@ -153,7 +154,7 @@ void main() {
     sqfliteFfiInit();
     databaseFactory = databaseFactoryFfi;
     PathProviderPlatform.instance = MockPathProviderPlatform();
-    SharedPreferences.setMockInitialValues({'app_db_version': 27});
+    SharedPreferences.setMockInitialValues({'app_db_version': DatabaseService.currentAppDbVersion});
     LocaleSettings.setLocale(AppLocale.de);
   });
 

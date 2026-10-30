@@ -11,6 +11,7 @@ import 'dart:async';
 import 'package:flutter/widgets.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../services/google_drive_sync_service.dart';
+import '../services/shiny_lock_service.dart';
 import '../models/ribbon.dart';
 import '../models/shiny_hunt.dart';
 
@@ -252,8 +253,11 @@ class DexProvider extends ChangeNotifier with WidgetsBindingObserver {
     bool includeGMax,
     bool includeOther,
     bool isShinyDex,
-    String folderId,
-  ) {
+    String folderId, {
+    bool includeTrades = false,
+    bool includeGifts = false,
+    bool includeGlitch = false,
+  }) {
     final newDex = UserDex(
       id: const Uuid().v4(),
       title: title,
@@ -263,6 +267,9 @@ class DexProvider extends ChangeNotifier with WidgetsBindingObserver {
       includeMega: includeMega,
       includeGMax: includeGMax,
       includeOther: includeOther,
+      includeTrades: includeTrades,
+      includeGifts: includeGifts,
+      includeGlitch: includeGlitch,
       isShinyDex: isShinyDex,
       caughtIds: [],
       shinyIds: [],
@@ -302,8 +309,11 @@ class DexProvider extends ChangeNotifier with WidgetsBindingObserver {
     bool includeMega,
     bool includeGMax,
     bool includeOther,
-    bool isShinyDex,
-  ) {
+    bool isShinyDex, {
+    bool includeTrades = false,
+    bool includeGifts = false,
+    bool includeGlitch = false,
+  }) {
     final index = userDexes.indexWhere((d) => d.id == id);
     if (index != -1) {
       final old = userDexes[index];
@@ -316,6 +326,9 @@ class DexProvider extends ChangeNotifier with WidgetsBindingObserver {
         includeMega: includeMega,
         includeGMax: includeGMax,
         includeOther: includeOther,
+        includeTrades: includeTrades,
+        includeGifts: includeGifts,
+        includeGlitch: includeGlitch,
         isShinyDex: isShinyDex,
         caughtIds: old.caughtIds,
         shinyIds: old.shinyIds,
@@ -567,6 +580,10 @@ class DexProvider extends ChangeNotifier with WidgetsBindingObserver {
     final isCurrentlyCaught = DexLogicHelper.isPokemonCaught(dex, pokemonUniqueId);
     final isCaught = targetState ?? !isCurrentlyCaught;
 
+    if (dex.isShinyDex && isCaught && ShinyLockService.isUniqueIdShinyLocked(pokemonUniqueId, dexRegion: dex.region)) {
+      return;
+    }
+
     final isInstance = pokemonUniqueId.contains('__');
     final baseId = DexLogicHelper.getBaseId(pokemonUniqueId);
     final rawBaseNumber = baseId.split('_').first;
@@ -699,6 +716,10 @@ class DexProvider extends ChangeNotifier with WidgetsBindingObserver {
     final dex = userDexes[dexIndex];
     final isCurrentlyShiny = DexLogicHelper.isPokemonShiny(dex, pokemonUniqueId);
     final isShiny = targetState ?? !isCurrentlyShiny;
+
+    if (isShiny && ShinyLockService.isUniqueIdShinyLocked(pokemonUniqueId, dexRegion: dex.region)) {
+      return;
+    }
 
     final isInstance = pokemonUniqueId.contains('__');
     final baseId = DexLogicHelper.getBaseId(pokemonUniqueId);

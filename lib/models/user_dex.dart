@@ -90,6 +90,9 @@ class UserDex {
   final bool includeMega;
   final bool includeGMax;
   final bool includeOther;
+  final bool includeTrades;
+  final bool includeGifts;
+  final bool includeGlitch;
   final bool isShinyDex;
   List<String> caughtIds;
   List<String> shinyIds;
@@ -114,6 +117,9 @@ class UserDex {
     required this.includeMega,
     required this.includeGMax,
     required this.includeOther,
+    this.includeTrades = false,
+    this.includeGifts = false,
+    this.includeGlitch = false,
     required this.isShinyDex,
     List<String>? caughtIds,
     List<String>? shinyIds,
@@ -146,6 +152,9 @@ class UserDex {
     includeMega: false,
     includeGMax: false,
     includeOther: false,
+    includeTrades: false,
+    includeGifts: false,
+    includeGlitch: false,
     isShinyDex: false,
     customBoxes: [],
   );
@@ -160,6 +169,9 @@ class UserDex {
       includeMega: (map['include_mega'] as num?)?.toInt() == 1,
       includeGMax: (map['include_gmax'] as num?)?.toInt() == 1,
       includeOther: (map['include_other'] as num?)?.toInt() == 1,
+      includeTrades: (map['include_trades'] as num?)?.toInt() == 1,
+      includeGifts: (map['include_gifts'] as num?)?.toInt() == 1,
+      includeGlitch: (map['include_glitch'] as num?)?.toInt() == 1,
       isShinyDex: (map['is_shiny_dex'] as num?)?.toInt() == 1,
       viewMode: map['view_mode']?.toString() ?? 'list',
       sortMode: map['sort_mode']?.toString() ?? 'dex',
@@ -189,6 +201,9 @@ class UserDex {
       'include_mega': includeMega ? 1 : 0,
       'include_gmax': includeGMax ? 1 : 0,
       'include_other': includeOther ? 1 : 0,
+      'include_trades': includeTrades ? 1 : 0,
+      'include_gifts': includeGifts ? 1 : 0,
+      'include_glitch': includeGlitch ? 1 : 0,
       'is_shiny_dex': isShinyDex ? 1 : 0,
       'view_mode': viewMode,
       'sort_mode': sortMode,
@@ -221,6 +236,9 @@ class UserDex {
       'includeMega': includeMega,
       'includeGMax': includeGMax,
       'includeOther': includeOther,
+      'includeTrades': includeTrades,
+      'includeGifts': includeGifts,
+      'includeGlitch': includeGlitch,
       'isShinyDex': isShinyDex,
       'viewMode': viewMode,
       'sortMode': sortMode,
@@ -248,6 +266,9 @@ class UserDex {
       includeMega: json['includeMega'] ?? false,
       includeGMax: json['includeGMax'] ?? false,
       includeOther: json['includeOther'] ?? false,
+      includeTrades: json['includeTrades'] ?? false,
+      includeGifts: json['includeGifts'] ?? false,
+      includeGlitch: json['includeGlitch'] ?? false,
       isShinyDex: json['isShinyDex'] ?? false,
       viewMode: json['viewMode']?.toString() ?? 'list',
       sortMode: json['sortMode']?.toString() ?? 'dex',

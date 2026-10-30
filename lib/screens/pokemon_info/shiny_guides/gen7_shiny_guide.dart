@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../models/pokemon.dart';
+import '../../../../models/dex_view_models.dart';
 import '../../../../services/database_service.dart';
 import '../../../../utils/shiny_logic_helper.dart';
 import '../../../../l10n/app_translations.dart';
@@ -10,6 +11,7 @@ class Gen7ShinyGuide extends StatelessWidget {
   final String title;
   final Future<void> Function(String) onLaunchUrl;
   final Widget? extraAction;
+  final DexDisplayEntry? entry;
 
   const Gen7ShinyGuide({
     super.key,
@@ -18,6 +20,7 @@ class Gen7ShinyGuide extends StatelessWidget {
     required this.title,
     required this.onLaunchUrl,
     this.extraAction,
+    this.entry,
   });
 
   @override
@@ -51,18 +54,30 @@ class Gen7ShinyGuide extends StatelessWidget {
           }
         }
 
+        final isPartnerCap = entry != null && ShinyLogicHelper.isPartnerCapPikachu(entry!);
+        final isOtherCap = entry != null && !isPartnerCap && ShinyLogicHelper.isAnyCapPikachu(entry!);
+
         bool canBeInWarpRide = shinyCategories.contains('warp_ride');
         bool isBreedableThisGen = (id <= 807) &&
             (ShinyLogicHelper.isBreedable(pokemon) || ShinyLogicHelper.isBaby(id)) &&
-            !shinyCategories.contains('legendary_mythical');
-        bool isHuntable = hasAlolaEncounter || canBeInWarpRide || isBreedableThisGen;
+            !shinyCategories.contains('legendary_mythical') &&
+            !isPartnerCap &&
+            !isOtherCap;
+        bool isHuntable = hasAlolaEncounter || canBeInWarpRide || isBreedableThisGen || isPartnerCap;
 
-        if (!isHuntable && !shinyCategories.contains('gen7_locks')) {
+        if (!isHuntable && !shinyCategories.contains('gen7_locks') && !isOtherCap) {
           return const SizedBox.shrink();
         }
 
         if ((shinyCategories.contains('legendary_mythical') && hasAlolaEncounter) || canBeInWarpRide) {
           isStaticOrGift = true;
+        }
+
+        if (isPartnerCap) {
+          hasWildSpawn = false;
+          canBeInWarpRide = false;
+          isBreedableThisGen = false;
+          isStaticOrGift = false;
         }
 
         List<Widget> content = [];
@@ -118,7 +133,7 @@ class Gen7ShinyGuide extends StatelessWidget {
           );
         }
 
-        if (shinyCategories.contains('gen7_locks')) {
+        if (isOtherCap || shinyCategories.contains('gen7_locks')) {
           content.add(
             Text(
               Translator.get('shiny_huntable_no', fallback: 'Shiny Huntable: Nein'),
@@ -126,7 +141,18 @@ class Gen7ShinyGuide extends StatelessWidget {
             ),
           );
           content.add(const SizedBox(height: 8));
-          content.add(buildInfoBox(Icons.lock, 'shiny_gen7_locked_title', 'shiny_gen7_locked_desc', Colors.red));
+          if (isOtherCap) {
+            content.add(buildInfoBox(
+              Icons.lock,
+              Translator.currentLanguage == 'de' ? 'Shiny-Lock' : 'Shiny Lock',
+              Translator.currentLanguage == 'de'
+                  ? 'Pikachu mit Kappe kann in dieser Generation nicht schillernd erhalten werden (außer Partner-Kappe in USUM).'
+                  : 'Cap Pikachu cannot be obtained shiny in this generation (except Partner Cap in USUM).',
+              Colors.red,
+            ));
+          } else {
+            content.add(buildInfoBox(Icons.lock, 'shiny_gen7_locked_title', 'shiny_gen7_locked_desc', Colors.red));
+          }
         } else {
           content.add(
             Text(
@@ -135,6 +161,27 @@ class Gen7ShinyGuide extends StatelessWidget {
             ),
           );
           content.add(const SizedBox(height: 16));
+
+          if (isPartnerCap) {
+            content.add(buildInfoBox(
+              Icons.stars,
+              Translator.currentLanguage == 'de'
+                  ? 'Pikachu-Tal (QR-Code Event) - Soft Reset'
+                  : 'Pikachu Valley (QR Code Event) - Soft Reset',
+              Translator.currentLanguage == 'de'
+                  ? 'In Pokémon Ultra Sonne & Ultra Mond kann das Partner-Kappe Pikachu am Pikachu-Tal per QR-Code Event erhalten und per Soft Reset schillernd gejagt werden (Basis-Chance 1:4096).'
+                  : 'In Pokémon Ultra Sun & Ultra Moon, Partner Cap Pikachu can be obtained at Pikachu Valley via QR Code event and soft reset for shiny (base odds 1:4096).',
+              Colors.teal,
+            ));
+            content.add(buildInfoBox(
+              Icons.visibility,
+              Translator.currentLanguage == 'de'
+                  ? 'Wichtiger optischer Hinweis'
+                  : 'Important Visual Note',
+              ShinyLogicHelper.getPartnerCapShinyNote(lang: Translator.currentLanguage),
+              Colors.amber,
+            ));
+          }
 
           if (shinyCategories.contains('ultra_beast')) {
             content.add(buildInfoBox(Icons.warning_amber_rounded, 'shiny_gen7_ub_locked_title', 'shiny_gen7_ub_locked_desc', Colors.orange));
@@ -165,7 +212,7 @@ class Gen7ShinyGuide extends StatelessWidget {
           }
         }
 
-        if (extraAction != null) {
+        if (extraAction != null && !isOtherCap) {
           content.add(const SizedBox(height: 12));
           content.add(extraAction!);
         }

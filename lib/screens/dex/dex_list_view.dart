@@ -7,6 +7,8 @@ import '../../utils/dex_logic_helper.dart';
 import '../../providers/dex_provider.dart';
 import '../../providers/settings_provider.dart';
 import '../../l10n/app_translations.dart';
+import '../../services/shiny_lock_service.dart';
+import '../../utils/notification_helper.dart';
 import '../pokemon_info/pokemon_info_screen.dart';
 import 'package:flutter/services.dart';
 
@@ -66,6 +68,7 @@ class DexListView extends StatelessWidget {
           final entry = displayList[index];
           final isCaught = DexLogicHelper.isPokemonCaught(liveDex, entry.uniqueId);
           final isShiny = DexLogicHelper.isPokemonShiny(liveDex, entry.uniqueId);
+          final isShinyLocked = ShinyLockService.isShinyLocked(entry, dexRegion: liveDex.region);
           void openInfoScreen() {
             Navigator.push(
               context,
@@ -103,7 +106,19 @@ class DexListView extends StatelessWidget {
                   : (tutorialTargetId == null && index == 0)
                       ? firstItemKey
                       : null,
-              onTap: () => provider.togglePokemon(liveDex.id, entry.uniqueId),
+              onTap: () {
+                if (liveDex.isShinyDex && isShinyLocked) {
+                  NotificationHelper.showError(
+                    ShinyLockService.getShinyLockReason(
+                      entry,
+                      dexRegion: liveDex.region,
+                      lang: currentLanguage,
+                    ),
+                  );
+                  return;
+                }
+                provider.togglePokemon(liveDex.id, entry.uniqueId);
+              },
               onSecondaryTap: openInfoScreen,
               onLongPress: openInfoScreen,
               child: Card(
@@ -228,6 +243,32 @@ class DexListView extends StatelessWidget {
                                 size: 20,
                               ),
                           ],
+                        ),
+                      ),
+                    if (isShinyLocked)
+                      Positioned(
+                        top: 6,
+                        left: 6,
+                        child: Tooltip(
+                          message: ShinyLockService.getShinyLockReason(
+                            entry,
+                            dexRegion: liveDex.region,
+                            lang: currentLanguage,
+                          ),
+                          child: Container(
+                            key: Key('shiny_lock_badge_${entry.uniqueId}'),
+                            padding: const EdgeInsets.all(2),
+                            decoration: BoxDecoration(
+                              color: Colors.red.withValues(alpha: 0.15),
+                              borderRadius: BorderRadius.circular(4),
+                              border: Border.all(color: Colors.red, width: 1),
+                            ),
+                            child: const Icon(
+                              Icons.lock,
+                              size: 14,
+                              color: Colors.red,
+                            ),
+                          ),
                         ),
                       ),
                   ],

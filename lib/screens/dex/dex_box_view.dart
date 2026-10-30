@@ -10,6 +10,8 @@ import '../pokemon_info/pokemon_info_screen.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../../constants/app_vectors.dart';
+import '../../services/shiny_lock_service.dart';
+import '../../utils/notification_helper.dart';
 import '../../utils/box_sequence_manager.dart';
 import '../../widgets/painters/dashed_rrect_painter.dart';
 import 'widgets/overflow_stack.dart';
@@ -749,6 +751,10 @@ class _DexBoxViewState extends State<DexBoxView> {
                           liveDex,
                           entry.uniqueId,
                         );
+                        final isShinyLocked = ShinyLockService.isShinyLocked(
+                          entry,
+                          dexRegion: liveDex.region,
+                        );
 
                         final bool isMatched =
                             isSearchActive &&
@@ -822,10 +828,22 @@ class _DexBoxViewState extends State<DexBoxView> {
                                 : (entry.isPlaceholder
                                     ? () =>
                                           onInsertPokemon?.call(boxIndex, index)
-                                    : () => provider.togglePokemon(
-                                        liveDex.id,
-                                        entry.uniqueId,
-                                      )),
+                                    : () {
+                                        if (liveDex.isShinyDex && isShinyLocked) {
+                                          NotificationHelper.showError(
+                                            ShinyLockService.getShinyLockReason(
+                                              entry,
+                                              dexRegion: liveDex.region,
+                                              lang: Translator.currentLanguage,
+                                            ),
+                                          );
+                                          return;
+                                        }
+                                        provider.togglePokemon(
+                                          liveDex.id,
+                                          entry.uniqueId,
+                                        );
+                                      }),
                             onSecondaryTap:
                                 (isEditMode || entry.isPlaceholder)
                                     ? null
@@ -1040,6 +1058,32 @@ class _DexBoxViewState extends State<DexBoxView> {
                                               );
                                             },
                                           ),
+                                    if (isShinyLocked)
+                                      Positioned(
+                                        top: 2,
+                                        left: 2,
+                                        child: Tooltip(
+                                          message: ShinyLockService.getShinyLockReason(
+                                            entry,
+                                            dexRegion: liveDex.region,
+                                            lang: Translator.currentLanguage,
+                                          ),
+                                          child: Container(
+                                            key: Key('box_shiny_lock_badge_${entry.uniqueId}'),
+                                            padding: const EdgeInsets.all(1),
+                                            decoration: BoxDecoration(
+                                              color: Colors.red.withValues(alpha: 0.15),
+                                              borderRadius: BorderRadius.circular(3),
+                                              border: Border.all(color: Colors.red, width: 0.8),
+                                            ),
+                                            child: const Icon(
+                                              Icons.lock,
+                                              size: 12,
+                                              color: Colors.red,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
                                           if (isCaught || isShiny || isAlpha)
                                       Positioned(
                                         top: 2,

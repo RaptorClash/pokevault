@@ -300,7 +300,7 @@ def get_ribbons_from_submodule():
                 avail = []
             formatted_ribbons[r_id] = {
                 "is_mark": 1 if r_info.get('isMark') else 0,
-                "min_gen": r_info.get('generation', 3),
+                "min_gen": r_info.get('gen', r_info.get('generation', 3)),
                 "name_en": r_info.get('name', r_id.replace('-', ' ').title()),
                 "desc_en": r_info.get('description', "No description available."),
                 "available_games": ",".join([str(x) for x in avail])
@@ -464,7 +464,8 @@ def scrape_wikis_trades_and_gifts(html_path, obtain_type="trade"):
                 elif 'hisui' in rt_lower or 'hisuian' in rt_lower: form = 'hisui'
                 elif 'paldea' in rt_lower or 'paldean' in rt_lower: form = 'paldea'
                 
-                if obtain_type == "trade" and "let's go" in gv_lower: form = 'alola'
+                gv_norm = gv_lower.replace("’", "'")
+                if obtain_type == "trade" and ("let's go" in gv_norm or "lets go" in gv_norm): form = 'alola'
 
                 results.append({
                     "pokemon_id": received_id,
@@ -545,33 +546,201 @@ def scrape_pokewiki_ns_pokemon(html_path):
             
     return results
 
-def scrape_shiny_locks(html_path):
-    print(f"-> Scrape Shiny-Sperren aus: {html_path}")
-    if not os.path.exists(html_path): return []
-    
+def scrape_shiny_locks(html_path, cur=None):
+    """Parses local PokéWiki reference HTML and extracts global locks, edition locks, and trade locks.
+
+    Populates the SQLite `shiny_locks` table and writes `assets/data/shiny_locks.json`.
+    """
+    print(f"-> Scrape detaillierte Shiny-Sperren aus: {html_path}")
+    if not os.path.exists(html_path):
+        alt_path = r'c:\Users\marvi\Downloads\Schillernde Pokémon – PokéWiki.html'
+        if os.path.exists(alt_path):
+            html_path = alt_path
+
+    if not os.path.exists(html_path):
+        print(f"WARNUNG: HTML-Datei für Shiny-Sperren nicht gefunden: {html_path}")
+        return []
+
     with open(html_path, 'r', encoding='utf-8') as f:
         soup = BeautifulSoup(f, 'html.parser')
-    
+
+    heading = soup.find(id=re.compile(r'Pok\.C3\.A9mon\.2C_die_niemals_schillernd_sind|niemals_schillernd|Shiny-Sperre'))
+    if not heading:
+        for h in soup.find_all(['h2', 'h3', 'span']):
+            if 'niemals schillernd' in h.text:
+                heading = h
+                break
+
+    if not heading:
+        print("WARNUNG: Überschrift für Shiny-Locks nicht gefunden.")
+        return []
+
+    parent = heading.find_parent(['h2', 'h3']) or heading
+    curr = parent.next_sibling
+    tables = []
+    while curr:
+        if curr.name == 'h2': break
+        if curr.name == 'table': tables.append(curr)
+        elif hasattr(curr, 'find_all'): tables.extend(curr.find_all('table'))
+        curr = curr.next_sibling
+
     locks = []
-    headline = soup.find(id=re.compile(r'niemals_schillernd|Shiny-Sperre|Pokémon,_die_niemals_schillernd_sind'))
-    if not headline: return locks
-    
-    table = headline.find_next('table')
-    if not table: return locks
-    
-    for row in table.find_all('tr'):
-        tds = row.find_all('td')
-        if len(tds) >= 3:
-            poke_cell = tds[-1]
-            for a in poke_cell.find_all('a'):
-                txt = a.text.strip()
-                pid = get_id_by_name(txt)
-                if pid == -1 and a.get('title'):
-                    pid = get_id_by_name(a['title'].strip())
-                if pid != -1 and pid not in locks:
-                    locks.append(pid)
-    
-    print(f"-> {len(locks)} Shiny-Sperren erfolgreich eingelesen.")
+
+    name_map = {}
+    target_cur = cur
+    db_conn = None
+    if target_cur is None and os.path.exists('assets/db/pokedex.sqlite'):
+        try:
+            db_conn = sqlite3.connect('assets/db/pokedex.sqlite')
+            target_cur = db_conn.cursor()
+        except Exception:
+            pass
+
+    if target_cur:
+        try:
+            for pid, nde, nen in target_cur.execute("SELECT id, name_de, name_en FROM pokemon").fetchall():
+                if nde: name_map[nde.lower().strip()] = pid
+                if nen: name_map[nen.lower().strip()] = pid
+        except Exception as e:
+            print(f"Hinweis beim Laden der Pokémon-Namen für Shiny-Locks: {e}")
+
+    def get_id_by_name(name):
+        if not name: return -1
+        clean = name.strip().lower()
+        if clean in name_map: return name_map[clean]
+        for part in [clean.split(' ')[0], clean.split('-')[-1], clean.split('(')[0].strip()]:
+            if part in name_map: return name_map[part]
+        return -1
+
+    # Table 1: Global Locks (PokéWiki Tabelle der Pokémon, die generell niemals schillernd sind)
+    if len(tables) > 1:
+        for row in tables[1].find_all('tr'):
+            for a in row.find_all('a'):
+                t = a.get('title')
+                if t and not a.find('img'):
+                    pid = get_id_by_name(t)
+                    text = a.text.strip()
+                    form = 'normal'
+                    if 'Ash' in text: form = 'ash'
+                    elif 'Blutmond' in text: form = 'bloodmoon'
+                    elif 'Ewigblütler' in text: form = 'eternal'
+                    if pid != -1:
+                        locks.append({
+                            'pokemon_id': pid,
+                            'pokemon_name': t,
+                            'form_name': form,
+                            'game_version': 'all',
+                            'lock_type': 'global',
+                            'notes': f'Globaler Shiny-Lock: {text} ist niemals schillernd erhältlich.'
+                        })
+
+        for cap_f in ['original-cap', 'hoenn-cap', 'sinnoh-cap', 'unova-cap', 'kalos-cap', 'alola-cap', 'world-cap']:
+            locks.append({
+                'pokemon_id': 25,
+                'pokemon_name': 'Pikachu',
+                'form_name': cap_f,
+                'game_version': 'all',
+                'lock_type': 'global',
+                'notes': f'Globaler Shiny-Lock: Pikachu mit Kappe ({cap_f}) ist niemals schillernd erhältlich.'
+            })
+        locks.append({
+            'pokemon_id': 25,
+            'pokemon_name': 'Pikachu',
+            'form_name': 'partner-cap',
+            'game_version': 'Schwert / Schild',
+            'lock_type': 'edition',
+            'notes': 'Partner-Kappe Pikachu ist in Schwert/Schild schillernd gesperrt (nur in USUM schillernd erhältlich).'
+        })
+
+    # Table 0: Edition Locks (Editionsabhängige Sperren)
+    if len(tables) > 0:
+        for row in tables[0].find_all('tr')[1:]:
+            cols = row.find_all('td')
+            if len(cols) < 2: continue
+            ed_text = cols[-2].text.strip()
+            poke_col = cols[-1]
+            for a in poke_col.find_all('a'):
+                t = a.get('title')
+                if t and not a.find('img'):
+                    pid = get_id_by_name(t)
+                    text = a.text.strip()
+                    if 'Cosplay' in text:
+                        for cform in ['cosplay', 'rock-star', 'belle', 'pop-star', 'phd', 'libre']:
+                            locks.append({
+                                'pokemon_id': 25,
+                                'pokemon_name': 'Pikachu',
+                                'form_name': cform,
+                                'game_version': 'all',
+                                'lock_type': 'global',
+                                'notes': f'Globaler Shiny-Lock: Cosplay-Pikachu ({cform}) ist niemals schillernd erhältlich.'
+                            })
+                        continue
+                    elif 'Strubbelohr' in text: form = 'spiky-eared'
+                    elif 'Blutmond' in text: form = 'bloodmoon'
+                    if pid != -1:
+                        if 'LGPLGE' in ed_text and pid in (25, 133):
+                            locks.append({
+                                'pokemon_id': pid,
+                                'pokemon_name': t,
+                                'form_name': 'starter',
+                                'game_version': 'all',
+                                'lock_type': 'global',
+                                'notes': f"Globaler Shiny-Lock: Starter-{t} (Let's Go) ist niemals schillernd erhältlich."
+                            })
+                        locks.append({
+                            'pokemon_id': pid,
+                            'pokemon_name': t,
+                            'form_name': form,
+                            'game_version': ed_text,
+                            'lock_type': 'edition',
+                            'notes': f'Editions-Lock in {ed_text}.'
+                        })
+
+    # In-Game Trades aus special_obtainable
+    if cur:
+        try:
+            trade_rows = cur.execute("SELECT id, pokemon_id, game_version, form, location, npc_name FROM special_obtainable WHERE obtain_type = 'trade'").fetchall()
+            for s_id, pid, gv, form, loc, npc in trade_rows:
+                if "let's go" not in gv.lower():
+                    locks.append({
+                        'pokemon_id': pid,
+                        'pokemon_name': '',
+                        'form_name': form or 'normal',
+                        'game_version': gv,
+                        'lock_type': 'trade',
+                        'notes': f'In-Game Tausch mit festen DVs ({gv}, {loc}, NPC: {npc})'
+                    })
+        except Exception as e:
+            print(f"Hinweis beim Auslesen von Tausch-Locks: {e}")
+
+    # Deduplizieren und in SQLite speichern
+    if cur:
+        cur.execute("DELETE FROM shiny_locks")
+        seen_keys = set()
+        for lock in locks:
+            key = (lock['pokemon_id'], lock['form_name'], lock['game_version'])
+            if key in seen_keys: continue
+            seen_keys.add(key)
+            cur.execute('''INSERT INTO shiny_locks (pokemon_id, form_name, game_version, lock_type, notes)
+                           VALUES (?, ?, ?, ?, ?)''',
+                        (lock['pokemon_id'], lock['form_name'], lock['game_version'], lock['lock_type'], lock['notes']))
+
+    # Als JSON Bundle für Offline-Fallback exportieren
+    os.makedirs('assets/data', exist_ok=True)
+    json_path = 'assets/data/shiny_locks.json'
+    try:
+        with open(json_path, 'w', encoding='utf-8') as f:
+            json.dump(locks, f, ensure_ascii=False, indent=2)
+        print(f"-> {len(locks)} Shiny-Sperren nach {json_path} und in SQLite exportiert.")
+    except Exception as e:
+        print(f"Fehler beim Export von {json_path}: {e}")
+
+    if db_conn:
+        try:
+            db_conn.close()
+        except Exception:
+            pass
+
     return locks
         
 def scrape_gender_differences(pokewiki_path, bulbapedia_path, cur):
@@ -735,6 +904,14 @@ def main():
             is_n_pokemon INTEGER DEFAULT 0,
             notes TEXT,
             form TEXT DEFAULT 'normal'
+        );
+        CREATE TABLE IF NOT EXISTS shiny_locks (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            pokemon_id INTEGER,
+            form_name TEXT DEFAULT 'normal',
+            game_version TEXT DEFAULT 'all',
+            lock_type TEXT,
+            notes TEXT
         );
     ''')
 
@@ -1100,12 +1277,26 @@ def main():
         except Exception as e: pass
     conn.commit()
 
-    print("\n -> Dynamische Shiny-Sperren auslesen...")
-    LOCAL_SHINY_HTML = 'bin/Schillernde Pokémon – PokéWiki.html'
-    shiny_locks = scrape_shiny_locks(LOCAL_SHINY_HTML)
-    for pid in shiny_locks:
-        c.execute('INSERT INTO shiny_categories VALUES (?, ?)', (pid, 'never_shiny'))
+    print("\n -> Erstelle Glitch-Starter Formen und Glitch-Dex...")
+    glitch_forms = [
+        (252, 'vc_glitch', 'other', 2, 252, 'grass'),
+        (253, 'vc_glitch', 'other', 2, 253, 'grass'),
+        (254, 'vc_glitch', 'other', 2, 254, 'grass'),
+        (255, 'vc_glitch', 'other', 2, 255, 'fire'),
+        (256, 'vc_glitch', 'other', 2, 256, 'fire,fighting'),
+        (257, 'vc_glitch', 'other', 2, 257, 'fire,fighting'),
+    ]
+    for g_pid, g_name, g_type, g_gen, g_img, g_types in glitch_forms:
+        c.execute('''INSERT INTO forms (pokemon_id, name, form_type, min_gen, image_id, types, exclusive_regions, forced_tera_type)
+                     VALUES (?, ?, ?, ?, ?, ?, '', NULL)''',
+                  (g_pid, g_name, g_type, g_gen, g_img, g_types))
+
+    glitch_dex_pokes = [151, 252, 253, 254, 255, 256, 257]
+    for idx, pid in enumerate(glitch_dex_pokes):
+        c.execute('INSERT INTO special_dexes (dex_name, pokemon_id) VALUES (?, ?)', ('glitch_dex', pid))
+        c.execute('INSERT INTO dex_orders (dex_name, pokemon_id, order_index) VALUES (?, ?, ?)', ('glitch_dex', pid, idx))
     conn.commit()
+
 
     print("\n5. Lade Pokedex-Reihenfolgen...")
     try:
@@ -1171,6 +1362,17 @@ def main():
     except Exception as e:
         print(f"Fehler beim Verarbeiten der Geschlechtsunterschiede: {e}")
 
+    print("\n6.6. Lese und erstelle Shiny-Locks (Global, Edition, Tausche)...")
+    try:
+        LOCAL_SHINY_HTML = 'bin/Schillernde Pokémon – PokéWiki.html'
+        shiny_locks = scrape_shiny_locks(LOCAL_SHINY_HTML, c)
+        for lock in shiny_locks:
+            if lock.get('lock_type') == 'global':
+                c.execute('INSERT OR IGNORE INTO shiny_categories VALUES (?, ?)', (lock['pokemon_id'], 'never_shiny'))
+        conn.commit()
+    except Exception as e:
+        print(f"Fehler beim Erstellen der Shiny-Locks: {e}")
+
     print("\n7. Erstelle Performance-Indizes und optimiere Datenbank...")
     indices = [
         "CREATE INDEX IF NOT EXISTS idx_pokemon_moves_move_id ON pokemon_moves (move_id);",
@@ -1186,7 +1388,8 @@ def main():
         "CREATE INDEX IF NOT EXISTS idx_shiny_categories_poke_id ON shiny_categories (pokemon_id);",
         "CREATE INDEX IF NOT EXISTS idx_special_obtainable_poke_id ON special_obtainable (pokemon_id);",
         "CREATE INDEX IF NOT EXISTS idx_gender_differences_pokemon_id ON gender_differences (pokemon_id);",
-
+        "CREATE INDEX IF NOT EXISTS idx_shiny_locks_poke ON shiny_locks (pokemon_id);",
+        "CREATE INDEX IF NOT EXISTS idx_shiny_locks_poke_ver ON shiny_locks (pokemon_id, game_version);",
     ]
     for idx_sql in indices:
         c.execute(idx_sql)

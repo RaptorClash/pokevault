@@ -113,6 +113,42 @@ class BoxSlotDragData {
 
 /// Manages intelligent box sequencing, cascading item overflow, auto-shifting, and range title generation.
 class BoxSequenceManager {
+  /// Packs entries sequentially in all special boxes (trades, gifts, forms, etc.)
+  /// removing any middle gaps and consolidating trailing empty slots.
+  /// Returns `true` if any custom box was reordered or modified.
+  static bool packSpecialBoxes(UserDex dex) {
+    bool changed = false;
+    for (var box in dex.customBoxes) {
+      final isSpecial = DexLogicHelper.isSpecialBoxTitle(box.title) ||
+          box.pokemonIds.any((id) => id.contains('_special_'));
+      if (isSpecial) {
+        final nonBlankIds =
+            box.pokemonIds.where((id) => id.isNotEmpty).toList();
+        final capacity = box.capacity;
+        final padCount = capacity - nonBlankIds.length;
+        final newIds = [
+          ...nonBlankIds,
+          ...List.generate(padCount > 0 ? padCount : 0, (_) => ''),
+        ];
+        if (box.pokemonIds.length != newIds.length ||
+            !_listsEqual(box.pokemonIds, newIds)) {
+          box.pokemonIds = newIds;
+          changed = true;
+        }
+      }
+    }
+    return changed;
+  }
+
+  static bool _listsEqual(List<String> a, List<String> b) {
+    if (identical(a, b)) return true;
+    if (a.length != b.length) return false;
+    for (int i = 0; i < a.length; i++) {
+      if (a[i] != b[i]) return false;
+    }
+    return true;
+  }
+
   static final _pureRangeRegex = RegExp(r'^\s*(\d+)\s*[\-–—]\s*(\d+)\s*$');
   static final _prefixRangeParenRegex = RegExp(
     r'^(.*?)(?:\s+(\d+))?\s*\(\s*(\d+)\s*[\-–—]\s*(\d+)\s*\)\s*$',

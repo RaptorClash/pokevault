@@ -21,7 +21,7 @@ void main() {
     sqfliteFfiInit();
     databaseFactory = databaseFactoryFfi;
     PathProviderPlatform.instance = MockPathProviderPlatform();
-    SharedPreferences.setMockInitialValues({'app_db_version': 27});
+    SharedPreferences.setMockInitialValues({'app_db_version': DatabaseService.currentAppDbVersion});
   });
 
   setUp(() {

@@ -1,9 +1,34 @@
 import '../services/database_service.dart';
 import '../models/pokemon.dart';
+import '../models/dex_view_models.dart';
 
 /// Provides game-specific shiny hunting mechanics, soft-reset button shortcuts,
 /// breeding eligibility checks, and evolutionary path traversal.
 class ShinyLogicHelper {
+  /// Checks whether [entry] represents the Partner Cap Pikachu form.
+  static bool isPartnerCapPikachu(DexDisplayEntry entry) {
+    if (entry.pokemon.id != 25) return false;
+    final formName = entry.resolvedForm?.name.toLowerCase() ?? '';
+    final uid = entry.uniqueId.toLowerCase();
+    return formName == 'partner-cap' ||
+        uid.contains('partner-cap') ||
+        uid.contains('partner_cap');
+  }
+
+  /// Checks whether [entry] represents any Cap Pikachu form.
+  static bool isAnyCapPikachu(DexDisplayEntry entry) {
+    if (entry.pokemon.id != 25) return false;
+    final formName = entry.resolvedForm?.name.toLowerCase() ?? '';
+    final uid = entry.uniqueId.toLowerCase();
+    return formName.contains('cap') || uid.contains('cap');
+  }
+
+  /// Returns an explanatory note for Partner Cap Pikachu shiny appearance and recognition.
+  static String getPartnerCapShinyNote({String lang = 'de'}) {
+    return lang == 'de'
+        ? 'Hinweis: Das schillernde Partner-Kappe Pikachu besitzt exakt dieselben Sprite-Farben wie die reguläre Form. Es ist ausschließlich am schillernden Stern im Bericht sowie an der Stern-Animation beim Rauslassen / Betreten des Kampfes zu erkennen.'
+        : 'Note: Shiny Partner Cap Pikachu has identical sprite colors as regular Pikachu. It is only distinguishable by the shiny star on the summary screen and the sparkle animation when entering battle / sent out.';
+  }
   /// Determines whether a Pokémon encounter in a given generation is stationary or a gift.
   static Future<bool> isStaticEncounter(int dexId, String gen) async {
     final encounters = await DatabaseService.instance.getEncounters(dexId);

@@ -17,6 +17,9 @@ class EditDexDialog extends StatefulWidget {
 class _EditDexDialogState extends State<EditDexDialog> {
   late TextEditingController nameController;
   late bool includeGenders;
+  late bool includeTrades;
+  late bool includeGifts;
+  late bool includeGlitch;
   late bool includeRegional;
   late bool includeMega;
   late bool includeGMax;
@@ -29,6 +32,9 @@ class _EditDexDialogState extends State<EditDexDialog> {
     super.initState();
     nameController = TextEditingController(text: widget.dex.title);
     includeGenders = widget.dex.includeGenders;
+    includeTrades = widget.dex.includeTrades;
+    includeGifts = widget.dex.includeGifts;
+    includeGlitch = widget.dex.includeGlitch;
     includeRegional = widget.dex.includeRegional;
     includeMega = widget.dex.includeMega;
     includeGMax = widget.dex.includeGMax;
@@ -77,6 +83,35 @@ class _EditDexDialogState extends State<EditDexDialog> {
               value: includeGenders,
               activeThumbColor: Colors.red,
               onChanged: (val) => setState(() => includeGenders = val),
+            ),
+            const Divider(height: 1),
+            SwitchListTile(
+              key: const Key('edit_switch_include_trades'),
+              title: Text(Translator.get('include_trades', fallback: 'In-Game Tausche')),
+              secondary: const Icon(Icons.swap_horiz),
+              value: includeTrades,
+              activeThumbColor: Colors.red,
+              onChanged: (val) => setState(() => includeTrades = val),
+            ),
+            const Divider(height: 1),
+            KeyedSubtree(
+              child: SwitchListTile(
+                key: const Key('edit_switch_include_gifts'),
+                title: Text(Translator.get('include_gifts', fallback: 'Geschenkte Pokémon')),
+                secondary: const Icon(Icons.card_giftcard),
+                value: includeGifts,
+                activeThumbColor: Colors.red,
+                onChanged: (val) => setState(() => includeGifts = val),
+              ),
+            ),
+            const Divider(height: 1),
+            SwitchListTile(
+              key: const Key('edit_switch_include_glitch'),
+              title: Text(Translator.get('include_glitch', fallback: 'Glitch Pokémon (Game Boy)')),
+              secondary: const Icon(Icons.bug_report),
+              value: includeGlitch,
+              activeThumbColor: Colors.red,
+              onChanged: (val) => setState(() => includeGlitch = val),
             ),
             const Divider(height: 1),
             ExpansionTile(
@@ -141,6 +176,9 @@ class _EditDexDialogState extends State<EditDexDialog> {
                 includeGMax,
                 includeOther,
                 isShinyDex,
+                includeTrades: includeTrades,
+                includeGifts: includeGifts,
+                includeGlitch: includeGlitch,
               );
               Navigator.pop(context);
             }

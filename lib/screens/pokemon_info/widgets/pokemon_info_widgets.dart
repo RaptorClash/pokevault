@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../models/dex_view_models.dart';
+import '../../../models/user_dex.dart';
 import '../../../models/pokemon.dart';
 import '../../../providers/dex_provider.dart';
 import '../../../providers/settings_provider.dart';
@@ -10,6 +11,7 @@ import '../../../widgets/universal_poke_image.dart';
 import '../../../utils/dex_logic_helper.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../../../constants/app_vectors.dart';
+import '../../../services/shiny_lock_service.dart';
 
 const Map<String, Color> pokemonTypeColors = {
   'normal': Color(0xFFA8A77A),
@@ -282,6 +284,17 @@ class PokemonStatusTogglesWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     try {
+      UserDex? dex;
+      try {
+        dex = provider.userDexes.where((d) => d.id == dexId).firstOrNull;
+      } catch (_) {
+        dex = null;
+      }
+      final isLocked = ShinyLockService.isShinyLocked(
+        entry,
+        dexRegion: dex?.region,
+      );
+
       return Column(
         children: [
           Card(
@@ -313,20 +326,75 @@ class PokemonStatusTogglesWidget extends StatelessWidget {
             key: shinyStatusKey,
             margin: const EdgeInsets.symmetric(vertical: 4),
             child: SwitchListTile(
-              title: const Text(
-                'Shiny Status',
-                style: TextStyle(fontWeight: FontWeight.bold),
+              title: Row(
+                children: [
+                  Text(
+                    Translator.get('shiny_status', fallback: 'Shiny Status'),
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  if (isLocked) ...[
+                    const SizedBox(width: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 6,
+                        vertical: 2,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.red.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(4),
+                        border: Border.all(color: Colors.red, width: 1),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.lock, size: 12, color: Colors.red),
+                          const SizedBox(width: 4),
+                          Text(
+                            Translator.get(
+                              'shiny_lock_badge',
+                              fallback: 'Shiny-Lock',
+                            ),
+                            style: const TextStyle(
+                              color: Colors.red,
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ],
               ),
-              subtitle: const Text('Als schillernd markieren'),
+              subtitle: Text(
+                isLocked
+                    ? ShinyLockService.getShinyLockReason(
+                        entry,
+                        dexRegion: dex?.region,
+                        lang: Translator.currentLanguage,
+                      )
+                    : Translator.get(
+                        'mark_as_shiny',
+                        fallback: 'Als schillernd markieren',
+                      ),
+              ),
               secondary: Icon(
-                Icons.star,
-                color: isShiny ? Colors.amber : Colors.grey,
+                isLocked ? Icons.lock : Icons.star,
+                color: isLocked
+                    ? Colors.red
+                    : (isShiny ? Colors.amber : Colors.grey),
               ),
-              value: isShiny,
+              value: isLocked ? false : isShiny,
               activeThumbColor: Colors.amber,
-              onChanged: (val) {
-                provider.toggleShiny(dexId, entry.uniqueId, targetState: val);
-              },
+              onChanged: isLocked
+                  ? null
+                  : (val) {
+                      provider.toggleShiny(
+                        dexId,
+                        entry.uniqueId,
+                        targetState: val,
+                      );
+                    },
             ),
           ),
           FutureBuilder<bool>(

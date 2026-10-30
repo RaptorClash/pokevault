@@ -6,6 +6,7 @@ import '../../../models/ribbon.dart';
 import '../../../providers/dex_provider.dart';
 import '../../../l10n/app_translations.dart';
 import '../../../services/database_service.dart';
+import '../../../utils/dex_logic_helper.dart';
 import '../../../utils/ribbons_logic_helper.dart';
 import '../../../widgets/universal_poke_image.dart';
 
@@ -53,11 +54,13 @@ class _MarksWidgetState extends State<MarksWidget> {
       }
     }
 
+    final originGen = DexLogicHelper.getOriginGeneration(widget.entry.uniqueId);
     final displayItems = RibbonLogicHelper.getValidRibbonsForPokemon(
       widget.entry.pokemon,
       baseId,
       allRibbons,
       availableGames,
+      originGen: originGen,
     );
 
     if (mounted) {

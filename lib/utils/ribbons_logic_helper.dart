@@ -94,16 +94,77 @@ class RibbonLogicHelper {
     return mapped.toList();
   }
 
+  static int getGameGeneration(String gameCode) {
+    switch (gameCode.toLowerCase()) {
+      case 'ruby':
+      case 'sapphire':
+      case 'emerald':
+      case 'firered':
+      case 'leafgreen':
+      case 'colosseum':
+      case 'xd':
+        return 3;
+      case 'diamond':
+      case 'pearl':
+      case 'platinum':
+      case 'heartgold':
+      case 'soulsilver':
+        return 4;
+      case 'x':
+      case 'y':
+      case 'or':
+      case 'as':
+        return 6;
+      case 'sun':
+      case 'moon':
+      case 'usun':
+      case 'umoon':
+        return 7;
+      case 'sw':
+      case 'sh':
+      case 'bd':
+      case 'sp':
+      case 'pla':
+        return 8;
+      case 'scar':
+      case 'vio':
+        return 9;
+      default:
+        return 0;
+    }
+  }
+
   static List<Ribbon> getValidRibbonsForPokemon(
     Pokemon pokemon,
     int baseId,
     List<Ribbon> allRibbons,
-    List<String> availablePokeApiGames,
-  ) {
+    List<String> availablePokeApiGames, {
+    num? originGen,
+  }) {
     List<String> mappedGames = mapPokeApiToRibbonGames(availablePokeApiGames);
+    if (originGen != null) {
+      mappedGames = mappedGames
+          .where((game) => getGameGeneration(game) >= originGen)
+          .toList();
+    }
 
     return allRibbons.where((ribbon) {
+      if (originGen != null && ribbon.minGen < originGen) {
+        if (ribbon.availableGames.isEmpty) {
+          return false;
+        }
+        bool hasFutureGame = ribbon.availableGames.any(
+          (game) => getGameGeneration(game) >= originGen,
+        );
+        if (!hasFutureGame) {
+          return false;
+        }
+      }
+
       if (ribbon.isMark == 1 || ribbon.id.toLowerCase().contains('mark')) {
+        if (originGen != null && originGen > 8 && ribbon.id == 'curry-mark') {
+          return false;
+        }
         bool inSwSh = mappedGames.contains('sw') || mappedGames.contains('sh');
         bool inSV = mappedGames.contains('scar') || mappedGames.contains('vio');
         bool inPLA = mappedGames.contains('pla');
@@ -142,7 +203,8 @@ class RibbonLogicHelper {
             ribbon.id.contains('premier') ||
             ribbon.id.contains('event');
 
-        if (!isGameCompatible && !isEventRibbon) {
+        if (!isGameCompatible &&
+            (!isEventRibbon || (originGen != null && ribbon.minGen < originGen))) {
           return false;
         }
       }

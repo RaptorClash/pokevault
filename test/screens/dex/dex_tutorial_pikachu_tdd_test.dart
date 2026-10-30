@@ -18,6 +18,7 @@ import 'package:pokevault/widgets/tutorial/tutorial_overlay.dart';
 import 'package:path_provider_platform_interface/path_provider_platform_interface.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
+import 'package:pokevault/services/database_service.dart';
 
 class MockDexProvider extends Mock implements DexProvider {}
 class MockSettingsProvider extends Mock implements SettingsProvider {}
@@ -117,14 +118,14 @@ void main() {
     sqfliteFfiInit();
     databaseFactory = databaseFactoryFfi;
     PathProviderPlatform.instance = MockPathProviderPlatform();
-    SharedPreferences.setMockInitialValues({'app_db_version': 27});
+    SharedPreferences.setMockInitialValues({'app_db_version': DatabaseService.currentAppDbVersion});
     LocaleSettings.setLocale(AppLocale.de);
     registerFallbackValue(UserDex.fallback('fallback_dex'));
   });
 
   setUp(() async {
     Translator.currentLanguage = 'de';
-    SharedPreferences.setMockInitialValues({'app_db_version': 27});
+    SharedPreferences.setMockInitialValues({'app_db_version': DatabaseService.currentAppDbVersion});
     prefs = await SharedPreferences.getInstance();
     tutorialProvider = TutorialProvider(prefs);
 

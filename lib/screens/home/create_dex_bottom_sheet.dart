@@ -30,6 +30,9 @@ class _CreateDexBottomSheetState extends State<CreateDexBottomSheet> {
   final GlobalKey _nationalKey = GlobalKey();
   final GlobalKey _shinyKey = GlobalKey();
   final GlobalKey _genderKey = GlobalKey();
+  final GlobalKey _tradesKey = GlobalKey();
+  final GlobalKey _giftsKey = GlobalKey();
+  final GlobalKey _glitchKey = GlobalKey();
   final GlobalKey _formsExpansionKey = GlobalKey();
   final GlobalKey _regionalKey = GlobalKey();
   final GlobalKey _megaKey = GlobalKey();
@@ -45,6 +48,9 @@ class _CreateDexBottomSheetState extends State<CreateDexBottomSheet> {
   late String selectedSubDex;
 
   bool includeGenders = false;
+  bool includeTrades = false;
+  bool includeGifts = false;
+  bool includeGlitch = false;
   bool includeRegional = false;
   bool includeMega = false;
   bool includeGMax = false;
@@ -192,6 +198,27 @@ class _CreateDexBottomSheetState extends State<CreateDexBottomSheet> {
                 onTargetTap: () => setState(() => includeGenders = true),
               ),
               TutorialStep(
+                targetKey: _tradesKey,
+                titleKey: 'tutorial_create_step_trades_title',
+                textKey: 'tutorial_create_step_trades_text',
+                requireTargetTap: true,
+                onTargetTap: () => setState(() => includeTrades = true),
+              ),
+              TutorialStep(
+                targetKey: _giftsKey,
+                titleKey: 'tutorial_create_step_gifts_title',
+                textKey: 'tutorial_create_step_gifts_text',
+                requireTargetTap: true,
+                onTargetTap: () => setState(() => includeGifts = true),
+              ),
+              TutorialStep(
+                targetKey: _glitchKey,
+                titleKey: 'tutorial_create_step7_glitch_title',
+                textKey: 'tutorial_create_step7_glitch_text',
+                requireTargetTap: true,
+                onTargetTap: () => setState(() => includeGlitch = true),
+              ),
+              TutorialStep(
                 targetKey: _formsExpansionKey,
                 titleKey: 'tutorial_create_step8_title',
                 textKey: 'tutorial_create_step8_text',
@@ -291,6 +318,9 @@ class _CreateDexBottomSheetState extends State<CreateDexBottomSheet> {
           includeOther,
           isShinyDex,
           widget.currentFolderId,
+          includeTrades: includeTrades,
+          includeGifts: includeGifts,
+          includeGlitch: includeGlitch,
         );
         if (mounted) Navigator.pop(context);
       }
@@ -579,6 +609,57 @@ class _CreateDexBottomSheetState extends State<CreateDexBottomSheet> {
               value: includeGenders,
               activeThumbColor: Colors.red,
               onChanged: (val) => setState(() => includeGenders = val),
+            ),
+            const Divider(height: 1),
+            KeyedSubtree(
+              key: _tradesKey,
+              child: SwitchListTile(
+                key: const Key('switch_include_trades'),
+                title: Text(
+                  Translator.get(
+                    'include_trades',
+                    fallback: 'In-Game Tausche',
+                  ),
+                ),
+                secondary: const Icon(Icons.swap_horiz),
+                value: includeTrades,
+                activeThumbColor: Colors.red,
+                onChanged: (val) => setState(() => includeTrades = val),
+              ),
+            ),
+            const Divider(height: 1),
+            KeyedSubtree(
+              key: _giftsKey,
+              child: SwitchListTile(
+                key: const Key('switch_include_gifts'),
+                title: Text(
+                  Translator.get(
+                    'include_gifts',
+                    fallback: 'Geschenkte Pokémon',
+                  ),
+                ),
+                secondary: const Icon(Icons.card_giftcard),
+                value: includeGifts,
+                activeThumbColor: Colors.red,
+                onChanged: (val) => setState(() => includeGifts = val),
+              ),
+            ),
+            const Divider(height: 1),
+            KeyedSubtree(
+              key: _glitchKey,
+              child: SwitchListTile(
+                key: const Key('switch_include_glitch'),
+                title: Text(
+                  Translator.get(
+                    'include_glitch',
+                    fallback: 'Glitch Pokémon (Game Boy)',
+                  ),
+                ),
+                secondary: const Icon(Icons.bug_report),
+                value: includeGlitch,
+                activeThumbColor: Colors.red,
+                onChanged: (val) => setState(() => includeGlitch = val),
+              ),
             ),
             const Divider(height: 1),
             ExpansionTile(

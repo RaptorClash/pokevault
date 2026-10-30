@@ -16,6 +16,7 @@ import 'package:path_provider_platform_interface/path_provider_platform_interfac
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:pokevault/widgets/tutorial/tutorial_overlay.dart';
+import 'package:pokevault/services/database_service.dart';
 import 'package:pokevault/l10n/app_translations.dart';
 import 'package:pokevault/i18n/strings.g.dart';
 
@@ -125,13 +126,13 @@ void main() {
     sqfliteFfiInit();
     databaseFactory = databaseFactoryFfi;
     PathProviderPlatform.instance = MockPathProviderPlatform();
-    SharedPreferences.setMockInitialValues({'app_db_version': 27});
+    SharedPreferences.setMockInitialValues({'app_db_version': DatabaseService.currentAppDbVersion});
     LocaleSettings.setLocale(AppLocale.de);
   });
 
   setUp(() async {
     Translator.currentLanguage = 'de';
-    SharedPreferences.setMockInitialValues({'app_db_version': 27});
+    SharedPreferences.setMockInitialValues({'app_db_version': DatabaseService.currentAppDbVersion});
     prefs = await SharedPreferences.getInstance();
     tutorialProvider = TutorialProvider(prefs);
 

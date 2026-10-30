@@ -18,6 +18,7 @@ import 'package:pokevault/providers/settings_provider.dart';
 import 'package:pokevault/screens/pokemon_info/widgets/gender_differences_card.dart';
 import 'package:pokevault/screens/pokemon_info/widgets/pokemon_info_page.dart';
 import 'package:pokevault/screens/pokemon_info/widgets/breeding_info_widget.dart';
+import 'package:pokevault/services/database_service.dart';
 import 'package:pokevault/i18n/strings.g.dart';
 
 class MockDexProvider extends Mock implements DexProvider {}
@@ -161,7 +162,7 @@ void main() {
     sqfliteFfiInit();
     databaseFactory = databaseFactoryFfi;
     PathProviderPlatform.instance = MockPathProviderPlatform();
-    SharedPreferences.setMockInitialValues({'app_db_version': 27});
+    SharedPreferences.setMockInitialValues({'app_db_version': DatabaseService.currentAppDbVersion});
     LocaleSettings.setLocale(AppLocale.de);
   });
 

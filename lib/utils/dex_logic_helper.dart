@@ -5,6 +5,8 @@ import '../models/dex_view_models.dart';
 import '../l10n/app_translations.dart';
 import 'notification_helper.dart';
 import '../services/database_service.dart';
+import '../services/shiny_lock_service.dart';
+import 'box_sequence_manager.dart';
 
 /// Arguments bundle passed to background isolate for computing display entries.
 class BuildEntriesArgs {
@@ -297,6 +299,8 @@ class DexLogicHelper {
         }
       }
     }
+    final packed = BoxSequenceManager.packSpecialBoxes(dex);
+    if (packed) migrated = true;
     return migrated;
   }
 
@@ -449,6 +453,40 @@ class DexLogicHelper {
       debugPrint("Fehler bei Form-Übersetzung: $e");
     }
     return form.isEmpty ? '' : form[0].toUpperCase() + form.substring(1);
+  }
+
+  /// Returns the origin generation for a special Pokémon entry based on its uniqueId.
+  static double? getOriginGeneration(String uniqueId) {
+    if (!uniqueId.contains('_special_')) {
+      return null;
+    }
+    final parts = uniqueId.split('_');
+    final specialIdx = parts.indexOf('special');
+    if (specialIdx != -1 && parts.length > specialIdx + 3) {
+      final region = parts[specialIdx + 3].toLowerCase();
+      switch (region) {
+        case 'kanto':
+          return 1.0;
+        case 'johto':
+          return 2.0;
+        case 'hoenn':
+          return 3.0;
+        case 'sinnoh':
+          return 4.0;
+        case 'unova':
+          return 5.0;
+        case 'kalos':
+          return 6.0;
+        case 'alola':
+          return 7.0;
+        case 'galar':
+        case 'hisui':
+          return 8.0;
+        case 'paldea':
+          return 9.0;
+      }
+    }
+    return null;
   }
 
   /// Returns the highest Pokémon generation number associated with a Pokédex region.
@@ -702,6 +740,20 @@ class DexLogicHelper {
     return chunks;
   }
 
+  /// Checks whether a box title denotes a special collection box (trades, gifts, forms, etc.).
+  static bool isSpecialBoxTitle(String title) {
+    final lower = title.toLowerCase();
+    return lower.contains('tausch') ||
+        lower.contains('trade') ||
+        lower.contains('geschenk') ||
+        lower.contains('gift') ||
+        lower.contains("n's pokémon") ||
+        lower.contains("n's pokemon") ||
+        lower.contains('forme') ||
+        lower.contains('form') ||
+        lower.contains('orre');
+  }
+
   /// Extracts the base ID from a potentially composite instance ID.
   /// E.g. '1_normal__1728412345_0' -> '1_normal', '1_normal' -> '1_normal',
   /// 'shiny:1_normal' -> '1_normal'.
@@ -783,6 +835,9 @@ class DexLogicHelper {
   static bool isSecondaryForm(String uniqueId) {
     final clean = getBaseId(uniqueId);
     if (!clean.contains('_')) return false;
+    if (clean.contains('_special_') || clean.contains('vc_glitch') || clean.contains('glitch')) {
+      return true;
+    }
     final formName = clean.substring(clean.indexOf('_') + 1).toLowerCase();
     if (formName == 'normal' || formName == 'male' || formName == 'm') return false;
     return formName.contains('alola') ||
@@ -1160,31 +1215,58 @@ class DexLogicHelper {
           } else {
             try {
               final baseId = getBaseId(id);
-              final originalEntry = entries.firstWhere((e) => e.uniqueId == baseId);
-              final isShiny = isPokemonShiny(liveDex, id);
-              String imgUrl = originalEntry.imageUrl;
-              if (isShiny && !imgUrl.contains('/shiny/')) {
-                if (imgUrl.contains('official-artwork/')) {
-                  imgUrl = imgUrl.replaceFirst('official-artwork/', 'official-artwork/shiny/');
-                } else if (imgUrl.contains('home/female/')) {
-                  imgUrl = imgUrl.replaceFirst('home/female/', 'home/shiny/female/');
-                } else if (imgUrl.contains('home/')) {
-                  imgUrl = imgUrl.replaceFirst('home/', 'home/shiny/');
-                }
-              } else if (!isShiny && imgUrl.contains('/shiny/')) {
-                if (imgUrl.contains('/shiny/female/')) {
-                  imgUrl = imgUrl.replaceFirst('/shiny/female/', '/female/');
-                } else {
-                  imgUrl = imgUrl.replaceFirst('/shiny/', '/');
+              DexDisplayEntry? originalEntry =
+                  entries.where((e) => e.uniqueId == baseId).firstOrNull;
+              if (originalEntry == null && baseId.contains('_special_')) {
+                final parts = baseId.split('_special_');
+                final pid = int.tryParse(parts[0]);
+                if (pid != null) {
+                  final specParts = parts[1].split('_');
+                  final specType = specParts.length > 1 ? specParts[1] : '';
+                  final specRegion = specParts.length > 2 ? specParts[2] : '';
+                  originalEntry = entries.where((e) {
+                    if (e.pokemon.id != pid) return false;
+                    if (!e.uniqueId.contains('_special_')) return false;
+                    final eSpecParts =
+                        e.uniqueId.split('_special_')[1].split('_');
+                    final eType =
+                        eSpecParts.length > 1 ? eSpecParts[1] : '';
+                    final eRegion =
+                        eSpecParts.length > 2 ? eSpecParts[2] : '';
+                    return (specType.isEmpty || eType == specType) &&
+                        (specRegion.isEmpty || eRegion == specRegion);
+                  }).firstOrNull;
                 }
               }
-              boxEntries.add(DexDisplayEntry(
-                pokemon: originalEntry.pokemon,
-                uniqueId: id,
-                displaySuffix: originalEntry.displaySuffix,
-                imageUrl: imgUrl,
-                form: originalEntry.form,
-              ));
+
+              if (originalEntry != null) {
+                final isShiny = isPokemonShiny(liveDex, id);
+                String imgUrl = originalEntry.imageUrl;
+                if (isShiny && !imgUrl.contains('/shiny/')) {
+                  if (imgUrl.contains('official-artwork/')) {
+                    imgUrl = imgUrl.replaceFirst('official-artwork/', 'official-artwork/shiny/');
+                  } else if (imgUrl.contains('home/female/')) {
+                    imgUrl = imgUrl.replaceFirst('home/female/', 'home/shiny/female/');
+                  } else if (imgUrl.contains('home/')) {
+                    imgUrl = imgUrl.replaceFirst('home/', 'home/shiny/');
+                  }
+                } else if (!isShiny && imgUrl.contains('/shiny/')) {
+                  if (imgUrl.contains('/shiny/female/')) {
+                    imgUrl = imgUrl.replaceFirst('/shiny/female/', '/female/');
+                  } else {
+                    imgUrl = imgUrl.replaceFirst('/shiny/', '/');
+                  }
+                }
+                boxEntries.add(DexDisplayEntry(
+                  pokemon: originalEntry.pokemon,
+                  uniqueId: id,
+                  displaySuffix: originalEntry.displaySuffix,
+                  imageUrl: imgUrl,
+                  form: originalEntry.form,
+                ));
+              } else {
+                boxEntries.add(DexDisplayEntry.emptyEntry);
+              }
             } catch (_) {
               boxEntries.add(DexDisplayEntry.emptyEntry);
             }
@@ -1194,6 +1276,26 @@ class DexLogicHelper {
         int capacity = cb.columns * cb.rows;
         while (boxEntries.length < capacity) {
           boxEntries.add(DexDisplayEntry.emptyEntry);
+        }
+
+        final isSpecialBox = isSpecialBoxTitle(cb.title) ||
+            boxEntries.any((e) => e.uniqueId.contains('_special_'));
+        if (isSpecialBox) {
+          final validEntries =
+              boxEntries.where((e) => e.uniqueId.isNotEmpty).toList();
+          final padCount = capacity - validEntries.length;
+          boxEntries = [
+            ...validEntries,
+            ...List.generate(
+              padCount > 0 ? padCount : 0,
+              (_) => DexDisplayEntry.emptyEntry,
+            ),
+          ];
+
+          cb.pokemonIds = [
+            ...validEntries.map((e) => e.uniqueId),
+            ...List.generate(padCount > 0 ? padCount : 0, (_) => ''),
+          ];
         }
         
         customBoxesList.add(BoxData(cb.title, cb.regionKey, boxEntries, cb.columns));
@@ -1310,13 +1412,22 @@ class DexLogicHelper {
             if (catId == 'n_pokemon') {
               baseTitle = "N's Pokémon";
             } else if (catId == 'trades') {
-              baseTitle =
-                  "$localizedRegion ${Translator.currentLanguage == 'de' ? 'Tausche' : 'Trades'}";
+              if (regionId == 'lumiose') {
+                baseTitle =
+                    "$localizedRegion ${Translator.currentLanguage == 'de' ? 'Tausche' : 'Trades'} (Z-A)";
+              } else {
+                baseTitle =
+                    "$localizedRegion ${Translator.currentLanguage == 'de' ? 'Tausche' : 'Trades'}";
+              }
             } else if (catId == 'gifts') {
               baseTitle =
                   "$localizedRegion ${Translator.currentLanguage == 'de' ? 'Geschenke' : 'Gifts'}";
             } else if (catId == 'orre') {
-              baseTitle = "$localizedRegion ${Translator.get('cat_orre')}";
+              baseTitle =
+                  "$localizedRegion ${Translator.get('cat_orre')} ${Translator.currentLanguage == 'de' ? 'Tausche' : 'Trades'}";
+            } else if (catId == 'furfrou') {
+              baseTitle =
+                  "$localizedRegion ${Translator.currentLanguage == 'de' ? 'Coiffwaff' : 'Furfrou'}";
             } else if (catId == 'arceus') {
               baseTitle = "$localizedRegion Arceus";
             } else if (catId == 'silvally') {
@@ -1381,6 +1492,7 @@ class DexLogicHelper {
     bool isNationalDex = liveDex.region == 'national_overall';
     bool isMegaDex = liveDex.region == 'mega_dex';
     bool isIcognitoDex = liveDex.region == 'icognito_dex';
+    bool isGlitchDex = liveDex.region == 'glitch_dex';
     String shinyPath = liveDex.isShinyDex ? 'shiny/' : '';
     bool isMovesDex = liveDex.region == 'moves_dex';
     bool isAbilitiesDex = liveDex.region == 'abilities_dex';
@@ -1399,6 +1511,11 @@ class DexLogicHelper {
     }
 
     for (var p in pokemonList) {
+      if (isGlitchDex) {
+        if (p.id != 151 && (p.id < 252 || p.id > 257)) {
+          continue;
+        }
+      }
       if (p.forms.isNotEmpty) {
         var sortedForms = List.of(p.forms);
         sortedForms.sort((a, b) {
@@ -1429,6 +1546,15 @@ class DexLogicHelper {
         );
 
         for (var form in sortedForms) {
+          if (isGlitchDex) {
+            if (p.id == 151 && form.name != 'normal') continue;
+            if (p.id >= 252 && p.id <= 257 && form.name != 'vc_glitch') continue;
+          } else {
+            if ((form.name == 'vc_glitch' || form.name.contains('glitch')) &&
+                !liveDex.includeGlitch) {
+              continue;
+            }
+          }
           bool isBaseForm =
               form.name == 'normal' || p.forms.first.name == form.name;
           if ((p.id == 1007 || p.id == 1008 || p.id == 664 || p.id == 665) &&
@@ -1458,7 +1584,9 @@ class DexLogicHelper {
           if (form.formType == 'gmax' && !liveDex.includeGMax) continue;
           if (form.formType == 'other' &&
               !liveDex.includeOther &&
-              !isIcognitoDex) {
+              !isIcognitoDex &&
+              !isGlitchDex &&
+              !(liveDex.includeGlitch && (form.name == 'vc_glitch' || form.name.contains('glitch')))) {
             if (!isBaseForm) continue;
           }
 
@@ -1475,7 +1603,9 @@ class DexLogicHelper {
               !isWhitelistedForThisDex &&
               form.minGen > dexGen &&
               !isMegaDex &&
-              !isIcognitoDex) {
+              !isIcognitoDex &&
+              !isGlitchDex &&
+              !(liveDex.includeGlitch && (form.name == 'vc_glitch' || form.name.contains('glitch')))) {
             continue;
           }
 
@@ -1591,11 +1721,12 @@ class DexLogicHelper {
       }
     }
 
-    if (liveDex.includeOther &&
-        !isMegaDex &&
+    if (!isMegaDex &&
         !isMovesDex &&
         !isAbilitiesDex &&
-        !isIcognitoDex) {
+        !isIcognitoDex &&
+        !isGlitchDex) {
+      final seenSpecial = <String>{};
       for (var spec in specialObtainables) {
         int pId = (spec['pokemon_id'] as num?)?.toInt() ?? -1;
         int sId = (spec['id'] as num?)?.toInt() ?? -1;
@@ -1603,14 +1734,22 @@ class DexLogicHelper {
         String obtainType = spec['obtain_type']?.toString() ?? '';
         String gameVer = spec['game_version']?.toString() ?? '';
 
+        if (obtainType == 'trade' && !liveDex.includeTrades) continue;
+        if (obtainType == 'gift' && !liveDex.includeGifts) continue;
+        if (obtainType != 'trade' &&
+            obtainType != 'gift' &&
+            !liveDex.includeOther) {
+          continue;
+        }
+
         final p = pokemonList.where((poke) => poke.id == pId).firstOrNull;
         if (p != null) {
           String specType = obtainType;
           String specForm = spec['form']?.toString() ?? 'normal';
 
           if (isN == 1) specType = 'n';
-          if (gameVer.toLowerCase().contains("let's go") &&
-              obtainType == 'trade') {
+          final gvLower = gameVer.toLowerCase().replaceAll('’', "'");
+          if (gvLower.contains("let's go") && obtainType == 'trade') {
             specForm = 'alola';
           }
 
@@ -1624,22 +1763,45 @@ class DexLogicHelper {
           }
           if (specGameTag.isNotEmpty) specType = specGameTag;
 
-          String suffix = '';
-          if (isN == 1) {
-            suffix = " (N's Pokémon)";
-          } else if (obtainType == 'trade') {
-            suffix = " (${Translator.get('cat_trades')} - $gameVer)";
-          } else {
-            suffix = " (${Translator.get('cat_gifts')} - $gameVer)";
-          }
-
           String specRegion = getRegionFromGame(gameVer);
-          String imageUrl =
-              'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/$shinyPath${p.id}.png';
+
+          // Deduplicate multi-source/scraped duplicates (e.g. Togetic or Larvitar across wikis)
+          final dedupKey = '$pId-$obtainType-$specForm-$specType-$specRegion';
+          if (seenSpecial.contains(dedupKey)) {
+            continue;
+          }
+          seenSpecial.add(dedupKey);
 
           final matchedSpecForm = p.forms.where(
             (f) => f.name.toLowerCase() == specForm.toLowerCase(),
           ).firstOrNull ?? (p.forms.isNotEmpty ? p.forms.first : null);
+
+          String suffix = '';
+          final formPrefix = (matchedSpecForm != null &&
+                  matchedSpecForm.name.toLowerCase() != 'normal')
+              ? ' (${getFormDisplayName(matchedSpecForm.name)})'
+              : '';
+          if (isN == 1) {
+            suffix = "$formPrefix (N's Pokémon)";
+          } else if (obtainType == 'trade') {
+            suffix = "$formPrefix (${Translator.get('cat_trades')} - $gameVer)";
+          } else {
+            suffix = "$formPrefix (${Translator.get('cat_gifts')} - $gameVer)";
+          }
+
+          final formImgId = (matchedSpecForm != null && matchedSpecForm.imageId > 0)
+              ? matchedSpecForm.imageId
+              : p.id;
+          String imageUrl;
+          if (_useHomeSpritesIds.contains(p.id) &&
+              matchedSpecForm != null &&
+              matchedSpecForm.name != 'normal') {
+            imageUrl =
+                'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/home/$shinyPath${p.id}-${matchedSpecForm.name}.png';
+          } else {
+            imageUrl =
+                'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/$shinyPath$formImgId.png';
+          }
 
           entries.add(
             DexDisplayEntry(
@@ -1657,10 +1819,23 @@ class DexLogicHelper {
     return entries;
   }
 
-  /// Evaluates whether a Pokémon entry is eligible for Alpha status
-  /// based on whether it appears in the Hisui or Lumiose regional dexes.
   static Future<bool> isAlphaEligible(DexDisplayEntry entry) async {
     if (entry.uniqueId.contains('_special_')) {
+      return false;
+    }
+
+    final uidLower = entry.uniqueId.toLowerCase();
+    final formName = entry.resolvedForm?.name.toLowerCase() ?? '';
+    if (entry.pokemon.id == 25 &&
+        (formName.contains('cap') ||
+            uidLower.contains('cap') ||
+            ShinyLockService.isCosplayPikachuForm(formName, uidLower) ||
+            formName == 'starter' ||
+            uidLower.contains('starter'))) {
+      return false;
+    }
+    if (entry.pokemon.id == 133 &&
+        (formName == 'starter' || uidLower.contains('starter'))) {
       return false;
     }
 

@@ -82,6 +82,10 @@ DOWNLOADS = [
         "url": "https://bulbapedia.bulbagarden.net/wiki/List_of_Pok%C3%A9mon_with_gender_differences",
         "filename": "List of Pokémon with gender differences - Bulbapedia, the community-driven Pokémon encyclopedia.html",
     },
+    {
+        "url": "https://www.pokewiki.de/Schillernde_Pok%C3%A9mon",
+        "filename": "Schillernde Pokémon – PokéWiki.html",
+    },
 ]
 
 

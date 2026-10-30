@@ -59,9 +59,15 @@ class DatabasePathHelper {
     if (kIsWeb) return '';
 
     if (_isDesktop) {
-      if (overrideCurrentDirectory == null && Platform.environment.containsKey('FLUTTER_TEST')) {
-        final docDir = await getApplicationDocumentsDirectory();
-        return docDir.path;
+      if (overrideCurrentDirectory == null &&
+          (Platform.environment.containsKey('FLUTTER_TEST') ||
+           Platform.environment.containsKey('DART_TEST') ||
+           Platform.script.path.contains('test'))) {
+        final testDir = Directory(p.join(Directory.systemTemp.path, 'pokevault_test_dbs'));
+        if (!testDir.existsSync()) {
+          testDir.createSync(recursive: true);
+        }
+        return testDir.path;
       }
 
       final currentDir = overrideCurrentDirectory ?? Directory.current;
@@ -136,7 +142,10 @@ class DatabasePathHelper {
   /// conflicts with automatic backups, and removes obsolete files after verification.
   static Future<void> migrateLegacyDocumentsDatabasesIfNeeded() async {
     if (kIsWeb) return;
-    if (overrideDocumentsDirectory == null && Platform.environment.containsKey('FLUTTER_TEST')) {
+    if (overrideDocumentsDirectory == null &&
+        (Platform.environment.containsKey('FLUTTER_TEST') ||
+         Platform.environment.containsKey('DART_TEST') ||
+         Platform.script.path.contains('test'))) {
       return;
     }
 

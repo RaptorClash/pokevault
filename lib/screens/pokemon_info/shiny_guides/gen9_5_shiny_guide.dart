@@ -29,9 +29,9 @@ class Gen95ShinyGuide extends StatelessWidget {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const SizedBox.shrink();
         }
-        
-        bool isPLZAAvailable = snapshot.data!['isPLZA'] == true;
-        bool isLocked = shinyCategories.contains('plza_locks');
+        final data = snapshot.data;
+        bool isPLZAAvailable = (data != null && data['isPLZA'] == true) || pokemon.id == 719;
+        bool isLocked = shinyCategories.contains('plza_locks') || pokemon.id == 719;
         
         if (!isPLZAAvailable) return const SizedBox.shrink();
 
@@ -112,7 +112,7 @@ class Gen95ShinyGuide extends StatelessWidget {
           content.add(buildLinkBtn(Icons.play_circle_filled, 'shiny_gen95_link_yt_de', 'https://www.youtube.com/watch?v=6Z6nbxlK3J8'));
         }
 
-        if (extraAction != null) {
+        if (extraAction != null && !isLocked) {
           content.add(const SizedBox(height: 12));
           content.add(extraAction!);
         }

@@ -243,24 +243,27 @@ class TutorialBubble extends StatelessWidget {
                             width: 1,
                           ),
                         ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              Icons.bolt,
-                              size: 12,
-                              color: theme.colorScheme.primary,
-                            ),
-                            const SizedBox(width: 3),
-                            Text(
-                              'Rotom',
-                              style: TextStyle(
-                                fontSize: 11,
-                                fontWeight: FontWeight.bold,
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.bolt,
+                                size: 12,
                                 color: theme.colorScheme.primary,
                               ),
-                            ),
-                          ],
+                              const SizedBox(width: 3),
+                              Text(
+                                'Rotom',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.bold,
+                                  color: theme.colorScheme.primary,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                       if (totalSteps > 1)
@@ -273,12 +276,15 @@ class TutorialBubble extends StatelessWidget {
                             color: theme.colorScheme.surfaceContainerHighest,
                             borderRadius: BorderRadius.circular(10),
                           ),
-                          child: Text(
-                            'Schritt ${stepIndex + 1} von $totalSteps',
-                            style: TextStyle(
-                              fontSize: 10.5,
-                              fontWeight: FontWeight.w600,
-                              color: theme.colorScheme.onSurfaceVariant,
+                          child: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Text(
+                              'Schritt ${stepIndex + 1} von $totalSteps',
+                              style: TextStyle(
+                                fontSize: 10.5,
+                                fontWeight: FontWeight.w600,
+                                color: theme.colorScheme.onSurfaceVariant,
+                              ),
                             ),
                           ),
                         ),
@@ -306,16 +312,18 @@ class TutorialBubble extends StatelessWidget {
                               alpha: 0.7,
                             ),
                           ),
-                          const SizedBox(width: 2),
-                          Text(
-                            Translator.get('tutorial_skip'),
-                            style: TextStyle(
-                              fontSize: 11,
-                              color: theme.colorScheme.onSurface.withValues(
-                                alpha: 0.7,
+                          if (!isCompact) ...[
+                            const SizedBox(width: 2),
+                            Text(
+                              Translator.get('tutorial_skip'),
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: theme.colorScheme.onSurface.withValues(
+                                  alpha: 0.7,
+                                ),
                               ),
                             ),
-                          ),
+                          ],
                         ],
                       ),
                     ),
@@ -386,9 +394,12 @@ class TutorialBubble extends StatelessWidget {
                     ),
                     onPressed: isEasterEggActive ? null : onPrev,
                     icon: const Icon(Icons.arrow_back, size: 13),
-                    label: Text(
-                      Translator.get('previous', fallback: 'Zurück'),
-                      style: const TextStyle(fontSize: 11.5),
+                    label: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(
+                        Translator.get('previous', fallback: 'Zurück'),
+                        style: const TextStyle(fontSize: 11.5),
+                      ),
                     ),
                   )
                 else
@@ -412,14 +423,17 @@ class TutorialBubble extends StatelessWidget {
                       isLast ? Icons.check : Icons.arrow_forward,
                       size: 13,
                     ),
-                    label: Text(
-                      Translator.get(
-                        isLast ? 'tutorial_finish' : 'tutorial_next',
-                        fallback: isLast ? 'Fertig' : 'Weiter',
-                      ),
-                      style: const TextStyle(
-                        fontSize: 11.5,
-                        fontWeight: FontWeight.bold,
+                    label: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(
+                        Translator.get(
+                          isLast ? 'tutorial_finish' : 'tutorial_next',
+                          fallback: isLast ? 'Fertig' : 'Weiter',
+                        ),
+                        style: const TextStyle(
+                          fontSize: 11.5,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
                   ),

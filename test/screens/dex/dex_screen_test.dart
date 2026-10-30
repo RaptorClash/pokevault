@@ -176,6 +176,8 @@ void main() {
       includeMega: false,
       includeGMax: false,
       includeOther: false,
+      includeTrades: false,
+      includeGifts: false,
       isShinyDex: false,
     ));
 
@@ -212,6 +214,8 @@ void main() {
       includeMega: false,
       includeGMax: false,
       includeOther: false,
+      includeTrades: false,
+      includeGifts: false,
       isShinyDex: false,
       caughtIds: ['1_normal'],
       shinyIds: [],

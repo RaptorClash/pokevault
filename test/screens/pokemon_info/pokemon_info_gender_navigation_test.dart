@@ -18,6 +18,7 @@ import 'package:pokevault/providers/settings_provider.dart';
 import 'package:pokevault/providers/tutorial_provider.dart';
 import 'package:pokevault/screens/pokemon_info/pokemon_info_screen.dart';
 import 'package:pokevault/screens/pokemon_info/widgets/gender_differences_card.dart';
+import 'package:pokevault/services/database_service.dart';
 import 'package:pokevault/i18n/strings.g.dart';
 
 class MockDexProvider extends Mock implements DexProvider {}
@@ -157,17 +158,26 @@ Future<void> pumpAsyncDB(WidgetTester tester, [int expectedTiles = 1]) async {
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
+  Database? testDb;
+
   setUpAll(() async {
     HttpOverrides.global = _MockHttpOverrides();
     sqfliteFfiInit();
     databaseFactory = databaseFactoryFfi;
     PathProviderPlatform.instance = MockPathProviderPlatform();
-    SharedPreferences.setMockInitialValues({'app_db_version': 27});
+    SharedPreferences.setMockInitialValues({'app_db_version': DatabaseService.currentAppDbVersion});
     LocaleSettings.setLocale(AppLocale.de);
+    final dbFile = File('assets/db/pokedex.sqlite');
+    if (dbFile.existsSync()) {
+      testDb = await openDatabase(dbFile.absolute.path, readOnly: true);
+      DatabaseService.setAppDatabaseForTesting(testDb);
+    }
   });
 
-  tearDownAll(() {
+  tearDownAll(() async {
     HttpOverrides.global = null;
+    DatabaseService.setAppDatabaseForTesting(null);
+    await testDb?.close();
   });
 
   final bisaflor = Pokemon(

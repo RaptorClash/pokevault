@@ -40,10 +40,12 @@ class DatabaseService {
   final Map<int, Map<String, Map<String, List<String>>>?> _encountersCache = {};
   final Map<int, int> _defaultLevelsCache = {};
   final Map<int, List<String>> _shinyCategoriesCache = {};
+  List<Map<String, dynamic>>? _cachedShinyLocks;
 
   /// Clears in-memory caches of static reference data.
   void clearMemoryCache() {
     _cachedRibbons = null;
+    _cachedShinyLocks = null;
     _versionGroupsCache.clear();
     _evolutionChainCache.clear();
     _matchingBallsCache.clear();
@@ -85,7 +87,7 @@ class DatabaseService {
   }
 
   @visibleForTesting
-  static const int currentAppDbVersion = 27;
+  static const int currentAppDbVersion = 29;
   static const int _currentAppDbVersion = currentAppDbVersion;
 
   Future<Database> _initAppDB(String fileName) async {
@@ -183,7 +185,7 @@ class DatabaseService {
     return await factory.openDatabase(
       path,
       options: OpenDatabaseOptions(
-        version: 11,
+        version: 13,
         onCreate: createUserDataTables,
         onUpgrade: upgradeUserDataTables,
         onDowngrade: downgradeUserDataTables,
@@ -214,6 +216,9 @@ class DatabaseService {
           include_mega INTEGER,
           include_gmax INTEGER,
           include_other INTEGER,
+          include_trades INTEGER DEFAULT 0,
+          include_gifts INTEGER DEFAULT 0,
+          include_glitch INTEGER DEFAULT 0,
           is_shiny_dex INTEGER,
           is_alpha INTEGER DEFAULT 0,
           mega_sort TEXT DEFAULT 'origin',
@@ -347,18 +352,20 @@ class DatabaseService {
     String indexName,
     String columns,
   ) async {
-    final info = await db.rawQuery("PRAGMA table_info('$table')");
-    if (info.isNotEmpty) {
-      final idxInfo = await db.rawQuery("PRAGMA index_info('$indexName')");
-      if (idxInfo.isNotEmpty) {
-        final existingCols = idxInfo.map((r) => r['name']?.toString().toLowerCase()).toList();
-        final targetCols = columns.split(',').map((c) => c.trim().toLowerCase().split(' ').first).toList();
-        if (existingCols.join(',') != targetCols.join(',')) {
-          await db.execute('DROP INDEX IF EXISTS $indexName;');
+    try {
+      final info = await db.rawQuery("PRAGMA table_info($table)");
+      if (info.isNotEmpty) {
+        final idxInfo = await db.rawQuery("PRAGMA index_info('$indexName')");
+        if (idxInfo.isNotEmpty) {
+          final existingCols = idxInfo.map((r) => r['name']?.toString().toLowerCase()).toList();
+          final targetCols = columns.split(',').map((c) => c.trim().toLowerCase().split(' ').first).toList();
+          if (existingCols.join(',') != targetCols.join(',')) {
+            await db.execute('DROP INDEX IF EXISTS $indexName;');
+          }
         }
+        await db.execute('CREATE INDEX IF NOT EXISTS $indexName ON $table ($columns);');
       }
-      await db.execute('CREATE INDEX IF NOT EXISTS $indexName ON $table ($columns);');
-    }
+    } catch (_) {}
   }
 
   /// Ensures high-performance B-tree indexes are present on user data tables.
@@ -391,6 +398,8 @@ class DatabaseService {
     await _createIndexIfTableExists(db, 'shiny_categories', 'idx_shiny_categories_poke_id', 'pokemon_id');
     await _createIndexIfTableExists(db, 'special_obtainable', 'idx_special_obtainable_poke_id', 'pokemon_id');
     await _createIndexIfTableExists(db, 'gender_differences', 'idx_gender_differences_pokemon_id', 'pokemon_id');
+    await _createIndexIfTableExists(db, 'shiny_locks', 'idx_shiny_locks_poke', 'pokemon_id');
+    await _createIndexIfTableExists(db, 'shiny_locks', 'idx_shiny_locks_poke_ver', 'pokemon_id, game_version');
 
     try {
       final info = await db.rawQuery("PRAGMA table_info(shiny_categories)");
@@ -562,6 +571,64 @@ class DatabaseService {
         debugPrint("Migrations-Fehler V11: $e");
       }
     }
+    if (oldVersion < 12) {
+      try {
+        await addColumnIfNotExists(db, 'user_dexes', 'include_trades', 'INTEGER DEFAULT 1');
+        await addColumnIfNotExists(db, 'user_dexes', 'include_gifts', 'INTEGER DEFAULT 1');
+        debugPrint("Datenbank erfolgreich auf Version 12 (Trades & Gifts) migriert!");
+      } catch (e) {
+        debugPrint("Migrations-Fehler V12: $e");
+      }
+    }
+    if (oldVersion < 13) {
+      try {
+        await addColumnIfNotExists(db, 'user_dexes', 'include_glitch', 'INTEGER DEFAULT 0');
+        debugPrint("Datenbank erfolgreich auf Version 13 (Glitch Pokemon) migriert!");
+      } catch (e) {
+        debugPrint("Migrations-Fehler V13: $e");
+      }
+    }
+  }
+
+  /// Returns all shiny locks defined for [pokemonId] from reference SQLite database,
+  /// falling back to bundled assets/data/shiny_locks.json if the database table is empty or missing.
+  Future<List<Map<String, dynamic>>> getShinyLocks(int pokemonId) async {
+    final allLocks = await getAllShinyLocks();
+    return allLocks
+        .where((lock) => (lock['pokemon_id'] as num?)?.toInt() == pokemonId)
+        .toList();
+  }
+
+  /// Returns all shiny locks recorded in the reference database,
+  /// falling back to bundled assets/data/shiny_locks.json if unavailable.
+  Future<List<Map<String, dynamic>>> getAllShinyLocks() async {
+    if (_cachedShinyLocks != null) return _cachedShinyLocks!;
+
+    try {
+      final db = await instance.appDatabase;
+      final results = await db.query('shiny_locks');
+      if (results.isNotEmpty) {
+        _cachedShinyLocks = results;
+        return _cachedShinyLocks!;
+      }
+    } catch (e) {
+      debugPrint('Database query for shiny_locks failed, falling back to JSON asset: $e');
+    }
+
+    try {
+      final jsonString = await rootBundle.loadString('assets/data/shiny_locks.json');
+      final dynamic decoded = json.decode(jsonString);
+      if (decoded is List) {
+        _cachedShinyLocks = decoded
+            .map((e) => Map<String, dynamic>.from(e as Map))
+            .toList();
+        return _cachedShinyLocks!;
+      }
+    } catch (e) {
+      debugPrint('Failed to load shiny_locks.json asset: $e');
+    }
+
+    return const [];
   }
 
   /// Returns all Pokémon from the reference database including their forms.
@@ -764,7 +831,9 @@ class DatabaseService {
     dexMap['updated_at'] = DateTime.now().toUtc().millisecondsSinceEpoch;
     dexMap['deleted_at'] = 0;
 
-    final cols = dexMap.keys.toList();
+    final info = await db.rawQuery("PRAGMA table_info('user_dexes')");
+    final localCols = info.map((r) => r['name'].toString().toLowerCase()).toSet();
+    final cols = dexMap.keys.where((c) => localCols.contains(c.toLowerCase())).toList();
     final placeholders = cols.map((_) => '?').join(', ');
     final updateSets = cols
         .where((c) => c != 'id')

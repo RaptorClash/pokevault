@@ -47,12 +47,14 @@ class Gen75ShinyGuide extends StatelessWidget {
             id == 151;
 
         bool isLegendary = [144, 145, 146, 150].contains(id);
+        bool isMeltanLine = id == 808 || id == 809;
         bool isHuntable =
             hasLetsGoEncounter ||
             canTradeAlolan ||
             id == 25 ||
             id == 133 ||
-            isLegendary;
+            isLegendary ||
+            isMeltanLine;
 
         if (!isHuntable && !isLocked) {
           return const SizedBox.shrink();
@@ -227,6 +229,17 @@ class Gen75ShinyGuide extends StatelessWidget {
                 'shiny_gen6_sr_title',
                 'shiny_gen6_sr_desc',
                 Colors.deepPurple,
+              ),
+            );
+          }
+
+          if (isMeltanLine) {
+            content.add(
+              buildInfoBox(
+                Icons.phone_android,
+                'shiny_meltan_go_title',
+                'shiny_meltan_go_desc',
+                Colors.indigo,
               ),
             );
           }

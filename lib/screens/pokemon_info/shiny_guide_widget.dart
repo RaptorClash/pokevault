@@ -5,6 +5,8 @@ import '../../l10n/app_translations.dart';
 import '../../utils/notification_helper.dart';
 import '../../utils/shiny_logic_helper.dart';
 import '../../services/database_service.dart';
+import '../../services/shiny_lock_service.dart';
+import '../../utils/dex_logic_helper.dart';
 import './shiny_guides/gen1_shiny_guide.dart';
 import './shiny_guides/gen2_shiny_guide.dart';
 import './shiny_guides/gen3_shiny_guide.dart';
@@ -137,6 +139,20 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
   }
 
   bool _shouldShowGen(double gen) {
+    if (ShinyLogicHelper.isAnyCapPikachu(widget.entry)) {
+      return gen == 7.0;
+    }
+    if (widget.entry.uniqueId.contains('vc_glitch') ||
+        (widget.entry.resolvedForm?.name == 'vc_glitch')) {
+      return gen == 2.0;
+    }
+    if (ShinyLockService.isNPokemon(widget.entry)) {
+      return gen == 5.0;
+    }
+    final originGen = DexLogicHelper.getOriginGeneration(widget.entry.uniqueId);
+    if (originGen != null && gen < originGen) {
+      return false;
+    }
     if (gen == 2 &&
         widget.entry.pokemon.id >= 252 &&
         widget.entry.pokemon.id <= 257) {
@@ -185,7 +201,8 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
       9.5,
     ];
 
-    if (!generations.any(_shouldShowGen)) return const SizedBox.shrink();
+    final isLocked = ShinyLockService.isShinyLocked(widget.entry);
+    if (!isLocked && !generations.any(_shouldShowGen)) return const SizedBox.shrink();
 
     List<Widget> genTiles = [];
 
@@ -384,13 +401,24 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
             ),
           );
         } else if (gen == 7.0) {
+          final isPartnerCap = ShinyLogicHelper.isPartnerCapPikachu(widget.entry);
+          final extraAction = isPartnerCap
+              ? _buildStartHuntButton(
+                  context,
+                  7.0,
+                  method: 'Soft Reset (QR-Code Pikachu-Tal)',
+                  game: 'Ultra Sonne / Ultra Mond',
+                  baseOdds: 4096.0,
+                )
+              : _buildStartHuntButton(context, 7.0);
           genTiles.add(
             Gen7ShinyGuide(
               pokemon: widget.entry.pokemon,
               shinyCategories: _shinyCategories,
               title: resolvedTitle,
               onLaunchUrl: _launchURL,
-              extraAction: _buildStartHuntButton(context, 7.0),
+              extraAction: extraAction,
+              entry: widget.entry,
             ),
           );
         } else if (gen == 7.5) {
@@ -450,24 +478,27 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
             ),
           );
         } else if (gen == 9.5) {
+          final isPlzaLocked = _shinyCategories.contains('plza_locks') || widget.entry.pokemon.id == 719;
           genTiles.add(
             Gen95ShinyGuide(
               pokemon: widget.entry.pokemon,
               shinyCategories: _shinyCategories,
               title: resolvedTitle,
               onLaunchUrl: _launchURL,
-              extraAction: _buildStartHuntButton(
-                context,
-                9.5,
-                game: 'Legenden: Z-A',
-              ),
+              extraAction: isPlzaLocked
+                  ? null
+                  : _buildStartHuntButton(
+                      context,
+                      9.5,
+                      game: 'Legenden: Z-A',
+                    ),
             ),
           );
         }
       }
     }
 
-    if (genTiles.isEmpty) return const SizedBox.shrink();
+    if (genTiles.isEmpty && !isLocked) return const SizedBox.shrink();
 
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
@@ -475,12 +506,55 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: ExpansionTile(
         maintainState: false,
-        leading: const Icon(Icons.auto_awesome, color: Colors.amber),
+        leading: Icon(
+          isLocked ? Icons.lock : Icons.auto_awesome,
+          color: isLocked ? Colors.red : Colors.amber,
+        ),
         title: Text(
           Translator.get('shiny_guide_title'),
           style: const TextStyle(fontWeight: FontWeight.bold),
         ),
         children: [
+          if (isLocked)
+            Container(
+              margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.red.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.red.shade400, width: 1),
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Icon(Icons.lock, color: Colors.red, size: 22),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          Translator.get('shiny_lock_banner', fallback: 'Shiny-Lock aktiv'),
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.red,
+                            fontSize: 14,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          ShinyLockService.getShinyLockReason(
+                            widget.entry,
+                            lang: Translator.currentLanguage,
+                          ),
+                          style: const TextStyle(fontSize: 12),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ...genTiles,
           Padding(
             padding: const EdgeInsets.all(16.0),

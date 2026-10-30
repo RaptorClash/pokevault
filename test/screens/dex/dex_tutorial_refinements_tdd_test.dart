@@ -144,7 +144,7 @@ void main() {
     if (assetDb.existsSync()) {
       assetDb.copySync('${tempDir.path}/pokedex.sqlite');
     }
-    SharedPreferences.setMockInitialValues({'app_db_version': 27});
+    SharedPreferences.setMockInitialValues({'app_db_version': DatabaseService.currentAppDbVersion});
     await DatabaseService.instance.appDatabase;
     await DatabaseService.instance.userDatabase;
     LocaleSettings.setLocale(AppLocale.de);
@@ -166,7 +166,7 @@ void main() {
       buildNumber: '6',
       buildSignature: '',
     );
-    SharedPreferences.setMockInitialValues({'app_db_version': 27});
+    SharedPreferences.setMockInitialValues({'app_db_version': DatabaseService.currentAppDbVersion});
     prefs = await SharedPreferences.getInstance();
     tutorialProvider = TutorialProvider(prefs);
 
