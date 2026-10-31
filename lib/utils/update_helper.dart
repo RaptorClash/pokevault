@@ -74,7 +74,8 @@ class UpdateHelper {
               break;
             } else if (Platform.isLinux &&
                 (assetName.endsWith('.appimage') ||
-                    assetName.endsWith('.tar.gz'))) {
+                    assetName.endsWith('.tar.gz') ||
+                    assetName.endsWith('.zip'))) {
               downloadUrl = asset['browser_download_url'];
               fileExtension = assetName.substring(assetName.lastIndexOf('.'));
               break;
@@ -140,7 +141,8 @@ class UpdateHelper {
               break;
             } else if (Platform.isLinux &&
                 (assetName.endsWith('.appimage') ||
-                    assetName.endsWith('.tar.gz'))) {
+                    assetName.endsWith('.tar.gz') ||
+                    assetName.endsWith('.zip'))) {
               downloadUrl = asset['browser_download_url'];
               fileExtension = assetName.substring(assetName.lastIndexOf('.'));
               break;

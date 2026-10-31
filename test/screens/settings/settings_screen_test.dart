@@ -592,7 +592,15 @@ void main() {
             {
               'name': 'pokevault.zip',
               'browser_download_url': 'https://github.com/RaptorClash/pokevault/releases/download/v2.0.0/pokevault.zip',
-            }
+            },
+            {
+              'name': 'pokevault.appimage',
+              'browser_download_url': 'https://github.com/RaptorClash/pokevault/releases/download/v2.0.0/pokevault.appimage',
+            },
+            {
+              'name': 'pokevault.apk',
+              'browser_download_url': 'https://github.com/RaptorClash/pokevault/releases/download/v2.0.0/pokevault.apk',
+            },
           ],
         }),
       );
@@ -661,7 +669,15 @@ void main() {
             {
               'name': 'pokevault.zip',
               'browser_download_url': 'https://github.com/RaptorClash/pokevault/releases/download/v1.0.0/pokevault.zip',
-            }
+            },
+            {
+              'name': 'pokevault.appimage',
+              'browser_download_url': 'https://github.com/RaptorClash/pokevault/releases/download/v1.0.0/pokevault.appimage',
+            },
+            {
+              'name': 'pokevault.apk',
+              'browser_download_url': 'https://github.com/RaptorClash/pokevault/releases/download/v1.0.0/pokevault.apk',
+            },
           ],
         }
       ];
