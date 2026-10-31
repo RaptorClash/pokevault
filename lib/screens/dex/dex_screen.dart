@@ -1312,10 +1312,11 @@ class _DexScreenState extends State<DexScreen> {
                       separateForms: _separateForms,
                       highlightedIds: highlightedIds,
                       isSearchActive: isSearchActive,
-                      onInfoScreenReturned: _onInfoScreenReturned,
                       isEditMode: _isEditMode,
                       selectedForEdit: _selectedForEdit,
-                      onSelectionChanged: (boxIndex, itemIndex) {
+                      actionDelegate: DefaultBoxActionDelegate(
+                        onInfoScreenReturnedHandler: _onInfoScreenReturned,
+                        onSelectionChangedHandler: (boxIndex, itemIndex) {
                         if (_isMoveTargetMode) {
                           setState(() {
                             _executeMoveSelectedToSlot(liveDex, boxIndex, itemIndex);
@@ -1331,7 +1332,7 @@ class _DexScreenState extends State<DexScreen> {
                           }
                         });
                       },
-                      onInsertPokemon: (boxIndex, insertIndex) async {
+                        onInsertPokemonHandler: (boxIndex, insertIndex) async {
                         if (_isEditMode && _selectedForEdit.isNotEmpty) {
                           setState(() {
                             _executeMoveSelectedToSlot(liveDex, boxIndex, insertIndex);
@@ -1411,7 +1412,7 @@ class _DexScreenState extends State<DexScreen> {
                           _recalculateBoxesAsync(liveDex);
                         }
                       },
-                      onMovePokemonWithSource: (sourceId, targetBox, targetIndex, sourceBox, sourceSlot) {
+                        onMovePokemonWithSourceHandler: (sourceId, targetBox, targetIndex, sourceBox, sourceSlot) {
                         final slotDrag = BoxSlotDragData.tryParse(sourceId);
                         final actualSourceId = slotDrag != null ? slotDrag.uniqueId : sourceId;
                         final actualSourceBox = sourceBox ?? slotDrag?.boxIndex;
@@ -1442,7 +1443,7 @@ class _DexScreenState extends State<DexScreen> {
                         });
                         _recalculateBoxesAsync(liveDex);
                       },
-                      onSwapPokemonWithSource: (sourceId, targetBox, targetIndex, sourceBox, sourceSlot) {
+                        onSwapPokemonWithSourceHandler: (sourceId, targetBox, targetIndex, sourceBox, sourceSlot) {
                         final slotDrag = BoxSlotDragData.tryParse(sourceId);
                         final actualSourceId = slotDrag != null ? slotDrag.uniqueId : sourceId;
                         final actualSourceBox = sourceBox ?? slotDrag?.boxIndex;
@@ -1481,11 +1482,12 @@ class _DexScreenState extends State<DexScreen> {
                         });
                         _recalculateBoxesAsync(liveDex);
                       },
-                      onMoveMultiplePokemon: (sourceIds, targetBox, targetIndex) {
-                        setState(() {
-                          _executeMoveMultipleToSlot(liveDex, sourceIds, targetBox, targetIndex);
-                        });
-                      },
+                        onMoveMultiplePokemonHandler: (sourceIds, targetBox, targetIndex) {
+                          setState(() {
+                            _executeMoveMultipleToSlot(liveDex, sourceIds, targetBox, targetIndex);
+                          });
+                        },
+                      ),
                     )
                   : DexListView(
                       firstItemKey: _firstPokemonKey,
