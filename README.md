@@ -65,13 +65,11 @@
 
 5. Setup SQLite Database:
    *PokéVault relies on a pre-built SQLite database for core Pokémon reference data.* 
-   Make sure you run the database pipeline scripts to generate and optimize `assets/db/pokedex.sqlite`:
+   Execute the all-in-one data pipeline script to generate and optimize `assets/db/pokedex.sqlite`:
    ```bash
-   python3 tool/data_pipeline/build_database.py
-   python3 tool/data_pipeline/update_evolutions_db.py
-   python3 tool/data_pipeline/update_cap_locks_and_trades.py
-   python3 tool/data_pipeline/optimize_databases.py
+   python3 tool/data_pipeline/run_pipeline.py
    ```
+   *(Alternatively, run with `--skip-download` if you already have the external web dumps and only want to recompile the database).*
 
 6. Run the app:
    ```bash

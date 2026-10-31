@@ -120,7 +120,7 @@ def main():
 
     print("\n=== GIT SUBMODULES WERDEN AKTUALISIERT ===")
     try:
-        subprocess.run(["git", "submodule", "update", "--init", "--remote"], check=True)
+        subprocess.run(["git", "submodule", "update", "--init"], check=True)
         print(" -> Submodules erfolgreich auf den neuesten Stand gebracht!")
     except Exception as e:
         print(f"FEHLER beim Aktualisieren der Submodules: {e}")

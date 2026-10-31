@@ -30,7 +30,11 @@ def parse_chain(node):
     details = []
     for ed in node.get('evolution_details', []):
         d = {}
-        if ed.get('trigger'): d['trigger'] = ed['trigger']['name']
+        if ed.get('trigger'):
+            tr = ed['trigger']['name']
+            if tr == 'in-battle-level-up':
+                tr = 'other'
+            d['trigger'] = tr
         if ed.get('min_level') is not None: d['min_level'] = ed['min_level']
         if ed.get('item'): d['item'] = ed['item']['name']
         if ed.get('held_item'): d['held_item'] = ed['held_item']['name']
@@ -54,8 +58,12 @@ def parse_chain(node):
         if ed.get('min_damage_taken') is not None: d['min_damage_taken'] = ed['min_damage_taken']
         if ed.get('needs_multiplayer'): d['needs_multiplayer'] = ed['needs_multiplayer']
         if ed.get('near_special_rock'): d['near_special_rock'] = ed['near_special_rock']
-        if ed.get('base_form'): d['base_form'] = ed['base_form']['name']
-        if ed.get('evolved_form'): d['evolved_form'] = ed['evolved_form']['name']
+        base_form_val = ed.get('base_form') or ed.get('required_pokemon_form')
+        if base_form_val:
+            d['base_form'] = base_form_val['name'] if isinstance(base_form_val, dict) else str(base_form_val)
+        evolved_form_val = ed.get('evolved_form') or ed.get('evolved_pokemon_form')
+        if evolved_form_val:
+            d['evolved_form'] = evolved_form_val['name'] if isinstance(evolved_form_val, dict) else str(evolved_form_val)
         if ed.get('region'): d['region'] = ed['region']['name']
         if d not in details:
             details.append(d)

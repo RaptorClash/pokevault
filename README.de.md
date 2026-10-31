@@ -65,13 +65,11 @@
 
 5. SQLite-Datenbank generieren & optimieren:
    *PokéVault benötigt eine vorkompilierte SQLite-Datenbank für die Pokémon-Basisdaten.* 
-   Führe die Pipeline-Skripte aus, um `assets/db/pokedex.sqlite` zu generieren und zu optimieren:
+   Führe das All-in-One Pipeline-Skript aus, um `assets/db/pokedex.sqlite` mit einem einzigen Befehl zu generieren und zu optimieren:
    ```bash
-   python3 tool/data_pipeline/build_database.py
-   python3 tool/data_pipeline/update_evolutions_db.py
-   python3 tool/data_pipeline/update_cap_locks_and_trades.py
-   python3 tool/data_pipeline/optimize_databases.py
+   python3 tool/data_pipeline/run_pipeline.py
    ```
+   *(Alternativ kannst du mit `--skip-download` nur die Datenbank kompilieren, falls die externen Web-Dumps bereits vorliegen).*
 
 6. App starten:
    ```bash
