@@ -8,6 +8,9 @@ import '../../models/dex_view_models.dart';
 import '../../models/user_dex.dart';
 import '../../utils/dex_logic_helper.dart';
 import '../../i18n/strings.g.dart';
+import 'widgets/card_painter_renderer.dart';
+import 'widgets/card_stats_summary.dart';
+import 'widgets/card_pokemon_mosaic.dart';
 
 /// Customizable Living Dex Completion Card widget supporting 4 stats-focused design styles
 /// and 3 aspect ratios (16:9 Landscape, 1:1 Square, 9:16 Story/Portrait).
@@ -42,7 +45,17 @@ class DexCompletionCard extends StatelessWidget {
             DexCardStyle.analyst => _buildAnalystCard(context, isEn, scale),
             DexCardStyle.certificate =>
               _buildCertificateCard(context, isEn, scale),
-            DexCardStyle.mosaic => _buildMosaicCard(context, isEn, scale),
+            DexCardStyle.mosaic => CardPokemonMosaic(
+                dex: dex,
+                stats: stats,
+                config: config,
+                entries: entries,
+                scale: scale,
+                isEn: isEn,
+                boxDetails: _calculateBoxDetails(),
+                boxColors: _evaluateBoxes().map((b) => b.color).toList(),
+                missingCount: math.max(0, stats.totalCount - stats.caughtCount),
+              ),
             DexCardStyle.minimalist =>
               _buildMinimalistCard(context, isEn, scale),
           };
@@ -101,11 +114,15 @@ class DexCompletionCard extends StatelessWidget {
 
                   // Middle Stats Content (Adapts to Ratio)
                   Expanded(
-                    child: config.ratio == DexCardRatio.portrait9_16
-                        ? _buildAnalystPortraitBody(
-                            isEn, is100, gaps, boxDetails, specialStats, scale)
-                        : _buildAnalystLandscapeBody(
-                            isEn, is100, gaps, boxDetails, specialStats, scale),
+                    child: CardStatsSummary(
+                      stats: stats,
+                      config: config,
+                      specialStats: specialStats,
+                      boxDetails: boxDetails,
+                      gaps: gaps,
+                      isEn: isEn,
+                      scale: scale,
+                    ),
                   ),
 
                   // Footer
@@ -263,759 +280,6 @@ class DexCompletionCard extends StatelessWidget {
           ],
         ),
       ],
-    );
-  }
-
-  Widget _buildAnalystLandscapeBody(
-    bool isEn,
-    bool is100,
-    int gaps,
-    _BoxDetails boxDetails,
-    _SpecialStats specialStats,
-    double scale,
-  ) {
-    final formStats = _getFormVariantStats();
-    final allGens = stats.generationStats;
-    final effectiveGens = config.showOnlyStartedGenerations
-        ? allGens.where((g) => g.caught > 0).toList()
-        : allGens;
-    final hasGenerations =
-        config.showGenerations && effectiveGens.isNotEmpty;
-    final hasVariants = config.showVariants && formStats.isNotEmpty;
-    final hasKpi = config.showSpecialCollections || config.showBoxStats;
-
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        // Left: Circular Progress Gauge Card
-        Expanded(
-          flex: 4,
-          child: _buildCircularGaugeCard(isEn, is100, gaps, scale),
-        ),
-        SizedBox(width: 16 * scale + 4),
-
-        // Right: KPI Grid + Sub-progress bars + Types
-        Expanded(
-          flex: 7,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // KPI Cards Row (Shinies, Alphas, Ribbons, Boxes) - Well-proportioned Height
-              if (hasKpi) ...[
-                SizedBox(
-                  height: 84 * scale + 18,
-                  child: _buildKpiRow(isEn, boxDetails, specialStats, scale),
-                ),
-                SizedBox(height: 12 * scale + 2),
-              ],
-
-              // Generations & Variants Breakdown Section - Expanded to fill remaining vertical space
-              if (hasGenerations && hasVariants)
-                Expanded(
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Expanded(
-                        flex: 6,
-                        child: _buildGenerationsCard(scale),
-                      ),
-                      SizedBox(width: 8 * scale + 2),
-                      Expanded(
-                        flex: 5,
-                        child: _buildVariantsCard(scale),
-                      ),
-                    ],
-                  ),
-                )
-              else if (hasGenerations)
-                Expanded(
-                  child: _buildGenerationsCard(scale),
-                )
-              else if (hasVariants)
-                Expanded(
-                  child: _buildVariantsCard(scale),
-                )
-              else
-                const Spacer(),
-
-              // Type Coverage Pills
-              if (config.showTypes && stats.typeStats.isNotEmpty) ...[
-                SizedBox(height: 8 * scale + 2),
-                _buildTypeCoverageRow(isEn, scale),
-              ],
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildAnalystPortraitBody(
-    bool isEn,
-    bool is100,
-    int gaps,
-    _BoxDetails boxDetails,
-    _SpecialStats specialStats,
-    double scale,
-  ) {
-    final formStats = _getFormVariantStats();
-    final allGens = stats.generationStats;
-    final effectiveGens = config.showOnlyStartedGenerations
-        ? allGens.where((g) => g.caught > 0).toList()
-        : allGens;
-    final hasKpi = config.showSpecialCollections || config.showBoxStats;
-
-    return SingleChildScrollView(
-      physics: const ClampingScrollPhysics(),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          // Circular Gauge Card
-          SizedBox(
-            height: 160 * scale + 60,
-            child: _buildCircularGaugeCard(isEn, is100, gaps, scale),
-          ),
-          SizedBox(height: 12 * scale),
-
-          // KPI Cards Row
-          if (hasKpi) ...[
-            SizedBox(
-              height: 70 * scale + 20,
-              child: _buildKpiRow(isEn, boxDetails, specialStats, scale),
-            ),
-            SizedBox(height: 12 * scale),
-          ],
-
-          // Generations Breakdown
-          if (config.showGenerations && effectiveGens.isNotEmpty) ...[
-            _buildGenerationsCard(scale),
-            SizedBox(height: 12 * scale),
-          ],
-
-          // Variants Breakdown
-          if (config.showVariants && formStats.isNotEmpty) ...[
-            _buildVariantsCard(scale),
-            SizedBox(height: 12 * scale),
-          ],
-
-          // Type Coverage Pills
-          if (config.showTypes && stats.typeStats.isNotEmpty)
-            _buildTypeCoverageRow(isEn, scale),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildCircularGaugeCard(
-    bool isEn,
-    bool is100,
-    int gaps,
-    double scale,
-  ) {
-    return Container(
-      padding: EdgeInsets.all(16.0 * scale + 4),
-      decoration: BoxDecoration(
-        color: const Color(0xFF0F172A).withValues(alpha: 0.65),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
-        borderRadius: BorderRadius.circular(16 * scale + 2),
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Flexible(
-            child: AspectRatio(
-              aspectRatio: 1.0,
-              child: CustomPaint(
-                painter: _CircularGaugePainter(
-                  percentage: stats.percentage,
-                  strokeWidth: 10.0 * scale + 2,
-                  trackColor: Colors.white.withValues(alpha: 0.08),
-                  progressColor: is100
-                      ? const Color(0xFF10B981)
-                      : const Color(0xFF3B82F6),
-                ),
-                child: Center(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        '${stats.percentage.toStringAsFixed(stats.percentage == 100.0 ? 0 : 1)}%',
-                        style: TextStyle(
-                          fontSize: 24.0 * scale + 4,
-                          fontWeight: FontWeight.w900,
-                          color: Colors.white,
-                          fontFeatures: const [FontFeature.tabularFigures()],
-                        ),
-                      ),
-                      Text(
-                        is100
-                            ? (isEn ? 'COMPLETE' : 'KOMPLETT')
-                            : (isEn ? 'PROGRESS' : 'FORTSCHRITT'),
-                        style: TextStyle(
-                          fontSize: 8.0 * scale + 2,
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: 0.8,
-                          color: is100
-                              ? const Color(0xFF10B981)
-                              : const Color(0xFF60A5FA),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ),
-          SizedBox(height: 10 * scale + 2),
-          Text(
-            '${stats.caughtCount} / ${stats.totalCount} ${isEn ? 'Caught' : 'Gefangen'}',
-            style: TextStyle(
-              fontSize: 13.0 * scale + 2,
-              fontWeight: FontWeight.w700,
-              color: const Color(0xFFE2E8F0),
-            ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-          SizedBox(height: 2 * scale),
-          Text(
-            '$gaps ${isEn ? 'gaps remaining' : 'Lücken verbleibend'}',
-            style: TextStyle(
-              fontSize: 9.5 * scale + 1.5,
-              color: const Color(0xFF94A3B8),
-            ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildKpiRow(
-    bool isEn,
-    _BoxDetails boxDetails,
-    _SpecialStats specialStats,
-    double scale,
-  ) {
-    final tiles = <Widget>[];
-
-    if (config.showSpecialCollections) {
-      final shinyPct = stats.totalCount > 0
-          ? (stats.shinyCount / stats.totalCount * 100).toStringAsFixed(1)
-          : '0.0';
-      final alphaPct = stats.totalCount > 0
-          ? (stats.alphaCount / stats.totalCount * 100).toStringAsFixed(1)
-          : '0.0';
-
-      tiles.add(
-        Expanded(
-          child: _buildMetricTile(
-            emoji: '✨',
-            title: isEn ? 'Shinies' : 'Shinies',
-            value: '${stats.shinyCount}',
-            subtitle: '$shinyPct% ${isEn ? 'of dex' : 'des Dex'}',
-            scale: scale,
-          ),
-        ),
-      );
-
-      tiles.add(
-        Expanded(
-          child: _buildMetricTile(
-            emoji: '🔥',
-            title: isEn ? 'Alphas' : 'Alphas',
-            value: '${stats.alphaCount}',
-            subtitle: '$alphaPct% ${isEn ? 'of dex' : 'des Dex'}',
-            scale: scale,
-          ),
-        ),
-      );
-
-      if (specialStats.ribbons > 0) {
-        tiles.add(
-          Expanded(
-            child: _buildMetricTile(
-              emoji: '🎀',
-              title: isEn ? 'Ribbons' : 'Bänder',
-              value: '${specialStats.ribbons}',
-              subtitle: isEn ? 'Awarded' : 'Gesammelt',
-              scale: scale,
-            ),
-          ),
-        );
-      }
-
-      if (specialStats.teraTypes > 0) {
-        tiles.add(
-          Expanded(
-            child: _buildMetricTile(
-              emoji: '💎',
-              title: isEn ? 'Tera Types' : 'Tera-Typen',
-              value: '${specialStats.teraTypes}',
-              subtitle: isEn ? 'Mastered' : 'Gemeistert',
-              scale: scale,
-            ),
-          ),
-        );
-      }
-
-      if (specialStats.languages > 0) {
-        tiles.add(
-          Expanded(
-            child: _buildMetricTile(
-              emoji: '🌐',
-              title: isEn ? 'Languages' : 'Sprachen',
-              value: '${specialStats.languages}',
-              subtitle: isEn ? 'Collected' : 'Gesammelt',
-              scale: scale,
-            ),
-          ),
-        );
-      }
-    }
-
-    if (config.showBoxStats) {
-      final String boxSubtitle = boxDetails.partialBoxes > 0
-          ? '${boxDetails.fullBoxes} ${isEn ? "full" : "voll"} • ${boxDetails.partialBoxes} ${isEn ? "part." : "teilw."} • ${boxDetails.gapsRemaining} ${isEn ? "gaps" : "Lücken"}'
-          : '${boxDetails.fullBoxes} ${isEn ? "full" : "voll"} • ${boxDetails.gapsRemaining} ${isEn ? "gaps" : "Lücken"}';
-
-      tiles.add(
-        Expanded(
-          child: _buildMetricTile(
-            emoji: '📦',
-            title: isEn ? 'Boxes' : 'PC-Boxen',
-            value: '${boxDetails.totalBoxes}',
-            subtitle: boxSubtitle,
-            scale: scale,
-          ),
-        ),
-      );
-    }
-
-    if (tiles.isEmpty) {
-      return const SizedBox.shrink();
-    }
-
-    final children = <Widget>[];
-    for (int i = 0; i < tiles.length; i++) {
-      if (i > 0) {
-        children.add(SizedBox(width: 8 * scale + 2));
-      }
-      children.add(tiles[i]);
-    }
-
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: children,
-    );
-  }
-
-  Widget _buildMetricTile({
-    required String emoji,
-    required String title,
-    required String value,
-    required String subtitle,
-    required double scale,
-  }) {
-    return Container(
-      padding: EdgeInsets.symmetric(
-        horizontal: 10 * scale + 2,
-        vertical: 8 * scale + 2,
-      ),
-      decoration: BoxDecoration(
-        color: const Color(0xFF0F172A).withValues(alpha: 0.6),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
-        borderRadius: BorderRadius.circular(12 * scale),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Row(
-            children: [
-              Text(emoji, style: TextStyle(fontSize: 10 * scale + 2)),
-              SizedBox(width: 4 * scale),
-              Flexible(
-                child: Text(
-                  title,
-                  maxLines: 1,
-                  style: TextStyle(
-                    fontSize: 9.5 * scale + 1.5,
-                    fontWeight: FontWeight.w600,
-                    color: const Color(0xFF94A3B8),
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            ],
-          ),
-          SizedBox(height: 2 * scale),
-          FittedBox(
-            fit: BoxFit.scaleDown,
-            alignment: Alignment.centerLeft,
-            child: Text(
-              value,
-              maxLines: 1,
-              style: TextStyle(
-                fontSize: 17.0 * scale + 3,
-                fontWeight: FontWeight.w800,
-                color: Colors.white,
-                fontFeatures: const [FontFeature.tabularFigures()],
-              ),
-            ),
-          ),
-          Text(
-            subtitle,
-            maxLines: 1,
-            style: TextStyle(
-              fontSize: 8.5 * scale + 1,
-              color: const Color(0xFF64748B),
-              fontWeight: FontWeight.w500,
-            ),
-            overflow: TextOverflow.ellipsis,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildGenerationsCard(double scale, {int? maxItems}) {
-    final allGens = stats.generationStats;
-    final filteredGens = config.showOnlyStartedGenerations
-        ? allGens.where((g) => g.caught > 0).toList()
-        : allGens;
-    final displayGens =
-        maxItems != null ? filteredGens.take(maxItems).toList() : filteredGens;
-
-    if (displayGens.isEmpty) return const SizedBox.shrink();
-
-    return Container(
-      padding: EdgeInsets.all(12 * scale + 2),
-      decoration: BoxDecoration(
-        color: const Color(0xFF0F172A).withValues(alpha: 0.6),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
-        borderRadius: BorderRadius.circular(12 * scale),
-      ),
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          final isBounded = constraints.hasBoundedHeight;
-          final titleWidget = Text(
-            t.dex_progress_generations.toUpperCase(),
-            style: TextStyle(
-              fontSize: 9.0 * scale + 1.5,
-              fontWeight: FontWeight.w700,
-              color: const Color(0xFF94A3B8),
-              letterSpacing: 0.5,
-            ),
-          );
-
-          // When container height is bounded and we have 4+ generations, distribute
-          // the generation rows harmoniously using spaceBetween to eliminate the dark empty void.
-          final minHeightNeeded = (displayGens.length * 16.0 + 36.0) * scale;
-          final shouldSpace = isBounded &&
-              constraints.maxHeight >= minHeightNeeded &&
-              displayGens.length >= 4;
-
-          if (shouldSpace) {
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                titleWidget,
-                SizedBox(height: 6 * scale),
-                Expanded(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: displayGens
-                        .map((gen) =>
-                            _buildGenerationRow(gen, scale, isSpaced: true))
-                        .toList(),
-                  ),
-                ),
-              ],
-            );
-          }
-
-          return Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              titleWidget,
-              SizedBox(height: 6 * scale),
-              ...displayGens.map((gen) => _buildGenerationRow(gen, scale)),
-            ],
-          );
-        },
-      ),
-    );
-  }
-
-  Widget _buildGenerationRow(
-    ProgressItem gen,
-    double scale, {
-    bool compact = false,
-    bool isSpaced = false,
-  }) {
-    final pct = gen.total > 0 ? (gen.caught / gen.total) : 0.0;
-    return Padding(
-      padding: EdgeInsets.symmetric(
-        vertical: isSpaced ? 0.0 : ((compact ? 3.5 : 5.0) * scale),
-      ),
-      child: Row(
-        children: [
-          SizedBox(
-            width: (compact ? 96 : 120) * scale,
-            child: FittedBox(
-              fit: BoxFit.scaleDown,
-              alignment: Alignment.centerLeft,
-              child: Text(
-                gen.name,
-                maxLines: 1,
-                softWrap: false,
-                style: TextStyle(
-                  fontSize: (compact ? 9.0 : 10.0) * scale + 1.5,
-                  fontWeight: FontWeight.w600,
-                  color: const Color(0xFFCBD5E1),
-                ),
-              ),
-            ),
-          ),
-          SizedBox(width: 6 * scale),
-          Expanded(
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(99),
-              child: LinearProgressIndicator(
-                value: pct.clamp(0.0, 1.0),
-                minHeight: (compact ? 6 : 7) * scale + 1,
-                backgroundColor: Colors.white.withValues(alpha: 0.08),
-                valueColor: AlwaysStoppedAnimation<Color>(
-                  gen.color ?? const Color(0xFF10B981),
-                ),
-              ),
-            ),
-          ),
-          SizedBox(width: 6 * scale),
-          ConstrainedBox(
-            constraints:
-                BoxConstraints(minWidth: (compact ? 62 : 78) * scale),
-            child: FittedBox(
-              fit: BoxFit.scaleDown,
-              alignment: Alignment.centerRight,
-              child: Text(
-                '${gen.caught}/${gen.total}',
-                maxLines: 1,
-                softWrap: false,
-                style: TextStyle(
-                  fontSize: (compact ? 8.5 : 9.5) * scale + 1.5,
-                  fontWeight: FontWeight.w700,
-                  color: const Color(0xFF94A3B8),
-                  fontFeatures: const [FontFeature.tabularFigures()],
-                ),
-                textAlign: TextAlign.right,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildVariantsCard(double scale, {int? maxItems}) {
-    final formStats = _getFormVariantStats();
-    if (formStats.isEmpty) return const SizedBox.shrink();
-
-    final displayForms =
-        maxItems != null ? formStats.take(maxItems).toList() : formStats;
-
-    return Container(
-      padding: EdgeInsets.all(12 * scale + 2),
-      decoration: BoxDecoration(
-        color: const Color(0xFF0F172A).withValues(alpha: 0.6),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
-        borderRadius: BorderRadius.circular(12 * scale),
-      ),
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          final useTwoColumns =
-              displayForms.length > 4 && constraints.maxWidth >= 400 * scale;
-
-          return Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                t.dex_progress_forms.toUpperCase(),
-                style: TextStyle(
-                  fontSize: 9.0 * scale + 1.5,
-                  fontWeight: FontWeight.w700,
-                  color: const Color(0xFF94A3B8),
-                  letterSpacing: 0.5,
-                ),
-              ),
-              SizedBox(height: 6 * scale),
-              if (useTwoColumns) ...[
-                Builder(
-                  builder: (context) {
-                    final half = (displayForms.length + 1) ~/ 2;
-                    final left = displayForms.take(half).toList();
-                    final right = displayForms.skip(half).toList();
-
-                    return Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: left
-                                .map((v) => _buildVariantRow(v, scale,
-                                    compact: true))
-                                .toList(),
-                          ),
-                        ),
-                        SizedBox(width: 10 * scale + 2),
-                        Expanded(
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: right
-                                .map((v) => _buildVariantRow(v, scale,
-                                    compact: true))
-                                .toList(),
-                          ),
-                        ),
-                      ],
-                    );
-                  },
-                ),
-              ] else ...[
-                if (constraints.hasBoundedHeight &&
-                    displayForms.length >= 3 &&
-                    constraints.maxHeight >=
-                        (displayForms.length * 16.0 + 36.0) * scale)
-                  Expanded(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: displayForms
-                          .map((v) =>
-                              _buildVariantRow(v, scale, isSpaced: true))
-                          .toList(),
-                    ),
-                  )
-                else
-                  ...displayForms.map((v) => _buildVariantRow(v, scale)),
-              ],
-            ],
-          );
-        },
-      ),
-    );
-  }
-
-  Widget _buildVariantRow(
-    ProgressItem v,
-    double scale, {
-    bool compact = false,
-    bool isSpaced = false,
-  }) {
-    final pct = v.total > 0 ? (v.caught / v.total) : 0.0;
-    return Padding(
-      padding: EdgeInsets.symmetric(
-        vertical: isSpaced ? 0.0 : ((compact ? 3.5 : 5.0) * scale),
-      ),
-      child: Row(
-        children: [
-          SizedBox(
-            width: (compact ? 112 : 140) * scale,
-            child: FittedBox(
-              fit: BoxFit.scaleDown,
-              alignment: Alignment.centerLeft,
-              child: Text(
-                v.name,
-                maxLines: 1,
-                softWrap: false,
-                style: TextStyle(
-                  fontSize: (compact ? 9.0 : 10.0) * scale + 1.5,
-                  fontWeight: FontWeight.w600,
-                  color: const Color(0xFFCBD5E1),
-                ),
-              ),
-            ),
-          ),
-          SizedBox(width: 6 * scale),
-          Expanded(
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(99),
-              child: LinearProgressIndicator(
-                value: pct.clamp(0.0, 1.0),
-                minHeight: (compact ? 6 : 7) * scale + 1,
-                backgroundColor: Colors.white.withValues(alpha: 0.08),
-                valueColor: AlwaysStoppedAnimation<Color>(
-                  v.color ?? const Color(0xFF9333EA),
-                ),
-              ),
-            ),
-          ),
-          SizedBox(width: 6 * scale),
-          ConstrainedBox(
-            constraints:
-                BoxConstraints(minWidth: (compact ? 62 : 78) * scale),
-            child: FittedBox(
-              fit: BoxFit.scaleDown,
-              alignment: Alignment.centerRight,
-              child: Text(
-                '${v.caught}/${v.total}',
-                maxLines: 1,
-                softWrap: false,
-                style: TextStyle(
-                  fontSize: (compact ? 8.5 : 9.5) * scale + 1.5,
-                  fontWeight: FontWeight.w700,
-                  color: const Color(0xFF94A3B8),
-                  fontFeatures: const [FontFeature.tabularFigures()],
-                ),
-                textAlign: TextAlign.right,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  List<ProgressItem> _getFormVariantStats() {
-    return stats.variantStats
-        .where((v) => v.key != 'shiny' && v.key != 'alpha')
-        .toList();
-  }
-
-  Widget _buildTypeCoverageRow(bool isEn, double scale) {
-    final displayTypes = stats.typeStats.take(config.typeDisplayLimit).toList();
-
-    return Wrap(
-      spacing: 6 * scale + 1,
-      runSpacing: 4 * scale + 1,
-      children: displayTypes.map((type) {
-        final color = type.color ?? const Color(0xFF6390F0);
-        final isBright =
-            ThemeData.estimateBrightnessForColor(color) == Brightness.light;
-
-        return Container(
-          padding: EdgeInsets.symmetric(
-            horizontal: 6 * scale + 2,
-            vertical: 2.5 * scale + 1,
-          ),
-          decoration: BoxDecoration(
-            color: color,
-            borderRadius: BorderRadius.circular(6 * scale),
-          ),
-          child: Text(
-            '${type.name}: ${type.caught}/${type.total}',
-            style: TextStyle(
-              fontSize: 8.5 * scale + 1,
-              fontWeight: FontWeight.w700,
-              color: isBright ? Colors.black : Colors.white,
-            ),
-          ),
-        );
-      }).toList(),
     );
   }
 
@@ -1364,276 +628,6 @@ class DexCompletionCard extends StatelessWidget {
   }
 
   // ---------------------------------------------------------------------------
-  // DESIGN 3: LIVING DEX MOSAIC (Visual Grid / Heatmap)
-  // ---------------------------------------------------------------------------
-  Widget _buildMosaicCard(BuildContext context, bool isEn, double scale) {
-    final isBoxesMode = config.mosaicMode == DexMosaicMode.boxes;
-    final boxDetails = _calculateBoxDetails();
-    final missingCount = math.max(0, stats.totalCount - stats.caughtCount);
-
-    return Container(
-      color: const Color(0xFF0F172A),
-      padding: EdgeInsets.all(22.0 * scale + 6),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          // Header Row
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      (isBoxesMode
-                              ? 'Living Dex Box Grid'
-                              : 'Living Dex Visual Grid')
-                          .toUpperCase(),
-                      style: TextStyle(
-                        fontSize: 9.5 * scale + 1.5,
-                        fontWeight: FontWeight.w700,
-                        color: const Color(0xFF38BDF8),
-                        letterSpacing: 0.5,
-                      ),
-                    ),
-                    SizedBox(height: 2 * scale),
-                    Text(
-                      '${dex.title.isNotEmpty ? dex.title : "Living Dex"} ${isBoxesMode ? (isEn ? "Box Mosaic" : "Boxen-Mosaik") : (isEn ? "Mosaic" : "Kachel-Mosaik")}',
-                      style: TextStyle(
-                        fontSize: 19.0 * scale + 3,
-                        fontWeight: FontWeight.w800,
-                        color: Colors.white,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    if (config.customTrainerNote != null &&
-                        config.customTrainerNote!.trim().isNotEmpty) ...[
-                      SizedBox(height: 2 * scale),
-                      Text(
-                        config.customTrainerNote!.trim(),
-                        style: TextStyle(
-                          fontSize: 10.5 * scale + 1.5,
-                          fontWeight: FontWeight.w600,
-                          color: const Color(0xFF38BDF8),
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-              // Legend
-              if (isBoxesMode)
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    _buildLegendItem(
-                      const Color(0xFF10B981),
-                      '${isEn ? "Full Boxes" : "Volle Boxen"} (${boxDetails.fullBoxes})',
-                      scale,
-                    ),
-                    SizedBox(width: 10 * scale),
-                    _buildLegendItem(
-                      const Color(0xFF38BDF8),
-                      '${isEn ? "Partial" : "Angefangene"} (${boxDetails.partialBoxes})',
-                      scale,
-                    ),
-                    SizedBox(width: 10 * scale),
-                    _buildLegendItem(
-                      const Color(0xFF1E293B),
-                      '${isEn ? "Empty" : "Leere"} (${boxDetails.emptyBoxes})',
-                      scale,
-                    ),
-                  ],
-                )
-              else
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    _buildLegendItem(
-                      const Color(0xFF10B981),
-                      '${isEn ? "Caught" : "Gefangen"} (${stats.caughtCount})',
-                      scale,
-                    ),
-                    if (config.showSpecialCollections) ...[
-                      SizedBox(width: 10 * scale),
-                      _buildLegendItem(
-                        const Color(0xFFF59E0B),
-                        'Shiny (${stats.shinyCount})',
-                        scale,
-                      ),
-                      if (stats.alphaCount > 0) ...[
-                        SizedBox(width: 10 * scale),
-                        _buildLegendItem(
-                          const Color(0xFFEF4444),
-                          'Alpha (${stats.alphaCount})',
-                          scale,
-                        ),
-                      ],
-                    ],
-                    if (missingCount > 0) ...[
-                      SizedBox(width: 10 * scale),
-                      _buildLegendItem(
-                        const Color(0xFF1E293B),
-                        '${isEn ? "Missing" : "Fehlend"} ($missingCount)',
-                        scale,
-                      ),
-                    ],
-                  ],
-                ),
-            ],
-          ),
-          SizedBox(height: 12 * scale + 4),
-
-          // Center Mosaic Cells Grid
-          Expanded(
-            child: Container(
-              key: const Key('mosaic_grid'),
-              padding: EdgeInsets.all(10 * scale + 2),
-              decoration: BoxDecoration(
-                color: Colors.black.withValues(alpha: 0.3),
-                borderRadius: BorderRadius.circular(12 * scale),
-                border: Border.all(color: const Color(0xFF334155)),
-              ),
-              child: _buildMosaicCells(scale),
-            ),
-          ),
-          SizedBox(height: 10 * scale + 2),
-
-          // Footer
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Flexible(
-                child: Text(
-                  isBoxesMode
-                      ? '${isEn ? "Total:" : "Gesamt:"} ${boxDetails.totalBoxes} ${isEn ? (boxDetails.totalBoxes == 1 ? "Box" : "Boxes") : (boxDetails.totalBoxes == 1 ? "Box" : "Boxen")} (${stats.caughtCount}/${stats.totalCount} Pokémon)${config.showDate ? " • ${_formatDate(config.completionDate, isEn)}" : ""}'
-                      : '${isEn ? "Total:" : "Gesamt:"} ${stats.totalCount} Pokémon${config.showDate ? " • ${_formatDate(config.completionDate, isEn)}" : ""}',
-                  style: TextStyle(
-                    fontSize: 9.5 * scale + 1.5,
-                    color: const Color(0xFF64748B),
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-              if (config.showWatermarkLogo)
-                Text(
-                  'PokéVault Living Dex Tracker',
-                  style: TextStyle(
-                    fontSize: 9.5 * scale + 1.5,
-                    color: const Color(0xFF64748B),
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildMosaicCells(double scale) {
-    final isBoxesMode = config.mosaicMode == DexMosaicMode.boxes;
-
-    if (entries.isEmpty && !isBoxesMode) {
-      return Center(
-        child: Text(
-          '0 Pokémon',
-          style: TextStyle(
-            color: const Color(0xFF64748B),
-            fontSize: 12 * scale + 2,
-          ),
-        ),
-      );
-    }
-
-    List<Color> itemColors;
-    if (isBoxesMode) {
-      itemColors = _calculateMosaicBoxColors();
-      if (itemColors.isEmpty) {
-        return Center(
-          child: Text(
-            '0 Boxen',
-            style: TextStyle(
-              color: const Color(0xFF64748B),
-              fontSize: 12 * scale + 2,
-            ),
-          ),
-        );
-      }
-    } else {
-      itemColors = entries.map<Color>((entry) {
-        final isCaught = DexLogicHelper.isPokemonCaught(dex, entry.uniqueId);
-        if (!isCaught) {
-          return const Color(0xFF1E293B);
-        }
-        if (config.showSpecialCollections) {
-          final isShiny = DexLogicHelper.isPokemonShiny(dex, entry.uniqueId);
-          if (isShiny) {
-            return const Color(0xFFF59E0B);
-          }
-          final isAlpha = DexLogicHelper.isPokemonAlpha(dex, entry.uniqueId);
-          if (isAlpha) {
-            return const Color(0xFFEF4444);
-          }
-        }
-        return const Color(0xFF10B981);
-      }).toList();
-    }
-
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        if (constraints.maxWidth <= 0 || constraints.maxHeight <= 0) {
-          return const SizedBox.shrink();
-        }
-        return CustomPaint(
-          size: Size(constraints.maxWidth, constraints.maxHeight),
-          painter: _MosaicHeatmapPainter(
-            itemColors: itemColors,
-            scale: scale,
-          ),
-        );
-      },
-    );
-  }
-
-  List<Color> _calculateMosaicBoxColors() {
-    return _evaluateBoxes().map((b) => b.color).toList();
-  }
-
-  Widget _buildLegendItem(Color color, String label, double scale) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Container(
-          width: 8 * scale + 2,
-          height: 8 * scale + 2,
-          decoration: BoxDecoration(
-            color: color,
-            borderRadius: BorderRadius.circular(2),
-            border: color == const Color(0xFF1E293B)
-                ? Border.all(color: const Color(0xFF334155))
-                : null,
-          ),
-        ),
-        SizedBox(width: 4 * scale),
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 9.0 * scale + 1.5,
-            color: const Color(0xFFCBD5E1),
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-      ],
-    );
-  }
-
-  // ---------------------------------------------------------------------------
   // DESIGN 4: MINIMALIST GLASS (Kompakt & Modern)
   // ---------------------------------------------------------------------------
   Widget _buildMinimalistCard(BuildContext context, bool isEn, double scale) {
@@ -1911,7 +905,7 @@ class DexCompletionCard extends StatelessWidget {
     );
   }
 
-  List<_BoxItemStatus> _evaluateBoxes() {
+  List<CardBoxItemStatus> _evaluateBoxes() {
     if (dex.customBoxes.isNotEmpty) {
       return dex.customBoxes.map((box) {
         final validIds = box.pokemonIds
@@ -1929,7 +923,7 @@ class DexCompletionCard extends StatelessWidget {
         final color = isFull
             ? const Color(0xFF10B981)
             : (isPartial ? const Color(0xFF38BDF8) : const Color(0xFF1E293B));
-        return _BoxItemStatus(
+        return CardBoxItemStatus(
           caught: caught,
           capacity: capacity,
           color: color,
@@ -1947,12 +941,12 @@ class DexCompletionCard extends StatelessWidget {
     if (totalBoxes == 0) return const [];
 
     if (entries.isNotEmpty) {
-      final result = <_BoxItemStatus>[];
+      final result = <CardBoxItemStatus>[];
       for (int b = 0; b < totalBoxes; b++) {
         final start = b * 30;
         final end = math.min(start + 30, entries.length);
         if (start >= entries.length) {
-          result.add(const _BoxItemStatus(
+          result.add(const CardBoxItemStatus(
             caught: 0,
             capacity: 30,
             color: Color(0xFF1E293B),
@@ -1973,7 +967,7 @@ class DexCompletionCard extends StatelessWidget {
         final color = isFull
             ? const Color(0xFF10B981)
             : (isPartial ? const Color(0xFF38BDF8) : const Color(0xFF1E293B));
-        result.add(_BoxItemStatus(
+        result.add(CardBoxItemStatus(
           caught: caught,
           capacity: capacity,
           color: color,
@@ -1988,7 +982,7 @@ class DexCompletionCard extends StatelessWidget {
       if (stats.caughtCount >= stats.totalCount && stats.totalCount > 0) {
         return List.generate(
           totalBoxes,
-          (_) => const _BoxItemStatus(
+          (_) => const CardBoxItemStatus(
             caught: 30,
             capacity: 30,
             color: Color(0xFF10B981),
@@ -2003,9 +997,9 @@ class DexCompletionCard extends StatelessWidget {
       final partialCount = remainder > 0 ? 1 : 0;
       final emptyCount = math.max(0, totalBoxes - fullCount - partialCount);
 
-      final result = <_BoxItemStatus>[];
+      final result = <CardBoxItemStatus>[];
       for (int i = 0; i < fullCount; i++) {
-        result.add(const _BoxItemStatus(
+        result.add(const CardBoxItemStatus(
           caught: 30,
           capacity: 30,
           color: Color(0xFF10B981),
@@ -2015,7 +1009,7 @@ class DexCompletionCard extends StatelessWidget {
         ));
       }
       if (partialCount > 0) {
-        result.add(_BoxItemStatus(
+        result.add(CardBoxItemStatus(
           caught: remainder,
           capacity: 30,
           color: const Color(0xFF38BDF8),
@@ -2025,7 +1019,7 @@ class DexCompletionCard extends StatelessWidget {
         ));
       }
       for (int i = 0; i < emptyCount; i++) {
-        result.add(const _BoxItemStatus(
+        result.add(const CardBoxItemStatus(
           caught: 0,
           capacity: 30,
           color: Color(0xFF1E293B),
@@ -2038,13 +1032,13 @@ class DexCompletionCard extends StatelessWidget {
     }
   }
 
-  _BoxDetails _calculateBoxDetails() {
+  CardBoxDetails _calculateBoxDetails() {
     final boxes = _evaluateBoxes();
     final full = boxes.where((b) => b.isFull).length;
     final partial = boxes.where((b) => b.isPartial).length;
     final empty = boxes.where((b) => b.isEmpty).length;
     final gaps = math.max(0, stats.totalCount - stats.caughtCount);
-    return _BoxDetails(
+    return CardBoxDetails(
       totalBoxes: boxes.length,
       fullBoxes: full,
       partialBoxes: partial,
@@ -2053,7 +1047,7 @@ class DexCompletionCard extends StatelessWidget {
     );
   }
 
-  _SpecialStats _calculateSpecialStats() {
+  CardSpecialStats _calculateSpecialStats() {
     final totalRibbons = dex.caughtRibbons.values.fold<int>(
       0,
       (sum, list) => sum + list.length,
@@ -2067,7 +1061,7 @@ class DexCompletionCard extends StatelessWidget {
       (sum, list) => sum + list.length,
     );
 
-    return _SpecialStats(
+    return CardSpecialStats(
       shinies: stats.shinyCount,
       alphas: stats.alphaCount,
       ribbons: totalRibbons > 0 ? totalRibbons : dex.caughtRibbons.length,
@@ -2110,199 +1104,5 @@ class DexCompletionCard extends StatelessWidget {
     return isEn
         ? '$month ${date.day}, ${date.year}'
         : '${date.day}. $month ${date.year}';
-  }
-}
-
-class _BoxItemStatus {
-  final int caught;
-  final int capacity;
-  final Color color;
-  final bool isFull;
-  final bool isPartial;
-  final bool isEmpty;
-
-  const _BoxItemStatus({
-    required this.caught,
-    required this.capacity,
-    required this.color,
-    required this.isFull,
-    required this.isPartial,
-    required this.isEmpty,
-  });
-}
-
-class _BoxDetails {
-  final int totalBoxes;
-  final int fullBoxes;
-  final int partialBoxes;
-  final int emptyBoxes;
-  final int gapsRemaining;
-
-  const _BoxDetails({
-    required this.totalBoxes,
-    required this.fullBoxes,
-    required this.partialBoxes,
-    required this.emptyBoxes,
-    required this.gapsRemaining,
-  });
-}
-
-class _SpecialStats {
-  final int shinies;
-  final int alphas;
-  final int ribbons;
-  final int teraTypes;
-  final int languages;
-
-  const _SpecialStats({
-    required this.shinies,
-    required this.alphas,
-    required this.ribbons,
-    required this.teraTypes,
-    required this.languages,
-  });
-}
-
-/// Custom painter for drawing smooth circular progress gauges without raster artifacts.
-class _CircularGaugePainter extends CustomPainter {
-  final double percentage;
-  final double strokeWidth;
-  final Color trackColor;
-  final Color progressColor;
-
-  _CircularGaugePainter({
-    required this.percentage,
-    required this.strokeWidth,
-    required this.trackColor,
-    required this.progressColor,
-  });
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final center = Offset(size.width / 2, size.height / 2);
-    final radius = (size.width - strokeWidth) / 2;
-
-    // Track circle
-    final trackPaint = Paint()
-      ..color = trackColor
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = strokeWidth;
-
-    canvas.drawCircle(center, radius, trackPaint);
-
-    // Progress arc
-    if (percentage > 0) {
-      final progressPaint = Paint()
-        ..color = progressColor
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = strokeWidth
-        ..strokeCap = StrokeCap.round;
-
-      const startAngle = -math.pi / 2;
-      final sweepAngle = (percentage.clamp(0.0, 100.0) / 100.0) * 2 * math.pi;
-
-      canvas.drawArc(
-        Rect.fromCircle(center: center, radius: radius),
-        startAngle,
-        sweepAngle,
-        false,
-        progressPaint,
-      );
-    }
-  }
-
-  @override
-  bool shouldRepaint(_CircularGaugePainter oldDelegate) {
-    return oldDelegate.percentage != percentage ||
-        oldDelegate.strokeWidth != strokeWidth ||
-        oldDelegate.trackColor != trackColor ||
-        oldDelegate.progressColor != progressColor;
-  }
-}
-
-/// Custom painter for rendering the entire Living Dex as an adaptive visual grid heatmap.
-/// Mathematically guarantees that ALL entries fit into the canvas without clipping or truncation.
-class _MosaicHeatmapPainter extends CustomPainter {
-  final List<Color> itemColors;
-  final double scale;
-
-  _MosaicHeatmapPainter({
-    required this.itemColors,
-    required this.scale,
-  });
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final int n = itemColors.length;
-    if (n == 0 || size.width <= 0 || size.height <= 0) return;
-
-    final double w = size.width;
-    final double h = size.height;
-    final double a = w / h;
-
-    final int bestC = (math.sqrt(n * a)).round().clamp(1, n);
-    double bestCellSize = -1.0;
-    int optimalC = bestC;
-    int optimalR = (n / bestC).ceil();
-    double optimalGap = 1.0;
-
-    for (int testC = math.max(1, bestC - 5);
-        testC <= math.min(n, bestC + 5);
-        testC++) {
-      final testR = (n / testC).ceil();
-      final idealGap = math.min(
-          2.5 * scale, math.min((w / testC) * 0.15, (h / testR) * 0.15));
-      final testGap = math.max(0.0, idealGap);
-      final cellW = (w - (testC - 1) * testGap) / testC;
-      final cellH = (h - (testR - 1) * testGap) / testR;
-      final s = math.min(cellW, cellH);
-      if (s > bestCellSize) {
-        bestCellSize = s;
-        optimalC = testC;
-        optimalR = testR;
-        optimalGap = testGap;
-      }
-    }
-
-    if (bestCellSize <= 0) return;
-
-    final double gridW = optimalC * bestCellSize + (optimalC - 1) * optimalGap;
-    final double gridH = optimalR * bestCellSize + (optimalR - 1) * optimalGap;
-    final double startX = (w - gridW) / 2;
-    final double startY = (h - gridH) / 2;
-
-    final double cornerRadius = (bestCellSize * 0.2).clamp(0.5, 4.0 * scale);
-    final Radius r = Radius.circular(cornerRadius);
-
-    final paint = Paint()..style = PaintingStyle.fill;
-
-    for (int i = 0; i < n; i++) {
-      final col = i % optimalC;
-      final row = i ~/ optimalC;
-      final x = startX + col * (bestCellSize + optimalGap);
-      final y = startY + row * (bestCellSize + optimalGap);
-      final rect = Rect.fromLTWH(x, y, bestCellSize, bestCellSize);
-
-      paint.color = itemColors[i];
-      if (bestCellSize >= 6.0 && cornerRadius >= 1.0) {
-        canvas.drawRRect(RRect.fromRectAndRadius(rect, r), paint);
-      } else {
-        canvas.drawRect(rect, paint);
-      }
-    }
-  }
-
-  @override
-  bool shouldRepaint(_MosaicHeatmapPainter oldDelegate) {
-    if (oldDelegate.scale != scale ||
-        oldDelegate.itemColors.length != itemColors.length) {
-      return true;
-    }
-    for (int i = 0; i < itemColors.length; i++) {
-      if (oldDelegate.itemColors[i] != itemColors[i]) {
-        return true;
-      }
-    }
-    return false;
   }
 }

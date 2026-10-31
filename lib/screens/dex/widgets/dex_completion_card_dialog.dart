@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 
 import '../../../models/dex_card_models.dart';
 import '../../../models/dex_progress_models.dart';
@@ -16,6 +15,9 @@ import '../../../utils/dex_progress_helper.dart';
 import '../../../widgets/dex_card/dex_completion_card.dart';
 import '../../../i18n/strings.g.dart';
 import '../pokemon_search_selection.dart';
+import 'completion_card/completion_card_actions_bar.dart';
+import 'completion_card/completion_card_appearance_section.dart';
+import 'completion_card/completion_card_toggles_section.dart';
 
 /// Modal dialog for live customizing, previewing, and exporting Living Dex Completion Cards.
 class DexCompletionCardDialog extends StatefulWidget {
@@ -424,64 +426,16 @@ class _DexCompletionCardDialogState extends State<DexCompletionCardDialog> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        // 1. Design Style Tabs
-        _buildSectionHeader(
-          icon: Icons.palette_outlined,
-          title: isEn ? 'Design Style' : 'Design-Stil',
-        ),
-        const SizedBox(height: 8),
-        _buildStyleSelector(),
-        if (_config.style == DexCardStyle.mosaic) ...[
-          const SizedBox(height: 12),
-          _buildSectionHeader(
-            icon: Icons.grid_view_rounded,
-            title: isEn ? 'Mosaic Mode' : 'Mosaik-Modus',
-          ),
-          const SizedBox(height: 8),
-          _buildMosaicModeSelector(isEn),
-        ],
-        const SizedBox(height: 18),
-
-        // 2. Aspect Ratio Selector
-        _buildSectionHeader(
-          icon: Icons.aspect_ratio,
-          title: isEn ? 'Aspect Ratio' : 'Format',
-        ),
-        const SizedBox(height: 8),
-        _buildRatioSelector(),
-        const SizedBox(height: 18),
-
-        // 3. Watermark Pokémon Selector
-        _buildSectionHeader(
-          icon: Icons.image_outlined,
-          title: t.dex_card_watermark,
-        ),
-        const SizedBox(height: 8),
-        _buildWatermarkPicker(context, entries, isEn),
-        const SizedBox(height: 18),
-
-        // 4. Watermark Opacity Slider
-        _buildSectionHeader(
-          icon: Icons.opacity,
-          title:
-              '${t.dex_card_opacity}: ${(_config.watermarkOpacity * 100).round()}%',
-        ),
-        Slider(
-          value: _config.watermarkOpacity,
-          min: 0.0,
-          max: 0.5,
-          divisions: 50,
-          label: '${(_config.watermarkOpacity * 100).round()}%',
-          onChanged: _config.watermarkPokemon == null
-              ? null
-              : (val) {
-                  setState(() {
-                    _config = _config.copyWith(watermarkOpacity: val);
-                  });
-                },
+        // 1-4. Appearance Section (Styles, Ratios, Watermark, Opacity)
+        CompletionCardAppearanceSection(
+          config: _config,
+          isEn: isEn,
+          allPokemon: entries.map((e) => e.pokemon).toList(),
+          onConfigChanged: (newConfig) => setState(() => _config = newConfig),
+          onWatermarkPokemonChanged: (_) {},
+          onPickWatermarkPressed: () => _openWatermarkSearch(context, entries, isEn),
         ),
         const SizedBox(height: 18),
-
         // 5. Custom Trainer Note / Tag
         _buildSectionHeader(
           icon: Icons.badge_outlined,
@@ -533,146 +487,12 @@ class _DexCompletionCardDialogState extends State<DexCompletionCardDialog> {
         const SizedBox(height: 18),
 
         // 6. Living Dex Elements Toggles
-        _buildSectionHeader(
-          icon: Icons.checklist_rtl_outlined,
-          title: isEn
-              ? 'Living Dex Card Elements'
-              : 'Karten-Inhalte anpassen',
-        ),
-        const SizedBox(height: 8),
-        _buildToggleTile(
-          key: const Key('toggle_generations'),
-          title: isEn ? 'Generation Breakdown' : 'Generationen-Abdeckung',
-          subtitle: isEn
-              ? 'Shows Gen 1-9 progression bars'
-              : 'Zeigt Fortschrittsbalken pro Region/Gen',
-          icon: Icons.auto_graph,
-          value: _config.showGenerations,
-          onChanged: (val) =>
-              setState(() => _config = _config.copyWith(showGenerations: val)),
-        ),
-        if (_config.showGenerations)
-          Padding(
-            padding: const EdgeInsets.only(left: 16.0),
-            child: _buildToggleTile(
-              key: const Key('toggle_only_started_generations'),
-              title: t.dex_card_only_started_gens,
-              subtitle: t.dex_card_only_started_gens_sub,
-              icon: Icons.filter_alt_outlined,
-              value: _config.showOnlyStartedGenerations,
-              onChanged: (val) => setState(() => _config =
-                  _config.copyWith(showOnlyStartedGenerations: val)),
-            ),
-          ),
-        _buildToggleTile(
-          key: const Key('toggle_variants'),
-          title: isEn ? 'Variants & Forms' : 'Formen & Varianten',
-          subtitle: isEn
-              ? 'Megas, Gigantamax, Regional forms'
-              : 'Megas, Gigadynamax, Regional-Formen',
-          icon: Icons.category_outlined,
-          value: _config.showVariants,
-          onChanged: (val) =>
-              setState(() => _config = _config.copyWith(showVariants: val)),
-        ),
-        _buildToggleTile(
-          key: const Key('toggle_types'),
-          title: isEn ? 'Type Coverage' : 'Typen-Abdeckung',
-          subtitle: isEn
-              ? 'Shows element type badges'
-              : 'Zeigt Element-Typen Badges',
-          icon: Icons.bubble_chart_outlined,
-          value: _config.showTypes,
-          onChanged: (val) =>
-              setState(() => _config = _config.copyWith(showTypes: val)),
-        ),
-        if (_config.showTypes)
-          Padding(
-            padding: const EdgeInsets.only(left: 16.0, top: 4.0, bottom: 8.0),
-            child: _buildTypeDisplayLimitSelector(isEn),
-          ),
-        _buildToggleTile(
-          key: const Key('toggle_special_collections'),
-          title: isEn ? 'Special Collections' : 'Spezial-Sammlungen',
-          subtitle: isEn
-              ? 'Shinies, Alphas, Ribbons, Tera'
-              : 'Shinies, Alpha-Riesen, Bänder, Tera',
-          icon: Icons.stars_outlined,
-          value: _config.showSpecialCollections,
-          onChanged: (val) => setState(
-              () => _config = _config.copyWith(showSpecialCollections: val)),
-        ),
-        _buildToggleTile(
-          key: const Key('toggle_box_stats'),
-          title: isEn ? 'Box Statistics' : 'PC-Boxen Statistik',
-          subtitle: isEn
-              ? 'Full boxes, gaps remaining'
-              : 'Volle Boxen, verbleibende Lücken',
-          icon: Icons.inventory_2_outlined,
-          value: _config.showBoxStats,
-          onChanged: (val) =>
-              setState(() => _config = _config.copyWith(showBoxStats: val)),
-        ),
-        _buildToggleTile(
-          key: const Key('toggle_date'),
-          title: isEn ? 'Completion Date' : 'Datum & Zeitstempel',
-          subtitle: isEn
-              ? 'Display date on card'
-              : 'Datum auf der Karte anzeigen',
-          icon: Icons.calendar_today_outlined,
-          value: _config.showDate,
-          onChanged: (val) =>
-              setState(() => _config = _config.copyWith(showDate: val)),
-        ),
-        _buildToggleTile(
-          key: const Key('toggle_watermark_logo'),
-          title: isEn ? 'PokéVault Branding' : 'PokéVault-Wasserzeichen',
-          subtitle: isEn
-              ? 'Display PokéVault logo watermark'
-              : 'PokéVault Logo & Branding einblenden',
-          icon: Icons.verified_outlined,
-          value: _config.showWatermarkLogo,
-          onChanged: (val) => setState(
-              () => _config = _config.copyWith(showWatermarkLogo: val)),
+        CompletionCardTogglesSection(
+          config: _config,
+          onConfigChanged: (newConfig) => setState(() => _config = newConfig),
+          isEn: isEn,
         ),
       ],
-    );
-  }
-
-  Widget _buildToggleTile({
-    required Key key,
-    required String title,
-    required String subtitle,
-    required bool value,
-    required ValueChanged<bool> onChanged,
-    required IconData icon,
-  }) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 6),
-      child: Material(
-        color: Colors.black.withValues(alpha: 0.1),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10),
-          side: BorderSide(color: Colors.white.withValues(alpha: 0.05)),
-        ),
-        child: SwitchListTile(
-          key: key,
-          dense: true,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 0),
-          secondary: Icon(icon, size: 18, color: const Color(0xFF818CF8)),
-          title: Text(
-            title,
-            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
-          ),
-          subtitle: Text(
-            subtitle,
-            style: const TextStyle(fontSize: 10, color: Colors.grey),
-          ),
-          value: value,
-          activeThumbColor: const Color(0xFF6366F1),
-          onChanged: onChanged,
-        ),
-      ),
     );
   }
 
@@ -693,270 +513,6 @@ class _DexCompletionCardDialogState extends State<DexCompletionCardDialog> {
           ),
         ),
       ],
-    );
-  }
-
-  Widget _buildStyleSelector() {
-    return Wrap(
-      spacing: 6,
-      runSpacing: 6,
-      children: [
-        _buildStyleChip(
-          key: const Key('tab_analyst'),
-          style: DexCardStyle.analyst,
-          label: '1. The Analyst 📊',
-        ),
-        _buildStyleChip(
-          key: const Key('tab_certificate'),
-          style: DexCardStyle.certificate,
-          label: '2. Zertifikat 🏆',
-        ),
-        _buildStyleChip(
-          key: const Key('tab_mosaic'),
-          style: DexCardStyle.mosaic,
-          label: '3. Mosaik 🧩',
-        ),
-        _buildStyleChip(
-          key: const Key('tab_minimalist'),
-          style: DexCardStyle.minimalist,
-          label: '4. Minimalist ✨',
-        ),
-      ],
-    );
-  }
-
-  Widget _buildStyleChip({
-    required Key key,
-    required DexCardStyle style,
-    required String label,
-  }) {
-    final isSelected = _config.style == style;
-    return ChoiceChip(
-      key: key,
-      label: Text(label),
-      selected: isSelected,
-      selectedColor: const Color(0xFF6366F1).withValues(alpha: 0.25),
-      labelStyle: TextStyle(
-        fontSize: 11,
-        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-        color: isSelected ? const Color(0xFFA5B4FC) : null,
-      ),
-      onSelected: (selected) {
-        if (selected) {
-          setState(() {
-            _config = _config.copyWith(style: style);
-          });
-        }
-      },
-    );
-  }
-
-  Widget _buildMosaicModeSelector(bool isEn) {
-    return SegmentedButton<DexMosaicMode>(
-      key: const Key('segment_mosaic_mode'),
-      segments: [
-        ButtonSegment<DexMosaicMode>(
-          value: DexMosaicMode.pokemon,
-          label: Text(
-            isEn
-                ? DexMosaicMode.pokemon.labelEn
-                : DexMosaicMode.pokemon.labelDe,
-            style: const TextStyle(fontSize: 11),
-          ),
-          icon: const Icon(Icons.catching_pokemon, size: 16),
-        ),
-        ButtonSegment<DexMosaicMode>(
-          value: DexMosaicMode.boxes,
-          label: Text(
-            isEn
-                ? DexMosaicMode.boxes.labelEn
-                : DexMosaicMode.boxes.labelDe,
-            style: const TextStyle(fontSize: 11),
-          ),
-          icon: const Icon(Icons.inventory_2_outlined, size: 16),
-        ),
-      ],
-      selected: {_config.mosaicMode},
-      onSelectionChanged: (newSelection) {
-        if (newSelection.isNotEmpty) {
-          setState(() {
-            _config = _config.copyWith(mosaicMode: newSelection.first);
-          });
-        }
-      },
-    );
-  }
-
-  Widget _buildRatioSelector() {
-    return SegmentedButton<DexCardRatio>(
-      segments: [
-        ButtonSegment(
-          value: DexCardRatio.landscape16_9,
-          label: Text(DexCardRatio.landscape16_9.labelDe, style: const TextStyle(fontSize: 11)),
-          icon: const Icon(Icons.crop_16_9, size: 16),
-        ),
-        ButtonSegment(
-          value: DexCardRatio.square1_1,
-          label: Text(DexCardRatio.square1_1.labelDe, style: const TextStyle(fontSize: 11)),
-          icon: const Icon(Icons.crop_square, size: 16),
-        ),
-        ButtonSegment(
-          value: DexCardRatio.portrait9_16,
-          label: Text(DexCardRatio.portrait9_16.labelDe, style: const TextStyle(fontSize: 11)),
-          icon: const Icon(Icons.crop_portrait, size: 16),
-        ),
-      ],
-      selected: {_config.ratio},
-      onSelectionChanged: (newSelection) {
-        if (newSelection.isNotEmpty) {
-          setState(() {
-            _config = _config.copyWith(ratio: newSelection.first);
-          });
-        }
-      },
-    );
-  }
-
-  Widget _buildTypeDisplayLimitSelector(bool isEn) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          t.dex_card_type_limit,
-          style: const TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.w600,
-            color: Color(0xFF94A3B8),
-          ),
-        ),
-        const SizedBox(height: 6),
-        SegmentedButton<int>(
-          key: const Key('segment_type_display_limit'),
-          showSelectedIcon: false,
-          segments: [
-            ButtonSegment<int>(
-              value: 6,
-              label: Text(
-                t.dex_card_types_top6,
-                style: const TextStyle(fontSize: 11),
-              ),
-            ),
-            ButtonSegment<int>(
-              value: 12,
-              label: Text(
-                t.dex_card_types_top12,
-                style: const TextStyle(fontSize: 11),
-              ),
-            ),
-            ButtonSegment<int>(
-              value: 18,
-              label: Text(
-                t.dex_card_types_all18,
-                style: const TextStyle(fontSize: 11),
-              ),
-            ),
-          ],
-          selected: {
-            if (const {6, 12, 18}.contains(_config.typeDisplayLimit))
-              _config.typeDisplayLimit
-            else
-              18
-          },
-          onSelectionChanged: (newSelection) {
-            if (newSelection.isNotEmpty) {
-              setState(() {
-                _config =
-                    _config.copyWith(typeDisplayLimit: newSelection.first);
-              });
-            }
-          },
-        ),
-      ],
-    );
-  }
-
-  Widget _buildWatermarkPicker(
-    BuildContext context,
-    List<DexDisplayEntry> entries,
-    bool isEn,
-  ) {
-    final wm = _config.watermarkPokemon;
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        color: Colors.black.withValues(alpha: 0.15),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Row(
-        children: [
-          // Current Selection Icon / Sprite
-          if (wm != null)
-            ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: Container(
-                width: 36,
-                height: 36,
-                color: Colors.black.withValues(alpha: 0.25),
-                child: CachedNetworkImage(
-                  imageUrl: wm.imageUrl,
-                  fit: BoxFit.contain,
-                  errorWidget: (_, _, _) => const Icon(Icons.catching_pokemon),
-                ),
-              ),
-            )
-          else
-            Container(
-              width: 36,
-              height: 36,
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.05),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: const Icon(Icons.block, size: 20, color: Colors.grey),
-            ),
-          const SizedBox(width: 10),
-
-          // Name / Status Text
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  wm != null
-                      ? '#${wm.pokemonId.toString().padLeft(3, '0')} ${wm.name}'
-                      : t.dex_card_no_pokemon,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                Text(
-                  wm != null
-                      ? (wm.isShiny ? '✨ Shiny' : 'Standard')
-                      : t.no_watermark_sub,
-                  style: const TextStyle(fontSize: 10, color: Colors.grey),
-                ),
-              ],
-            ),
-          ),
-
-          // Change / Select Button
-          TextButton.icon(
-            key: const Key('btn_pick_watermark'),
-            icon: const Icon(Icons.search, size: 16),
-            label: Text(
-              isEn ? 'Search' : 'Suchen',
-              style: const TextStyle(fontSize: 12),
-            ),
-            onPressed: () => _openWatermarkSearch(context, entries, isEn),
-          ),
-        ],
-      ),
     );
   }
 
@@ -1080,108 +636,54 @@ class _DexCompletionCardDialogState extends State<DexCompletionCardDialog> {
     bool isEn,
     String lang,
   ) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1B222E) : Colors.grey.shade100,
-        border: Border(top: BorderSide(color: borderColor)),
-        borderRadius: const BorderRadius.vertical(bottom: Radius.circular(20)),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.end,
-        children: [
-          // 1. Text kopieren
-          OutlinedButton.icon(
-            key: const Key('btn_copy_text'),
-            icon: const Icon(Icons.copy, size: 16),
-            label: Text(
-              t.dex_card_copy_text,
-              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
-            ),
-            onPressed: () {
-              final shareText = DexCardExportService.generateShareText(
-                widget.liveDex,
-                stats,
-                language: lang,
-              );
-              DexCardExportService.copyToClipboard(shareText);
-            },
-          ),
-          const SizedBox(width: 8),
-
-          // 2. Teilen (WhatsApp, Twitter/X, Discord)
-          OutlinedButton.icon(
-            key: const Key('btn_share'),
-            icon: const Icon(Icons.share, size: 16),
-            label: Text(
-              t.dex_card_share,
-              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
-            ),
-            onPressed: _isExporting
-                ? null
-                : () async {
-                    setState(() => _isExporting = true);
-                    final pngBytes = await DexCardExportService.capturePng(
-                      _cardRepaintKey,
-                    );
-                    if (pngBytes != null && mounted) {
-                      final shareText = DexCardExportService.generateShareText(
-                        widget.liveDex,
-                        stats,
-                        language: lang,
-                      );
-                      await DexCardExportService.sharePng(
-                        pngBytes,
-                        dexTitle: widget.liveDex.title,
-                        shareText: shareText,
-                      );
-                    }
-                    if (mounted) setState(() => _isExporting = false);
-                  },
-          ),
-          const SizedBox(width: 8),
-
-          // 3. Als PNG speichern (Download)
-          ElevatedButton.icon(
-            key: const Key('btn_save_png'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF10B981),
-              foregroundColor: Colors.white,
-            ),
-            icon: _isExporting
-                ? const SizedBox(
-                    width: 14,
-                    height: 14,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: Colors.white,
-                    ),
-                  )
-                : const Icon(Icons.download, size: 16),
-            label: Text(
-              t.dex_card_save_png,
-              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
-            ),
-            onPressed: _isExporting
-                ? null
-                : () async {
-                    setState(() => _isExporting = true);
-                    final pngBytes = await DexCardExportService.capturePng(
-                      _cardRepaintKey,
-                    );
-                    if (pngBytes != null && mounted) {
-                      await DexCardExportService.savePngToDisk(
-                        pngBytes,
-                        dexTitle: widget.liveDex.title,
-                      );
-                    }
-                    if (mounted) setState(() => _isExporting = false);
-                  },
-          ),
-        ],
-      ),
+    return CompletionCardActionsBar(
+      isExporting: _isExporting,
+      isDark: isDark,
+      borderColor: borderColor,
+      onCopyText: () {
+        final shareText = DexCardExportService.generateShareText(
+          widget.liveDex,
+          stats,
+          language: lang,
+        );
+        DexCardExportService.copyToClipboard(shareText);
+      },
+      onShare: () async {
+        setState(() => _isExporting = true);
+        final pngBytes = await DexCardExportService.capturePng(
+          _cardRepaintKey,
+        );
+        if (pngBytes != null && mounted) {
+          final shareText = DexCardExportService.generateShareText(
+            widget.liveDex,
+            stats,
+            language: lang,
+          );
+          await DexCardExportService.sharePng(
+            pngBytes,
+            dexTitle: widget.liveDex.title,
+            shareText: shareText,
+          );
+        }
+        if (mounted) setState(() => _isExporting = false);
+      },
+      onSavePng: () async {
+        setState(() => _isExporting = true);
+        final pngBytes = await DexCardExportService.capturePng(
+          _cardRepaintKey,
+        );
+        if (pngBytes != null && mounted) {
+          await DexCardExportService.savePngToDisk(
+            pngBytes,
+            dexTitle: widget.liveDex.title,
+          );
+        }
+        if (mounted) setState(() => _isExporting = false);
+      },
     );
   }
+
+
 }
 
 /// Interactive Fullscreen Lightbox for previewing Living Dex completion cards

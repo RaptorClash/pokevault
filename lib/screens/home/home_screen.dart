@@ -13,13 +13,10 @@ import '../../models/tutorial_step.dart';
 import '../../widgets/tutorial/tutorial_overlay.dart';
 import '../../widgets/tutorial/rotom_update_welcome_dialog.dart';
 import '../dex/dex_screen.dart';
-import '../dex/widgets/dex_completion_card_dialog.dart';
 import '../settings/settings_screen.dart';
 import '../../utils/update_helper.dart';
 import '../../widgets/dialogs/update_dialog.dart';
 import '../../utils/notification_helper.dart';
-import '../../utils/dex_logic_helper.dart';
-import 'edit_dex_dialog.dart';
 import 'create_dex_bottom_sheet.dart';
 import 'widgets/home_dialogs.dart';
 import 'widgets/home_ui_components.dart';
@@ -27,6 +24,7 @@ import '../../services/google_drive_sync_service.dart';
 import '../../services/database_service.dart';
 import '../../providers/settings_provider.dart';
 import 'widgets/breadcrumb_bar.dart';
+import 'widgets/home_dex_tree_view.dart';
 import 'package:flutter/services.dart';
 import '../moves/moves_dex_screen.dart';
 import '../abilities/abilities_dex_screen.dart';
@@ -554,60 +552,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void _clearSelection() => setState(() => _selectedItemIds.clear());
 
-  bool _folderHasMatch(DexProvider provider, String folderId, String query) {
-    final children = provider.structure[folderId] ?? [];
-    for (var child in children) {
-      if (child.startsWith('folder_')) {
-        final f = provider.folders.where((x) => x.id == child).firstOrNull;
-        if (f != null && f.title.toLowerCase().contains(query)) return true;
-        if (_folderHasMatch(provider, child, query)) return true;
-      } else {
-        final d = provider.userDexes.where((x) => x.id == child).firstOrNull;
-        if (d != null) {
-          String regionName = (t['region_${d.region}'] ?? d.region).toLowerCase();
-          if (d.title.toLowerCase().contains(query) ||
-              regionName.contains(query)) {
-            return true;
-          }
-        }
-      }
-    }
-    return false;
-  }
-
-  List<dynamic> _getSortedItems(DexProvider provider, String folderId) {
-    final itemIds = provider.structure[folderId] ?? [];
-    List<dynamic> items = [];
-
-    for (var id in itemIds) {
-      if (id.startsWith('folder_')) {
-        final f = provider.folders.where((x) => x.id == id).firstOrNull;
-        if (f != null) items.add(f);
-      } else {
-        final d = provider.userDexes.where((x) => x.id == id).firstOrNull;
-        if (d != null) items.add(d);
-      }
-    }
-
-    if (_currentSort != 'manual') {
-      items.sort((a, b) {
-        if (a is DexFolder && b is UserDex) return -1;
-        if (a is UserDex && b is DexFolder) return 1;
-        if (a is UserDex && b is UserDex) {
-          if (_currentSort == 'az') return a.title.compareTo(b.title);
-          if (_currentSort == 'caught') {
-            return DexLogicHelper.getCaughtCount(b).compareTo(DexLogicHelper.getCaughtCount(a));
-          }
-          if (_currentSort == 'region') return a.region.compareTo(b.region);
-        }
-        if (a is DexFolder && b is DexFolder) return a.title.compareTo(b.title);
-        return 0;
-      });
-    }
-
-    return items;
-  }
-
   List<BreadcrumbItem> _getBreadcrumbs(DexProvider provider) {
     List<BreadcrumbItem> path = [];
     String current = _currentFolderId;
@@ -620,141 +564,6 @@ class _HomeScreenState extends State<HomeScreen> {
       current = HomeDialogs.getParentId(provider, current);
     }
     return path;
-  }
-
-  List<Widget> _buildTree(
-    DexProvider provider,
-    String parentId,
-    bool isRootLevel,
-  ) {
-    final items = _getSortedItems(provider, parentId);
-    List<Widget> widgets = [];
-    final q = _searchQuery.toLowerCase();
-
-    for (int index = 0; index < items.length; index++) {
-      final item = items[index];
-
-      if (item is DexFolder) {
-        bool matchesSearch = item.title.toLowerCase().contains(q);
-        bool hasMatchInChildren = _folderHasMatch(provider, item.id, q);
-
-        if (q.isNotEmpty && !matchesSearch && !hasMatchInChildren) continue;
-
-        bool isSelected = isRootLevel && _selectedItemIds.contains(item.id);
-
-        widgets.add(
-          FolderCard(
-            key: ValueKey(item.id),
-            folder: item,
-            isRootLevel: isRootLevel,
-            index: index,
-            isSelected: isSelected,
-            isSelectionMode: _isSelectionMode,
-            initiallyExpanded:
-                !_isSelectionMode && q.isNotEmpty && hasMatchInChildren,
-            showDragIndicator:
-                isRootLevel &&
-                _currentSort == 'manual' &&
-                q.isEmpty &&
-                !_isSelectionMode,
-            onTap: (_isSelectionMode && isRootLevel)
-                ? () {
-                    setState(() {
-                      isSelected
-                          ? _selectedItemIds.remove(item.id)
-                          : _selectedItemIds.add(item.id);
-                    });
-                  }
-                : null,
-            onLongPress: isRootLevel
-                ? () => setState(() => _selectedItemIds.add(item.id))
-                : () {},
-            onOpenFolder: () {
-              setState(() {
-                _currentFolderId = item.id;
-                _searchQuery = '';
-              });
-            },
-            onRename: () =>
-                HomeDialogs.showRenameFolderDialog(context, provider, item),
-            onMove: () => HomeDialogs.showMoveDialog(context, provider, {
-              item.id,
-            }, _clearSelection),
-            onDelete: () =>
-                HomeDialogs.confirmDeleteFolder(context, provider, item),
-            childrenWidgets: _buildTree(provider, item.id, false),
-          ),
-        );
-      } else if (item is UserDex) {
-        String regionName = (t['region_${item.region}'] ?? item.region);
-        bool matchesSearch =
-            item.title.toLowerCase().contains(q) ||
-            regionName.toLowerCase().contains(q);
-
-        if (q.isNotEmpty && !matchesSearch) continue;
-
-        bool isSelected = isRootLevel && _selectedItemIds.contains(item.id);
-
-        if (!_dexKeys.containsKey(item.id)) {
-          _dexKeys[item.id] = GlobalKey();
-        }
-
-        widgets.add(
-          DexCard(
-            key: ValueKey(item.id),
-            tutorialTargetKey: _dexKeys[item.id],
-            dex: item,
-            regionName: regionName,
-            isRootLevel: isRootLevel,
-            index: index,
-            isSelected: isSelected,
-            isSelectionMode: _isSelectionMode,
-            showDragIndicator:
-                isRootLevel &&
-                _currentSort == 'manual' &&
-                q.isEmpty &&
-                !_isSelectionMode,
-            onTap: () {
-              if (_isSelectionMode) {
-                if (isRootLevel) {
-                  setState(() {
-                    isSelected
-                        ? _selectedItemIds.remove(item.id)
-                        : _selectedItemIds.add(item.id);
-                  });
-                }
-                return;
-              }
-              final tutProvider = Provider.of<TutorialProvider>(
-                context,
-                listen: false,
-              );
-              if (!tutProvider.hasSeenFeature('open_dex')) {
-                tutProvider.markFeatureAsSeen('open_dex');
-              }
-              _openDex(item);
-            },
-            onLongPress: isRootLevel
-                ? () => setState(() => _selectedItemIds.add(item.id))
-                : () {},
-            onEdit: () {
-              showDialog(
-                context: context,
-                builder: (_) => EditDexDialog(provider: provider, dex: item),
-              );
-            },
-            onMove: () => HomeDialogs.showMoveDialog(context, provider, {
-              item.id,
-            }, _clearSelection),
-            onDelete: () =>
-                HomeDialogs.confirmDeleteDex(context, provider, item),
-            onShareCard: () =>
-                DexCompletionCardDialog.show(context, liveDex: item),
-          ),
-        );
-      }
-    }
-    return widgets;
   }
 
   @override
@@ -1092,72 +901,31 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
               Expanded(
-                child: _getSortedItems(provider, _currentFolderId).isEmpty
-                    ? Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.catching_pokemon,
-                              size: 64,
-                              color: Theme.of(context).dividerColor,
-                            ),
-                            const SizedBox(height: 16),
-                            Text(
-                              _searchQuery.isEmpty
-                                  ? t.no_dex
-                                  : 'Keine Ergebnisse gefunden',
-                              style: TextStyle(
-                                color: Theme.of(context).hintColor,
-                                fontSize: 16,
-                              ),
-                            ),
-                          ],
-                        ),
-                      )
-                    : _currentSort == 'manual' &&
-                          _searchQuery.isEmpty &&
-                          !_isSelectionMode
-                    ? ReorderableListView(
-                        buildDefaultDragHandles: false,
-                        padding: const EdgeInsets.only(
-                          bottom: 80,
-                          left: 16,
-                          right: 16,
-                        ),
-                        onReorderItem: (oldIndex, newIndex) {
-                          final items = _getSortedItems(provider, _currentFolderId);
-                          if (oldIndex < 0 ||
-                              oldIndex >= items.length ||
-                              newIndex < 0 ||
-                              newIndex >= items.length) {
-                            return;
-                          }
-                          final oldItem = items[oldIndex];
-                          final newItem = items[newIndex];
-                          final list = provider.structure[_currentFolderId];
-                          if (list != null) {
-                            final realOld = list.indexOf(oldItem.id);
-                            final realNew = list.indexOf(newItem.id);
-                            if (realOld != -1 && realNew != -1) {
-                              provider.reorderItem(
-                                _currentFolderId,
-                                realOld,
-                                realNew,
-                              );
-                            }
-                          }
-                        },
-                        children: _buildTree(provider, _currentFolderId, true),
-                      )
-                    : ListView(
-                        padding: const EdgeInsets.only(
-                          bottom: 80,
-                          left: 16,
-                          right: 16,
-                        ),
-                        children: _buildTree(provider, _currentFolderId, true),
-                      ),
+                child: HomeDexTreeView(
+                  currentFolderId: _currentFolderId,
+                  searchQuery: _searchQuery,
+                  currentSort: _currentSort,
+                  selectedItemIds: _selectedItemIds,
+                  dexKeys: _dexKeys,
+                  onOpenDex: _openDex,
+                  onOpenFolder: (folder) {
+                    setState(() {
+                      _currentFolderId = folder.id;
+                      _searchQuery = '';
+                    });
+                  },
+                  onToggleSelect: (id) {
+                    setState(() {
+                      if (_selectedItemIds.contains(id)) {
+                        _selectedItemIds.remove(id);
+                      } else {
+                        _selectedItemIds.add(id);
+                      }
+                    });
+                  },
+                  onClearSelection: _clearSelection,
+                  onCreateDexPressed: _openCreateBottomSheet,
+                ),
               ),
             ],
           ),
