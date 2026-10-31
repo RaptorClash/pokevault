@@ -16,6 +16,8 @@ import 'dialogs/create_edit_hunt_dialog.dart';
 import 'dialogs/record_phase_dialog.dart';
 import 'dialogs/shiny_catch_dialog.dart';
 import 'dialogs/shiny_hunt_timeline_dialog.dart';
+import 'widgets/hunt_odds_card.dart';
+import 'widgets/hunt_counter_controls.dart';
 
 class ShinyHuntCounterScreen extends StatefulWidget {
   final String huntId;
@@ -163,17 +165,6 @@ class _ShinyHuntCounterScreenState extends State<ShinyHuntCounterScreen> {
         }
       }
     }
-  }
-
-  String _formatTime(int totalSeconds) {
-    final hours = totalSeconds ~/ 3600;
-    final minutes = (totalSeconds % 3600) ~/ 60;
-    final seconds = totalSeconds % 60;
-
-    if (hours > 0) {
-      return '${hours.toString().padLeft(2, '0')}:${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
-    }
-    return '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
   }
 
   double _calculatePacePerHour(int encounters, int totalSeconds) {
@@ -821,17 +812,6 @@ class _ShinyHuntCounterScreenState extends State<ShinyHuntCounterScreen> {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
-    final pProb = ShinyHuntOddsHelper.calculateEffectiveProbability(hunt);
-    final qProb = ShinyHuntOddsHelper.calculateEffectiveComplementProbability(hunt);
-    final ratio = ShinyHuntOddsHelper.calculateOddsRatio(
-      hunt.currentPhaseRolls,
-      hunt.baseOdds,
-    );
-    final classification = ShinyHuntOddsHelper.getClassification(
-      hunt.currentPhaseRolls,
-      hunt.baseOdds,
-    );
-
     final pace = _calculatePacePerHour(hunt.totalEncounters, hunt.totalTimeSeconds);
 
     return KeyboardListener(
@@ -921,98 +901,16 @@ class _ShinyHuntCounterScreenState extends State<ShinyHuntCounterScreen> {
           child: Column(
             children: [
               // 1. Wahrscheinlichkeits-Cockpit
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                decoration: BoxDecoration(
-                  color: isDark ? Colors.grey.shade900 : Colors.grey.shade100,
-                  border: Border(
-                    bottom: BorderSide(
-                      color: isDark ? Colors.grey.shade800 : Colors.grey.shade300,
-                    ),
-                  ),
-                ),
-                child: Row(
-                  children: [
-                    // Status Badge
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: classification.color.withValues(alpha: 0.2),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: classification.color, width: 1.5),
-                      ),
-                      child: Text(
-                        classification.label,
-                        style: TextStyle(
-                          color: classification.color,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 12,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            '${(pProb * 100.0).toStringAsFixed(1)}% ${t.shiny_hunt_chance_at_least_one}',
-                            style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
-                          ),
-                          Text(
-                            '${(qProb * 100.0).toStringAsFixed(1)}% ${t.shiny_hunt_chance_none_yet} • ${ratio.toStringAsFixed(2)}x Odds',
-                            style: TextStyle(color: Colors.grey.shade600, fontSize: 11),
-                          ),
-                        ],
-                      ),
-                    ),
-                    // Zeit & Pace
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        if (!hunt.isCompleted) ...[
-                          OutlinedButton.icon(
-                            style: OutlinedButton.styleFrom(
-                              visualDensity: VisualDensity.compact,
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                            ),
-                            icon: Icon(
-                              hunt.isPaused ? Icons.play_arrow_rounded : Icons.pause_rounded,
-                              size: 18,
-                            ),
-                            label: Text(
-                              hunt.isPaused
-                                  ? t.shiny_hunt_resume_hunt_btn
-                                  : t.shiny_hunt_pause_hunt_btn,
-                              style: const TextStyle(fontSize: 12),
-                            ),
-                            onPressed: () {
-                              if (hunt.isPaused) {
-                                huntProvider.resumeHunt(hunt.id);
-                              } else {
-                                huntProvider.pauseHunt(hunt.id);
-                              }
-                            },
-                          ),
-                          const SizedBox(width: 8),
-                        ],
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            Text(
-                              _formatTime(hunt.totalTimeSeconds),
-                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
-                            ),
-                            Text(
-                              '${pace.toStringAsFixed(0)} / h',
-                              style: TextStyle(color: Colors.grey.shade600, fontSize: 11),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
+              HuntOddsCard(
+                hunt: hunt,
+                pace: pace,
+                onTogglePause: () {
+                  if (hunt.isPaused) {
+                    huntProvider.resumeHunt(hunt.id);
+                  } else {
+                    huntProvider.pauseHunt(hunt.id);
+                  }
+                },
               ),
 
               // Kontext-Info Chips
@@ -1201,149 +1099,44 @@ class _ShinyHuntCounterScreenState extends State<ShinyHuntCounterScreen> {
                     ),
                   )
                 else ...[
-                  // Schrittweiten-Leiste
-                  Padding(
-                    key: _buttonsKey,
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-                    child: SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: Builder(
-                        builder: (context) {
-                          final customStepVal = _customStep ?? (![1, 5, 10].contains(hunt.incrementStep) ? hunt.incrementStep : null);
-                          return Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              ...[1, 5, 10].map((step) {
-                                final isSel = hunt.incrementStep == step;
-                                return Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: 4),
-                                  child: ChoiceChip(
-                                    label: Text('+$step'),
-                                    selected: isSel,
-                                    onSelected: (_) {
-                                      huntProvider.setStep(hunt.id, step);
-                                    },
-                                  ),
-                                );
-                              }),
-                              if (customStepVal != null && ![1, 5, 10].contains(customStepVal))
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: 4),
-                                  child: ChoiceChip(
-                                    label: Text('+$customStepVal'),
-                                    selected: hunt.incrementStep == customStepVal,
-                                    onSelected: (_) {
-                                      huntProvider.setStep(hunt.id, customStepVal);
-                                    },
-                                  ),
-                                ),
-                              Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 4),
-                                child: ActionChip(
-                                  avatar: const Icon(Icons.edit, size: 14),
-                                  label: Text(
-                                    t.shiny_hunt_step_custom,
-                                  ),
-                                  onPressed: () => _showCustomStepDialog(hunt),
-                                ),
-                              ),
-                            ],
-                          );
-                        },
-                      ),
-                    ),
-                  ),
-
-                  // Button-Leiste: Minus (-), Phasen-Shiny, Fang, Plus (+)
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-                    child: Row(
-                      children: [
-                        // Minus Button
-                        IconButton.filledTonal(
-                          iconSize: 28,
-                          onPressed: hunt.currentEncounters > 0
-                              ? () {
-                                  huntProvider.decrement(hunt.id);
-                                  _triggerHaptic();
-                                }
-                              : null,
-                          icon: const Icon(Icons.remove),
-                        ),
-                        const SizedBox(width: 8),
-
-                        // Phasen-Shiny & Shiny Gefangen
-                        Expanded(
-                          flex: 3,
-                          child: Container(
-                            key: _phasesActionsKey,
-                            child: Row(
-                              children: [
-                                Expanded(
-                                  child: OutlinedButton.icon(
-                                    style: OutlinedButton.styleFrom(
-                                      padding: const EdgeInsets.symmetric(vertical: 12),
-                                    ),
-                                    onPressed: () {
-                                      showDialog(
-                                        context: context,
-                                        builder: (_) => RecordPhaseDialog(hunt: hunt),
-                                      );
-                                    },
-                                    icon: const Icon(Icons.history_toggle_off, size: 18),
-                                    label: Text(
-                                      t.shiny_hunt_record_phase_btn,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(width: 8),
-                                Expanded(
-                                  flex: 2,
-                                  child: ElevatedButton.icon(
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: Colors.amber.shade700,
-                                      foregroundColor: Colors.white,
-                                      padding: const EdgeInsets.symmetric(vertical: 12),
-                                    ),
-                                    onPressed: () async {
-                                      final caught = await showDialog<bool>(
-                                        context: context,
-                                        builder: (_) => ShinyCatchDialog(hunt: hunt),
-                                      );
-                                      if (caught == true && context.mounted) {
-                                        ScaffoldMessenger.of(context).showSnackBar(
-                                          SnackBar(
-                                            backgroundColor: Colors.amber.shade800,
-                                            content: Text('🎉 Glückwunsch! ${hunt.pokemonName} wurde gefangen und der Hunt beendet!'),
-                                          ),
-                                        );
-                                      }
-                                    },
-                                    icon: const Icon(Icons.auto_awesome),
-                                    label: Text(
-                                      t.shiny_hunt_caught_btn,
-                                      style: const TextStyle(fontWeight: FontWeight.bold),
-                                    ),
-                                  ),
-                                ),
-                              ],
+                  HuntCounterControls(
+                    currentEncounters: hunt.currentEncounters,
+                    incrementStep: hunt.incrementStep,
+                    customStep: _customStep,
+                    buttonsKey: _buttonsKey,
+                    phasesActionsKey: _phasesActionsKey,
+                    onStepSelected: (step) => huntProvider.setStep(hunt.id, step),
+                    onCustomStepPressed: () => _showCustomStepDialog(hunt),
+                    onDecrement: () {
+                      huntProvider.decrement(hunt.id);
+                      _triggerHaptic();
+                    },
+                    onIncrement: () {
+                      huntProvider.increment(hunt.id);
+                      _triggerHaptic();
+                    },
+                    onRecordPhase: () {
+                      showDialog(
+                        context: context,
+                        builder: (_) => RecordPhaseDialog(hunt: hunt),
+                      );
+                    },
+                    onCaught: () async {
+                      final caught = await showDialog<bool>(
+                        context: context,
+                        builder: (_) => ShinyCatchDialog(hunt: hunt),
+                      );
+                      if (caught == true && context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            backgroundColor: Colors.amber.shade800,
+                            content: Text(
+                              '🎉 Glückwunsch! ${hunt.pokemonName} wurde gefangen und der Hunt beendet!',
                             ),
                           ),
-                        ),
-                        const SizedBox(width: 8),
-
-                        // Plus Button
-                        IconButton.filled(
-                          iconSize: 28,
-                          onPressed: () {
-                            huntProvider.increment(hunt.id);
-                            _triggerHaptic();
-                          },
-                          icon: const Icon(Icons.add),
-                        ),
-                      ],
-                    ),
+                        );
+                      }
+                    },
                   ),
                 ],
               ],

@@ -14,6 +14,7 @@ import '../../../widgets/universal_poke_image.dart';
 import '../../../models/tutorial_step.dart';
 import '../../../widgets/tutorial/tutorial_overlay.dart';
 import '../../../providers/tutorial_provider.dart';
+import 'widgets/hunt_game_method_selector.dart';
 
 class CreateEditHuntDialog extends StatefulWidget {
   final ShinyHunt? existingHunt;
@@ -917,91 +918,29 @@ class _CreateEditHuntDialogState extends State<CreateEditHuntDialog> {
                     const SizedBox(height: 12),
                   ],
 
-                  KeyedSubtree(
-                    key: _gameMethodSectionKey,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        // 2. Spiel / Edition & Smart Skip
-                        if (!_showGameSelector) ...[
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                            decoration: BoxDecoration(
-                              color: Colors.blue.withValues(alpha: 0.08),
-                              borderRadius: BorderRadius.circular(8),
-                              border: Border.all(color: Colors.blue.withValues(alpha: 0.3)),
-                            ),
-                            child: Row(
-                              children: [
-                                const Icon(Icons.sports_esports, color: Colors.blueAccent, size: 20),
-                                const SizedBox(width: 8),
-                                Expanded(
-                                  child: Text(
-                                    'Spiel: $_selectedGame (Gen ${_generation.toString().replaceAll('.0', '')})',
-                                    style: const TextStyle(fontWeight: FontWeight.w600),
-                                  ),
-                                ),
-                                TextButton(
-                                  onPressed: () => setState(() => _showGameSelector = true),
-                                  child: const Text('Ändern'),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ] else ...[
-                          DropdownButtonFormField<String>(
-                            isExpanded: true,
-                            key: ValueKey('game-$_selectedGame-$_generation-${_availableGames.length}'),
-                            initialValue: _availableGames.any((g) => g.name == _selectedGame)
-                                ? _selectedGame
-                                : (_availableGames.isNotEmpty ? _availableGames.first.name : null),
-                            decoration: InputDecoration(
-                              labelText: t.shiny_hunt_game,
-                              border: const OutlineInputBorder(),
-                            ),
-                            items: _availableGames.map((g) {
-                              return DropdownMenuItem<String>(
-                                value: g.name,
-                                child: Text(g.label),
-                              );
-                            }).toList(),
-                            onChanged: (val) {
-                              if (val == null) return;
-                              final match = _availableGames.firstWhere((g) => g.name == val);
-                              _onGameChanged(match.name, match.generation);
-                            },
-                          ),
-                        ],
-                        const SizedBox(height: 12),
-
-                        // 3. Methode Dropdown
-                        DropdownButtonFormField<String>(
-                          isExpanded: true,
-                          key: ValueKey('method-$_selectedMethod-${_availablePresets.length}'),
-                          initialValue: _availablePresets.any((p) => p.name == _selectedMethod)
-                              ? _selectedMethod
-                              : (_availablePresets.isNotEmpty ? _availablePresets.first.name : null),
-                          decoration: InputDecoration(
-                            labelText: t.shiny_hunt_method,
-                            border: const OutlineInputBorder(),
-                          ),
-                          items: _availablePresets.map((preset) {
-                            return DropdownMenuItem<String>(
-                              value: preset.name,
-                              child: Text(
-                                preset.name,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            );
-                          }).toList(),
-                          onChanged: (methodName) {
-                            if (methodName == null) return;
-                            final preset = _availablePresets.firstWhere((p) => p.name == methodName);
-                            _onPresetSelected(preset);
-                          },
-                        ),
-                      ],
-                    ),
+                  HuntGameMethodSelector(
+                    sectionKey: _gameMethodSectionKey,
+                    selectedGame: _selectedGame,
+                    generation: _generation,
+                    availableGames: _availableGames.map((g) => g.name).toList(),
+                    gameLabels: {for (final g in _availableGames) g.name: g.label},
+                    showGameSelector: _showGameSelector,
+                    onToggleGameSelector: () => setState(() => _showGameSelector = true),
+                    selectedMethod: _selectedMethod,
+                    availablePresets: _availablePresets,
+                    hasShinyCharm: _hasShinyCharm,
+                    specialNote: specialNote,
+                    onGameChanged: (val) {
+                      if (val == null) return;
+                      final match = _availableGames.firstWhere((g) => g.name == val);
+                      _onGameChanged(match.name, match.generation);
+                    },
+                    onMethodChanged: (methodName) {
+                      if (methodName == null) return;
+                      final preset = _availablePresets.firstWhere((p) => p.name == methodName);
+                      _onPresetSelected(preset);
+                    },
+                    onShinyCharmChanged: _onCharmToggled,
                   ),
                   const SizedBox(height: 12),
 
@@ -1059,42 +998,7 @@ class _CreateEditHuntDialogState extends State<CreateEditHuntDialog> {
                   ),
                   const SizedBox(height: 12),
 
-                  // Schillerpin Schalter (erst ab Gen 5 bzw. BDSP)
-                  if (_generation >= 5.0 || ShinyHuntOddsHelper.isBDSP(_selectedGame)) ...[
-                    SwitchListTile(
-                      contentPadding: EdgeInsets.zero,
-                      title: Text(t.shiny_hunt_has_charm),
-                      secondary: const Icon(Icons.flare, color: Colors.amber),
-                      value: _hasShinyCharm,
-                      onChanged: _onCharmToggled,
-                    ),
-                  ],
 
-                  // Hinweistext (z. B. BDSP Bug)
-                  if (specialNote != null) ...[
-                    Container(
-                      padding: const EdgeInsets.all(10),
-                      margin: const EdgeInsets.only(bottom: 12),
-                      decoration: BoxDecoration(
-                        color: Colors.amber.withValues(alpha: 0.15),
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: Colors.amber),
-                      ),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Icon(Icons.warning_amber_rounded, color: Colors.amber, size: 20),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Text(
-                              specialNote,
-                              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
 
                   // Checkbox Kette vorbereitet (für Kettenmethoden)
                   if (_availablePresets.any((p) => p.name == _selectedMethod && p.isChainMethod)) ...[
