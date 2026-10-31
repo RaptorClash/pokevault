@@ -418,12 +418,27 @@ class DexProvider extends ChangeNotifier with WidgetsBindingObserver {
     final rawBaseNumber = baseId.split('_').first;
     final isSecondary = DexLogicHelper.isSecondaryForm(baseId);
 
+    final isMaleVariant = baseId == '${rawBaseNumber}_m' ||
+        pokemonUniqueId == '${rawBaseNumber}_m' ||
+        baseId == '${rawBaseNumber}_male' ||
+        pokemonUniqueId == '${rawBaseNumber}_male';
+    final isFemaleVariant = baseId == '${rawBaseNumber}_f' ||
+        pokemonUniqueId == '${rawBaseNumber}_f' ||
+        baseId == '${rawBaseNumber}_female' ||
+        pokemonUniqueId == '${rawBaseNumber}_female';
+
     bool matchesBase(String id) {
       final boxBase = DexLogicHelper.getBaseId(id);
       final rawBoxNumber = boxBase.split('_').first;
       if (boxBase == baseId) return true;
       if (rawBoxNumber == rawBaseNumber) {
         if (!DexLogicHelper.isSecondaryForm(baseId) && !DexLogicHelper.isSecondaryForm(boxBase)) {
+          if (isMaleVariant) {
+            return boxBase == '${rawBaseNumber}_m' || boxBase == '${rawBaseNumber}_male';
+          }
+          if (isFemaleVariant) {
+            return boxBase == '${rawBaseNumber}_f' || boxBase == '${rawBaseNumber}_female';
+          }
           return true;
         }
       }
@@ -446,15 +461,6 @@ class DexProvider extends ChangeNotifier with WidgetsBindingObserver {
         isAlpha: (isAlphaStatus || hadAlpha) ? false : null,
       );
     }
-
-    final isMaleVariant = baseId == '${rawBaseNumber}_m' ||
-        pokemonUniqueId == '${rawBaseNumber}_m' ||
-        baseId == '${rawBaseNumber}_male' ||
-        pokemonUniqueId == '${rawBaseNumber}_male';
-    final isFemaleVariant = baseId == '${rawBaseNumber}_f' ||
-        pokemonUniqueId == '${rawBaseNumber}_f' ||
-        baseId == '${rawBaseNumber}_female' ||
-        pokemonUniqueId == '${rawBaseNumber}_female';
 
     bool checkOtherGenderHasStatus() {
       if (isMaleVariant) {
@@ -525,6 +531,28 @@ class DexProvider extends ChangeNotifier with WidgetsBindingObserver {
             removeId(id);
           }
         }
+      }
+
+      // Also clean up any matching instance IDs present in caughtIds, shinyIds, or alphaIds
+      // (e.g. from previous custom box sessions, cloud sync, or when customBoxes is empty)
+      final instanceIdsToRemove = <String>{};
+      if (isCaughtStatus) {
+        instanceIdsToRemove.addAll(
+          dex.caughtIds.where((id) => id.contains('__') && matchesBase(id)),
+        );
+      }
+      if (isShinyStatus) {
+        instanceIdsToRemove.addAll(
+          dex.shinyIds.where((id) => id.contains('__') && matchesBase(id)),
+        );
+      }
+      if (isAlphaStatus) {
+        instanceIdsToRemove.addAll(
+          dex.alphaIds.where((id) => id.contains('__') && matchesBase(id)),
+        );
+      }
+      for (final id in instanceIdsToRemove) {
+        removeId(id);
       }
     }
   }
