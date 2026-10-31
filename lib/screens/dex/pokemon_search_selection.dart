@@ -6,32 +6,11 @@ import '../../models/pokemon.dart';
 import '../../providers/dex_provider.dart';
 import '../../i18n/strings.g.dart';
 import '../../utils/dex_logic_helper.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import '../pokemon_info/pokemon_info_screen.dart';
 import '../../models/tutorial_step.dart';
 import '../../widgets/tutorial/tutorial_overlay.dart';
 import '../../providers/tutorial_provider.dart';
-
-const Map<String, Color> _typeColors = {
-  'normal': Color(0xFFA8A77A),
-  'fire': Color(0xFFEE8130),
-  'water': Color(0xFF6390F0),
-  'electric': Color(0xFFF7D02C),
-  'grass': Color(0xFF7AC74C),
-  'ice': Color(0xFF96D9D6),
-  'fighting': Color(0xFFC22E28),
-  'poison': Color(0xFFA33EA1),
-  'ground': Color(0xFFE2BF65),
-  'flying': Color(0xFFA98FF3),
-  'psychic': Color(0xFFF95587),
-  'bug': Color(0xFFA6B91A),
-  'rock': Color(0xFFB6A136),
-  'ghost': Color(0xFF735797),
-  'dragon': Color(0xFF6F35FC),
-  'dark': Color(0xFF705848),
-  'steel': Color(0xFFB7B7CE),
-  'fairy': Color(0xFFD685AD),
-};
+import 'widgets/search/pokemon_search_tile.dart';
 
 class PokemonSearchSelectionScreen extends StatefulWidget {
   final List<DexDisplayEntry> allAvailableEntries;
@@ -1023,173 +1002,50 @@ class _PokemonSearchSelectionScreenState
 
                           final entryIndex = index - leadingSpecialCount;
                           final entry = _filteredEntries[entryIndex];
-                          final name = isEn ? entry.pokemon.nameEn : entry.pokemon.nameDe;
                           final types = _getEntryTypes(entry);
-                          final idStr = '#${entry.pokemon.id.toString().padLeft(3, '0')}';
 
-                          return Card(
-                            elevation: 0,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              side: BorderSide(
-                                color: theme.dividerColor.withValues(alpha: 0.2),
-                              ),
-                            ),
-                            color: theme.cardColor,
-                            clipBehavior: Clip.antiAlias,
-                            child: InkWell(
-                              onTap: () {
-                                Navigator.of(context).pop(
-                                  _isShinyMode ? 'shiny:${entry.uniqueId}' : entry.uniqueId,
-                                );
-                              },
-                              onLongPress: () {
-                                String effectiveDexId = widget.dexId ?? '';
-                                try {
-                                  final provider = context.read<DexProvider>();
-                                  if (!provider.userDexes.any((d) => d.id == effectiveDexId)) {
-                                    if (provider.userDexes.isNotEmpty) {
-                                      effectiveDexId = provider.userDexes.first.id;
-                                    }
+                          return PokemonSearchTile(
+                            pokemon: entry.pokemon,
+                            entry: entry,
+                            isShiny: _isShinyMode,
+                            types: types,
+                            imageUrl: _getDisplayImageUrl(entry, _isShinyMode),
+                            onTap: () {
+                              Navigator.of(context).pop(
+                                _isShinyMode ? 'shiny:${entry.uniqueId}' : entry.uniqueId,
+                              );
+                            },
+                            onLongPress: () {
+                              String effectiveDexId = widget.dexId ?? '';
+                              try {
+                                final provider = context.read<DexProvider>();
+                                if (!provider.userDexes.any((d) => d.id == effectiveDexId)) {
+                                  if (provider.userDexes.isNotEmpty) {
+                                    effectiveDexId = provider.userDexes.first.id;
                                   }
-                                } catch (_) {}
+                                }
+                              } catch (_) {}
 
-                                Navigator.of(context).push(
-                                  MaterialPageRoute(
-                                    builder: (ctx) => PokemonInfoScreen(
-                                      entries: _filteredEntries,
-                                      initialIndex: entryIndex,
-                                      dexId: effectiveDexId.isNotEmpty
-                                          ? effectiveDexId
-                                          : 'national_overall',
-                                      initialShiny: _isShinyMode,
-                                      selectionActionLabel: isEn
-                                          ? 'Add to Dex'
-                                          : 'Zum Dex hinzufügen',
-                                      onSelectionAction: (id) {
-                                        Navigator.of(context).pop();
-                                        Navigator.of(context).pop(id);
-                                      },
-                                    ),
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (ctx) => PokemonInfoScreen(
+                                    entries: _filteredEntries,
+                                    initialIndex: entryIndex,
+                                    dexId: effectiveDexId.isNotEmpty
+                                        ? effectiveDexId
+                                        : 'national_overall',
+                                    initialShiny: _isShinyMode,
+                                    selectionActionLabel: isEn
+                                        ? 'Add to Dex'
+                                        : 'Zum Dex hinzufügen',
+                                    onSelectionAction: (id) {
+                                      Navigator.of(context).pop();
+                                      Navigator.of(context).pop(id);
+                                    },
                                   ),
-                                );
-                              },
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    // Top Row: Number, Shiny star & Suffix
-                                    Row(
-                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        Row(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            Text(
-                                              idStr,
-                                              style: TextStyle(
-                                                fontSize: 11,
-                                                fontWeight: FontWeight.bold,
-                                                color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
-                                              ),
-                                            ),
-                                            if (_isShinyMode) ...[
-                                              const SizedBox(width: 2),
-                                              const Icon(Icons.star, size: 11, color: Colors.amber),
-                                            ],
-                                          ],
-                                        ),
-                                        if (entry.displaySuffix.isNotEmpty)
-                                          Flexible(
-                                            child: Text(
-                                              entry.displaySuffix.trim(),
-                                              style: TextStyle(
-                                                fontSize: 10,
-                                                fontWeight: FontWeight.w600,
-                                                color: theme.colorScheme.primary,
-                                              ),
-                                              overflow: TextOverflow.ellipsis,
-                                            ),
-                                          ),
-                                      ],
-                                    ),
-
-                                    // Image
-                                    Expanded(
-                                      child: Padding(
-                                        padding: const EdgeInsets.all(4.0),
-                                        child: CachedNetworkImage(
-                                          imageUrl: _getDisplayImageUrl(entry, _isShinyMode),
-                                          fit: BoxFit.contain,
-                                          placeholder: (context, url) => Center(
-                                            child: Icon(
-                                              Icons.catching_pokemon,
-                                              color: theme.colorScheme.onSurface.withValues(alpha: 0.15),
-                                              size: 28,
-                                            ),
-                                          ),
-                                          errorWidget: (context, url, error) => const Icon(
-                                            Icons.catching_pokemon,
-                                            color: Colors.grey,
-                                            size: 32,
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-
-                                    // Name
-                                    Text(
-                                      name,
-                                      style: const TextStyle(
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                      textAlign: TextAlign.center,
-                                    ),
-                                    const SizedBox(height: 4),
-
-                                    // Type Badges
-                                    if (types.isNotEmpty)
-                                      Wrap(
-                                        spacing: 3,
-                                        runSpacing: 2,
-                                        alignment: WrapAlignment.center,
-                                        children: types.map((type) {
-                                          final color = _typeColors[type.toLowerCase()] ?? Colors.grey;
-                                          final typeName = (t['type_$type'] ?? type);
-                                          final label = (typeName != 'type_$type' && typeName.isNotEmpty)
-                                              ? typeName
-                                              : type;
-                                          return Container(
-                                            padding: const EdgeInsets.symmetric(
-                                              horizontal: 4,
-                                              vertical: 1.5,
-                                            ),
-                                            decoration: BoxDecoration(
-                                              color: color,
-                                              borderRadius: BorderRadius.circular(4),
-                                            ),
-                                            child: Text(
-                                              label.toUpperCase(),
-                                              style: const TextStyle(
-                                                color: Colors.white,
-                                                fontSize: 8.5,
-                                                fontWeight: FontWeight.bold,
-                                                letterSpacing: 0.3,
-                                              ),
-                                            ),
-                                          );
-                                        }).toList(),
-                                      )
-                                    else
-                                      const SizedBox(height: 12),
-                                  ],
                                 ),
-                              ),
-                            ),
+                              );
+                            },
                           );
                         },
                       );

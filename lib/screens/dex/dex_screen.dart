@@ -24,10 +24,11 @@ import '../../services/database_service.dart';
 import 'dex_sort_settings_screen.dart';
 import 'box_edit_screen.dart';
 import '../../utils/box_sequence_manager.dart';
-import '../../providers/shiny_hunt_provider.dart';
 import '../shiny_hunt/shiny_hunts_hub_screen.dart';
 import 'widgets/dex_progress_dialog.dart';
 import 'widgets/dex_completion_card_dialog.dart';
+import 'widgets/dex_app_bar_actions.dart';
+import 'widgets/dex_filter_bar.dart';
 
 class DexScreen extends StatefulWidget {
   final UserDex initialDex;
@@ -340,6 +341,112 @@ class _DexScreenState extends State<DexScreen> {
         await _recalculateBoxesAsync(liveDex);
       }
     }
+  }
+
+  void _handleDeleteSelected(UserDex liveDex) {
+    setState(() {
+      _ensureCustomBoxesInitialized(liveDex);
+
+      BoxSequenceManager.batchRemoveWithShiftBack(
+        dex: liveDex,
+        selectedKeys: _selectedForEdit.toList(),
+      );
+
+      if (!_isEditMode) {
+        _saveDex(liveDex);
+      }
+      _selectedForEdit.clear();
+    });
+    _recalculateBoxesAsync(liveDex);
+  }
+
+  Future<void> _handleAddPokemonInEditMode(UserDex liveDex) async {
+    final targetBoxIndex = _pageController.hasClients
+        ? (_pageController.page?.round() ?? _lastBoxIndex)
+        : _lastBoxIndex;
+
+    final selectedId = await Navigator.of(context).push<String>(
+      MaterialPageRoute(
+        builder: (ctx) => PokemonSearchSelectionScreen(
+          allAvailableEntries: _rawEntries,
+          dexId: liveDex.id,
+          initialShiny: liveDex.isShinyDex,
+        ),
+      ),
+    );
+    if (selectedId != null && selectedId.isNotEmpty && mounted) {
+      setState(() {
+        int currentBoxIndex = targetBoxIndex;
+        _ensureCustomBoxesInitialized(liveDex);
+
+        if (currentBoxIndex < liveDex.customBoxes.length) {
+          final box = liveDex.customBoxes[currentBoxIndex];
+          int targetSlot = box.pokemonIds.indexOf("");
+          if (targetSlot == -1) {
+            targetSlot = box.pokemonIds.length;
+          }
+
+          if (selectedId == 'placeholder') {
+            final instanceId =
+                'placeholder__${DateTime.now().millisecondsSinceEpoch}_${UniqueKey().hashCode}';
+
+            if (targetSlot < box.pokemonIds.length && box.pokemonIds[targetSlot].isEmpty) {
+              box.pokemonIds[targetSlot] = instanceId;
+            } else {
+              BoxSequenceManager.insertWithShiftAndOverflow(
+                dex: liveDex,
+                boxIndex: currentBoxIndex,
+                slotIndex: targetSlot,
+                pokemonId: instanceId,
+              );
+            }
+
+            if (!_isEditMode) {
+              _saveDex(liveDex);
+            }
+          } else {
+            final isShinySelection = selectedId.startsWith('shiny:');
+            final cleanSelectedId = isShinySelection ? selectedId.substring(6) : selectedId;
+            DexLogicHelper.ensurePrimaryInstancePersisted(liveDex, cleanSelectedId);
+            final instanceId =
+                '${cleanSelectedId}__${DateTime.now().millisecondsSinceEpoch}_${UniqueKey().hashCode}';
+
+            if (targetSlot < box.pokemonIds.length && box.pokemonIds[targetSlot].isEmpty) {
+              box.pokemonIds[targetSlot] = instanceId;
+            } else {
+              BoxSequenceManager.insertWithShiftAndOverflow(
+                dex: liveDex,
+                boxIndex: currentBoxIndex,
+                slotIndex: targetSlot,
+                pokemonId: instanceId,
+              );
+            }
+
+            if (isShinySelection && !liveDex.shinyIds.contains(instanceId)) {
+              liveDex.shinyIds.add(instanceId);
+              DatabaseService.instance.savePokemonStatus(liveDex.id, instanceId, isShiny: true);
+            } else if (!isShinySelection && liveDex.shinyIds.contains(instanceId)) {
+              liveDex.shinyIds.remove(instanceId);
+              DatabaseService.instance.savePokemonStatus(liveDex.id, instanceId, isShiny: false);
+            }
+          }
+        }
+      });
+      _recalculateBoxesAsync(liveDex);
+    }
+  }
+
+  void _handleEnterEditMode(UserDex liveDex) {
+    setState(() {
+      _wasCustomBoxesEmptyOriginally = liveDex.customBoxes.isEmpty;
+      if (liveDex.customBoxes.isEmpty) {
+        _ensureCustomBoxesInitialized(liveDex);
+      }
+      _customBoxesSnapshot =
+          liveDex.customBoxes.map((b) => b.copyWith()).toList();
+      _isEditMode = true;
+      _isBoxView = true;
+    });
   }
 
   void _ensureCustomBoxesInitialized(UserDex liveDex) {
@@ -1209,94 +1316,49 @@ class _DexScreenState extends State<DexScreen> {
 
     Widget bodyContent = Column(
       children: [
-        Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Row(
-            children: [
-              Expanded(
-                child: TextField(
-                  key: _searchBarKey,
-                  controller: _searchController,
-                  decoration: InputDecoration(
-                    hintText: t.search_hint,
-                    prefixIcon: const Icon(Icons.search),
-                    suffixIcon: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        if (_searchQuery.isNotEmpty)
-                          IconButton(
-                            icon: const Icon(Icons.clear),
-                            onPressed: () {
-                              _debounce?.cancel();
-                              _searchController.clear();
-                              setState(() => _searchQuery = '');
-                            },
-                          ),
-                        IconButton(
-                          icon: const Icon(Icons.help_outline),
-                          onPressed: () => _showSearchHelpDialog(context),
-                        ),
-                      ],
-                    ),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    contentPadding: const EdgeInsets.symmetric(vertical: 0),
-                  ),
-                  onChanged: (val) {
-                    if (_debounce?.isActive ?? false) _debounce!.cancel();
-                    _debounce = Timer(const Duration(milliseconds: 300), () {
-                      setState(() => _searchQuery = val);
+        DexFilterBar(
+          searchBarKey: _searchBarKey,
+          searchController: _searchController,
+          searchQuery: _searchQuery,
+          filter: _filter,
+          onClearSearch: () {
+            _debounce?.cancel();
+            _searchController.clear();
+            setState(() => _searchQuery = '');
+          },
+          onSearchHelp: () => _showSearchHelpDialog(context),
+          onSearchChanged: (val) {
+            if (_debounce?.isActive ?? false) _debounce!.cancel();
+            _debounce = Timer(const Duration(milliseconds: 300), () {
+              setState(() => _searchQuery = val);
 
-                      final tutProvider = Provider.of<TutorialProvider>(
-                        context,
-                        listen: false,
-                      );
-                      if (tutProvider.hasSeenFeature('dex_screen') &&
-                          !tutProvider.hasSeenFeature('dex_pikachu_found') &&
-                          !tutProvider.hasSeenFeature('dex_machomei_found')) {
-                        final q = val.toLowerCase().trim();
-                        if (q == 'gengar' ||
-                            q == '094' ||
-                            q == '94' ||
-                            q == '#094' ||
-                            q == 'pikachu' ||
-                            q == '025' ||
-                            q == '25' ||
-                            q == '#025' ||
-                            q == 'machomei' ||
-                            q == 'machamp' ||
-                            q == '068' ||
-                            q == '68' ||
-                            q == '#068') {
-                          _showPikachuFoundTutorial();
-                        }
-                      }
-                    });
-                  },
-                ),
-              ),
-              const SizedBox(width: 8),
-              DropdownButton<String>(
-                value: _filter,
-                items: [
-                  DropdownMenuItem(
-                    value: 'all',
-                    child: Text(t.filter_all),
-                  ),
-                  DropdownMenuItem(
-                    value: 'caught',
-                    child: Text(t.filter_caught),
-                  ),
-                  DropdownMenuItem(
-                    value: 'uncaught',
-                    child: Text(t.filter_missing),
-                  ),
-                ],
-                onChanged: (val) => setState(() => _filter = val ?? 'all'),
-              ),
-            ],
-          ),
+              final tutProvider = Provider.of<TutorialProvider>(
+                context,
+                listen: false,
+              );
+              if (tutProvider.hasSeenFeature('dex_screen') &&
+                  !tutProvider.hasSeenFeature('dex_pikachu_found') &&
+                  !tutProvider.hasSeenFeature('dex_machomei_found')) {
+                final q = val.toLowerCase().trim();
+                if (q == 'gengar' ||
+                    q == '094' ||
+                    q == '94' ||
+                    q == '#094' ||
+                    q == 'pikachu' ||
+                    q == '025' ||
+                    q == '25' ||
+                    q == '#025' ||
+                    q == 'machomei' ||
+                    q == 'machamp' ||
+                    q == '068' ||
+                    q == '68' ||
+                    q == '#068') {
+                  _showPikachuFoundTutorial();
+                }
+              }
+            });
+          },
+          onFilterChanged: (val) => setState(() => _filter = val ?? 'all'),
         ),
         Expanded(
           child: Stack(
@@ -1683,364 +1745,99 @@ class _DexScreenState extends State<DexScreen> {
             ),
           ),
           actions: [
-            if (_isEditMode && _selectedForEdit.isNotEmpty)
-              IconButton(
-                icon: const Icon(Icons.delete),
-                tooltip: t.box_edit_remove_selected,
-                onPressed: () {
-                  setState(() {
-                    _ensureCustomBoxesInitialized(liveDex);
-
-                    BoxSequenceManager.batchRemoveWithShiftBack(
-                      dex: liveDex,
-                      selectedKeys: _selectedForEdit.toList(),
-                    );
-
-                    if (!_isEditMode) {
-                      _saveDex(liveDex);
-                    }
-                    _selectedForEdit.clear();
-                  });
-                  _recalculateBoxesAsync(liveDex);
-                },
-              ),
-            if (_isEditMode)
-              IconButton(
-                icon: const Icon(Icons.add),
-                tooltip: t.add_pokemon,
-                onPressed: () async {
-                  final targetBoxIndex = _pageController.hasClients
-                      ? (_pageController.page?.round() ?? _lastBoxIndex)
-                      : _lastBoxIndex;
-
-                  final selectedId = await Navigator.of(context).push<String>(
-                    MaterialPageRoute(
-                      builder: (ctx) => PokemonSearchSelectionScreen(
-                        allAvailableEntries: _rawEntries,
-                        dexId: liveDex.id,
-                        initialShiny: liveDex.isShinyDex,
-                      ),
-                    ),
-                  );
-                  if (selectedId != null && selectedId.isNotEmpty && mounted) {
+            DexAppBarActions(
+              isEditMode: _isEditMode,
+              selectedCount: _selectedForEdit.length,
+              isBoxView: _isBoxView,
+              separateForms: _separateForms,
+              statsActionKey: _statsActionKey,
+              shareActionKey: _shareActionKey,
+              boxContentActionKey: _boxContentActionKey,
+              boxEditActionKey: _boxEditActionKey,
+              routeTrackerActionKey: _routeTrackerActionKey,
+              shinyHuntActionKey: _shinyHuntActionKey,
+              sortMenuKey: _sortMenuKey,
+              onDeleteSelected: () => _handleDeleteSelected(liveDex),
+              onAddPokemon: () => _handleAddPokemonInEditMode(liveDex),
+              onCancelEditMode: () => _handleCancelEditMode(liveDex),
+              onSaveEditMode: () => _handleSaveEditMode(liveDex),
+              onToggleEditMode: () => _handleEnterEditMode(liveDex),
+              onOpenStats: () {
+                DexProgressDialog.show(
+                  context,
+                  liveDex: liveDex,
+                  entries: baseList,
+                  onFilterSelected: (filter) {
                     setState(() {
-                      int currentBoxIndex = targetBoxIndex;
-                      _ensureCustomBoxesInitialized(liveDex);
-
-                      if (currentBoxIndex < liveDex.customBoxes.length) {
-                        final box = liveDex.customBoxes[currentBoxIndex];
-                        int targetSlot = box.pokemonIds.indexOf("");
-                        if (targetSlot == -1) {
-                          targetSlot = box.pokemonIds.length;
-                        }
-
-                        if (selectedId == 'placeholder') {
-                          final instanceId =
-                              'placeholder__${DateTime.now().millisecondsSinceEpoch}_${UniqueKey().hashCode}';
-
-                          if (targetSlot < box.pokemonIds.length && box.pokemonIds[targetSlot].isEmpty) {
-                            box.pokemonIds[targetSlot] = instanceId;
-                          } else {
-                            BoxSequenceManager.insertWithShiftAndOverflow(
-                              dex: liveDex,
-                              boxIndex: currentBoxIndex,
-                              slotIndex: targetSlot,
-                              pokemonId: instanceId,
-                            );
-                          }
-
-                          if (!_isEditMode) {
-                            _saveDex(liveDex);
-                          }
-                        } else {
-                          final isShinySelection = selectedId.startsWith('shiny:');
-                          final cleanSelectedId = isShinySelection ? selectedId.substring(6) : selectedId;
-                          DexLogicHelper.ensurePrimaryInstancePersisted(liveDex, cleanSelectedId);
-                          final instanceId =
-                              '${cleanSelectedId}__${DateTime.now().millisecondsSinceEpoch}_${UniqueKey().hashCode}';
-
-                          if (targetSlot < box.pokemonIds.length && box.pokemonIds[targetSlot].isEmpty) {
-                            box.pokemonIds[targetSlot] = instanceId;
-                          } else {
-                            BoxSequenceManager.insertWithShiftAndOverflow(
-                              dex: liveDex,
-                              boxIndex: currentBoxIndex,
-                              slotIndex: targetSlot,
-                              pokemonId: instanceId,
-                            );
-                          }
-
-                          if (isShinySelection && !liveDex.shinyIds.contains(instanceId)) {
-                            liveDex.shinyIds.add(instanceId);
-                            DatabaseService.instance.savePokemonStatus(liveDex.id, instanceId, isShiny: true);
-                          } else if (!isShinySelection && liveDex.shinyIds.contains(instanceId)) {
-                            liveDex.shinyIds.remove(instanceId);
-                            DatabaseService.instance.savePokemonStatus(liveDex.id, instanceId, isShiny: false);
-                          }
-
-                          if (!_isEditMode) {
-                            _saveDex(liveDex);
-                          }
-                        }
-                      }
+                      _filter = filter;
                     });
-                    _recalculateBoxesAsync(liveDex);
-                  }
-                },
-              ),
-            if (!_isEditMode)
-              IconButton(
-                key: _statsActionKey,
-                icon: const Icon(Icons.bar_chart),
-                tooltip: t.dex_progress_tooltip,
-                onPressed: () {
-                  DexProgressDialog.show(
-                    context,
-                    liveDex: liveDex,
-                    entries: baseList,
-                    onFilterSelected: (filter) {
-                      setState(() {
-                        _filter = filter;
-                      });
-                    },
-                  );
-                },
-              ),
-            if (!_isEditMode && MediaQuery.sizeOf(context).width >= 360)
-              IconButton(
-                key: _shareActionKey,
-                icon: const Icon(Icons.share),
-                tooltip: t.share_dex_card,
-                onPressed: () {
-                  DexCompletionCardDialog.show(
-                    context,
-                    liveDex: liveDex,
-                    entries: baseList,
-                  );
-                },
-              ),
-            if (!_isEditMode)
-              IconButton(
-                key: _boxContentActionKey,
-                icon: const Icon(Icons.checklist),
-                tooltip: t.box_edit_manage_content,
-                onPressed: () {
-                  setState(() {
-                    _wasCustomBoxesEmptyOriginally = liveDex.customBoxes.isEmpty;
-                    if (liveDex.customBoxes.isEmpty) {
-                      _ensureCustomBoxesInitialized(liveDex);
-                    }
-                    _customBoxesSnapshot =
-                        liveDex.customBoxes.map((b) => b.copyWith()).toList();
-                    _isEditMode = true;
-                    _isBoxView = true;
-                  });
-                },
-              ),
-            if (!_isEditMode)
-              IconButton(
-                key: _boxEditActionKey,
-                icon: const Icon(Icons.edit_note),
-                tooltip: t.box_edit_title,
-                onPressed: () async {
-                  await Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) =>
-                          BoxEditScreen(dex: liveDex, initialBoxes: _boxes),
-                    ),
-                  );
-                  // Neu berechnen, falls Boxen verschoben/gelöscht/umbenannt wurden
-                  if (mounted) {
-                    setState(() {});
-                    _recalculateBoxesAsync(liveDex);
-                  }
-                },
-              ),
-            if (!_isEditMode)
-              IconButton(
-                key: _routeTrackerActionKey,
-                icon: const Icon(Icons.location_on),
-                tooltip: t.route_tracker,
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => RouteTrackerScreen(
-                        liveDex: liveDex,
-                        displayEntries: _rawEntries,
-                      ),
-                    ),
-                  );
-                },
-              ),
-            if (!_isEditMode)
-              Builder(
-                builder: (context) {
-                  ShinyHuntProvider? huntProvider;
-                  try {
-                    huntProvider = Provider.of<ShinyHuntProvider>(context);
-                  } catch (_) {
-                    huntProvider = null;
-                  }
-                  final count = huntProvider?.activeHunts.length ?? 0;
-                  return IconButton(
-                    key: _shinyHuntActionKey,
-                    icon: Badge(
-                      isLabelVisible: count > 0,
-                      label: Text('$count'),
-                      child: const Icon(Icons.auto_awesome),
-                    ),
-                    tooltip: t.shiny_hunt_badge_tooltip,
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const ShinyHuntsHubScreen(),
-                        ),
-                      );
-                    },
-                  );
-                },
-              ),
-            if (!_isEditMode)
-              PopupMenuButton<String>(
-              key: _sortMenuKey,
-              icon: const Icon(Icons.sort),
-              tooltip: t.tooltip_view_sort,
-              onSelected: (value) {
-                if (value == 'toggle_view') _toggleBoxView();
-                if (value == 'toggle_sort') _toggleSeparateForms();
-                if (value == 'advanced_sort') {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) =>
-                          DexSortSettingsScreen(dex: liveDex),
-                    ),
-                  ).then((_) {
-                    _recalculateBoxesAsync(liveDex);
-                  });
-                }
-                if (value == 'share_card') {
-                  DexCompletionCardDialog.show(
-                    context,
-                    liveDex: liveDex,
-                    entries: baseList,
-                  );
-                }
-                if (value == 'ignored_list') {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => IgnoredListScreen(
-                        dexId: liveDex.id,
-                        allRawEntries: _rawEntries,
-                      ),
-                    ),
-                  );
+                  },
+                );
+              },
+              onShareCard: () {
+                DexCompletionCardDialog.show(
+                  context,
+                  liveDex: liveDex,
+                  entries: baseList,
+                );
+              },
+              onOpenBoxSettings: () async {
+                await Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) =>
+                        BoxEditScreen(dex: liveDex, initialBoxes: _boxes),
+                  ),
+                );
+                if (mounted) {
+                  setState(() {});
+                  _recalculateBoxesAsync(liveDex);
                 }
               },
-              itemBuilder: (context) => [
-                PopupMenuItem(
-                  value: 'toggle_view',
-                  child: Row(
-                    children: [
-                      Icon(
-                        _isBoxView ? Icons.list : Icons.grid_view,
-                        size: 20,
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          _isBoxView
-                              ? t.view_list
-                              : t.view_box,
-                        ),
-                      ),
-                    ],
+              onOpenRouteTracker: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => RouteTrackerScreen(
+                      liveDex: liveDex,
+                      displayEntries: _rawEntries,
+                    ),
                   ),
-                ),
-                PopupMenuItem(
-                  value: 'toggle_sort',
-                  child: Row(
-                    children: [
-                      Icon(
-                        _separateForms
-                            ? Icons.format_list_numbered
-                            : Icons.category,
-                        size: 20,
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          _separateForms
-                              ? t.sort_dex
-                              : t.sort_forms,
-                        ),
-                      ),
-                    ],
+                );
+              },
+              onOpenShinyHunts: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const ShinyHuntsHubScreen(),
                   ),
-                ),
-                const PopupMenuDivider(),
-                PopupMenuItem(
-                  value: 'advanced_sort',
-                  child: Row(
-                    children: [
-                      const Icon(Icons.tune, size: 20),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          t.advanced_sort_title,
-                        ),
-                      ),
-                    ],
+                );
+              },
+              onToggleView: _toggleBoxView,
+              onToggleSeparateForms: _toggleSeparateForms,
+              onOpenSortSettings: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) =>
+                        DexSortSettingsScreen(dex: liveDex),
                   ),
-                ),
-                const PopupMenuDivider(),
-                PopupMenuItem(
-                  value: 'ignored_list',
-                  child: Row(
-                    children: [
-                      const Icon(Icons.visibility_off, size: 20),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          t.ignored_list_title,
-                        ),
-                      ),
-                    ],
+                ).then((_) {
+                  _recalculateBoxesAsync(liveDex);
+                });
+              },
+              onOpenIgnoredList: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => IgnoredListScreen(
+                      dexId: liveDex.id,
+                      allRawEntries: _rawEntries,
+                    ),
                   ),
-                ),
-                const PopupMenuDivider(),
-                PopupMenuItem(
-                  value: 'share_card',
-                  child: Row(
-                    children: [
-                      const Icon(Icons.share, size: 20),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          t.share_dex_card,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
+                );
+              },
             ),
-            if (_isEditMode) ...[
-              IconButton(
-                icon: const Icon(Icons.close),
-                tooltip: t.cancel,
-                onPressed: () => _handleCancelEditMode(liveDex),
-              ),
-              IconButton(
-                icon: const Icon(Icons.check),
-                tooltip: t.save,
-                onPressed: () => _handleSaveEditMode(liveDex),
-              ),
-            ],
           ],
         ),
       body: Stack(
