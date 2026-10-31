@@ -12,18 +12,19 @@
 
 ## ✨ Features
 
-* **Multiple Dex Management:** Create as many trackers as you need for different games or generations.
+* **Multiple Dex Management:** Create as many trackers as you need for different games, generations, or custom challenges.
 * **Deep Form Tracking:** Full support for Regional forms, Mega Evolutions, Gigantamax, and special forms (Alcremie, Vivillon, Unown, etc.).
-* **PC Box & List Views:** View your Pokémon in a classic "PC Box" grid or a detailed list view.
-* **Shiny Tracking:** Track regular and Shiny Pokémon completely separately.
+* **PC Box & List Views:** View your Pokémon in a classic 30-slot "PC Box" grid or a detailed, searchable list view with seamless drag & drop.
+* **Shiny Tracking & Hunt Counter:** Track regular and Shiny Pokémon separately. Integrated Shiny Hunt counter with real-time odds calculation, method presets, phase logging, and timer with AFK pause detection.
+* **🎖️ Dex Completion Cards:** Design, customize, and export high-resolution completion cards and artwork mosaics to celebrate and share your Dex achievements.
 * **Legal Matching Balls:** Get community-curated recommendations for the best Poké Balls (Matching Balls) for both normal and shiny variations!
 * **📊 Advanced Catch Rate Calculator:** Accurate capture rate calculations spanning every generation, including special mechanics for *Pokémon Legends: Arceus* and *Pokémon Legends: Z-A*.
 * **🧬 Shiny Breeding & Path Calculator:** Computes multi-step breeding chains (including Ditto and Baby Pokémon) and displays accurate probability odds.
-* **📖 Extensive Shiny Hunting Guides:** Step-by-step instructions for generation-specific methods (e.g., Pokéradar, DexNav, Sandwich Recipes).
+* **📖 Extensive Shiny Hunting Guides:** Step-by-step instructions for generation-specific methods (e.g., Poké Radar, DexNav, Sandwich Recipes).
 * **🎮 In-App Shortcuts & Gestures Guide:** Dedicated guide in Settings displaying platform-adaptive keyboard shortcuts, mouse controls, and touch gestures.
-* **☁️ Cloud Sync & Offline-First:** 100% Offline Capable with a robust local SQLite database. Optional seamless backup and restore via your personal Google Drive.
+* **☁️ Cloud Sync & Offline-First:** 100% Offline Capable with a robust local SQLite database. Optional seamless backup and restore via your personal Google Drive with field-level patch-merge resilience.
 * **Full Customization:** Supports Dark/Light mode and custom accent & background colors.
-* **Multilingual:** Available in English and German.
+* **Multilingual:** Fully localized in English and German via type-safe translation (`slang`).
 
 ## 📸 Screenshots
 
@@ -56,17 +57,20 @@
    flutter pub get
    ```
 
-4. Download external data:
-Fetch the latest data repositories and wikis used by the database generator:
+4. Download external data & initialize submodules:
+   Fetch the latest data repositories and wikis used by the database generator:
    ```bash
    python3 update_data.py
    ```
 
 5. Setup SQLite Database:
-   *PokéVault relies on a pre-built SQLite database for core Pokémon data.* 
-   Make sure you run the database build script to generate `assets/db/pokedex.sqlite` before launching the app:
+   *PokéVault relies on a pre-built SQLite database for core Pokémon reference data.* 
+   Make sure you run the database pipeline scripts to generate and optimize `assets/db/pokedex.sqlite`:
    ```bash
    python3 tool/data_pipeline/build_database.py
+   python3 tool/data_pipeline/update_evolutions_db.py
+   python3 tool/data_pipeline/update_cap_locks_and_trades.py
+   python3 tool/data_pipeline/optimize_databases.py
    ```
 
 6. Run the app:
@@ -104,8 +108,8 @@ flutter build web --release
 ```
 
 ## 📚 Architecture & Documentation
-* [Architecture Guide (`ARCHITECTURE.md`)](ARCHITECTURE.md): Comprehensive system overview, state architecture (Provider), database dual-persistence model, cloud sync merge algorithm, and test quality gates.
-* [Database Generator Pipeline (`tool/data_pipeline/README.md`)](tool/data_pipeline/README.md): Detailed documentation of offline PokeAPI JSON parsing, web scrapers, legal Pokéball data, and database compilation steps.
+* [Architecture Guide (`ARCHITECTURE.md`)](ARCHITECTURE.md): Comprehensive system overview, state architecture (Provider), DAO persistence model, Google Drive sync coordinator, Isolate translation bridge, and quality gates.
+* [Database Generator Pipeline (`tool/data_pipeline/README.md`)](tool/data_pipeline/README.md): Detailed developer documentation of offline PokeAPI parsing, web scrapers, legal Pokéball data, indexes, and database compilation steps.
 
 ## 🤝 Contributing Data (Community Fixes)
 Missing encounters or do you have better Matching Ball suggestions? You can easily add or correct these data in the JSON files located in the `tool/data_pipeline/` directory (if applicable) or contribute directly via Issues/Pull Requests.
@@ -125,5 +129,3 @@ This app wouldn't be possible without these amazing community resources:
 This project is licensed under the [GNU General Public License v3.0 (GPL-3.0)](LICENSE).
 
 **Disclaimer:** Pokémon and all respective names are trademark and © of Nintendo, Creatures Inc., and GAME FREAK inc. This is a free, non-commercial fan project and is not affiliated with, endorsed, or supported by Nintendo in any way.
-
-

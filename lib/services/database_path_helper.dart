@@ -63,7 +63,7 @@ class DatabasePathHelper {
           (Platform.environment.containsKey('FLUTTER_TEST') ||
            Platform.environment.containsKey('DART_TEST') ||
            Platform.script.path.contains('test'))) {
-        final testDir = Directory(p.join(Directory.systemTemp.path, 'pokevault_test_dbs'));
+        final testDir = Directory(p.join(Directory.systemTemp.path, 'pokevault_test_dbs', 'proc_$pid'));
         if (!testDir.existsSync()) {
           testDir.createSync(recursive: true);
         }

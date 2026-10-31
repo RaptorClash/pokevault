@@ -12,18 +12,19 @@
 
 ## ✨ Hauptfunktionen
 
-* **Multi-Dex Verwaltung:** Erstelle beliebig viele Tracker für verschiedene Spiele oder Generationen.
+* **Multi-Dex Verwaltung:** Erstelle beliebig viele Tracker für verschiedene Spiele, Generationen oder eigene Challenges.
 * **Detailliertes Form-Tracking:** Volle Unterstützung für Regionalformen, Mega-Entwicklungen, Gigadynamax und Spezialformen (Pokusan, Vivillon, Icognito etc.).
-* **PC-Box & Listen-Ansicht:** Betrachte deine Pokémon im klassischen "PC-Box"-Raster oder in einer detaillierten Liste.
-* **Shiny Tracking:** Tracke normale und schillernde (Shiny) Pokémon komplett separat.
+* **PC-Box & Listen-Ansicht:** Betrachte deine Pokémon im klassischen 30-Slot "PC-Box"-Raster oder in einer durchsuchbaren Liste mit nahtlosem Drag & Drop.
+* **Shiny Tracking & Hunt Counter:** Tracke normale und schillernde (Shiny) Pokémon separat. Integrierter Shiny-Hunt-Zähler mit Echtzeit-Wahrscheinlichkeitsberechnung, Methodenauswahl, Phasen-Historie und Session-Timer mit AFK-Pausenerkennung.
+* **🎖️ Dex Completion Cards:** Gestalte, personalisiere und exportiere hochauflösende Erfolgs-Zertifikate, Statistikkarten und Pokémon-Mosaike zum Teilen deines Fortschritts.
 * **Passende Pokébälle (Matching Balls):** Erhalte aus der Community kuratierte Empfehlungen für die besten Pokébälle (für die normale *und* die Shiny-Variante)!
 * **📊 Fortschrittlicher Fangraten-Rechner:** Präzise Berechnung der Fangwahrscheinlichkeit über alle Generationen hinweg, inkl. spezieller Mechaniken aus *Pokémon Legenden: Arceus* und *Pokémon Legenden: Z-A*.
 * **🧬 Shiny-Zucht & Routen-Rechner:** Berechnet mehrstufige Zuchtketten (inkl. Ditto und Baby-Pokémon) und zeigt exakte Wahrscheinlichkeiten für die Ziel-Nachkommen an.
 * **📖 Ausführliche Shiny-Hunting-Guides:** Schritt-für-Schritt-Anleitungen für generationsspezifische Methoden (z. B. PokéRadar, DexNav, Sandwich-Rezepte).
 * **🎮 In-App Bedienung & Shortcuts Übersicht:** Eigener Screen in den Einstellungen mit plattform-adaptiven Shortcuts, Mausbefehlen und Touch-Gesten.
-* **☁️ Cloud Sync & Offline-First:** 100% Offline-fähig mit lokaler SQLite-Datenbank. Optionale Synchronisierung über dein privates Google Drive.
+* **☁️ Cloud Sync & Offline-First:** 100% Offline-fähig mit robuster lokaler SQLite-Datenbank. Optionale Synchronisierung über dein privates Google Drive mit Patch-Merge-Resilienz.
 * **Volle Personalisierung:** Unterstützt Dark/Light Mode sowie individuell anpassbare Akzent- und Hintergrundfarben.
-* **Mehrsprachig:** Verfügbar auf Deutsch und Englisch.
+* **Mehrsprachig:** Vollständig auf Deutsch und Englisch verfügbar via typsicherer Übersetzung (`slang`).
 
 ## 📸 Screenshots
 
@@ -56,17 +57,20 @@
    flutter pub get
    ```
 
-4. Externe Daten herunterladen:
-Lade die aktuellsten Daten-Repositories und WIkis herunter, die für die Datenbank benötigt werden:
+4. Externe Daten herunterladen & Submodule initialisieren:
+   Lade die aktuellsten Daten-Repositories und Wikis herunter, die für die Datenbank benötigt werden:
    ```bash
    python3 update_data.py
    ```
 
-5. SQLite Datenbank generieren:
+5. SQLite-Datenbank generieren & optimieren:
    *PokéVault benötigt eine vorkompilierte SQLite-Datenbank für die Pokémon-Basisdaten.* 
-   Stelle sicher, dass du das Skript ausführst, um `assets/db/pokedex.sqlite` zu generieren:
+   Führe die Pipeline-Skripte aus, um `assets/db/pokedex.sqlite` zu generieren und zu optimieren:
    ```bash
    python3 tool/data_pipeline/build_database.py
+   python3 tool/data_pipeline/update_evolutions_db.py
+   python3 tool/data_pipeline/update_cap_locks_and_trades.py
+   python3 tool/data_pipeline/optimize_databases.py
    ```
 
 6. App starten:
@@ -104,8 +108,8 @@ flutter build web --release
 ```
 
 ## 📚 Architektur & Dokumentation
-* [Architektur-Leitfaden (`ARCHITECTURE.md`)](ARCHITECTURE.md): Detaillierte Übersicht über Systemarchitektur, Provider-State-Management, persistente SQLite-Speicherung, Cloud-Sync-Merge-Algorithmus und Test-Quality-Gates.
-* [Datenbank-Generierungs-Pipeline (`tool/data_pipeline/README.md`)](tool/data_pipeline/README.md): Dokumentation der Offline-PokeAPI-Datenaufbereitung, Scraper, Matching-Balls-Import und Datenbank-Kompilierung.
+* [Architektur-Leitfaden (`ARCHITECTURE.md`)](ARCHITECTURE.md): Detaillierte Übersicht über Systemarchitektur, Provider-State-Management, DAO-Persistenzmodell, Google Drive Sync Coordinator, Isolate-Translation-Bridge und Test-Quality-Gates.
+* [Datenbank-Generierungs-Pipeline (`tool/data_pipeline/README.md`)](tool/data_pipeline/README.md): Dokumentation der Offline-PokeAPI-Datenaufbereitung, Scraper, Matching-Balls-Import, Indizes und Datenbank-Kompilierung.
 
 ## 🤝 Daten ergänzen (Community Contributions)
 Fehlen dir Fundorte oder passen die Matching Balls nicht? Du kannst diese Daten in den JSON-Dateien im Verzeichnis `tool/data_pipeline/` ergänzen (falls vorhanden) oder direkt über Issues/Pull Requests beitragen.
@@ -125,5 +129,3 @@ Diese App wäre ohne diese großartigen Ressourcen aus der Community nicht mögl
 Dieses Projekt ist lizenziert unter der [GNU General Public License v3.0 (GPL-3.0)](LICENSE).
 
 **Haftungsausschluss:** Pokémon und alle zugehörigen Namen sind Marken und © von Nintendo, Creatures Inc., und GAME FREAK inc. Dies ist ein kostenloses, nicht-kommerzielles Fan-Projekt und steht in keinerlei Verbindung zu Nintendo und wird von diesen weder unterstützt noch gesponsert.
-
-

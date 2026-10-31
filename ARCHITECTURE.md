@@ -1,6 +1,6 @@
 # PokéVault Architecture & System Documentation
 
-Dieses Dokument beschreibt die technische Architektur, Datenhaltung, Cloud-Synchronisation und Code-Standards von **PokéVault**. Es dient Entwicklern und KI-Assistenten als Referenz für Designentscheidungen und Erweiterungen.
+Dieses Dokument beschreibt die technische Architektur, Datenhaltung, Cloud-Synchronisation, Modularisierung und Code-Standards von **PokéVault**. Es dient Entwicklern und KI-Assistenten als Referenz für Designentscheidungen und Erweiterungen.
 
 ---
 
@@ -10,112 +10,198 @@ PokéVault ist ein plattformübergreifender Begleiter für Pokémon-Sammler (Liv
 
 - **Framework**: [Flutter 3.x](https://flutter.dev/) (Dart SDK `^3.12`)
 - **Zielplattformen**: Windows (Desktop), Android, iOS, macOS, Linux, Web
-- **Zustandsverwaltung**: [Provider](https://pub.dev/packages/provider) (`DexProvider`, `SettingsProvider`, `ShinyHuntProvider`, `TutorialProvider`, `ThemeProvider`)
-- **Lokalisierung (i18n)**: [slang](https://pub.dev/packages/slang) & `Translator` (Deutsch als Basissprache, Englisch)
-- **Persistenz**:
+- **Zustandsverwaltung**: [Provider](https://pub.dev/packages/provider) (`DexProvider`, `SettingsProvider`, `ShinyHuntProvider`, `TutorialProvider`, `ThemeProvider`) mit strikter State-Kapselung (`UnmodifiableListView`)
+- **Lokalisierung (i18n)**: [slang](https://pub.dev/packages/slang) für typsichere UI-Lokalisierung sowie `IsolateTranslator` als schlanke Bridge für Hintergrund-Isolate (`compute()`)
+- **Persistenz & DAO-Schicht**:
   - SQLite via `sqflite` (Android/iOS) und `sqflite_common_ffi` (Desktop) bzw. `sqflite_common_ffi_web` (Web)
-  - `shared_preferences` für App-Einstellungen und Tutorial-Zustände
-- **Cloud-Synchronisation**: Google Drive REST API v3 (AppData Folder) via `googleapis` & `googleapis_auth`
+  - Modularisiert in fokussierte Data Access Objects: `PokemonDao`, `UserDexDao`, `ShinyHuntDao`, `CloudSyncDao` und `DatabaseMigrator`
+  - `shared_preferences` für App-Einstellungen und Onboarding-Zustände
+- **Cloud-Synchronisation**: Google Drive REST API v3 (AppData Folder) via `googleapis` & `googleapis_auth`, koordiniert über den dedizierten `GoogleDriveSyncCoordinator`
 
 ---
 
-## 2. Datenbank-Architektur (Dual-SQLite Modell)
+## 2. Gesamtarchitektur
+
+Das folgende Diagramm visualisiert die geschichtete Architektur von PokéVault, die Trennung von UI-Komponenten über Delegaten, die Entkopplung rechenintensiver Isolate-Tasks und die modulare DAO-Datenbankschicht:
+
+```mermaid
+flowchart TD
+    subgraph UI["Präsentationsschicht (UI & Widgets)"]
+        HomeScreen["HomeScreen & HomeDexTreeView"]
+        DexScreen["DexScreen & DexAppBarActions"]
+        DexBoxView["DexBoxView (Header, Grid, SlotItem)"]
+        ShinyHuntScreen["ShinyHuntCounterScreen & Widgets"]
+        DexCard["DexCompletionCard & Dialog-Sektionen"]
+    end
+
+    subgraph Delegates["Delegations- & Aktionsschicht"]
+        BoxActionDelegate["BoxActionDelegate & DefaultBoxActionDelegate"]
+    end
+
+    subgraph State["Zustandsverwaltung (Provider & Koordination)"]
+        DexProvider["DexProvider (UnmodifiableListView State)"]
+        SyncCoordinator["GoogleDriveSyncCoordinator (Debounce & Hooks)"]
+        ShinyHuntProvider["ShinyHuntProvider (In-Memory Buffer)"]
+        SettingsProvider["SettingsProvider & ThemeProvider"]
+    end
+
+    subgraph Computation["Rechenlogik & Isolate-Bridge"]
+        DexBoxPacker["DexBoxPacker (compute Isolate-Task)"]
+        DexEntryBuilder["DexEntryBuilder (compute Isolate-Task)"]
+        BoxSeqCalc["BoxSequenceCalculator (Multi-Drag & Shifts)"]
+        IsolateTranslator["IsolateTranslator (UI-freie i18n Bridge)"]
+    end
+
+    subgraph DAOs["Data Access Layer (DAOs & Migrator)"]
+        DatabaseService["DatabaseService (Zentrale Fassade)"]
+        PokemonDao["PokemonDao (Read-Only pokedex.sqlite)"]
+        UserDexDao["UserDexDao (CRUD user_data.sqlite)"]
+        ShinyHuntDao["ShinyHuntDao (CRUD shiny_hunts)"]
+        CloudSyncDao["CloudSyncDao (Export & PRAGMA Patch-Merge)"]
+        DatabaseMigrator["DatabaseMigrator (Schema v1-v29+, Indexes)"]
+    end
+
+    subgraph Storage["Persistenz & Dateisystem"]
+        PathHelper["DatabasePathHelper (Portable Pfade & Test-Isolierung)"]
+        PokedexDB[("pokedex.sqlite (Referenzdaten)")]
+        UserDataDB[("user_data.sqlite (Nutzerdaten)")]
+        GoogleDrive[("Google Drive AppData (pokevault_sync.json)")]
+    end
+
+    DexScreen --> BoxActionDelegate
+    BoxActionDelegate --> DexBoxView
+    DexBoxView --> DexProvider
+    HomeScreen --> DexProvider
+    ShinyHuntScreen --> ShinyHuntProvider
+    DexCard --> DexProvider
+
+    DexProvider --> SyncCoordinator
+    DexProvider --> DexBoxPacker
+    DexProvider --> DexEntryBuilder
+    DexBoxPacker --> IsolateTranslator
+    DexEntryBuilder --> IsolateTranslator
+
+    DexProvider --> DatabaseService
+    ShinyHuntProvider --> DatabaseService
+    SyncCoordinator --> GoogleDrive
+    SyncCoordinator --> CloudSyncDao
+
+    DatabaseService --> PokemonDao
+    DatabaseService --> UserDexDao
+    DatabaseService --> ShinyHuntDao
+    DatabaseService --> CloudSyncDao
+    DatabaseService --> DatabaseMigrator
+
+    DatabaseService --> PathHelper
+    PokemonDao --> PokedexDB
+    UserDexDao --> UserDataDB
+    ShinyHuntDao --> UserDataDB
+    CloudSyncDao --> UserDataDB
+```
+
+---
+
+## 3. Datenbank-Architektur & DAO-Modell (Dual-SQLite)
 
 PokéVault trennt strikt zwischen unveränderlichen statischen Franchise-Daten und dynamischen Nutzerdaten:
 
 ```
-┌─────────────────────────────────┐       ┌─────────────────────────────────┐
-│         pokedex.sqlite          │       │        user_data.sqlite         │
-│   (Read-Only Referenzdaten)     │       │    (Read-Write Nutzerdaten)     │
-├─────────────────────────────────┤       ├─────────────────────────────────┤
-│ • pokemon (1025+ National Dex)  │       │ • user_dexes (Konfigurationen)  │
-│ • forms (Mega, G-Max, Regional) │       │ • folders (Ordnerhierarchie)    │
-│ • encounters & dex_orders       │       │ • folder_structure (Relationen) │
-│ • pokemon_moves & abilities     │       │ • user_pokemon (Status/Shinies) │
-│ • ribbons, marks & catch_rates  │       │ • shiny_hunts (Zähler & Phasen) │
-└─────────────────────────────────┘       └─────────────────────────────────┘
+┌─────────────────────────────────────────┐       ┌─────────────────────────────────────────┐
+│             pokedex.sqlite              │       │            user_data.sqlite             │
+│   (Read-Only Referenzdaten / PokemonDao)│       │  (Read-Write Nutzerdaten / UserDexDao)  │
+├─────────────────────────────────────────┤       ├─────────────────────────────────────────┤
+│ • pokemon (1025+ National Dex)          │       │ • user_dexes (Konfigurationen)          │
+│ • forms (Mega, G-Max, Regional)         │       │ • folders (Ordnerhierarchie)            │
+│ • encounters & dex_orders               │       │ • folder_structure (Relationen)         │
+│ • pokemon_moves & abilities             │       │ • user_pokemon (Status/Shinies)         │
+│ • ribbons, marks & catch_rates          │       │ • shiny_hunts (Zähler & Phasen)         │
+│ • shiny_locks (502+ globale & lok. Locks│       │                                         │
+└─────────────────────────────────────────┘       └─────────────────────────────────────────┘
 ```
 
-### 2.1 Portabilität & Pfadauflösung (`DatabasePathHelper`)
-Gemäß Repository-Richtlinie liegen Datenbanken portabel im Unterverzeichnis `database/`, **niemals** im Windows-Dokumente-Ordner:
+### 3.1 Die Data Access Objects (DAOs)
+Der frühere monolithische `DatabaseService` fungiert nun als schlanke Fassade und delegiert alle Operationen an spezialisierte DAOs:
+- **`PokemonDao`**: Behandelt alle lesenden Zugriffe auf `pokedex.sqlite`. Kapselt In-Memory-Caches für Pokémon, Attacken, Bänder, Bälle, Formen und Shiny-Locks.
+- **`UserDexDao`**: Verantwortlich für alle CRUD-Operationen der Nutzertabellen in `user_data.sqlite` (`user_dexes`, `folders`, `folder_structure`, `user_pokemon`), inklusive verwaister Datensätze (Orphan-Cleanup).
+- **`ShinyHuntDao`**: Verwaltet aktive und archivierte Shiny-Hunts, Jagd-Phasen und inkrementelle Zählerstände.
+- **`CloudSyncDao`**: Bietet `exportCloudSyncData()` und transaktionales `mergeCloudSyncData()` mit dynamischer `PRAGMA table_info`-Spaltenprüfung für abwärts- und aufwärtskompatiblen Datenabgleich.
+- **`DatabaseMigrator`**: Kapselt Schema-Migrationen (v1 bis v29+), Index-Erstellung (`ensureUserDataIndexes`, `ensureAppDatabaseIndexes`) und sichere Downgrade-Routinen.
 
+### 3.2 Portabilität & Pfadauflösung (`DatabasePathHelper`)
+Gemäß Repository-Richtlinie liegen Datenbanken portabel im Unterverzeichnis `database/`, **niemals** im Windows-Dokumente-Ordner:
 - **Entwicklungsumgebung (Desktop)**: `<project_root>/database/` (erkannt via vorhandene `pubspec.yaml`).
 - **Release / Portable Exe (Desktop)**: `<exe_dir>/database/` direkt neben der ausführbaren Datei.
 - **Read-Only Fallback**: Falls das Verzeichnis schreibgeschützt ist (z. B. `C:\Program Files`), fällt die App automatisch auf `<application_support_dir>/database/` zurück.
 - **Legacy Migration**: Existieren ältere Datenbanken im Dokumente-Ordner, migriert `DatabasePathHelper.migrateLegacyDocumentsDatabasesIfNeeded()` diese transparent, prüft Zeitstempel für Konfliktlösungen und legt Sicherheitskopien (`.bak_<timestamp>`) an.
-
-### 2.2 Schema-Evolution & Downgrade-Resilienz
-- **Idempotente Upgrades**: Neue Spalten werden via `_addColumnIfNotExists(db, table, column, definition)` anhand von `PRAGMA table_info` hinzugefügt.
-- **Downgrade-Stabilität (`onDowngrade`)**: Bei Wechsel auf ältere App-Versionen wird die Datenbank **nicht** zerstört oder neu angelegt (`onDowngrade: downgradeUserDataTables`), sodass Versionssprünge vor und zurück verlustfrei bleiben.
-- **Index-Pflicht**: Große Tabellen sind vollständig indexiert (`ensureUserDataIndexes`, `ensureAppDatabaseIndexes`), um schnelle Joins auf Moves, Abilities, Encounters und Shiny Hunts zu garantieren.
+- **Parallele Test-Isolierung**: Bei automatisierten Testläufen isoliert `DatabasePathHelper` Arbeitsverzeichnisse dynamisch per Prozess-ID (`pokevault_test_dbs/proc_$pid`), um Race Conditions und Lock-Kollisionen bei parallelen Test-Suites auszuschließen.
 
 ---
 
-## 3. Zustandsverwaltung & Datenfluss
+## 4. Zustandsverwaltung, Kapselung & Koordination
 
-Die Kernlogik ist in vier Hauptprovider gegliedert:
+### 4.1 State-Kapselung mit `UnmodifiableListView`
+In `DexProvider` sind interne Zustände (`_userDexes`, `_folders`) privat geschützt. Öffentliche Getter geben unmodifizierbare Ansichten (`UnmodifiableListView`) zurück. Mutationen erfolgen ausnahmslos über dedizierte Business-Methoden (`createUserDex`, `deleteFolder`, `updatePokemonStatus`), wodurch Seiteneffekte und unkontrollierte In-Memory-Zustandsänderungen verhindert werden.
 
-1. **`DexProvider`**:
-   - Verwaltet aktive `UserDex`-Instanzen, Ordnerstrukturen und gefangene Pokémon.
-   - Koordiniert asynchrone Hintergrundberechnungen via `compute` in `DexLogicHelper`.
-   - Registriert Lifecycle-Hooks für Cloud-Upload und -Merge (`registerBeforeUploadHook`, `registerCloudDataMergedHook`).
-2. **`ShinyHuntProvider`**:
-   - Führt aktive Shiny-Hunts, Zeitmessung (mit AFK-Schutz und Foreground-Erkennung) und Phasen-Historie.
-   - Verwendet In-Memory-Zähler mit debounced SQLite-Flush (`_pendingDirtyHuntIds`).
-3. **`SettingsProvider`**:
-   - Verwaltet Themes, Akzentfarben, Sprachwechsel (`de` / `en`) und Google-Drive-OAuth-Zugangsdaten.
-4. **`TutorialProvider`**:
-   - Speichert gesehene Onboarding-Schritte und Feature-Flags.
+### 4.2 `GoogleDriveSyncCoordinator`
+Die Cloud-Synchronisation ist aus dem `DexProvider` in den eigenständigen `GoogleDriveSyncCoordinator` ausgelagert:
+- **Debounced Upload**: Verhindert Server-Überlastung bei schnellen Nutzerinteraktionen durch einen zeitgesteuerten Debouncer.
+- **Periodischer Sync**: Konfigurierbarer Intervall-Timer zum Prüfen und Herunterladen von Aktualisierungen anderer Geräte.
+- **Lifecycle-Flush**: Bei App-Pausierung (`AppLifecycleState.paused` / `inactive`) werden ungespeicherte Änderungen sofort in die Cloud synchronisiert.
+- **Transparente Hook-Kette**: Vor- und Nachbereitungs-Hooks (`registerBeforeUploadHook`, `registerCloudDataMergedHook`) entkoppeln State-Synchronisation von Netzwerkanfragen.
 
 ---
 
-## 4. Cloud-Synchronisation & Patch-Merge Resilienz
+## 5. Rechenlogik, Entflechtung & Isolate-Sicherheit
 
-Die Cloud-Synchronisation speichert Backups als `pokevault_sync.json` im privaten Google Drive `appDataFolder` des Benutzers.
+Rechenintensive Operationen sind modularisiert und für Hintergrund-Threads (`compute()`) gehärtet:
 
-### 4.1 Cross-Platform OAuth2
-- **Desktop & Mobile**: Startet einen lokalen HTTP-Server (`127.0.0.1:8080`), öffnet den Systembrowser und fängt den Autorisierungscode ab.
-- **Web**: Nutzt die offizielle Google Sign-In Erweiterung.
-
-### 4.2 Field-Level Patch-Merge (`GoogleDriveSyncService.mergeForUpload`)
-Um zu verhindern, dass eine Desktop-App Felder überschreibt, die von einer neueren Android-Version (oder umgekehrt) eingeführt wurden:
-
-1. Vor jedem Upload wird die bestehende Cloud-Datei heruntergeladen.
-2. Der Merge vergleicht Datensätze anhand ihrer Primärschlüssel (z. B. `id` oder `dex_id + unique_id`).
-3. Nur wenn der lokale Zeitstempel (`updated_at`) neuer oder gleich ist, werden lokale Felder über die Cloud-Felder gelegt (`remoteItem.addAll(localItem)`).
-4. Unbekannte Spalten und Tabellen aus der Cloud bleiben vollständig erhalten.
+1. **`DexBoxPacker`**:
+   - Berechnet die Aufteilung von Pokémon-Listen in 30er-PC-Boxen (`generateBoxesIsolateTask`).
+   - Unterstützt dynamische Box-Konfigurationen (Kanto, Johto, Living Dex, Formen).
+2. **`DexEntryBuilder`**:
+   - Generiert `DexDisplayEntry`-Modelle in Hintergrund-Isolates (`buildEntriesIsolateTask`).
+3. **`BoxSequenceCalculator`**:
+   - Mathematische Berechnungsfunktionen für Multi-Drag, Slot-Swaps, Gap-Closing und boxübergreifendes Verschieben.
+4. **`IsolateTranslator` (i18n Bridge)**:
+   - Hintergrund-Isolates besitzen keinen Flutter-UI-Kontext (`BuildContext`). `IsolateTranslator` stellt typsichere Übersetzungen für Regionen, Formen und Box-Titel bereit, ohne auf UI-Singletons zuzugreifen.
 
 ---
 
-## 5. Bedienung & Interaktionsmodell
+## 6. UI-Modularisierung & Interaktionsmodell
 
-PokéVault ist für Maus/Tastatur und Touchscreens gleichermaßen optimiert:
+Die Benutzeroberfläche ist in handhabbare, modulare Sub-Widgets aufgeteilt:
 
-| Bereich | Desktop & Web (Maus & Tastatur) | Touch & Mobil (Gesten) |
-|---|---|---|
-| **Navigation** | `Backspace` / `Browser Back` | System-Zurück-Wischgeste |
-| **PC-Box / Liste** | Linksklick: Toggle Status<br>Rechtsklick / `Taste I` / `Ctrl+Enter`: Info<br>Drag & Drop: Verschieben | Tippen: Toggle Status<br>Langer Druck: Info<br>Langer Druck + Ziehen: Verschieben |
-| **Home Screen** | Drag & Drop am Reorder-Handle | Langer Druck für Mehrfachauswahl |
-| **Shiny Counter** | `Leertaste` / `↑`: +1<br>`↓` / `-`: -1<br>`P`: Pause/Fortsetzen<br>Schloss-Symbol: Fehlklickschutz | Großes Tippfeld: +1<br>Minus-Button: -1<br>Pause-Button: Pause<br>Schloss-Symbol: Fehlklickschutz |
-| **Bänder & Fähigkeiten** | Linksklick: Status<br>Rechtsklick: Details | Tippen: Status<br>Langer Druck: Details |
+### 6.1 `BoxActionDelegate` & `DexBoxView`
+Die PC-Box-Ansicht (`DexBoxView`) ist über das `BoxActionDelegate`-Interface von der Anwendungslogik entkoppelt:
+- `DexBoxHeader`: Navigation, Box-Titel und Fortschrittsanzeige.
+- `DexBoxGrid`: Responsives 6x5-Raster mit automatischer Größenanpassung.
+- `DexBoxSlotItem`: Einzelner Pokémon-Slot mit Sprites, Typen-Markern, Shiny-Symbolen und Drag-and-Drop-Feedback.
 
-Die vollständige Anleitung ist in der App unter **Einstellungen → Allgemein → Bedienung & Tastaturkürzel** interaktiv einsehbar (`ControlsGuideScreen`).
+### 6.2 Modulare Dialoge & Screens
+- **Dex Completion Cards**: Aufgeteilt in `CardAppearanceSection`, `CardTogglesSection`, `CardActionsBar` sowie Canvas-Renderer (`CardPainterRenderer`, `CardPokemonMosaic`, `CardStatsSummary`).
+- **Shiny Hunt Module**: Aufgeteilt in `HuntCounterControls` (Großanzeige, Buttons), `HuntOddsCard` (Wahrscheinlichkeiten) und `HuntGameMethodSelector` (Edition & Methode).
+- **Home Screen**: Navigation getrennt von `HomeDexTreeView` mit Drag-and-Drop-Sortierung.
 
 ---
 
-## 6. Offline-Datenbank-Pipeline (`tool/data_pipeline/`)
+## 7. Offline-Datenbank-Pipeline (`tool/data_pipeline/`)
 
-Die Referenzdatenbank `assets/db/pokedex.sqlite` wird über eine Python-Pipeline generiert:
-1. `python update_data.py`: Lädt aktuelle HTML-Seiten (Bulbapedia, Bisafans, PokéWiki), die Legal Matching Pokéballs Tabelle und aktualisiert das PokeAPI Submodule.
+Die Referenzdatenbank `assets/db/pokedex.sqlite` wird über eine Python-Monorepo-Pipeline generiert:
+1. `python update_data.py`: Lädt aktuelle Web-Dumps (Bulbapedia, Bisafans, PokéWiki), die Legal Matching Pokéballs Tabelle und aktualisiert das PokeAPI Submodul.
 2. `python tool/data_pipeline/build_database.py`: Aggregiert alle Quellen und baut die SQLite-Datenbank.
 3. `python tool/data_pipeline/update_evolutions_db.py`: Ergänzt strukturierte Evolutionsbäume aus den PokeAPI-Rohdaten.
+4. `python tool/data_pipeline/update_cap_locks_and_trades.py`: Integriert Shiny-Locks für Kappen-Pikachu, Cosplay-Formen und Tausche.
+5. `python tool/data_pipeline/optimize_databases.py`: Erstellt Covering-Indexes, führt `ANALYZE` und `VACUUM` aus.
 
-Details zur Pipeline sind in [tool/data_pipeline/README.md](tool/data_pipeline/README.md) dokumentiert.
+Ausführliche Entwickler-Anleitungen befinden sich in [tool/data_pipeline/README.md](tool/data_pipeline/README.md).
 
 ---
 
-## 7. Qualitätssicherung & CI Pipeline
+## 8. Qualitätssicherung & Zero-Tolerance Quality Gate
 
-- **Automatisierte Tests**: Über 840 Unit-, Widget- und Integrationstests (`flutter test`).
-- **Statische Analyse**: `dart analyze --fatal-infos` mit strengen Lint-Regeln (`flutter_lints`).
-- **GitHub Actions CI**: Läuft automatisch bei jedem Push und PR auf `main` / `master` (`.github/workflows/ci.yml`).
+PokéVault erzwingt höchste Qualitätsstandards durch striktes Test-Driven Development (TDD) und automatisierte Prüfungen:
+
+- **Automatisierte Tests**: Über **1.340 Tests** (`flutter test`) mit **100% Pass-Rate** über Unit-, Widget-, Integrations-, Boundary- und Adversarial-Challenger-Suiten.
+- **Statische Analyse**: `flutter analyze` mit **0 Fehlern, 0 Warnungen und 0 Lints**.
+- **Cross-Platform Resilience**: Stresstests für extreme Bildschirmgrößen (z. B. 320x480 bis 4K), Gestenabbruch und Sprachwechsel zur Laufzeit.
+- **GitHub Actions CI**: Vollautomatisierte CI-Pipeline bei jedem Commit und Pull Request (`.github/workflows/ci.yml`).
