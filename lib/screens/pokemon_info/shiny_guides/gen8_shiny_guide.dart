@@ -26,7 +26,7 @@ class Gen8ShinyGuide extends StatelessWidget {
     return FutureBuilder<Map<String, dynamic>>(
       future: ShinyLogicHelper.fetchGen8Data(id),
       builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
+        if (snapshot.connectionState == ConnectionState.waiting || !snapshot.hasData || snapshot.data == null) {
           return const SizedBox.shrink();
         }
         final data = snapshot.data!;

@@ -66,7 +66,7 @@ void main() {
   });
 
   Future<void> settleDb(WidgetTester tester) async {
-    for (int i = 0; i < 40; i++) {
+    for (int i = 0; i < 100; i++) {
       await tester.runAsync(() async {
         await Future.delayed(const Duration(milliseconds: 25));
       });

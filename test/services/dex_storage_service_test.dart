@@ -1,3 +1,4 @@
+import 'dart:collection';
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
@@ -60,7 +61,7 @@ void main() {
     FileSelectorPlatform.instance = mockFileSelector;
 
     mockDexProvider = MockDexProvider();
-    when(() => mockDexProvider.folders).thenReturn([]);
+    when(() => mockDexProvider.folders).thenReturn(UnmodifiableListView([]));
     when(() => mockDexProvider.structure).thenReturn({'root': []});
   });
 
@@ -89,7 +90,7 @@ void main() {
       );
 
       final dexFolder = DexFolder(id: 'folder_1', title: 'My Folder');
-      when(() => mockDexProvider.folders).thenReturn([dexFolder]);
+      when(() => mockDexProvider.folders).thenReturn(UnmodifiableListView([dexFolder]));
       when(() => mockDexProvider.structure).thenReturn({
         'root': ['export_dex_1'],
         'folder_1': [],

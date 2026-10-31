@@ -1,19 +1,19 @@
+import 'dart:async';
+import 'dart:collection';
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:uuid/uuid.dart';
 import '../models/pokemon.dart';
+import '../models/ribbon.dart';
+import '../models/shiny_hunt.dart';
 import '../models/user_dex.dart';
-import '../utils/dex_logic_helper.dart';
 import '../services/database_service.dart';
 import '../services/dex_storage_service.dart';
 import '../services/migration_service.dart';
-import '../utils/notification_helper.dart';
-import 'dart:async';
-import 'package:flutter/widgets.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import '../services/google_drive_sync_service.dart';
 import '../services/shiny_lock_service.dart';
-import '../models/ribbon.dart';
-import '../models/shiny_hunt.dart';
+import '../services/sync/google_drive_sync_coordinator.dart';
+import '../utils/dex_logic_helper.dart';
+import '../utils/notification_helper.dart';
 
 /// Primary application state provider managing user Dexes, folders, and cloud synchronization.
 ///
@@ -25,10 +25,33 @@ import '../models/shiny_hunt.dart';
 /// * Lifecycle hooks for dependent providers (e.g. [ShinyHuntProvider]).
 class DexProvider extends ChangeNotifier with WidgetsBindingObserver {
   /// All user-created Pokédex configurations loaded from local storage.
-  List<UserDex> userDexes = [];
+  final List<UserDex> _userDexes = [];
+  List<UserDex> get userDexes => UnmodifiableListView(_userDexes);
 
   /// User-created folder containers for organizing Dexes.
-  List<DexFolder> folders = [];
+  final List<DexFolder> _folders = [];
+  List<DexFolder> get folders => UnmodifiableListView(_folders);
+
+  /// Coordinator for Google Drive sync and periodic remote checks.
+  late final GoogleDriveSyncCoordinator syncCoordinator;
+
+  @visibleForTesting
+  set userDexes(List<UserDex> list) {
+    _userDexes.clear();
+    _userDexes.addAll(list);
+  }
+
+  @visibleForTesting
+  set folders(List<DexFolder> list) {
+    _folders.clear();
+    _folders.addAll(list);
+  }
+
+  @visibleForTesting
+  void addUserDexForTesting(UserDex dex) => _userDexes.add(dex);
+
+  @visibleForTesting
+  void addFolderForTesting(DexFolder folder) => _folders.add(folder);
 
   /// Adjacency-list mapping representing the visual folder and Dex hierarchy.
   Map<String, List<String>> structure = {'root': []};
@@ -58,69 +81,54 @@ class DexProvider extends ChangeNotifier with WidgetsBindingObserver {
   /// Underlying SQLite database service instance.
   final DatabaseService db;
 
-  Timer? _uploadDebouncer;
-  Timer? _downloadTimer;
-  DateTime? _lastSyncTime;
-  bool _isSyncing = false;
-  bool _hasPendingChanges = false;
-
   /// Master list of all available ribbons in the franchise.
   List<Ribbon> allRibbons = [];
 
-  final List<Future<void> Function()> _beforeUploadHooks = [];
-  final List<Future<void> Function()> _beforeMergeHooks = [];
-  final List<Future<void> Function()> _cloudDataMergedHooks = [];
-
   /// Registers an asynchronous callback executed immediately before uploading local data to cloud.
   void registerBeforeUploadHook(Future<void> Function() hook) {
-    if (!_beforeUploadHooks.contains(hook)) {
-      _beforeUploadHooks.add(hook);
-    }
+    syncCoordinator.registerBeforeUploadHook(hook);
   }
 
   /// Removes a previously registered upload hook callback.
   void unregisterBeforeUploadHook(Future<void> Function() hook) {
-    _beforeUploadHooks.remove(hook);
+    syncCoordinator.unregisterBeforeUploadHook(hook);
   }
 
   /// Registers an asynchronous callback executed before merging downloaded cloud data.
   void registerBeforeMergeHook(Future<void> Function() hook) {
-    if (!_beforeMergeHooks.contains(hook)) {
-      _beforeMergeHooks.add(hook);
-    }
+    syncCoordinator.registerBeforeMergeHook(hook);
   }
 
   /// Removes a previously registered merge hook callback.
   void unregisterBeforeMergeHook(Future<void> Function() hook) {
-    _beforeMergeHooks.remove(hook);
+    syncCoordinator.unregisterBeforeMergeHook(hook);
   }
 
   /// Registers an asynchronous callback executed after cloud data has been merged.
   void registerCloudDataMergedHook(Future<void> Function() hook) {
-    if (!_cloudDataMergedHooks.contains(hook)) {
-      _cloudDataMergedHooks.add(hook);
-    }
+    syncCoordinator.registerCloudDataMergedHook(hook);
   }
 
   /// Removes a previously registered cloud data merged callback.
   void unregisterCloudDataMergedHook(Future<void> Function() hook) {
-    _cloudDataMergedHooks.remove(hook);
+    syncCoordinator.unregisterCloudDataMergedHook(hook);
   }
 
   @visibleForTesting
-  Future<void> runBeforeUploadHooksForTesting() async {
-    for (final hook in _beforeUploadHooks) {
-      await hook();
-    }
-  }
+  Future<void> runBeforeUploadHooksForTesting() =>
+      syncCoordinator.runBeforeUploadHooks();
 
-  DexProvider({DatabaseService? databaseService})
-    : db = databaseService ?? DatabaseService.instance {
+  DexProvider({
+    DatabaseService? databaseService,
+    GoogleDriveSyncCoordinator? syncCoordinator,
+  }) : db = databaseService ?? DatabaseService.instance {
+    this.syncCoordinator = syncCoordinator ??
+        GoogleDriveSyncCoordinator(
+          db: db,
+          onReloadRequired: reloadFromDatabase,
+        );
     _initFuture = _init();
     WidgetsBinding.instance.addObserver(this);
-    _downloadTimer = Timer.periodic(const Duration(seconds: 60), (_) {
-      _checkForRemoteUpdates();
-    });
   }
 
   /// Triggers a state refresh by notifying all active listeners.
@@ -145,73 +153,21 @@ class DexProvider extends ChangeNotifier with WidgetsBindingObserver {
   void dispose() {
     _isDisposed = true;
     WidgetsBinding.instance.removeObserver(this);
-    _uploadDebouncer?.cancel();
-    _downloadTimer?.cancel();
+    syncCoordinator.dispose();
     super.dispose();
   }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed) {
-      if (_hasPendingChanges) {
-        _executeSilentUpload();
-      } else {
-        _checkForRemoteUpdates();
-      }
-    } else if (state == AppLifecycleState.paused) {
-      if (_uploadDebouncer?.isActive ?? false) {
-        _uploadDebouncer!.cancel();
-        _executeSilentUpload();
-      }
-    }
+    syncCoordinator.handleAppLifecycleState(state);
   }
 
-  void startAutoSyncIfEnabled() async {
-    final prefs = await SharedPreferences.getInstance();
-    bool isAutoSync = prefs.getBool('autoSyncEnabled') ?? false;
-
-    if (isAutoSync && GoogleDriveSyncService.instance.isSignedIn) {
-      await _checkForRemoteUpdates();
-
-      _downloadTimer?.cancel();
-      _downloadTimer = Timer.periodic(const Duration(seconds: 60), (_) {
-        _checkForRemoteUpdates();
-      });
-    }
-  }
-
-  Future<void> _checkForRemoteUpdates() async {
-    if (!GoogleDriveSyncService.instance.isSignedIn || _isSyncing) return;
-
-    final remoteTime = await GoogleDriveSyncService.instance
-        .getRemoteModifiedTime();
-    if (remoteTime == null) return;
-
-    if (_lastSyncTime == null || remoteTime.isAfter(_lastSyncTime!)) {
-      _isSyncing = true;
-      try {
-        debugPrint("Neue Daten in der Cloud gefunden! Lade herunter...");
-        final cloudData = await GoogleDriveSyncService.instance
-            .downloadBackup();
-        if (cloudData != null) {
-          await mergeCloudData(cloudData);
-          _lastSyncTime = DateTime.now().toUtc();
-        }
-      } finally {
-        _isSyncing = false;
-      }
-    }
+  void startAutoSyncIfEnabled() {
+    syncCoordinator.startAutoSyncIfEnabled();
   }
 
   void triggerAutoUpload() {
-    if (!GoogleDriveSyncService.instance.isSignedIn) return;
-
-    _uploadDebouncer?.cancel();
-    _hasPendingChanges = true;
-
-    _uploadDebouncer = Timer(const Duration(seconds: 3), () {
-      _executeSilentUpload();
-    });
+    syncCoordinator.triggerAutoUpload();
   }
 
   Future<void> _init() async {
@@ -227,8 +183,10 @@ class DexProvider extends ChangeNotifier with WidgetsBindingObserver {
       allAvailableDexes = await db.getAllDexOrders();
       ballUrls = await db.getBallUrls();
 
-      userDexes = await db.getAllUserDexes();
-      folders = await db.getAllFolders();
+      _userDexes.clear();
+      _userDexes.addAll(await db.getAllUserDexes());
+      _folders.clear();
+      _folders.addAll(await db.getAllFolders());
       structure = await db.getStructure();
       allRibbons = await db.getAllRibbons();
       sanitizeStructure();
@@ -278,7 +236,7 @@ class DexProvider extends ChangeNotifier with WidgetsBindingObserver {
           ? [CustomBoxState(title: "Box 1", pokemonIds: [], regionKey: region, columns: 6, rows: 5)]
           : [],
     );
-    userDexes.add(newDex);
+    _userDexes.add(newDex);
     structure.putIfAbsent(folderId, () => []).add(newDex.id);
 
     db.saveUserDex(newDex);
@@ -289,11 +247,11 @@ class DexProvider extends ChangeNotifier with WidgetsBindingObserver {
 
   /// Saves the [dex] state to local SQLite and triggers an automated debounced cloud upload.
   Future<void> saveUserDexAndSync(UserDex dex) async {
-    final index = userDexes.indexWhere((d) => d.id == dex.id);
+    final index = _userDexes.indexWhere((d) => d.id == dex.id);
     if (index != -1) {
-      userDexes[index] = dex;
+      _userDexes[index] = dex;
     } else {
-      userDexes.add(dex);
+      _userDexes.add(dex);
     }
     await db.saveUserDex(dex);
     triggerAutoUpload();
@@ -314,9 +272,9 @@ class DexProvider extends ChangeNotifier with WidgetsBindingObserver {
     bool includeGifts = false,
     bool includeGlitch = false,
   }) {
-    final index = userDexes.indexWhere((d) => d.id == id);
+    final index = _userDexes.indexWhere((d) => d.id == id);
     if (index != -1) {
-      final old = userDexes[index];
+      final old = _userDexes[index];
       final updated = UserDex(
         id: old.id,
         title: title,
@@ -334,7 +292,7 @@ class DexProvider extends ChangeNotifier with WidgetsBindingObserver {
         shinyIds: old.shinyIds,
         ignoredIds: old.ignoredIds,
       );
-      userDexes[index] = updated;
+      _userDexes[index] = updated;
       triggerAutoUpload();
       db.saveUserDex(updated);
       notifyListeners();
@@ -343,7 +301,7 @@ class DexProvider extends ChangeNotifier with WidgetsBindingObserver {
 
   /// Deletes the Dex with [id] from local memory, database, and folder structure.
   void deleteDex(String id) {
-    userDexes.removeWhere((d) => d.id == id);
+    _userDexes.removeWhere((d) => d.id == id);
     for (var key in structure.keys) {
       structure[key]?.remove(id);
     }
@@ -356,7 +314,7 @@ class DexProvider extends ChangeNotifier with WidgetsBindingObserver {
   /// Creates a new visual folder container with [title] inside [currentFolderId].
   void createFolder(String title, String currentFolderId) {
     final folder = DexFolder(id: 'folder_${const Uuid().v4()}', title: title);
-    folders.add(folder);
+    _folders.add(folder);
     structure.putIfAbsent(currentFolderId, () => []).add(folder.id);
 
     db.saveFolder(folder);
@@ -367,10 +325,10 @@ class DexProvider extends ChangeNotifier with WidgetsBindingObserver {
 
   /// Renames the folder identified by [id] to [newTitle].
   void renameFolder(String id, String newTitle) {
-    final idx = folders.indexWhere((f) => f.id == id);
+    final idx = _folders.indexWhere((f) => f.id == id);
     if (idx != -1) {
-      folders[idx] = DexFolder(id: id, title: newTitle);
-      db.saveFolder(folders[idx]);
+      _folders[idx] = DexFolder(id: id, title: newTitle);
+      db.saveFolder(_folders[idx]);
       triggerAutoUpload();
       notifyListeners();
     }
@@ -388,7 +346,7 @@ class DexProvider extends ChangeNotifier with WidgetsBindingObserver {
       list.remove(folderId);
     }
 
-    folders.removeWhere((f) => f.id == folderId);
+    _folders.removeWhere((f) => f.id == folderId);
     notifyListeners();
 
     await db.deleteFolder(folderId, recursive: recursive);
@@ -1003,14 +961,14 @@ class DexProvider extends ChangeNotifier with WidgetsBindingObserver {
     if (data is Map<String, dynamic>) {
       await db.clearUserData();
 
-      folders.clear();
-      userDexes.clear();
+      _folders.clear();
+      _userDexes.clear();
       structure.clear();
 
       if (data['folders'] != null) {
         for (var fData in data['folders']) {
           final f = DexFolder.fromJson(fData);
-          folders.add(f);
+          _folders.add(f);
           await db.saveFolder(f);
         }
       }
@@ -1018,7 +976,7 @@ class DexProvider extends ChangeNotifier with WidgetsBindingObserver {
       if (data['dexes'] != null) {
         for (var dData in data['dexes']) {
           final d = UserDex.fromJson(dData);
-          userDexes.add(d);
+          _userDexes.add(d);
           await db.saveUserDex(d);
 
           for (var uid in d.caughtIds) {
@@ -1058,8 +1016,10 @@ class DexProvider extends ChangeNotifier with WidgetsBindingObserver {
   }
 
   Future<void> reloadFromDatabase() async {
-    userDexes = await db.getAllUserDexes();
-    folders = await db.getAllFolders();
+    _userDexes.clear();
+    _userDexes.addAll(await db.getAllUserDexes());
+    _folders.clear();
+    _folders.addAll(await db.getAllFolders());
     structure = await db.getStructure();
     sanitizeStructure();
     notifyListeners();
@@ -1109,44 +1069,11 @@ class DexProvider extends ChangeNotifier with WidgetsBindingObserver {
   }
 
   Future<void> mergeCloudData(Map<String, dynamic> cloudData) async {
-    try {
-      for (final hook in _beforeMergeHooks) {
-        try {
-          await hook();
-        } catch (e) {
-          debugPrint('Error in beforeMergeHook: $e');
-        }
-      }
-
-      final formatVersion =
-          (cloudData['format_version'] as num?)?.toInt() ?? 0;
-      if (cloudData.containsKey('format_version') && formatVersion >= 2) {
-        await db.mergeCloudSyncData(cloudData);
-      } else {
-        if (userDexes.isEmpty && folders.isEmpty) {
-          debugPrint("Lade altes Backup-Format herunter...");
-          await _mergeOldFormat(cloudData);
-        } else {
-          debugPrint(
-            "Veraltetes Cloud-Backup blockiert! (Verhindert Zombie-Dexe)",
-          );
-          _executeSilentUpload();
-        }
-      }
-
-      await reloadFromDatabase();
-
-      for (final hook in _cloudDataMergedHooks) {
-        try {
-          await hook();
-        } catch (e) {
-          debugPrint('Error in cloudDataMergedHook: $e');
-        }
-      }
-    } catch (e) {
-      debugPrint("Merge Error: $e");
-      rethrow;
-    }
+    await syncCoordinator.mergeCloudData(
+      cloudData,
+      isLocalEmpty: _userDexes.isEmpty && _folders.isEmpty,
+      onMergeLegacyFormat: _mergeOldFormat,
+    );
   }
 
   Future<void> _mergeOldFormat(Map<String, dynamic> cloudData) async {
@@ -1154,9 +1081,9 @@ class DexProvider extends ChangeNotifier with WidgetsBindingObserver {
         .map((d) => UserDex.fromJson(d))
         .toList();
     for (var rDex in remoteDexes) {
-      final localIndex = userDexes.indexWhere((d) => d.id == rDex.id);
+      final localIndex = _userDexes.indexWhere((d) => d.id == rDex.id);
       if (localIndex != -1) {
-        final localDex = userDexes[localIndex];
+        final localDex = _userDexes[localIndex];
         localDex.caughtIds = {
           ...localDex.caughtIds,
           ...rDex.caughtIds,
@@ -1177,7 +1104,7 @@ class DexProvider extends ChangeNotifier with WidgetsBindingObserver {
           await db.savePokemonStatus(localDex.id, uid, isIgnored: true);
         }
       } else {
-        userDexes.add(rDex);
+        _userDexes.add(rDex);
         await db.saveUserDex(rDex);
         for (var uid in rDex.caughtIds) {
           await db.savePokemonStatus(rDex.id, uid, isCaught: true);
@@ -1194,8 +1121,8 @@ class DexProvider extends ChangeNotifier with WidgetsBindingObserver {
         .map((f) => DexFolder.fromMap(f))
         .toList();
     for (var rFolder in remoteFolders) {
-      if (!folders.any((f) => f.id == rFolder.id)) {
-        folders.add(rFolder);
+      if (!_folders.any((f) => f.id == rFolder.id)) {
+        _folders.add(rFolder);
         await db.saveFolder(rFolder);
       }
     }
@@ -1216,33 +1143,6 @@ class DexProvider extends ChangeNotifier with WidgetsBindingObserver {
     });
     structure = remoteStructure;
     await db.saveStructure(structure);
-  }
-
-  Future<void> _executeSilentUpload() async {
-    if (!GoogleDriveSyncService.instance.isSignedIn || _isSyncing) return;
-
-    _isSyncing = true;
-    try {
-      for (final hook in _beforeUploadHooks) {
-        try {
-          await hook();
-        } catch (e) {
-          debugPrint('Error in beforeUploadHook: $e');
-        }
-      }
-      final Map<String, dynamic> exportData = await db.exportCloudSyncData();
-      bool success = await GoogleDriveSyncService.instance.uploadBackup(
-        exportData,
-      );
-
-      if (success) {
-        debugPrint("Lautloser Upload erfolgreich.");
-        _lastSyncTime = DateTime.now().toUtc();
-        _hasPendingChanges = false;
-      }
-    } finally {
-      _isSyncing = false;
-    }
   }
 
   Future<void> toggleRibbon(

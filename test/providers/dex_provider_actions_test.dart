@@ -140,7 +140,7 @@ void main() {
     });
 
     test('deleteFolder ohne Rekursion rettet Kinder in Root', () async {
-      provider.folders.add(DexFolder(id: 'folder_test', title: 'Test Folder'));
+      provider.addFolderForTesting(DexFolder(id: 'folder_test', title: 'Test Folder'));
       provider.structure['root'] = ['folder_test'];
       provider.structure['folder_test'] = ['child_1', 'child_2'];
 
@@ -155,7 +155,7 @@ void main() {
     });
 
     test('deleteFolder mit Rekursion löscht Kinder ohne Rettung in Root', () async {
-      provider.folders.add(DexFolder(id: 'folder_test', title: 'Test Folder'));
+      provider.addFolderForTesting(DexFolder(id: 'folder_test', title: 'Test Folder'));
       provider.structure['root'] = ['folder_test'];
       provider.structure['folder_test'] = ['child_1', 'child_2'];
 
