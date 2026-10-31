@@ -66,7 +66,7 @@ Fetch the latest data repositories and wikis used by the database generator:
    *PokéVault relies on a pre-built SQLite database for core Pokémon data.* 
    Make sure you run the database build script to generate `assets/db/pokedex.sqlite` before launching the app:
    ```bash
-   python3 bin/build_database.py
+   python3 tool/data_pipeline/build_database.py
    ```
 
 6. Run the app:
@@ -105,10 +105,10 @@ flutter build web --release
 
 ## 📚 Architecture & Documentation
 * [Architecture Guide (`ARCHITECTURE.md`)](ARCHITECTURE.md): Comprehensive system overview, state architecture (Provider), database dual-persistence model, cloud sync merge algorithm, and test quality gates.
-* [Database Generator Pipeline (`bin/README.md`)](bin/README.md): Detailed documentation of offline PokeAPI JSON parsing, web scrapers, legal Pokéball data, and database compilation steps.
+* [Database Generator Pipeline (`tool/data_pipeline/README.md`)](tool/data_pipeline/README.md): Detailed documentation of offline PokeAPI JSON parsing, web scrapers, legal Pokéball data, and database compilation steps.
 
 ## 🤝 Contributing Data (Community Fixes)
-Missing encounters or do you have better Matching Ball suggestions? You can easily add or correct these data in the JSON files located in the `bin/` directory (if applicable) or contribute directly via Issues/Pull Requests.
+Missing encounters or do you have better Matching Ball suggestions? You can easily add or correct these data in the JSON files located in the `tool/data_pipeline/` directory (if applicable) or contribute directly via Issues/Pull Requests.
 
 If you want to contribute code, features, or bug fixes, please use the appropriate Issue Templates in the `.github/ISSUE_TEMPLATE` folder and open a Pull Request on a dedicated feature branch.
 

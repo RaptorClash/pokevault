@@ -1,7 +1,7 @@
 """Database build constants and game metadata definitions.
 
 This module provides hardcoded lookup tables, mappings, and shiny hunt rule sets
-used during SQLite database compilation (`bin/build_database.py`), including:
+used during SQLite database compilation (`tool/data_pipeline/build_database.py`), including:
 - Form whitelists for regional Pokédex ordering.
 - Game version to Generation mapping.
 - Hardcoded regional ordering sequences (e.g. Lumiose, Mega Dex).
@@ -10,11 +10,17 @@ used during SQLite database compilation (`bin/build_database.py`), including:
 - Shiny hunt lock lists across Generations 5 through 9.
 """
 
-EXCEL_PATH = 'bin/Legal_Matching_Pokeballs.xlsx'
-CUSTOM_JSON_PATH = 'bin/custom_matching_balls.json'
-LOCAL_BULBA_PATH = 'bin/List of Ribbons in the games - Bulbapedia, the community-driven Pokémon encyclopedia.html'
-LOCAL_POKEWIKI_PATH = 'bin/Liste aller Bänder – PokéWiki.html'
-LOCAL_MARKS_PATH = 'bin/Zeichen – PokéWiki.html'
+from pathlib import Path
+
+BASE_DIR = Path(__file__).resolve().parent
+REPO_ROOT = BASE_DIR.parent.parent
+
+EXCEL_PATH = str(BASE_DIR / 'Legal_Matching_Pokeballs.xlsx')
+CUSTOM_JSON_PATH = str(BASE_DIR / 'custom_matching_balls.json')
+CUSTOM_ENCOUNTERS_PATH = str(BASE_DIR / 'custom_encounters.json')
+LOCAL_BULBA_PATH = str(BASE_DIR / 'List of Ribbons in the games - Bulbapedia, the community-driven Pokémon encyclopedia.html')
+LOCAL_POKEWIKI_PATH = str(BASE_DIR / 'Liste aller Bänder – PokéWiki.html')
+LOCAL_MARKS_PATH = str(BASE_DIR / 'Zeichen – PokéWiki.html')
 
 BULBAPEDIA_URL = "https://bulbapedia.bulbagarden.net/wiki/List_of_Ribbons_in_the_games"
 POKEWIKI_URL = "https://www.pokewiki.de/Liste_aller_B%C3%A4nder"

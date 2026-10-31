@@ -1,6 +1,6 @@
 """Updates the evolution chains in pokedex.sqlite from PokeAPI JSON dumps.
 
-Parses JSON data files from `bin/api-data/data/api/v2/evolution-chain/*/index.json`,
+Parses JSON data files from `tool/data_pipeline/api-data/data/api/v2/evolution-chain/*/index.json`,
 extracts triggers, conditions, items, happiness, and relative stats into a structured
 tree, and inserts/replaces the serialized JSON in the `evolutions` SQLite table.
 """
@@ -9,6 +9,10 @@ import os
 import json
 import sqlite3
 import glob
+from pathlib import Path
+
+BASE_DIR = Path(__file__).resolve().parent
+REPO_ROOT = BASE_DIR.parent.parent
 
 def parse_chain(node):
     """Recursively parses an evolution chain node from the PokeAPI schema.
@@ -64,14 +68,14 @@ def parse_chain(node):
 
 def main():
     """Scans evolution chain files and updates pokedex.sqlite evolutions table."""
-    db_path = 'assets/db/pokedex.sqlite'
+    db_path = str(REPO_ROOT / 'assets' / 'db' / 'pokedex.sqlite')
     if not os.path.exists(db_path):
         raise FileNotFoundError(f"Database not found at {db_path}")
 
     conn = sqlite3.connect(db_path)
     c = conn.cursor()
 
-    chain_files = glob.glob('bin/api-data/data/api/v2/evolution-chain/*/index.json')
+    chain_files = glob.glob(str(BASE_DIR / 'api-data' / 'data' / 'api' / 'v2' / 'evolution-chain' / '*' / 'index.json'))
     print(f"Gefundene Ketten-Dateien: {len(chain_files)}")
 
     updated = 0

@@ -1,5 +1,9 @@
 import os
 import sqlite3
+from pathlib import Path
+
+BASE_DIR = Path(__file__).resolve().parent
+REPO_ROOT = BASE_DIR.parent.parent
 
 def optimize_pokedex(db_path):
     print(f"\n==========================================")
@@ -83,10 +87,9 @@ def vacuum_user_data(db_path):
     print(f"  -> Size before: {size_before:,} bytes | after: {size_after:,} bytes")
 
 def main():
-    base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    assets_pokedex = os.path.join(base_dir, "assets", "db", "pokedex.sqlite")
-    dev_pokedex = os.path.join(base_dir, "database", "pokedex.sqlite")
-    user_data = os.path.join(base_dir, "database", "user_data.sqlite")
+    assets_pokedex = str(REPO_ROOT / "assets" / "db" / "pokedex.sqlite")
+    dev_pokedex = str(REPO_ROOT / "database" / "pokedex.sqlite")
+    user_data = str(REPO_ROOT / "database" / "user_data.sqlite")
     
     if os.path.exists(assets_pokedex):
         optimize_pokedex(assets_pokedex)

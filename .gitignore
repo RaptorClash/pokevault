@@ -60,3 +60,8 @@ appimage-build/
 
 .agents
 AGENTS.md
+
+# Data Pipeline Cache & Python Bytecode
+tool/data_pipeline/cache/
+tool/data_pipeline/**/__pycache__/
+tool/data_pipeline/**/*.pyc

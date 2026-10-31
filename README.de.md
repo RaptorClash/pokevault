@@ -66,7 +66,7 @@ Lade die aktuellsten Daten-Repositories und WIkis herunter, die für die Datenba
    *PokéVault benötigt eine vorkompilierte SQLite-Datenbank für die Pokémon-Basisdaten.* 
    Stelle sicher, dass du das Skript ausführst, um `assets/db/pokedex.sqlite` zu generieren:
    ```bash
-   python3 bin/build_database.py
+   python3 tool/data_pipeline/build_database.py
    ```
 
 6. App starten:
@@ -105,10 +105,10 @@ flutter build web --release
 
 ## 📚 Architektur & Dokumentation
 * [Architektur-Leitfaden (`ARCHITECTURE.md`)](ARCHITECTURE.md): Detaillierte Übersicht über Systemarchitektur, Provider-State-Management, persistente SQLite-Speicherung, Cloud-Sync-Merge-Algorithmus und Test-Quality-Gates.
-* [Datenbank-Generierungs-Pipeline (`bin/README.md`)](bin/README.md): Dokumentation der Offline-PokeAPI-Datenaufbereitung, Scraper, Matching-Balls-Import und Datenbank-Kompilierung.
+* [Datenbank-Generierungs-Pipeline (`tool/data_pipeline/README.md`)](tool/data_pipeline/README.md): Dokumentation der Offline-PokeAPI-Datenaufbereitung, Scraper, Matching-Balls-Import und Datenbank-Kompilierung.
 
 ## 🤝 Daten ergänzen (Community Contributions)
-Fehlen dir Fundorte oder passen die Matching Balls nicht? Du kannst diese Daten in den JSON-Dateien im Verzeichnis `bin/` ergänzen (falls vorhanden) oder direkt über Issues/Pull Requests beitragen.
+Fehlen dir Fundorte oder passen die Matching Balls nicht? Du kannst diese Daten in den JSON-Dateien im Verzeichnis `tool/data_pipeline/` ergänzen (falls vorhanden) oder direkt über Issues/Pull Requests beitragen.
 
 Wenn du Code, Features oder Fehlerbehebungen beisteuern möchtest, nutze bitte die entsprechenden Issue-Templates im Ordner `.github/ISSUE_TEMPLATE` und öffne einen Pull Request auf einem eigenen Feature-Branch.
 

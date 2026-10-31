@@ -103,14 +103,14 @@ Die vollständige Anleitung ist in der App unter **Einstellungen → Allgemein �
 
 ---
 
-## 6. Offline-Datenbank-Pipeline (`bin/`)
+## 6. Offline-Datenbank-Pipeline (`tool/data_pipeline/`)
 
 Die Referenzdatenbank `assets/db/pokedex.sqlite` wird über eine Python-Pipeline generiert:
 1. `python update_data.py`: Lädt aktuelle HTML-Seiten (Bulbapedia, Bisafans, PokéWiki), die Legal Matching Pokéballs Tabelle und aktualisiert das PokeAPI Submodule.
-2. `python bin/build_database.py`: Aggregiert alle Quellen und baut die SQLite-Datenbank.
-3. `python bin/update_evolutions_db.py`: Ergänzt strukturierte Evolutionsbäume aus den PokeAPI-Rohdaten.
+2. `python tool/data_pipeline/build_database.py`: Aggregiert alle Quellen und baut die SQLite-Datenbank.
+3. `python tool/data_pipeline/update_evolutions_db.py`: Ergänzt strukturierte Evolutionsbäume aus den PokeAPI-Rohdaten.
 
-Details zur Pipeline sind in [bin/README.md](file:///c:/Marvin/Projekte/Code/pokevault/bin/README.md) dokumentiert.
+Details zur Pipeline sind in [tool/data_pipeline/README.md](tool/data_pipeline/README.md) dokumentiert.
 
 ---
 

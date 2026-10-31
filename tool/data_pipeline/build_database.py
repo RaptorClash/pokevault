@@ -1,9 +1,9 @@
 """Compiles the offline pokedex.sqlite SQLite database for PokéVault.
 
 Aggregates data from multiple sources:
-- Local PokeAPI JSON dumps (`bin/api-data/`).
+- Local PokeAPI JSON dumps (`tool/data_pipeline/api-data/`).
 - External HTML reference scrapers (Bulbapedia ribbons/trades, PokéWiki marks/ribbons).
-- Legal matching Pokéballs spreadsheet (`bin/Legal_Matching_Pokeballs.xlsx`).
+- Legal matching Pokéballs spreadsheet (`tool/data_pipeline/Legal_Matching_Pokeballs.xlsx`).
 - Regional dex orders, encounters, evolution trees, abilities, and moves.
 
 Outputs the unified `assets/db/pokedex.sqlite` database bundle.
@@ -16,9 +16,15 @@ import sqlite3
 import os
 import re
 import time
+from pathlib import Path
 import openpyxl
 from bs4 import BeautifulSoup
 from database_constants import *
+
+BASE_DIR = Path(__file__).resolve().parent
+REPO_ROOT = BASE_DIR.parent.parent
+API_DATA_DIR = BASE_DIR / "api-data" / "data" / "api" / "v2"
+DB_ASSETS_PATH = REPO_ROOT / "assets" / "db" / "pokedex.sqlite"
 
 POKEMON_NAME_TO_ID = {}
 
@@ -44,10 +50,10 @@ def fetch_json(url_or_path):
         return API_CACHE[url_or_path]
 
     if url_or_path.startswith("https://pokeapi.co/api/v2/"):
-        local_path = url_or_path.replace("https://pokeapi.co/api/v2/", "bin/api-data/data/api/v2/")
-        local_path = local_path.rstrip('/') + '/index.json'
+        rel_url = url_or_path.replace("https://pokeapi.co/api/v2/", "").strip("/")
+        local_path = API_DATA_DIR / rel_url / "index.json"
         
-        if os.path.exists(local_path):
+        if local_path.exists():
             try:
                 with open(local_path, 'r', encoding='utf-8') as f:
                     data = json.load(f)
@@ -276,11 +282,10 @@ def scrape_pokewiki_ribbons(html_path):
     return pw_db
 
 def get_ribbons_from_submodule():
+    submodule_json = BASE_DIR / "ribbons_guide" / "data" / "ribbons.json"
     possible_paths = [
-        'bin/ribbons_guide/data/ribbons.json',
-        'ribbons_guide/data/ribbons.json',
-        'data/ribbons.json',
-        '../bin/ribbons_guide/data/ribbons.json'
+        str(submodule_json),
+        str(REPO_ROOT / "tool" / "data_pipeline" / "ribbons_guide" / "data" / "ribbons.json")
     ]
     json_path = None
     for p in possible_paths:
@@ -549,14 +554,9 @@ def scrape_pokewiki_ns_pokemon(html_path):
 def scrape_shiny_locks(html_path, cur=None):
     """Parses local PokéWiki reference HTML and extracts global locks, edition locks, and trade locks.
 
-    Populates the SQLite `shiny_locks` table and writes `assets/data/shiny_locks.json`.
+    Populates the SQLite `shiny_locks` table.
     """
     print(f"-> Scrape detaillierte Shiny-Sperren aus: {html_path}")
-    if not os.path.exists(html_path):
-        alt_path = r'c:\Users\marvi\Downloads\Schillernde Pokémon – PokéWiki.html'
-        if os.path.exists(alt_path):
-            html_path = alt_path
-
     if not os.path.exists(html_path):
         print(f"WARNUNG: HTML-Datei für Shiny-Sperren nicht gefunden: {html_path}")
         return []
@@ -589,9 +589,9 @@ def scrape_shiny_locks(html_path, cur=None):
     name_map = {}
     target_cur = cur
     db_conn = None
-    if target_cur is None and os.path.exists('assets/db/pokedex.sqlite'):
+    if target_cur is None and DB_ASSETS_PATH.exists():
         try:
-            db_conn = sqlite3.connect('assets/db/pokedex.sqlite')
+            db_conn = sqlite3.connect(str(DB_ASSETS_PATH))
             target_cur = db_conn.cursor()
         except Exception:
             pass
@@ -725,15 +725,8 @@ def scrape_shiny_locks(html_path, cur=None):
                            VALUES (?, ?, ?, ?, ?)''',
                         (lock['pokemon_id'], lock['form_name'], lock['game_version'], lock['lock_type'], lock['notes']))
 
-    # Als JSON Bundle für Offline-Fallback exportieren
-    os.makedirs('assets/data', exist_ok=True)
-    json_path = 'assets/data/shiny_locks.json'
-    try:
-        with open(json_path, 'w', encoding='utf-8') as f:
-            json.dump(locks, f, ensure_ascii=False, indent=2)
-        print(f"-> {len(locks)} Shiny-Sperren nach {json_path} und in SQLite exportiert.")
-    except Exception as e:
-        print(f"Fehler beim Export von {json_path}: {e}")
+    if cur:
+        print(f"-> {len(seen_keys)} Shiny-Sperren in SQLite gespeichert.")
 
     if db_conn:
         try:
@@ -814,12 +807,12 @@ def main():
     inserts Pokémon entities, forms, ribbons, marks, moves, abilities,
     and builds required indexes.
     """
-    os.makedirs('assets/db', exist_ok=True)
+    DB_ASSETS_PATH.parent.mkdir(parents=True, exist_ok=True)
 
-    if os.path.exists('assets/db/pokedex.sqlite'):
-            os.remove('assets/db/pokedex.sqlite')
+    if DB_ASSETS_PATH.exists():
+        DB_ASSETS_PATH.unlink()
 
-    conn = sqlite3.connect('assets/db/pokedex.sqlite')
+    conn = sqlite3.connect(str(DB_ASSETS_PATH))
     c = conn.cursor()
 
     print("Erstelle Tabellen...")
@@ -931,8 +924,8 @@ def main():
 
     print("\n--- Bänder Zusammenführung ---")
     rg_ribbons = get_ribbons_from_submodule()
-    de_ribbons = scrape_pokewiki_ribbons('bin/Liste aller Bänder – PokéWiki.html')
-    de_marks = scrape_pokewiki_marks('bin/Zeichen – PokéWiki.html')
+    de_ribbons = scrape_pokewiki_ribbons(LOCAL_POKEWIKI_PATH)
+    de_marks = scrape_pokewiki_marks(LOCAL_MARKS_PATH)
     de_ribbons.update(de_marks)
 
     for r_id, r_info in rg_ribbons.items():
@@ -958,10 +951,11 @@ def main():
             if 'Legal_Matching' in file and file.endswith('.xlsx'):
                 actual_path = file
                 break
-        for file in os.listdir('bin'):
-            if 'Legal_Matching' in file and file.endswith('.xlsx'):
-                actual_path = f"bin/{file}"
-                break
+        if BASE_DIR.exists():
+            for file in os.listdir(str(BASE_DIR)):
+                if 'Legal_Matching' in file and file.endswith('.xlsx'):
+                    actual_path = str(BASE_DIR / file)
+                    break
     
     url_to_key = {}
     key_to_url = {}
@@ -1035,9 +1029,9 @@ def main():
 
     print("\n2. Hole Pokemon Daten (Basis, Formen, Encounters, Speed/Weight)...")
     custom_enc = {}
-    if os.path.exists('bin/custom_encounters.json'):
+    if os.path.exists(CUSTOM_ENCOUNTERS_PATH):
         try:
-            with open('bin/custom_encounters.json', 'r', encoding='utf-8') as f:
+            with open(CUSTOM_ENCOUNTERS_PATH, 'r', encoding='utf-8') as f:
                 custom_enc = json.load(f)
         except Exception as e: pass
 
@@ -1322,15 +1316,15 @@ def main():
     try:
         special_data = []
         
-        bulba_gifts = scrape_bulbapedia_gifts('bin/Gift Pokémon - Bulbapedia.html')
+        bulba_gifts = scrape_bulbapedia_gifts(str(BASE_DIR / 'Gift Pokémon - Bulbapedia.html'))
         special_data.extend(bulba_gifts)
 
-        bulba_trades = scrape_wikis_trades_and_gifts('bin/In-game trade - Bulbapedia.html', obtain_type='trade')
+        bulba_trades = scrape_wikis_trades_and_gifts(str(BASE_DIR / 'In-game trade - Bulbapedia.html'), obtain_type='trade')
         special_data.extend(bulba_trades)
-        pw_trades = scrape_wikis_trades_and_gifts('bin/Tausch – PokéWiki.html', obtain_type='trade')
+        pw_trades = scrape_wikis_trades_and_gifts(str(BASE_DIR / 'Tausch – PokéWiki.html'), obtain_type='trade')
         special_data.extend(pw_trades)
         
-        ns_pokemon = scrape_pokewiki_ns_pokemon('bin/Ns Pokémon – PokéWiki.html')
+        ns_pokemon = scrape_pokewiki_ns_pokemon(str(BASE_DIR / 'Ns Pokémon – PokéWiki.html'))
         special_data.extend(ns_pokemon)
         
         unique_entries = {}
@@ -1353,8 +1347,8 @@ def main():
     print("\n6.5. Verarbeite Geschlechtsunterschiede...")
     try:
         gender_diffs = scrape_gender_differences(
-            'bin/Geschlechtsunterschiede – PokéWiki.html',
-            'bin/List of Pokémon with gender differences - Bulbapedia, the community-driven Pokémon encyclopedia.html',
+            str(BASE_DIR / 'Geschlechtsunterschiede – PokéWiki.html'),
+            str(BASE_DIR / 'List of Pokémon with gender differences - Bulbapedia, the community-driven Pokémon encyclopedia.html'),
             c
         )
         for g_pid, g_de, g_en in gender_diffs:
@@ -1364,7 +1358,7 @@ def main():
 
     print("\n6.6. Lese und erstelle Shiny-Locks (Global, Edition, Tausche)...")
     try:
-        LOCAL_SHINY_HTML = 'bin/Schillernde Pokémon – PokéWiki.html'
+        LOCAL_SHINY_HTML = str(BASE_DIR / 'Schillernde Pokémon – PokéWiki.html')
         shiny_locks = scrape_shiny_locks(LOCAL_SHINY_HTML, c)
         for lock in shiny_locks:
             if lock.get('lock_type') == 'global':

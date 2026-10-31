@@ -7,7 +7,7 @@ assignees: ''
 ---
 
 **Affected file(s)**
-(e.g., `bin/custom_encounters.json`, `lib/data/matching_balls_data.dart`, `Legal_Matching_Pok balls.xlsx`)
+(e.g., `tool/data_pipeline/custom_encounters.json`, `lib/data/matching_balls_data.dart`, `tool/data_pipeline/Legal_Matching_Pokeballs.xlsx`)
 
 **What needs to be changed?**
 (Describe the missing or incorrect data record.)

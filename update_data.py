@@ -1,8 +1,8 @@
 """Automated scraper and updater for Pokédex reference assets.
 
 Fetches external web documentation, HTML tables, and Excel sheets (Bulbapedia,
-PokéWiki, Bisafans) into the `bin/` directory and synchronizes Git submodules
-prior to executing database compilation (`bin/build_database.py`).
+PokéWiki, Bisafans) into the `tool/data_pipeline/` directory and synchronizes Git submodules
+prior to executing database compilation (`tool/data_pipeline/build_database.py`).
 """
 
 import os
@@ -10,7 +10,7 @@ import urllib.request
 import subprocess
 import ssl
 
-BIN_DIR = "bin"
+PIPELINE_DIR = os.path.join("tool", "data_pipeline")
 
 DOWNLOADS = [
     {
@@ -111,11 +111,11 @@ def download_file(url, filepath):
 
 def main():
     """Executes file downloads and updates git submodules."""
-    os.makedirs(BIN_DIR, exist_ok=True)
+    os.makedirs(PIPELINE_DIR, exist_ok=True)
 
     print("=== DATEIEN WERDEN HERUNTERGELADEN ===")
     for item in DOWNLOADS:
-        filepath = os.path.join(BIN_DIR, item["filename"])
+        filepath = os.path.join(PIPELINE_DIR, item["filename"])
         download_file(item["url"], filepath)
 
     print("\n=== GIT SUBMODULES WERDEN AKTUALISIERT ===")
@@ -126,7 +126,7 @@ def main():
         print(f"FEHLER beim Aktualisieren der Submodules: {e}")
 
     print(
-        "\nUpdater erfolgreich beendet! Du kannst nun 'python bin/build_database.py' ausführen."
+        "\nUpdater erfolgreich beendet! Du kannst nun 'python tool/data_pipeline/build_database.py' ausführen."
     )
 
 
