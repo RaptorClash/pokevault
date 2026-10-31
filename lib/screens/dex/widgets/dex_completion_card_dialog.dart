@@ -14,7 +14,7 @@ import '../../../services/dex_card_export_service.dart';
 import '../../../utils/dex_logic_helper.dart';
 import '../../../utils/dex_progress_helper.dart';
 import '../../../widgets/dex_card/dex_completion_card.dart';
-import '../../../l10n/app_translations.dart';
+import '../../../i18n/strings.g.dart';
 import '../pokemon_search_selection.dart';
 
 /// Modal dialog for live customizing, previewing, and exporting Living Dex Completion Cards.
@@ -138,7 +138,7 @@ class _DexCompletionCardDialogState extends State<DexCompletionCardDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final lang = Translator.currentLanguage;
+    final lang = LocaleSettings.currentLocale.languageCode;
     final isEn = lang == 'en';
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
@@ -301,10 +301,7 @@ class _DexCompletionCardDialogState extends State<DexCompletionCardDialog> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  Translator.get(
-                    'dex_card_title',
-                    fallback: 'Erfolgs-Grafik (Living Dex)',
-                  ),
+                  t.dex_card_title,
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
@@ -326,7 +323,7 @@ class _DexCompletionCardDialogState extends State<DexCompletionCardDialog> {
           ),
           IconButton(
             icon: const Icon(Icons.close),
-            tooltip: Translator.get('dex_progress_close', fallback: 'Schließen'),
+            tooltip: t.dex_progress_close,
             onPressed: () => Navigator.of(context).pop(),
           ),
         ],
@@ -338,7 +335,7 @@ class _DexCompletionCardDialogState extends State<DexCompletionCardDialog> {
     DexProgressStats stats,
     List<DexDisplayEntry> entries,
   ) {
-    final isEn = Translator.currentLanguage == 'en';
+    final isEn = LocaleSettings.currentLocale == AppLocale.en;
     return Stack(
       children: [
         MouseRegion(
@@ -457,10 +454,7 @@ class _DexCompletionCardDialogState extends State<DexCompletionCardDialog> {
         // 3. Watermark Pokémon Selector
         _buildSectionHeader(
           icon: Icons.image_outlined,
-          title: Translator.get(
-            'dex_card_watermark',
-            fallback: 'Hintergrund-Wasserzeichen',
-          ),
+          title: t.dex_card_watermark,
         ),
         const SizedBox(height: 8),
         _buildWatermarkPicker(context, entries, isEn),
@@ -470,7 +464,7 @@ class _DexCompletionCardDialogState extends State<DexCompletionCardDialog> {
         _buildSectionHeader(
           icon: Icons.opacity,
           title:
-              '${Translator.get("dex_card_opacity", fallback: "Deckkraft")}: ${(_config.watermarkOpacity * 100).round()}%',
+              '${t.dex_card_opacity}: ${(_config.watermarkOpacity * 100).round()}%',
         ),
         Slider(
           value: _config.watermarkOpacity,
@@ -562,18 +556,8 @@ class _DexCompletionCardDialogState extends State<DexCompletionCardDialog> {
             padding: const EdgeInsets.only(left: 16.0),
             child: _buildToggleTile(
               key: const Key('toggle_only_started_generations'),
-              title: Translator.get(
-                'dex_card_only_started_gens',
-                fallback: isEn
-                    ? 'Only Started Generations'
-                    : 'Nur angefangene Generationen',
-              ),
-              subtitle: Translator.get(
-                'dex_card_only_started_gens_sub',
-                fallback: isEn
-                    ? 'Hide generations with 0 caught Pokémon'
-                    : 'Generationen ohne gefangene Pokémon ausblenden',
-              ),
+              title: t.dex_card_only_started_gens,
+              subtitle: t.dex_card_only_started_gens_sub,
               icon: Icons.filter_alt_outlined,
               value: _config.showOnlyStartedGenerations,
               onChanged: (val) => setState(() => _config =
@@ -838,10 +822,7 @@ class _DexCompletionCardDialogState extends State<DexCompletionCardDialog> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          Translator.get(
-            'dex_card_type_limit',
-            fallback: isEn ? 'Types to display' : 'Typen-Anzeige',
-          ),
+          t.dex_card_type_limit,
           style: const TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.w600,
@@ -856,24 +837,21 @@ class _DexCompletionCardDialogState extends State<DexCompletionCardDialog> {
             ButtonSegment<int>(
               value: 6,
               label: Text(
-                Translator.get('dex_card_types_top6', fallback: 'Top 6'),
+                t.dex_card_types_top6,
                 style: const TextStyle(fontSize: 11),
               ),
             ),
             ButtonSegment<int>(
               value: 12,
               label: Text(
-                Translator.get('dex_card_types_top12', fallback: 'Top 12'),
+                t.dex_card_types_top12,
                 style: const TextStyle(fontSize: 11),
               ),
             ),
             ButtonSegment<int>(
               value: 18,
               label: Text(
-                Translator.get(
-                  'dex_card_types_all18',
-                  fallback: isEn ? 'All 18' : 'Alle 18',
-                ),
+                t.dex_card_types_all18,
                 style: const TextStyle(fontSize: 11),
               ),
             ),
@@ -949,10 +927,7 @@ class _DexCompletionCardDialogState extends State<DexCompletionCardDialog> {
                 Text(
                   wm != null
                       ? '#${wm.pokemonId.toString().padLeft(3, '0')} ${wm.name}'
-                      : Translator.get(
-                          'dex_card_no_pokemon',
-                          fallback: 'Kein Pokémon (Nur Statistiken)',
-                        ),
+                      : t.dex_card_no_pokemon,
                   style: const TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.bold,
@@ -963,10 +938,7 @@ class _DexCompletionCardDialogState extends State<DexCompletionCardDialog> {
                 Text(
                   wm != null
                       ? (wm.isShiny ? '✨ Shiny' : 'Standard')
-                      : Translator.get(
-                          'no_watermark_sub',
-                          fallback: 'Wasserzeichen deaktiviert',
-                        ),
+                      : t.no_watermark_sub,
                   style: const TextStyle(fontSize: 10, color: Colors.grey),
                 ),
               ],
@@ -1123,7 +1095,7 @@ class _DexCompletionCardDialogState extends State<DexCompletionCardDialog> {
             key: const Key('btn_copy_text'),
             icon: const Icon(Icons.copy, size: 16),
             label: Text(
-              Translator.get('dex_card_copy_text', fallback: 'Text kopieren'),
+              t.dex_card_copy_text,
               style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
             ),
             onPressed: () {
@@ -1142,7 +1114,7 @@ class _DexCompletionCardDialogState extends State<DexCompletionCardDialog> {
             key: const Key('btn_share'),
             icon: const Icon(Icons.share, size: 16),
             label: Text(
-              Translator.get('dex_card_share', fallback: 'Teilen'),
+              t.dex_card_share,
               style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
             ),
             onPressed: _isExporting
@@ -1187,7 +1159,7 @@ class _DexCompletionCardDialogState extends State<DexCompletionCardDialog> {
                   )
                 : const Icon(Icons.download, size: 16),
             label: Text(
-              Translator.get('dex_card_save_png', fallback: 'Als PNG speichern'),
+              t.dex_card_save_png,
               style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
             ),
             onPressed: _isExporting
@@ -1282,7 +1254,7 @@ class _CardZoomLightboxDialogState extends State<_CardZoomLightboxDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final isEn = Translator.currentLanguage == 'en';
+    final isEn = LocaleSettings.currentLocale == AppLocale.en;
 
     return Dialog(
       key: const Key('card_zoom_lightbox'),
@@ -1373,8 +1345,7 @@ class _CardZoomLightboxDialogState extends State<_CardZoomLightboxDialog> {
                   IconButton(
                     key: const Key('btn_close_lightbox'),
                     icon: const Icon(Icons.close, size: 20, color: Colors.white),
-                    tooltip: Translator.get('dex_progress_close',
-                        fallback: 'Schließen'),
+                    tooltip: t.dex_progress_close,
                     onPressed: () => Navigator.of(context).pop(),
                     visualDensity: VisualDensity.compact,
                   ),

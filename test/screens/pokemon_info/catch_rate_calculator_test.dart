@@ -10,7 +10,7 @@ import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:pokevault/services/database_service.dart';
 import 'package:pokevault/screens/pokemon_info/widgets/catch_rate_calculator.dart';
 import 'package:pokevault/models/pokemon.dart';
-import 'package:pokevault/l10n/app_translations.dart';
+import 'package:pokevault/i18n/strings.g.dart';
 
 class MockPathProviderPlatform extends Fake
     with MockPlatformInterfaceMixin
@@ -135,7 +135,7 @@ void main() {
   });
 
   setUp(() {
-    Translator.currentLanguage = 'de';
+    LocaleSettings.setLocale(AppLocale.de);
   });
 
   Future<void> waitForLoaded(WidgetTester tester) async {
@@ -171,7 +171,7 @@ void main() {
       await waitForLoaded(tester);
 
       expect(find.textContaining('190'), findsWidgets);
-      expect(find.text(Translator.get('catch_chance')), findsOneWidget);
+      expect(find.text(t.catch_chance), findsOneWidget);
 
       await tester.pump(const Duration(seconds: 15));
     });
@@ -185,13 +185,13 @@ void main() {
       await waitForLoaded(tester);
 
       // Status condition dropdown
-      final statusDropdown = find.widgetWithText(DropdownButtonFormField<int>, Translator.get('status_none'));
+      final statusDropdown = find.widgetWithText(DropdownButtonFormField<int>, t.status_none);
       if (statusDropdown.evaluate().isNotEmpty) {
         await tester.tap(statusDropdown);
         await tester.pump();
 
         // Select Schlaf / Frost (value 2)
-        final slpItem = find.text(Translator.get('status_slp_frz')).last;
+        final slpItem = find.text(t.status_slp_frz).last;
         await tester.tap(slpItem);
         await tester.pump();
       }
@@ -201,7 +201,7 @@ void main() {
       await tester.tap(hpSlider);
       await tester.pump();
 
-      expect(find.text(Translator.get('catch_chance')), findsOneWidget);
+      expect(find.text(t.catch_chance), findsOneWidget);
 
       await tester.pump(const Duration(seconds: 15));
     });
@@ -218,7 +218,7 @@ void main() {
       final genDropdown = find.byWidgetPredicate(
         (widget) =>
             widget is DropdownButtonFormField<double> &&
-            widget.decoration.labelText == Translator.get('generation'),
+            widget.decoration.labelText == t.generation,
       );
       expect(genDropdown, findsOneWidget);
 
@@ -230,7 +230,7 @@ void main() {
       await tester.tap(gen1Item);
       await tester.pump();
 
-      expect(find.text(Translator.get('catch_chance')), findsOneWidget);
+      expect(find.text(t.catch_chance), findsOneWidget);
 
       await tester.pump(const Duration(seconds: 15));
     });
@@ -247,7 +247,7 @@ void main() {
       final genDropdown = find.byWidgetPredicate(
         (widget) =>
             widget is DropdownButtonFormField<double> &&
-            widget.decoration.labelText == Translator.get('generation'),
+            widget.decoration.labelText == t.generation,
       );
       await tester.tap(genDropdown);
       await tester.pump();
@@ -257,11 +257,11 @@ void main() {
       await tester.pump();
 
       // Expand battle conditions if not already
-      final battleConditionsTile = find.text(Translator.get('calc_battle_conditions'));
+      final battleConditionsTile = find.text(t.calc_battle_conditions);
       expect(battleConditionsTile, findsOneWidget);
 
       // Max Raid switch should be present in Gen 8
-      final maxRaidSwitch = find.widgetWithText(SwitchListTile, Translator.get('calc_max_raid'));
+      final maxRaidSwitch = find.widgetWithText(SwitchListTile, t.calc_max_raid);
       expect(maxRaidSwitch, findsOneWidget);
 
       // Toggle Max Raid switch
@@ -269,8 +269,8 @@ void main() {
       await tester.pump();
 
       // Guest and Gigantamax switches should appear
-      expect(find.text(Translator.get('calc_max_raid_guest')), findsOneWidget);
-      expect(find.text(Translator.get('calc_max_raid_gmax')), findsOneWidget);
+      expect(find.text(t.calc_max_raid_guest), findsOneWidget);
+      expect(find.text(t.calc_max_raid_gmax), findsOneWidget);
 
       await tester.pump(const Duration(seconds: 15));
     });
@@ -286,7 +286,7 @@ void main() {
       final genDropdown = find.byWidgetPredicate(
         (widget) =>
             widget is DropdownButtonFormField<double> &&
-            widget.decoration.labelText == Translator.get('generation'),
+            widget.decoration.labelText == t.generation,
       );
       await tester.tap(genDropdown);
       await tester.pump();
@@ -296,10 +296,10 @@ void main() {
       await tester.pump();
 
       // Check for Hisui status and Flying switch
-      expect(find.text(Translator.get('calc_hisui_status')), findsOneWidget);
-      expect(find.text(Translator.get('calc_flying')), findsOneWidget);
+      expect(find.text(t.calc_hisui_status), findsOneWidget);
+      expect(find.text(t.calc_flying), findsOneWidget);
 
-      final flyingSwitch = find.widgetWithText(SwitchListTile, Translator.get('calc_flying'));
+      final flyingSwitch = find.widgetWithText(SwitchListTile, t.calc_flying);
       await tester.tap(flyingSwitch);
       await tester.pump();
 

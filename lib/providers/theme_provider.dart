@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../l10n/app_translations.dart';
+import '../i18n/strings.g.dart';
 import '../utils/notification_helper.dart';
 
 class ThemeProvider extends ChangeNotifier {
@@ -50,7 +50,7 @@ class ThemeProvider extends ChangeNotifier {
 
       notifyListeners();
     } catch (e) {
-      NotificationHelper.showError("${Translator.get('error_load_prefs')} $e");
+      NotificationHelper.showError("${t.error_load_prefs} $e");
     }
   }
 
@@ -67,7 +67,7 @@ class ThemeProvider extends ChangeNotifier {
       notifyListeners();
     } catch (e) {
       NotificationHelper.showError(
-        "${Translator.get('error_update_theme_color')} $e",
+        "${t.error_update_theme_color} $e",
       );
     }
   }
@@ -85,7 +85,7 @@ class ThemeProvider extends ChangeNotifier {
       notifyListeners();
     } catch (e) {
       NotificationHelper.showError(
-        "${Translator.get('error_update_background_color')} $e",
+        "${t.error_update_background_color} $e",
       );
     }
   }
@@ -103,7 +103,7 @@ class ThemeProvider extends ChangeNotifier {
       }
     } catch (e) {
       NotificationHelper.showError(
-        "${Translator.get('error_add_custom_color')} $e",
+        "${t.error_add_custom_color} $e",
       );
     }
   }
@@ -124,7 +124,7 @@ class ThemeProvider extends ChangeNotifier {
       notifyListeners();
     } catch (e) {
       NotificationHelper.showError(
-        "${Translator.get('error_reset_to_default')} $e",
+        "${t.error_reset_to_default} $e",
       );
     }
   }

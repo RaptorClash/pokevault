@@ -4,7 +4,7 @@ import '../../../models/dex_view_models.dart';
 import '../../../models/pokemon.dart';
 import '../../../models/user_dex.dart';
 import '../../../providers/dex_provider.dart';
-import '../../../l10n/app_translations.dart';
+import '../../../i18n/strings.g.dart';
 import '../../../utils/shiny_logic_helper.dart';
 import '../../../widgets/universal_poke_image.dart';
 import 'lazy_expansion_card.dart';
@@ -71,10 +71,7 @@ class TeraTypeWidget extends StatelessWidget {
         return LazyExpansionCard(
           leading: const Icon(Icons.diamond_outlined, color: Colors.cyan),
           title: Text(
-            Translator.get(
-              'tera_types_title',
-              fallback: 'Terakristallisierung',
-            ),
+            t.tera_types_title,
             style: const TextStyle(fontWeight: FontWeight.bold),
           ),
           trailing: Container(
@@ -116,10 +113,7 @@ class TeraTypeWidget extends StatelessWidget {
                       errorIconSize: 16,
                     ),
                     label: Text(
-                      Translator.get(
-                        'type_$type',
-                        fallback: type.toUpperCase(),
-                      ),
+                      (t['type_$type'] ?? type.toUpperCase()),
                       style: TextStyle(
                         color: isCaught ? Colors.green : null,
                         fontWeight: isCaught

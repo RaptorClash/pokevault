@@ -10,7 +10,7 @@ import 'package:pokevault/providers/tutorial_provider.dart';
 import 'package:pokevault/providers/settings_provider.dart';
 import 'package:pokevault/models/user_dex.dart';
 import 'package:pokevault/models/pokemon.dart';
-import 'package:pokevault/l10n/app_translations.dart';
+import 'package:pokevault/i18n/strings.g.dart';
 import 'package:pokevault/widgets/tutorial/rotom_update_welcome_dialog.dart';
 import 'package:pokevault/widgets/tutorial/tutorial_overlay.dart';
 
@@ -69,7 +69,7 @@ void main() {
 
     setUp(() {
       SharedPreferences.setMockInitialValues({});
-      Translator.currentLanguage = 'de';
+      LocaleSettings.setLocale(AppLocale.de);
 
       mockDexProvider = MockDexProvider();
       mockTutorialProvider = MockTutorialProvider();
@@ -340,7 +340,7 @@ void main() {
 
       expect(find.byType(TutorialOverlay), findsOneWidget);
       // Step 1: Shiny Hunt icon in AppBar
-      expect(find.text(Translator.get('tutorial_v16_tour_shiny_title')), findsOneWidget);
+      expect(find.text(t.tutorial_v16_tour_shiny_title), findsOneWidget);
 
       // Tap 'Weiter' button to advance to step 2
       final nextBtn = find.text('Weiter');
@@ -349,7 +349,7 @@ void main() {
       await tester.pump(const Duration(milliseconds: 300));
 
       // Step 2: Newest Dex card
-      expect(find.text(Translator.get('tutorial_v16_tour_dex_title')), findsOneWidget);
+      expect(find.text(t.tutorial_v16_tour_dex_title), findsOneWidget);
     });
 
     testWidgets('Shows Delta Tour starting with Shiny Hunt icon and advancing to FAB when dexes empty', (
@@ -366,7 +366,7 @@ void main() {
 
       expect(find.byType(TutorialOverlay), findsOneWidget);
       // Step 1: Shiny Hunt icon in AppBar
-      expect(find.text(Translator.get('tutorial_v16_tour_shiny_title')), findsOneWidget);
+      expect(find.text(t.tutorial_v16_tour_shiny_title), findsOneWidget);
 
       // Tap 'Weiter' button to advance to step 2
       final nextBtn = find.text('Weiter');
@@ -375,7 +375,7 @@ void main() {
       await tester.pump(const Duration(milliseconds: 300));
 
       // Step 2: FAB "+" button
-      expect(find.text(Translator.get('tutorial_v16_tour_fab_title')), findsOneWidget);
+      expect(find.text(t.tutorial_v16_tour_fab_title), findsOneWidget);
     });
   });
 }

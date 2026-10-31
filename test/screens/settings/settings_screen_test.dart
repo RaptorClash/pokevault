@@ -7,7 +7,6 @@ import 'package:mocktail/mocktail.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:pokevault/l10n/app_translations.dart';
 import 'package:pokevault/i18n/strings.g.dart';
 import 'package:pokevault/providers/dex_provider.dart';
 import 'package:pokevault/providers/settings_provider.dart';
@@ -168,7 +167,7 @@ void main() {
       buildSignature: '',
     );
     SharedPreferences.setMockInitialValues({});
-    Translator.currentLanguage = 'de';
+    LocaleSettings.setLocale(AppLocale.de);
 
     mockDexProvider = MockDexProvider();
     mockSettingsProvider = MockSettingsProvider();
@@ -238,7 +237,7 @@ void main() {
       await tester.pumpWidget(buildApp(child: const SettingsScreen(), isScreen: true));
       await tester.pumpAndSettle();
 
-      expect(find.text(Translator.get('settings')), findsOneWidget);
+      expect(find.text(t.settings), findsOneWidget);
       expect(find.byType(AppearanceCard), findsOneWidget);
       expect(find.byType(UpdatesCard), findsOneWidget);
       expect(find.byType(GeneralCard), findsOneWidget);
@@ -328,14 +327,14 @@ void main() {
 
       // Verify color picker dialog is open
       expect(
-        find.descendant(of: find.byType(AlertDialog), matching: find.text(Translator.get('choose_accent_color'))),
+        find.descendant(of: find.byType(AlertDialog), matching: find.text(t.choose_accent_color)),
         findsOneWidget,
       );
-      expect(find.text(Translator.get('apply')), findsOneWidget);
-      expect(find.text(Translator.get('cancel')), findsOneWidget);
+      expect(find.text(t.apply), findsOneWidget);
+      expect(find.text(t.cancel), findsOneWidget);
 
       // Tap apply
-      await tester.tap(find.text(Translator.get('apply')));
+      await tester.tap(find.text(t.apply));
       await tester.pumpAndSettle();
 
       expect(find.byType(AlertDialog), findsNothing);
@@ -352,7 +351,7 @@ void main() {
 
       expect(find.byType(AlertDialog), findsOneWidget);
 
-      await tester.tap(find.text(Translator.get('cancel')));
+      await tester.tap(find.text(t.cancel));
       await tester.pumpAndSettle();
 
       expect(find.byType(AlertDialog), findsNothing);
@@ -368,11 +367,11 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(
-        find.descendant(of: find.byType(AlertDialog), matching: find.text(Translator.get('choose_bg_color'))),
+        find.descendant(of: find.byType(AlertDialog), matching: find.text(t.choose_bg_color)),
         findsOneWidget,
       );
 
-      await tester.tap(find.text(Translator.get('apply')));
+      await tester.tap(find.text(t.apply));
       await tester.pumpAndSettle();
 
       expect(find.byType(AlertDialog), findsNothing);
@@ -384,7 +383,7 @@ void main() {
       await tester.pumpWidget(buildApp(child: const AppearanceCard()));
       await tester.pumpAndSettle();
 
-      final resetBtn = find.widgetWithText(TextButton, Translator.get('reset_theme', fallback: 'Standarddesign wiederherstellen'));
+      final resetBtn = find.widgetWithText(TextButton, t.reset_theme);
       expect(resetBtn, findsOneWidget);
 
       await tester.tap(resetBtn);
@@ -399,7 +398,7 @@ void main() {
       await tester.pumpWidget(buildApp(child: const GeneralCard()));
       await tester.pumpAndSettle();
 
-      final langTile = find.widgetWithText(ListTile, Translator.get('language'));
+      final langTile = find.widgetWithText(ListTile, t.language);
       expect(langTile, findsOneWidget);
 
       // Open language dialog
@@ -429,7 +428,7 @@ void main() {
 
       final tutCenterTile = find.widgetWithText(
         ListTile,
-        Translator.get('tutorial_center_title', fallback: 'Tutorials & Anleitungen'),
+        t.tutorial_center_title,
       );
       expect(tutCenterTile, findsOneWidget);
 
@@ -445,7 +444,7 @@ void main() {
       await tester.pumpWidget(buildApp(child: const DataManagementCard()));
       await tester.pumpAndSettle();
 
-      final importTile = find.widgetWithText(ListTile, Translator.get('import_tooltip'));
+      final importTile = find.widgetWithText(ListTile, t.import_tooltip);
       expect(importTile, findsOneWidget);
 
       await tester.tap(importTile);
@@ -460,7 +459,7 @@ void main() {
       await tester.pumpWidget(buildApp(child: const DataManagementCard()));
       await tester.pumpAndSettle();
 
-      final exportTile = find.widgetWithText(ListTile, Translator.get('export_tooltip'));
+      final exportTile = find.widgetWithText(ListTile, t.export_tooltip);
       expect(exportTile, findsOneWidget);
 
       await tester.tap(exportTile);
@@ -473,7 +472,7 @@ void main() {
       await tester.pumpWidget(buildApp(child: const CloudSyncCard()));
       await tester.pumpAndSettle();
 
-      final clientIdField = find.widgetWithText(TextField, Translator.get('google_client_id'));
+      final clientIdField = find.widgetWithText(TextField, t.google_client_id);
       expect(clientIdField, findsOneWidget);
 
       await tester.enterText(clientIdField, 'new_client_id_123');
@@ -486,7 +485,7 @@ void main() {
       await tester.pumpWidget(buildApp(child: const CloudSyncCard()));
       await tester.pumpAndSettle();
 
-      final clientSecretField = find.widgetWithText(TextField, Translator.get('google_client_secret'));
+      final clientSecretField = find.widgetWithText(TextField, t.google_client_secret);
       expect(clientSecretField, findsOneWidget);
 
       await tester.enterText(clientSecretField, 'new_secret_456');
@@ -505,15 +504,15 @@ void main() {
       await tester.tap(helpBtn);
       await tester.pumpAndSettle();
 
-      expect(find.text(Translator.get('cloud_tut_title')), findsWidgets);
-      expect(find.text(Translator.get('cloud_tut_intro')), findsOneWidget);
-      expect(find.text(Translator.get('close', fallback: 'Schließen')), findsOneWidget);
+      expect(find.text(t.cloud_tut_title), findsWidgets);
+      expect(find.text(t.cloud_tut_intro), findsOneWidget);
+      expect(find.text(t.close), findsOneWidget);
 
       // Dismiss dialog
-      await tester.tap(find.text(Translator.get('close', fallback: 'Schließen')));
+      await tester.tap(find.text(t.close));
       await tester.pumpAndSettle();
 
-      expect(find.text(Translator.get('cloud_tut_intro')), findsNothing);
+      expect(find.text(t.cloud_tut_intro), findsNothing);
     });
 
     testWidgets('Tapping login with empty credentials shows error notification', (tester) async {
@@ -523,7 +522,7 @@ void main() {
       await tester.pumpWidget(buildApp(child: const CloudSyncCard()));
       await tester.pumpAndSettle();
 
-      final loginBtn = find.widgetWithText(ElevatedButton, Translator.get('login_drive'));
+      final loginBtn = find.widgetWithText(ElevatedButton, t.login_drive);
       expect(loginBtn, findsOneWidget);
 
       await tester.tap(loginBtn);
@@ -534,7 +533,7 @@ void main() {
       await tester.pumpWidget(buildApp(child: const CloudSyncCard()));
       await tester.pumpAndSettle();
 
-      final syncBtn = find.widgetWithText(ElevatedButton, Translator.get('sync_now'));
+      final syncBtn = find.widgetWithText(ElevatedButton, t.sync_now);
       expect(syncBtn, findsOneWidget);
 
       await tester.tap(syncBtn);
@@ -549,11 +548,11 @@ void main() {
       await tester.pumpWidget(buildApp(child: const UpdatesCard()));
       await tester.pumpAndSettle();
 
-      expect(find.text(Translator.get('check_for_updates')), findsOneWidget);
+      expect(find.text(t.check_for_updates), findsOneWidget);
 
       final downgradeTile = find.widgetWithText(
         ListTile,
-        Translator.get('downgrades_title', fallback: 'Vorherige Versionen (Downgrades)'),
+        t.downgrades_title,
       );
       expect(downgradeTile, findsOneWidget);
 
@@ -576,7 +575,7 @@ void main() {
       await tester.pumpWidget(buildApp(child: const UpdatesCard()));
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text(Translator.get('check_for_updates')));
+      await tester.tap(find.text(t.check_for_updates));
       await tester.pump(const Duration(milliseconds: 300));
       await tester.pumpAndSettle();
 
@@ -601,12 +600,12 @@ void main() {
       await tester.pumpWidget(buildApp(child: const UpdatesCard()));
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text(Translator.get('check_for_updates')));
+      await tester.tap(find.text(t.check_for_updates));
       await tester.pump(const Duration(milliseconds: 300));
       await tester.pumpAndSettle();
 
       expect(find.byType(UpdateDialog), findsOneWidget);
-      expect(find.text(Translator.get('update_available_title')), findsOneWidget);
+      expect(find.text(t.update_available_title), findsOneWidget);
 
       HttpOverrides.global = null;
     });
@@ -620,7 +619,7 @@ void main() {
       await tester.pumpWidget(buildApp(child: const UpdatesCard()));
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text(Translator.get('check_for_updates')));
+      await tester.tap(find.text(t.check_for_updates));
       await tester.pump(const Duration(milliseconds: 300));
       await tester.pumpAndSettle();
 
@@ -694,17 +693,17 @@ void main() {
       await tester.pumpWidget(buildApp(child: const TutorialSettingsScreen(), isScreen: true));
       await tester.pumpAndSettle();
 
-      expect(find.text(Translator.get('tutorial_menu_title', fallback: 'Tutorials & Hilfe')), findsOneWidget);
-      expect(find.text(Translator.get('tutorial_replay_all', fallback: 'Alle Tutorials zurücksetzen')), findsWidgets);
+      expect(find.text(t.tutorial_menu_title), findsOneWidget);
+      expect(find.text(t.tutorial_replay_all), findsWidgets);
 
       // Tap Reset All button
-      final resetBtn = find.text(Translator.get('tutorial_replay_all', fallback: 'Alle Tutorials zurücksetzen'));
+      final resetBtn = find.text(t.tutorial_replay_all);
       await tester.tap(resetBtn.first);
       await tester.pumpAndSettle();
 
       // Confirmation dialog
       expect(find.byType(AlertDialog), findsOneWidget);
-      final confirmBtn = find.text(Translator.get('reset', fallback: 'Zurücksetzen'));
+      final confirmBtn = find.text(t.reset);
       await tester.tap(confirmBtn);
       await tester.pumpAndSettle();
 
@@ -717,7 +716,7 @@ void main() {
       await tester.pumpWidget(buildApp(child: const TutorialSettingsScreen(), isScreen: true));
       await tester.pumpAndSettle();
 
-      final replayButtons = find.text(Translator.get('tutorial_replay', fallback: 'Wiederholen'));
+      final replayButtons = find.text(t.tutorial_replay);
       expect(replayButtons, findsWidgets);
 
       await tester.tap(replayButtons.first);
@@ -732,13 +731,13 @@ void main() {
       await tester.pumpWidget(buildApp(child: const CommunityCard()));
       await tester.pumpAndSettle();
 
-      expect(find.text(Translator.get('report_issue_title')), findsOneWidget);
-      expect(find.text(Translator.get('contribute_title')), findsOneWidget);
+      expect(find.text(t.report_issue_title), findsOneWidget);
+      expect(find.text(t.contribute_title), findsOneWidget);
 
-      await tester.tap(find.text(Translator.get('report_issue_title')));
+      await tester.tap(find.text(t.report_issue_title));
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text(Translator.get('contribute_title')));
+      await tester.tap(find.text(t.contribute_title));
       await tester.pumpAndSettle();
     });
 
@@ -746,11 +745,11 @@ void main() {
       await tester.pumpWidget(buildApp(child: const CreditsCard()));
       await tester.pumpAndSettle();
 
-      expect(find.text(Translator.get('credit_api_title')), findsOneWidget);
-      expect(find.text(Translator.get('credit_pokewiki_title')), findsOneWidget);
-      expect(find.text(Translator.get('credit_bisafans_title')), findsOneWidget);
+      expect(find.text(t.credit_api_title), findsOneWidget);
+      expect(find.text(t.credit_pokewiki_title), findsOneWidget);
+      expect(find.text(t.credit_bisafans_title), findsOneWidget);
 
-      await tester.tap(find.text(Translator.get('credit_api_title')));
+      await tester.tap(find.text(t.credit_api_title));
       await tester.pumpAndSettle();
     });
 

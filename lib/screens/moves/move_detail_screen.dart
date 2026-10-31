@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../l10n/app_translations.dart';
+import '../../i18n/strings.g.dart';
 import '../../models/special_dex_models.dart';
 import '../../providers/dex_provider.dart';
 import '../../services/database_service.dart';
@@ -71,7 +71,7 @@ class _MoveDetailScreenState extends State<MoveDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final lang = Translator.currentLanguage;
+    final lang = LocaleSettings.currentLocale.languageCode;
     final provider = context.watch<DexProvider>();
 
     return Scaffold(
@@ -141,13 +141,13 @@ class _MoveDetailScreenState extends State<MoveDetailScreen> {
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Text(
-                                '${Translator.get('type')}: ${Translator.get('type_${widget.move.type.toLowerCase()}', fallback: widget.move.type.toUpperCase())}',
+                                '${t.type}: ${(t['type_${widget.move.type.toLowerCase()}'] ?? widget.move.type.toUpperCase())}',
                                 style: const TextStyle(
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
                               Text(
-                                '${Translator.get('category')}: ${Translator.get('category_${widget.move.damageClass.toLowerCase()}', fallback: widget.move.damageClass.toUpperCase())}',
+                                '${t.category}: ${(t['category_${widget.move.damageClass.toLowerCase()}'] ?? widget.move.damageClass.toUpperCase())}',
                                 style: const TextStyle(
                                   fontWeight: FontWeight.bold,
                                 ),
@@ -159,10 +159,10 @@ class _MoveDetailScreenState extends State<MoveDetailScreen> {
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Text(
-                                '${Translator.get('power_short', fallback: 'Stärke')}: ${widget.move.power > 0 ? widget.move.power : '-'}',
+                                '${t.power_short}: ${widget.move.power > 0 ? widget.move.power : '-'}',
                               ),
                               Text(
-                                '${Translator.get('accuracy_short', fallback: 'Genauigk.')}: ${widget.move.accuracy > 0 ? widget.move.accuracy : '-'}',
+                                '${t.accuracy_short}: ${widget.move.accuracy > 0 ? widget.move.accuracy : '-'}',
                               ),
                               Text('AP: ${widget.move.pp}'),
                             ],

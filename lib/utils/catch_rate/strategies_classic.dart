@@ -1,5 +1,5 @@
 import 'dart:math';
-import '../../l10n/app_translations.dart';
+import '../../i18n/strings.g.dart';
 import 'models.dart';
 import 'strategy_base.dart';
 
@@ -8,11 +8,11 @@ class Gen1Strategy extends CatchRateStrategy {
 
   @override
   List<BallOption> getAvailableBalls() => [
-    BallOption('poke', Translator.get('ball_poke_ball'), 'poke-ball'),
-    BallOption('great', Translator.get('ball_great_ball'), 'great-ball'),
-    BallOption('ultra', Translator.get('ball_ultra_ball'), 'ultra-ball'),
-    BallOption('master', Translator.get('ball_master_ball'), 'master-ball'),
-    BallOption('safari', Translator.get('ball_safari_ball'), 'safari-ball'),
+    BallOption('poke', t.ball_poke_ball, 'poke-ball'),
+    BallOption('great', t.ball_great_ball, 'great-ball'),
+    BallOption('ultra', t.ball_ultra_ball, 'ultra-ball'),
+    BallOption('master', t.ball_master_ball, 'master-ball'),
+    BallOption('safari', t.ball_safari_ball, 'safari-ball'),
   ];
 
   @override
@@ -28,7 +28,7 @@ class Gen1Strategy extends CatchRateStrategy {
 
     String? glitchWarning;
     if (params.ballId == 'great') {
-      glitchWarning = Translator.get('glitch_gen1_great');
+      glitchWarning = t.glitch_gen1_great;
     }
 
     int statusS = params.statusType == 2
@@ -76,19 +76,19 @@ class Gen2Strategy extends CatchRateStrategy {
 
   @override
   List<BallOption> getAvailableBalls() => [
-    BallOption('poke', Translator.get('ball_poke_ball'), 'poke-ball'),
-    BallOption('great', Translator.get('ball_great_ball'), 'great-ball'),
-    BallOption('ultra', Translator.get('ball_ultra_ball'), 'ultra-ball'),
-    BallOption('master', Translator.get('ball_master_ball'), 'master-ball'),
-    BallOption('safari', Translator.get('ball_safari_ball'), 'safari-ball'),
-    BallOption('fast', Translator.get('ball_fast_ball'), 'fast-ball'),
-    BallOption('level', Translator.get('ball_level_ball'), 'level-ball'),
-    BallOption('lure', Translator.get('ball_lure_ball'), 'lure-ball'),
-    BallOption('heavy', Translator.get('ball_heavy_ball'), 'heavy-ball'),
-    BallOption('love', Translator.get('ball_love_ball'), 'love-ball'),
-    BallOption('friend', Translator.get('ball_friend_ball'), 'friend-ball'),
-    BallOption('moon', Translator.get('ball_moon_ball'), 'moon-ball'),
-    BallOption('sport', Translator.get('ball_sport_ball'), 'sport-ball'),
+    BallOption('poke', t.ball_poke_ball, 'poke-ball'),
+    BallOption('great', t.ball_great_ball, 'great-ball'),
+    BallOption('ultra', t.ball_ultra_ball, 'ultra-ball'),
+    BallOption('master', t.ball_master_ball, 'master-ball'),
+    BallOption('safari', t.ball_safari_ball, 'safari-ball'),
+    BallOption('fast', t.ball_fast_ball, 'fast-ball'),
+    BallOption('level', t.ball_level_ball, 'level-ball'),
+    BallOption('lure', t.ball_lure_ball, 'lure-ball'),
+    BallOption('heavy', t.ball_heavy_ball, 'heavy-ball'),
+    BallOption('love', t.ball_love_ball, 'love-ball'),
+    BallOption('friend', t.ball_friend_ball, 'friend-ball'),
+    BallOption('moon', t.ball_moon_ball, 'moon-ball'),
+    BallOption('sport', t.ball_sport_ball, 'sport-ball'),
   ];
 
   @override
@@ -104,13 +104,13 @@ class Gen2Strategy extends CatchRateStrategy {
 
     String? glitchWarning;
     if (params.ballId == 'love') {
-      glitchWarning = Translator.get('glitch_gen2_love');
+      glitchWarning = t.glitch_gen2_love;
     }
     if (params.ballId == 'moon') {
-      glitchWarning = Translator.get('glitch_gen2_moon');
+      glitchWarning = t.glitch_gen2_moon;
     }
     if (params.ballId == 'fast') {
-      glitchWarning = Translator.get('glitch_gen2_fast');
+      glitchWarning = t.glitch_gen2_fast;
     }
 
     double ballBonus = 1.0;

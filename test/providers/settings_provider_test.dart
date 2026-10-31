@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:pokevault/providers/settings_provider.dart';
-import 'package:pokevault/l10n/app_translations.dart';
+import 'package:pokevault/i18n/strings.g.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -39,7 +39,7 @@ void main() {
       expect(provider.googleClientSecret, equals('test_secret_456'));
       expect(provider.autoSyncEnabled, isTrue);
       expect(provider.currentLanguage, equals('de'));
-      expect(Translator.currentLanguage, equals('de'));
+      expect(LocaleSettings.currentLocale, equals(AppLocale.de));
       expect(provider.themeMode, equals(ThemeMode.dark));
     });
 
@@ -99,19 +99,19 @@ void main() {
       expect(prefs.getString('googleClientSecret'), equals('secret_xyz'));
     });
 
-    test('setLanguage aktualisiert currentLanguage und Translator', () async {
+    test('setLanguage aktualisiert currentLanguage und LocaleSettings', () async {
       final provider = SettingsProvider();
       await Future.delayed(const Duration(milliseconds: 50));
 
       provider.setLanguage('de');
       await Future.delayed(const Duration(milliseconds: 50));
       expect(provider.currentLanguage, equals('de'));
-      expect(Translator.currentLanguage, equals('de'));
+      expect(LocaleSettings.currentLocale, equals(AppLocale.de));
 
       provider.setLanguage('en');
       await Future.delayed(const Duration(milliseconds: 50));
       expect(provider.currentLanguage, equals('en'));
-      expect(Translator.currentLanguage, equals('en'));
+      expect(LocaleSettings.currentLocale, equals(AppLocale.en));
 
       final prefs = await SharedPreferences.getInstance();
       expect(prefs.getString('language'), equals('en'));

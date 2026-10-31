@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../data/dex_groups_data.dart';
-import '../../l10n/app_translations.dart';
+import '../../i18n/strings.g.dart';
 import '../../models/user_dex.dart';
 import '../../providers/dex_provider.dart';
 
@@ -53,7 +53,7 @@ class _EditDexDialogState extends State<EditDexDialog> {
   Widget build(BuildContext context) {
     bool isMegaDex = widget.dex.region == 'mega_dex';
     return AlertDialog(
-      title: Text(Translator.get('edit')),
+      title: Text(t.edit),
       content: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -61,7 +61,7 @@ class _EditDexDialogState extends State<EditDexDialog> {
             TextField(
               controller: nameController,
               decoration: InputDecoration(
-                labelText: Translator.get('create_dex_hint'),
+                labelText: t.create_dex_hint,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
@@ -70,7 +70,7 @@ class _EditDexDialogState extends State<EditDexDialog> {
             ),
             const SizedBox(height: 16),
             SwitchListTile(
-              title: Text(Translator.get('shiny_dex', fallback: 'Shiny Dex')),
+              title: Text(t.shiny_dex),
               secondary: const Icon(Icons.star, color: Colors.amber),
               value: isShinyDex,
               activeThumbColor: Colors.amber,
@@ -78,7 +78,7 @@ class _EditDexDialogState extends State<EditDexDialog> {
             ),
             const Divider(height: 1),
             SwitchListTile(
-              title: Text(Translator.get('include_genders')),
+              title: Text(t.include_genders),
               secondary: const Icon(Icons.wc),
               value: includeGenders,
               activeThumbColor: Colors.red,
@@ -87,7 +87,7 @@ class _EditDexDialogState extends State<EditDexDialog> {
             const Divider(height: 1),
             SwitchListTile(
               key: const Key('edit_switch_include_trades'),
-              title: Text(Translator.get('include_trades', fallback: 'In-Game Tausche')),
+              title: Text(t.include_trades),
               secondary: const Icon(Icons.swap_horiz),
               value: includeTrades,
               activeThumbColor: Colors.red,
@@ -97,7 +97,7 @@ class _EditDexDialogState extends State<EditDexDialog> {
             KeyedSubtree(
               child: SwitchListTile(
                 key: const Key('edit_switch_include_gifts'),
-                title: Text(Translator.get('include_gifts', fallback: 'Geschenkte Pokémon')),
+                title: Text(t.include_gifts),
                 secondary: const Icon(Icons.card_giftcard),
                 value: includeGifts,
                 activeThumbColor: Colors.red,
@@ -107,7 +107,7 @@ class _EditDexDialogState extends State<EditDexDialog> {
             const Divider(height: 1),
             SwitchListTile(
               key: const Key('edit_switch_include_glitch'),
-              title: Text(Translator.get('include_glitch', fallback: 'Glitch Pokémon (Game Boy)')),
+              title: Text(t.include_glitch),
               secondary: const Icon(Icons.bug_report),
               value: includeGlitch,
               activeThumbColor: Colors.red,
@@ -116,10 +116,10 @@ class _EditDexDialogState extends State<EditDexDialog> {
             const Divider(height: 1),
             ExpansionTile(
               leading: const Icon(Icons.auto_awesome),
-              title: Text(Translator.get('include_forms')),
+              title: Text(t.include_forms),
               children: [
                 CheckboxListTile(
-                  title: Text(Translator.get('form_regional_short')),
+                  title: Text(t.form_regional_short),
                   value: includeRegional,
                   activeColor: Colors.red,
                   enabled: (features['regional'] ?? false),
@@ -128,7 +128,7 @@ class _EditDexDialogState extends State<EditDexDialog> {
                       : null,
                 ),
                 CheckboxListTile(
-                  title: Text(Translator.get('form_mega')),
+                  title: Text(t.form_mega),
                   value: isMegaDex ? true : includeMega,
                   activeColor: Colors.red,
                   enabled: !isMegaDex && (features['mega'] ?? false),
@@ -137,7 +137,7 @@ class _EditDexDialogState extends State<EditDexDialog> {
                       : null,
                 ),
                 CheckboxListTile(
-                  title: Text(Translator.get('form_gmax')),
+                  title: Text(t.form_gmax),
                   value: includeGMax,
                   activeColor: Colors.red,
                   enabled: (features['gmax'] ?? false),
@@ -146,7 +146,7 @@ class _EditDexDialogState extends State<EditDexDialog> {
                       : null,
                 ),
                 CheckboxListTile(
-                  title: Text(Translator.get('form_other_short')),
+                  title: Text(t.form_other_short),
                   value: includeOther,
                   activeColor: Colors.red,
                   enabled: (features['other'] ?? false),
@@ -162,7 +162,7 @@ class _EditDexDialogState extends State<EditDexDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: Text(Translator.get('cancel')),
+          child: Text(t.cancel),
         ),
         ElevatedButton(
           onPressed: () {
@@ -187,7 +187,7 @@ class _EditDexDialogState extends State<EditDexDialog> {
             backgroundColor: Colors.red,
             foregroundColor: Colors.white,
           ),
-          child: Text(Translator.get('save')),
+          child: Text(t.save),
         ),
       ],
     );

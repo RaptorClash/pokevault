@@ -13,7 +13,7 @@ import 'package:pokevault/providers/settings_provider.dart';
 import 'package:pokevault/screens/dex/dex_list_view.dart';
 import 'package:pokevault/screens/dex/dex_box_view.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:pokevault/l10n/app_translations.dart';
+import 'package:pokevault/i18n/strings.g.dart';
 
 class MockDexProvider extends Mock implements DexProvider {}
 class MockSettingsProvider extends Mock implements SettingsProvider {}
@@ -105,7 +105,7 @@ void main() {
 
   setUp(() {
     SharedPreferences.setMockInitialValues({});
-    Translator.currentLanguage = 'de';
+    LocaleSettings.setLocale(AppLocale.de);
     mockDexProvider = MockDexProvider();
     mockSettingsProvider = MockSettingsProvider();
     when(() => mockSettingsProvider.currentLanguage).thenReturn('de');

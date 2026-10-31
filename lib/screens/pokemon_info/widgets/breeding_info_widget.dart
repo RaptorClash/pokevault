@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../../../l10n/app_translations.dart';
+import '../../../i18n/strings.g.dart';
 import '../../../models/pokemon.dart';
 import '../../../providers/dex_provider.dart';
 import '../../../providers/settings_provider.dart';
 import '../../../services/database_service.dart';
+import '../../../utils/location_translator.dart';
 import 'pokemon_avatar.dart';
 import 'lazy_expansion_card.dart';
 
@@ -19,6 +20,17 @@ class BreedingInfoWidget extends StatelessWidget {
     this.currentForm,
   });
 
+  static String _trans(String key, [String? fallback]) {
+    final cleanKey = key.replaceAll('-', '_');
+    final res = t[key] ?? t[cleanKey];
+    if (res != null) return res.toString();
+    final loc = LocationTranslator.translate(cleanKey);
+    if (loc != cleanKey && loc != key) return loc;
+    final locOrig = LocationTranslator.translate(key);
+    if (locOrig != key) return locOrig;
+    return (fallback ?? key).toString();
+  }
+
   String _getPokeName(int id, String lang, DexProvider provider) {
     try {
       final p = provider.allPokemon.firstWhere((p) => p.id == id);
@@ -30,7 +42,7 @@ class BreedingInfoWidget extends StatelessWidget {
 
   String _getGenderText(int rate) {
     if (rate == -1) {
-      return Translator.get('gender_genderless', fallback: 'Geschlechtslos');
+      return t.gender_genderless;
     }
     if (rate == 0) return '100% ♂';
     if (rate == 1) return '87.5% ♂ / 12.5% ♀';
@@ -38,7 +50,7 @@ class BreedingInfoWidget extends StatelessWidget {
     if (rate == 4) return '50% ♂ / 50% ♀';
     if (rate == 6) return '25% ♂ / 75% ♀';
     if (rate == 8) return '100% ♀';
-    return Translator.get('unknown', fallback: 'Unbekannt');
+    return t.unknown;
   }
 
   Color _getGenderColor(int rate) {
@@ -57,7 +69,7 @@ class BreedingInfoWidget extends StatelessWidget {
 
   String _formatEvoDetails(List details) {
     if (details.isEmpty) {
-      return Translator.get('evo_base_form', fallback: 'Basisform / Ei');
+      return t.evo_base_form;
     }
 
     const magneticLocations = {
@@ -77,24 +89,24 @@ class BreedingInfoWidget extends StatelessWidget {
 
       // Geschlecht (1 = female, 2 = male)
       if (detail['gender'] == 1) {
-        conditions.add(Translator.get('evo_gender_female', fallback: 'weiblich'));
+        conditions.add(t.evo_gender_female);
       } else if (detail['gender'] == 2) {
-        conditions.add(Translator.get('evo_gender_male', fallback: 'männlich'));
+        conditions.add(t.evo_gender_male);
       }
 
       // Tageszeit
       if (detail['time_of_day'] != null &&
           detail['time_of_day'].toString().isNotEmpty) {
         String tod = detail['time_of_day'].toString();
-        conditions.add(Translator.get('evo_time_$tod', fallback: tod));
+        conditions.add(_trans('evo_time_$tod', tod));
       }
 
       // Getragenes Item
       if (detail['held_item'] != null) {
         String itemKey = 'item_${detail['held_item']}';
-        String itemName = Translator.get(itemKey);
+        String itemName = _trans(itemKey);
         conditions.add(
-          Translator.get('evo_held_item', fallback: 'trägt {0}')
+          t.evo_held_item
               .replaceAll('{0}', itemName),
         );
       }
@@ -102,26 +114,26 @@ class BreedingInfoWidget extends StatelessWidget {
       // Attacke
       if (detail['known_move'] != null) {
         String moveKey = 'move_${detail['known_move']}';
-        String moveName = Translator.get(moveKey);
+        String moveName = _trans(moveKey);
         conditions.add(
-          Translator.get('evo_move', fallback: 'Attacke {0}')
+          t.evo_move
               .replaceAll('{0}', moveName),
         );
       }
       if (detail['known_move_type'] != null) {
         String typeKey = 'type_${detail['known_move_type']}';
-        String typeName = Translator.get(typeKey, fallback: detail['known_move_type'].toString());
+        String typeName = _trans(typeKey, detail['known_move_type'].toString());
         conditions.add(
-          Translator.get('evo_move_type', fallback: '{0}-Attacke')
+          t.evo_move_type
               .replaceAll('{0}', typeName),
         );
       }
       if (detail['used_move'] != null) {
         String moveKey = 'move_${detail['used_move']}';
-        String moveName = Translator.get(moveKey);
+        String moveName = _trans(moveKey);
         if (detail['min_move_count'] != null) {
           conditions.add(
-            '$moveName, ${Translator.get('evo_move_count', fallback: '{0}×').replaceAll('{0}', detail['min_move_count'].toString())}',
+            '$moveName, ${t.evo_move_count.replaceAll('{0}', detail['min_move_count'].toString())}',
           );
         } else {
           conditions.add(moveName);
@@ -131,19 +143,19 @@ class BreedingInfoWidget extends StatelessWidget {
       // Ort & Felsen & Magnetfeld
       if (detail['near_special_rock'] == true) {
         conditions.add(
-          Translator.get('evo_special_rock', fallback: 'in der Nähe eines Moos-/Eisfelsens'),
+          t.evo_special_rock,
         );
       } else if (detail['location'] != null) {
         String loc = detail['location'].toString();
         if (magneticLocations.contains(loc)) {
           conditions.add(
-            Translator.get('evo_magnetic_field', fallback: 'besonderes Magnetfeld'),
+            t.evo_magnetic_field,
           );
         } else {
           String locKey = 'loc_$loc';
-          String locName = Translator.get(locKey);
+          String locName = _trans(locKey, loc);
           conditions.add(
-            Translator.get('evo_location', fallback: 'an Ort {0}')
+            t.evo_location
                 .replaceAll('{0}', locName),
           );
         }
@@ -153,76 +165,72 @@ class BreedingInfoWidget extends StatelessWidget {
       if (detail['relative_physical_stats'] != null) {
         int rel = (detail['relative_physical_stats'] as num).toInt();
         if (rel == 1) {
-          conditions.add(Translator.get('evo_stat_atk_gt_def', fallback: 'Angriff > Vert.'));
+          conditions.add(t.evo_stat_atk_gt_def);
         } else if (rel == -1) {
-          conditions.add(Translator.get('evo_stat_atk_lt_def', fallback: 'Angriff < Vert.'));
+          conditions.add(t.evo_stat_atk_lt_def);
         } else {
-          conditions.add(Translator.get('evo_stat_atk_eq_def', fallback: 'Angriff = Vert.'));
+          conditions.add(t.evo_stat_atk_eq_def);
         }
       }
 
       // Schönheit (Barschwa -> Milotic)
       if (detail['min_beauty'] != null) {
-        String bty = Translator.get('evo_beauty', fallback: 'Schönheit {0}+')
+        String bty = t.evo_beauty
             .replaceAll('{0}', detail['min_beauty'].toString());
         conditions.add(bty);
       }
 
       // Spezielle Spielmechaniken
       if (detail['needs_overworld_rain'] == true) {
-        conditions.add(Translator.get('evo_rain', fallback: 'bei Regen'));
+        conditions.add(t.evo_rain);
       }
       if (detail['turn_upside_down'] == true) {
-        conditions.add(Translator.get('evo_upside_down', fallback: 'Konsole umdrehen'));
+        conditions.add(t.evo_upside_down);
       }
       if (detail['needs_multiplayer'] == true) {
-        conditions.add(Translator.get('evo_multiplayer', fallback: 'im Mehrspielermodus'));
+        conditions.add(t.evo_multiplayer);
       }
       if (detail['min_steps'] != null) {
         conditions.add(
-          Translator.get('evo_steps', fallback: '{0} Schritte')
+          t.evo_steps
               .replaceAll('{0}', detail['min_steps'].toString()),
         );
       }
       if (detail['min_damage_taken'] != null) {
         conditions.add(
-          Translator.get('evo_damage', fallback: '{0}+ Schaden')
+          t.evo_damage
               .replaceAll('{0}', detail['min_damage_taken'].toString()),
         );
       }
       if (detail['party_species'] != null) {
         String species = detail['party_species'].toString();
         String speciesKey = 'species_$species';
-        String speciesName = Translator.get(
-          speciesKey,
-          fallback: species.isNotEmpty
-              ? species[0].toUpperCase() + species.substring(1)
-              : species,
-        );
+        String fallbackSpecies = species.isNotEmpty
+            ? species[0].toUpperCase() + species.substring(1)
+            : species;
+        String speciesName = _trans(speciesKey, fallbackSpecies);
         conditions.add(
-          Translator.get('evo_party_species', fallback: 'mit {0} im Team')
+          t.evo_party_species
               .replaceAll('{0}', speciesName),
         );
       }
       if (detail['party_type'] != null) {
         String typeKey = 'type_${detail['party_type']}';
-        String typeName = Translator.get(typeKey, fallback: detail['party_type'].toString());
+        String typeName = _trans(typeKey, detail['party_type'].toString());
         conditions.add(
-          Translator.get('evo_party_type', fallback: 'mit {0}-Pokémon im Team')
+          t.evo_party_type
               .replaceAll('{0}', typeName),
         );
       }
       if (detail['trade_species'] != null) {
         String species = detail['trade_species'].toString();
         String speciesKey = 'species_$species';
-        String speciesName = Translator.get(
-          speciesKey,
-          fallback: species.isNotEmpty
-              ? species[0].toUpperCase() + species.substring(1)
-              : species,
-        );
+        String fallbackSpecies = species.isNotEmpty
+            ? species[0].toUpperCase() + species.substring(1)
+            : species;
+        String speciesName = _trans(speciesKey, fallbackSpecies);
         conditions.add(
-          Translator.get('evo_trade_species', fallback: 'gegen {0}')
+          t.evo_trade_species
               .replaceAll('{0}', speciesName),
         );
       }
@@ -230,7 +238,7 @@ class BreedingInfoWidget extends StatelessWidget {
       // Hauptdarstellung je nach Auslöser (Trigger)
       if (trigger == 'use-item' && detail['item'] != null) {
         String itemKey = 'item_${detail['item']}';
-        String itemName = Translator.get(itemKey);
+        String itemName = _trans(itemKey);
         if (conditions.isEmpty) {
           allMethods.add(itemName);
         } else {
@@ -238,7 +246,7 @@ class BreedingInfoWidget extends StatelessWidget {
         }
       } else if (trigger == 'level-up') {
         if (detail['min_level'] != null) {
-          String lvlText = Translator.get('evo_level', fallback: 'Level {0}')
+          String lvlText = t.evo_level
               .replaceAll('{0}', detail['min_level'].toString());
           if (conditions.isEmpty) {
             allMethods.add(lvlText);
@@ -246,7 +254,7 @@ class BreedingInfoWidget extends StatelessWidget {
             allMethods.add('$lvlText (${conditions.join(', ')})');
           }
         } else if (detail['min_happiness'] != null) {
-          String hap = Translator.get('evo_happiness', fallback: 'hohe Zuneigung');
+          String hap = t.evo_happiness;
           if (hap.isNotEmpty) {
             hap = hap[0].toUpperCase() + hap.substring(1);
           }
@@ -256,7 +264,7 @@ class BreedingInfoWidget extends StatelessWidget {
             allMethods.add('$hap (${conditions.join(', ')})');
           }
         } else if (detail['min_affection'] != null) {
-          String aff = Translator.get('evo_affection', fallback: 'hohe Zutraulichkeit');
+          String aff = t.evo_affection;
           if (aff.isNotEmpty) {
             aff = aff[0].toUpperCase() + aff.substring(1);
           }
@@ -266,22 +274,22 @@ class BreedingInfoWidget extends StatelessWidget {
             allMethods.add('$aff (${conditions.join(', ')})');
           }
         } else if (conditions.isNotEmpty) {
-          String trText = Translator.get('trigger_level-up', fallback: 'Levelaufstieg');
+          String trText = t.trigger_level_up;
           allMethods.add('$trText (${conditions.join(', ')})');
         } else {
-          allMethods.add(Translator.get('trigger_level-up', fallback: 'Levelaufstieg'));
+          allMethods.add(t.trigger_level_up);
         }
       } else if (trigger == 'trade') {
-        String trText = Translator.get('trigger_trade', fallback: 'Tausch');
+        String trText = t.trigger_trade;
         if (conditions.isEmpty) {
           allMethods.add(trText);
         } else {
           allMethods.add('$trText (${conditions.join(', ')})');
         }
       } else {
-        String trText = Translator.get('trigger_$trigger', fallback: trigger);
+        String trText = _trans('trigger_$trigger', trigger);
         if (detail['min_level'] != null) {
-          String lvlText = Translator.get('evo_level', fallback: 'Level {0}')
+          String lvlText = t.evo_level
               .replaceAll('{0}', detail['min_level'].toString());
           if (conditions.isEmpty) {
             allMethods.add('$lvlText ($trText)');
@@ -305,7 +313,7 @@ class BreedingInfoWidget extends StatelessWidget {
     }
 
     return unique.isEmpty
-        ? Translator.get('evo_base_form', fallback: 'Basisform / Ei')
+        ? t.evo_base_form
         : unique.join(' / ');
   }
 
@@ -430,8 +438,8 @@ class BreedingInfoWidget extends StatelessWidget {
 
     String conditionText = filteredDetails.isEmpty
         ? (node['is_baby'] == true
-              ? Translator.get('evo_baby', fallback: 'Baby-Pokémon')
-              : (Translator.get('evo_base_form', fallback: 'Basisform / Ei')))
+              ? t.evo_baby
+              : (t.evo_base_form))
         : _formatEvoDetails(filteredDetails);
 
     return Column(
@@ -513,13 +521,13 @@ class BreedingInfoWidget extends StatelessWidget {
     IconData genderIcon = _getGenderIcon(pokemon.genderRate);
     Color genderColor = _getGenderColor(pokemon.genderRate);
 
-    String eggGroupsText = Translator.get('unknown', fallback: 'Unbekannt');
+    String eggGroupsText = t.unknown;
     if (pokemon.eggGroups.isNotEmpty) {
       eggGroupsText = pokemon.eggGroups
           .map((g) {
             String tKey = 'egg_group_${g.toLowerCase().replaceAll('-', '')}';
-            String t = Translator.get(tKey);
-            return t == tKey ? g : t;
+            String translatedGroup = (t[tKey] ?? tKey).toString();
+            return translatedGroup == tKey ? g : translatedGroup;
           })
           .join(', ');
     }
@@ -527,10 +535,7 @@ class BreedingInfoWidget extends StatelessWidget {
     return LazyExpansionCard(
       leading: const Icon(Icons.egg_alt, color: Colors.green),
       title: Text(
-        Translator.get(
-          'breeding_info_title',
-          fallback: 'Zucht und Entwicklung',
-        ),
+        t.breeding_info_title,
         style: const TextStyle(fontWeight: FontWeight.bold),
       ),
       builder: (context) {
@@ -551,14 +556,14 @@ class BreedingInfoWidget extends StatelessWidget {
                 _buildInfoRow(
                   context,
                   Icons.catching_pokemon,
-                  Translator.get('egg_groups', fallback: 'Ei-Gruppen'),
+                  t.egg_groups,
                   eggGroupsText,
                 ),
                 const SizedBox(height: 12),
                 _buildInfoRow(
                   context,
                   genderIcon,
-                  Translator.get('gender_ratio', fallback: 'Geschlechter'),
+                  t.gender_ratio,
                   genderText,
                   iconColor: genderColor,
                 ),
@@ -588,7 +593,7 @@ class BreedingInfoWidget extends StatelessWidget {
                         const SizedBox(width: 8),
                         Expanded(
                           child: Text(
-                            Translator.currentLanguage == 'de'
+                            LocaleSettings.currentLocale == AppLocale.de
                                 ? 'Pokémon dieser Ei-Gruppe können keine Eier legen. Handelt es sich um ein Baby-Pokémon, muss es zur Zucht erst entwickelt werden.'
                                 : 'Pokémon in this egg group cannot produce eggs. If this is a Baby Pokémon, you must evolve it first.',
                             style: const TextStyle(

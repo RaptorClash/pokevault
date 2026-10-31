@@ -3,7 +3,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 import '../../models/tutorial_step.dart';
 import '../../providers/tutorial_provider.dart';
-import '../../l10n/app_translations.dart';
+import '../../i18n/strings.g.dart';
 import '../../constants/app_vectors.dart';
 
 class ChapterDemoDialog extends StatefulWidget {
@@ -92,7 +92,7 @@ class _ChapterDemoDialogState extends State<ChapterDemoDialog> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    Translator.get('shiny_hunt_active', fallback: 'Aktiver Hunt: Encounters'),
+                    t.shiny_hunt_active,
                     style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
                   ),
                   Text(
@@ -150,11 +150,11 @@ class _ChapterDemoDialogState extends State<ChapterDemoDialog> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    Translator.get('dex_card_mastered', fallback: 'Mastered: 100% Complete'),
+                    t.dex_card_mastered,
                     style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
                   ),
                   Text(
-                    Translator.get('dex_card_registered_pkv', fallback: 'Living Dex Diplome & PNG Share'),
+                    t.dex_card_registered_pkv,
                     style: TextStyle(fontSize: 11, color: theme.colorScheme.onSurfaceVariant),
                   ),
                 ],
@@ -445,7 +445,7 @@ class _ChapterDemoDialogState extends State<ChapterDemoDialog> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          Translator.get(widget.chapter.titleKey),
+                          (t[widget.chapter.titleKey] ?? widget.chapter.titleKey),
                           style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                         ),
                         Text(
@@ -498,7 +498,7 @@ class _ChapterDemoDialogState extends State<ChapterDemoDialog> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          Translator.get(_currentStep.titleKey),
+                          (t[_currentStep.titleKey] ?? _currentStep.titleKey),
                           style: TextStyle(
                             fontSize: 15,
                             fontWeight: FontWeight.bold,
@@ -507,7 +507,7 @@ class _ChapterDemoDialogState extends State<ChapterDemoDialog> {
                         ),
                         const SizedBox(height: 6),
                         Text(
-                          Translator.get(_currentStep.textKey),
+                          (t[_currentStep.textKey] ?? _currentStep.textKey),
                           style: TextStyle(
                             fontSize: 13,
                             height: 1.35,
@@ -538,7 +538,7 @@ class _ChapterDemoDialogState extends State<ChapterDemoDialog> {
                     TextButton.icon(
                       onPressed: _prev,
                       icon: const Icon(Icons.arrow_back, size: 14),
-                      label: Text(Translator.get('previous', fallback: 'Zurück')),
+                      label: Text(t.previous),
                     )
                   else
                     const SizedBox.shrink(),
@@ -559,7 +559,7 @@ class _ChapterDemoDialogState extends State<ChapterDemoDialog> {
                           },
                           icon: const Icon(Icons.rocket_launch_outlined, size: 14),
                           label: Text(
-                            Translator.get('tutorial_try_now', fallback: 'Jetzt ausprobieren'),
+                            t.tutorial_try_now,
                             style: const TextStyle(fontWeight: FontWeight.bold),
                           ),
                         ),
@@ -573,7 +573,7 @@ class _ChapterDemoDialogState extends State<ChapterDemoDialog> {
                         onPressed: _next,
                         icon: Icon(_isLast ? Icons.check : Icons.arrow_forward, size: 14),
                         label: Text(
-                          Translator.get(_isLast ? 'tutorial_finish' : 'tutorial_next', fallback: _isLast ? 'Abschließen' : 'Weiter'),
+                          (_isLast ? t.tutorial_finish : t.tutorial_next),
                           style: const TextStyle(fontWeight: FontWeight.bold),
                         ),
                       ),

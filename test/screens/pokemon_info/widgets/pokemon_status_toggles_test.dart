@@ -5,7 +5,7 @@ import 'package:pokevault/models/pokemon.dart';
 import 'package:pokevault/models/dex_view_models.dart';
 import 'package:pokevault/providers/dex_provider.dart';
 import 'package:pokevault/screens/pokemon_info/widgets/pokemon_info_widgets.dart';
-import 'package:pokevault/l10n/app_translations.dart';
+import 'package:pokevault/i18n/strings.g.dart';
 
 class MockDexProvider extends Mock implements DexProvider {}
 
@@ -31,7 +31,7 @@ void main() {
       testWidgets(
         'Rendert korrekte Strings und reagiert auf Klick in Sprache: $lang',
         (WidgetTester tester) async {
-          Translator.currentLanguage = lang;
+          LocaleSettings.setLocale(lang == 'en' ? AppLocale.en : AppLocale.de);
 
           final dummyPokemon = Pokemon(
             id: 1,

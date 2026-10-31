@@ -9,7 +9,6 @@ import '../../providers/settings_provider.dart';
 import '../../providers/tutorial_provider.dart';
 import '../../models/tutorial_step.dart';
 import '../../widgets/tutorial/tutorial_overlay.dart';
-import '../../l10n/app_translations.dart';
 import '../../i18n/strings.g.dart';
 import '../../utils/dex_logic_helper.dart';
 import '../../utils/notification_helper.dart';
@@ -171,7 +170,7 @@ class _DexScreenState extends State<DexScreen> {
       }
     } catch (e) {
       if (mounted) {
-        NotificationHelper.showError('${Translator.get('error')} $e');
+        NotificationHelper.showError('${t.error} $e');
         setState(() => _isLoadingData = false);
       }
     }
@@ -237,7 +236,7 @@ class _DexScreenState extends State<DexScreen> {
       }
     } catch (e) {
       if (mounted) {
-        NotificationHelper.showError('${Translator.get('error')} $e');
+        NotificationHelper.showError('${t.error} $e');
         setState(() => _isCalculatingBoxes = false);
       }
     } finally {
@@ -536,7 +535,7 @@ class _DexScreenState extends State<DexScreen> {
                     );
                   }
                 } catch (e) {
-                  NotificationHelper.showError('${Translator.get('error')} $e');
+                  NotificationHelper.showError('${t.error} $e');
                 }
               },
             ),
@@ -775,7 +774,7 @@ class _DexScreenState extends State<DexScreen> {
                   });
                 }
               } catch (e) {
-                NotificationHelper.showError('${Translator.get('error')} $e');
+                NotificationHelper.showError('${t.error} $e');
               }
             },
           ),
@@ -902,8 +901,8 @@ class _DexScreenState extends State<DexScreen> {
             String? matchedRegion;
             for (var r in regionKeys) {
               if (term == r ||
-                  term == Translator.get('group_$r').toLowerCase() ||
-                  term == Translator.get('region_name_$r').toLowerCase()) {
+                  term == (t['group_$r'] ?? r).toLowerCase() ||
+                  term == (t['region_name_$r'] ?? r).toLowerCase()) {
                 matchedRegion = r;
                 break;
               }
@@ -943,9 +942,9 @@ class _DexScreenState extends State<DexScreen> {
             } else {
               final types = form?.types ?? [];
               bool typeMatch = types.any(
-                (t) =>
-                    t.toLowerCase() == term ||
-                    Translator.get('type_$t').toLowerCase() == term,
+                (typeStr) =>
+                    typeStr.toLowerCase() == term ||
+                    (t['type_$typeStr'] ?? typeStr).toLowerCase() == term,
               );
 
               if (typeMatch) {
@@ -959,7 +958,7 @@ class _DexScreenState extends State<DexScreen> {
                 if (form != null) {
                   searchableText += ' ${form.name.toLowerCase()}';
                   searchableText +=
-                      ' ${Translator.get('form_name_${form.name}').toLowerCase()}';
+                      ' ${(t['form_name_${form.name}'] ?? form.name).toLowerCase()}';
                 }
 
                 if (entry.uniqueId.contains('_trade_')) {
@@ -1009,7 +1008,7 @@ class _DexScreenState extends State<DexScreen> {
       context: context,
       builder: (ctx) => AlertDialog(
         title: Text(
-          Translator.get('search_help_title', fallback: 'Such-Befehle'),
+          t.search_help_title,
         ),
         content: SingleChildScrollView(
           child: Column(
@@ -1017,59 +1016,35 @@ class _DexScreenState extends State<DexScreen> {
             children: [
               _helpItem(
                 '15 / #15',
-                Translator.get(
-                  'search_help_id',
-                  fallback: 'Sucht exakt nach einer ID.',
-                ),
+                t.search_help_id,
               ),
               _helpItem(
                 '1-151',
-                Translator.get(
-                  'search_help_range',
-                  fallback: 'Zeigt PokÃ©mon im ID-Bereich.',
-                ),
+                t.search_help_range,
               ),
               _helpItem(
                 'shiny, caught, missing',
-                Translator.get(
-                  'search_help_status',
-                  fallback: 'Filtert nach Status.',
-                ),
+                t.search_help_status,
               ),
               _helpItem(
                 'kanto, alola, mega',
-                Translator.get(
-                  'search_help_forms',
-                  fallback: 'Filtert nach Regionen oder Formen.',
-                ),
+                t.search_help_forms,
               ),
               _helpItem(
                 '+Bisasam',
-                Translator.get(
-                  'search_help_family',
-                  fallback: 'Zeigt die Entwicklungsreihe.',
-                ),
+                t.search_help_family,
               ),
               _helpItem(
                 'Pika* / *chu',
-                Translator.get(
-                  'search_help_wildcard',
-                  fallback: 'Wildcard-Suche.',
-                ),
+                t.search_help_wildcard,
               ),
               _helpItem(
                 'shiny & kanto',
-                Translator.get(
-                  'search_help_and',
-                  fallback: 'Mit "&" mÃ¼ssen beide Begriffe zutreffen.',
-                ),
+                t.search_help_and,
               ),
               _helpItem(
                 '1-9, Evoli',
-                Translator.get(
-                  'search_help_or',
-                  fallback: 'Mit "," reicht ein Treffer (ODER).',
-                ),
+                t.search_help_or,
               ),
             ],
           ),
@@ -1243,7 +1218,7 @@ class _DexScreenState extends State<DexScreen> {
                   key: _searchBarKey,
                   controller: _searchController,
                   decoration: InputDecoration(
-                    hintText: Translator.get('search_hint'),
+                    hintText: t.search_hint,
                     prefixIcon: const Icon(Icons.search),
                     suffixIcon: Row(
                       mainAxisSize: MainAxisSize.min,
@@ -1307,15 +1282,15 @@ class _DexScreenState extends State<DexScreen> {
                 items: [
                   DropdownMenuItem(
                     value: 'all',
-                    child: Text(Translator.get('filter_all')),
+                    child: Text(t.filter_all),
                   ),
                   DropdownMenuItem(
                     value: 'caught',
-                    child: Text(Translator.get('filter_caught')),
+                    child: Text(t.filter_caught),
                   ),
                   DropdownMenuItem(
                     value: 'uncaught',
-                    child: Text(Translator.get('filter_missing')),
+                    child: Text(t.filter_missing),
                   ),
                 ],
                 onChanged: (val) => setState(() => _filter = val ?? 'all'),
@@ -1552,7 +1527,7 @@ class _DexScreenState extends State<DexScreen> {
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 Text(
-                                  '${_selectedForEdit.length} Pokémon ${Translator.get('selected', fallback: 'ausgewählt')}',
+                                  '${_selectedForEdit.length} Pokémon ${t.selected}',
                                   style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
                                 ),
                                 if (_isMoveTargetMode)
@@ -1644,7 +1619,7 @@ class _DexScreenState extends State<DexScreen> {
                 )
               : null,
           title: Tooltip(
-            message: Translator.get('dex_progress_tooltip'),
+            message: t.dex_progress_tooltip,
             child: InkWell(
               borderRadius: BorderRadius.circular(8),
               onTap: () {
@@ -1682,7 +1657,7 @@ class _DexScreenState extends State<DexScreen> {
                     ),
                     const SizedBox(height: 1),
                     Text(
-                      '$caughtCount / $totalCount ${Translator.get('caught')} ($progressPercent%)',
+                      '$caughtCount / $totalCount ${t.caught} ($progressPercent%)',
                       style: const TextStyle(fontSize: 11, color: Colors.white70),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -1730,7 +1705,7 @@ class _DexScreenState extends State<DexScreen> {
             if (_isEditMode)
               IconButton(
                 icon: const Icon(Icons.add),
-                tooltip: Translator.get('add_pokemon', fallback: 'Hinzufügen'),
+                tooltip: t.add_pokemon,
                 onPressed: () async {
                   final targetBoxIndex = _pageController.hasClients
                       ? (_pageController.page?.round() ?? _lastBoxIndex)
@@ -1815,7 +1790,7 @@ class _DexScreenState extends State<DexScreen> {
               IconButton(
                 key: _statsActionKey,
                 icon: const Icon(Icons.bar_chart),
-                tooltip: Translator.get('dex_progress_tooltip'),
+                tooltip: t.dex_progress_tooltip,
                 onPressed: () {
                   DexProgressDialog.show(
                     context,
@@ -1833,7 +1808,7 @@ class _DexScreenState extends State<DexScreen> {
               IconButton(
                 key: _shareActionKey,
                 icon: const Icon(Icons.share),
-                tooltip: Translator.get('share_dex_card', fallback: 'Erfolgs-Grafik teilen...'),
+                tooltip: t.share_dex_card,
                 onPressed: () {
                   DexCompletionCardDialog.show(
                     context,
@@ -1884,7 +1859,7 @@ class _DexScreenState extends State<DexScreen> {
               IconButton(
                 key: _routeTrackerActionKey,
                 icon: const Icon(Icons.location_on),
-                tooltip: Translator.get('route_tracker'),
+                tooltip: t.route_tracker,
                 onPressed: () {
                   Navigator.push(
                     context,
@@ -1914,7 +1889,7 @@ class _DexScreenState extends State<DexScreen> {
                       label: Text('$count'),
                       child: const Icon(Icons.auto_awesome),
                     ),
-                    tooltip: Translator.get('shiny_hunt_badge_tooltip'),
+                    tooltip: t.shiny_hunt_badge_tooltip,
                     onPressed: () {
                       Navigator.push(
                         context,
@@ -1930,7 +1905,7 @@ class _DexScreenState extends State<DexScreen> {
               PopupMenuButton<String>(
               key: _sortMenuKey,
               icon: const Icon(Icons.sort),
-              tooltip: Translator.get('tooltip_view_sort'),
+              tooltip: t.tooltip_view_sort,
               onSelected: (value) {
                 if (value == 'toggle_view') _toggleBoxView();
                 if (value == 'toggle_sort') _toggleSeparateForms();
@@ -1977,8 +1952,8 @@ class _DexScreenState extends State<DexScreen> {
                       Expanded(
                         child: Text(
                           _isBoxView
-                              ? Translator.get('view_list')
-                              : Translator.get('view_box'),
+                              ? t.view_list
+                              : t.view_box,
                         ),
                       ),
                     ],
@@ -1998,8 +1973,8 @@ class _DexScreenState extends State<DexScreen> {
                       Expanded(
                         child: Text(
                           _separateForms
-                              ? Translator.get('sort_dex')
-                              : Translator.get('sort_forms'),
+                              ? t.sort_dex
+                              : t.sort_forms,
                         ),
                       ),
                     ],
@@ -2014,10 +1989,7 @@ class _DexScreenState extends State<DexScreen> {
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
-                          Translator.get(
-                            'advanced_sort_title',
-                            fallback: 'Erweiterte Sortierung',
-                          ),
+                          t.advanced_sort_title,
                         ),
                       ),
                     ],
@@ -2032,10 +2004,7 @@ class _DexScreenState extends State<DexScreen> {
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
-                          Translator.get(
-                            'ignored_list_title',
-                            fallback: 'Ausgeblendete Pokemon',
-                          ),
+                          t.ignored_list_title,
                         ),
                       ),
                     ],
@@ -2050,10 +2019,7 @@ class _DexScreenState extends State<DexScreen> {
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
-                          Translator.get(
-                            'share_dex_card',
-                            fallback: 'Erfolgs-Grafik teilen...',
-                          ),
+                          t.share_dex_card,
                         ),
                       ),
                     ],
@@ -2111,8 +2077,8 @@ class _DexScreenState extends State<DexScreen> {
                               const SizedBox(width: 8),
                               Text(
                                 _isBoxView
-                                    ? Translator.get('view_list')
-                                    : Translator.get('view_box'),
+                                    ? t.view_list
+                                    : t.view_box,
                               ),
                             ],
                           ),
@@ -2136,8 +2102,8 @@ class _DexScreenState extends State<DexScreen> {
                               const SizedBox(width: 8),
                               Text(
                                 _separateForms
-                                    ? Translator.get('sort_dex')
-                                    : Translator.get('sort_forms'),
+                                    ? t.sort_dex
+                                    : t.sort_forms,
                               ),
                             ],
                           ),
@@ -2164,10 +2130,7 @@ class _DexScreenState extends State<DexScreen> {
                               const Icon(Icons.tune, size: 20),
                               const SizedBox(width: 8),
                               Text(
-                                Translator.get(
-                                  'advanced_sort_title',
-                                  fallback: 'Erweiterte Sortierung',
-                                ),
+                                t.advanced_sort_title,
                               ),
                             ],
                           ),
@@ -2197,10 +2160,7 @@ class _DexScreenState extends State<DexScreen> {
                               const Icon(Icons.visibility_off, size: 20),
                               const SizedBox(width: 8),
                               Text(
-                                Translator.get(
-                                  'ignored_list_title',
-                                  fallback: 'Ausgeblendete Pokemon',
-                                ),
+                                t.ignored_list_title,
                               ),
                             ],
                           ),

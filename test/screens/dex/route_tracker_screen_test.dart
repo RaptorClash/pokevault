@@ -10,7 +10,7 @@ import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:pokevault/services/database_service.dart';
 import 'package:pokevault/screens/dex/route_tracker_screen.dart';
 import 'package:pokevault/widgets/tutorial/tutorial_overlay.dart';
-import 'package:pokevault/l10n/app_translations.dart';
+import 'package:pokevault/i18n/strings.g.dart';
 import '../../e2e/helpers/e2e_test_helper.dart';
 
 class MockPathProviderPlatform extends Fake
@@ -191,7 +191,7 @@ void main() {
       await tester.enterText(find.byType(TextField), 'AtlantisNonExistent');
       await tester.pump();
 
-      expect(find.text(Translator.get('no_encounters_found')), findsOneWidget);
+      expect(find.text(t.no_encounters_found), findsOneWidget);
     });
 
     testWidgets('Empty state message when no encounters match', (tester) async {
@@ -210,7 +210,7 @@ void main() {
       );
       await waitForRoutesLoaded(tester);
 
-      expect(find.text(Translator.get('no_encounters_found')), findsOneWidget);
+      expect(find.text(t.no_encounters_found), findsOneWidget);
     });
 
     testWidgets('Toggling hideCompleted switch hides routes whose pokemon are all caught', (tester) async {
@@ -240,7 +240,7 @@ void main() {
 
       // Since Pikachu is caught, Viridian Forest should now be hidden
       expect(find.text('Viridian Forest'), findsNothing);
-      expect(find.text(Translator.get('no_encounters_found')), findsOneWidget);
+      expect(find.text(t.no_encounters_found), findsOneWidget);
     });
 
     testWidgets('Games filter expansion allows clearing selected games', (tester) async {
@@ -271,16 +271,16 @@ void main() {
       expect(find.text('Viridian Forest'), findsOneWidget);
 
       // Expand games filter
-      await tester.tap(find.text(Translator.get('games_filter_title')));
+      await tester.tap(find.text(t.games_filter_title));
       await tester.pumpAndSettle();
 
       // Tap 'Keine' button
-      await tester.tap(find.widgetWithText(TextButton, Translator.get('none')));
+      await tester.tap(find.widgetWithText(TextButton, t.none));
       await tester.pumpAndSettle();
 
       // All routes should disappear
       expect(find.text('Viridian Forest'), findsNothing);
-      expect(find.text(Translator.get('no_encounters_found')), findsOneWidget);
+      expect(find.text(t.no_encounters_found), findsOneWidget);
     });
 
     testWidgets('Triggers live TutorialOverlay for route_tracker when not seen and marks as seen on completion', (tester) async {
@@ -309,9 +309,9 @@ void main() {
       await tester.pump(const Duration(milliseconds: 300));
 
       expect(find.byType(TutorialOverlay), findsOneWidget);
-      expect(find.text(Translator.get('tutorial_route_filters_title')), findsOneWidget);
+      expect(find.text(t.tutorial_route_filters_title), findsOneWidget);
 
-      final skipBtn = find.text(Translator.get('tutorial_skip', fallback: 'Überspringen'));
+      final skipBtn = find.text(t.tutorial_skip);
       expect(skipBtn, findsOneWidget);
       await tester.tap(skipBtn);
       await tester.pump(const Duration(milliseconds: 300));
@@ -374,7 +374,7 @@ void main() {
       expect(overlay.feature.steps.length, equals(1));
       expect(overlay.feature.steps.first.titleKey, equals('tutorial_route_filters_title'));
 
-      final skipBtn = find.text(Translator.get('tutorial_skip', fallback: 'Überspringen'));
+      final skipBtn = find.text(t.tutorial_skip);
       expect(skipBtn, findsOneWidget);
       await tester.tap(skipBtn);
       await tester.pump(const Duration(milliseconds: 300));

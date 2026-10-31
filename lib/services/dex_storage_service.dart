@@ -9,7 +9,7 @@ import '../models/shiny_hunt.dart';
 import '../utils/notification_helper.dart';
 import 'package:file_selector/file_selector.dart';
 import '../providers/dex_provider.dart';
-import '../l10n/app_translations.dart';
+import '../i18n/strings.g.dart';
 
 // Top-Level-Funktion für Isolate-Ausführung
 String _encodeJsonTask(Map<String, dynamic> data) {
@@ -59,11 +59,9 @@ class DexStorageService {
           mimeType: 'application/json',
         );
 
-        await SharePlus.instance.share(ShareParams(files: [xFile], text: Translator.get('share_text')));
+        await SharePlus.instance.share(ShareParams(files: [xFile], text: t.share_text));
 
-        NotificationHelper.showSuccess(
-          Translator.get('backup_success', fallback: 'Backup heruntergeladen!'),
-        );
+        NotificationHelper.showSuccess(t.backup_success);
         return;
       }
 
@@ -77,7 +75,7 @@ class DexStorageService {
         await file.writeAsString(jsonString);
 
         NotificationHelper.showSuccess(
-          "${Translator.get('backup_success')}\n${file.path}",
+          "${t.backup_success}\n${file.path}",
         );
       } else if (Platform.isAndroid) {
         try {
@@ -92,11 +90,11 @@ class DexStorageService {
           final file = File('${directory.path}/$fileName');
           await file.writeAsString(jsonString);
           NotificationHelper.showSuccess(
-            "${Translator.get('backup_success_android')}\n${file.path}",
+            "${t.backup_success_android}\n${file.path}",
           );
         } catch (e) {
           NotificationHelper.showWarning(
-            "${Translator.get('backup_fallback_android')}\n$e",
+            "${t.backup_fallback_android}\n$e",
           );
           final directory = await getTemporaryDirectory();
           final file = File('${directory.path}/$fileName');
@@ -104,7 +102,7 @@ class DexStorageService {
           await SharePlus.instance.share(
             ShareParams(
               files: [XFile(file.path)],
-              text: Translator.get('share_text'),
+              text: t.share_text,
             ),
           );
         }
@@ -115,12 +113,12 @@ class DexStorageService {
         await SharePlus.instance.share(
           ShareParams(
             files: [XFile(file.path)],
-            text: Translator.get('share_text'),
+            text: t.share_text,
           ),
         );
       }
     } catch (e) {
-      NotificationHelper.showError("${Translator.get('error_export')} $e");
+      NotificationHelper.showError("${t.error_export} $e");
     }
   }
 
@@ -130,7 +128,7 @@ class DexStorageService {
   static Future<Map<String, dynamic>?> importDexes(DexProvider provider) async {
     try {
       final XTypeGroup typeGroup = XTypeGroup(
-        label: Translator.get('json_files'),
+        label: t.json_files,
         extensions: const <String>['json'],
       );
 
@@ -144,14 +142,12 @@ class DexStorageService {
         if (decoded is Map<String, dynamic>) {
           return decoded;
         } else {
-          NotificationHelper.showError(
-            Translator.get('error_import', fallback: 'Fehler beim Importieren der Datei.'),
-          );
+          NotificationHelper.showError(t.error_import);
           return null;
         }
       }
     } catch (e) {
-      NotificationHelper.showError("${Translator.get('error_import')} $e");
+      NotificationHelper.showError("${t.error_import} $e");
     }
     return null;
   }

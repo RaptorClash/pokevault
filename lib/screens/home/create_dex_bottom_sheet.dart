@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../data/dex_groups_data.dart';
-import '../../l10n/app_translations.dart';
+import '../../i18n/strings.g.dart';
 import '../../providers/dex_provider.dart';
 import '../../providers/tutorial_provider.dart';
 import '../../models/tutorial_step.dart';
@@ -67,7 +67,7 @@ class _CreateDexBottomSheetState extends State<CreateDexBottomSheet> {
       selectedGroup = DexGroupsData.groups.first;
       selectedSubDex = selectedGroup.dexKeys.first;
       features = DexGroupsData.getAvailableFeatures(selectedSubDex);
-      nameController.text = Translator.get('region_$selectedSubDex');
+      nameController.text = (t['region_$selectedSubDex'] ?? selectedSubDex);
 
       WidgetsBinding.instance.addPostFrameCallback((_) {
         Future.delayed(const Duration(milliseconds: 700), () {
@@ -75,7 +75,7 @@ class _CreateDexBottomSheetState extends State<CreateDexBottomSheet> {
         });
       });
     } catch (e) {
-      NotificationHelper.showError('${Translator.get('error')} $e');
+      NotificationHelper.showError('${t.error} $e');
     }
   }
 
@@ -278,7 +278,7 @@ class _CreateDexBottomSheetState extends State<CreateDexBottomSheet> {
         );
       }
     } catch (e) {
-      NotificationHelper.showError('${Translator.get('error')} $e');
+      NotificationHelper.showError('${t.error} $e');
     }
   }
 
@@ -291,7 +291,7 @@ class _CreateDexBottomSheetState extends State<CreateDexBottomSheet> {
 
   void _selectSubDex(String subDex) {
     selectedSubDex = subDex;
-    nameController.text = Translator.get('region_$selectedSubDex');
+    nameController.text = (t['region_$selectedSubDex'] ?? selectedSubDex);
     features = DexGroupsData.getAvailableFeatures(selectedSubDex);
     includeMega = selectedSubDex == 'mega_dex';
     includeOther = selectedSubDex == 'icognito_dex';
@@ -325,7 +325,7 @@ class _CreateDexBottomSheetState extends State<CreateDexBottomSheet> {
         if (mounted) Navigator.pop(context);
       }
     } catch (e) {
-      NotificationHelper.showError('${Translator.get('error')} $e');
+      NotificationHelper.showError('${t.error} $e');
     }
   }
 
@@ -431,7 +431,7 @@ class _CreateDexBottomSheetState extends State<CreateDexBottomSheet> {
                           ),
                           alignment: Alignment.center,
                           child: Text(
-                            Translator.get(group.nameKey),
+                            (t[group.nameKey] ?? group.nameKey),
                             style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.bold,
@@ -464,7 +464,7 @@ class _CreateDexBottomSheetState extends State<CreateDexBottomSheet> {
           key: _dropdownKey,
           initialValue: selectedSubDex,
           decoration: InputDecoration(
-            labelText: Translator.get('exact_pokedex'),
+            labelText: t.exact_pokedex,
             filled: true,
             fillColor: Theme.of(
               context,
@@ -478,8 +478,8 @@ class _CreateDexBottomSheetState extends State<CreateDexBottomSheet> {
             return DropdownMenuItem<String>(
               value: key,
               child: Text(
-                Translator.get('region_$key') != 'region_$key'
-                    ? Translator.get('region_$key')
+                (t['region_$key'] ?? key) != key
+                    ? (t['region_$key'] ?? key)
                     : key,
               ),
             );
@@ -523,8 +523,8 @@ class _CreateDexBottomSheetState extends State<CreateDexBottomSheet> {
                       vertical: 14,
                     ),
                     child: Text(
-                      Translator.get('region_$key') != 'region_$key'
-                          ? Translator.get('region_$key')
+                      (t['region_$key'] ?? key) != key
+                          ? (t['region_$key'] ?? key)
                           : key,
                       style: TextStyle(
                         fontWeight: isSelected
@@ -585,10 +585,7 @@ class _CreateDexBottomSheetState extends State<CreateDexBottomSheet> {
           SwitchListTile(
             key: _shinyKey,
             title: Text(
-              Translator.get(
-                'tutorial_create_step6_title',
-                fallback: 'Shiny Dex',
-              ),
+              t.tutorial_create_step6_title,
             ),
             secondary: const Icon(Icons.star, color: Colors.amber),
             value: isShinyDex,
@@ -600,10 +597,7 @@ class _CreateDexBottomSheetState extends State<CreateDexBottomSheet> {
             SwitchListTile(
               key: _genderKey,
               title: Text(
-                Translator.get(
-                  'tutorial_create_step7_title',
-                  fallback: 'Geschlechter',
-                ),
+                t.tutorial_create_step7_title,
               ),
               secondary: const Icon(Icons.wc),
               value: includeGenders,
@@ -616,10 +610,7 @@ class _CreateDexBottomSheetState extends State<CreateDexBottomSheet> {
               child: SwitchListTile(
                 key: const Key('switch_include_trades'),
                 title: Text(
-                  Translator.get(
-                    'include_trades',
-                    fallback: 'In-Game Tausche',
-                  ),
+                  t.include_trades,
                 ),
                 secondary: const Icon(Icons.swap_horiz),
                 value: includeTrades,
@@ -633,10 +624,7 @@ class _CreateDexBottomSheetState extends State<CreateDexBottomSheet> {
               child: SwitchListTile(
                 key: const Key('switch_include_gifts'),
                 title: Text(
-                  Translator.get(
-                    'include_gifts',
-                    fallback: 'Geschenkte Pokémon',
-                  ),
+                  t.include_gifts,
                 ),
                 secondary: const Icon(Icons.card_giftcard),
                 value: includeGifts,
@@ -650,10 +638,7 @@ class _CreateDexBottomSheetState extends State<CreateDexBottomSheet> {
               child: SwitchListTile(
                 key: const Key('switch_include_glitch'),
                 title: Text(
-                  Translator.get(
-                    'include_glitch',
-                    fallback: 'Glitch Pokémon (Game Boy)',
-                  ),
+                  t.include_glitch,
                 ),
                 secondary: const Icon(Icons.bug_report),
                 value: includeGlitch,
@@ -668,11 +653,11 @@ class _CreateDexBottomSheetState extends State<CreateDexBottomSheet> {
               initiallyExpanded:
                   includeMega || includeRegional || includeGMax || includeOther,
               leading: const Icon(Icons.auto_awesome),
-              title: Text(Translator.get('include_forms')),
+              title: Text(t.include_forms),
               children: [
                 CheckboxListTile(
                   key: _regionalKey,
-                  title: Text(Translator.get('form_regional')),
+                  title: Text(t.form_regional),
                   value: includeRegional,
                   activeColor: Colors.red,
                   enabled: (features['regional'] ?? false),
@@ -682,7 +667,7 @@ class _CreateDexBottomSheetState extends State<CreateDexBottomSheet> {
                 ),
                 CheckboxListTile(
                   key: _megaKey,
-                  title: Text(Translator.get('form_mega')),
+                  title: Text(t.form_mega),
                   value: includeMega,
                   activeColor: Colors.red,
                   enabled:
@@ -694,7 +679,7 @@ class _CreateDexBottomSheetState extends State<CreateDexBottomSheet> {
                 ),
                 CheckboxListTile(
                   key: _gmaxKey,
-                  title: Text(Translator.get('form_gmax')),
+                  title: Text(t.form_gmax),
                   value: includeGMax,
                   activeColor: Colors.red,
                   enabled: (features['gmax'] ?? false),
@@ -704,7 +689,7 @@ class _CreateDexBottomSheetState extends State<CreateDexBottomSheet> {
                 ),
                 CheckboxListTile(
                   key: _otherKey,
-                  title: Text(Translator.get('form_other')),
+                  title: Text(t.form_other),
                   value: includeOther,
                   activeColor: Colors.red,
                   enabled:
@@ -740,12 +725,12 @@ class _CreateDexBottomSheetState extends State<CreateDexBottomSheet> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              Translator.get('create_dex_title'),
+              t.create_dex_title,
               style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
             Text(
-              Translator.get('choose_generation'),
+              t.choose_generation,
               style: TextStyle(color: Theme.of(context).hintColor),
             ),
             const SizedBox(height: 16),
@@ -755,7 +740,7 @@ class _CreateDexBottomSheetState extends State<CreateDexBottomSheet> {
             TextField(
               controller: nameController,
               decoration: InputDecoration(
-                labelText: Translator.get('create_dex_hint'),
+                labelText: t.create_dex_hint,
                 filled: true,
                 fillColor: Theme.of(
                   context,
@@ -784,7 +769,7 @@ class _CreateDexBottomSheetState extends State<CreateDexBottomSheet> {
                 ),
                 onPressed: _createDex,
                 child: Text(
-                  Translator.get('create_dex_btn'),
+                  t.create_dex_btn,
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,

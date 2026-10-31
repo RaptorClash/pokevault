@@ -5,7 +5,7 @@ import 'package:mocktail/mocktail.dart';
 import 'package:provider/provider.dart';
 import 'package:pokevault/widgets/dialogs/downgrade_dialog.dart';
 import 'package:pokevault/utils/update_helper.dart';
-import 'package:pokevault/l10n/app_translations.dart';
+import 'package:pokevault/i18n/strings.g.dart';
 import 'package:pokevault/providers/dex_provider.dart';
 
 class MockDexProvider extends Mock implements DexProvider {}
@@ -23,7 +23,7 @@ void main() {
     testWidgets(
       'Durchläuft Info -> Backup -> Warnung beim Tippen der Buttons',
       (WidgetTester tester) async {
-        Translator.currentLanguage = 'de';
+        LocaleSettings.setLocale(AppLocale.de);
 
         await tester.pumpWidget(
           MaterialApp(
@@ -52,7 +52,7 @@ void main() {
     testWidgets(
       'Zurück-Knopf im Backup-Schritt navigiert zurück zum Info-Schritt',
       (WidgetTester tester) async {
-        Translator.currentLanguage = 'de';
+        LocaleSettings.setLocale(AppLocale.de);
 
         await tester.pumpWidget(
           MaterialApp(
@@ -81,7 +81,7 @@ void main() {
     testWidgets(
       'Zurück-Knopf im FinalWarning-Schritt navigiert zurück zum Backup-Schritt',
       (WidgetTester tester) async {
-        Translator.currentLanguage = 'de';
+        LocaleSettings.setLocale(AppLocale.de);
 
         await tester.pumpWidget(
           MaterialApp(
@@ -112,7 +112,7 @@ void main() {
     testWidgets(
       'Release Notes im DowngradeDialog werden nach Sprache gefiltert',
       (WidgetTester tester) async {
-        Translator.currentLanguage = 'de';
+        LocaleSettings.setLocale(AppLocale.de);
 
         final multiLangRelease = UpdateInfo(
           version: '1.0.0',
@@ -142,7 +142,7 @@ Deutsche Notizen für Downgrade.
     testWidgets(
       'Backup-Button im Backup-Schritt führt Backup aus und wechselt zu Letzte Warnung',
       (WidgetTester tester) async {
-        Translator.currentLanguage = 'de';
+        LocaleSettings.setLocale(AppLocale.de);
         final mockDexProvider = MockDexProvider();
         when(() => mockDexProvider.userDexes).thenReturn([]);
 

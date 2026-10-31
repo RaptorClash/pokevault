@@ -5,7 +5,7 @@ import '../../models/user_dex.dart';
 import '../../providers/dex_provider.dart';
 import '../../providers/settings_provider.dart';
 import '../../services/database_service.dart';
-import '../../l10n/app_translations.dart';
+import '../../i18n/strings.g.dart';
 import '../../models/tutorial_step.dart';
 import '../../providers/tutorial_provider.dart';
 import '../../widgets/tutorial/tutorial_overlay.dart';
@@ -249,7 +249,7 @@ class _RouteTrackerScreenState extends State<RouteTrackerScreen> {
 
   String _getTranslatedGameName(String game) {
     String key = 'version_$game';
-    String translated = Translator.get(key);
+    String translated = (t[key] ?? key);
 
     if (translated == key) {
       return game
@@ -417,7 +417,7 @@ class _RouteTrackerScreenState extends State<RouteTrackerScreen> {
     final routesMap = _getFilteredRoutes(settingsProvider.currentLanguage);
 
     return Scaffold(
-      appBar: AppBar(title: Text(Translator.get('route_tracker_title'))),
+      appBar: AppBar(title: Text(t.route_tracker_title)),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : ListView.builder(
@@ -432,10 +432,7 @@ class _RouteTrackerScreenState extends State<RouteTrackerScreen> {
                     padding: const EdgeInsets.all(32.0),
                     child: Center(
                       child: Text(
-                        Translator.get(
-                          'no_encounters_found',
-                          fallback: 'Keine Fundorte gefunden.',
-                        ),
+                        t.no_encounters_found,
                         textAlign: TextAlign.center,
                       ),
                     ),
@@ -460,7 +457,7 @@ class _RouteTrackerScreenState extends State<RouteTrackerScreen> {
                       style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
                     subtitle: Text(
-                      '$caughtCount / ${entries.length} ${Translator.get('caught', fallback: 'gefangen')}',
+                      '$caughtCount / ${entries.length} ${t.caught}',
                       style: TextStyle(
                         color: caughtCount == entries.length
                             ? Colors.green
@@ -519,10 +516,7 @@ class _RouteTrackerScreenState extends State<RouteTrackerScreen> {
       child: TextField(
         controller: _searchController,
         decoration: InputDecoration(
-          labelText: Translator.get(
-            'search_route_pokemon',
-            fallback: 'Suche Route oder Pokémon...',
-          ),
+          labelText: t.search_route_pokemon,
           prefixIcon: const Icon(Icons.search),
           suffixIcon: _searchQuery.isNotEmpty
               ? IconButton(
@@ -573,10 +567,7 @@ class _RouteTrackerScreenState extends State<RouteTrackerScreen> {
         children: [
           SwitchListTile(
             title: Text(
-              Translator.get(
-                'hide_completed_routes',
-                fallback: 'Fertige Routen ausblenden',
-              ),
+              t.hide_completed_routes,
               style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
             ),
             value: _hideCompleted,
@@ -597,10 +588,7 @@ class _RouteTrackerScreenState extends State<RouteTrackerScreen> {
                 color: Theme.of(context).colorScheme.primary,
               ),
               title: Text(
-                Translator.get(
-                  'games_filter_title',
-                  fallback: 'Spiele & Editionen filtern',
-                ),
+                t.games_filter_title,
                 style: const TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 14,
@@ -616,10 +604,7 @@ class _RouteTrackerScreenState extends State<RouteTrackerScreen> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
-                            Translator.get(
-                              'visible_editions',
-                              fallback: 'Sichtbare Editionen',
-                            ),
+                            t.visible_editions,
                             style: const TextStyle(
                               fontWeight: FontWeight.w600,
                               fontSize: 13,
@@ -640,7 +625,7 @@ class _RouteTrackerScreenState extends State<RouteTrackerScreen> {
                                   });
                                 },
                                 child: Text(
-                                  Translator.get('none', fallback: 'Keine'),
+                                  t.none,
                                 ),
                               ),
                               TextButton(
@@ -656,7 +641,7 @@ class _RouteTrackerScreenState extends State<RouteTrackerScreen> {
                                   });
                                 },
                                 child: Text(
-                                  Translator.get('all', fallback: 'Alle'),
+                                  t.all,
                                 ),
                               ),
                             ],
@@ -683,10 +668,7 @@ class _RouteTrackerScreenState extends State<RouteTrackerScreen> {
                                   borderRadius: BorderRadius.circular(6),
                                 ),
                                 child: Text(
-                                  Translator.get(
-                                    'generation_x',
-                                    fallback: 'Generation {0}',
-                                  ).replaceAll('{0}', gen.toString()),
+                                  t.generation_x.replaceAll('{0}', gen.toString()),
                                   style: TextStyle(
                                     fontSize: 11,
                                     fontWeight: FontWeight.bold,

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../models/pokemon.dart';
 import '../../../../services/database_service.dart';
-import '../../../../l10n/app_translations.dart';
+import '../../../../i18n/strings.g.dart';
 
 class Gen75ShinyGuide extends StatelessWidget {
   final Pokemon pokemon;
@@ -85,8 +85,8 @@ class Gen75ShinyGuide extends StatelessWidget {
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
-                        Translator.get(titleKey) != titleKey
-                            ? Translator.get(titleKey)
+                        (t[titleKey] ?? titleKey) != titleKey
+                            ? (t[titleKey] ?? titleKey)
                             : titleKey,
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
@@ -98,8 +98,8 @@ class Gen75ShinyGuide extends StatelessWidget {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  Translator.get(descKey) != descKey
-                      ? Translator.get(descKey)
+                  (t[descKey] ?? descKey) != descKey
+                      ? (t[descKey] ?? descKey)
                       : descKey,
                   style: const TextStyle(
                     fontSize: 13,
@@ -119,8 +119,8 @@ class Gen75ShinyGuide extends StatelessWidget {
               child: ElevatedButton.icon(
                 icon: Icon(icon),
                 label: Text(
-                  Translator.get(titleKey) != titleKey
-                      ? Translator.get(titleKey)
+                  (t[titleKey] ?? titleKey) != titleKey
+                      ? (t[titleKey] ?? titleKey)
                       : titleKey,
                   textAlign: TextAlign.center,
                 ),
@@ -133,10 +133,7 @@ class Gen75ShinyGuide extends StatelessWidget {
         if (isLocked) {
           content.add(
             Text(
-              Translator.get(
-                'shiny_huntable_no',
-                fallback: 'Shiny Huntable: Nein',
-              ),
+              t.shiny_huntable_no,
               style: const TextStyle(
                 color: Colors.red,
                 fontWeight: FontWeight.bold,
@@ -155,10 +152,7 @@ class Gen75ShinyGuide extends StatelessWidget {
         } else {
           content.add(
             Text(
-              Translator.get(
-                'shiny_gen7_huntable_yes',
-                fallback: 'Shiny Huntable: Ja (Basis-Chance 1:4096)',
-              ),
+              t.shiny_gen7_huntable_yes,
               style: const TextStyle(
                 color: Colors.green,
                 fontWeight: FontWeight.bold,

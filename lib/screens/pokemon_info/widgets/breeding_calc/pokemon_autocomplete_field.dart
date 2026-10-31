@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../../../l10n/app_translations.dart';
+import '../../../../i18n/strings.g.dart';
 
 class PokemonAutocompleteField extends StatelessWidget {
   final int startId;
@@ -37,7 +37,7 @@ class PokemonAutocompleteField extends StatelessWidget {
               controller: controller,
               focusNode: focusNode,
               decoration: InputDecoration(
-                labelText: Translator.get('search_hint'),
+                labelText: t.search_hint,
                 contentPadding: const EdgeInsets.symmetric(
                   vertical: 22,
                   horizontal: 16,

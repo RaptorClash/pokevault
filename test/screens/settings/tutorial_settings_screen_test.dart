@@ -6,7 +6,7 @@ import 'package:pokevault/providers/tutorial_provider.dart';
 import 'package:pokevault/screens/settings/tutorial_settings_screen.dart';
 import 'package:pokevault/widgets/tutorial/chapter_demo_dialog.dart';
 import 'package:pokevault/models/tutorial_step.dart';
-import 'package:pokevault/l10n/app_translations.dart';
+import 'package:pokevault/i18n/strings.g.dart';
 
 import 'package:pokevault/models/pokemon.dart';
 import 'package:pokevault/models/ribbon.dart';
@@ -76,7 +76,7 @@ void main() {
     late FakeSettingsProvider fakeSettingsProvider;
 
     setUp(() async {
-      Translator.currentLanguage = 'de';
+      LocaleSettings.setLocale(AppLocale.de);
       SharedPreferences.setMockInitialValues({});
       prefs = await SharedPreferences.getInstance();
       tutorialProvider = TutorialProvider(prefs);
@@ -219,7 +219,7 @@ void main() {
       tester.view.devicePixelRatio = 1.0;
       addTearDown(tester.view.resetPhysicalSize);
 
-      Translator.currentLanguage = 'en';
+      LocaleSettings.setLocale(AppLocale.en);
       await tester.pumpWidget(createTestWidget(key: const Key('screen_en')));
       await tester.pumpAndSettle();
 
@@ -229,7 +229,7 @@ void main() {
       expect(tester.takeException(), isNull);
 
       // Switch language to German at runtime
-      Translator.currentLanguage = 'de';
+      LocaleSettings.setLocale(AppLocale.de);
       await tester.pumpWidget(createTestWidget(key: const Key('screen_de')));
       await tester.pumpAndSettle();
 
@@ -274,8 +274,8 @@ void main() {
       }
 
       // On final step, both finish and try now button should be visible
-      expect(find.text(Translator.get('tutorial_finish', fallback: 'Abschließen')), findsOneWidget);
-      final tryNowBtn = find.text(Translator.get('tutorial_try_now', fallback: 'Jetzt ausprobieren'));
+      expect(find.text(t.tutorial_finish), findsOneWidget);
+      final tryNowBtn = find.text(t.tutorial_try_now);
       expect(tryNowBtn, findsOneWidget);
 
       // Tap try now button
@@ -309,14 +309,14 @@ void main() {
         await tester.pumpAndSettle();
       }
 
-      final tryNowBtn = find.text(Translator.get('tutorial_try_now', fallback: 'Jetzt ausprobieren'));
+      final tryNowBtn = find.text(t.tutorial_try_now);
       expect(tryNowBtn, findsOneWidget);
 
       await tester.tap(tryNowBtn);
       await tester.pumpAndSettle();
 
       // Should have navigated to ControlsGuideScreen
-      expect(find.text(Translator.get('controls_guide_title', fallback: 'Steuerung & Shortcuts')), findsOneWidget);
+      expect(find.text(t.controls_guide_title), findsOneWidget);
     });
 
     testWidgets('Chapter 5 (Shiny Hunt) Jetzt ausprobieren navigates to ShinyHuntsHubScreen WITHOUT pre-marking shiny_hunt_hub seen', (tester) async {
@@ -340,7 +340,7 @@ void main() {
         await tester.pumpAndSettle();
       }
 
-      final tryNowBtn = find.text(Translator.get('tutorial_try_now', fallback: 'Jetzt ausprobieren'));
+      final tryNowBtn = find.text(t.tutorial_try_now);
       expect(tryNowBtn, findsOneWidget);
 
       await tester.tap(tryNowBtn);
@@ -393,7 +393,7 @@ void main() {
         await tester.pumpAndSettle();
       }
 
-      final tryNowBtn = find.text(Translator.get('tutorial_try_now', fallback: 'Jetzt ausprobieren'));
+      final tryNowBtn = find.text(t.tutorial_try_now);
       expect(tryNowBtn, findsOneWidget);
 
       await tester.tap(tryNowBtn);
@@ -458,7 +458,7 @@ void main() {
         await tester.pumpAndSettle();
       }
 
-      final tryNowBtn = find.text(Translator.get('tutorial_try_now', fallback: 'Jetzt ausprobieren'));
+      final tryNowBtn = find.text(t.tutorial_try_now);
       expect(tryNowBtn, findsOneWidget);
 
       await tester.tap(tryNowBtn);

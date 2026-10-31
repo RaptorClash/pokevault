@@ -15,7 +15,7 @@ import 'package:pokevault/providers/settings_provider.dart';
 import 'package:pokevault/screens/pokemon_info/widgets/pokemon_info_widgets.dart';
 import 'package:pokevault/screens/pokemon_info/shiny_guide_widget.dart';
 import 'package:pokevault/services/database_service.dart';
-import 'package:pokevault/l10n/app_translations.dart';
+import 'package:pokevault/i18n/strings.g.dart';
 
 class MockDexProvider extends Mock implements DexProvider {}
 class MockSettingsProvider extends Mock implements SettingsProvider {}
@@ -74,7 +74,7 @@ void main() {
   });
 
   setUp(() {
-    Translator.currentLanguage = 'de';
+    LocaleSettings.setLocale(AppLocale.de);
     mockDexProvider = MockDexProvider();
     mockSettingsProvider = MockSettingsProvider();
 
@@ -271,7 +271,7 @@ void main() {
 
       // Check for lock icon and Shiny-Lock badge
       expect(find.byIcon(Icons.lock), findsAtLeastNWidgets(1));
-      expect(find.text(Translator.get('shiny_lock_badge', fallback: 'Shiny-Lock')), findsOneWidget);
+      expect(find.text(t.shiny_lock_badge), findsOneWidget);
 
       // Verify that the shiny switch tile is disabled (onChanged is null)
       final switchFinder = find.descendant(
@@ -312,7 +312,7 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.text(Translator.get('shiny_lock_badge', fallback: 'Shiny-Lock')), findsNothing);
+      expect(find.text(t.shiny_lock_badge), findsNothing);
 
       final switchFinder = find.descendant(
         of: find.byKey(shinyKey),
@@ -346,20 +346,20 @@ void main() {
       await tester.pump(const Duration(milliseconds: 300));
 
       // Expand main shiny guide tile
-      await tester.tap(find.text(Translator.get('shiny_guide_title')));
+      await tester.tap(find.text(t.shiny_guide_title));
       await tester.pump(const Duration(milliseconds: 300));
 
       // Check that Shiny-Lock banner is displayed
-      expect(find.text(Translator.get('shiny_lock_banner', fallback: 'Shiny-Lock aktiv')), findsOneWidget);
+      expect(find.text(t.shiny_lock_banner), findsOneWidget);
       expect(find.textContaining('In-Game Tausch'), findsOneWidget);
 
       // Check that Gen 1, 2, 3, 4, 5, 6 are NOT shown (originGen is 7)
-      expect(find.text(Translator.get('shiny_guide_gen1', fallback: 'Generation 1')), findsNothing);
-      expect(find.text(Translator.get('shiny_guide_gen2', fallback: 'Generation 2')), findsNothing);
-      expect(find.text(Translator.get('shiny_guide_gen3', fallback: 'Generation 3')), findsNothing);
-      expect(find.text(Translator.get('shiny_guide_gen4', fallback: 'Generation 4')), findsNothing);
-      expect(find.text(Translator.get('shiny_guide_gen5', fallback: 'Generation 5')), findsNothing);
-      expect(find.text(Translator.get('shiny_guide_gen6', fallback: 'Generation 6')), findsNothing);
+      expect(find.text(t.shiny_guide_gen1), findsNothing);
+      expect(find.text(t.shiny_guide_gen2), findsNothing);
+      expect(find.text(t.shiny_guide_gen3), findsNothing);
+      expect(find.text(t.shiny_guide_gen4), findsNothing);
+      expect(find.text(t.shiny_guide_gen5), findsNothing);
+      expect(find.text(t.shiny_guide_gen6), findsNothing);
 
       // Check that Gen 7 is shown
       await tester.runAsync(() async {
@@ -367,7 +367,7 @@ void main() {
       });
       await tester.pump();
 
-      expect(find.text(Translator.get('shiny_guide_gen7', fallback: 'Generation 7')), findsOneWidget);
+      expect(find.text(t.shiny_guide_gen7), findsOneWidget);
 
       // Let any pending background db queries settle
       await tester.runAsync(() async {
@@ -400,7 +400,7 @@ void main() {
 
       // Check for lock icon and Shiny-Lock badge
       expect(find.byIcon(Icons.lock), findsAtLeastNWidgets(1));
-      expect(find.text(Translator.get('shiny_lock_badge', fallback: 'Shiny-Lock')), findsOneWidget);
+      expect(find.text(t.shiny_lock_badge), findsOneWidget);
 
       // Verify that the shiny switch tile is disabled (onChanged is null)
       final switchFinder = find.descendant(
@@ -433,24 +433,24 @@ void main() {
       await tester.pump(const Duration(milliseconds: 300));
 
       // Expand main shiny guide tile
-      await tester.tap(find.text(Translator.get('shiny_guide_title')));
+      await tester.tap(find.text(t.shiny_guide_title));
       await tester.pump(const Duration(milliseconds: 300));
 
       // Check that Shiny-Lock banner is displayed
-      expect(find.text(Translator.get('shiny_lock_banner', fallback: 'Shiny-Lock aktiv')), findsOneWidget);
+      expect(find.text(t.shiny_lock_banner), findsOneWidget);
       expect(find.textContaining("N's Pokémon"), findsOneWidget);
 
       // Check that Gen 1, 2, 3, 4 are NOT shown (originGen is 5 for Unova)
-      expect(find.text(Translator.get('shiny_guide_gen1', fallback: 'Generation 1')), findsNothing);
-      expect(find.text(Translator.get('shiny_guide_gen2', fallback: 'Generation 2')), findsNothing);
-      expect(find.text(Translator.get('shiny_guide_gen3', fallback: 'Generation 3')), findsNothing);
-      expect(find.text(Translator.get('shiny_guide_gen4', fallback: 'Generation 4')), findsNothing);
+      expect(find.text(t.shiny_guide_gen1), findsNothing);
+      expect(find.text(t.shiny_guide_gen2), findsNothing);
+      expect(find.text(t.shiny_guide_gen3), findsNothing);
+      expect(find.text(t.shiny_guide_gen4), findsNothing);
 
       // Check that Gen 6, 7, 8, 9 are also NOT shown (N's Pokémon exists ONLY in Gen 5 B2W2)
-      expect(find.text(Translator.get('shiny_guide_gen6', fallback: 'Generation 6')), findsNothing);
-      expect(find.text(Translator.get('shiny_guide_gen7', fallback: 'Generation 7')), findsNothing);
-      expect(find.text(Translator.get('shiny_guide_gen8', fallback: 'Generation 8')), findsNothing);
-      expect(find.text(Translator.get('shiny_guide_gen9', fallback: 'Generation 9')), findsNothing);
+      expect(find.text(t.shiny_guide_gen6), findsNothing);
+      expect(find.text(t.shiny_guide_gen7), findsNothing);
+      expect(find.text(t.shiny_guide_gen8), findsNothing);
+      expect(find.text(t.shiny_guide_gen9), findsNothing);
 
       // Check that Gen 5 is shown
       await tester.runAsync(() async {
@@ -458,7 +458,7 @@ void main() {
       });
       await tester.pump();
 
-      expect(find.text(Translator.get('shiny_guide_gen5', fallback: 'Generation 5')), findsOneWidget);
+      expect(find.text(t.shiny_guide_gen5), findsOneWidget);
 
       // Let any pending background db queries settle
       await tester.runAsync(() async {
@@ -492,7 +492,7 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.text(Translator.get('shiny_lock_badge', fallback: 'Shiny-Lock')), findsNothing);
+      expect(find.text(t.shiny_lock_badge), findsNothing);
 
       final switchFinder = find.descendant(
         of: find.byKey(shinyKey),

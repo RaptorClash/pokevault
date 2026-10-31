@@ -6,7 +6,7 @@ import 'package:pokevault/models/dex_view_models.dart';
 import 'package:pokevault/models/pokemon.dart';
 import 'package:pokevault/models/user_dex.dart';
 import 'package:pokevault/widgets/dex_card/dex_completion_card.dart';
-import 'package:pokevault/l10n/app_translations.dart';
+import 'package:pokevault/i18n/strings.g.dart';
 
 void main() {
   Pokemon createTestPokemon(int id, String nameDe, String nameEn) {
@@ -692,19 +692,19 @@ void main() {
       final config = DexCardConfig(style: DexCardStyle.analyst);
 
       // DE mode
-      Translator.currentLanguage = 'de';
+      LocaleSettings.setLocale(AppLocale.de);
       await tester.pumpWidget(buildCardWidget(config: config, stats: statsWithGens));
       await tester.pumpAndSettle();
       expect(find.text('GENERATIONEN'), findsOneWidget);
 
       // EN mode
-      Translator.currentLanguage = 'en';
+      LocaleSettings.setLocale(AppLocale.en);
       await tester.pumpWidget(buildCardWidget(config: config, stats: statsWithGens));
       await tester.pumpAndSettle();
       expect(find.text('GENERATIONS'), findsOneWidget);
 
       // Reset
-      Translator.currentLanguage = 'de';
+      LocaleSettings.setLocale(AppLocale.de);
     });
 
     testWidgets('Toggles Variant Breakdown according to showVariants config', (tester) async {

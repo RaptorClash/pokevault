@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../l10n/app_translations.dart';
+import '../../i18n/strings.g.dart';
 import '../../models/special_dex_models.dart';
 import '../../providers/dex_provider.dart';
 import '../../services/database_service.dart';
@@ -28,7 +28,7 @@ class _AbilityDetailScreenState extends State<AbilityDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final lang = Translator.currentLanguage;
+    final lang = LocaleSettings.currentLocale.languageCode;
     final provider = context.watch<DexProvider>();
 
     return Scaffold(
@@ -184,14 +184,8 @@ class _AbilityDetailScreenState extends State<AbilityDetailScreen> {
                               ),
                               child: Text(
                                 learnset.isHiddenAbility
-                                    ? Translator.get(
-                                        'hidden_ability_short',
-                                        fallback: 'Versteckt',
-                                      )
-                                    : Translator.get(
-                                        'normal_ability_short',
-                                        fallback: 'Normal',
-                                      ),
+                                    ? t.hidden_ability_short
+                                    : t.normal_ability_short,
                                 style: TextStyle(
                                   fontSize: 9,
                                   color: learnset.isHiddenAbility

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../../../l10n/app_translations.dart';
+import '../../../../i18n/strings.g.dart';
 
 class BreedingMechanicsInfo extends StatelessWidget {
   const BreedingMechanicsInfo({super.key});
@@ -23,10 +23,7 @@ class BreedingMechanicsInfo extends StatelessWidget {
           color: Theme.of(context).colorScheme.secondary,
         ),
         title: Text(
-          Translator.get(
-            'shiny_breed_mechanics_title',
-            fallback: 'Wichtige Zucht-Mechaniken (Gen 2)',
-          ),
+          t.shiny_breed_mechanics_title,
           style: const TextStyle(fontWeight: FontWeight.bold),
         ),
         children: [
@@ -46,7 +43,7 @@ class BreedingMechanicsInfo extends StatelessWidget {
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
-                        Translator.get('shiny_breed_female_note'),
+                        t.shiny_breed_female_note,
                         style: TextStyle(
                           fontSize: 12,
                           color: Theme.of(
@@ -69,11 +66,7 @@ class BreedingMechanicsInfo extends StatelessWidget {
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
-                        Translator.get(
-                          'shiny_breed_mechanics_dv_passing',
-                          fallback:
-                              'Warum dieser Geschlechter-Wechsel? In Gen 2 wird der Shiny-Status immer an das *andere* Geschlecht vererbt.',
-                        ),
+                        t.shiny_breed_mechanics_dv_passing,
                         style: TextStyle(
                           fontSize: 12,
                           color: Theme.of(
@@ -96,11 +89,7 @@ class BreedingMechanicsInfo extends StatelessWidget {
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
-                        Translator.get(
-                          'shiny_breed_dv_conflict_text',
-                          fallback:
-                              'Achtung: Inzest-Sperre bei gleichen DVs beachten!',
-                        ),
+                        t.shiny_breed_dv_conflict_text,
                         style: TextStyle(
                           fontSize: 12,
                           color: Theme.of(context).colorScheme.error,

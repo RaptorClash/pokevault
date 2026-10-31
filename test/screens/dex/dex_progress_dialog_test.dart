@@ -4,7 +4,7 @@ import 'package:pokevault/models/dex_view_models.dart';
 import 'package:pokevault/models/pokemon.dart';
 import 'package:pokevault/models/user_dex.dart';
 import 'package:pokevault/screens/dex/widgets/dex_progress_dialog.dart';
-import 'package:pokevault/l10n/app_translations.dart';
+import 'package:pokevault/i18n/strings.g.dart';
 
 Pokemon _createTestPokemon({
   required int id,
@@ -54,7 +54,7 @@ DexDisplayEntry _createEntry({
 
 void main() {
   setUp(() {
-    Translator.currentLanguage = 'de';
+    LocaleSettings.setLocale(AppLocale.de);
   });
 
   group('DexProgressDialog Widget Tests', () {
@@ -230,7 +230,7 @@ void main() {
       await tester.tap(find.text('Open'));
       await tester.pumpAndSettle();
 
-      final showAllBtn = find.text(Translator.get('dex_progress_show_all'));
+      final showAllBtn = find.text(t.dex_progress_show_all);
       expect(showAllBtn, findsOneWidget);
       await tester.tap(showAllBtn);
       await tester.pumpAndSettle();

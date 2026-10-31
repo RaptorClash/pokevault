@@ -9,7 +9,7 @@ import 'package:pokevault/providers/dex_provider.dart';
 import 'package:pokevault/providers/tutorial_provider.dart';
 import 'package:pokevault/screens/home/create_dex_bottom_sheet.dart';
 import 'package:pokevault/data/dex_groups_data.dart';
-import 'package:pokevault/l10n/app_translations.dart';
+import 'package:pokevault/i18n/strings.g.dart';
 import '../../e2e/helpers/e2e_test_helper.dart';
 
 class _MockHttpOverrides extends HttpOverrides {
@@ -96,7 +96,7 @@ void main() {
 
   setUp(() {
     SharedPreferences.setMockInitialValues({});
-    Translator.currentLanguage = 'de';
+    LocaleSettings.setLocale(AppLocale.de);
     mockDexProvider = MockDexProvider();
     mockTutorialProvider = MockTutorialProvider();
 
@@ -128,8 +128,8 @@ void main() {
     await tester.pump(const Duration(milliseconds: 800));
     await tester.pumpAndSettle();
 
-    expect(find.text(Translator.get('create_dex_title')), findsOneWidget);
-    expect(find.text(Translator.get('create_dex_btn')), findsOneWidget);
+    expect(find.text(t.create_dex_title), findsOneWidget);
+    expect(find.text(t.create_dex_btn), findsOneWidget);
 
     final textField = tester.widget<TextField>(find.byType(TextField));
     expect(textField.controller?.text, isNotEmpty);
@@ -149,7 +149,7 @@ void main() {
     // Tap on the second group if available
     if (DexGroupsData.groups.length > 1) {
       final secondGroup = DexGroupsData.groups[1];
-      final groupText = find.text(Translator.get(secondGroup.nameKey));
+      final groupText = find.text((t[secondGroup.nameKey] ?? secondGroup.nameKey).toString());
       if (groupText.evaluate().isNotEmpty) {
         await tester.tap(groupText.first);
         await tester.pump(const Duration(milliseconds: 800));
@@ -166,7 +166,7 @@ void main() {
     await tester.pumpAndSettle();
 
     // Find checkboxes for features
-    final shinyCheckbox = find.widgetWithText(SwitchListTile, Translator.get('tutorial_create_step6_title', fallback: 'Shiny Dex'));
+    final shinyCheckbox = find.widgetWithText(SwitchListTile, t.tutorial_create_step6_title);
     if (shinyCheckbox.evaluate().isNotEmpty) {
       await tester.tap(shinyCheckbox);
       await tester.pump(const Duration(milliseconds: 800));
@@ -202,7 +202,7 @@ void main() {
     await tester.pumpAndSettle();
 
     // Tap create button
-    final createBtn = find.text(Translator.get('create_dex_btn'));
+    final createBtn = find.text(t.create_dex_btn);
     await tester.tap(createBtn);
     await tester.pump(const Duration(milliseconds: 800));
     await tester.pumpAndSettle();
@@ -233,7 +233,7 @@ void main() {
     await tester.pumpAndSettle();
 
     // Tap create
-    final createBtn = find.text(Translator.get('create_dex_btn'));
+    final createBtn = find.text(t.create_dex_btn);
     await tester.tap(createBtn);
     await tester.pump(const Duration(milliseconds: 800));
     await tester.pumpAndSettle();
@@ -265,7 +265,7 @@ void main() {
     final specialGroup = DexGroupsData.groups.firstWhere(
       (g) => g.nameKey == 'group_special',
     );
-    final specialGroupText = find.text(Translator.get(specialGroup.nameKey));
+    final specialGroupText = find.text((t[specialGroup.nameKey] ?? specialGroup.nameKey).toString());
     expect(specialGroupText, findsOneWidget);
 
     await tester.tap(specialGroupText);
@@ -279,8 +279,8 @@ void main() {
     await tester.tap(dropdown);
     await tester.pumpAndSettle();
 
-    final itemText = Translator.get('region_moves_dex') != 'region_moves_dex'
-        ? Translator.get('region_moves_dex')
+    final itemText = t.region_moves_dex != 'region_moves_dex'
+        ? t.region_moves_dex
         : 'moves_dex';
     await tester.tap(find.text(itemText).last, warnIfMissed: false);
     await tester.pumpAndSettle();
@@ -307,7 +307,7 @@ void main() {
     await tester.pump(const Duration(milliseconds: 200));
 
     // Verify tutorial title is shown
-    expect(find.text(Translator.get('tutorial_create_step1_title')), findsOneWidget);
+    expect(find.text(t.tutorial_create_step1_title), findsOneWidget);
 
     // Verify "Weiter" button is present and not hidden
     final nextBtn = find.text('Weiter');

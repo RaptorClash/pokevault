@@ -2,7 +2,8 @@ import 'package:flutter/foundation.dart';
 import '../models/pokemon.dart';
 import '../models/user_dex.dart';
 import '../models/dex_view_models.dart';
-import '../l10n/app_translations.dart';
+import '../i18n/strings.g.dart';
+import 'isolate_translator.dart';
 import 'notification_helper.dart';
 import '../services/database_service.dart';
 import '../services/shiny_lock_service.dart';
@@ -155,18 +156,18 @@ class DexLogicHelper {
       );
     } catch (e) {
       NotificationHelper.showError(
-        "${Translator.get('error_build_display_entries')} $e",
+        "${t.error_build_display_entries} $e",
       );
       return [];
     }
   }
 
   static List<DexDisplayEntry> _buildEntriesTask(BuildEntriesArgs args) {
-    Translator.currentLanguage = args.language;
     return buildDisplayEntries(
       args.liveDex,
       args.pokemonList,
       args.specialObtainables,
+      language: args.language,
     );
   }
 
@@ -439,20 +440,18 @@ class DexLogicHelper {
   }
 
   static List<BoxData> _generateBoxesTask(GenerateBoxesArgs args) {
-    Translator.currentLanguage = args.language;
-    return generateBoxes(args.entries, args.separateForms, args.liveDex);
+    return generateBoxes(
+      args.entries,
+      args.separateForms,
+      args.liveDex,
+      language: args.language,
+    );
   }
 
   /// Translates or capitalizes a Pokémon form identifier for localized user display.
-  static String getFormDisplayName(String form) {
-    try {
-      final key = 'form_name_${form.toLowerCase()}';
-      final translated = Translator.get(key);
-      if (translated != key) return translated;
-    } catch (e) {
-      debugPrint("Fehler bei Form-Übersetzung: $e");
-    }
-    return form.isEmpty ? '' : form[0].toUpperCase() + form.substring(1);
+  static String getFormDisplayName(String form, {String? language}) {
+    final lang = language ?? (LocaleSettings.currentLocale == AppLocale.de ? 'de' : 'en');
+    return IsolateTranslator(lang).getFormDisplayName(form);
   }
 
   /// Returns the origin generation for a special Pokémon entry based on its uniqueId.
@@ -1201,8 +1200,12 @@ class DexLogicHelper {
   static List<BoxData> generateBoxes(
     List<DexDisplayEntry> entries,
     bool separateForms,
-    UserDex liveDex,
-  ) {
+    UserDex liveDex, {
+    String? language,
+  }) {
+    final lang = language ??
+        (LocaleSettings.currentLocale == AppLocale.de ? 'de' : 'en');
+    final translator = IsolateTranslator(lang);
     if (liveDex.customBoxes.isNotEmpty) {
       List<BoxData> customBoxesList = [];
       for (var cb in liveDex.customBoxes) {
@@ -1326,7 +1329,7 @@ class DexLogicHelper {
         int end = start + baseChunks[i].length - 1;
         boxes.add(
           BoxData(
-            '${Translator.get('box')} ${i + 1} ($start-$end)',
+            translator.formatStandardBoxTitle(i, start, end),
             'kanto',
             baseChunks[i],
             crossAxis,
@@ -1339,13 +1342,12 @@ class DexLogicHelper {
           capacity,
         );
         int boxOffset = baseChunks.length;
-        String formLabel = Translator.currentLanguage == 'de'
-            ? 'Formen'
-            : 'Forms';
         for (int i = 0; i < formChunks.length; i++) {
-          String title = formChunks.length == 1
-              ? '${Translator.get('box')} ${boxOffset + i + 1} ($formLabel)'
-              : '${Translator.get('box')} ${boxOffset + i + 1} ($formLabel ${i + 1})';
+          String title = translator.formatFormBoxTitle(
+            boxOffset + i + 1,
+            i,
+            formChunks.length,
+          );
           boxes.add(BoxData(title, 'kanto', formChunks[i], crossAxis));
         }
       }
@@ -1393,10 +1395,6 @@ class DexLogicHelper {
 
       for (String regionId in presentRegions) {
         var cats = structured[regionId]!;
-        String localizedRegion = Translator.get('region_name_$regionId');
-        if (localizedRegion == 'region_name_$regionId') {
-          localizedRegion = regionId[0].toUpperCase() + regionId.substring(1);
-        }
 
         void buildChunks(String catId) {
           if (!cats.containsKey(catId)) return;
@@ -1405,42 +1403,12 @@ class DexLogicHelper {
             capacity,
           );
           for (int i = 0; i < chunks.length; i++) {
-            String baseTitle;
-            String localizedCat = Translator.get('cat_$catId');
-            if (localizedCat == 'cat_$catId') localizedCat = catId;
-
-            if (catId == 'n_pokemon') {
-              baseTitle = "N's Pokémon";
-            } else if (catId == 'trades') {
-              if (regionId == 'lumiose') {
-                baseTitle =
-                    "$localizedRegion ${Translator.currentLanguage == 'de' ? 'Tausche' : 'Trades'} (Z-A)";
-              } else {
-                baseTitle =
-                    "$localizedRegion ${Translator.currentLanguage == 'de' ? 'Tausche' : 'Trades'}";
-              }
-            } else if (catId == 'gifts') {
-              baseTitle =
-                  "$localizedRegion ${Translator.currentLanguage == 'de' ? 'Geschenke' : 'Gifts'}";
-            } else if (catId == 'orre') {
-              baseTitle =
-                  "$localizedRegion ${Translator.get('cat_orre')} ${Translator.currentLanguage == 'de' ? 'Tausche' : 'Trades'}";
-            } else if (catId == 'furfrou') {
-              baseTitle =
-                  "$localizedRegion ${Translator.currentLanguage == 'de' ? 'Coiffwaff' : 'Furfrou'}";
-            } else if (catId == 'arceus') {
-              baseTitle = "$localizedRegion Arceus";
-            } else if (catId == 'silvally') {
-              baseTitle =
-                  "$localizedRegion ${Translator.currentLanguage == 'de' ? 'Amigento' : 'Silvally'}";
-            } else {
-              baseTitle = (catId == 'base')
-                  ? localizedRegion
-                  : '$localizedRegion $localizedCat';
-            }
-            String title = chunks.length == 1
-                ? baseTitle
-                : '$baseTitle ${i + 1}';
+            String title = translator.formatCategoryBoxTitle(
+              regionId,
+              catId,
+              chunkIndex: i,
+              totalChunks: chunks.length,
+            );
             boxes.add(BoxData(title, regionId, chunks[i], crossAxis));
           }
         }
@@ -1485,8 +1453,12 @@ class DexLogicHelper {
   static List<DexDisplayEntry> buildDisplayEntries(
     UserDex liveDex,
     List<Pokemon> pokemonList,
-    List<Map<String, dynamic>> specialObtainables,
-  ) {
+    List<Map<String, dynamic>> specialObtainables, {
+    String? language,
+  }) {
+    final lang = language ??
+        (LocaleSettings.currentLocale == AppLocale.de ? 'de' : 'en');
+    final translator = IsolateTranslator(lang);
     List<DexDisplayEntry> entries = [];
     int dexGen = getMaxGenForDex(liveDex.region);
     bool isNationalDex = liveDex.region == 'national_overall';
@@ -1612,7 +1584,7 @@ class DexLogicHelper {
           bool hideSuffix = form.name == 'normal';
           String suffix = hideSuffix
               ? ''
-              : ' (${getFormDisplayName(form.name)})';
+              : ' (${translator.getFormDisplayName(form.name)})';
           if (form.name == 'male' || form.name == 'female') {
             suffix = form.name == 'male' ? ' ♂' : ' ♀';
           }
@@ -1779,14 +1751,14 @@ class DexLogicHelper {
           String suffix = '';
           final formPrefix = (matchedSpecForm != null &&
                   matchedSpecForm.name.toLowerCase() != 'normal')
-              ? ' (${getFormDisplayName(matchedSpecForm.name)})'
+              ? ' (${translator.getFormDisplayName(matchedSpecForm.name)})'
               : '';
           if (isN == 1) {
             suffix = "$formPrefix (N's Pokémon)";
           } else if (obtainType == 'trade') {
-            suffix = "$formPrefix (${Translator.get('cat_trades')} - $gameVer)";
+            suffix = "$formPrefix (${translator.tradesLabel} - $gameVer)";
           } else {
-            suffix = "$formPrefix (${Translator.get('cat_gifts')} - $gameVer)";
+            suffix = "$formPrefix (${translator.giftsLabel} - $gameVer)";
           }
 
           final formImgId = (matchedSpecForm != null && matchedSpecForm.imageId > 0)

@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import '../../../models/dex_view_models.dart';
 import '../../../models/shiny_hunt.dart';
 import '../../../providers/shiny_hunt_provider.dart';
-import '../../../l10n/app_translations.dart';
+import '../../../i18n/strings.g.dart';
 import '../../../widgets/universal_poke_image.dart';
 import '../../shiny_hunt/dialogs/create_edit_hunt_dialog.dart';
 import '../../shiny_hunt/shiny_hunt_counter_screen.dart';
@@ -66,7 +66,7 @@ class PokemonShinyHuntsCard extends StatelessWidget {
         title: Row(
           children: [
             Text(
-              Translator.get('shiny_hunt_pokemon_card_title', fallback: 'Shiny Hunts'),
+              t.shiny_hunt_pokemon_card_title,
               style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
             ),
             if (pokemonHunts.isNotEmpty) ...[
@@ -97,7 +97,7 @@ class PokemonShinyHuntsCard extends StatelessWidget {
               children: [
                 if (pokemonHunts.isEmpty) ...[
                   Text(
-                    Translator.get('shiny_hunt_no_hunts_for_pokemon', fallback: 'Keine aktiven Hunts für dieses Pokémon.'),
+                    t.shiny_hunt_no_hunts_for_pokemon,
                     style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
                   ),
                   const SizedBox(height: 12),
@@ -113,10 +113,10 @@ class PokemonShinyHuntsCard extends StatelessWidget {
                           ? Colors.green
                           : (hunt.isActive ? Colors.amber : Colors.blueGrey);
                       final statusLabel = hunt.isCompleted
-                          ? Translator.get('shiny_hunt_tab_completed', fallback: 'Beendet')
+                          ? t.shiny_hunt_tab_completed
                           : (hunt.isActive
-                              ? Translator.get('shiny_hunt_tab_active', fallback: 'Aktiv')
-                              : Translator.get('shiny_hunt_tab_paused', fallback: 'Pausiert'));
+                              ? t.shiny_hunt_tab_active
+                              : t.shiny_hunt_tab_paused);
 
                       return Material(
                         color: isDark ? Colors.grey.shade900 : Colors.grey.shade50,
@@ -249,10 +249,7 @@ class PokemonShinyHuntsCard extends StatelessWidget {
                     ),
                     icon: const Icon(Icons.add_circle_outline, color: Colors.amber, size: 18),
                     label: Text(
-                      Translator.get(
-                        'shiny_hunt_start_new_for_pokemon',
-                        fallback: '🎯 Neuen Shiny Hunt starten',
-                      ),
+                      t.shiny_hunt_start_new_for_pokemon,
                       style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
                     onPressed: () async {

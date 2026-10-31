@@ -3,7 +3,7 @@ import '../../../models/dex_progress_models.dart';
 import '../../../models/dex_view_models.dart';
 import '../../../models/user_dex.dart';
 import '../../../utils/dex_progress_helper.dart';
-import '../../../l10n/app_translations.dart';
+import '../../../i18n/strings.g.dart';
 import 'dex_completion_card_dialog.dart';
 
 /// Interactive modal dashboard presenting overall dex completion,
@@ -66,7 +66,7 @@ class _DexProgressDialogState extends State<DexProgressDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final lang = Translator.currentLanguage;
+    final lang = LocaleSettings.currentLocale.languageCode;
     final stats = DexProgressHelper.calculate(
       widget.liveDex,
       widget.entries,
@@ -187,7 +187,7 @@ class _DexProgressDialogState extends State<DexProgressDialog> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  Translator.get('dex_progress_title'),
+                  t.dex_progress_title,
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
@@ -196,7 +196,7 @@ class _DexProgressDialogState extends State<DexProgressDialog> {
                   overflow: TextOverflow.ellipsis,
                 ),
                 Text(
-                  '${widget.liveDex.title} • ${Translator.get('dex_progress_subtitle_overview')}',
+                  '${widget.liveDex.title} • ${t.dex_progress_subtitle_overview}',
                   style: TextStyle(
                     fontSize: 12,
                     color: isDark ? Colors.white60 : Colors.black54,
@@ -210,7 +210,7 @@ class _DexProgressDialogState extends State<DexProgressDialog> {
           IconButton(
             key: const Key('dex_progress_header_share_button'),
             icon: const Icon(Icons.share, size: 20),
-            tooltip: Translator.get('share_dex_card', fallback: 'Erfolgs-Grafik teilen...'),
+            tooltip: t.share_dex_card,
             onPressed: () {
               DexCompletionCardDialog.show(
                 context,
@@ -221,7 +221,7 @@ class _DexProgressDialogState extends State<DexProgressDialog> {
           ),
           IconButton(
             icon: const Icon(Icons.close),
-            tooltip: Translator.get('dex_progress_close'),
+            tooltip: t.dex_progress_close,
             onPressed: () => Navigator.of(context).pop(),
           ),
         ],
@@ -251,7 +251,7 @@ class _DexProgressDialogState extends State<DexProgressDialog> {
             children: [
               Expanded(
                 child: Text(
-                  Translator.get('dex_progress_overall').toUpperCase(),
+                  t.dex_progress_overall.toUpperCase(),
                   style: TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.w700,
@@ -313,7 +313,7 @@ class _DexProgressDialogState extends State<DexProgressDialog> {
                   ),
                   const SizedBox(width: 6),
                   Text(
-                    '${Translator.get('caught')}: ',
+                    '${t.caught}: ',
                     style: TextStyle(
                       fontSize: 12,
                       color: isDark ? Colors.white70 : Colors.black87,
@@ -338,7 +338,7 @@ class _DexProgressDialogState extends State<DexProgressDialog> {
                   ),
                 ),
                 child: Text(
-                  '✨ ${stats.shinyCount} ${Translator.get('shinies_count')}',
+                  '✨ ${stats.shinyCount} ${t.shinies_count}',
                   style: const TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.w600,
@@ -356,7 +356,7 @@ class _DexProgressDialogState extends State<DexProgressDialog> {
                   ),
                 ),
                 child: Text(
-                  '🔴 ${stats.alphaCount} ${Translator.get('alphas_count')}',
+                  '🔴 ${stats.alphaCount} ${t.alphas_count}',
                   style: const TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.w600,
@@ -373,9 +373,9 @@ class _DexProgressDialogState extends State<DexProgressDialog> {
 
   Widget _buildTabSelector(DexProgressStats stats, bool isDark, Color borderColor) {
     final tabs = [
-      '${Translator.get('dex_progress_generations')} (${stats.generationStats.length})',
-      '${Translator.get('dex_progress_types')} (${stats.typeStats.length})',
-      Translator.get('dex_progress_variants'),
+      '${t.dex_progress_generations} (${stats.generationStats.length})',
+      '${t.dex_progress_types} (${stats.typeStats.length})',
+      t.dex_progress_variants,
     ];
 
     return Container(
@@ -448,7 +448,7 @@ class _DexProgressDialogState extends State<DexProgressDialog> {
         child: Padding(
           padding: const EdgeInsets.all(24.0),
           child: Text(
-            Translator.get('no_results', fallback: 'Keine Einträge'),
+            t.no_results,
             style: TextStyle(color: isDark ? Colors.white54 : Colors.black45),
           ),
         ),
@@ -549,7 +549,7 @@ class _DexProgressDialogState extends State<DexProgressDialog> {
         child: Padding(
           padding: const EdgeInsets.all(24.0),
           child: Text(
-            Translator.get('no_results', fallback: 'Keine Einträge'),
+            t.no_results,
             style: TextStyle(color: isDark ? Colors.white54 : Colors.black45),
           ),
         ),
@@ -690,7 +690,7 @@ class _DexProgressDialogState extends State<DexProgressDialog> {
             ),
             icon: const Icon(Icons.filter_alt, size: 14),
             label: Text(
-              Translator.get('dex_progress_show_missing'),
+              t.dex_progress_show_missing,
               style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
             ),
             onPressed: () {
@@ -712,7 +712,7 @@ class _DexProgressDialogState extends State<DexProgressDialog> {
             ),
             icon: const Icon(Icons.check, size: 14),
             label: Text(
-              Translator.get('dex_progress_show_caught'),
+              t.dex_progress_show_caught,
               style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
             ),
             onPressed: () {
@@ -734,7 +734,7 @@ class _DexProgressDialogState extends State<DexProgressDialog> {
             ),
             icon: const Icon(Icons.clear_all, size: 14),
             label: Text(
-              Translator.get('dex_progress_show_all'),
+              t.dex_progress_show_all,
               style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
             ),
             onPressed: () {
@@ -757,7 +757,7 @@ class _DexProgressDialogState extends State<DexProgressDialog> {
             ),
             icon: const Icon(Icons.share, size: 14),
             label: Text(
-              Translator.get('share_dex_card_btn', fallback: 'Erfolgs-Grafik'),
+              t.share_dex_card_btn,
               style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
             ),
             onPressed: () {
@@ -782,7 +782,7 @@ class _DexProgressDialogState extends State<DexProgressDialog> {
             ),
             onPressed: () => Navigator.of(context).pop(),
             child: Text(
-              Translator.get('dex_progress_close'),
+              t.dex_progress_close,
               style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w500),
             ),
           ),

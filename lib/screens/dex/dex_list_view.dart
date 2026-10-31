@@ -6,7 +6,7 @@ import '../../models/dex_view_models.dart';
 import '../../utils/dex_logic_helper.dart';
 import '../../providers/dex_provider.dart';
 import '../../providers/settings_provider.dart';
-import '../../l10n/app_translations.dart';
+import '../../i18n/strings.g.dart';
 import '../../services/shiny_lock_service.dart';
 import '../../utils/notification_helper.dart';
 import '../pokemon_info/pokemon_info_screen.dart';
@@ -39,7 +39,7 @@ class DexListView extends StatelessWidget {
         child: Padding(
           padding: const EdgeInsets.all(32.0),
           child: Text(
-            Translator.currentLanguage == 'de'
+            LocaleSettings.currentLocale == AppLocale.de
               ? 'Dieser Dex ist leer.\nKlicke oben rechts auf das Bearbeiten-Icon (Checkliste), um Pokémon hinzuzufügen!'
               : 'This Dex is empty.\nClick the edit icon (checklist) in the top right to add Pokémon!',
             textAlign: TextAlign.center,

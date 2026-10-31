@@ -6,7 +6,7 @@ import '../../providers/settings_provider.dart';
 import '../../providers/tutorial_provider.dart';
 import '../../models/tutorial_step.dart';
 import '../../widgets/tutorial/tutorial_overlay.dart';
-import '../../l10n/app_translations.dart';
+import '../../i18n/strings.g.dart';
 import '../../widgets/universal_poke_image.dart';
 
 class IgnoredListScreen extends StatefulWidget {
@@ -99,9 +99,9 @@ class _IgnoredListScreenState extends State<IgnoredListScreen> {
         .toList();
 
     return Scaffold(
-      appBar: AppBar(title: Text(Translator.get('ignored_list_title'))),
+      appBar: AppBar(title: Text(t.ignored_list_title)),
       body: ignoredEntries.isEmpty
-          ? Center(child: Text(Translator.get('empty_ignored')))
+          ? Center(child: Text(t.empty_ignored))
           : ListView.builder(
               itemCount: ignoredEntries.length,
               itemBuilder: (context, index) {
@@ -122,7 +122,7 @@ class _IgnoredListScreenState extends State<IgnoredListScreen> {
                   trailing: ElevatedButton.icon(
                     key: index == 0 ? _restoreBtnKey : null,
                     icon: const Icon(Icons.restore),
-                    label: Text(Translator.get('restore_pokemon')),
+                    label: Text(t.restore_pokemon),
                     onPressed: () {
                       provider.restorePokemon(widget.dexId, entry.uniqueId);
                     },

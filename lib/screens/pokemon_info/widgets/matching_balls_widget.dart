@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import '../../../models/dex_view_models.dart';
 import '../../../providers/dex_provider.dart';
 import '../../../services/database_service.dart';
-import '../../../l10n/app_translations.dart';
+import '../../../i18n/strings.g.dart';
 import '../../../widgets/universal_poke_image.dart';
 import 'lazy_expansion_card.dart';
 
@@ -48,7 +48,7 @@ class MatchingBallsWidget extends StatelessWidget {
           const SizedBox(height: 16),
           isAny
               ? Text(
-                  Translator.get('any_ball'),
+                  t.any_ball,
                   style: const TextStyle(fontSize: 15),
                 )
               : Wrap(
@@ -85,7 +85,7 @@ class MatchingBallsWidget extends StatelessWidget {
                             ),
                           if (imgUrl != null) const SizedBox(width: 8),
                           Text(
-                            Translator.get('ball_$key'),
+                            (t['ball_$key'] ?? key),
                             style: const TextStyle(fontWeight: FontWeight.w600),
                           ),
                         ],
@@ -106,7 +106,7 @@ class MatchingBallsWidget extends StatelessWidget {
       key: matchingBallsKey,
       leading: const Icon(Icons.catching_pokemon, color: Colors.redAccent),
       title: Text(
-        Translator.get('matching_balls', fallback: 'Matching Balls'),
+        t.matching_balls,
         style: const TextStyle(fontWeight: FontWeight.bold),
       ),
       builder: (context) {
@@ -132,10 +132,7 @@ class MatchingBallsWidget extends StatelessWidget {
                 _buildBallCard(
                   context,
                   Icons.catching_pokemon,
-                  Translator.get(
-                    'matching_ball_normal',
-                    fallback: 'Matching Ball (Normal)',
-                  ),
+                  t.matching_ball_normal,
                   normalBalls,
                   Theme.of(context).colorScheme.primary,
                   provider.ballUrls,
@@ -143,10 +140,7 @@ class MatchingBallsWidget extends StatelessWidget {
                 _buildBallCard(
                   context,
                   Icons.star,
-                  Translator.get(
-                    'matching_ball_shiny',
-                    fallback: 'Matching Ball (Shiny)',
-                  ),
+                  t.matching_ball_shiny,
                   shinyBalls,
                   Colors.amber,
                   provider.ballUrls,

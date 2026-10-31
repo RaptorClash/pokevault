@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../l10n/app_translations.dart';
+import '../i18n/strings.g.dart';
 import '../services/google_drive_sync_service.dart';
 import 'dart:ui' as ui;
 
 /// Provider managing persistent user preferences such as theme, language, and cloud credentials.
 ///
-/// Persists values in [SharedPreferences] and keeps [Translator] in sync when language changes.
+/// Persists values in [SharedPreferences] and keeps [LocaleSettings] in sync when language changes.
 class SettingsProvider with ChangeNotifier {
   /// The active UI theme mode (light, dark, or system).
   ThemeMode themeMode = ThemeMode.system;
@@ -76,10 +76,10 @@ class SettingsProvider with ChangeNotifier {
       await prefs.setString('language', currentLanguage);
     }
 
-    Translator.currentLanguage = currentLanguage;
-
-    currentLanguage = prefs.getString('language') ?? 'de';
-    Translator.currentLanguage = currentLanguage;
+    currentLanguage = prefs.getString('language') ?? currentLanguage;
+    LocaleSettings.setLocale(
+      currentLanguage == 'de' ? AppLocale.de : AppLocale.en,
+    );
 
     String tm = 'system';
     try {
@@ -115,7 +115,7 @@ class SettingsProvider with ChangeNotifier {
   /// Changes the active language to [lang] (e.g. `"de"` or `"en"`) and updates translations.
   void setLanguage(String lang) async {
     currentLanguage = lang;
-    Translator.currentLanguage = lang;
+    LocaleSettings.setLocale(lang == 'de' ? AppLocale.de : AppLocale.en);
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('language', lang);
     notifyListeners();

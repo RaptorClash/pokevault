@@ -5,7 +5,7 @@ import '../../../models/tutorial_step.dart';
 import '../../../providers/dex_provider.dart';
 import '../../../providers/tutorial_provider.dart';
 import '../../../widgets/tutorial/tutorial_overlay.dart';
-import '../../../l10n/app_translations.dart';
+import '../../../i18n/strings.g.dart';
 
 class IgnorePokemonDialog {
   static void show(
@@ -62,22 +62,15 @@ class IgnorePokemonDialog {
         }
         return AlertDialog(
           title: Text(
-            Translator.get(
-              'ignore_confirm_title',
-              fallback: 'Pokémon entfernen?',
-            ),
+            t.ignore_confirm_title,
           ),
           content: Text(
-            Translator.get(
-              'ignore_confirm_text',
-              fallback:
-                  'Möchtest du dieses Pokémon ausblenden? Du kannst es im Menü jederzeit wiederherstellen.',
-            ),
+            t.ignore_confirm_text,
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(ctx),
-              child: Text(Translator.get('cancel')),
+              child: Text(t.cancel),
             ),
             ElevatedButton(
               key: confirmKey,
@@ -100,7 +93,7 @@ class IgnorePokemonDialog {
                 Navigator.pop(context);
               },
               child: Text(
-                Translator.get('ignore_pokemon', fallback: 'Entfernen'),
+                t.ignore_pokemon,
               ),
             ),
           ],

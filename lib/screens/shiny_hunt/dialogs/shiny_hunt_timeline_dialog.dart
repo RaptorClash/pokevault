@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../models/shiny_hunt.dart';
-import '../../../l10n/app_translations.dart';
+import '../../../i18n/strings.g.dart';
 
 /// Modal dialog displaying the chronological timeline and pause history of a [ShinyHunt].
 ///
@@ -33,7 +33,7 @@ class ShinyHuntTimelineDialog extends StatelessWidget {
 
   static String _formatDuration(Duration d) {
     if (d.inMinutes < 1) {
-      return Translator.get('shiny_hunt_duration_under_minute', fallback: '< 1 Min.');
+      return t.shiny_hunt_duration_under_minute;
     }
     final hours = d.inHours;
     final minutes = d.inMinutes % 60;
@@ -73,7 +73,7 @@ class ShinyHuntTimelineDialog extends StatelessWidget {
   /// Shows date on resume timestamp if interval spans across different calendar days.
   static String formatPauseIntervalRange(ShinyPauseInterval interval) {
     if (interval.resumedAt == null) {
-      return 'Seit ${_formatDateTime(interval.pausedAt)} (${Translator.get('shiny_hunt_pause_ongoing', fallback: 'aktiv pausiert')})';
+      return 'Seit ${_formatDateTime(interval.pausedAt)} (${t.shiny_hunt_pause_ongoing})';
     }
     final p = interval.pausedAt;
     final r = interval.resumedAt!;
@@ -126,7 +126,7 @@ class ShinyHuntTimelineDialog extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  Translator.get('shiny_hunt_timeline_title', fallback: 'Hunt-Zeiten & Pausen'),
+                  t.shiny_hunt_timeline_title,
                   style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
                 ),
                 Text(
@@ -154,7 +154,7 @@ class ShinyHuntTimelineDialog extends StatelessWidget {
                   Expanded(
                     child: _buildMetricCard(
                       context,
-                      label: Translator.get('shiny_hunt_net_time', fallback: 'Jagdzeit (Netto)'),
+                      label: t.shiny_hunt_net_time,
                       value: netHuntTimeStr,
                       valueColor: Colors.green,
                       isDark: isDark,
@@ -164,7 +164,7 @@ class ShinyHuntTimelineDialog extends StatelessWidget {
                   Expanded(
                     child: _buildMetricCard(
                       context,
-                      label: Translator.get('shiny_hunt_pause_total', fallback: 'Pausen (Summe)'),
+                      label: t.shiny_hunt_pause_total,
                       value: totalPauseStr,
                       valueColor: Colors.amber,
                       isDark: isDark,
@@ -174,7 +174,7 @@ class ShinyHuntTimelineDialog extends StatelessWidget {
                   Expanded(
                     child: _buildMetricCard(
                       context,
-                      label: Translator.get('shiny_hunt_gross_duration', fallback: 'Gesamtdauer'),
+                      label: t.shiny_hunt_gross_duration,
                       value: grossDurationStr,
                       valueColor: Colors.blue,
                       isDark: isDark,
@@ -185,7 +185,7 @@ class ShinyHuntTimelineDialog extends StatelessWidget {
               const SizedBox(height: 20),
 
               Text(
-                Translator.get('shiny_hunt_timeline_events', fallback: 'Ablauf & Intervalle'),
+                t.shiny_hunt_timeline_events,
                 style: theme.textTheme.labelMedium?.copyWith(
                   fontWeight: FontWeight.bold,
                   letterSpacing: 0.5,
@@ -198,7 +198,7 @@ class ShinyHuntTimelineDialog extends StatelessWidget {
               _buildTimelineTile(
                 icon: Icons.play_arrow_rounded,
                 iconColor: Colors.green,
-                title: Translator.get('shiny_hunt_started_at', fallback: 'Hunt gestartet'),
+                title: t.shiny_hunt_started_at,
                 subtitle: _formatDateTime(hunt.createdAt),
                 trailingBadge: 'Start',
                 isDark: isDark,
@@ -213,7 +213,7 @@ class ShinyHuntTimelineDialog extends StatelessWidget {
                       const Icon(Icons.check_circle_outline, size: 16, color: Colors.grey),
                       const SizedBox(width: 8),
                       Text(
-                        Translator.get('shiny_hunt_no_pauses', fallback: 'Keine Pausen aufgezeichnet'),
+                        t.shiny_hunt_no_pauses,
                         style: TextStyle(
                           fontSize: 12,
                           color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
@@ -233,29 +233,29 @@ class ShinyHuntTimelineDialog extends StatelessWidget {
                 _buildTimelineTile(
                   icon: Icons.flag_rounded,
                   iconColor: Colors.purple,
-                  title: Translator.get('shiny_hunt_completed_at', fallback: 'Hunt beendet / archiviert'),
+                  title: t.shiny_hunt_completed_at,
                   subtitle: _formatDateTime(hunt.completedAt!),
-                  trailingBadge: Translator.get('shiny_hunt_completed_status', fallback: 'Beendet'),
+                  trailingBadge: t.shiny_hunt_completed_status,
                   isDark: isDark,
                 ),
               ] else if (hunt.isPaused) ...[
                 _buildTimelineTile(
                   icon: Icons.pause_circle_filled,
                   iconColor: Colors.amber,
-                  title: Translator.get('shiny_hunt_status_currently_paused', fallback: 'Aktuell pausiert'),
+                  title: t.shiny_hunt_status_currently_paused,
                   subtitle: hunt.pauseHistory.isNotEmpty
                       ? 'Seit ${_formatDateTime(hunt.pauseHistory.last.pausedAt)}'
                       : 'Pausiert',
-                  trailingBadge: Translator.get('shiny_hunt_paused', fallback: 'Pausiert'),
+                  trailingBadge: t.shiny_hunt_paused,
                   isDark: isDark,
                 ),
               ] else ...[
                 _buildTimelineTile(
                   icon: Icons.hourglass_top_rounded,
                   iconColor: Colors.blue,
-                  title: Translator.get('shiny_hunt_status_active', fallback: 'Hunt läuft aktiv'),
-                  subtitle: Translator.get('shiny_hunt_active_desc', fallback: 'Noch nicht abgeschlossen'),
-                  trailingBadge: Translator.get('active', fallback: 'Aktiv'),
+                  title: t.shiny_hunt_status_active,
+                  subtitle: t.shiny_hunt_active_desc,
+                  trailingBadge: t.active,
                   isDark: isDark,
                 ),
               ],
@@ -266,7 +266,7 @@ class ShinyHuntTimelineDialog extends StatelessWidget {
       actions: [
         FilledButton.tonal(
           onPressed: () => Navigator.of(context).pop(),
-          child: Text(Translator.get('close', fallback: 'Schließen')),
+          child: Text(t.close),
         ),
       ],
     );
@@ -415,7 +415,7 @@ class ShinyHuntTimelineDialog extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  '${Translator.get('shiny_hunt_pause_label', fallback: 'Pause')} $index',
+                  '${t.shiny_hunt_pause_label} $index',
                   style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 2),

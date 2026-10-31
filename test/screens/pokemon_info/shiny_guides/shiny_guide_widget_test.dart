@@ -11,7 +11,7 @@ import 'package:pokevault/providers/dex_provider.dart';
 import 'package:pokevault/services/database_service.dart';
 import 'package:pokevault/screens/pokemon_info/shiny_guide_widget.dart';
 import 'package:pokevault/screens/shiny_hunt/dialogs/create_edit_hunt_dialog.dart';
-import 'package:pokevault/l10n/app_translations.dart';
+import 'package:pokevault/i18n/strings.g.dart';
 import '../../../e2e/helpers/e2e_test_helper.dart';
 
 class MockPathProviderPlatform extends Fake
@@ -62,7 +62,7 @@ void main() {
 
   setUp(() {
     SharedPreferences.setMockInitialValues({'app_db_version': 21});
-    Translator.currentLanguage = 'de';
+    LocaleSettings.setLocale(AppLocale.de);
     mockDexProvider = MockDexProvider();
     when(() => mockDexProvider.allPokemon).thenReturn([
       createTestPokemon(id: 1, nameDe: 'Bisasam'),
@@ -117,10 +117,10 @@ void main() {
 
     // Verify main card and title are present
     expect(find.byType(Card), findsOneWidget);
-    expect(find.text(Translator.get('shiny_guide_title')), findsOneWidget);
+    expect(find.text(t.shiny_guide_title), findsOneWidget);
 
     // Expand the main shiny guide ExpansionTile
-    await tester.tap(find.text(Translator.get('shiny_guide_title')));
+    await tester.tap(find.text(t.shiny_guide_title));
     await tester.pump(const Duration(milliseconds: 300));
 
     // Gen 1 through 9.5 tiles should be visible for ID 1
@@ -196,7 +196,7 @@ void main() {
     await tester.pump(const Duration(milliseconds: 300));
 
     // Open main guide
-    await tester.tap(find.text(Translator.get('shiny_guide_title')));
+    await tester.tap(find.text(t.shiny_guide_title));
     await tester.pump(const Duration(milliseconds: 300));
 
     // Tap Gen 2
@@ -254,7 +254,7 @@ void main() {
     await tester.pump(const Duration(milliseconds: 300));
 
     // Open main guide
-    await tester.tap(find.text(Translator.get('shiny_guide_title')));
+    await tester.tap(find.text(t.shiny_guide_title));
     await tester.pump(const Duration(milliseconds: 300));
 
     // Tap Gen 1
@@ -263,9 +263,9 @@ void main() {
     await tester.tap(find.text('Generation 1'));
     await tester.pump(const Duration(milliseconds: 300));
 
-    final silphBtn = find.text(Translator.get('shiny_hunt_start_silph_scope'));
+    final silphBtn = find.text(t.shiny_hunt_start_silph_scope);
     expect(silphBtn, findsOneWidget);
-    expect(find.text(Translator.get('tutorials_silph_scope')), findsOneWidget);
+    expect(find.text(t.tutorials_silph_scope), findsOneWidget);
 
     await tester.ensureVisible(silphBtn);
     await tester.pump(const Duration(milliseconds: 300));

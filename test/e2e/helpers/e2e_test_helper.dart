@@ -10,7 +10,6 @@ import 'package:pokevault/models/dex_view_models.dart';
 import 'package:pokevault/providers/dex_provider.dart';
 import 'package:pokevault/providers/settings_provider.dart';
 import 'package:pokevault/providers/tutorial_provider.dart';
-import 'package:pokevault/l10n/app_translations.dart';
 import 'package:pokevault/i18n/strings.g.dart';
 
 class MockDexProvider extends Mock implements DexProvider {}
@@ -184,7 +183,11 @@ Widget wrapWithApp({
 }) {
   _ensureDexFallbackRegistered();
   SharedPreferences.setMockInitialValues({});
-  Translator.currentLanguage = language;
+  if (language == 'de') {
+    LocaleSettings.setLocale(AppLocale.de);
+  } else {
+    LocaleSettings.setLocale(AppLocale.en);
+  }
 
   final dexProvider = mockDexProvider ?? MockDexProvider();
   final settingsProvider = mockSettingsProvider ?? MockSettingsProvider();

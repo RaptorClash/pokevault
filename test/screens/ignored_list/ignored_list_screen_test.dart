@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:pokevault/l10n/app_translations.dart';
+import 'package:pokevault/i18n/strings.g.dart';
 import 'package:pokevault/screens/ignored_list/ignored_list_screen.dart';
 import 'package:pokevault/widgets/tutorial/tutorial_overlay.dart';
 import '../../e2e/helpers/e2e_test_helper.dart';
@@ -45,7 +45,7 @@ void main() {
       );
       await tester.pump(const Duration(milliseconds: 600));
 
-      expect(find.text(Translator.get('empty_ignored')), findsOneWidget);
+      expect(find.text(t.empty_ignored), findsOneWidget);
       expect(find.byType(ElevatedButton), findsNothing);
     });
 
@@ -73,7 +73,7 @@ void main() {
       expect(find.text('Bisasam'), findsOneWidget);
       expect(find.text('#001'), findsOneWidget);
       expect(find.byIcon(Icons.restore), findsOneWidget);
-      expect(find.text(Translator.get('restore_pokemon')), findsOneWidget);
+      expect(find.text(t.restore_pokemon), findsOneWidget);
     });
 
     testWidgets('Tapping restore button invokes provider.restorePokemon', (tester) async {

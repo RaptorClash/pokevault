@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import '../../l10n/app_translations.dart';
+import '../../i18n/strings.g.dart';
 import '../../models/special_dex_models.dart';
 import '../../models/user_dex.dart';
 import '../../services/database_service.dart';
@@ -47,7 +47,7 @@ class _AbilitiesDexScreenState extends State<AbilitiesDexScreen> {
 
   void _applyFiltersAndSort() {
     final lowerQuery = _searchQuery.toLowerCase();
-    final lang = Translator.currentLanguage;
+    final lang = LocaleSettings.currentLocale.languageCode;
 
     var result = _allAbilities.where((a) {
       if (lowerQuery.isEmpty) return true;
@@ -101,7 +101,7 @@ class _AbilitiesDexScreenState extends State<AbilitiesDexScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final lang = Translator.currentLanguage;
+    final lang = LocaleSettings.currentLocale.languageCode;
     final caughtCount = widget.dex.caughtIds
         .where((id) => id.startsWith('ability_'))
         .length;
@@ -136,10 +136,10 @@ class _AbilitiesDexScreenState extends State<AbilitiesDexScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  Translator.get('dex_abilities', fallback: 'Fähigkeiten-Dex'),
+                  t.dex_abilities,
                 ),
                 Text(
-                  '$caughtCount / ${_allAbilities.length} ${Translator.get('registered', fallback: 'Registriert')}',
+                  '$caughtCount / ${_allAbilities.length} ${t.registered}',
                   style: const TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.normal,
@@ -165,7 +165,7 @@ class _AbilitiesDexScreenState extends State<AbilitiesDexScreen> {
                     _applyFiltersAndSort();
                   },
                   decoration: InputDecoration(
-                    hintText: Translator.get('search', fallback: 'Suchen...'),
+                    hintText: t.search,
                     prefixIcon: const Icon(Icons.search),
                     filled: true,
                     fillColor: Theme.of(context)

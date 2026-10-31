@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:pokevault/l10n/app_translations.dart';
+import 'package:pokevault/i18n/strings.g.dart';
 import 'package:pokevault/models/dex_view_models.dart';
 import 'package:pokevault/models/user_dex.dart';
 import 'package:pokevault/screens/dex/dex_box_view.dart';
@@ -127,16 +127,16 @@ class ChallengerDexWorkflowHarnessState
       context: context,
       builder: (ctx) => AlertDialog(
         title: Text(
-          Translator.get('edit_mode_save_title', fallback: 'Änderungen speichern?'),
+          t.edit_mode_save_title,
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(false),
-            child: Text(Translator.get('cancel', fallback: 'Abbrechen')),
+            child: Text(t.cancel),
           ),
           ElevatedButton(
             onPressed: () => Navigator.of(ctx).pop(true),
-            child: Text(Translator.get('yes', fallback: 'Ja')),
+            child: Text(t.yes),
           ),
         ],
       ),
@@ -158,15 +158,12 @@ class ChallengerDexWorkflowHarnessState
       context: context,
       builder: (ctx) => AlertDialog(
         title: Text(
-          Translator.get(
-            'edit_mode_discard_title',
-            fallback: 'Möchtest du alle Änderungen verwerfen?',
-          ),
+          t.edit_mode_discard_title,
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(false),
-            child: Text(Translator.get('cancel', fallback: 'Abbrechen')),
+            child: Text(t.cancel),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
@@ -174,7 +171,7 @@ class ChallengerDexWorkflowHarnessState
               foregroundColor: Colors.white,
             ),
             onPressed: () => Navigator.of(ctx).pop(true),
-            child: Text(Translator.get('discard', fallback: 'Verwerfen')),
+            child: Text(t.discard),
           ),
         ],
       ),
@@ -225,14 +222,14 @@ class ChallengerDexWorkflowHarnessState
               IconButton(
                 key: const Key('challenger_action_delete'),
                 icon: const Icon(Icons.delete),
-                tooltip: Translator.get('box_edit_remove_selected'),
+                tooltip: t.box_edit_remove_selected,
                 onPressed: executeDelete,
               ),
             if (isEditMode)
               IconButton(
                 key: const Key('challenger_action_add'),
                 icon: const Icon(Icons.add),
-                tooltip: Translator.get('add_pokemon', fallback: 'Hinzufügen'),
+                tooltip: t.add_pokemon,
                 onPressed: () {
                   final targetBoxIndex = pageController.hasClients
                       ? (pageController.page?.round() ?? lastBoxIndex)
@@ -255,25 +252,25 @@ class ChallengerDexWorkflowHarnessState
               IconButton(
                 key: const Key('challenger_enter_edit_mode'),
                 icon: const Icon(Icons.checklist),
-                tooltip: Translator.get('box_edit_manage_content'),
+                tooltip: t.box_edit_manage_content,
                 onPressed: enterEditMode,
               ),
             IconButton(
               key: const Key('challenger_action_box_settings'),
               icon: const Icon(Icons.edit_note),
-              tooltip: Translator.get('box_edit_title'),
+              tooltip: t.box_edit_title,
               onPressed: () {},
             ),
             IconButton(
               key: const Key('challenger_action_route_tracker'),
               icon: const Icon(Icons.location_on),
-              tooltip: Translator.get('route_tracker'),
+              tooltip: t.route_tracker,
               onPressed: () {},
             ),
             PopupMenuButton<String>(
               key: const Key('challenger_action_sort_menu'),
               icon: const Icon(Icons.sort),
-              tooltip: Translator.get('tooltip_view_sort'),
+              tooltip: t.tooltip_view_sort,
               itemBuilder: (ctx) => [
                 const PopupMenuItem(
                   value: 'sort',
@@ -285,13 +282,13 @@ class ChallengerDexWorkflowHarnessState
               IconButton(
                 key: const Key('challenger_action_cancel'),
                 icon: const Icon(Icons.close),
-                tooltip: Translator.get('cancel', fallback: 'Abbrechen'),
+                tooltip: t.cancel,
                 onPressed: handleCancelEditMode,
               ),
               IconButton(
                 key: const Key('challenger_action_save'),
                 icon: const Icon(Icons.check),
-                tooltip: Translator.get('save', fallback: 'Speichern'),
+                tooltip: t.save,
                 onPressed: handleSaveEditMode,
               ),
             ],
@@ -454,7 +451,7 @@ void main() {
     // Test 4: Multiple sequential batch deletions in edit mode without exiting
     // -------------------------------------------------------------------------
     testWidgets('ADV-4: Multiple sequential batch deletions keep isEditMode true throughout and rollback preserves all', (tester) async {
-      Translator.currentLanguage = 'de';
+      LocaleSettings.setLocale(AppLocale.de);
       final box1 = createTestCustomBox(title: 'Box 1', pokemonIds: ['A1', 'A2', 'A3', 'A4']);
       final box2 = createTestCustomBox(title: 'Box 2', pokemonIds: ['B1', 'B2', 'B3', 'B4']);
       final dex = createTestUserDex(customBoxes: [box1, box2]);

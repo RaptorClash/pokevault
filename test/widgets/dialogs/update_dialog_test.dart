@@ -7,7 +7,7 @@ import 'package:mocktail/mocktail.dart';
 import 'package:provider/provider.dart';
 import 'package:pokevault/widgets/dialogs/update_dialog.dart';
 import 'package:pokevault/utils/update_helper.dart';
-import 'package:pokevault/l10n/app_translations.dart';
+import 'package:pokevault/i18n/strings.g.dart';
 import 'package:pokevault/providers/dex_provider.dart';
 
 class _MockHttpOverrides extends HttpOverrides {
@@ -53,7 +53,7 @@ void main() {
 
     setUp(() {
       HttpOverrides.global = _MockHttpOverrides();
-      Translator.currentLanguage = 'de';
+      LocaleSettings.setLocale(AppLocale.de);
     });
 
     tearDown(() {
@@ -143,7 +143,7 @@ void main() {
     testWidgets('Rendert MarkdownBody und filtert Notizen nach aktiver Sprache (de)', (
       WidgetTester tester,
     ) async {
-      Translator.currentLanguage = 'de';
+      LocaleSettings.setLocale(AppLocale.de);
 
       final multiLangUpdate = UpdateInfo(
         version: '2.0.0',
@@ -177,7 +177,7 @@ void main() {
     testWidgets('Rendert MarkdownBody und filtert Notizen nach aktiver Sprache (en)', (
       WidgetTester tester,
     ) async {
-      Translator.currentLanguage = 'en';
+      LocaleSettings.setLocale(AppLocale.en);
 
       final multiLangUpdate = UpdateInfo(
         version: '2.0.0',

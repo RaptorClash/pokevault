@@ -4,7 +4,7 @@ import '../../../models/dex_view_models.dart';
 import '../../../models/pokemon.dart';
 import '../../../models/user_dex.dart';
 import '../../../providers/dex_provider.dart';
-import '../../../l10n/app_translations.dart';
+import '../../../i18n/strings.g.dart';
 import '../../../utils/notification_helper.dart';
 import '../shiny_guide_widget.dart';
 import 'catch_rate_calculator.dart';
@@ -166,10 +166,7 @@ class PokemonInfoPage extends StatelessWidget {
                   color: Colors.purple,
                 ),
                 title: Text(
-                  Translator.get(
-                    'catch_calculator_title',
-                    fallback: 'Ultimativer Fangratenrechner',
-                  ),
+                  t.catch_calculator_title,
                   style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
                 builder: (context) => CatchRateCalculator(pokemon: entry.pokemon),
@@ -244,7 +241,7 @@ class PokemonInfoPage extends StatelessWidget {
     } catch (e) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         NotificationHelper.showError(
-          "${Translator.get('error_page_load', fallback: 'Fehler beim Laden der Seite:')} $e",
+          "${t.error_page_load} $e",
         );
       });
       return const Center(

@@ -10,7 +10,7 @@ import 'package:pokevault/screens/dex/box_edit_screen.dart';
 import 'package:pokevault/screens/dex/dex_box_view.dart';
 import 'package:pokevault/utils/box_sequence_manager.dart';
 import 'package:pokevault/utils/dex_logic_helper.dart';
-import 'package:pokevault/l10n/app_translations.dart';
+import 'package:pokevault/i18n/strings.g.dart';
 import '../../e2e/helpers/e2e_test_helper.dart';
 
 /// Interactive stateful harness that connects [DexBoxView] to [BoxSequenceManager]
@@ -750,7 +750,7 @@ void main() {
       ));
       await pumpDexFrames(tester);
 
-      expect(find.text(Translator.get('empty_box')), findsOneWidget);
+      expect(find.text(t.empty_box), findsOneWidget);
       expect(tester.takeException(), isNull);
 
       // 4.1.2: BoxEditScreen with 0 boxes
@@ -776,7 +776,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Tap Create button
-      final createBtn = find.widgetWithText(ElevatedButton, Translator.get('create'));
+      final createBtn = find.widgetWithText(ElevatedButton, t.create);
       expect(createBtn, findsOneWidget);
       await tester.tap(createBtn);
       await tester.pumpAndSettle();
@@ -826,7 +826,7 @@ void main() {
       await tester.enterText(find.byType(TextField), 'Renamed Solo Box');
       await tester.pumpAndSettle();
 
-      final editConfirmBtn = find.widgetWithText(ElevatedButton, Translator.get('edit'));
+      final editConfirmBtn = find.widgetWithText(ElevatedButton, t.edit);
       await tester.tap(editConfirmBtn);
       await tester.pumpAndSettle();
 
@@ -889,7 +889,7 @@ void main() {
       expect(find.byType(ActionChip), findsWidgets);
 
       // Tap Johto chip to jump to box index 20
-      final johtoChip = find.widgetWithText(ActionChip, Translator.get('region_name_johto'));
+      final johtoChip = find.widgetWithText(ActionChip, t.region_name_johto);
       if (johtoChip.evaluate().isNotEmpty) {
         await tester.tap(johtoChip);
         await pumpDexFrames(tester);

@@ -9,7 +9,7 @@ import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 // ignore: depend_on_referenced_packages
 import 'package:wakelock_plus_platform_interface/wakelock_plus_platform_interface.dart';
 
-import 'package:pokevault/l10n/app_translations.dart';
+import 'package:pokevault/i18n/strings.g.dart';
 import 'package:pokevault/models/pokemon.dart';
 import 'package:pokevault/models/dex_view_models.dart';
 import 'package:pokevault/models/shiny_hunt.dart';
@@ -155,7 +155,7 @@ void main() {
   });
 
   setUp(() async {
-    Translator.currentLanguage = 'de';
+    LocaleSettings.setLocale(AppLocale.de);
     fakeDb = FakeDatabaseService();
     huntProvider = ShinyHuntProvider(
       databaseService: fakeDb,
@@ -211,9 +211,9 @@ void main() {
     await tester.pumpWidget(buildTestWidget());
     await tester.pump();
 
-    expect(find.text(Translator.get('shiny_hunt_pokemon_card_title')), findsOneWidget);
-    expect(find.text(Translator.get('shiny_hunt_no_hunts_for_pokemon')), findsOneWidget);
-    expect(find.text(Translator.get('shiny_hunt_start_new_for_pokemon')), findsOneWidget);
+    expect(find.text(t.shiny_hunt_pokemon_card_title), findsOneWidget);
+    expect(find.text(t.shiny_hunt_no_hunts_for_pokemon), findsOneWidget);
+    expect(find.text(t.shiny_hunt_start_new_for_pokemon), findsOneWidget);
   });
 
   testWidgets('Renders existing hunts with encounter counts and navigates to counter on tap', (tester) async {
@@ -240,7 +240,7 @@ void main() {
     expect(find.textContaining('Platin'), findsOneWidget);
     expect(find.textContaining('Soft Reset'), findsOneWidget);
     expect(find.text('1337'), findsOneWidget);
-    expect(find.text(Translator.get('shiny_hunt_tab_active')), findsOneWidget);
+    expect(find.text(t.shiny_hunt_tab_active), findsOneWidget);
 
     // Tap on hunt card -> navigates to counter screen
     await tester.tap(find.text('Giratina Reset'));
@@ -275,7 +275,7 @@ void main() {
     expect(find.text('Active Hunt'), findsOneWidget);
 
     // Tap header to collapse
-    await tester.tap(find.text(Translator.get('shiny_hunt_pokemon_card_title')));
+    await tester.tap(find.text(t.shiny_hunt_pokemon_card_title));
     await tester.pumpAndSettle();
 
     // After collapsing, content inside children is no longer visible on screen

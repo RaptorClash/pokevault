@@ -6,7 +6,7 @@ import 'package:sqflite/sqflite.dart';
 import '../models/pokemon.dart';
 import '../models/user_dex.dart';
 import '../utils/notification_helper.dart';
-import '../l10n/app_translations.dart';
+import '../i18n/strings.g.dart';
 import 'package:sqflite_common_ffi_web/sqflite_ffi_web.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/special_dex_models.dart';
@@ -131,7 +131,7 @@ class DatabaseService {
           "App-Datenbank erfolgreich auf Version $_currentAppDbVersion aktualisiert.",
         );
       } catch (e) {
-        NotificationHelper.showError('${Translator.get('error_db_init')} $e');
+        NotificationHelper.showError('${t.error_db_init} $e');
       }
     }
 
@@ -297,7 +297,7 @@ class DatabaseService {
         )
       ''');
     } catch (e) {
-      NotificationHelper.showError('${Translator.get('error_db_create')} $e');
+      NotificationHelper.showError('${t.error_db_create} $e');
     }
   }
 
@@ -590,8 +590,7 @@ class DatabaseService {
     }
   }
 
-  /// Returns all shiny locks defined for [pokemonId] from reference SQLite database,
-  /// falling back to bundled assets/data/shiny_locks.json if the database table is empty or missing.
+  /// Returns all shiny locks defined for [pokemonId] from reference SQLite database.
   Future<List<Map<String, dynamic>>> getShinyLocks(int pokemonId) async {
     final allLocks = await getAllShinyLocks();
     return allLocks
@@ -599,8 +598,7 @@ class DatabaseService {
         .toList();
   }
 
-  /// Returns all shiny locks recorded in the reference database,
-  /// falling back to bundled assets/data/shiny_locks.json if unavailable.
+  /// Returns all shiny locks recorded in the reference database.
   Future<List<Map<String, dynamic>>> getAllShinyLocks() async {
     if (_cachedShinyLocks != null) return _cachedShinyLocks!;
 
@@ -612,23 +610,11 @@ class DatabaseService {
         return _cachedShinyLocks!;
       }
     } catch (e) {
-      debugPrint('Database query for shiny_locks failed, falling back to JSON asset: $e');
+      debugPrint('Database query for shiny_locks failed: $e');
     }
 
-    try {
-      final jsonString = await rootBundle.loadString('assets/data/shiny_locks.json');
-      final dynamic decoded = json.decode(jsonString);
-      if (decoded is List) {
-        _cachedShinyLocks = decoded
-            .map((e) => Map<String, dynamic>.from(e as Map))
-            .toList();
-        return _cachedShinyLocks!;
-      }
-    } catch (e) {
-      debugPrint('Failed to load shiny_locks.json asset: $e');
-    }
-
-    return const [];
+    _cachedShinyLocks = const [];
+    return _cachedShinyLocks!;
   }
 
   /// Returns all Pokémon from the reference database including their forms.

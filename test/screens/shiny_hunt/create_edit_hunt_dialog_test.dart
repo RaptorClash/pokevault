@@ -6,7 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
-import 'package:pokevault/l10n/app_translations.dart';
+import 'package:pokevault/i18n/strings.g.dart';
 import 'package:pokevault/models/pokemon.dart';
 import 'package:pokevault/models/shiny_hunt.dart';
 import 'package:pokevault/models/user_dex.dart';
@@ -210,7 +210,7 @@ void main() {
   });
 
   setUp(() async {
-    Translator.currentLanguage = 'de';
+    LocaleSettings.setLocale(AppLocale.de);
     fakeDb = FakeDatabaseService();
     huntProvider = ShinyHuntProvider(
       databaseService: fakeDb,

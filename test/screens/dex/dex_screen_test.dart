@@ -21,7 +21,7 @@ import 'package:pokevault/providers/settings_provider.dart';
 import 'package:pokevault/providers/tutorial_provider.dart';
 import 'package:pokevault/models/user_dex.dart';
 import 'package:pokevault/models/pokemon.dart';
-import 'package:pokevault/l10n/app_translations.dart';
+import 'package:pokevault/i18n/strings.g.dart';
 import 'package:pokevault/widgets/tutorial/tutorial_overlay.dart';
 
 class MockDexProvider extends Mock implements DexProvider {}
@@ -200,7 +200,7 @@ void main() {
   });
 
   setUp(() {
-    Translator.currentLanguage = 'de';
+    LocaleSettings.setLocale(AppLocale.de);
     mockDexProvider = MockDexProvider();
     mockSettingsProvider = MockSettingsProvider();
     mockTutorialProvider = MockTutorialProvider();
@@ -299,7 +299,7 @@ void main() {
     await tester.pump(const Duration(milliseconds: 300));
 
     // Select Box-Ansicht
-    await tester.tap(find.text(Translator.get('view_box')));
+    await tester.tap(find.text(t.view_box));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
 
@@ -311,7 +311,7 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
 
-    await tester.tap(find.text(Translator.get('view_list')));
+    await tester.tap(find.text(t.view_list));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
 
@@ -355,7 +355,7 @@ void main() {
     await tester.pump(const Duration(milliseconds: 300));
 
     // Select filter_caught
-    await tester.tap(find.text(Translator.get('filter_caught')).last);
+    await tester.tap(find.text(t.filter_caught).last);
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
 
@@ -368,7 +368,7 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
 
-    await tester.tap(find.text(Translator.get('filter_missing')).last);
+    await tester.tap(find.text(t.filter_missing).last);
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
 
@@ -434,7 +434,7 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
 
-    await tester.tap(find.text(Translator.get('advanced_sort_title')));
+    await tester.tap(find.text(t.advanced_sort_title));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
 
@@ -452,7 +452,7 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
 
-    await tester.tap(find.text(Translator.get('ignored_list_title')));
+    await tester.tap(find.text(t.ignored_list_title));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
 
@@ -476,15 +476,15 @@ void main() {
     await tester.pump(const Duration(milliseconds: 300));
 
     // Dex-Fortschritt & Statistiken dialog is shown
-    expect(find.text(Translator.get('dex_progress_title')), findsOneWidget);
+    expect(find.text(t.dex_progress_title), findsOneWidget);
     expect(find.textContaining('33.3%'), findsWidgets);
 
     // Close dialog
-    await tester.tap(find.text(Translator.get('dex_progress_close')));
+    await tester.tap(find.text(t.dex_progress_close));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
 
-    expect(find.text(Translator.get('dex_progress_title')), findsNothing);
+    expect(find.text(t.dex_progress_title), findsNothing);
 
     await tester.pump(const Duration(seconds: 15));
   });
@@ -499,15 +499,15 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
 
-    expect(find.text(Translator.get('dex_progress_title')), findsOneWidget);
+    expect(find.text(t.dex_progress_title), findsOneWidget);
 
     // Tap on "Nur Fehlende anzeigen"
-    await tester.tap(find.text(Translator.get('dex_progress_show_missing')));
+    await tester.tap(find.text(t.dex_progress_show_missing));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
 
     // Dialog is closed and Dex is filtered: only Glumanda and Schiggy shown, Bisasam hidden
-    expect(find.text(Translator.get('dex_progress_title')), findsNothing);
+    expect(find.text(t.dex_progress_title), findsNothing);
     expect(find.widgetWithText(Card, 'Bisasam'), findsNothing);
     expect(find.widgetWithText(Card, 'Glumanda'), findsOneWidget);
     expect(find.widgetWithText(Card, 'Schiggy'), findsOneWidget);
@@ -521,24 +521,24 @@ void main() {
     await pumpAndLoad(tester);
 
     // Verify tooltip on title
-    expect(find.byTooltip(Translator.get('dex_progress_tooltip')), findsWidgets);
+    expect(find.byTooltip(t.dex_progress_tooltip), findsWidgets);
 
     // First filter to missing
     await tester.tap(find.byIcon(Icons.bar_chart));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
 
-    await tester.tap(find.text(Translator.get('dex_progress_show_missing')));
+    await tester.tap(find.text(t.dex_progress_show_missing));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
     expect(find.widgetWithText(Card, 'Bisasam'), findsNothing);
 
     // Open dialog again and tap "Alle anzeigen"
-    await tester.tap(find.byTooltip(Translator.get('dex_progress_tooltip')).first);
+    await tester.tap(find.byTooltip(t.dex_progress_tooltip).first);
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
 
-    await tester.tap(find.text(Translator.get('dex_progress_show_all')));
+    await tester.tap(find.text(t.dex_progress_show_all));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
 

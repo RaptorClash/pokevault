@@ -2,7 +2,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'models.dart';
 import 'strategy_base.dart';
-import '../../l10n/app_translations.dart';
+import '../../i18n/strings.g.dart';
 
 abstract class ModernStrategyBase extends CatchRateStrategy {
   ModernStrategyBase(super.gen);
@@ -27,51 +27,51 @@ abstract class ModernStrategyBase extends CatchRateStrategy {
   @override
   List<BallOption> getAvailableBalls() {
     List<BallOption> balls = [
-      BallOption('poke', Translator.get('ball_poke_ball'), 'poke-ball'),
-      BallOption('great', Translator.get('ball_great_ball'), 'great-ball'),
-      BallOption('ultra', Translator.get('ball_ultra_ball'), 'ultra-ball'),
-      BallOption('master', Translator.get('ball_master_ball'), 'master-ball'),
-      BallOption('safari', Translator.get('ball_safari_ball'), 'safari-ball'),
-      BallOption('fast', Translator.get('ball_fast_ball'), 'fast-ball'),
-      BallOption('level', Translator.get('ball_level_ball'), 'level-ball'),
-      BallOption('lure', Translator.get('ball_lure_ball'), 'lure-ball'),
-      BallOption('heavy', Translator.get('ball_heavy_ball'), 'heavy-ball'),
-      BallOption('love', Translator.get('ball_love_ball'), 'love-ball'),
-      BallOption('friend', Translator.get('ball_friend_ball'), 'friend-ball'),
-      BallOption('moon', Translator.get('ball_moon_ball'), 'moon-ball'),
-      BallOption('sport', Translator.get('ball_sport_ball'), 'sport-ball'),
-      BallOption('net', Translator.get('ball_net_ball'), 'net-ball'),
-      BallOption('dive', Translator.get('ball_dive_ball'), 'dive-ball'),
-      BallOption('nest', Translator.get('ball_nest_ball'), 'nest-ball'),
-      BallOption('timer', Translator.get('ball_timer_ball'), 'timer-ball'),
+      BallOption('poke', t.ball_poke_ball, 'poke-ball'),
+      BallOption('great', t.ball_great_ball, 'great-ball'),
+      BallOption('ultra', t.ball_ultra_ball, 'ultra-ball'),
+      BallOption('master', t.ball_master_ball, 'master-ball'),
+      BallOption('safari', t.ball_safari_ball, 'safari-ball'),
+      BallOption('fast', t.ball_fast_ball, 'fast-ball'),
+      BallOption('level', t.ball_level_ball, 'level-ball'),
+      BallOption('lure', t.ball_lure_ball, 'lure-ball'),
+      BallOption('heavy', t.ball_heavy_ball, 'heavy-ball'),
+      BallOption('love', t.ball_love_ball, 'love-ball'),
+      BallOption('friend', t.ball_friend_ball, 'friend-ball'),
+      BallOption('moon', t.ball_moon_ball, 'moon-ball'),
+      BallOption('sport', t.ball_sport_ball, 'sport-ball'),
+      BallOption('net', t.ball_net_ball, 'net-ball'),
+      BallOption('dive', t.ball_dive_ball, 'dive-ball'),
+      BallOption('nest', t.ball_nest_ball, 'nest-ball'),
+      BallOption('timer', t.ball_timer_ball, 'timer-ball'),
       BallOption(
         'premier',
-        Translator.get('ball_premier_ball'),
+        t.ball_premier_ball,
         'premier-ball',
       ),
-      BallOption('repeat', Translator.get('ball_repeat_ball'), 'repeat-ball'),
-      BallOption('luxury', Translator.get('ball_luxury_ball'), 'luxury-ball'),
+      BallOption('repeat', t.ball_repeat_ball, 'repeat-ball'),
+      BallOption('luxury', t.ball_luxury_ball, 'luxury-ball'),
     ];
     if (gen >= 4.0) {
       balls.addAll([
-        BallOption('dusk', Translator.get('ball_dusk_ball'), 'dusk-ball'),
-        BallOption('heal', Translator.get('ball_heal_ball'), 'heal-ball'),
-        BallOption('quick', Translator.get('ball_quick_ball'), 'quick-ball'),
+        BallOption('dusk', t.ball_dusk_ball, 'dusk-ball'),
+        BallOption('heal', t.ball_heal_ball, 'heal-ball'),
+        BallOption('quick', t.ball_quick_ball, 'quick-ball'),
         BallOption(
           'cherish',
-          Translator.get('ball_cherish_ball'),
+          t.ball_cherish_ball,
           'cherish-ball',
         ),
       ]);
     }
     if (gen >= 5.0) {
       balls.add(
-        BallOption('dream', Translator.get('ball_dream_ball'), 'dream-ball'),
+        BallOption('dream', t.ball_dream_ball, 'dream-ball'),
       );
     }
     if (gen >= 6.0) {
       balls.add(
-        BallOption('beast', Translator.get('ball_beast_ball'), 'beast-ball'),
+        BallOption('beast', t.ball_beast_ball, 'beast-ball'),
       );
     }
     return balls;
@@ -369,19 +369,19 @@ class Gen5Strategy extends ModernStrategyBase {
   List<DropdownMenuItem<double>> getPowerOptions() => [
     DropdownMenuItem(
       value: 1.0,
-      child: Text(Translator.get('calc_power_none')),
+      child: Text(t.calc_power_none),
     ),
     DropdownMenuItem(
       value: 1.1,
-      child: Text(Translator.get('calc_power_pass1')),
+      child: Text(t.calc_power_pass1),
     ),
     DropdownMenuItem(
       value: 1.2,
-      child: Text(Translator.get('calc_power_pass2')),
+      child: Text(t.calc_power_pass2),
     ),
     DropdownMenuItem(
       value: 1.3,
-      child: Text(Translator.get('calc_power_pass3')),
+      child: Text(t.calc_power_pass3),
     ),
   ];
 }
@@ -398,29 +398,29 @@ class Gen67Strategy extends ModernStrategyBase {
     var opts = [
       DropdownMenuItem(
         value: 1.0,
-        child: Text(Translator.get('calc_power_none')),
+        child: Text(t.calc_power_none),
       ),
     ];
     if (gen == 6.0) {
       opts.addAll([
         DropdownMenuItem(
           value: 1.5,
-          child: Text(Translator.get('calc_power_o1')),
+          child: Text(t.calc_power_o1),
         ),
         DropdownMenuItem(
           value: 2.0,
-          child: Text(Translator.get('calc_power_o2')),
+          child: Text(t.calc_power_o2),
         ),
         DropdownMenuItem(
           value: 2.5,
-          child: Text(Translator.get('calc_power_o3')),
+          child: Text(t.calc_power_o3),
         ),
       ]);
     } else {
       opts.add(
         DropdownMenuItem(
           value: 2.5,
-          child: Text(Translator.get('calc_power_roto')),
+          child: Text(t.calc_power_roto),
         ),
       );
     }
@@ -488,19 +488,19 @@ class Gen9Strategy extends ModernStrategyBase {
   List<DropdownMenuItem<double>> getPowerOptions() => [
     DropdownMenuItem(
       value: 1.0,
-      child: Text(Translator.get('calc_power_none')),
+      child: Text(t.calc_power_none),
     ),
     DropdownMenuItem(
       value: 1.1,
-      child: Text(Translator.get('calc_power_sand1')),
+      child: Text(t.calc_power_sand1),
     ),
     DropdownMenuItem(
       value: 1.25,
-      child: Text(Translator.get('calc_power_sand2')),
+      child: Text(t.calc_power_sand2),
     ),
     DropdownMenuItem(
       value: 2.0,
-      child: Text(Translator.get('calc_power_sand3')),
+      child: Text(t.calc_power_sand3),
     ),
   ];
 }

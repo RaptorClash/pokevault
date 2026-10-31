@@ -11,7 +11,7 @@ import 'package:universal_io/io.dart';
 import '../models/dex_progress_models.dart';
 import '../models/user_dex.dart';
 import '../utils/notification_helper.dart';
-import '../l10n/app_translations.dart';
+import '../i18n/strings.g.dart';
 
 /// Service responsible for rendering, capturing high-resolution PNGs, saving to disk,
 /// sharing via system share sheets, and copying text summaries to clipboard.
@@ -104,11 +104,11 @@ class DexCardExportService {
         await SharePlus.instance.share(
           ShareParams(
             files: [xFile],
-            text: Translator.get('share_dex_card', fallback: 'PokéVault Dex Card'),
+            text: t.share_dex_card,
           ),
         );
         NotificationHelper.showSuccess(
-          '${Translator.get('dex_card_save_success', fallback: 'Grafik heruntergeladen:')}\n$fileName',
+          '${t.dex_card_save_success}\n$fileName',
         );
         return fileName;
       }
@@ -133,7 +133,7 @@ class DexCardExportService {
             final file = File(location.path);
             await file.writeAsBytes(pngBytes);
             NotificationHelper.showSuccess(
-              '${Translator.get('dex_card_save_success', fallback: 'Erfolgs-Grafik gespeichert:')}\n${file.path}',
+              '${t.dex_card_save_success}\n${file.path}',
             );
             return file.path;
           }
@@ -147,7 +147,7 @@ class DexCardExportService {
         await file.writeAsBytes(pngBytes);
 
         NotificationHelper.showSuccess(
-          '${Translator.get('dex_card_save_success', fallback: 'Erfolgs-Grafik gespeichert:')}\n${file.path}',
+          '${t.dex_card_save_success}\n${file.path}',
         );
         return file.path;
       } else if (Platform.isAndroid) {
@@ -160,7 +160,7 @@ class DexCardExportService {
           final file = File('${targetDir.path}/$fileName');
           await file.writeAsBytes(pngBytes);
           NotificationHelper.showSuccess(
-            '${Translator.get('dex_card_save_success', fallback: 'Erfolgs-Grafik gespeichert:')}\n${file.path}',
+            '${t.dex_card_save_success}\n${file.path}',
           );
           return file.path;
         } catch (e) {
@@ -171,7 +171,7 @@ class DexCardExportService {
           await SharePlus.instance.share(
             ShareParams(
               files: [XFile(file.path, mimeType: 'image/png')],
-              text: Translator.get('share_dex_card', fallback: 'PokéVault Dex Card'),
+              text: t.share_dex_card,
             ),
           );
           return file.path;
@@ -184,14 +184,14 @@ class DexCardExportService {
         await SharePlus.instance.share(
           ShareParams(
             files: [XFile(file.path, mimeType: 'image/png')],
-            text: Translator.get('share_dex_card', fallback: 'PokéVault Dex Card'),
+            text: t.share_dex_card,
           ),
         );
         return file.path;
       }
     } catch (e) {
       debugPrint('savePngToDisk error: $e');
-      NotificationHelper.showError('${Translator.get('error', fallback: 'Fehler:')} $e');
+      NotificationHelper.showError('${t.error} $e');
       return null;
     }
   }
@@ -229,18 +229,13 @@ class DexCardExportService {
       );
     } catch (e) {
       debugPrint('sharePng error: $e');
-      NotificationHelper.showError('${Translator.get('error', fallback: 'Fehler:')} $e');
+      NotificationHelper.showError('${t.error} $e');
     }
   }
 
   /// Copies [text] to the device clipboard and presents user feedback.
   static Future<void> copyToClipboard(String text) async {
     await Clipboard.setData(ClipboardData(text: text));
-    NotificationHelper.showSuccess(
-      Translator.get(
-        'dex_card_copy_success',
-        fallback: 'Erfolgs-Text in die Zwischenablage kopiert!',
-      ),
-    );
+    NotificationHelper.showSuccess(t.dex_card_copy_success);
   }
 }

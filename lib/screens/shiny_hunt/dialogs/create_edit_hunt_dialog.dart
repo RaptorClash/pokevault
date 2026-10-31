@@ -9,7 +9,7 @@ import '../../../utils/shiny_hunt_odds_helper.dart';
 import '../../../utils/shiny_logic_helper.dart';
 import '../../../utils/dex_logic_helper.dart';
 import '../../../services/database_service.dart';
-import '../../../l10n/app_translations.dart';
+import '../../../i18n/strings.g.dart';
 import '../../../widgets/universal_poke_image.dart';
 import '../../../models/tutorial_step.dart';
 import '../../../widgets/tutorial/tutorial_overlay.dart';
@@ -658,7 +658,7 @@ class _CreateEditHuntDialogState extends State<CreateEditHuntDialog> {
     final allPokemon = dexProvider.allPokemon;
     final currentPokemon = allPokemon.where((p) => p.id == _pokemonId).firstOrNull;
     final availableForms = currentPokemon?.forms ?? [];
-    final lang = Translator.currentLanguage;
+    final lang = LocaleSettings.currentLocale.languageCode;
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
@@ -688,8 +688,8 @@ class _CreateEditHuntDialogState extends State<CreateEditHuntDialog> {
                     Expanded(
                       child: Text(
                         widget.existingHunt != null
-                            ? Translator.get('shiny_hunt_dialog_edit_title')
-                            : Translator.get('shiny_hunt_dialog_create_title'),
+                            ? t.shiny_hunt_dialog_edit_title
+                            : t.shiny_hunt_dialog_create_title,
                         style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
                       ),
                     ),
@@ -730,7 +730,7 @@ class _CreateEditHuntDialogState extends State<CreateEditHuntDialog> {
                           controller: controller,
                           focusNode: focusNode,
                           decoration: InputDecoration(
-                            labelText: Translator.get('shiny_hunt_target_pokemon'),
+                            labelText: t.shiny_hunt_target_pokemon,
                             hintText: 'Pokémon suchen...',
                             border: const OutlineInputBorder(),
                             prefixIcon: const Icon(Icons.search),
@@ -809,7 +809,7 @@ class _CreateEditHuntDialogState extends State<CreateEditHuntDialog> {
                                       ? _pokemonFormId
                                       : (uniqueForms.first.imageId > 0 ? uniqueForms.first.imageId : _pokemonId),
                                   decoration: InputDecoration(
-                                    labelText: Translator.get('shiny_hunt_form_label', fallback: 'Form'),
+                                    labelText: t.shiny_hunt_form_label,
                                     border: const OutlineInputBorder(),
                                     contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                                   ),
@@ -860,7 +860,7 @@ class _CreateEditHuntDialogState extends State<CreateEditHuntDialog> {
                   TextFormField(
                     controller: _titleController,
                     decoration: InputDecoration(
-                      labelText: Translator.get('shiny_hunt_title_field'),
+                      labelText: t.shiny_hunt_title_field,
                       border: const OutlineInputBorder(),
                     ),
                   ),
@@ -877,13 +877,13 @@ class _CreateEditHuntDialogState extends State<CreateEditHuntDialog> {
                           ? _selectedDexId
                           : null,
                       decoration: InputDecoration(
-                        labelText: Translator.get('shiny_hunt_target_dex'),
+                        labelText: t.shiny_hunt_target_dex,
                         border: const OutlineInputBorder(),
                       ),
                       items: [
                         DropdownMenuItem<String?>(
                           value: null,
-                          child: Text(Translator.get('shiny_hunt_target_dex_none', fallback: 'Kein Dex (Nicht verknüpft)')),
+                          child: Text(t.shiny_hunt_target_dex_none),
                         ),
                         ...dexProvider.userDexes.map((d) => DropdownMenuItem<String?>(
                           value: d.id,
@@ -956,7 +956,7 @@ class _CreateEditHuntDialogState extends State<CreateEditHuntDialog> {
                                 ? _selectedGame
                                 : (_availableGames.isNotEmpty ? _availableGames.first.name : null),
                             decoration: InputDecoration(
-                              labelText: Translator.get('shiny_hunt_game'),
+                              labelText: t.shiny_hunt_game,
                               border: const OutlineInputBorder(),
                             ),
                             items: _availableGames.map((g) {
@@ -982,7 +982,7 @@ class _CreateEditHuntDialogState extends State<CreateEditHuntDialog> {
                               ? _selectedMethod
                               : (_availablePresets.isNotEmpty ? _availablePresets.first.name : null),
                           decoration: InputDecoration(
-                            labelText: Translator.get('shiny_hunt_method'),
+                            labelText: t.shiny_hunt_method,
                             border: const OutlineInputBorder(),
                           ),
                           items: _availablePresets.map((preset) {
@@ -1010,45 +1010,45 @@ class _CreateEditHuntDialogState extends State<CreateEditHuntDialog> {
                     isExpanded: true,
                     initialValue: _selectedHuntingType ?? 'auto',
                     decoration: InputDecoration(
-                      labelText: Translator.get('shiny_hunt_hunting_type', fallback: 'Jagdart / Herkunft'),
+                      labelText: t.shiny_hunt_hunting_type,
                       border: const OutlineInputBorder(),
                     ),
                     items: [
                       DropdownMenuItem<String>(
                         value: 'auto',
-                        child: Text(Translator.get('shiny_hunt_type_auto', fallback: 'Automatisch (nach Methode)')),
+                        child: Text(t.shiny_hunt_type_auto),
                       ),
                       DropdownMenuItem<String>(
                         value: 'wild',
-                        child: Text(Translator.get('shiny_hunt_type_wild', fallback: 'Wildfang')),
+                        child: Text(t.shiny_hunt_type_wild),
                       ),
                       DropdownMenuItem<String>(
                         value: 'breeding',
-                        child: Text(Translator.get('shiny_hunt_type_breeding', fallback: 'Zucht / Ei')),
+                        child: Text(t.shiny_hunt_type_breeding),
                       ),
                       DropdownMenuItem<String>(
                         value: 'trade',
-                        child: Text(Translator.get('shiny_hunt_type_trade', fallback: 'Tausch')),
+                        child: Text(t.shiny_hunt_type_trade),
                       ),
                       DropdownMenuItem<String>(
                         value: 'soft_reset',
-                        child: Text(Translator.get('shiny_hunt_type_soft_reset', fallback: 'Soft Reset')),
+                        child: Text(t.shiny_hunt_type_soft_reset),
                       ),
                       DropdownMenuItem<String>(
                         value: 'raid',
-                        child: Text(Translator.get('shiny_hunt_type_raid', fallback: 'Raid')),
+                        child: Text(t.shiny_hunt_type_raid),
                       ),
                       DropdownMenuItem<String>(
                         value: 'fossil',
-                        child: Text(Translator.get('shiny_hunt_type_fossil', fallback: 'Fossil')),
+                        child: Text(t.shiny_hunt_type_fossil),
                       ),
                       DropdownMenuItem<String>(
                         value: 'gift',
-                        child: Text(Translator.get('shiny_hunt_type_gift', fallback: 'Geschenk / Event')),
+                        child: Text(t.shiny_hunt_type_gift),
                       ),
                       DropdownMenuItem<String>(
                         value: 'other',
-                        child: Text(Translator.get('shiny_hunt_type_other', fallback: 'Sonstiges')),
+                        child: Text(t.shiny_hunt_type_other),
                       ),
                     ],
                     onChanged: (val) {
@@ -1063,7 +1063,7 @@ class _CreateEditHuntDialogState extends State<CreateEditHuntDialog> {
                   if (_generation >= 5.0 || ShinyHuntOddsHelper.isBDSP(_selectedGame)) ...[
                     SwitchListTile(
                       contentPadding: EdgeInsets.zero,
-                      title: Text(Translator.get('shiny_hunt_has_charm')),
+                      title: Text(t.shiny_hunt_has_charm),
                       secondary: const Icon(Icons.flare, color: Colors.amber),
                       value: _hasShinyCharm,
                       onChanged: _onCharmToggled,
@@ -1100,7 +1100,7 @@ class _CreateEditHuntDialogState extends State<CreateEditHuntDialog> {
                   if (_availablePresets.any((p) => p.name == _selectedMethod && p.isChainMethod)) ...[
                     CheckboxListTile(
                       contentPadding: EdgeInsets.zero,
-                      title: Text(Translator.get('shiny_hunt_chain_prepared')),
+                      title: Text(t.shiny_hunt_chain_prepared),
                       value: _isChainPrepared,
                       onChanged: (val) {
                         setState(() {
@@ -1128,7 +1128,7 @@ class _CreateEditHuntDialogState extends State<CreateEditHuntDialog> {
                           child: TextFormField(
                             controller: _customOddsController,
                             decoration: InputDecoration(
-                              labelText: Translator.get('shiny_hunt_base_odds'),
+                              labelText: t.shiny_hunt_base_odds,
                               hintText: '4096.0',
                               border: const OutlineInputBorder(),
                               prefixText: '1 / ',
@@ -1148,7 +1148,7 @@ class _CreateEditHuntDialogState extends State<CreateEditHuntDialog> {
                           child: TextFormField(
                             controller: _spawnsController,
                             decoration: InputDecoration(
-                              labelText: Translator.get('shiny_hunt_spawns_per_step'),
+                              labelText: t.shiny_hunt_spawns_per_step,
                               hintText: '1',
                               border: const OutlineInputBorder(),
                               prefixText: 'k = ',
@@ -1173,7 +1173,7 @@ class _CreateEditHuntDialogState extends State<CreateEditHuntDialog> {
                     spacing: 6,
                     runSpacing: 6,
                     children: [
-                      Text('${Translator.get('shiny_hunt_step_label')}:', style: const TextStyle(fontWeight: FontWeight.bold)),
+                      Text('${t.shiny_hunt_step_label}:', style: const TextStyle(fontWeight: FontWeight.bold)),
                       ...[1, 5, 10].map((step) {
                         final isSel = _incrementStep == step;
                         return ChoiceChip(
@@ -1193,19 +1193,19 @@ class _CreateEditHuntDialogState extends State<CreateEditHuntDialog> {
                         ),
                       ActionChip(
                         avatar: const Icon(Icons.edit, size: 14),
-                        label: Text(Translator.get('shiny_hunt_step_custom', fallback: 'Custom')),
+                        label: Text(t.shiny_hunt_step_custom),
                         onPressed: () {
                             final c = TextEditingController(text: _incrementStep.toString());
                             showDialog(
                               context: context,
                               builder: (ctx) => AlertDialog(
-                                title: Text(Translator.get('shiny_hunt_step_custom_title', fallback: 'Eigene Schrittweite')),
+                                title: Text(t.shiny_hunt_step_custom_title),
                                 content: TextField(
                                   controller: c,
                                   keyboardType: TextInputType.number,
                                   autofocus: true,
                                   decoration: InputDecoration(
-                                    labelText: Translator.get('shiny_hunt_step_custom_hint', fallback: 'Schrittweite eingeben (z. B. 3, 30)...'),
+                                    labelText: t.shiny_hunt_step_custom_hint,
                                     border: const OutlineInputBorder(),
                                   ),
                                   onSubmitted: (val) {
@@ -1222,7 +1222,7 @@ class _CreateEditHuntDialogState extends State<CreateEditHuntDialog> {
                                 actions: [
                                   TextButton(
                                     onPressed: () => Navigator.of(ctx).pop(),
-                                    child: Text(Translator.get('cancel', fallback: 'Abbrechen')),
+                                    child: Text(t.cancel),
                                   ),
                                   ElevatedButton(
                                     onPressed: () {
@@ -1235,7 +1235,7 @@ class _CreateEditHuntDialogState extends State<CreateEditHuntDialog> {
                                       }
                                       Navigator.of(ctx).pop();
                                     },
-                                    child: Text(Translator.get('save', fallback: 'Speichern')),
+                                    child: Text(t.save),
                                   ),
                                 ],
                               ),
@@ -1256,7 +1256,7 @@ class _CreateEditHuntDialogState extends State<CreateEditHuntDialog> {
                     children: [
                       TextButton(
                         onPressed: () => Navigator.of(context).pop(),
-                        child: Text(Translator.get('cancel', fallback: 'Abbrechen')),
+                        child: Text(t.cancel),
                       ),
                       const SizedBox(width: 8),
                       ElevatedButton(
@@ -1353,8 +1353,8 @@ class _CreateEditHuntDialogState extends State<CreateEditHuntDialog> {
                         },
                         child: Text(
                           widget.existingHunt != null
-                              ? Translator.get('save', fallback: 'Speichern')
-                              : Translator.get('start', fallback: 'Starten'),
+                              ? t.save
+                              : t.start,
                         ),
                       ),
                     ],

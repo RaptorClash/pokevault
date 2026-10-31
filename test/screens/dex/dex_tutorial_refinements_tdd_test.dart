@@ -17,7 +17,6 @@ import 'package:pokevault/providers/theme_provider.dart';
 import 'package:pokevault/screens/dex/dex_screen.dart';
 import 'package:pokevault/screens/settings/controls_guide_screen.dart';
 import 'package:pokevault/screens/settings/settings_screen.dart';
-import 'package:pokevault/l10n/app_translations.dart';
 import 'package:pokevault/i18n/strings.g.dart';
 import 'package:pokevault/widgets/tutorial/tutorial_overlay.dart';
 import 'package:path_provider_platform_interface/path_provider_platform_interface.dart';
@@ -158,7 +157,7 @@ void main() {
   });
 
   setUp(() async {
-    Translator.currentLanguage = 'de';
+    LocaleSettings.setLocale(AppLocale.de);
     PackageInfo.setMockInitialValues(
       appName: 'Pokevault',
       packageName: 'com.example.pokevault',
@@ -222,38 +221,38 @@ void main() {
   group('Issue 1: Search & Target Pokémon in Dex', () {
     test('Translations refer to Gengar instead of Pikachu in search & ignore steps', () {
       // German
-      Translator.currentLanguage = 'de';
-      final deSearch = Translator.get('tutorial_dex_search_text');
+      LocaleSettings.setLocale(AppLocale.de);
+      final deSearch = t.tutorial_dex_search_text;
       expect(deSearch, contains('Gengar'));
       expect(deSearch, isNot(contains('Pikachu')));
 
-      final deIgnoreConfirm = Translator.get('tutorial_info_ignore_confirm_text');
+      final deIgnoreConfirm = t.tutorial_info_ignore_confirm_text;
       expect(deIgnoreConfirm, contains('Gengar'));
       expect(deIgnoreConfirm, isNot(contains('Pikachu')));
 
-      final deMenuIgnored = Translator.get('tutorial_dex_menu_ignored_text');
+      final deMenuIgnored = t.tutorial_dex_menu_ignored_text;
       expect(deMenuIgnored, contains('Gengar'));
       expect(deMenuIgnored, isNot(contains('Pikachu')));
 
-      final deRestore = Translator.get('tutorial_ignored_restore_text');
+      final deRestore = t.tutorial_ignored_restore_text;
       expect(deRestore, contains('Gengar'));
       expect(deRestore, isNot(contains('Pikachu')));
 
       // English
-      Translator.currentLanguage = 'en';
-      final enSearch = Translator.get('tutorial_dex_search_text');
+      LocaleSettings.setLocale(AppLocale.en);
+      final enSearch = t.tutorial_dex_search_text;
       expect(enSearch, contains('Gengar'));
       expect(enSearch, isNot(contains('Pikachu')));
 
-      final enIgnoreConfirm = Translator.get('tutorial_info_ignore_confirm_text');
+      final enIgnoreConfirm = t.tutorial_info_ignore_confirm_text;
       expect(enIgnoreConfirm, contains('Gengar'));
       expect(enIgnoreConfirm, isNot(contains('Pikachu')));
 
-      final enMenuIgnored = Translator.get('tutorial_dex_menu_ignored_text');
+      final enMenuIgnored = t.tutorial_dex_menu_ignored_text;
       expect(enMenuIgnored, contains('Gengar'));
       expect(enMenuIgnored, isNot(contains('Pikachu')));
 
-      final enRestore = Translator.get('tutorial_ignored_restore_text');
+      final enRestore = t.tutorial_ignored_restore_text;
       expect(enRestore, contains('Gengar'));
       expect(enRestore, isNot(contains('Pikachu')));
     });

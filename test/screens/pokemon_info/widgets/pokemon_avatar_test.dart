@@ -8,7 +8,7 @@ import 'package:pokevault/models/pokemon.dart';
 import 'package:pokevault/providers/dex_provider.dart';
 import 'package:pokevault/providers/settings_provider.dart';
 import 'package:pokevault/screens/pokemon_info/widgets/pokemon_avatar.dart';
-import 'package:pokevault/l10n/app_translations.dart';
+import 'package:pokevault/i18n/strings.g.dart';
 
 class MockDexProvider extends Mock implements DexProvider {}
 
@@ -38,7 +38,7 @@ void main() {
       );
       when(() => mockProvider.allPokemon).thenReturn([dummyPokemon]);
       when(() => mockSettingsProvider.currentLanguage).thenReturn('de');
-      Translator.currentLanguage = 'de';
+      LocaleSettings.setLocale(AppLocale.de);
     });
 
     Widget buildAvatar({

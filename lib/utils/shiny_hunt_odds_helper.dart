@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../models/pokemon.dart';
 import '../models/shiny_hunt.dart';
 import 'shiny_logic_helper.dart';
-import '../l10n/app_translations.dart';
+import '../i18n/strings.g.dart';
 
 /// Categorizes shiny hunt encounter progress relative to statistical odds.
 enum OddsClassification {
@@ -321,8 +321,8 @@ class ShinyHuntOddsHelper {
     if (ballKey == null || ballKey.isEmpty) return '';
     final cleanKey = ballKey.replaceAll('-', '_').toLowerCase();
     final transKey = 'ball_$cleanKey';
-    final translated = Translator.get(transKey);
-    if (translated != transKey) {
+    final translated = t[transKey]?.toString();
+    if (translated != null && translated.isNotEmpty && translated != transKey) {
       return translated;
     }
     return ballKey
@@ -339,24 +339,24 @@ class ShinyHuntOddsHelper {
     final key = huntingType.toLowerCase().replaceAll('-', '_');
     switch (key) {
       case 'wild':
-        return Translator.get('shiny_hunt_type_wild', fallback: 'Wildfang');
+        return t.shiny_hunt_type_wild;
       case 'breeding':
-        return Translator.get('shiny_hunt_type_breeding', fallback: 'Zucht / Ei');
+        return t.shiny_hunt_type_breeding;
       case 'trade':
-        return Translator.get('shiny_hunt_type_trade', fallback: 'Tausch');
+        return t.shiny_hunt_type_trade;
       case 'soft_reset':
-        return Translator.get('shiny_hunt_type_soft_reset', fallback: 'Soft Reset');
+        return t.shiny_hunt_type_soft_reset;
       case 'raid':
-        return Translator.get('shiny_hunt_type_raid', fallback: 'Raid');
+        return t.shiny_hunt_type_raid;
       case 'fossil':
-        return Translator.get('shiny_hunt_type_fossil', fallback: 'Fossil');
+        return t.shiny_hunt_type_fossil;
       case 'gift':
-        return Translator.get('shiny_hunt_type_gift', fallback: 'Geschenk / Event');
+        return t.shiny_hunt_type_gift;
       case 'other':
-        return Translator.get('shiny_hunt_type_other', fallback: 'Sonstiges');
+        return t.shiny_hunt_type_other;
       default:
-        final trans = Translator.get('shiny_hunt_type_$key');
-        if (trans != 'shiny_hunt_type_$key') return trans;
+        final trans = t['shiny_hunt_type_$key']?.toString();
+        if (trans != null && trans.isNotEmpty && trans != 'shiny_hunt_type_$key') return trans;
         return huntingType;
     }
   }

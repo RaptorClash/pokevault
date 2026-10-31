@@ -4,7 +4,6 @@ import 'package:provider/provider.dart';
 import '../../models/dex_view_models.dart';
 import '../../models/pokemon.dart';
 import '../../providers/dex_provider.dart';
-import '../../l10n/app_translations.dart';
 import '../../i18n/strings.g.dart';
 import '../../utils/dex_logic_helper.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -1160,7 +1159,7 @@ class _PokemonSearchSelectionScreenState
                                         alignment: WrapAlignment.center,
                                         children: types.map((type) {
                                           final color = _typeColors[type.toLowerCase()] ?? Colors.grey;
-                                          final typeName = Translator.get('type_$type');
+                                          final typeName = (t['type_$type'] ?? type);
                                           final label = (typeName != 'type_$type' && typeName.isNotEmpty)
                                               ? typeName
                                               : type;

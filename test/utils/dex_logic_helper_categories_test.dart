@@ -3,14 +3,14 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:pokevault/utils/catch_rate/models.dart';
 import 'package:pokevault/utils/catch_rate/strategy_base.dart';
 import 'package:pokevault/screens/pokemon_info/widgets/catch_rate_ui_components.dart';
-import 'package:pokevault/l10n/app_translations.dart';
+import 'package:pokevault/i18n/strings.g.dart';
 
 void main() {
   group('CatchRateResultCard Widget Tests', () {
     final strategy = CatchRateStrategyFactory.getStrategy(9.0);
 
     setUp(() {
-      Translator.currentLanguage = 'de';
+      LocaleSettings.setLocale(AppLocale.de);
     });
 
     testWidgets('Rendert garantierten Fang in Grün', (
@@ -34,7 +34,7 @@ void main() {
         ),
       );
 
-      final expectedText = Translator.get('guaranteed_catch');
+      final expectedText = t.guaranteed_catch;
       expect(find.textContaining(expectedText), findsOneWidget);
 
       final container = tester.widget<Container>(find.byType(Container).first);

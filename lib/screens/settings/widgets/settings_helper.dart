@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
-import '../../../../l10n/app_translations.dart';
+import '../../../../i18n/strings.g.dart';
 import '../../../../utils/notification_helper.dart';
 
 class SettingsHelper {
@@ -9,11 +9,11 @@ class SettingsHelper {
       final Uri url = Uri.parse(urlString);
       if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
         NotificationHelper.showError(
-          "${Translator.get('error_launch_url')} $urlString",
+          "${t.error_launch_url} $urlString",
         );
       }
     } catch (e) {
-      NotificationHelper.showError("${Translator.get('error_launch_url')} $e");
+      NotificationHelper.showError("${t.error_launch_url} $e");
     }
   }
 

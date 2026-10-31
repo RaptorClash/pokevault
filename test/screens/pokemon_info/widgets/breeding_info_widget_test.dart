@@ -10,7 +10,7 @@ import 'package:pokevault/providers/settings_provider.dart';
 import 'package:pokevault/screens/pokemon_info/widgets/breeding_info_widget.dart';
 import 'package:pokevault/screens/pokemon_info/widgets/pokemon_avatar.dart';
 import 'package:pokevault/services/database_service.dart';
-import 'package:pokevault/l10n/app_translations.dart';
+import 'package:pokevault/i18n/strings.g.dart';
 
 class MockDexProvider extends Mock implements DexProvider {}
 
@@ -609,7 +609,7 @@ void main() {
     ];
 
     setUp(() {
-      Translator.currentLanguage = 'de';
+      LocaleSettings.setLocale(AppLocale.de);
       mockProvider = MockDexProvider();
       mockSettingsProvider = MockSettingsProvider();
       when(() => mockSettingsProvider.currentLanguage).thenReturn('de');
@@ -766,7 +766,7 @@ void main() {
     testWidgets('Englische Lokalisierung wird korrekt dargestellt', (
       WidgetTester tester,
     ) async {
-      Translator.currentLanguage = 'en';
+      LocaleSettings.setLocale(AppLocale.en);
       when(() => mockSettingsProvider.currentLanguage).thenReturn('en');
 
       await tester.pumpWidget(buildWidget(testPokemonList[6])); // Poliwag chain
@@ -785,7 +785,7 @@ void main() {
     testWidgets('Englische Lokalisierung für Ursaluna Vollmond', (
       WidgetTester tester,
     ) async {
-      Translator.currentLanguage = 'en';
+      LocaleSettings.setLocale(AppLocale.en);
       when(() => mockSettingsProvider.currentLanguage).thenReturn('en');
 
       final teddiursa = testPokemonList.firstWhere((p) => p.id == 216);

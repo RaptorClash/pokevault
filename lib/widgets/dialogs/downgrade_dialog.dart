@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
-import '../../l10n/app_translations.dart';
+import '../../i18n/strings.g.dart';
 import '../../utils/notification_helper.dart';
 import '../../utils/update_helper.dart';
 import '../../services/dex_storage_service.dart';
@@ -32,21 +32,12 @@ class _DowngradeDialogState extends State<DowngradeDialog> {
       child: AlertDialog(
         title: Text(
           _currentStep == DowngradeStep.backup
-              ? (Translator.get(
-                  'downgrade_backup_title',
-                  fallback: 'Vorher Backup erstellen?',
-                ))
+              ? t.downgrade_backup_title
               : _currentStep == DowngradeStep.finalWarning
-              ? (Translator.get(
-                  'downgrade_final_warning_title',
-                  fallback: 'Letzte Warnung',
-                ))
+              ? t.downgrade_final_warning_title
               : _currentStep == DowngradeStep.success
               ? 'Download abgeschlossen!'
-              : (Translator.get(
-                  'attention_downgrade',
-                  fallback: 'Achtung: Downgrade',
-                )),
+              : t.attention_downgrade,
           style: TextStyle(
             color: _currentStep == DowngradeStep.finalWarning
                 ? Colors.redAccent
@@ -113,7 +104,7 @@ class _DowngradeDialogState extends State<DowngradeDialog> {
           MarkdownBody(
             data: UpdateHelper.filterReleaseNotes(
               widget.releaseInfo.releaseNotes,
-              Translator.currentLanguage,
+              LocaleSettings.currentLocale.languageCode,
             ),
             selectable: true,
             softLineBreak: true,
@@ -164,11 +155,7 @@ class _DowngradeDialogState extends State<DowngradeDialog> {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    Translator.get(
-                      'downgrade_warning_text',
-                      fallback:
-                          'Du bist dabei, auf eine ältere Version der App zurückzukehren. Dabei können neue Funktionen verloren gehen oder Inkompatibilitäten auftreten.\n\nWICHTIG FÜR ANDROID: Android blockiert direkte Downgrades. Du musst die App erst deinstallieren und die heruntergeladene APK manuell installieren.\n\nBitte exportiere VORHER unbedingt deine Dexe in den Einstellungen als Backup!',
-                    ),
+                    t.downgrade_warning_text,
                     style: const TextStyle(fontSize: 12, color: Colors.red),
                   ),
                 ),
@@ -185,19 +172,11 @@ class _DowngradeDialogState extends State<DowngradeDialog> {
       );
     } else if (_currentStep == DowngradeStep.backup) {
       return Text(
-        Translator.get(
-          'downgrade_backup_text',
-          fallback:
-              'Möchtest du deine aktuellen PokéDexe vor dem Downgrade sichern? Das wird dringend empfohlen!',
-        ),
+        t.downgrade_backup_text,
       );
     } else {
       return Text(
-        Translator.get(
-          'downgrade_final_warning_text',
-          fallback:
-              'Bist du dir absolut sicher, dass du auf diese alte Version downgraden möchtest? Hast du dein Backup gemacht?',
-        ),
+        t.downgrade_final_warning_text,
       );
     }
   }
@@ -222,7 +201,7 @@ class _DowngradeDialogState extends State<DowngradeDialog> {
       return [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: Text(Translator.get('cancel')),
+          child: Text(t.cancel),
         ),
         ElevatedButton(
           onPressed: () => setState(() => _currentStep = DowngradeStep.backup),
@@ -231,10 +210,7 @@ class _DowngradeDialogState extends State<DowngradeDialog> {
             foregroundColor: Colors.white,
           ),
           child: Text(
-            Translator.get(
-              'downgrade_execute',
-              fallback: 'Downgrade ausführen',
-            ),
+            t.downgrade_execute,
           ),
         ),
       ];
@@ -244,18 +220,13 @@ class _DowngradeDialogState extends State<DowngradeDialog> {
           onPressed: _isBackingUp
               ? null
               : () => setState(() => _currentStep = DowngradeStep.info),
-          child: Text(Translator.get('back', fallback: 'Zurück')),
+          child: Text(t.back),
         ),
         TextButton(
           onPressed: _isBackingUp
               ? null
               : () => setState(() => _currentStep = DowngradeStep.finalWarning),
-          child: Text(
-            Translator.get(
-              'downgrade_backup_skip',
-              fallback: 'Ohne Backup fortfahren',
-            ),
-          ),
+          child: Text(t.downgrade_backup_skip),
         ),
         ElevatedButton(
           onPressed: _isBackingUp
@@ -280,7 +251,7 @@ class _DowngradeDialogState extends State<DowngradeDialog> {
                   } catch (e) {
                     if (mounted) {
                       setState(() => _isBackingUp = false);
-                      NotificationHelper.showError('${Translator.get('error')} $e');
+                      NotificationHelper.showError('${t.error} $e');
                     }
                   }
                 },
@@ -297,23 +268,18 @@ class _DowngradeDialogState extends State<DowngradeDialog> {
                     color: Colors.white,
                   ),
                 )
-              : Text(
-                  Translator.get(
-                    'downgrade_backup_create',
-                    fallback: 'Backup erstellen',
-                  ),
-                ),
+              : Text(t.downgrade_backup_create),
         ),
       ];
     } else {
       return [
         TextButton(
           onPressed: () => setState(() => _currentStep = DowngradeStep.backup),
-          child: Text(Translator.get('back', fallback: 'Zurück')),
+          child: Text(t.back),
         ),
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: Text(Translator.get('cancel')),
+          child: Text(t.cancel),
         ),
         ElevatedButton(
           onPressed: _startDownload,
@@ -321,12 +287,7 @@ class _DowngradeDialogState extends State<DowngradeDialog> {
             backgroundColor: Colors.red,
             foregroundColor: Colors.white,
           ),
-          child: Text(
-            Translator.get(
-              'downgrade_final_confirm',
-              fallback: 'Ja, Downgrade starten',
-            ),
-          ),
+          child: Text(t.downgrade_final_confirm),
         ),
       ];
     }
@@ -353,7 +314,7 @@ class _DowngradeDialogState extends State<DowngradeDialog> {
     } catch (e) {
       if (mounted) {
         setState(() => _currentStep = DowngradeStep.info);
-        NotificationHelper.showError('${Translator.get('error')} $e');
+        NotificationHelper.showError('${t.error} $e');
       }
     }
   }

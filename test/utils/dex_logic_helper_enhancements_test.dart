@@ -2,7 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:pokevault/models/pokemon.dart';
 import 'package:pokevault/models/user_dex.dart';
 import 'package:pokevault/utils/dex_logic_helper.dart';
-import 'package:pokevault/l10n/app_translations.dart';
+import 'package:pokevault/i18n/strings.g.dart';
 
 void main() {
   group('DexLogicHelper Enhancements & Boundary Tests (TDD)', () {
@@ -14,7 +14,7 @@ void main() {
     late List<Map<String, dynamic>> specialObtainables;
 
     setUp(() {
-      Translator.currentLanguage = 'de';
+      LocaleSettings.setLocale(AppLocale.de);
 
       togetic = Pokemon(
         id: 176,
@@ -365,7 +365,7 @@ void main() {
         isShinyDex: false,
       );
 
-      Translator.currentLanguage = 'de';
+      LocaleSettings.setLocale(AppLocale.de);
       final entriesDe = DexLogicHelper.buildDisplayEntries(dex, pokemonList, specialObtainables);
       final boxesDe = DexLogicHelper.generateBoxes(entriesDe, true, dex);
       final orreBoxDe = boxesDe.firstWhere((b) => b.title.contains('Colosseum & XD'));
@@ -375,7 +375,7 @@ void main() {
         reason: 'Orre section title must indicate Tausche in German so user knows they are trades',
       );
 
-      Translator.currentLanguage = 'en';
+      LocaleSettings.setLocale(AppLocale.en);
       final entriesEn = DexLogicHelper.buildDisplayEntries(dex, pokemonList, specialObtainables);
       final boxesEn = DexLogicHelper.generateBoxes(entriesEn, true, dex);
       final orreBoxEn = boxesEn.firstWhere((b) => b.title.contains('Colosseum & XD'));
@@ -426,14 +426,14 @@ void main() {
         isShinyDex: false,
       );
 
-      Translator.currentLanguage = 'de';
+      LocaleSettings.setLocale(AppLocale.de);
       final entriesDe = DexLogicHelper.buildDisplayEntries(dex, [furfrou], []);
       final boxesDe = DexLogicHelper.generateBoxes(entriesDe, true, dex);
       final furfrouBoxDe = boxesDe.firstWhere((b) => b.title.contains('Coiffwaff'));
       expect(furfrouBoxDe.title.contains('Coiffwaff'), isTrue);
       expect(furfrouBoxDe.title.contains('furfrou'), isFalse);
 
-      Translator.currentLanguage = 'en';
+      LocaleSettings.setLocale(AppLocale.en);
       final entriesEn = DexLogicHelper.buildDisplayEntries(dex, [furfrou], []);
       final boxesEn = DexLogicHelper.generateBoxes(entriesEn, true, dex);
       final furfrouBoxEn = boxesEn.firstWhere((b) => b.title.contains('Furfrou'));

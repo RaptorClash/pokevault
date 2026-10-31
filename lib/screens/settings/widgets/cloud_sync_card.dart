@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:provider/provider.dart';
-import '../../../../l10n/app_translations.dart';
+import '../../../../i18n/strings.g.dart';
 import '../../../../providers/settings_provider.dart';
 import '../../../../providers/dex_provider.dart';
 import '../../../../providers/shiny_hunt_provider.dart';
@@ -41,7 +41,7 @@ class _CloudSyncCardState extends State<CloudSyncCard> {
                   ),
                   const SizedBox(width: 8),
                   Text(
-                    Translator.get('cloud_sync'),
+                    t.cloud_sync,
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.bold,
@@ -53,7 +53,7 @@ class _CloudSyncCardState extends State<CloudSyncCard> {
               IconButton(
                 icon: const Icon(Icons.help_outline),
                 color: Theme.of(context).colorScheme.primary,
-                tooltip: Translator.get('cloud_tut_title'),
+                tooltip: t.cloud_tut_title,
                 onPressed: () => _showCloudSetupTutorial(context),
               ),
             ],
@@ -74,7 +74,7 @@ class _CloudSyncCardState extends State<CloudSyncCard> {
                           offset: settingsProvider.googleClientId.length,
                         ),
                   decoration: InputDecoration(
-                    labelText: Translator.get('google_client_id'),
+                    labelText: t.google_client_id,
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
@@ -98,7 +98,7 @@ class _CloudSyncCardState extends State<CloudSyncCard> {
                             offset: settingsProvider.googleClientSecret.length,
                           ),
                     decoration: InputDecoration(
-                      labelText: Translator.get('google_client_secret'),
+                      labelText: t.google_client_secret,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
@@ -133,11 +133,9 @@ class _CloudSyncCardState extends State<CloudSyncCard> {
                         ),
                         label: FittedBox(
                           child: Text(
-                            Translator.get(
-                              GoogleDriveSyncService.instance.isSignedIn
-                                  ? 'logout_drive'
-                                  : 'login_drive',
-                            ),
+                            GoogleDriveSyncService.instance.isSignedIn
+                                ? t.logout_drive
+                                : t.login_drive,
                           ),
                         ),
                         onPressed: () async {
@@ -183,7 +181,7 @@ class _CloudSyncCardState extends State<CloudSyncCard> {
                         ),
                         icon: const Icon(Icons.sync),
                         label: FittedBox(
-                          child: Text(Translator.get('sync_now')),
+                          child: Text(t.sync_now),
                         ),
                         onPressed: () async {
                           if (!GoogleDriveSyncService.instance.isSignedIn) {
@@ -220,7 +218,7 @@ class _CloudSyncCardState extends State<CloudSyncCard> {
                               Navigator.pop(context);
                               if (success) {
                                 NotificationHelper.showSuccess(
-                                  Translator.get('sync_success'),
+                                  t.sync_success,
                                 );
                               } else {
                                 NotificationHelper.showError(
@@ -258,7 +256,7 @@ class _CloudSyncCardState extends State<CloudSyncCard> {
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  Translator.get('cloud_tut_title'),
+                  t.cloud_tut_title,
                   style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -284,7 +282,7 @@ class _CloudSyncCardState extends State<CloudSyncCard> {
                       ),
                     ),
                     child: Text(
-                      Translator.get('cloud_tut_intro'),
+                      t.cloud_tut_intro,
                       style: const TextStyle(
                         fontSize: 13,
                         fontStyle: FontStyle.italic,
@@ -295,59 +293,59 @@ class _CloudSyncCardState extends State<CloudSyncCard> {
                   _buildTutorialStep(
                     context,
                     1,
-                    Translator.get('cloud_tut_step1'),
+                    t.cloud_tut_step1,
                     linkUrl: 'https://console.cloud.google.com',
                     linkText: '  console.cloud.google.com',
                   ),
                   _buildTutorialStep(
                     context,
                     2,
-                    Translator.get('cloud_tut_step2'),
+                    t.cloud_tut_step2,
                   ),
                   _buildTutorialStep(
                     context,
                     3,
-                    Translator.get('cloud_tut_step3'),
+                    t.cloud_tut_step3,
                   ),
                   _buildTutorialStep(
                     context,
                     4,
-                    Translator.get('cloud_tut_step4'),
+                    t.cloud_tut_step4,
                   ),
                   _buildTutorialStep(
                     context,
                     5,
                     kIsWeb
-                        ? Translator.get('cloud_tut_step5_web')
-                        : Translator.get('cloud_tut_step5'),
+                        ? t.cloud_tut_step5_web
+                        : t.cloud_tut_step5,
                     isImportant: true,
                   ),
                   _buildTutorialStep(
                     context,
                     6,
                     kIsWeb
-                        ? Translator.get('cloud_tut_step6_web')
-                        : Translator.get('cloud_tut_step6'),
+                        ? t.cloud_tut_step6_web
+                        : t.cloud_tut_step6,
                   ),
                   _buildTutorialStep(
                     context,
                     7,
-                    Translator.get('cloud_tut_step7'),
+                    t.cloud_tut_step7,
                   ),
                   _buildTutorialStep(
                     context,
                     8,
-                    Translator.get('cloud_tut_step8'),
+                    t.cloud_tut_step8,
                   ),
                   _buildTutorialStep(
                     context,
                     9,
-                    Translator.get('cloud_tut_step9'),
+                    t.cloud_tut_step9,
                   ),
                   _buildTutorialStep(
                     context,
                     10,
-                    Translator.get('cloud_tut_step10'),
+                    t.cloud_tut_step10,
                   ),
                 ],
               ),
@@ -356,7 +354,7 @@ class _CloudSyncCardState extends State<CloudSyncCard> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: Text(Translator.get('close', fallback: 'Schließen')),
+              child: Text(t.close),
             ),
           ],
         );

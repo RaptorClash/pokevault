@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../models/pokemon.dart';
 import '../../../../utils/shiny_logic_helper.dart';
-import '../../../../l10n/app_translations.dart';
+import '../../../../i18n/strings.g.dart';
 import '../breeding_calculator_widget.dart';
 
 class Gen2ShinyGuide extends StatelessWidget {
@@ -22,10 +22,7 @@ class Gen2ShinyGuide extends StatelessWidget {
 
     content.add(
       Text(
-        Translator.get(
-          'shiny_gen2_huntable_yes',
-          fallback: 'Shiny Huntable: Ja (Basis-Chance 1:8192)',
-        ),
+        t.shiny_gen2_huntable_yes,
         style: const TextStyle(
           color: Colors.green,
           fontWeight: FontWeight.bold,
@@ -37,7 +34,7 @@ class Gen2ShinyGuide extends StatelessWidget {
     if (pokemon.id >= 243 && pokemon.id <= 245) {
       content.add(
         Text(
-          Translator.get('shiny_roamer_gen2_title'),
+          t.shiny_roamer_gen2_title,
           style: const TextStyle(fontWeight: FontWeight.bold),
         ),
       );
@@ -68,8 +65,8 @@ class Gen2ShinyGuide extends StatelessWidget {
               Expanded(
                 child: Text(
                   pokemon.id == 245
-                      ? Translator.get('shiny_roamer_gen2_suicune_note')
-                      : Translator.get('shiny_roamer_gen2_beasts_note'),
+                      ? t.shiny_roamer_gen2_suicune_note
+                      : t.shiny_roamer_gen2_beasts_note,
                   style: TextStyle(
                     fontSize: 12,
                     color: Theme.of(context).colorScheme.onTertiaryContainer,
@@ -86,7 +83,7 @@ class Gen2ShinyGuide extends StatelessWidget {
     if (pokemon.id >= 252 && pokemon.id <= 257) {
       content.add(
         Text(
-          Translator.get('shiny_mail_writer_title'),
+          t.shiny_mail_writer_title,
           style: const TextStyle(fontWeight: FontWeight.bold),
         ),
       );
@@ -116,7 +113,7 @@ class Gen2ShinyGuide extends StatelessWidget {
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  Translator.get('shiny_mail_writer_note'),
+                  t.shiny_mail_writer_note,
                   style: TextStyle(
                     fontSize: 12,
                     color: Theme.of(context).colorScheme.onTertiaryContainer,
@@ -133,7 +130,7 @@ class Gen2ShinyGuide extends StatelessWidget {
           width: double.infinity,
           child: ElevatedButton.icon(
             icon: const Icon(Icons.language),
-            label: Text(Translator.get('tutorial_mail_writer_main')),
+            label: Text(t.tutorial_mail_writer_main),
             onPressed: () => onLaunchUrl(
               'https://glitchcity.wiki/wiki/Guides:Mail_Writer_Codes',
             ),
@@ -146,7 +143,7 @@ class Gen2ShinyGuide extends StatelessWidget {
           width: double.infinity,
           child: ElevatedButton.icon(
             icon: const Icon(Icons.code),
-            label: Text(Translator.get('tutorial_mail_writer_scripts')),
+            label: Text(t.tutorial_mail_writer_scripts),
             onPressed: () => onLaunchUrl(
               'https://glitchcity.wiki/wiki/Guides:Mail_Writer_Codes#Gen3Giver_scripts',
             ),
@@ -182,14 +179,14 @@ class Gen2ShinyGuide extends StatelessWidget {
                   ),
                   const SizedBox(width: 8),
                   Text(
-                    Translator.get('shiny_odd_egg_title'),
+                    t.shiny_odd_egg_title,
                     style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
                 ],
               ),
               const SizedBox(height: 8),
               Text(
-                Translator.get('shiny_odd_egg_desc'),
+                t.shiny_odd_egg_desc,
                 style: const TextStyle(fontSize: 13),
               ),
             ],
@@ -204,7 +201,7 @@ class Gen2ShinyGuide extends StatelessWidget {
             ShinyLogicHelper.isBaby(pokemon.id))) {
       content.add(
         Text(
-          Translator.get('shiny_ditto_guide'),
+          t.shiny_ditto_guide,
           style: const TextStyle(fontWeight: FontWeight.bold),
         ),
       );

@@ -7,7 +7,7 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 
-import 'package:pokevault/l10n/app_translations.dart';
+import 'package:pokevault/i18n/strings.g.dart';
 import 'package:pokevault/models/pokemon.dart';
 import 'package:pokevault/models/shiny_hunt.dart';
 import 'package:pokevault/models/user_dex.dart';
@@ -168,7 +168,7 @@ void main() {
   });
 
   setUp(() async {
-    Translator.currentLanguage = 'de';
+    LocaleSettings.setLocale(AppLocale.de);
     fakeDb = FakeDatabaseService();
     huntProvider = ShinyHuntProvider(
       databaseService: fakeDb,
@@ -254,7 +254,7 @@ void main() {
     expect(find.textContaining('Karmesin / Purpur'), findsOneWidget);
     expect(find.textContaining('1/4096'), findsOneWidget);
     expect(find.text('0'), findsOneWidget);
-    expect(find.text(Translator.get('shiny_hunt_tap_to_count')), findsOneWidget);
+    expect(find.text(t.shiny_hunt_tap_to_count), findsOneWidget);
   });
 
   testWidgets('Increments encounter count when tapping central tap zone', (tester) async {
@@ -263,7 +263,7 @@ void main() {
     await pumpView(tester);
 
     // Tap on the tap zone
-    await tester.tap(find.text(Translator.get('shiny_hunt_tap_to_count')));
+    await tester.tap(find.text(t.shiny_hunt_tap_to_count));
     await pumpView(tester);
 
     expect(find.text('1'), findsOneWidget);
@@ -309,7 +309,7 @@ void main() {
     await pumpView(tester);
 
     // Tap tap-to-count
-    await tester.tap(find.text(Translator.get('shiny_hunt_tap_to_count')));
+    await tester.tap(find.text(t.shiny_hunt_tap_to_count));
     await pumpView(tester);
     expect(find.text('5'), findsOneWidget);
 
@@ -317,7 +317,7 @@ void main() {
     await tester.tap(find.text('+10'));
     await pumpView(tester);
 
-    await tester.tap(find.text(Translator.get('shiny_hunt_tap_to_count')));
+    await tester.tap(find.text(t.shiny_hunt_tap_to_count));
     await pumpView(tester);
     expect(find.text('15'), findsOneWidget);
   });
@@ -330,8 +330,8 @@ void main() {
     // Secondary buttons exist initially
     expect(find.byIcon(Icons.remove), findsOneWidget);
     expect(find.byIcon(Icons.add), findsOneWidget);
-    expect(find.text(Translator.get('shiny_hunt_record_phase_btn')), findsOneWidget);
-    expect(find.text(Translator.get('shiny_hunt_caught_btn')), findsOneWidget);
+    expect(find.text(t.shiny_hunt_record_phase_btn), findsOneWidget);
+    expect(find.text(t.shiny_hunt_caught_btn), findsOneWidget);
 
     // Tap lock icon to enter lock mode
     await tester.tap(find.byIcon(Icons.lock_open_rounded));
@@ -340,11 +340,11 @@ void main() {
     // In lock mode, secondary buttons are hidden
     expect(find.byIcon(Icons.remove), findsNothing);
     expect(find.byIcon(Icons.add), findsNothing);
-    expect(find.text(Translator.get('shiny_hunt_record_phase_btn')), findsNothing);
-    expect(find.text(Translator.get('shiny_hunt_caught_btn')), findsNothing);
+    expect(find.text(t.shiny_hunt_record_phase_btn), findsNothing);
+    expect(find.text(t.shiny_hunt_caught_btn), findsNothing);
 
     // Tapping still increments
-    await tester.tap(find.text(Translator.get('shiny_hunt_tap_to_count')));
+    await tester.tap(find.text(t.shiny_hunt_tap_to_count));
     await pumpView(tester);
     expect(find.text('1'), findsOneWidget);
 
@@ -362,13 +362,13 @@ void main() {
     await tester.pumpWidget(buildTestWidget(hunt.id));
     await pumpView(tester);
 
-    expect(find.text(Translator.get('shiny_hunt_sprite_toggle_shiny')), findsOneWidget);
+    expect(find.text(t.shiny_hunt_sprite_toggle_shiny), findsOneWidget);
 
     // Tap toggle badge
-    await tester.tap(find.text(Translator.get('shiny_hunt_sprite_toggle_shiny')));
+    await tester.tap(find.text(t.shiny_hunt_sprite_toggle_shiny));
     await pumpView(tester);
 
-    expect(find.text(Translator.get('shiny_hunt_sprite_toggle_normal')), findsOneWidget);
+    expect(find.text(t.shiny_hunt_sprite_toggle_normal), findsOneWidget);
   });
 
   testWidgets('Manual count entry dialog updates encounters', (tester) async {
@@ -380,11 +380,11 @@ void main() {
     await tester.tap(find.text('0'));
     await pumpView(tester);
 
-    expect(find.text(Translator.get('shiny_hunt_manual_count_title')), findsOneWidget);
+    expect(find.text(t.shiny_hunt_manual_count_title), findsOneWidget);
 
     // Enter 2000
     await tester.enterText(find.byType(TextField), '2000');
-    await tester.tap(find.text(Translator.get('save', fallback: 'Speichern')));
+    await tester.tap(find.text(t.save));
     await pumpView(tester);
 
     expect(find.text('2000'), findsOneWidget);
@@ -417,7 +417,7 @@ void main() {
     await tester.pumpWidget(buildTestWidget(hunt.id));
     await pumpView(tester);
 
-    await tester.tap(find.text(Translator.get('shiny_hunt_record_phase_btn')));
+    await tester.tap(find.text(t.shiny_hunt_record_phase_btn));
     await pumpView(tester);
 
     expect(find.byType(RecordPhaseDialog), findsOneWidget);
@@ -428,7 +428,7 @@ void main() {
     await tester.pumpWidget(buildTestWidget(hunt.id));
     await pumpView(tester);
 
-    await tester.tap(find.text(Translator.get('shiny_hunt_caught_btn')));
+    await tester.tap(find.text(t.shiny_hunt_caught_btn));
     await pumpView(tester);
 
     expect(find.byType(ShinyCatchDialog), findsOneWidget);
@@ -506,7 +506,7 @@ void main() {
 
     expect(find.byType(RecordPhaseDialog), findsOneWidget);
     // Tap Dex Sync checkbox
-    await tester.tap(find.text(Translator.get('shiny_hunt_save_phase_to_dex')));
+    await tester.tap(find.text(t.shiny_hunt_save_phase_to_dex));
     await pumpView(tester);
 
     expect(find.text('Kanto Dex'), findsOneWidget);
@@ -568,32 +568,32 @@ void main() {
     await pumpView(tester);
 
     // Tap finish button in AppBar
-    await tester.tap(find.text(Translator.get('shiny_hunt_finish_btn')));
+    await tester.tap(find.text(t.shiny_hunt_finish_btn));
     await pumpView(tester);
 
-    expect(find.text(Translator.get('shiny_hunt_finish_dialog_title')), findsOneWidget);
-    expect(find.text(Translator.get('shiny_hunt_finish_archive_only')), findsOneWidget);
-    expect(find.text(Translator.get('shiny_hunt_finish_as_caught')), findsOneWidget);
+    expect(find.text(t.shiny_hunt_finish_dialog_title), findsOneWidget);
+    expect(find.text(t.shiny_hunt_finish_archive_only), findsOneWidget);
+    expect(find.text(t.shiny_hunt_finish_as_caught), findsOneWidget);
 
     // Tap "Ohne Fang archivieren"
-    await tester.tap(find.text(Translator.get('shiny_hunt_finish_archive_only')));
+    await tester.tap(find.text(t.shiny_hunt_finish_archive_only));
     await pumpView(tester);
 
     expect(huntProvider.getHuntById(hunt.id)!.isCompleted, isTrue);
-    expect(find.text(Translator.get('shiny_hunt_completed_banner')), findsWidgets);
-    expect(find.text(Translator.get('shiny_hunt_reopen_btn')), findsOneWidget);
-    expect(find.text(Translator.get('shiny_hunt_back_to_hub')), findsOneWidget);
+    expect(find.text(t.shiny_hunt_completed_banner), findsWidgets);
+    expect(find.text(t.shiny_hunt_reopen_btn), findsOneWidget);
+    expect(find.text(t.shiny_hunt_back_to_hub), findsOneWidget);
 
     // Dismiss SnackBar so bottom buttons are unblocked for tapping
     ScaffoldMessenger.of(tester.element(find.byType(ShinyHuntCounterScreen))).hideCurrentSnackBar();
     await pumpView(tester);
 
     // Tap "Hunt wieder aufnehmen"
-    await tester.tap(find.text(Translator.get('shiny_hunt_reopen_btn')));
+    await tester.tap(find.text(t.shiny_hunt_reopen_btn));
     await pumpView(tester);
 
     expect(huntProvider.getHuntById(hunt.id)!.isCompleted, isFalse);
-    expect(find.text(Translator.get('shiny_hunt_tap_to_count')), findsOneWidget);
+    expect(find.text(t.shiny_hunt_tap_to_count), findsOneWidget);
   });
 
   testWidgets('Renders phase history card when past phases exist', (tester) async {
@@ -626,7 +626,7 @@ void main() {
     await tester.pumpWidget(buildTestWidget(hunt.id));
     await pumpView(tester);
 
-    expect(find.text(Translator.get('shiny_hunt_phase_history_card_title')), findsOneWidget);
+    expect(find.text(t.shiny_hunt_phase_history_card_title), findsOneWidget);
     expect(find.textContaining('Bojelin'), findsOneWidget);
     expect(find.textContaining('850'), findsOneWidget);
   });
@@ -661,9 +661,9 @@ void main() {
     // Verify each context chip is displayed
     expect(find.text('Karmesin / Purpur'), findsOneWidget);
     expect(find.textContaining('Standard Wild'), findsOneWidget);
-    expect(find.text(Translator.get('shiny_hunt_type_breeding')), findsOneWidget);
+    expect(find.text(t.shiny_hunt_type_breeding), findsOneWidget);
     expect(find.text('Kanto Dex'), findsOneWidget);
-    expect(find.text(Translator.get('shiny_hunt_charm_badge')), findsOneWidget);
+    expect(find.text(t.shiny_hunt_charm_badge), findsOneWidget);
     expect(find.textContaining('#10100'), findsOneWidget);
     expect(find.text('Mein Zuchtprojekt'), findsOneWidget);
 
@@ -672,7 +672,7 @@ void main() {
     await tester.tap(find.text('Mein Zuchtprojekt'));
     await pumpView(tester);
 
-    expect(find.text(Translator.get('notes', fallback: 'Notizen')), findsOneWidget);
+    expect(find.text(t.notes), findsOneWidget);
     expect(find.text('OK'), findsOneWidget);
     await tester.tap(find.text('OK'));
     await pumpView(tester);
@@ -687,17 +687,17 @@ void main() {
     expect(huntProvider.getHuntById(hunt.id)!.incrementStep, equals(1));
 
     // Tap Custom step chip
-    final customChip = find.text(Translator.get('shiny_hunt_step_custom'));
+    final customChip = find.text(t.shiny_hunt_step_custom);
     expect(customChip, findsOneWidget);
     await tester.tap(customChip);
     await pumpView(tester);
 
     // Dialog should be open
-    expect(find.text(Translator.get('shiny_hunt_step_custom_title')), findsOneWidget);
+    expect(find.text(t.shiny_hunt_step_custom_title), findsOneWidget);
 
     // Enter custom number (e.g. 25)
     await tester.enterText(find.byType(TextField), '25');
-    await tester.tap(find.text(Translator.get('save', fallback: 'Speichern')));
+    await tester.tap(find.text(t.save));
     await pumpView(tester);
 
     // Step size should be updated in provider
@@ -706,7 +706,7 @@ void main() {
     expect(find.text('+25'), findsOneWidget);
 
     // Tap central tap zone to count
-    await tester.tap(find.text(Translator.get('shiny_hunt_tap_to_count')));
+    await tester.tap(find.text(t.shiny_hunt_tap_to_count));
     await pumpView(tester);
 
     // Current encounters should increase from 10 to 35
@@ -730,10 +730,10 @@ void main() {
     await pumpView(tester);
 
     // Verify catch details card
-    expect(find.text(Translator.get('shiny_hunt_catch_details_title')), findsOneWidget);
+    expect(find.text(t.shiny_hunt_catch_details_title), findsOneWidget);
     expect(find.textContaining('21.03.2026'), findsOneWidget);
     expect(find.textContaining('Hyperball'), findsOneWidget);
-    expect(find.text(Translator.get('shiny_hunt_type_wild')), findsWidgets);
+    expect(find.text(t.shiny_hunt_type_wild), findsWidgets);
     expect(find.textContaining('Zufallsfund im Gras'), findsWidgets);
 
     // Tap reopen icon button on catch details card
@@ -744,7 +744,7 @@ void main() {
 
     // Hunt should now be active again
     expect(huntProvider.getHuntById(hunt.id)!.isActive, isTrue);
-    expect(find.text(Translator.get('shiny_hunt_tap_to_count')), findsOneWidget);
+    expect(find.text(t.shiny_hunt_tap_to_count), findsOneWidget);
   });
 
   testWidgets('Triggers live TutorialOverlay for shiny_hunt_counter when not seen and marks as seen on completion', (tester) async {
@@ -758,10 +758,10 @@ void main() {
     await pumpView(tester);
 
     expect(find.byType(TutorialOverlay), findsOneWidget);
-    expect(find.text(Translator.get('tutorial_shiny_counter_title')), findsOneWidget);
+    expect(find.text(t.tutorial_shiny_counter_title), findsOneWidget);
 
     // Skip / advance tutorial to complete
-    final skipBtn = find.text(Translator.get('tutorial_skip', fallback: 'Überspringen'));
+    final skipBtn = find.text(t.tutorial_skip);
     expect(skipBtn, findsOneWidget);
     await tester.tap(skipBtn);
     await pumpView(tester);

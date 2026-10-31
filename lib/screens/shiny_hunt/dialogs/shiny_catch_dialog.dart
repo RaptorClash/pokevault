@@ -5,7 +5,7 @@ import '../../../providers/dex_provider.dart';
 import '../../../providers/shiny_hunt_provider.dart';
 import '../../../services/database_service.dart';
 import '../../../utils/shiny_hunt_odds_helper.dart';
-import '../../../l10n/app_translations.dart';
+import '../../../i18n/strings.g.dart';
 import '../../../widgets/universal_poke_image.dart';
 
 class ShinyCatchDialog extends StatefulWidget {
@@ -144,7 +144,7 @@ class _ShinyCatchDialogState extends State<ShinyCatchDialog> {
                       const Icon(Icons.auto_awesome, color: Colors.amber, size: 42),
                       const SizedBox(height: 8),
                       Text(
-                        Translator.get('shiny_hunt_catch_dialog_title'),
+                        t.shiny_hunt_catch_dialog_title,
                         style: theme.textTheme.titleLarge?.copyWith(
                           fontWeight: FontWeight.bold,
                           color: Colors.amber.shade800,
@@ -164,7 +164,7 @@ class _ShinyCatchDialogState extends State<ShinyCatchDialog> {
 
                 // Ball-Auswahl
                 Text(
-                  Translator.get('shiny_hunt_ball_select'),
+                  t.shiny_hunt_ball_select,
                   style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 8),
@@ -184,7 +184,7 @@ class _ShinyCatchDialogState extends State<ShinyCatchDialog> {
                         final isMatching = _matchingBallKeys.contains(ballName.replaceAll('-', '_').toLowerCase());
                         final localizedName = _getLocalizedBallName(ballName);
                         final tooltipMsg = isMatching
-                            ? '$localizedName ✨ (${Translator.get('shiny_hunt_matching_ball_badge', fallback: 'Matching Ball')})'
+                            ? '$localizedName ✨ (${t.shiny_hunt_matching_ball_badge})'
                             : localizedName;
 
                         return Tooltip(
@@ -254,10 +254,7 @@ class _ShinyCatchDialogState extends State<ShinyCatchDialog> {
                       value: _saveToDex,
                       onChanged: (val) => setState(() => _saveToDex = val ?? true),
                       title: Text(
-                        Translator.get(
-                          'shiny_hunt_sync_to_target_dex',
-                          fallback: 'In "{dexTitle}" als gefangen & Shiny markieren',
-                        ).replaceAll('{dexTitle}', targetDex.title),
+                        t.shiny_hunt_sync_to_target_dex.replaceAll('{dexTitle}', targetDex.title),
                         style: const TextStyle(fontWeight: FontWeight.w600),
                       ),
                       subtitle: Text(
@@ -271,14 +268,14 @@ class _ShinyCatchDialogState extends State<ShinyCatchDialog> {
                       contentPadding: EdgeInsets.zero,
                       value: _saveToDex,
                       onChanged: (val) => setState(() => _saveToDex = val ?? true),
-                      title: Text(Translator.get('shiny_hunt_save_to_dex')),
+                      title: Text(t.shiny_hunt_save_to_dex),
                       controlAffinity: ListTileControlAffinity.leading,
                     ),
                     if (_saveToDex) ...[
                       DropdownButtonFormField<String>(
                         initialValue: effectiveDexId,
                         decoration: InputDecoration(
-                          labelText: Translator.get('shiny_hunt_target_dex'),
+                          labelText: t.shiny_hunt_target_dex,
                           border: const OutlineInputBorder(),
                           contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                         ),
@@ -300,7 +297,7 @@ class _ShinyCatchDialogState extends State<ShinyCatchDialog> {
                   controller: _notesController,
                   maxLines: 2,
                   decoration: InputDecoration(
-                    labelText: Translator.get('shiny_hunt_notes'),
+                    labelText: t.shiny_hunt_notes,
                     hintText: 'Z. B. Mäßig, 5 DVs, Luxusball...',
                     border: const OutlineInputBorder(),
                   ),
@@ -316,7 +313,7 @@ class _ShinyCatchDialogState extends State<ShinyCatchDialog> {
                   children: [
                     TextButton(
                       onPressed: () => Navigator.of(context).pop(),
-                      child: Text(Translator.get('cancel', fallback: 'Abbrechen')),
+                      child: Text(t.cancel),
                     ),
                     ElevatedButton.icon(
                       style: ElevatedButton.styleFrom(
@@ -341,7 +338,7 @@ class _ShinyCatchDialogState extends State<ShinyCatchDialog> {
                         }
                       },
                       icon: const Icon(Icons.check_circle),
-                      label: Text(Translator.get('confirm', fallback: 'Fang eintragen')),
+                      label: Text(t.confirm),
                     ),
                   ],
                 ),

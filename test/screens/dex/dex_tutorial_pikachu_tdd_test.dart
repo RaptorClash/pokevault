@@ -12,7 +12,6 @@ import 'package:pokevault/providers/dex_provider.dart';
 import 'package:pokevault/providers/settings_provider.dart';
 import 'package:pokevault/providers/tutorial_provider.dart';
 import 'package:pokevault/screens/pokemon_info/pokemon_info_screen.dart';
-import 'package:pokevault/l10n/app_translations.dart';
 import 'package:pokevault/i18n/strings.g.dart';
 import 'package:pokevault/widgets/tutorial/tutorial_overlay.dart';
 import 'package:path_provider_platform_interface/path_provider_platform_interface.dart';
@@ -124,7 +123,7 @@ void main() {
   });
 
   setUp(() async {
-    Translator.currentLanguage = 'de';
+    LocaleSettings.setLocale(AppLocale.de);
     SharedPreferences.setMockInitialValues({'app_db_version': DatabaseService.currentAppDbVersion});
     prefs = await SharedPreferences.getInstance();
     tutorialProvider = TutorialProvider(prefs);
@@ -139,18 +138,18 @@ void main() {
 
   test('Translations exist for tutorial_info_language_title and tutorial_info_language_text in German and English', () {
     // German
-    Translator.currentLanguage = 'de';
-    final deTitle = Translator.get('tutorial_info_language_title');
-    final deText = Translator.get('tutorial_info_language_text');
+    LocaleSettings.setLocale(AppLocale.de);
+    final deTitle = t.tutorial_info_language_title;
+    final deText = t.tutorial_info_language_text;
     expect(deTitle, isNot(equals('tutorial_info_language_title')));
     expect(deTitle.isNotEmpty, isTrue);
     expect(deText, isNot(equals('tutorial_info_language_text')));
     expect(deText.isNotEmpty, isTrue);
 
     // English
-    Translator.currentLanguage = 'en';
-    final enTitle = Translator.get('tutorial_info_language_title');
-    final enText = Translator.get('tutorial_info_language_text');
+    LocaleSettings.setLocale(AppLocale.en);
+    final enTitle = t.tutorial_info_language_title;
+    final enText = t.tutorial_info_language_text;
     expect(enTitle, isNot(equals('tutorial_info_language_title')));
     expect(enTitle.isNotEmpty, isTrue);
     expect(enText, isNot(equals('tutorial_info_language_text')));

@@ -5,7 +5,7 @@ import '../../../models/user_dex.dart';
 import '../../../models/pokemon.dart';
 import '../../../providers/dex_provider.dart';
 import '../../../providers/settings_provider.dart';
-import '../../../l10n/app_translations.dart';
+import '../../../i18n/strings.g.dart';
 import '../../../utils/notification_helper.dart';
 import '../../../widgets/universal_poke_image.dart';
 import '../../../utils/dex_logic_helper.dart';
@@ -131,8 +131,8 @@ class PokemonHeaderWidget extends StatelessWidget {
                     ? Colors.amber
                     : Theme.of(context).colorScheme.surface,
                 tooltip: wantShiny
-                    ? (Translator.get('normal_form', fallback: 'Normale Form'))
-                    : (Translator.get('shiny_form', fallback: 'Shiny Form')),
+                    ? (t.normal_form)
+                    : (t.shiny_form),
                 onPressed: onShinyToggled,
                 child: Icon(
                   wantShiny ? Icons.auto_awesome : Icons.auto_awesome_outlined,
@@ -146,7 +146,7 @@ class PokemonHeaderWidget extends StatelessWidget {
     } catch (e) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         NotificationHelper.showError(
-          "${Translator.get('error_header_load')} $e",
+          "${t.error_header_load} $e",
         );
       });
       return const SizedBox(height: 240, child: Icon(Icons.error));
@@ -206,7 +206,7 @@ class PokemonBasicInfoWidget extends StatelessWidget {
                       border: Border.all(color: Colors.black26),
                     ),
                     child: Text(
-                      Translator.get('type_$type').toUpperCase(),
+                      (t['type_$type'] ?? type).toUpperCase(),
                       style: const TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.bold,
@@ -229,8 +229,8 @@ class PokemonBasicInfoWidget extends StatelessWidget {
                       .trim();
                   final isSpecial = entry.uniqueId.contains('_special_');
                   final label = isSpecial
-                      ? Translator.get('special_info', fallback: 'Info')
-                      : Translator.get('form', fallback: 'Form');
+                      ? t.special_info
+                      : t.form;
 
                   return Text(
                     '$label: $cleanSuffix',
@@ -249,7 +249,7 @@ class PokemonBasicInfoWidget extends StatelessWidget {
     } catch (e) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         NotificationHelper.showError(
-          "${Translator.get('error_basic_info')} $e",
+          "${t.error_basic_info} $e",
         );
       });
       return const SizedBox.shrink();
@@ -302,14 +302,11 @@ class PokemonStatusTogglesWidget extends StatelessWidget {
             margin: const EdgeInsets.symmetric(vertical: 4),
             child: SwitchListTile(
               title: Text(
-                Translator.get('caught_status', fallback: 'Gefangen Status'),
+                t.caught_status,
                 style: const TextStyle(fontWeight: FontWeight.bold),
               ),
               subtitle: Text(
-                Translator.get(
-                  'mark_as_caught',
-                  fallback: 'Als gefangen markieren',
-                ),
+                t.mark_as_caught,
               ),
               secondary: Icon(
                 Icons.catching_pokemon,
@@ -329,7 +326,7 @@ class PokemonStatusTogglesWidget extends StatelessWidget {
               title: Row(
                 children: [
                   Text(
-                    Translator.get('shiny_status', fallback: 'Shiny Status'),
+                    t.shiny_status,
                     style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
                   if (isLocked) ...[
@@ -350,10 +347,7 @@ class PokemonStatusTogglesWidget extends StatelessWidget {
                           const Icon(Icons.lock, size: 12, color: Colors.red),
                           const SizedBox(width: 4),
                           Text(
-                            Translator.get(
-                              'shiny_lock_badge',
-                              fallback: 'Shiny-Lock',
-                            ),
+                            t.shiny_lock_badge,
                             style: const TextStyle(
                               color: Colors.red,
                               fontSize: 10,
@@ -371,12 +365,9 @@ class PokemonStatusTogglesWidget extends StatelessWidget {
                     ? ShinyLockService.getShinyLockReason(
                         entry,
                         dexRegion: dex?.region,
-                        lang: Translator.currentLanguage,
+                        lang: LocaleSettings.currentLocale.languageCode,
                       )
-                    : Translator.get(
-                        'mark_as_shiny',
-                        fallback: 'Als schillernd markieren',
-                      ),
+                    : t.mark_as_shiny,
               ),
               secondary: Icon(
                 isLocked ? Icons.lock : Icons.star,
@@ -409,14 +400,11 @@ class PokemonStatusTogglesWidget extends StatelessWidget {
                 margin: const EdgeInsets.symmetric(vertical: 4),
                 child: SwitchListTile(
                   title: Text(
-                    Translator.get('alpha_status', fallback: 'Alpha Status'),
+                    t.alpha_status,
                     style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
                   subtitle: Text(
-                    Translator.get(
-                      'alpha_status_sub',
-                      fallback: 'Als Alpha markieren',
-                    ),
+                    t.alpha_status_sub,
                   ),
                   secondary: SvgPicture.string(
                     AppVectors.alphaSymbol,
@@ -437,7 +425,7 @@ class PokemonStatusTogglesWidget extends StatelessWidget {
     } catch (e) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         NotificationHelper.showError(
-          "${Translator.get('error_status_toggles')} $e",
+          "${t.error_status_toggles} $e",
         );
       });
       return const SizedBox.shrink();
@@ -468,7 +456,7 @@ class IgnorePokemonButton extends StatelessWidget {
         ),
         icon: const Icon(Icons.delete_outline),
         label: Text(
-          Translator.get('ignore_pokemon', fallback: 'Aus Dex entfernen'),
+          t.ignore_pokemon,
         ),
         onPressed: onIgnore,
       ),

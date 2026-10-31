@@ -6,7 +6,7 @@ import '../../providers/dex_provider.dart';
 import '../../providers/tutorial_provider.dart';
 import '../../models/tutorial_step.dart';
 import '../../widgets/tutorial/tutorial_overlay.dart';
-import '../../l10n/app_translations.dart';
+import '../../i18n/strings.g.dart';
 import 'utils/pokemon_info_keys.dart';
 import 'dialogs/ignore_pokemon_dialog.dart';
 import 'widgets/pokemon_info_page.dart';
@@ -425,7 +425,7 @@ class _PokemonInfoScreenState extends State<PokemonInfoScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  Translator.get('extra_info', fallback: 'Zusatzinformationen'),
+                  t.extra_info,
                   style: TextStyle(fontSize: boxTitle != null ? 16 : 20),
                 ),
                 if (boxTitle != null)
@@ -542,12 +542,12 @@ class _PokemonInfoScreenState extends State<PokemonInfoScreen> {
                 showDialog(
                   context: context,
                   builder: (ctx) => AlertDialog(
-                    title: Text(Translator.get('remove_from_box_title', fallback: 'Pokémon entfernen')),
-                    content: Text(Translator.get('remove_from_box_desc', fallback: 'Möchtest du dieses Pokémon nur aus dieser Box entfernen oder komplett aus dem Pokédex ausblenden?')),
+                    title: Text(t.remove_from_box_title),
+                    content: Text(t.remove_from_box_desc),
                     actions: [
                       TextButton(
                         onPressed: () => Navigator.pop(ctx),
-                        child: Text(Translator.get('cancel')),
+                        child: Text(t.cancel),
                       ),
                       TextButton(
                         onPressed: () {
@@ -564,7 +564,7 @@ class _PokemonInfoScreenState extends State<PokemonInfoScreen> {
                           Navigator.pop(ctx);
                           Navigator.pop(context);
                         },
-                        child: Text(Translator.get('remove_from_box_only', fallback: 'Nur aus Box')),
+                        child: Text(t.remove_from_box_only),
                       ),
                       TextButton(
                         style: TextButton.styleFrom(foregroundColor: Theme.of(context).colorScheme.error),
@@ -573,7 +573,7 @@ class _PokemonInfoScreenState extends State<PokemonInfoScreen> {
                           Navigator.pop(ctx);
                           Navigator.pop(context);
                         },
-                        child: Text(Translator.get('ignore_pokemon', fallback: 'Komplett ausblenden')),
+                        child: Text(t.ignore_pokemon),
                       ),
                     ],
                   ),

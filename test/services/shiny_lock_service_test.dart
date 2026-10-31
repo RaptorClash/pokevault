@@ -470,7 +470,7 @@ void main() {
       expect(isLockedAsync, isTrue);
     });
 
-    test('DatabaseService getShinyLocks and getAllShinyLocks retrieve locks from DB or asset fallback', () async {
+    test('DatabaseService getShinyLocks and getAllShinyLocks retrieve locks from DB', () async {
       final allLocks = await DatabaseService.instance.getAllShinyLocks();
       expect(allLocks, isNotEmpty);
 
@@ -481,6 +481,22 @@ void main() {
       final poliwhirlLocks = await DatabaseService.instance.getShinyLocks(61);
       expect(poliwhirlLocks, isNotEmpty);
       expect(poliwhirlLocks.any((l) => l['lock_type'] == 'trade'), isTrue);
+    });
+
+    test('DatabaseService getAllShinyLocks returns empty list if db query returns no rows without fallback', () async {
+      final mockDb = await openDatabase(inMemoryDatabasePath, version: 1, onCreate: (db, v) async {
+        await db.execute('CREATE TABLE shiny_locks (pokemon_id INTEGER, pokemon_name TEXT)');
+      });
+      DatabaseService.setAppDatabaseForTesting(mockDb);
+      DatabaseService.instance.clearMemoryCache();
+
+      final locks = await DatabaseService.instance.getAllShinyLocks();
+      expect(locks, isEmpty);
+
+      // Restore original DB
+      DatabaseService.setAppDatabaseForTesting(null);
+      DatabaseService.instance.clearMemoryCache();
+      await mockDb.close();
     });
 
     test('Sceptile vc_glitch form has correct Grass type and not Dragon type', () async {

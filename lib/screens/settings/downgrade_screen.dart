@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
-import '../../l10n/app_translations.dart';
+import '../../i18n/strings.g.dart';
 import '../../utils/update_helper.dart';
 import '../../widgets/dialogs/downgrade_dialog.dart';
 
@@ -43,10 +43,7 @@ class _DowngradeScreenState extends State<DowngradeScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          Translator.get(
-            'downgrades_title',
-            fallback: 'Vorherige Versionen (Downgrades)',
-          ),
+          t.downgrades_title,
         ),
       ),
       body: FutureBuilder<List<UpdateInfo>>(
@@ -56,7 +53,7 @@ class _DowngradeScreenState extends State<DowngradeScreen> {
             return const Center(child: CircularProgressIndicator());
           } else if (snapshot.hasError) {
             return Center(
-              child: Text('${Translator.get('error')} ${snapshot.error}'),
+              child: Text('${t.error} ${snapshot.error}'),
             );
           } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
             return const Center(

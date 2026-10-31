@@ -13,7 +13,7 @@ import 'package:pokevault/screens/pokemon_info/shiny_guides/gen8_shiny_guide.dar
 import 'package:pokevault/screens/pokemon_info/shiny_guides/gen8_5_shiny_guide.dart';
 import 'package:pokevault/screens/pokemon_info/shiny_guides/gen9_shiny_guide.dart';
 import 'package:pokevault/screens/pokemon_info/shiny_guides/gen9_5_shiny_guide.dart';
-import 'package:pokevault/l10n/app_translations.dart';
+import 'package:pokevault/i18n/strings.g.dart';
 import '../../../e2e/helpers/e2e_test_helper.dart';
 
 class MockPathProviderPlatform extends Fake
@@ -62,7 +62,7 @@ void main() {
 
   setUp(() {
     SharedPreferences.setMockInitialValues({'app_db_version': 21});
-    Translator.currentLanguage = 'de';
+    LocaleSettings.setLocale(AppLocale.de);
   });
 
   Future<void> settleDb(WidgetTester tester) async {
@@ -107,7 +107,7 @@ void main() {
       await tester.tap(find.text('Generation 6'));
       await tester.pumpAndSettle();
 
-      expect(find.text(Translator.get('shiny_gen6_masuda_title')), findsOneWidget);
+      expect(find.text(t.shiny_gen6_masuda_title), findsOneWidget);
     });
 
     testWidgets('Renders shiny locked state for Gen 6 locked Pokemon', (tester) async {
@@ -129,7 +129,7 @@ void main() {
       await tester.tap(find.text('Generation 6'));
       await tester.pumpAndSettle();
 
-      expect(find.text(Translator.get('shiny_huntable_no', fallback: 'Shiny Huntable: Nein')), findsOneWidget);
+      expect(find.text(t.shiny_huntable_no), findsOneWidget);
     });
   });
 
@@ -154,7 +154,7 @@ void main() {
       await tester.tap(find.text('Generation 7'));
       await tester.pumpAndSettle();
 
-      expect(find.text(Translator.get('shiny_gen6_masuda_title')), findsOneWidget);
+      expect(find.text(t.shiny_gen6_masuda_title), findsOneWidget);
     });
   });
 
@@ -179,7 +179,7 @@ void main() {
       await tester.tap(find.text('Generation 7.5'));
       await tester.pumpAndSettle();
 
-      expect(find.text(Translator.get('shiny_gen75_combo_title')), findsOneWidget);
+      expect(find.text(t.shiny_gen75_combo_title), findsOneWidget);
     });
   });
 
@@ -204,7 +204,7 @@ void main() {
       await tester.tap(find.text('Generation 8'));
       await tester.pumpAndSettle();
 
-      expect(find.text(Translator.get('shiny_gen8_masuda_title')), findsOneWidget);
+      expect(find.text(t.shiny_gen8_masuda_title), findsOneWidget);
     });
 
     testWidgets('Renders Gen 8.5 Legends Arceus methods', (tester) async {
@@ -227,7 +227,7 @@ void main() {
       await tester.tap(find.text('Generation 8.5'));
       await tester.pumpAndSettle();
 
-      expect(find.text(Translator.get('shiny_gen85_pla_title')), findsOneWidget);
+      expect(find.text(t.shiny_gen85_pla_title), findsOneWidget);
     });
   });
 
@@ -252,7 +252,7 @@ void main() {
       await tester.tap(find.text('Generation 9'));
       await tester.pumpAndSettle();
 
-      expect(find.text(Translator.get('shiny_gen9_sandwich_title')), findsOneWidget);
+      expect(find.text(t.shiny_gen9_sandwich_title), findsOneWidget);
     });
 
     testWidgets('Renders Gen 9.5 Legends Z-A methods or handles unreleased dex', (tester) async {
@@ -274,7 +274,7 @@ void main() {
       if (tileFinder.evaluate().isNotEmpty) {
         await tester.tap(tileFinder);
         await tester.pumpAndSettle();
-        expect(find.text(Translator.get('shiny_gen95_donut_title')), findsOneWidget);
+        expect(find.text(t.shiny_gen95_donut_title), findsOneWidget);
       } else {
         expect(find.byType(SizedBox), findsWidgets);
       }

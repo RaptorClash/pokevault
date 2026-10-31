@@ -2,7 +2,7 @@
 import 'package:provider/provider.dart';
 
 import '../../../providers/dex_provider.dart';
-import '../../../l10n/app_translations.dart';
+import '../../../i18n/strings.g.dart';
 import '../../../utils/notification_helper.dart';
 import '../../../widgets/universal_poke_image.dart'; // NEU
 
@@ -37,7 +37,7 @@ class PokemonAvatar extends StatelessWidget {
       final int spriteId = (imageId != null && imageId! > 0) ? imageId! : id;
       final String imgUrl =
           'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${showAsShiny ? "shiny/" : ""}$spriteId.png';
-      final String name = p.getName(Translator.currentLanguage);
+      final String name = p.getName(LocaleSettings.currentLocale.languageCode);
 
       IconData genderIcon = Icons.transgender;
       Color genderColor = Colors.grey;
@@ -132,7 +132,7 @@ class PokemonAvatar extends StatelessWidget {
             ),
             if (isCarrier)
               Text(
-                Translator.get('carrier', fallback: '(Trägerin)'),
+                t.carrier,
                 style: TextStyle(
                   fontSize: 10 * sizeScale,
                   color: Colors.blue,
@@ -145,7 +145,7 @@ class PokemonAvatar extends StatelessWidget {
     } catch (e) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         NotificationHelper.showError(
-          "${Translator.get('error_avatar_load')} $e",
+          "${t.error_avatar_load} $e",
         );
       });
       return SizedBox(

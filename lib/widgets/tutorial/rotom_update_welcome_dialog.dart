@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 import '../../providers/tutorial_provider.dart';
-import '../../l10n/app_translations.dart';
+import '../../i18n/strings.g.dart';
 import '../../constants/app_vectors.dart';
 
 class RotomUpdateWelcomeDialog extends StatelessWidget {
@@ -133,10 +133,7 @@ class RotomUpdateWelcomeDialog extends StatelessWidget {
                             ),
                           ),
                           child: Text(
-                            Translator.get(
-                              'tutorial_v16_badge',
-                              fallback: 'UPDATE v1.6',
-                            ),
+                            t.tutorial_v16_badge,
                             style: TextStyle(
                               fontSize: 10,
                               fontWeight: FontWeight.w900,
@@ -147,10 +144,7 @@ class RotomUpdateWelcomeDialog extends StatelessWidget {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          Translator.get(
-                            'tutorial_v16_welcome_title',
-                            fallback: 'Bzzzt! Neue Features entdeckt!',
-                          ),
+                          t.tutorial_v16_welcome_title,
                           style: TextStyle(
                             fontSize: 17,
                             fontWeight: FontWeight.bold,
@@ -166,11 +160,7 @@ class RotomUpdateWelcomeDialog extends StatelessWidget {
               const SizedBox(height: 14),
 
               Text(
-                Translator.get(
-                  'tutorial_v16_welcome_desc',
-                  fallback:
-                      'Hallo Trainer! PokéVault wurde mit coolen neuen Werkzeugen aufgerüstet:',
-                ),
+                t.tutorial_v16_welcome_desc,
                 style: TextStyle(
                   fontSize: 13,
                   color: theme.colorScheme.onSurfaceVariant,
@@ -185,15 +175,8 @@ class RotomUpdateWelcomeDialog extends StatelessWidget {
                 context,
                 icon: Icons.auto_awesome,
                 iconColor: Colors.amber,
-                title: Translator.get(
-                  'tutorial_v16_f1_title',
-                  fallback: 'Shiny Hunt Tracker',
-                ),
-                desc: Translator.get(
-                  'tutorial_v16_f1_desc',
-                  fallback:
-                      'Counter, Phasen, Quoten & Timer für deine Jagden!',
-                ),
+                title: t.tutorial_v16_f1_title,
+                desc: t.tutorial_v16_f1_desc,
               ),
               const SizedBox(height: 8),
 
@@ -201,15 +184,8 @@ class RotomUpdateWelcomeDialog extends StatelessWidget {
                 context,
                 icon: Icons.inventory_2_outlined,
                 iconColor: Colors.blueAccent,
-                title: Translator.get(
-                  'tutorial_v16_f2_title',
-                  fallback: 'Eigene Boxen & Stapel-Drag',
-                ),
-                desc: Translator.get(
-                  'tutorial_v16_f2_desc',
-                  fallback:
-                      'Boxen umbenennen, Inhalte per Stapel frei verschieben!',
-                ),
+                title: t.tutorial_v16_f2_title,
+                desc: t.tutorial_v16_f2_desc,
               ),
               const SizedBox(height: 8),
 
@@ -217,15 +193,8 @@ class RotomUpdateWelcomeDialog extends StatelessWidget {
                 context,
                 icon: Icons.bar_chart,
                 iconColor: Colors.teal,
-                title: Translator.get(
-                  'tutorial_v16_f3_title',
-                  fallback: 'Statistiken & Share-Card',
-                ),
-                desc: Translator.get(
-                  'tutorial_v16_f3_desc',
-                  fallback:
-                      'Erfolge als schicke Grafik mit Trainernamen teilen!',
-                ),
+                title: t.tutorial_v16_f3_title,
+                desc: t.tutorial_v16_f3_desc,
               ),
               const SizedBox(height: 8),
 
@@ -233,15 +202,8 @@ class RotomUpdateWelcomeDialog extends StatelessWidget {
                 context,
                 icon: Icons.search,
                 iconColor: Colors.purpleAccent,
-                title: Translator.get(
-                  'tutorial_v16_f4_title',
-                  fallback: 'Geschlechtsunterschiede & Details',
-                ),
-                desc: Translator.get(
-                  'tutorial_v16_f4_desc',
-                  fallback:
-                      'Vergleichende Ansichten, Zuchtrechner & Fundorte!',
-                ),
+                title: t.tutorial_v16_f4_title,
+                desc: t.tutorial_v16_f4_desc,
               ),
 
               const SizedBox(height: 18),
@@ -261,10 +223,7 @@ class RotomUpdateWelcomeDialog extends StatelessWidget {
                       }
                     },
                     child: Text(
-                      Translator.get(
-                        'tutorial_v16_skip',
-                        fallback: 'Später ansehen',
-                      ),
+                      t.tutorial_v16_skip,
                       style: TextStyle(
                         color: theme.colorScheme.onSurface.withValues(
                           alpha: 0.6,
@@ -293,10 +252,7 @@ class RotomUpdateWelcomeDialog extends StatelessWidget {
                     },
                     icon: const Icon(Icons.play_arrow, size: 16),
                     label: Text(
-                      Translator.get(
-                        'tutorial_v16_start_tour',
-                        fallback: 'Neuheiten-Tour starten',
-                      ),
+                      t.tutorial_v16_start_tour,
                       style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
                   ),

@@ -21,7 +21,7 @@ import 'package:pokevault/providers/settings_provider.dart';
 import 'package:pokevault/models/pokemon.dart';
 import 'package:pokevault/models/dex_view_models.dart';
 import 'package:pokevault/models/user_dex.dart';
-import 'package:pokevault/l10n/app_translations.dart';
+import 'package:pokevault/i18n/strings.g.dart';
 
 class MockDexProvider extends Mock implements DexProvider {}
 class MockSettingsProvider extends Mock implements SettingsProvider {}
@@ -234,7 +234,7 @@ void main() {
   });
 
   setUp(() {
-    Translator.currentLanguage = 'de';
+    LocaleSettings.setLocale(AppLocale.de);
     mockDexProvider = MockDexProvider();
     mockSettingsProvider = MockSettingsProvider();
 
@@ -281,7 +281,7 @@ void main() {
       ));
       await pumpAsyncDB(tester);
 
-      final title = find.text(Translator.get('encounters_title'));
+      final title = find.text(t.encounters_title);
       expect(title, findsOneWidget);
 
       // Expand main encounters card
@@ -297,7 +297,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Check note is displayed
-      expect(find.text(Translator.get('encounter_missing_note')), findsOneWidget);
+      expect(find.text(t.encounter_missing_note), findsOneWidget);
 
       await tester.pump(const Duration(seconds: 15));
     });
@@ -313,7 +313,7 @@ void main() {
       await pumpAsyncDB(tester);
 
       // Open encounters
-      final title = find.text(Translator.get('encounters_title'));
+      final title = find.text(t.encounters_title);
       await tester.tap(title);
       await pumpAsyncDB(tester);
       await tester.pumpAndSettle();
@@ -325,7 +325,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Check glitch note button
-      expect(find.text(Translator.get('tutorial_mew_normal_link')), findsOneWidget);
+      expect(find.text(t.tutorial_mew_normal_link), findsOneWidget);
 
       await tester.pump(const Duration(seconds: 15));
     });
@@ -340,12 +340,12 @@ void main() {
       ));
       await pumpAsyncDB(tester);
 
-      final title = find.text(Translator.get('encounters_title'));
+      final title = find.text(t.encounters_title);
       await tester.tap(title);
       await tester.pump(const Duration(milliseconds: 500));
       await pumpAsyncDB(tester);
 
-      expect(find.text(Translator.get('no_encounters_found')), findsOneWidget);
+      expect(find.text(t.no_encounters_found), findsOneWidget);
 
       await tester.pump(const Duration(seconds: 15));
     });
@@ -362,7 +362,7 @@ void main() {
       ));
       await pumpAsyncDB(tester);
 
-      final marksTile = find.text(Translator.get('marks'));
+      final marksTile = find.text(t.marks);
       if (marksTile.evaluate().isNotEmpty) {
         expect(marksTile, findsOneWidget);
 
@@ -371,7 +371,7 @@ void main() {
         await tester.pump(const Duration(milliseconds: 500));
 
         // Search textfield
-        final searchField = find.widgetWithText(TextField, Translator.get('search'));
+        final searchField = find.widgetWithText(TextField, t.search);
         expect(searchField, findsOneWidget);
 
         // Filter search
@@ -398,7 +398,7 @@ void main() {
       ));
       await pumpAsyncDB(tester);
 
-      final ribbonsTile = find.text(Translator.get('ribbons'));
+      final ribbonsTile = find.text(t.ribbons);
       if (ribbonsTile.evaluate().isNotEmpty) {
         expect(ribbonsTile, findsOneWidget);
 
@@ -407,7 +407,7 @@ void main() {
         await tester.pump(const Duration(milliseconds: 500));
 
         // Search textfield
-        final searchField = find.widgetWithText(TextField, Translator.get('search'));
+        final searchField = find.widgetWithText(TextField, t.search);
         expect(searchField, findsOneWidget);
 
         await tester.enterText(searchField, 'Champ');
@@ -488,7 +488,7 @@ void main() {
       ));
       await pumpAsyncDB(tester);
 
-      final title = find.text(Translator.get('shiny_breed_calc_title'));
+      final title = find.text(t.shiny_breed_calc_title);
       expect(title, findsOneWidget);
 
       await tester.tap(title);

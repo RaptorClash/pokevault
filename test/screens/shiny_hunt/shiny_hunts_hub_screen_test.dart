@@ -7,7 +7,7 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 
-import 'package:pokevault/l10n/app_translations.dart';
+import 'package:pokevault/i18n/strings.g.dart';
 import 'package:pokevault/models/pokemon.dart';
 import 'package:pokevault/models/shiny_hunt.dart';
 import 'package:pokevault/models/user_dex.dart';
@@ -176,7 +176,7 @@ void main() {
   });
 
   setUp(() async {
-    Translator.currentLanguage = 'de';
+    LocaleSettings.setLocale(AppLocale.de);
     fakeDb = FakeDatabaseService();
     huntProvider = ShinyHuntProvider(
       databaseService: fakeDb,
@@ -255,8 +255,8 @@ void main() {
     await tester.pumpWidget(buildHubWidget());
     await pumpView(tester);
 
-    expect(find.text(Translator.get('shiny_hunt_hub_title')), findsOneWidget);
-    expect(find.text(Translator.get('shiny_hunt_empty_active')), findsOneWidget);
+    expect(find.text(t.shiny_hunt_hub_title), findsOneWidget);
+    expect(find.text(t.shiny_hunt_empty_active), findsOneWidget);
     expect(find.byType(FloatingActionButton), findsOneWidget);
   });
 
@@ -297,7 +297,7 @@ void main() {
 
     expect(huntProvider.getHuntById(hunt.id)!.isPaused, isTrue);
     // Active tab is now empty
-    expect(find.text(Translator.get('shiny_hunt_empty_active')), findsOneWidget);
+    expect(find.text(t.shiny_hunt_empty_active), findsOneWidget);
   });
 
   testWidgets('Paused tab displays paused hunt with resume button which reactivates it', (tester) async {
@@ -321,7 +321,7 @@ void main() {
     await pumpView(tester);
 
     expect(huntProvider.getHuntById(hunt.id)!.isActive, isTrue);
-    expect(find.text(Translator.get('shiny_hunt_empty_paused')), findsOneWidget);
+    expect(find.text(t.shiny_hunt_empty_paused), findsOneWidget);
   });
 
   testWidgets('Completed tab displays completed hunt with ball and classification badge', (tester) async {
@@ -359,7 +359,7 @@ void main() {
     await pumpView(tester);
 
     expect(find.textContaining('15.04.2026'), findsOneWidget);
-    expect(find.text(Translator.get('shiny_hunt_type_breeding')), findsOneWidget);
+    expect(find.text(t.shiny_hunt_type_breeding), findsOneWidget);
     expect(find.textContaining('Hyperball'), findsOneWidget);
     expect(find.textContaining('Ei-Zucht nach 1200 Eiern'), findsOneWidget);
     expect(find.byIcon(Icons.refresh_rounded), findsOneWidget);
@@ -400,7 +400,7 @@ void main() {
     await pumpView(tester);
 
     expect(huntProvider.getHuntById(hunt.id)!.isActive, isTrue);
-    expect(find.text(Translator.get('shiny_hunt_reopened_toast')), findsOneWidget);
+    expect(find.text(t.shiny_hunt_reopened_toast), findsOneWidget);
   });
 
   testWidgets('Delete hunt confirmation dialog removes hunt when confirmed', (tester) async {
@@ -420,14 +420,14 @@ void main() {
     await tester.tap(deleteBtn);
     await pumpView(tester);
 
-    expect(find.text(Translator.get('shiny_hunt_delete_confirm_title')), findsOneWidget);
+    expect(find.text(t.shiny_hunt_delete_confirm_title), findsOneWidget);
 
     // Confirm deletion
-    await tester.tap(find.text(Translator.get('delete', fallback: 'Löschen')));
+    await tester.tap(find.text(t.delete));
     await pumpView(tester);
 
     expect(huntProvider.getHuntById(hunt.id), isNull);
-    expect(find.text(Translator.get('shiny_hunt_empty_paused')), findsOneWidget);
+    expect(find.text(t.shiny_hunt_empty_paused), findsOneWidget);
   });
 
   testWidgets('FAB opens CreateEditHuntDialog', (tester) async {
@@ -474,7 +474,7 @@ void main() {
     await pumpView(tester);
 
     expect(find.byType(ShinyHuntTimelineDialog), findsOneWidget);
-    expect(find.text(Translator.get('shiny_hunt_timeline_title', fallback: 'Hunt-Zeiten & Pausen')), findsOneWidget);
+    expect(find.text(t.shiny_hunt_timeline_title), findsOneWidget);
   });
 
   testWidgets('Paused tab displays pause timestamp and history button opening ShinyHuntTimelineDialog', (tester) async {
@@ -502,7 +502,7 @@ void main() {
     await pumpView(tester);
 
     expect(find.byType(ShinyHuntTimelineDialog), findsOneWidget);
-    expect(find.text(Translator.get('shiny_hunt_timeline_title', fallback: 'Hunt-Zeiten & Pausen')), findsOneWidget);
+    expect(find.text(t.shiny_hunt_timeline_title), findsOneWidget);
   });
 
   testWidgets('Completed tab displays timeline button opening ShinyHuntTimelineDialog', (tester) async {
@@ -531,7 +531,7 @@ void main() {
     await pumpView(tester);
 
     expect(find.byType(ShinyHuntTimelineDialog), findsOneWidget);
-    expect(find.text(Translator.get('shiny_hunt_timeline_title', fallback: 'Hunt-Zeiten & Pausen')), findsOneWidget);
+    expect(find.text(t.shiny_hunt_timeline_title), findsOneWidget);
   });
 
   testWidgets('Triggers live TutorialOverlay for shiny_hunt_hub when not seen and marks as seen on completion', (tester) async {
@@ -544,10 +544,10 @@ void main() {
     await pumpView(tester);
 
     expect(find.byType(TutorialOverlay), findsOneWidget);
-    expect(find.text(Translator.get('tutorial_shiny_new_title')), findsOneWidget);
+    expect(find.text(t.tutorial_shiny_new_title), findsOneWidget);
 
     // Skip / advance tutorial to complete
-    final skipBtn = find.text(Translator.get('tutorial_skip', fallback: 'Überspringen'));
+    final skipBtn = find.text(t.tutorial_skip);
     expect(skipBtn, findsOneWidget);
     await tester.tap(skipBtn);
     await pumpView(tester);

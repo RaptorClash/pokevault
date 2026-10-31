@@ -5,7 +5,7 @@ import '../../models/user_dex.dart';
 import '../../models/dex_view_models.dart';
 import '../../utils/dex_logic_helper.dart';
 import '../../providers/dex_provider.dart';
-import '../../l10n/app_translations.dart';
+import '../../i18n/strings.g.dart';
 import '../pokemon_info/pokemon_info_screen.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -253,7 +253,7 @@ class _DexBoxViewState extends State<DexBoxView> {
       context: context,
       builder: (ctx) {
         return AlertDialog(
-          title: Text(Translator.get('jump_to_region')),
+          title: Text(t.jump_to_region),
           content: SizedBox(
             width: 400,
             child: SingleChildScrollView(
@@ -264,7 +264,7 @@ class _DexBoxViewState extends State<DexBoxView> {
                 children: regionFirstIndices.entries.map((entry) {
                   String regionKey = entry.key;
                   int boxIndex = entry.value;
-                  String regionName = Translator.get('region_name_$regionKey');
+                  String regionName = (t['region_name_$regionKey'] ?? regionKey);
                   if (regionName == 'region_name_$regionKey') {
                     regionName =
                         regionKey[0].toUpperCase() + regionKey.substring(1);
@@ -294,7 +294,7 @@ class _DexBoxViewState extends State<DexBoxView> {
 
   @override
   Widget build(BuildContext context) {
-    if (boxes.isEmpty) return Center(child: Text(Translator.get('empty_box')));
+    if (boxes.isEmpty) return Center(child: Text(t.empty_box));
 
     double screenWidth = MediaQuery.of(context).size.width;
     double boxMaxWidth = screenWidth > 1200
@@ -527,11 +527,7 @@ class _DexBoxViewState extends State<DexBoxView> {
                                       : Icons.check_box_outline_blank,
                                   color: Theme.of(context).colorScheme.primary,
                                 ),
-                                tooltip: Translator.get(
-                                  allCaught
-                                      ? 'box_uncheck_all'
-                                      : 'box_check_all',
-                                ),
+                                tooltip: allCaught ? t.box_uncheck_all : t.box_check_all,
                                 onPressed: () {
                                   bool newState = !allCaught;
                                   for (var entry in validEntries) {
@@ -834,7 +830,7 @@ class _DexBoxViewState extends State<DexBoxView> {
                                             ShinyLockService.getShinyLockReason(
                                               entry,
                                               dexRegion: liveDex.region,
-                                              lang: Translator.currentLanguage,
+                                              lang: LocaleSettings.currentLocale.languageCode,
                                             ),
                                           );
                                           return;
@@ -904,10 +900,7 @@ class _DexBoxViewState extends State<DexBoxView> {
                                                   ),
                                                   const SizedBox(height: 3),
                                                   Text(
-                                                    Translator.get(
-                                                      'placeholder',
-                                                      fallback: 'Platzhalter',
-                                                    ),
+                                                    t.placeholder,
                                                     style: TextStyle(
                                                       fontSize: 9,
                                                       fontWeight: FontWeight.bold,
@@ -1066,7 +1059,7 @@ class _DexBoxViewState extends State<DexBoxView> {
                                           message: ShinyLockService.getShinyLockReason(
                                             entry,
                                             dexRegion: liveDex.region,
-                                            lang: Translator.currentLanguage,
+                                            lang: LocaleSettings.currentLocale.languageCode,
                                           ),
                                           child: Container(
                                             key: Key('box_shiny_lock_badge_${entry.uniqueId}'),
@@ -1480,10 +1473,7 @@ class _DexBoxViewState extends State<DexBoxView> {
                                                           ),
                                                           const SizedBox(width: 4),
                                                           Text(
-                                                            Translator.get(
-                                                              'box_action_swap',
-                                                              fallback: 'Tauschen',
-                                                            ),
+                                                            t.box_action_swap,
                                                             style: const TextStyle(
                                                               color: Colors.white,
                                                               fontWeight: FontWeight.bold,
@@ -1645,7 +1635,7 @@ class _DexBoxViewState extends State<DexBoxView> {
                     child: Padding(
                       padding: const EdgeInsets.all(32.0),
                       child: Text(
-                        Translator.currentLanguage == 'de'
+                        LocaleSettings.currentLocale == AppLocale.de
                             ? 'Diese Box ist leer.\nKlicke oben rechts auf das Bearbeiten-Icon (Checkliste), um Pokémon hinzuzufügen!'
                             : 'This box is empty.\nClick the edit icon (checklist) in the top right to add Pokémon!',
                         textAlign: TextAlign.center,

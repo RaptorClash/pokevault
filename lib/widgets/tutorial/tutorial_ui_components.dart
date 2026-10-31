@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../../../models/tutorial_step.dart';
-import '../../../l10n/app_translations.dart';
+import '../../../i18n/strings.g.dart';
 import '../../../constants/app_vectors.dart';
 import './tutorial_painters.dart';
 
@@ -293,7 +293,7 @@ class TutorialBubble extends StatelessWidget {
                 ),
                 const SizedBox(width: 8),
                 Tooltip(
-                  message: Translator.get('tutorial_skip'),
+                  message: t.tutorial_skip,
                   child: InkWell(
                     borderRadius: BorderRadius.circular(8),
                     onTap: isEasterEggActive ? null : onSkip,
@@ -315,7 +315,7 @@ class TutorialBubble extends StatelessWidget {
                           if (!isCompact) ...[
                             const SizedBox(width: 2),
                             Text(
-                              Translator.get('tutorial_skip'),
+                              t.tutorial_skip,
                               style: TextStyle(
                                 fontSize: 11,
                                 color: theme.colorScheme.onSurface.withValues(
@@ -353,7 +353,7 @@ class TutorialBubble extends StatelessWidget {
 
             // Title
             Text(
-              Translator.get(step.titleKey),
+              (t[step.titleKey] ?? step.titleKey),
               style: TextStyle(
                 fontSize: 15,
                 fontWeight: FontWeight.bold,
@@ -364,7 +364,7 @@ class TutorialBubble extends StatelessWidget {
 
             // Description
             Text(
-              overrideText ?? Translator.get(step.textKey),
+              overrideText ?? (t[step.textKey] ?? step.textKey),
               style: TextStyle(
                 fontSize: 12.5,
                 height: 1.35,
@@ -397,7 +397,7 @@ class TutorialBubble extends StatelessWidget {
                     label: FittedBox(
                       fit: BoxFit.scaleDown,
                       child: Text(
-                        Translator.get('previous', fallback: 'Zurück'),
+                        t.previous,
                         style: const TextStyle(fontSize: 11.5),
                       ),
                     ),
@@ -426,10 +426,7 @@ class TutorialBubble extends StatelessWidget {
                     label: FittedBox(
                       fit: BoxFit.scaleDown,
                       child: Text(
-                        Translator.get(
-                          isLast ? 'tutorial_finish' : 'tutorial_next',
-                          fallback: isLast ? 'Fertig' : 'Weiter',
-                        ),
+                        isLast ? t.tutorial_finish : t.tutorial_next,
                         style: const TextStyle(
                           fontSize: 11.5,
                           fontWeight: FontWeight.bold,

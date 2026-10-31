@@ -1,6 +1,7 @@
+import '../../../utils/location_translator.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
-import '../../../l10n/app_translations.dart';
+import '../../../i18n/strings.g.dart';
 import '../../../services/database_service.dart';
 import '../../../utils/notification_helper.dart';
 import 'lazy_expansion_card.dart';
@@ -77,11 +78,11 @@ class EncountersWidget extends StatelessWidget {
       final Uri url = Uri.parse(urlString);
       if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
         NotificationHelper.showError(
-          '${Translator.get('error_launch_url')} $urlString',
+          '${t.error_launch_url} $urlString',
         );
       }
     } catch (e) {
-      NotificationHelper.showError('${Translator.get('error_launch_url')} $e');
+      NotificationHelper.showError('${t.error_launch_url} $e');
     }
   }
 
@@ -93,7 +94,7 @@ class EncountersWidget extends StatelessWidget {
       children: versions.map((ver) {
         GameVersion? gameVer = versionColors[ver];
         if (gameVer == null) return const SizedBox.shrink();
-        String shortText = Translator.get('badge_$ver');
+        String shortText = (t['badge_$ver'] ?? ver);
         if (shortText == 'badge_$ver') {
           shortText = ver.substring(0, 1).toUpperCase();
         }
@@ -121,24 +122,16 @@ class EncountersWidget extends StatelessWidget {
   }
 
   String _translateLoc(String loc) {
-    String transBase = Translator.get(loc);
-    if (transBase == loc) {
-      transBase = Translator.get('loc_$loc');
-      if (transBase == 'loc_$loc') {
-        return loc;
-      }
-    }
-    return transBase;
+    final slangVal = t[loc] ?? t['loc_$loc'];
+    if (slangVal != null) return slangVal.toString();
+    return LocationTranslator.translate(loc);
   }
 
   String _translateMethod(String method) {
     if (method.isEmpty) return '';
-    String tMethod = Translator.get('method_$method');
-    if (tMethod == 'method_$method') {
-      tMethod = Translator.get(method);
-      if (tMethod == method) return method;
-    }
-    return tMethod;
+    final slangVal = t['method_$method'] ?? t[method];
+    if (slangVal != null) return slangVal.toString();
+    return LocationTranslator.translate(method);
   }
 
   Widget _buildGlitchNote(
@@ -178,7 +171,7 @@ class EncountersWidget extends StatelessWidget {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    Translator.get(textKey),
+                    (t[textKey] ?? textKey),
                     style: TextStyle(
                       fontSize: 12,
                       color: Theme.of(context).colorScheme.onTertiaryContainer,
@@ -193,7 +186,7 @@ class EncountersWidget extends StatelessWidget {
             width: double.infinity,
             child: ElevatedButton.icon(
               icon: const Icon(Icons.language),
-              label: Text(Translator.get(btn1Key)),
+              label: Text((t[btn1Key] ?? btn1Key)),
               onPressed: () => _launchURL(btn1Url),
             ),
           ),
@@ -203,7 +196,7 @@ class EncountersWidget extends StatelessWidget {
               width: double.infinity,
               child: ElevatedButton.icon(
                 icon: const Icon(Icons.code),
-                label: Text(Translator.get(secondBtnTitle)),
+                label: Text((t[secondBtnTitle] ?? secondBtnTitle)),
                 onPressed: () => _launchURL(secondBtnUrl),
               ),
             ),
@@ -222,10 +215,7 @@ class EncountersWidget extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.all(16.0),
           child: Text(
-            Translator.get(
-              'no_encounters_found',
-              fallback: 'Keine Fundorte bekannt.',
-            ),
+            t.no_encounters_found,
             style: TextStyle(color: Theme.of(context).hintColor),
             textAlign: TextAlign.center,
           ),
@@ -404,9 +394,7 @@ class EncountersWidget extends StatelessWidget {
       genWidgets.add(
         ExpansionTile(
           title: Text(
-            Translator.get(gen) != gen
-                ? Translator.get(gen)
-                : gen.toUpperCase(),
+            (t[gen] ?? gen.toUpperCase()).toString(),
             style: const TextStyle(fontWeight: FontWeight.w600),
           ),
           children: versionWidgets,
@@ -428,11 +416,7 @@ class EncountersWidget extends StatelessWidget {
             const SizedBox(width: 8),
             Expanded(
               child: Text(
-                Translator.get(
-                  'encounter_missing_note',
-                  fallback:
-                      'Hinweis: Wenn eine Edition nicht aufgeführt ist, ist das Pokémon dort in der Regel nur durch Entwicklung, Tausch oder Transfer erhältlich.',
-                ),
+                t.encounter_missing_note,
                 style: const TextStyle(
                   fontSize: 12,
                   fontStyle: FontStyle.italic,
@@ -453,10 +437,7 @@ class EncountersWidget extends StatelessWidget {
       key: encountersKey,
       leading: const Icon(Icons.map, color: Colors.blue),
       title: Text(
-        Translator.get(
-          'encounters_title',
-          fallback: 'Fundorte & Begegnungen',
-        ),
+        t.encounters_title,
         style: const TextStyle(fontWeight: FontWeight.bold),
       ),
       builder: (context) {

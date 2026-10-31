@@ -1,5 +1,5 @@
 ﻿import 'package:flutter/material.dart';
-import '../../../l10n/app_translations.dart';
+import '../../../i18n/strings.g.dart';
 import '../../../utils/catch_rate/models.dart';
 import '../../../utils/catch_rate/strategy_base.dart';
 import '../../../utils/notification_helper.dart';
@@ -58,13 +58,13 @@ class CatchRateResultCard extends StatelessWidget {
               const SizedBox(height: 8),
             ],
             Text(
-              Translator.get('catch_chance'),
+              t.catch_chance,
               style: const TextStyle(fontSize: 14),
             ),
             const SizedBox(height: 4),
             Text(
               isGuaranteed
-                  ? Translator.get('guaranteed_catch')
+                  ? t.guaranteed_catch
                   : '~ ${result.catchChance.toStringAsFixed(1)} %',
               style: TextStyle(
                 fontSize: 28,
@@ -81,7 +81,7 @@ class CatchRateResultCard extends StatelessWidget {
               const Divider(height: 1),
               const SizedBox(height: 12),
               Text(
-                Translator.get('critical_catch_chance'),
+                t.critical_catch_chance,
                 style: const TextStyle(fontSize: 12),
               ),
               Text(
@@ -99,7 +99,7 @@ class CatchRateResultCard extends StatelessWidget {
     } catch (e) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         NotificationHelper.showError(
-          "${Translator.get('error_calc_ui_result')} $e",
+          "${t.error_calc_ui_result} $e",
         );
       });
       return const SizedBox.shrink();
@@ -130,7 +130,7 @@ class CatchRateHpStatusWidget extends StatelessWidget {
           DropdownButtonFormField<int>(
             initialValue: statusType,
             decoration: InputDecoration(
-              labelText: Translator.get('status_condition'),
+              labelText: t.status_condition,
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
@@ -142,15 +142,15 @@ class CatchRateHpStatusWidget extends StatelessWidget {
             items: [
               DropdownMenuItem(
                 value: 0,
-                child: Text(Translator.get('status_none')),
+                child: Text(t.status_none),
               ),
               DropdownMenuItem(
                 value: 1,
-                child: Text(Translator.get('status_par_psn_brn')),
+                child: Text(t.status_par_psn_brn),
               ),
               DropdownMenuItem(
                 value: 2,
-                child: Text(Translator.get('status_slp_frz')),
+                child: Text(t.status_slp_frz),
               ),
             ],
             onChanged: (val) {
@@ -158,7 +158,7 @@ class CatchRateHpStatusWidget extends StatelessWidget {
             },
           ),
           const SizedBox(height: 16),
-          Text('${Translator.get('hp_percent')}: ${hpPercent.toInt()}%'),
+          Text('${t.hp_percent}: ${hpPercent.toInt()}%'),
           Slider(
             value: hpPercent,
             min: 1.0,
@@ -175,7 +175,7 @@ class CatchRateHpStatusWidget extends StatelessWidget {
     } catch (e) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         NotificationHelper.showError(
-          "${Translator.get('error_calc_ui_hp')} $e",
+          "${t.error_calc_ui_hp} $e",
         );
       });
       return const SizedBox.shrink();
@@ -214,7 +214,7 @@ class CatchRateCritSettingsWidget extends StatelessWidget {
         child: ExpansionTile(
           leading: const Icon(Icons.star_border),
           title: Text(
-            Translator.get('calc_crit_settings'),
+            t.calc_crit_settings,
             style: const TextStyle(fontWeight: FontWeight.bold),
           ),
           children: [
@@ -225,7 +225,7 @@ class CatchRateCritSettingsWidget extends StatelessWidget {
                   DropdownButtonFormField<double>(
                     initialValue: dexMultiplier,
                     decoration: InputDecoration(
-                      labelText: Translator.get('dex_caught'),
+                      labelText: t.dex_caught,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
@@ -249,7 +249,7 @@ class CatchRateCritSettingsWidget extends StatelessWidget {
                     const SizedBox(height: 8),
                     SwitchListTile(
                       contentPadding: EdgeInsets.zero,
-                      title: Text(Translator.get('catching_charm')),
+                      title: Text(t.catching_charm),
                       secondary: const Icon(Icons.key),
                       value: hasCatchingCharm,
                       onChanged: onCatchingCharmChanged,
@@ -264,7 +264,7 @@ class CatchRateCritSettingsWidget extends StatelessWidget {
     } catch (e) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         NotificationHelper.showError(
-          "${Translator.get('error_calc_ui_crit')} $e",
+          "${t.error_calc_ui_crit} $e",
         );
       });
       return const SizedBox.shrink();

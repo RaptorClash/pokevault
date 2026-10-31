@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
-import '../../l10n/app_translations.dart';
+import '../../i18n/strings.g.dart';
 import '../../providers/dex_provider.dart';
 import '../../services/dex_storage_service.dart';
 import '../../utils/notification_helper.dart';
@@ -30,7 +30,7 @@ class _UpdateDialogState extends State<UpdateDialog> {
     return PopScope(
       canPop: !_isDownloading && !_isBackingUp,
       child: AlertDialog(
-        title: Text(Translator.get('update_available_title')),
+        title: Text(t.update_available_title),
         content: SizedBox(
           width: double.maxFinite,
           child: SingleChildScrollView(
@@ -49,7 +49,7 @@ class _UpdateDialogState extends State<UpdateDialog> {
                 MarkdownBody(
                   data: UpdateHelper.filterReleaseNotes(
                     widget.updateInfo.releaseNotes,
-                    Translator.currentLanguage,
+                    LocaleSettings.currentLocale.languageCode,
                   ),
                   selectable: true,
                   softLineBreak: true,
@@ -108,7 +108,7 @@ class _UpdateDialogState extends State<UpdateDialog> {
                           const SizedBox(width: 8),
                           Expanded(
                             child: Text(
-                              Translator.get('update_backup_warning'),
+                              t.update_backup_warning,
                               style: const TextStyle(
                                 fontSize: 12,
                                 color: Colors.orange,
@@ -156,7 +156,7 @@ class _UpdateDialogState extends State<UpdateDialog> {
                                         _isBackingUp = false;
                                       });
                                       NotificationHelper.showError(
-                                        '${Translator.get('error')} $e',
+                                        '${t.error} $e',
                                       );
                                     }
                                   }
@@ -181,14 +181,8 @@ class _UpdateDialogState extends State<UpdateDialog> {
                                 ),
                           label: Text(
                             _backupDone
-                                ? Translator.get(
-                                    'update_backup_done',
-                                    fallback: 'Backup erstellt ✓',
-                                  )
-                                : Translator.get(
-                                    'update_backup_button',
-                                    fallback: 'Backup jetzt erstellen',
-                                  ),
+                                ? t.update_backup_done
+                                : t.update_backup_button,
                             style: TextStyle(
                               fontSize: 13,
                               color: _backupDone
@@ -229,7 +223,7 @@ class _UpdateDialogState extends State<UpdateDialog> {
           if (!_isDownloading)
             TextButton(
               onPressed: _isBackingUp ? null : () => Navigator.pop(context),
-              child: Text(Translator.get('dismiss')),
+              child: Text(t.dismiss),
             ),
           if (!_isDownloading)
             ElevatedButton(
@@ -258,7 +252,7 @@ class _UpdateDialogState extends State<UpdateDialog> {
                           setState(() {
                             _isDownloading = false;
                           });
-                          NotificationHelper.showError('${Translator.get('error')} $e');
+                          NotificationHelper.showError('${t.error} $e');
                         }
                       }
                     },
@@ -266,7 +260,7 @@ class _UpdateDialogState extends State<UpdateDialog> {
                 backgroundColor: theme.colorScheme.primary,
                 foregroundColor: theme.colorScheme.onPrimary,
               ),
-              child: Text(Translator.get('download_update')),
+              child: Text(t.download_update),
             ),
         ],
       ),

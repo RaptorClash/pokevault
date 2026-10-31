@@ -3,7 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../../l10n/app_translations.dart';
+import '../../i18n/strings.g.dart';
 import '../../providers/dex_provider.dart';
 import '../../providers/tutorial_provider.dart';
 import '../../services/dex_storage_service.dart';
@@ -143,11 +143,7 @@ class _HomeScreenState extends State<HomeScreen> {
             color: Colors.orange,
           ),
           content: Text(
-            Translator.get(
-              'web_backup_warning_text',
-              fallback:
-                  'Achtung: Im Web-Browser können deine Daten gelöscht werden, wenn der Browser-Cache geleert wird. Bitte erstelle regelmäßig Backups!',
-            ),
+            t.web_backup_warning_text,
             style: const TextStyle(color: Colors.black87),
           ),
           actions: [
@@ -157,10 +153,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ScaffoldMessenger.of(context).hideCurrentMaterialBanner();
               },
               child: Text(
-                Translator.get(
-                  'web_backup_warning_action',
-                  fallback: 'Verstanden',
-                ),
+                t.web_backup_warning_action,
                 style: const TextStyle(fontWeight: FontWeight.bold),
               ),
             ),
@@ -273,7 +266,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   tutProvider.markFeatureAsSeen('home_screen');
                   _openCreateBottomSheet();
                 } catch (e) {
-                  NotificationHelper.showError('${Translator.get('error')} $e');
+                  NotificationHelper.showError('${t.error} $e');
                 }
               },
             ),
@@ -571,9 +564,7 @@ class _HomeScreenState extends State<HomeScreen> {
       } else {
         final d = provider.userDexes.where((x) => x.id == child).firstOrNull;
         if (d != null) {
-          String regionName = Translator.get(
-            'region_${d.region}',
-          ).toLowerCase();
+          String regionName = (t['region_${d.region}'] ?? d.region).toLowerCase();
           if (d.title.toLowerCase().contains(query) ||
               regionName.contains(query)) {
             return true;
@@ -695,7 +686,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         );
       } else if (item is UserDex) {
-        String regionName = Translator.get('region_${item.region}');
+        String regionName = (t['region_${item.region}'] ?? item.region);
         bool matchesSearch =
             item.title.toLowerCase().contains(q) ||
             regionName.toLowerCase().contains(q);
@@ -780,11 +771,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 const CircularProgressIndicator(),
                 const SizedBox(height: 24),
                 Text(
-                  Translator.get(
-                    'migration_loading_text',
-                    fallback:
-                        'Daten werden für die neuste Version optimiert...\nBitte App nicht schließen.',
-                  ),
+                  t.migration_loading_text,
                   textAlign: TextAlign.center,
                   style: const TextStyle(
                     fontSize: 16,
@@ -950,7 +937,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           }
                         } catch (e) {
                           NotificationHelper.showError(
-                            '${Translator.get('error')} $e',
+                            '${t.error} $e',
                           );
                         }
                       },
@@ -983,7 +970,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             label: Text('$count'),
                             child: const Icon(Icons.auto_awesome),
                           ),
-                          tooltip: Translator.get('shiny_hunt_badge_tooltip'),
+                          tooltip: t.shiny_hunt_badge_tooltip,
                           onPressed: () {
                             Navigator.push(
                               context,
@@ -1023,7 +1010,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         child: TextField(
                           focusNode: _searchFocusNode,
                           decoration: InputDecoration(
-                            hintText: Translator.get('search_hint'),
+                            hintText: t.search_hint,
                             prefixIcon: const Icon(Icons.search),
                             filled: true,
                             fillColor: Theme.of(context)
@@ -1118,7 +1105,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             const SizedBox(height: 16),
                             Text(
                               _searchQuery.isEmpty
-                                  ? Translator.get('no_dex')
+                                  ? t.no_dex
                                   : 'Keine Ergebnisse gefunden',
                               style: TextStyle(
                                 color: Theme.of(context).hintColor,

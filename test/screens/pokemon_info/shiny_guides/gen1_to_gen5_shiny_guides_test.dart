@@ -14,7 +14,7 @@ import 'package:pokevault/screens/pokemon_info/shiny_guides/gen2_shiny_guide.dar
 import 'package:pokevault/screens/pokemon_info/shiny_guides/gen3_shiny_guide.dart';
 import 'package:pokevault/screens/pokemon_info/shiny_guides/gen4_shiny_guide.dart';
 import 'package:pokevault/screens/pokemon_info/shiny_guides/gen5_shiny_guide.dart';
-import 'package:pokevault/l10n/app_translations.dart';
+import 'package:pokevault/i18n/strings.g.dart';
 import '../../../e2e/helpers/e2e_test_helper.dart';
 
 class MockPathProviderPlatform extends Fake
@@ -64,7 +64,7 @@ void main() {
 
   setUp(() {
     SharedPreferences.setMockInitialValues({'app_db_version': 21});
-    Translator.currentLanguage = 'de';
+    LocaleSettings.setLocale(AppLocale.de);
     mockDexProvider = MockDexProvider();
     when(() => mockDexProvider.allPokemon).thenReturn([
       createTestPokemon(id: 1, nameDe: 'Bisasam'),
@@ -109,8 +109,8 @@ void main() {
 
       await settleDb(tester);
 
-      expect(find.text(Translator.get('shiny_stat_calculator')), findsOneWidget);
-      await tester.tap(find.text(Translator.get('shiny_stat_calculator')));
+      expect(find.text(t.shiny_stat_calculator), findsOneWidget);
+      await tester.tap(find.text(t.shiny_stat_calculator));
       await tester.pumpAndSettle();
 
       expect(find.textContaining('DV'), findsWidgets);
@@ -135,8 +135,8 @@ void main() {
       await settleDb(tester);
 
       // Mew special buttons
-      expect(find.text(Translator.get('tutorial_mew_video_de')), findsOneWidget);
-      await tester.tap(find.text(Translator.get('tutorial_mew_video_de')));
+      expect(find.text(t.tutorial_mew_video_de), findsOneWidget);
+      await tester.tap(find.text(t.tutorial_mew_video_de));
       await tester.pump();
 
       expect(launchedUrls, contains('https://www.youtube.com/watch?v=jJro6Hx4IfQ'));
@@ -160,11 +160,11 @@ void main() {
 
         await settleDb(tester);
 
-        expect(find.text(Translator.get('tutorials_silph_scope')), findsOneWidget);
-        expect(find.text(Translator.get('tutorial_silph_scope_video_en')), findsOneWidget);
-        expect(find.text(Translator.get('shiny_gen1_silph_scope_desc')), findsOneWidget);
+        expect(find.text(t.tutorials_silph_scope), findsOneWidget);
+        expect(find.text(t.tutorial_silph_scope_video_en), findsOneWidget);
+        expect(find.text(t.shiny_gen1_silph_scope_desc), findsOneWidget);
 
-        await tester.tap(find.text(Translator.get('tutorial_silph_scope_video_en')));
+        await tester.tap(find.text(t.tutorial_silph_scope_video_en));
         await tester.pump();
 
         expect(launchedUrls, contains('https://youtu.be/2s6QxW-3BcE?is=T0lmNtgkVIMapARw'));
@@ -188,8 +188,8 @@ void main() {
 
       await settleDb(tester);
 
-      expect(find.text(Translator.get('tutorials_silph_scope')), findsNothing);
-      expect(find.text(Translator.get('tutorial_silph_scope_video_en')), findsNothing);
+      expect(find.text(t.tutorials_silph_scope), findsNothing);
+      expect(find.text(t.tutorial_silph_scope_video_en), findsNothing);
     });
 
     testWidgets('Renders non-huntable status when category is missing', (tester) async {
@@ -208,7 +208,7 @@ void main() {
 
       await settleDb(tester);
 
-      expect(find.text(Translator.get('shiny_huntable_no', fallback: 'Shiny Huntable: Nein')), findsOneWidget);
+      expect(find.text(t.shiny_huntable_no), findsOneWidget);
     });
 
     testWidgets('Renders huntable status for Gastly even if shinyCategories is empty', (tester) async {
@@ -227,7 +227,7 @@ void main() {
 
       await settleDb(tester);
 
-      expect(find.text(Translator.get('shiny_gen1_huntable_yes')), findsOneWidget);
+      expect(find.text(t.shiny_gen1_huntable_yes), findsOneWidget);
     });
   });
 
@@ -263,8 +263,8 @@ void main() {
       );
 
       await settleDb(tester);
-      expect(find.text(Translator.get('shiny_roamer_gen2_title')), findsOneWidget);
-      expect(find.text(Translator.get('shiny_roamer_gen2_suicune_note')), findsOneWidget);
+      expect(find.text(t.shiny_roamer_gen2_title), findsOneWidget);
+      expect(find.text(t.shiny_roamer_gen2_suicune_note), findsOneWidget);
     });
 
     testWidgets('Renders Mail writer glitch for Gen 3 starters (252-257)', (tester) async {
@@ -282,10 +282,10 @@ void main() {
       );
 
       await settleDb(tester);
-      expect(find.text(Translator.get('shiny_mail_writer_title')), findsOneWidget);
-      expect(find.text(Translator.get('tutorial_mail_writer_main')), findsOneWidget);
+      expect(find.text(t.shiny_mail_writer_title), findsOneWidget);
+      expect(find.text(t.tutorial_mail_writer_main), findsOneWidget);
 
-      await tester.tap(find.text(Translator.get('tutorial_mail_writer_main')));
+      await tester.tap(find.text(t.tutorial_mail_writer_main));
       await tester.pump();
       expect(launchedUrls, contains('https://glitchcity.wiki/wiki/Guides:Mail_Writer_Codes'));
     });
@@ -330,7 +330,7 @@ void main() {
       await tester.tap(find.text('Generation 4'));
       await tester.pumpAndSettle();
 
-      expect(find.text(Translator.get('shiny_gen4_masuda_title')), findsOneWidget);
+      expect(find.text(t.shiny_gen4_masuda_title), findsOneWidget);
     });
   });
 
@@ -355,7 +355,7 @@ void main() {
       await tester.tap(find.text('Generation 5'));
       await tester.pumpAndSettle();
 
-      expect(find.text(Translator.get('shiny_gen5_masuda_title')), findsOneWidget);
+      expect(find.text(t.shiny_gen5_masuda_title), findsOneWidget);
     });
   });
 }

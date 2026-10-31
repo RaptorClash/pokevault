@@ -4,7 +4,7 @@ import 'package:mocktail/mocktail.dart';
 import 'package:pokevault/models/user_dex.dart';
 import 'package:pokevault/screens/home/widgets/home_dialogs.dart';
 import 'package:pokevault/screens/home/edit_dex_dialog.dart';
-import 'package:pokevault/l10n/app_translations.dart';
+import 'package:pokevault/i18n/strings.g.dart';
 import '../../e2e/helpers/e2e_test_helper.dart';
 
 void main() {
@@ -13,7 +13,7 @@ void main() {
   late MockDexProvider mockDexProvider;
 
   setUp(() {
-    Translator.currentLanguage = 'de';
+    LocaleSettings.setLocale(AppLocale.de);
     mockDexProvider = MockDexProvider();
   });
 
@@ -119,7 +119,7 @@ void main() {
 
       expect(find.text('Inhalt rekursiv löschen'), findsOneWidget);
 
-      await tester.tap(find.text(Translator.get('delete')));
+      await tester.tap(find.text(t.delete));
       await tester.pumpAndSettle();
 
       verify(() => mockDexProvider.deleteFolder('folder_123', false)).called(1);
@@ -156,7 +156,7 @@ void main() {
       await tester.tap(find.text('Inhalt rekursiv löschen'));
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text(Translator.get('delete')));
+      await tester.tap(find.text(t.delete));
       await tester.pumpAndSettle();
 
       verify(() => mockDexProvider.deleteFolder('folder_123', true)).called(1);
@@ -188,7 +188,7 @@ void main() {
       await tester.tap(find.text('Delete Dex'));
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text(Translator.get('delete')));
+      await tester.tap(find.text(t.delete));
       await tester.pumpAndSettle();
 
       verify(() => mockDexProvider.deleteDex('dex_del_1')).called(1);
@@ -226,7 +226,7 @@ void main() {
 
       await tester.pumpAndSettle();
 
-      expect(find.text(Translator.get('edit')), findsOneWidget);
+      expect(find.text(t.edit), findsOneWidget);
       expect(find.text('Mein Kanto Dex'), findsOneWidget);
 
       // Change title
@@ -235,7 +235,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Tap save
-      final saveBtn = find.text(Translator.get('save'));
+      final saveBtn = find.text(t.save);
       await tester.tap(saveBtn);
       await tester.pumpAndSettle();
 

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../../../l10n/app_translations.dart';
+import '../../../../i18n/strings.g.dart';
 
 class Gen3ShinyGuide extends StatelessWidget {
   final Future<void> Function(String) onLaunchUrl;
@@ -12,10 +12,7 @@ class Gen3ShinyGuide extends StatelessWidget {
 
     content.add(
       Text(
-        Translator.get(
-          'shiny_gen3_huntable_yes',
-          fallback: 'Shiny Huntable: Ja (Basis-Chance 1:8192)',
-        ),
+        t.shiny_gen3_huntable_yes,
         style: const TextStyle(
           color: Colors.green,
           fontWeight: FontWeight.bold,
@@ -46,10 +43,7 @@ class Gen3ShinyGuide extends StatelessWidget {
             const SizedBox(width: 8),
             Expanded(
               child: Text(
-                Translator.get(
-                  'shiny_gen3_rs_note',
-                  fallback: 'Rubin & Saphir: Der Seed ist zufällig...',
-                ),
+                t.shiny_gen3_rs_note,
                 style: const TextStyle(
                   fontSize: 13,
                   fontStyle: FontStyle.italic,
@@ -84,11 +78,7 @@ class Gen3ShinyGuide extends StatelessWidget {
             const SizedBox(width: 8),
             Expanded(
               child: Text(
-                Translator.get(
-                  'shiny_gen3_emerald_note',
-                  fallback:
-                      'Smaragd: RNG Fehler! Der Start-Seed ist bei jedem Reset immer 0...',
-                ),
+                t.shiny_gen3_emerald_note,
                 style: const TextStyle(
                   fontSize: 13,
                   fontStyle: FontStyle.italic,
@@ -125,10 +115,7 @@ class Gen3ShinyGuide extends StatelessWidget {
             const SizedBox(width: 8),
             Expanded(
               child: Text(
-                Translator.get(
-                  'shiny_gen3_frbg_note',
-                  fallback: 'Feuerrot & Blattgrün: Kein RNG Bug...',
-                ),
+                t.shiny_gen3_frbg_note,
                 style: const TextStyle(
                   fontSize: 13,
                   fontStyle: FontStyle.italic,
@@ -142,10 +129,7 @@ class Gen3ShinyGuide extends StatelessWidget {
     content.add(const SizedBox(height: 24));
     content.add(
       Text(
-        Translator.get(
-          'shiny_gen3_links_title',
-          fallback: 'RNG Manipulation Guides & Ressourcen',
-        ),
+        t.shiny_gen3_links_title,
         style: const TextStyle(fontWeight: FontWeight.bold),
       ),
     );
@@ -159,8 +143,8 @@ class Gen3ShinyGuide extends StatelessWidget {
           child: ElevatedButton.icon(
             icon: Icon(icon),
             label: Text(
-              Translator.get(titleKey) != titleKey
-                  ? Translator.get(titleKey)
+              (t[titleKey] ?? titleKey) != titleKey
+                  ? (t[titleKey] ?? titleKey)
                   : titleKey,
               textAlign: TextAlign.center,
             ),

@@ -6,7 +6,7 @@ import '../../providers/dex_provider.dart';
 import '../../providers/shiny_hunt_provider.dart';
 import '../../providers/tutorial_provider.dart';
 import '../../utils/shiny_hunt_odds_helper.dart';
-import '../../l10n/app_translations.dart';
+import '../../i18n/strings.g.dart';
 import '../../widgets/universal_poke_image.dart';
 import '../../widgets/tutorial/tutorial_overlay.dart';
 import 'shiny_hunt_counter_screen.dart';
@@ -107,12 +107,12 @@ class _ShinyHuntsHubScreenState extends State<ShinyHuntsHubScreen>
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text(Translator.get('shiny_hunt_delete_confirm_title')),
-        content: Text(Translator.get('shiny_hunt_delete_confirm_desc')),
+        title: Text(t.shiny_hunt_delete_confirm_title),
+        content: Text(t.shiny_hunt_delete_confirm_desc),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(),
-            child: Text(Translator.get('cancel', fallback: 'Abbrechen')),
+            child: Text(t.cancel),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: Colors.red, foregroundColor: Colors.white),
@@ -120,7 +120,7 @@ class _ShinyHuntsHubScreenState extends State<ShinyHuntsHubScreen>
               Provider.of<ShinyHuntProvider>(context, listen: false).deleteHunt(hunt.id);
               Navigator.of(ctx).pop();
             },
-            child: Text(Translator.get('delete', fallback: 'Löschen')),
+            child: Text(t.delete),
           ),
         ],
       ),
@@ -181,7 +181,7 @@ class _ShinyHuntsHubScreenState extends State<ShinyHuntsHubScreen>
             const Icon(Icons.search_off, size: 56, color: Colors.grey),
             const SizedBox(height: 16),
             Text(
-              Translator.get('shiny_hunt_search_no_results', fallback: 'Keine Shiny Hunts gefunden für "{query}".')
+              t.shiny_hunt_search_no_results
                   .replaceAll('{query}', _searchQuery),
               style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
               textAlign: TextAlign.center,
@@ -192,7 +192,7 @@ class _ShinyHuntsHubScreenState extends State<ShinyHuntsHubScreen>
                 _searchController.clear();
                 setState(() => _searchQuery = '');
               },
-              child: Text(Translator.get('clear', fallback: 'Suche zurücksetzen')),
+              child: Text(t.clear),
             ),
           ],
         ),
@@ -206,10 +206,7 @@ class _ShinyHuntsHubScreenState extends State<ShinyHuntsHubScreen>
       child: TextField(
         controller: _searchController,
         decoration: InputDecoration(
-          hintText: Translator.get(
-            'shiny_hunt_search_hint',
-            fallback: 'Hunts durchsuchen (Pokémon, Spiel, Notiz)...',
-          ),
+          hintText: t.shiny_hunt_search_hint,
           prefixIcon: const Icon(Icons.search),
           suffixIcon: _searchQuery.isNotEmpty
               ? IconButton(
@@ -247,7 +244,7 @@ class _ShinyHuntsHubScreenState extends State<ShinyHuntsHubScreen>
           children: [
             const Icon(Icons.auto_awesome, color: Colors.amber),
             const SizedBox(width: 8),
-            Text(Translator.get('shiny_hunt_hub_title')),
+            Text(t.shiny_hunt_hub_title),
           ],
         ),
         bottom: TabBar(
@@ -258,7 +255,7 @@ class _ShinyHuntsHubScreenState extends State<ShinyHuntsHubScreen>
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text(Translator.get('shiny_hunt_tab_active')),
+                  Text(t.shiny_hunt_tab_active),
                   if (activeHunts.isNotEmpty) ...[
                     const SizedBox(width: 6),
                     Badge.count(
@@ -273,7 +270,7 @@ class _ShinyHuntsHubScreenState extends State<ShinyHuntsHubScreen>
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text(Translator.get('shiny_hunt_tab_paused')),
+                  Text(t.shiny_hunt_tab_paused),
                   if (pausedHunts.isNotEmpty) ...[
                     const SizedBox(width: 6),
                     Badge.count(
@@ -288,7 +285,7 @@ class _ShinyHuntsHubScreenState extends State<ShinyHuntsHubScreen>
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text(Translator.get('shiny_hunt_tab_completed')),
+                  Text(t.shiny_hunt_tab_completed),
                   if (completedHunts.isNotEmpty) ...[
                     const SizedBox(width: 6),
                     Badge.count(
@@ -325,7 +322,7 @@ class _ShinyHuntsHubScreenState extends State<ShinyHuntsHubScreen>
         backgroundColor: Colors.amber.shade700,
         foregroundColor: Colors.white,
         icon: const Icon(Icons.add),
-        label: Text(Translator.get('shiny_hunt_new_hunt')),
+        label: Text(t.shiny_hunt_new_hunt),
       ),
     );
   }
@@ -378,7 +375,7 @@ class _ShinyHuntsHubScreenState extends State<ShinyHuntsHubScreen>
               const Icon(Icons.flare, size: 64, color: Colors.amber),
               const SizedBox(height: 16),
               Text(
-                Translator.get('shiny_hunt_empty_active'),
+                t.shiny_hunt_empty_active,
                 style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 textAlign: TextAlign.center,
               ),
@@ -386,7 +383,7 @@ class _ShinyHuntsHubScreenState extends State<ShinyHuntsHubScreen>
               ElevatedButton.icon(
                 onPressed: _openCreateDialog,
                 icon: const Icon(Icons.add),
-                label: Text(Translator.get('shiny_hunt_new_hunt')),
+                label: Text(t.shiny_hunt_new_hunt),
               ),
             ],
           ),
@@ -447,7 +444,7 @@ class _ShinyHuntsHubScreenState extends State<ShinyHuntsHubScreen>
                                       Icon(Icons.schedule, size: 12, color: Colors.grey.shade600),
                                       const SizedBox(width: 4),
                                       Text(
-                                        '${Translator.get('shiny_hunt_started', fallback: 'Start')}: ${_formatDate(hunt.createdAt)}',
+                                        '${t.shiny_hunt_started}: ${_formatDate(hunt.createdAt)}',
                                         style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
                                       ),
                                     ],
@@ -483,7 +480,7 @@ class _ShinyHuntsHubScreenState extends State<ShinyHuntsHubScreen>
                                         Text(
                                           hunt.pauseHistory.isNotEmpty
                                               ? '${hunt.pauseHistory.length} ${hunt.pauseHistory.length == 1 ? 'Pause' : 'Pausen'}'
-                                              : Translator.get('shiny_hunt_timeline_btn', fallback: 'Zeiten'),
+                                              : t.shiny_hunt_timeline_btn,
                                           style: TextStyle(
                                             fontSize: 10,
                                             fontWeight: FontWeight.w600,
@@ -520,7 +517,7 @@ class _ShinyHuntsHubScreenState extends State<ShinyHuntsHubScreen>
                           IconButton(
                             iconSize: 20,
                             icon: const Icon(Icons.pause),
-                            tooltip: Translator.get('shiny_hunt_pause'),
+                            tooltip: t.shiny_hunt_pause,
                             onPressed: () {
                               Provider.of<ShinyHuntProvider>(context, listen: false).pauseHunt(hunt.id);
                             },
@@ -574,7 +571,7 @@ class _ShinyHuntsHubScreenState extends State<ShinyHuntsHubScreen>
         child: Padding(
           padding: const EdgeInsets.all(32.0),
           child: Text(
-            Translator.get('shiny_hunt_empty_paused'),
+            t.shiny_hunt_empty_paused,
             style: const TextStyle(fontSize: 16),
             textAlign: TextAlign.center,
           ),
@@ -613,8 +610,8 @@ class _ShinyHuntsHubScreenState extends State<ShinyHuntsHubScreen>
                         Expanded(
                           child: Text(
                             hunt.pauseHistory.isNotEmpty
-                                ? '${Translator.get('shiny_hunt_paused_since', fallback: 'Pausiert seit')} ${_formatDateTime(hunt.pauseHistory.last.pausedAt)}'
-                                : Translator.get('shiny_hunt_tab_paused', fallback: 'Pausiert'),
+                                ? '${t.shiny_hunt_paused_since} ${_formatDateTime(hunt.pauseHistory.last.pausedAt)}'
+                                : t.shiny_hunt_tab_paused,
                             style: TextStyle(
                               fontSize: 11,
                               fontWeight: FontWeight.w500,
@@ -632,19 +629,19 @@ class _ShinyHuntsHubScreenState extends State<ShinyHuntsHubScreen>
                   children: [
                     IconButton(
                       icon: const Icon(Icons.history_rounded, color: Colors.grey),
-                      tooltip: Translator.get('shiny_hunt_timeline_title', fallback: 'Timeline & Pausen'),
+                      tooltip: t.shiny_hunt_timeline_title,
                       onPressed: () => ShinyHuntTimelineDialog.show(context, hunt),
                     ),
                     IconButton(
                       icon: const Icon(Icons.play_arrow, color: Colors.green),
-                      tooltip: Translator.get('shiny_hunt_resume'),
+                      tooltip: t.shiny_hunt_resume,
                       onPressed: () {
                         Provider.of<ShinyHuntProvider>(context, listen: false).resumeHunt(hunt.id);
                       },
                     ),
                     IconButton(
                       icon: const Icon(Icons.delete_outline, color: Colors.red),
-                      tooltip: Translator.get('delete', fallback: 'Löschen'),
+                      tooltip: t.delete,
                       onPressed: () => _confirmDeleteHunt(hunt),
                     ),
                   ],
@@ -671,7 +668,7 @@ class _ShinyHuntsHubScreenState extends State<ShinyHuntsHubScreen>
         child: Padding(
           padding: const EdgeInsets.all(32.0),
           child: Text(
-            Translator.get('shiny_hunt_empty_completed'),
+            t.shiny_hunt_empty_completed,
             style: const TextStyle(fontSize: 16),
             textAlign: TextAlign.center,
           ),
@@ -699,8 +696,8 @@ class _ShinyHuntsHubScreenState extends State<ShinyHuntsHubScreen>
           final d = hunt.completedAt!;
           final dateStr = '${d.day.toString().padLeft(2, '0')}.${d.month.toString().padLeft(2, '0')}.${d.year}';
           dateLabel = hunt.ballUsed != null
-              ? Translator.get('shiny_hunt_caught_on', fallback: 'Gefangen am {date}').replaceAll('{date}', dateStr)
-              : Translator.get('shiny_hunt_archived_on', fallback: 'Archiviert am {date}').replaceAll('{date}', dateStr);
+              ? t.shiny_hunt_caught_on.replaceAll('{date}', dateStr)
+              : t.shiny_hunt_archived_on.replaceAll('{date}', dateStr);
         }
 
         return Card(
@@ -745,7 +742,7 @@ class _ShinyHuntsHubScreenState extends State<ShinyHuntsHubScreen>
                             Icon(Icons.schedule, size: 12, color: Colors.grey.shade600),
                             const SizedBox(width: 4),
                             Text(
-                              '${Translator.get('shiny_hunt_started', fallback: 'Start')}: ${_formatDate(hunt.createdAt)}',
+                              '${t.shiny_hunt_started}: ${_formatDate(hunt.createdAt)}',
                               style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
                             ),
                             if (hunt.pauseHistory.isNotEmpty) ...[
@@ -911,19 +908,19 @@ class _ShinyHuntsHubScreenState extends State<ShinyHuntsHubScreen>
                     children: [
                       IconButton(
                         icon: const Icon(Icons.history_rounded, color: Colors.purple),
-                        tooltip: Translator.get('shiny_hunt_timeline_title', fallback: 'Timeline & Pausen'),
+                        tooltip: t.shiny_hunt_timeline_title,
                         onPressed: () => ShinyHuntTimelineDialog.show(context, hunt),
                       ),
                       IconButton(
                         icon: const Icon(Icons.refresh_rounded, color: Colors.amber),
-                        tooltip: Translator.get('shiny_hunt_reopen_btn', fallback: 'Hunt wieder aufnehmen'),
+                        tooltip: t.shiny_hunt_reopen_btn,
                         onPressed: () async {
                           await Provider.of<ShinyHuntProvider>(context, listen: false).reopenHunt(hunt.id);
                           if (context.mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
                                 content: Text(
-                                  Translator.get('shiny_hunt_reopened_toast', fallback: 'Hunt wurde wieder aktiviert!'),
+                                  t.shiny_hunt_reopened_toast,
                                 ),
                               ),
                             );
@@ -932,7 +929,7 @@ class _ShinyHuntsHubScreenState extends State<ShinyHuntsHubScreen>
                       ),
                       IconButton(
                         icon: const Icon(Icons.delete_outline, color: Colors.grey),
-                        tooltip: Translator.get('delete', fallback: 'Löschen'),
+                        tooltip: t.delete,
                         onPressed: () => _confirmDeleteHunt(hunt),
                       ),
                     ],

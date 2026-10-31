@@ -3,7 +3,7 @@ import '../../../../models/pokemon.dart';
 import '../../../../models/dex_view_models.dart';
 import '../../../../services/database_service.dart';
 import '../../../../utils/shiny_logic_helper.dart';
-import '../../../../l10n/app_translations.dart';
+import '../../../../i18n/strings.g.dart';
 
 class Gen7ShinyGuide extends StatelessWidget {
   final Pokemon pokemon;
@@ -100,7 +100,7 @@ class Gen7ShinyGuide extends StatelessWidget {
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
-                        Translator.get(titleKey) != titleKey ? Translator.get(titleKey) : titleKey,
+                        (t[titleKey] ?? titleKey) != titleKey ? (t[titleKey] ?? titleKey) : titleKey,
                         style: TextStyle(fontWeight: FontWeight.bold, color: color),
                       ),
                     ),
@@ -108,7 +108,7 @@ class Gen7ShinyGuide extends StatelessWidget {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  Translator.get(descKey) != descKey ? Translator.get(descKey) : descKey,
+                  (t[descKey] ?? descKey) != descKey ? (t[descKey] ?? descKey) : descKey,
                   style: const TextStyle(fontSize: 13, fontStyle: FontStyle.italic),
                 ),
               ],
@@ -124,7 +124,7 @@ class Gen7ShinyGuide extends StatelessWidget {
               child: ElevatedButton.icon(
                 icon: Icon(icon),
                 label: Text(
-                  Translator.get(titleKey) != titleKey ? Translator.get(titleKey) : titleKey,
+                  (t[titleKey] ?? titleKey) != titleKey ? (t[titleKey] ?? titleKey) : titleKey,
                   textAlign: TextAlign.center,
                 ),
                 onPressed: () => onLaunchUrl(url),
@@ -136,7 +136,7 @@ class Gen7ShinyGuide extends StatelessWidget {
         if (isOtherCap || shinyCategories.contains('gen7_locks')) {
           content.add(
             Text(
-              Translator.get('shiny_huntable_no', fallback: 'Shiny Huntable: Nein'),
+              t.shiny_huntable_no,
               style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
             ),
           );
@@ -144,8 +144,8 @@ class Gen7ShinyGuide extends StatelessWidget {
           if (isOtherCap) {
             content.add(buildInfoBox(
               Icons.lock,
-              Translator.currentLanguage == 'de' ? 'Shiny-Lock' : 'Shiny Lock',
-              Translator.currentLanguage == 'de'
+              LocaleSettings.currentLocale == AppLocale.de ? 'Shiny-Lock' : 'Shiny Lock',
+              LocaleSettings.currentLocale == AppLocale.de
                   ? 'Pikachu mit Kappe kann in dieser Generation nicht schillernd erhalten werden (außer Partner-Kappe in USUM).'
                   : 'Cap Pikachu cannot be obtained shiny in this generation (except Partner Cap in USUM).',
               Colors.red,
@@ -156,7 +156,7 @@ class Gen7ShinyGuide extends StatelessWidget {
         } else {
           content.add(
             Text(
-              Translator.get('shiny_gen7_huntable_yes', fallback: 'Shiny Huntable: Ja (Basis-Chance 1:4096)'),
+              t.shiny_gen7_huntable_yes,
               style: const TextStyle(color: Colors.green, fontWeight: FontWeight.bold),
             ),
           );
@@ -165,20 +165,20 @@ class Gen7ShinyGuide extends StatelessWidget {
           if (isPartnerCap) {
             content.add(buildInfoBox(
               Icons.stars,
-              Translator.currentLanguage == 'de'
+              LocaleSettings.currentLocale == AppLocale.de
                   ? 'Pikachu-Tal (QR-Code Event) - Soft Reset'
                   : 'Pikachu Valley (QR Code Event) - Soft Reset',
-              Translator.currentLanguage == 'de'
+              LocaleSettings.currentLocale == AppLocale.de
                   ? 'In Pokémon Ultra Sonne & Ultra Mond kann das Partner-Kappe Pikachu am Pikachu-Tal per QR-Code Event erhalten und per Soft Reset schillernd gejagt werden (Basis-Chance 1:4096).'
                   : 'In Pokémon Ultra Sun & Ultra Moon, Partner Cap Pikachu can be obtained at Pikachu Valley via QR Code event and soft reset for shiny (base odds 1:4096).',
               Colors.teal,
             ));
             content.add(buildInfoBox(
               Icons.visibility,
-              Translator.currentLanguage == 'de'
+              LocaleSettings.currentLocale == AppLocale.de
                   ? 'Wichtiger optischer Hinweis'
                   : 'Important Visual Note',
-              ShinyLogicHelper.getPartnerCapShinyNote(lang: Translator.currentLanguage),
+              ShinyLogicHelper.getPartnerCapShinyNote(lang: LocaleSettings.currentLocale.languageCode),
               Colors.amber,
             ));
           }

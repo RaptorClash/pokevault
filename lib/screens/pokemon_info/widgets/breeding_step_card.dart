@@ -1,6 +1,6 @@
 ﻿import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../../l10n/app_translations.dart';
+import '../../../i18n/strings.g.dart';
 import '../../../utils/shiny_logic_helper.dart';
 import '../../../providers/dex_provider.dart';
 import 'breeding_data.dart';
@@ -61,7 +61,7 @@ class BreedingStepCard extends StatelessWidget {
         isCarrier: isCarrier,
       );
     }
-    String oneOfText = Translator.currentLanguage == 'de'
+    String oneOfText = LocaleSettings.currentLocale == AppLocale.de
         ? 'Eines davon:'
         : 'One of these:';
     return Container(
@@ -128,7 +128,7 @@ class BreedingStepCard extends StatelessWidget {
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  Translator.get('shiny_breed_evo_step'),
+                  t.shiny_breed_evo_step,
                   style: const TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.bold,
@@ -183,7 +183,7 @@ class BreedingStepCard extends StatelessWidget {
               size: 24,
             ),
             Text(
-              Translator.get('shiny_breed_evo_step'),
+              t.shiny_breed_evo_step,
               style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
             ),
             PokemonAvatar(
@@ -219,7 +219,7 @@ class BreedingStepCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<DexProvider>();
-    String stepText = Translator.currentLanguage == 'de' ? 'Schritt' : 'Step';
+    String stepText = LocaleSettings.currentLocale == AppLocale.de ? 'Schritt' : 'Step';
     int baseChildId = ShinyLogicHelper.getBaseForm(childId, preEvolutions);
     bool needsEvolution =
         baseChildId != childId &&
@@ -242,19 +242,14 @@ class BreedingStepCard extends StatelessWidget {
       (g) => g2.contains(g),
       orElse: () => 'Unbekannt',
     );
-    String transGroup = Translator.get(
-      'region_egg_${sharedGroup.toLowerCase()}',
-    );
+    String transGroup = (t['region_egg_${sharedGroup.toLowerCase()}'] ?? sharedGroup);
     if (transGroup.startsWith('region_egg_')) transGroup = sharedGroup;
 
     final targetPoke = provider.allPokemon
         .where((p) => p.id == childId)
         .firstOrNull;
     String realOdds = cCarrier
-        ? (Translator.get(
-            'chance_carrier',
-            fallback: 'Chance: 1:2 (Gen-Trägerin)',
-          ))
+        ? (t.chance_carrier)
         : (targetPoke != null
               ? BreedingData.getRealOdds(targetPoke, cGender)
               : '1:128');
@@ -418,7 +413,7 @@ class BreedingStepCard extends StatelessWidget {
                   cShiny,
                   cGender,
                   childId,
-                  Translator.get(step['req']),
+                  (t[step['req']] ?? step['req']),
                   isMobile,
                   cCarrier,
                 );
@@ -447,7 +442,7 @@ class BreedingStepCard extends StatelessWidget {
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
-                          Translator.get('shiny_breed_carrier_note'),
+                          t.shiny_breed_carrier_note,
                           style: const TextStyle(
                             fontSize: 12,
                             color: Colors.blue,
@@ -480,11 +475,11 @@ class BreedingStepCard extends StatelessWidget {
                 ),
                 child: Text(
                   isFinal && !cCarrier
-                      ? '${Translator.get('shiny_breed_chance')}: $realOdds (${Translator.currentLanguage == 'de' ? 'Ziel erreicht!' : 'Goal reached!'})'
+                      ? '${t.shiny_breed_chance}: $realOdds (${LocaleSettings.currentLocale == AppLocale.de ? 'Ziel erreicht!' : 'Goal reached!'})'
                       : (cCarrier
                             ? realOdds
                             : (realOdds.contains('1:')
-                                  ? '${Translator.get('shiny_breed_chance')}: $realOdds'
+                                  ? '${t.shiny_breed_chance}: $realOdds'
                                   : realOdds)),
                   style: TextStyle(
                     fontSize: 14,

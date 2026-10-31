@@ -11,7 +11,7 @@ import 'package:pokevault/providers/tutorial_provider.dart';
 import 'package:pokevault/screens/home/create_dex_bottom_sheet.dart';
 import 'package:pokevault/screens/home/edit_dex_dialog.dart';
 import 'package:pokevault/data/dex_groups_data.dart';
-import 'package:pokevault/l10n/app_translations.dart';
+import 'package:pokevault/i18n/strings.g.dart';
 import '../../e2e/helpers/e2e_test_helper.dart';
 
 class _MockHttpOverrides extends HttpOverrides {
@@ -98,7 +98,7 @@ void main() {
 
   setUp(() {
     SharedPreferences.setMockInitialValues({});
-    Translator.currentLanguage = 'de';
+    LocaleSettings.setLocale(AppLocale.de);
     mockDexProvider = MockDexProvider();
     mockTutorialProvider = MockTutorialProvider();
 
@@ -146,7 +146,7 @@ void main() {
       await tester.pumpAndSettle();
 
       final natGroup = DexGroupsData.groups.firstWhere((g) => g.nameKey == 'group_national');
-      final groupFinder = find.text(Translator.get(natGroup.nameKey));
+      final groupFinder = find.text((t[natGroup.nameKey] ?? natGroup.nameKey).toString());
       if (groupFinder.evaluate().isNotEmpty) {
         await tester.tap(groupFinder.first);
         await tester.pumpAndSettle();
@@ -233,7 +233,7 @@ void main() {
       await tester.tap(glitchFinder);
       await tester.pumpAndSettle();
 
-      final saveBtn = find.widgetWithText(ElevatedButton, Translator.get('save'));
+      final saveBtn = find.widgetWithText(ElevatedButton, t.save);
       await tester.tap(saveBtn);
       await tester.pumpAndSettle();
 

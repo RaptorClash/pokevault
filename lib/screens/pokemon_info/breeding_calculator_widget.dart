@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../l10n/app_translations.dart';
+import '../../i18n/strings.g.dart';
 import '../../utils/notification_helper.dart';
 import '../../utils/shiny_logic_helper.dart';
 import '../../utils/breeding_logic_helper.dart';
@@ -87,14 +87,14 @@ class _BreedingCalculatorWidgetState extends State<BreedingCalculatorWidget> {
     final provider = Provider.of<DexProvider>(context, listen: false);
     final p = provider.allPokemon.where((p) => p.id == id).firstOrNull;
     if (p == null) return '#${id.toString().padLeft(3, '0')} ???';
-    return '#${id.toString().padLeft(3, '0')} ${p.getName(Translator.currentLanguage)}';
+    return '#${id.toString().padLeft(3, '0')} ${p.getName(LocaleSettings.currentLocale.languageCode)}';
   }
 
   String _getPokemonNameOnly(int id) {
     final provider = Provider.of<DexProvider>(context, listen: false);
     final p = provider.allPokemon.where((p) => p.id == id).firstOrNull;
     if (p == null) return '???';
-    return p.getName(Translator.currentLanguage);
+    return p.getName(LocaleSettings.currentLocale.languageCode);
   }
 
   Future<void> _calculatePath() async {
@@ -165,7 +165,7 @@ class _BreedingCalculatorWidgetState extends State<BreedingCalculatorWidget> {
         Padding(
           padding: const EdgeInsets.all(8.0),
           child: Text(
-            Translator.currentLanguage == 'de'
+            LocaleSettings.currentLocale == AppLocale.de
                 ? 'Start- und Ziel-Pokémon sind identisch!'
                 : 'Start and Target Pokémon are identical!',
             style: const TextStyle(fontStyle: FontStyle.italic),
@@ -183,9 +183,7 @@ class _BreedingCalculatorWidgetState extends State<BreedingCalculatorWidget> {
       String baseNextName = _getPokemonNameOnly(
         ShinyLogicHelper.getBaseForm(nextId, _preEvolutions),
       );
-      String stepDitto = Translator.get(
-        'shiny_breed_step_ditto',
-      ).replaceAll('{0}', nextName).replaceAll('{1}', baseNextName);
+      String stepDitto = t.shiny_breed_step_ditto.replaceAll('{0}', nextName).replaceAll('{1}', baseNextName);
 
       steps.add(
         BreedingStepCard(
@@ -299,7 +297,7 @@ class _BreedingCalculatorWidgetState extends State<BreedingCalculatorWidget> {
       tilePadding: EdgeInsets.zero,
       leading: const Icon(Icons.egg, color: Colors.amber),
       title: Text(
-        Translator.get('shiny_breed_calc_title'),
+        t.shiny_breed_calc_title,
         style: const TextStyle(fontWeight: FontWeight.bold),
       ),
       children: [
@@ -313,10 +311,7 @@ class _BreedingCalculatorWidgetState extends State<BreedingCalculatorWidget> {
                 controlAffinity: ListTileControlAffinity.leading,
                 activeColor: Theme.of(context).colorScheme.primary,
                 title: Text(
-                  Translator.get(
-                    'only_caught_pokemon',
-                    fallback: 'Nur gefangene Pokémon für Route verwenden',
-                  ),
+                  t.only_caught_pokemon,
                   style: const TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.bold,
@@ -333,7 +328,7 @@ class _BreedingCalculatorWidgetState extends State<BreedingCalculatorWidget> {
               const SizedBox(height: 16),
 
               Text(
-                Translator.get('shiny_breed_start'),
+                t.shiny_breed_start,
                 style: const TextStyle(fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 8),
@@ -354,7 +349,7 @@ class _BreedingCalculatorWidgetState extends State<BreedingCalculatorWidget> {
 
               const SizedBox(height: 16),
               Text(
-                Translator.get('shiny_breed_target'),
+                t.shiny_breed_target,
                 style: const TextStyle(fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 8),
@@ -362,7 +357,7 @@ class _BreedingCalculatorWidgetState extends State<BreedingCalculatorWidget> {
               TargetPokemonDisplay(
                 targetId: _targetId,
                 targetName: targetPoke != null
-                    ? targetPoke.getName(Translator.currentLanguage)
+                    ? targetPoke.getName(LocaleSettings.currentLocale.languageCode)
                     : '???',
               ),
 
@@ -378,7 +373,7 @@ class _BreedingCalculatorWidgetState extends State<BreedingCalculatorWidget> {
               else ...[
                 if (_allPaths != null && _allPaths!.length > 1) ...[
                   Text(
-                    Translator.currentLanguage == 'de'
+                    LocaleSettings.currentLocale == AppLocale.de
                         ? 'Alternative Routen'
                         : 'Alternative Routes',
                     style: const TextStyle(fontWeight: FontWeight.bold),
@@ -390,7 +385,7 @@ class _BreedingCalculatorWidgetState extends State<BreedingCalculatorWidget> {
                       children: List.generate(_allPaths!.length, (index) {
                         var p = _allPaths![index];
                         bool isSelected = index == _selectedPathIndex;
-                        String routeName = Translator.currentLanguage == 'de'
+                        String routeName = LocaleSettings.currentLocale == AppLocale.de
                             ? 'Direkt'
                             : 'Direct';
                         if (p.length > 2) {
@@ -422,18 +417,10 @@ class _BreedingCalculatorWidgetState extends State<BreedingCalculatorWidget> {
                 if (_allPaths != null && _allPaths!.isEmpty)
                   Text(
                     _startId != 132
-                        ? Translator.get(
-                            'no_path_impossible',
-                            fallback:
-                                'Unmöglich! Du MUSST ein Shiny Ditto verwenden!',
-                          )
+                        ? t.no_path_impossible
                         : (_useOnlyCaught
-                              ? Translator.get(
-                                  'no_path_caught',
-                                  fallback:
-                                      'Keine Route mit deinen gefangenen Pokémon gefunden.',
-                                )
-                              : Translator.get('shiny_breed_no_path')),
+                              ? t.no_path_caught
+                              : t.shiny_breed_no_path),
                     style: const TextStyle(
                       color: Colors.red,
                       fontWeight: FontWeight.bold,
@@ -442,12 +429,8 @@ class _BreedingCalculatorWidgetState extends State<BreedingCalculatorWidget> {
                 else if (_path == null)
                   Text(
                     _useOnlyCaught
-                        ? Translator.get(
-                            'no_path_caught',
-                            fallback:
-                                'Keine Route mit deinen gefangenen Pokémon gefunden.',
-                          )
-                        : Translator.get('shiny_breed_no_path'),
+                        ? t.no_path_caught
+                        : t.shiny_breed_no_path,
                     style: const TextStyle(color: Colors.red),
                   )
                 else

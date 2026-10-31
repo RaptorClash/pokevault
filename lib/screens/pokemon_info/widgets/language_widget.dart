@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import '../../../models/dex_view_models.dart';
 import '../../../models/user_dex.dart';
 import '../../../providers/dex_provider.dart';
-import '../../../l10n/app_translations.dart';
+import '../../../i18n/strings.g.dart';
 
 class LanguageWidget extends StatelessWidget {
   final DexDisplayEntry entry;
@@ -51,7 +51,7 @@ class LanguageWidget extends StatelessWidget {
           children: [
             Expanded(
               child: Text(
-                Translator.get('languages_title', fallback: 'Sprachen'),
+                t.languages_title,
                 style: const TextStyle(fontWeight: FontWeight.bold),
               ),
             ),

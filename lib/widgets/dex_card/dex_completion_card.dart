@@ -7,7 +7,7 @@ import '../../models/dex_progress_models.dart';
 import '../../models/dex_view_models.dart';
 import '../../models/user_dex.dart';
 import '../../utils/dex_logic_helper.dart';
-import '../../l10n/app_translations.dart';
+import '../../i18n/strings.g.dart';
 
 /// Customizable Living Dex Completion Card widget supporting 4 stats-focused design styles
 /// and 3 aspect ratios (16:9 Landscape, 1:1 Square, 9:16 Story/Portrait).
@@ -27,7 +27,7 @@ class DexCompletionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final lang = Translator.currentLanguage;
+    final lang = LocaleSettings.currentLocale.languageCode;
     final isEn = lang == 'en';
 
     return AspectRatio(
@@ -701,9 +701,7 @@ class DexCompletionCard extends StatelessWidget {
         builder: (context, constraints) {
           final isBounded = constraints.hasBoundedHeight;
           final titleWidget = Text(
-            Translator.get('dex_progress_generations',
-                    fallback: 'Generationen-Abdeckung')
-                .toUpperCase(),
+            t.dex_progress_generations.toUpperCase(),
             style: TextStyle(
               fontSize: 9.0 * scale + 1.5,
               fontWeight: FontWeight.w700,
@@ -846,9 +844,7 @@ class DexCompletionCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                Translator.get('dex_progress_forms',
-                        fallback: 'Formen & Varianten')
-                    .toUpperCase(),
+                t.dex_progress_forms.toUpperCase(),
                 style: TextStyle(
                   fontSize: 9.0 * scale + 1.5,
                   fontWeight: FontWeight.w700,

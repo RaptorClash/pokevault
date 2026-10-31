@@ -4,7 +4,7 @@ import '../../../models/dex_view_models.dart';
 import '../../../models/user_dex.dart';
 import '../../../models/ribbon.dart';
 import '../../../providers/dex_provider.dart';
-import '../../../l10n/app_translations.dart';
+import '../../../i18n/strings.g.dart';
 import '../../../services/database_service.dart';
 import '../../../utils/dex_logic_helper.dart';
 import '../../../utils/ribbons_logic_helper.dart';
@@ -104,7 +104,7 @@ class _RibbonsWidgetState extends State<RibbonsWidget> {
               const SizedBox(height: 16),
               if (ribbon.titleDe.isNotEmpty) ...[
                 Text(
-                  Translator.get('title', fallback: 'Titel:'),
+                  t.title,
                   style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
                 Text(ribbon.titleDe),
@@ -112,7 +112,7 @@ class _RibbonsWidgetState extends State<RibbonsWidget> {
               ],
               if (ribbon.locationDe.isNotEmpty) ...[
                 Text(
-                  Translator.get('location', fallback: 'Fundort / Bedingung:'),
+                  t.location,
                   style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
                 Text(ribbon.locationDe),
@@ -123,7 +123,7 @@ class _RibbonsWidgetState extends State<RibbonsWidget> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text(Translator.get('close', fallback: 'Schließen')),
+            child: Text(t.close),
           ),
         ],
       ),
@@ -147,7 +147,7 @@ class _RibbonsWidgetState extends State<RibbonsWidget> {
     );
     List<String> earnedRibbons =
         liveDex.caughtRibbons[widget.entry.uniqueId] ?? [];
-    final lang = Translator.currentLanguage;
+    final lang = LocaleSettings.currentLocale.languageCode;
 
     int earnedCount = _ribbons!
         .where((r) => earnedRibbons.contains(r.id))
@@ -174,7 +174,7 @@ class _RibbonsWidgetState extends State<RibbonsWidget> {
           children: [
             Expanded(
               child: Text(
-                Translator.get('ribbons', fallback: 'Bänder'),
+                t.ribbons,
                 style: const TextStyle(fontWeight: FontWeight.bold),
               ),
             ),
@@ -200,7 +200,7 @@ class _RibbonsWidgetState extends State<RibbonsWidget> {
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
             child: TextField(
               decoration: InputDecoration(
-                labelText: Translator.get('search', fallback: 'Suchen...'),
+                labelText: t.search,
                 prefixIcon: const Icon(Icons.search),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),

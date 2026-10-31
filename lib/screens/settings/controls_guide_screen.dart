@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../l10n/app_translations.dart';
+import '../../i18n/strings.g.dart';
 import '../../providers/tutorial_provider.dart';
 
 /// A dedicated screen presenting an overview of all mouse, keyboard, and touch controls.
@@ -70,10 +70,7 @@ class _ControlsGuideScreenState extends State<ControlsGuideScreen>
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          Translator.get(
-            'controls_guide_title',
-            fallback: 'Bedienung & Tastaturkürzel',
-          ),
+          t.controls_guide_title,
         ),
         bottom: TabBar(
           controller: _tabController,
@@ -83,17 +80,11 @@ class _ControlsGuideScreenState extends State<ControlsGuideScreen>
           tabs: [
             Tab(
               icon: const Icon(Icons.computer),
-              text: Translator.get(
-                'controls_tab_desktop',
-                fallback: 'Desktop & Web',
-              ),
+              text: t.controls_tab_desktop,
             ),
             Tab(
               icon: const Icon(Icons.touch_app),
-              text: Translator.get(
-                'controls_tab_mobile',
-                fallback: 'Touch & Mobil',
-              ),
+              text: t.controls_tab_mobile,
             ),
           ],
         ),
@@ -119,331 +110,137 @@ class _DesktopControlsTab extends StatelessWidget {
       children: [
         _PlatformInfoCard(
           icon: Icons.mouse_outlined,
-          message: Translator.get(
-            'controls_platform_hint_desktop',
-            fallback:
-                'Übersicht über alle Tastatur- und Mauskürzel für Desktop und Web.',
-          ),
+          message: t.controls_platform_hint_desktop,
         ),
         const SizedBox(height: 16),
         _ControlCategorySection(
           icon: Icons.navigation_outlined,
-          title: Translator.get(
-            'controls_cat_general',
-            fallback: 'Allgemein & Navigation',
-          ),
+          title: t.controls_cat_general,
           items: [
             _ControlItem(
-              inputLabel: Translator.get(
-                'controls_nav_back_key',
-                fallback: 'Backspace / Browser Back',
-              ),
-              title: Translator.get(
-                'back',
-                fallback: 'Zurück',
-              ),
-              description: Translator.get(
-                'controls_nav_back_desc',
-                fallback:
-                    'Zur vorherigen Ansicht zurückkehren oder Ordner schließen',
-              ),
+              inputLabel: t.controls_nav_back_key,
+              title: t.back,
+              description: t.controls_nav_back_desc,
             ),
             _ControlItem(
-              inputLabel: Translator.get(
-                'controls_folder_nav',
-                fallback: 'Klick / Tippen auf Ordner',
-              ),
-              title: Translator.get(
-                'folder',
-                fallback: 'Ordnernavigation',
-              ),
-              description: Translator.get(
-                'controls_folder_nav_desc',
-                fallback: 'Ordner öffnen oder im Ordner navigieren',
-              ),
+              inputLabel: t.controls_folder_nav,
+              title: t.folder,
+              description: t.controls_folder_nav_desc,
             ),
           ],
         ),
         const SizedBox(height: 16),
         _ControlCategorySection(
           icon: Icons.grid_view_rounded,
-          title: Translator.get(
-            'controls_cat_dex',
-            fallback: 'Pokédex (PC-Box & Liste)',
-          ),
+          title: t.controls_cat_dex,
           items: [
             _ControlItem(
-              inputLabel: Translator.get(
-                'controls_dex_toggle_click',
-                fallback: 'Linksklick',
-              ),
-              title: Translator.get(
-                'caught',
-                fallback: 'Gefangen toggeln',
-              ),
-              description: Translator.get(
-                'controls_dex_toggle_desc',
-                fallback:
-                    'Status Gefangen/Fehlt umschalten oder leeren Platzhalter belegen',
-              ),
+              inputLabel: t.controls_dex_toggle_click,
+              title: t.caught,
+              description: t.controls_dex_toggle_desc,
             ),
             _ControlItem(
-              inputLabel: Translator.get(
-                'controls_dex_details_click',
-                fallback: 'Rechtsklick',
-              ),
-              title: Translator.get(
-                'details',
-                fallback: 'Pokémon-Details',
-              ),
-              description: Translator.get(
-                'controls_dex_details_desc',
-                fallback: 'Detail- und Informationsseite des Pokémon öffnen',
-              ),
+              inputLabel: t.controls_dex_details_click,
+              title: t.details,
+              description: t.controls_dex_details_desc,
             ),
             _ControlItem(
-              inputLabel: Translator.get(
-                'controls_dex_details_key',
-                fallback: 'Taste I / Strg + Enter',
-              ),
-              title: Translator.get(
-                'details',
-                fallback: 'Pokémon-Details (Tastatur)',
-              ),
-              description: Translator.get(
-                'controls_dex_details_key_desc',
-                fallback: 'Pokémon-Details bei Tastaturfokus öffnen',
-              ),
+              inputLabel: t.controls_dex_details_key,
+              title: t.details,
+              description: t.controls_dex_details_key_desc,
             ),
             _ControlItem(
-              inputLabel: Translator.get(
-                'controls_dex_drag_desktop',
-                fallback: 'Maus Drag & Drop',
-              ),
-              title: Translator.get(
-                'move_pokemon',
-                fallback: 'Verschieben & Tauschen',
-              ),
-              description: Translator.get(
-                'controls_dex_drag_desc',
-                fallback:
-                    'Pokémon innerhalb oder zwischen Boxen verschieben / tauschen',
-              ),
+              inputLabel: t.controls_dex_drag_desktop,
+              title: t.move_pokemon,
+              description: t.controls_dex_drag_desc,
             ),
             _ControlItem(
-              inputLabel: Translator.get(
-                'controls_dex_multiselect',
-                fallback: 'Mehrfachauswahl (Edit-Modus)',
-              ),
-              title: Translator.get(
-                'edit',
-                fallback: 'Bearbeiten-Modus',
-              ),
-              description: Translator.get(
-                'controls_dex_multiselect_desc',
-                fallback:
-                    'Tippen im Bearbeiten-Modus, um mehrere Pokémon zu markieren',
-              ),
+              inputLabel: t.controls_dex_multiselect,
+              title: t.edit,
+              description: t.controls_dex_multiselect_desc,
             ),
           ],
         ),
         const SizedBox(height: 16),
         _ControlCategorySection(
           icon: Icons.home_rounded,
-          title: Translator.get(
-            'controls_cat_home',
-            fallback: 'Hauptmenü (Home Screen)',
-          ),
+          title: t.controls_cat_home,
           items: [
             _ControlItem(
-              inputLabel: Translator.get(
-                'controls_home_reorder',
-                fallback: 'Reorder-Handle (Ziehen)',
-              ),
-              title: Translator.get(
-                'sort',
-                fallback: 'Manuelle Sortierung',
-              ),
-              description: Translator.get(
-                'controls_home_reorder_desc',
-                fallback:
-                    'Dexe und Ordner bei manueller Sortierung frei anordnen',
-              ),
+              inputLabel: t.controls_home_reorder,
+              title: t.sort,
+              description: t.controls_home_reorder_desc,
             ),
             _ControlItem(
-              inputLabel: Translator.get(
-                'controls_home_multiselect',
-                fallback: 'Langer Druck (Longpress)',
-              ),
-              title: Translator.get(
-                'selected',
-                fallback: 'Auswahlmodus',
-              ),
-              description: Translator.get(
-                'controls_home_multiselect_desc',
-                fallback:
-                    'Auswahlmodus aktivieren (Mehrfachauswahl für Verschieben & Löschen)',
-              ),
+              inputLabel: t.controls_home_multiselect,
+              title: t.selected,
+              description: t.controls_home_multiselect_desc,
             ),
             _ControlItem(
-              inputLabel: Translator.get(
-                'controls_home_menu',
-                fallback: 'Dreipunkt-Menü (⋮)',
-              ),
-              title: Translator.get(
-                'actions',
-                fallback: 'Schnellaktionen',
-              ),
-              description: Translator.get(
-                'controls_home_menu_desc',
-                fallback:
-                    'Schnellmenü für Umbenennen, Verschieben, Exportieren & Löschen',
-              ),
+              inputLabel: t.controls_home_menu,
+              title: t.actions,
+              description: t.controls_home_menu_desc,
             ),
           ],
         ),
         const SizedBox(height: 16),
         _ControlCategorySection(
           icon: Icons.auto_awesome,
-          title: Translator.get(
-            'controls_cat_shiny_hunt',
-            fallback: 'Shiny Hunt Counter',
-          ),
+          title: t.controls_cat_shiny_hunt,
           items: [
             _ControlItem(
-              inputLabel: Translator.get(
-                'controls_hunt_inc_key',
-                fallback: 'Leertaste / Pfeil Oben (↑)',
-              ),
-              title: Translator.get(
-                'controls_hunt_inc_title',
-                fallback: '+1 Encounter',
-              ),
-              description: Translator.get(
-                'controls_hunt_inc_desc',
-                fallback: 'Zähler um 1 (oder eingestellte Schrittweite) erhöhen',
-              ),
+              inputLabel: t.controls_hunt_inc_key,
+              title: t.controls_hunt_inc_title,
+              description: t.controls_hunt_inc_desc,
             ),
             _ControlItem(
-              inputLabel: Translator.get(
-                'controls_hunt_dec_key',
-                fallback: 'Pfeil Unten (↓) / Minus (-)',
-              ),
-              title: Translator.get(
-                'controls_hunt_dec_title',
-                fallback: '-1 Encounter',
-              ),
-              description: Translator.get(
-                'controls_hunt_dec_desc',
-                fallback: 'Zähler um 1 verringern (Fehlzählung korrigieren)',
-              ),
+              inputLabel: t.controls_hunt_dec_key,
+              title: t.controls_hunt_dec_title,
+              description: t.controls_hunt_dec_desc,
             ),
             _ControlItem(
-              inputLabel: Translator.get(
-                'controls_hunt_pause_key',
-                fallback: 'Taste P',
-              ),
-              title: Translator.get(
-                'controls_hunt_pause_title',
-                fallback: 'Pause / Resume',
-              ),
-              description: Translator.get(
-                'controls_hunt_pause_desc',
-                fallback: 'Jagd-Timer pausieren oder fortsetzen',
-              ),
+              inputLabel: t.controls_hunt_pause_key,
+              title: t.controls_hunt_pause_title,
+              description: t.controls_hunt_pause_desc,
             ),
             _ControlItem(
-              inputLabel: Translator.get(
-                'controls_hunt_lock',
-                fallback: 'Schloss-Symbol (Tap-Only)',
-              ),
-              title: Translator.get(
-                'lock',
-                fallback: 'Fehlklickschutz',
-              ),
-              description: Translator.get(
-                'controls_hunt_lock_desc',
-                fallback:
-                    'Fehlklickschutz: Sperrt Tasten und verhindert versehentliche Zählungen',
-              ),
+              inputLabel: t.controls_hunt_lock,
+              title: t.lock,
+              description: t.controls_hunt_lock_desc,
             ),
           ],
         ),
         const SizedBox(height: 16),
         _ControlCategorySection(
           icon: Icons.military_tech_rounded,
-          title: Translator.get(
-            'controls_cat_ribbons_marks',
-            fallback: 'Bänder & Zeichen',
-          ),
+          title: t.controls_cat_ribbons_marks,
           items: [
             _ControlItem(
-              inputLabel: Translator.get(
-                'controls_ribbon_toggle_click',
-                fallback: 'Linksklick / Antippen',
-              ),
-              title: Translator.get(
-                'status',
-                fallback: 'Status ändern',
-              ),
-              description: Translator.get(
-                'controls_ribbon_toggle_desc',
-                fallback:
-                    'Band oder Zeichen als erhalten oder nicht erhalten markieren',
-              ),
+              inputLabel: t.controls_ribbon_toggle_click,
+              title: t.status,
+              description: t.controls_ribbon_toggle_desc,
             ),
             _ControlItem(
-              inputLabel: Translator.get(
-                'controls_ribbon_details_click',
-                fallback: 'Rechtsklick / Langer Druck',
-              ),
-              title: Translator.get(
-                'details',
-                fallback: 'Detail-Informationen',
-              ),
-              description: Translator.get(
-                'controls_ribbon_details_desc',
-                fallback:
-                    'Detailinformationen, Beschreibung und Fundort anzeigen',
-              ),
+              inputLabel: t.controls_ribbon_details_click,
+              title: t.details,
+              description: t.controls_ribbon_details_desc,
             ),
           ],
         ),
         const SizedBox(height: 16),
         _ControlCategorySection(
           icon: Icons.flash_on_rounded,
-          title: Translator.get(
-            'controls_cat_abilities_moves',
-            fallback: 'Fähigkeiten & Attacken',
-          ),
+          title: t.controls_cat_abilities_moves,
           items: [
             _ControlItem(
-              inputLabel: Translator.get(
-                'controls_ability_toggle_click',
-                fallback: 'Linksklick / Antippen',
-              ),
-              title: Translator.get(
-                'status',
-                fallback: 'Status toggeln',
-              ),
-              description: Translator.get(
-                'controls_ability_toggle_desc',
-                fallback: 'Status (z. B. Beherrscht / Gesehen) umschalten',
-              ),
+              inputLabel: t.controls_ability_toggle_click,
+              title: t.status,
+              description: t.controls_ability_toggle_desc,
             ),
             _ControlItem(
-              inputLabel: Translator.get(
-                'controls_ability_details_click',
-                fallback: 'Rechtsklick / Langer Druck',
-              ),
-              title: Translator.get(
-                'details',
-                fallback: 'Detailansicht',
-              ),
-              description: Translator.get(
-                'controls_ability_details_desc',
-                fallback: 'Detailansicht der Fähigkeit oder Attacke öffnen',
-              ),
+              inputLabel: t.controls_ability_details_click,
+              title: t.details,
+              description: t.controls_ability_details_desc,
             ),
           ],
         ),
@@ -462,317 +259,132 @@ class _MobileControlsTab extends StatelessWidget {
       children: [
         _PlatformInfoCard(
           icon: Icons.touch_app_outlined,
-          message: Translator.get(
-            'controls_platform_hint_mobile',
-            fallback:
-                'Übersicht über alle Touch-, Wisch- und Longpress-Gesten für Mobilgeräte.',
-          ),
+          message: t.controls_platform_hint_mobile,
         ),
         const SizedBox(height: 16),
         _ControlCategorySection(
           icon: Icons.navigation_outlined,
-          title: Translator.get(
-            'controls_cat_general',
-            fallback: 'Allgemein & Navigation',
-          ),
+          title: t.controls_cat_general,
           items: [
             _ControlItem(
-              inputLabel: Translator.get(
-                'controls_nav_back_gesture',
-                fallback: 'System-Zurück-Geste',
-              ),
-              title: Translator.get(
-                'back',
-                fallback: 'Zurück',
-              ),
-              description: Translator.get(
-                'controls_nav_back_gesture_desc',
-                fallback:
-                    'Vom Bildschirmrand wischen oder Android-Zurücktaste',
-              ),
+              inputLabel: t.controls_nav_back_gesture,
+              title: t.back,
+              description: t.controls_nav_back_gesture_desc,
             ),
             _ControlItem(
-              inputLabel: Translator.get(
-                'controls_folder_nav',
-                fallback: 'Klick / Tippen auf Ordner',
-              ),
-              title: Translator.get(
-                'folder',
-                fallback: 'Ordnernavigation',
-              ),
-              description: Translator.get(
-                'controls_folder_nav_desc',
-                fallback: 'Ordner öffnen oder im Ordner navigieren',
-              ),
+              inputLabel: t.controls_folder_nav,
+              title: t.folder,
+              description: t.controls_folder_nav_desc,
             ),
           ],
         ),
         const SizedBox(height: 16),
         _ControlCategorySection(
           icon: Icons.grid_view_rounded,
-          title: Translator.get(
-            'controls_cat_dex',
-            fallback: 'Pokédex (PC-Box & Liste)',
-          ),
+          title: t.controls_cat_dex,
           items: [
             _ControlItem(
-              inputLabel: Translator.get(
-                'controls_dex_toggle_tap',
-                fallback: 'Einfaches Antippen',
-              ),
-              title: Translator.get(
-                'caught',
-                fallback: 'Gefangen toggeln',
-              ),
-              description: Translator.get(
-                'controls_dex_toggle_desc',
-                fallback:
-                    'Status Gefangen/Fehlt umschalten oder leeren Platzhalter belegen',
-              ),
+              inputLabel: t.controls_dex_toggle_tap,
+              title: t.caught,
+              description: t.controls_dex_toggle_desc,
             ),
             _ControlItem(
-              inputLabel: Translator.get(
-                'controls_dex_details_longpress',
-                fallback: 'Langer Druck (Longpress)',
-              ),
-              title: Translator.get(
-                'details',
-                fallback: 'Pokémon-Details',
-              ),
-              description: Translator.get(
-                'controls_dex_details_desc',
-                fallback: 'Detail- und Informationsseite des Pokémon öffnen',
-              ),
+              inputLabel: t.controls_dex_details_longpress,
+              title: t.details,
+              description: t.controls_dex_details_desc,
             ),
             _ControlItem(
-              inputLabel: Translator.get(
-                'controls_dex_drag_mobile',
-                fallback: 'Langer Druck + Ziehen',
-              ),
-              title: Translator.get(
-                'move_pokemon',
-                fallback: 'Verschieben & Tauschen',
-              ),
-              description: Translator.get(
-                'controls_dex_drag_desc',
-                fallback:
-                    'Pokémon innerhalb oder zwischen Boxen verschieben / tauschen',
-              ),
+              inputLabel: t.controls_dex_drag_mobile,
+              title: t.move_pokemon,
+              description: t.controls_dex_drag_desc,
             ),
             _ControlItem(
-              inputLabel: Translator.get(
-                'controls_dex_multiselect',
-                fallback: 'Mehrfachauswahl (Edit-Modus)',
-              ),
-              title: Translator.get(
-                'edit',
-                fallback: 'Bearbeiten-Modus',
-              ),
-              description: Translator.get(
-                'controls_dex_multiselect_desc',
-                fallback:
-                    'Tippen im Bearbeiten-Modus, um mehrere Pokémon zu markieren',
-              ),
+              inputLabel: t.controls_dex_multiselect,
+              title: t.edit,
+              description: t.controls_dex_multiselect_desc,
             ),
           ],
         ),
         const SizedBox(height: 16),
         _ControlCategorySection(
           icon: Icons.home_rounded,
-          title: Translator.get(
-            'controls_cat_home',
-            fallback: 'Hauptmenü (Home Screen)',
-          ),
+          title: t.controls_cat_home,
           items: [
             _ControlItem(
-              inputLabel: Translator.get(
-                'controls_home_multiselect',
-                fallback: 'Langer Druck (Longpress)',
-              ),
-              title: Translator.get(
-                'selected',
-                fallback: 'Auswahlmodus',
-              ),
-              description: Translator.get(
-                'controls_home_multiselect_desc',
-                fallback:
-                    'Auswahlmodus aktivieren (Mehrfachauswahl für Verschieben & Löschen)',
-              ),
+              inputLabel: t.controls_home_multiselect,
+              title: t.selected,
+              description: t.controls_home_multiselect_desc,
             ),
             _ControlItem(
-              inputLabel: Translator.get(
-                'controls_home_reorder',
-                fallback: 'Reorder-Handle (Ziehen)',
-              ),
-              title: Translator.get(
-                'sort',
-                fallback: 'Manuelle Sortierung',
-              ),
-              description: Translator.get(
-                'controls_home_reorder_desc',
-                fallback:
-                    'Dexe und Ordner bei manueller Sortierung frei anordnen',
-              ),
+              inputLabel: t.controls_home_reorder,
+              title: t.sort,
+              description: t.controls_home_reorder_desc,
             ),
             _ControlItem(
-              inputLabel: Translator.get(
-                'controls_home_menu',
-                fallback: 'Dreipunkt-Menü (⋮)',
-              ),
-              title: Translator.get(
-                'actions',
-                fallback: 'Schnellaktionen',
-              ),
-              description: Translator.get(
-                'controls_home_menu_desc',
-                fallback:
-                    'Schnellmenü für Umbenennen, Verschieben, Exportieren & Löschen',
-              ),
+              inputLabel: t.controls_home_menu,
+              title: t.actions,
+              description: t.controls_home_menu_desc,
             ),
           ],
         ),
         const SizedBox(height: 16),
         _ControlCategorySection(
           icon: Icons.auto_awesome,
-          title: Translator.get(
-            'controls_cat_shiny_hunt',
-            fallback: 'Shiny Hunt Counter',
-          ),
+          title: t.controls_cat_shiny_hunt,
           items: [
             _ControlItem(
-              inputLabel: Translator.get(
-                'controls_hunt_inc_touch',
-                fallback: 'Große Zählerfläche tippen',
-              ),
-              title: Translator.get(
-                'controls_hunt_inc_title',
-                fallback: '+1 Encounter',
-              ),
-              description: Translator.get(
-                'controls_hunt_inc_desc',
-                fallback: 'Zähler um 1 (oder eingestellte Schrittweite) erhöhen',
-              ),
+              inputLabel: t.controls_hunt_inc_touch,
+              title: t.controls_hunt_inc_title,
+              description: t.controls_hunt_inc_desc,
             ),
             _ControlItem(
-              inputLabel: Translator.get(
-                'controls_hunt_dec_touch',
-                fallback: 'Minus-Button (-)',
-              ),
-              title: Translator.get(
-                'controls_hunt_dec_title',
-                fallback: '-1 Encounter',
-              ),
-              description: Translator.get(
-                'controls_hunt_dec_desc',
-                fallback: 'Zähler um 1 verringern (Fehlzählung korrigieren)',
-              ),
+              inputLabel: t.controls_hunt_dec_touch,
+              title: t.controls_hunt_dec_title,
+              description: t.controls_hunt_dec_desc,
             ),
             _ControlItem(
-              inputLabel: Translator.get(
-                'controls_hunt_pause_touch',
-                fallback: 'Pause-Button (⏸)',
-              ),
-              title: Translator.get(
-                'controls_hunt_pause_title',
-                fallback: 'Pause / Resume',
-              ),
-              description: Translator.get(
-                'controls_hunt_pause_desc',
-                fallback: 'Jagd-Timer pausieren oder fortsetzen',
-              ),
+              inputLabel: t.controls_hunt_pause_touch,
+              title: t.controls_hunt_pause_title,
+              description: t.controls_hunt_pause_desc,
             ),
             _ControlItem(
-              inputLabel: Translator.get(
-                'controls_hunt_lock',
-                fallback: 'Schloss-Symbol (Tap-Only)',
-              ),
-              title: Translator.get(
-                'lock',
-                fallback: 'Fehlklickschutz',
-              ),
-              description: Translator.get(
-                'controls_hunt_lock_desc',
-                fallback:
-                    'Fehlklickschutz: Sperrt Tasten und verhindert versehentliche Zählungen',
-              ),
+              inputLabel: t.controls_hunt_lock,
+              title: t.lock,
+              description: t.controls_hunt_lock_desc,
             ),
           ],
         ),
         const SizedBox(height: 16),
         _ControlCategorySection(
           icon: Icons.military_tech_rounded,
-          title: Translator.get(
-            'controls_cat_ribbons_marks',
-            fallback: 'Bänder & Zeichen',
-          ),
+          title: t.controls_cat_ribbons_marks,
           items: [
             _ControlItem(
-              inputLabel: Translator.get(
-                'controls_ribbon_toggle_click',
-                fallback: 'Linksklick / Antippen',
-              ),
-              title: Translator.get(
-                'status',
-                fallback: 'Status ändern',
-              ),
-              description: Translator.get(
-                'controls_ribbon_toggle_desc',
-                fallback:
-                    'Band oder Zeichen als erhalten oder nicht erhalten markieren',
-              ),
+              inputLabel: t.controls_ribbon_toggle_click,
+              title: t.status,
+              description: t.controls_ribbon_toggle_desc,
             ),
             _ControlItem(
-              inputLabel: Translator.get(
-                'controls_ribbon_details_click',
-                fallback: 'Rechtsklick / Langer Druck',
-              ),
-              title: Translator.get(
-                'details',
-                fallback: 'Detail-Informationen',
-              ),
-              description: Translator.get(
-                'controls_ribbon_details_desc',
-                fallback:
-                    'Detailinformationen, Beschreibung und Fundort anzeigen',
-              ),
+              inputLabel: t.controls_ribbon_details_click,
+              title: t.details,
+              description: t.controls_ribbon_details_desc,
             ),
           ],
         ),
         const SizedBox(height: 16),
         _ControlCategorySection(
           icon: Icons.flash_on_rounded,
-          title: Translator.get(
-            'controls_cat_abilities_moves',
-            fallback: 'Fähigkeiten & Attacken',
-          ),
+          title: t.controls_cat_abilities_moves,
           items: [
             _ControlItem(
-              inputLabel: Translator.get(
-                'controls_ability_toggle_click',
-                fallback: 'Linksklick / Antippen',
-              ),
-              title: Translator.get(
-                'status',
-                fallback: 'Status toggeln',
-              ),
-              description: Translator.get(
-                'controls_ability_toggle_desc',
-                fallback: 'Status (z. B. Beherrscht / Gesehen) umschalten',
-              ),
+              inputLabel: t.controls_ability_toggle_click,
+              title: t.status,
+              description: t.controls_ability_toggle_desc,
             ),
             _ControlItem(
-              inputLabel: Translator.get(
-                'controls_ability_details_click',
-                fallback: 'Rechtsklick / Langer Druck',
-              ),
-              title: Translator.get(
-                'details',
-                fallback: 'Detailansicht',
-              ),
-              description: Translator.get(
-                'controls_ability_details_desc',
-                fallback: 'Detailansicht der Fähigkeit oder Attacke öffnen',
-              ),
+              inputLabel: t.controls_ability_details_click,
+              title: t.details,
+              description: t.controls_ability_details_desc,
             ),
           ],
         ),

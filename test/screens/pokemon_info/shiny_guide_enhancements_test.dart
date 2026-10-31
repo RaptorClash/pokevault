@@ -9,7 +9,7 @@ import 'package:pokevault/screens/pokemon_info/shiny_guides/gen7_5_shiny_guide.d
 import 'package:pokevault/screens/pokemon_info/shiny_guides/gen9_5_shiny_guide.dart';
 import 'package:pokevault/screens/pokemon_info/shiny_guide_widget.dart';
 import 'package:pokevault/services/database_service.dart';
-import 'package:pokevault/l10n/app_translations.dart';
+import 'package:pokevault/i18n/strings.g.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
@@ -60,7 +60,7 @@ void main() {
   group('Shiny Guide Enhancements & Edge Cases (TDD)', () {
     setUp(() {
       SharedPreferences.setMockInitialValues({'app_db_version': DatabaseService.currentAppDbVersion});
-      Translator.currentLanguage = 'de';
+      LocaleSettings.setLocale(AppLocale.de);
     });
 
     testWidgets('Gen 2/3 GB VC Glitch only displays Generation 2 shiny guide tile', (tester) async {
@@ -111,19 +111,19 @@ void main() {
       await pumpGuide(tester);
 
       // Expand the main shiny guide card if present
-      final mainExpansion = find.text(Translator.get('shiny_guide_title'));
+      final mainExpansion = find.text(t.shiny_guide_title);
       expect(mainExpansion, findsOneWidget);
       await tester.tap(mainExpansion);
       await tester.pump(const Duration(milliseconds: 300));
 
       // Generation 2 must be visible
-      expect(find.text(Translator.get('shiny_guide_gen2')), findsOneWidget);
+      expect(find.text(t.shiny_guide_gen2), findsOneWidget);
 
       // Generations 3, 4, 5, 6, 7, 8, 9, 9.5 must NOT be visible
-      expect(find.text(Translator.get('shiny_guide_gen3')), findsNothing);
-      expect(find.text(Translator.get('shiny_guide_gen4')), findsNothing);
-      expect(find.text(Translator.get('shiny_guide_gen6')), findsNothing);
-      expect(find.text(Translator.get('shiny_guide_gen9_5')), findsNothing);
+      expect(find.text(t.shiny_guide_gen3), findsNothing);
+      expect(find.text(t.shiny_guide_gen4), findsNothing);
+      expect(find.text(t.shiny_guide_gen6), findsNothing);
+      expect(find.text(t.shiny_guide_gen9_5), findsNothing);
     });
 
     testWidgets('Gen95ShinyGuide marks Diancie as shiny locked and shows no hunt start button', (tester) async {
@@ -274,7 +274,7 @@ void main() {
       await pumpGuide(tester);
 
       // Expand main shiny guide card
-      final mainExpansion = find.text(Translator.get('shiny_guide_title'));
+      final mainExpansion = find.text(t.shiny_guide_title);
       expect(mainExpansion, findsOneWidget);
       await tester.tap(mainExpansion);
       await tester.pump(const Duration(milliseconds: 300));
@@ -284,23 +284,23 @@ void main() {
       await tester.pump(const Duration(milliseconds: 300));
 
       // Gen 7 must be visible
-      expect(find.text(Translator.get('shiny_guide_gen7')), findsOneWidget);
+      expect(find.text(t.shiny_guide_gen7), findsOneWidget);
 
       // Other generations must NOT be visible
-      expect(find.text(Translator.get('shiny_guide_gen1')), findsNothing);
-      expect(find.text(Translator.get('shiny_guide_gen2')), findsNothing);
-      expect(find.text(Translator.get('shiny_guide_gen3')), findsNothing);
-      expect(find.text(Translator.get('shiny_guide_gen4')), findsNothing);
-      expect(find.text(Translator.get('shiny_guide_gen5')), findsNothing);
-      expect(find.text(Translator.get('shiny_guide_gen6')), findsNothing);
-      expect(find.text(Translator.get('shiny_guide_gen7_5')), findsNothing);
-      expect(find.text(Translator.get('shiny_guide_gen8')), findsNothing);
-      expect(find.text(Translator.get('shiny_guide_gen8_5')), findsNothing);
-      expect(find.text(Translator.get('shiny_guide_gen9')), findsNothing);
-      expect(find.text(Translator.get('shiny_guide_gen9_5')), findsNothing);
+      expect(find.text(t.shiny_guide_gen1), findsNothing);
+      expect(find.text(t.shiny_guide_gen2), findsNothing);
+      expect(find.text(t.shiny_guide_gen3), findsNothing);
+      expect(find.text(t.shiny_guide_gen4), findsNothing);
+      expect(find.text(t.shiny_guide_gen5), findsNothing);
+      expect(find.text(t.shiny_guide_gen6), findsNothing);
+      expect(find.text(t.shiny_guide_gen7_5), findsNothing);
+      expect(find.text(t.shiny_guide_gen8), findsNothing);
+      expect(find.text(t.shiny_guide_gen8_5), findsNothing);
+      expect(find.text(t.shiny_guide_gen9), findsNothing);
+      expect(find.text(t.shiny_guide_gen9_5), findsNothing);
 
       // Expand Gen 7 tile
-      final gen7Tile = find.text(Translator.get('shiny_guide_gen7'));
+      final gen7Tile = find.text(t.shiny_guide_gen7);
       await tester.tap(gen7Tile);
       await tester.pump(const Duration(milliseconds: 300));
 
@@ -364,7 +364,7 @@ void main() {
       await pumpGuide(tester);
 
       // Expand main shiny guide card
-      final mainExpansion = find.text(Translator.get('shiny_guide_title'));
+      final mainExpansion = find.text(t.shiny_guide_title);
       expect(mainExpansion, findsOneWidget);
       await tester.tap(mainExpansion);
       await tester.pump(const Duration(milliseconds: 300));
@@ -374,18 +374,18 @@ void main() {
       await tester.pump(const Duration(milliseconds: 300));
 
       // Shiny-Lock banner must be visible inside children
-      expect(find.text(Translator.get('shiny_lock_banner')), findsOneWidget);
+      expect(find.text(t.shiny_lock_banner), findsOneWidget);
 
       // Gen 7 must be visible
-      expect(find.text(Translator.get('shiny_guide_gen7')), findsOneWidget);
+      expect(find.text(t.shiny_guide_gen7), findsOneWidget);
 
       // Other generations must NOT be visible
-      expect(find.text(Translator.get('shiny_guide_gen1')), findsNothing);
-      expect(find.text(Translator.get('shiny_guide_gen8')), findsNothing);
-      expect(find.text(Translator.get('shiny_guide_gen9')), findsNothing);
+      expect(find.text(t.shiny_guide_gen1), findsNothing);
+      expect(find.text(t.shiny_guide_gen8), findsNothing);
+      expect(find.text(t.shiny_guide_gen9), findsNothing);
 
       // Expand Gen 7 tile
-      final gen7Tile = find.text(Translator.get('shiny_guide_gen7'));
+      final gen7Tile = find.text(t.shiny_guide_gen7);
       await tester.tap(gen7Tile);
       await tester.pump(const Duration(milliseconds: 300));
 

@@ -2,7 +2,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'models.dart';
 import 'strategy_base.dart';
-import '../../l10n/app_translations.dart';
+import '../../i18n/strings.g.dart';
 
 class Gen75Strategy extends CatchRateStrategy {
   Gen75Strategy() : super(7.5);
@@ -14,18 +14,18 @@ class Gen75Strategy extends CatchRateStrategy {
 
   @override
   List<BallOption> getAvailableBalls() => [
-    BallOption('poke', Translator.get('ball_poke_ball'), 'poke-ball'),
-    BallOption('great', Translator.get('ball_great_ball'), 'great-ball'),
-    BallOption('ultra', Translator.get('ball_ultra_ball'), 'ultra-ball'),
-    BallOption('premier', Translator.get('ball_premier_ball'), 'premier-ball'),
-    BallOption('master', Translator.get('ball_master_ball'), 'master-ball'),
+    BallOption('poke', t.ball_poke_ball, 'poke-ball'),
+    BallOption('great', t.ball_great_ball, 'great-ball'),
+    BallOption('ultra', t.ball_ultra_ball, 'ultra-ball'),
+    BallOption('premier', t.ball_premier_ball, 'premier-ball'),
+    BallOption('master', t.ball_master_ball, 'master-ball'),
   ];
 
   @override
   List<DropdownMenuItem<double>> getPowerOptions() => [
     DropdownMenuItem(
       value: 1.0,
-      child: Text(Translator.get('calc_power_none')),
+      child: Text(t.calc_power_none),
     ),
     DropdownMenuItem(
       value: 1.5,
@@ -38,7 +38,7 @@ class Gen75Strategy extends CatchRateStrategy {
             errorBuilder: (c, e, s) => const Icon(Icons.grass, size: 20),
           ),
           const SizedBox(width: 8),
-          Text(Translator.get('berry_razz')),
+          Text(t.berry_razz),
         ],
       ),
     ),
@@ -53,7 +53,7 @@ class Gen75Strategy extends CatchRateStrategy {
             errorBuilder: (c, e, s) => const Icon(Icons.grass, size: 20),
           ),
           const SizedBox(width: 8),
-          Text(Translator.get('berry_silver_razz')),
+          Text(t.berry_silver_razz),
         ],
       ),
     ),
@@ -68,7 +68,7 @@ class Gen75Strategy extends CatchRateStrategy {
             errorBuilder: (c, e, s) => const Icon(Icons.grass, size: 20),
           ),
           const SizedBox(width: 8),
-          Text(Translator.get('berry_golden_razz')),
+          Text(t.berry_golden_razz),
         ],
       ),
     ),
@@ -116,30 +116,30 @@ class Gen85Strategy extends CatchRateStrategy {
   List<BallOption> getAvailableBalls() => [
     BallOption(
       'poke_hisui',
-      Translator.get('ball_poke_hisui'),
+      t.ball_poke_hisui,
       'poke-ball-hisui',
     ),
     BallOption(
       'great_hisui',
-      Translator.get('ball_great_hisui'),
+      t.ball_great_hisui,
       'great-ball-hisui',
     ),
     BallOption(
       'ultra_hisui',
-      Translator.get('ball_ultra_hisui'),
+      t.ball_ultra_hisui,
       'ultra-ball-hisui',
     ),
     BallOption(
       'heavy_hisui',
-      Translator.get('ball_heavy_hisui'),
+      t.ball_heavy_hisui,
       'heavy-ball-hisui',
     ),
-    BallOption('leaden', Translator.get('ball_leaden'), 'leaden-ball'),
-    BallOption('gigaton', Translator.get('ball_gigaton'), 'gigaton-ball'),
-    BallOption('feather', Translator.get('ball_feather'), 'feather-ball'),
-    BallOption('wing', Translator.get('ball_wing'), 'wing-ball'),
-    BallOption('jet', Translator.get('ball_jet'), 'jet-ball'),
-    BallOption('origin', Translator.get('ball_origin'), 'origin-ball'),
+    BallOption('leaden', t.ball_leaden, 'leaden-ball'),
+    BallOption('gigaton', t.ball_gigaton, 'gigaton-ball'),
+    BallOption('feather', t.ball_feather, 'feather-ball'),
+    BallOption('wing', t.ball_wing, 'wing-ball'),
+    BallOption('jet', t.ball_jet, 'jet-ball'),
+    BallOption('origin', t.ball_origin, 'origin-ball'),
   ];
 
   @override
@@ -241,29 +241,29 @@ class Gen95Strategy extends CatchRateStrategy {
 
   @override
   List<BallOption> getAvailableBalls() => [
-    BallOption('poke', Translator.get('ball_poke_ball'), 'poke-ball'),
-    BallOption('great', Translator.get('ball_great_ball'), 'great-ball'),
-    BallOption('ultra', Translator.get('ball_ultra_ball'), 'ultra-ball'),
-    BallOption('master', Translator.get('ball_master_ball'), 'master-ball'),
-    BallOption('level', Translator.get('ball_level_ball'), 'level-ball'),
-    BallOption('love', Translator.get('ball_love_ball'), 'love-ball'),
-    BallOption('quick', Translator.get('ball_quick_ball'), 'quick-ball'),
-    BallOption('timer', Translator.get('ball_timer_ball'), 'timer-ball'),
-    BallOption('premier', Translator.get('ball_premier_ball'), 'premier-ball'),
-    BallOption('luxury', Translator.get('ball_luxury_ball'), 'luxury-ball'),
-    BallOption('dusk', Translator.get('ball_dusk_ball'), 'dusk-ball'),
-    BallOption('net', Translator.get('ball_net_ball'), 'net-ball'),
-    BallOption('dive', Translator.get('ball_dive_ball'), 'dive-ball'),
-    BallOption('nest', Translator.get('ball_nest_ball'), 'nest-ball'),
-    BallOption('beast', Translator.get('ball_beast_ball'), 'beast-ball'),
-    BallOption('dream', Translator.get('ball_dream_ball'), 'dream-ball'),
+    BallOption('poke', t.ball_poke_ball, 'poke-ball'),
+    BallOption('great', t.ball_great_ball, 'great-ball'),
+    BallOption('ultra', t.ball_ultra_ball, 'ultra-ball'),
+    BallOption('master', t.ball_master_ball, 'master-ball'),
+    BallOption('level', t.ball_level_ball, 'level-ball'),
+    BallOption('love', t.ball_love_ball, 'love-ball'),
+    BallOption('quick', t.ball_quick_ball, 'quick-ball'),
+    BallOption('timer', t.ball_timer_ball, 'timer-ball'),
+    BallOption('premier', t.ball_premier_ball, 'premier-ball'),
+    BallOption('luxury', t.ball_luxury_ball, 'luxury-ball'),
+    BallOption('dusk', t.ball_dusk_ball, 'dusk-ball'),
+    BallOption('net', t.ball_net_ball, 'net-ball'),
+    BallOption('dive', t.ball_dive_ball, 'dive-ball'),
+    BallOption('nest', t.ball_nest_ball, 'nest-ball'),
+    BallOption('beast', t.ball_beast_ball, 'beast-ball'),
+    BallOption('dream', t.ball_dream_ball, 'dream-ball'),
   ];
 
   @override
   List<DropdownMenuItem<double>> getPowerOptions() => [
     DropdownMenuItem(
       value: 1.0,
-      child: Text(Translator.get('calc_power_none')),
+      child: Text(t.calc_power_none),
     ),
     const DropdownMenuItem(value: 1.1, child: Text('Catching Power Lv. 1')),
     const DropdownMenuItem(value: 1.25, child: Text('Catching Power Lv. 2')),

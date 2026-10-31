@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../models/pokemon.dart';
 import '../../../../services/database_service.dart';
-import '../../../../l10n/app_translations.dart';
+import '../../../../i18n/strings.g.dart';
 import '../../../../utils/notification_helper.dart';
 
 class Gen1ShinyGuide extends StatefulWidget {
@@ -73,7 +73,7 @@ class _Gen1ShinyGuideState extends State<Gen1ShinyGuide> {
               cells: [
                 DataCell(
                   Text(
-                    Translator.get('stat_hp'),
+                    t.stat_hp,
                     style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
                 ),
@@ -88,7 +88,7 @@ class _Gen1ShinyGuideState extends State<Gen1ShinyGuide> {
               cells: [
                 DataCell(
                   Text(
-                    Translator.get('stat_atk'),
+                    t.stat_atk,
                     style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
                 ),
@@ -103,7 +103,7 @@ class _Gen1ShinyGuideState extends State<Gen1ShinyGuide> {
               cells: [
                 DataCell(
                   Text(
-                    Translator.get('stat_def'),
+                    t.stat_def,
                     style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
                 ),
@@ -118,7 +118,7 @@ class _Gen1ShinyGuideState extends State<Gen1ShinyGuide> {
               cells: [
                 DataCell(
                   Text(
-                    Translator.get('stat_spe'),
+                    t.stat_spe,
                     style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
                 ),
@@ -133,7 +133,7 @@ class _Gen1ShinyGuideState extends State<Gen1ShinyGuide> {
               cells: [
                 DataCell(
                   Text(
-                    Translator.get('stat_spc'),
+                    t.stat_spc,
                     style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
                 ),
@@ -158,14 +158,8 @@ class _Gen1ShinyGuideState extends State<Gen1ShinyGuide> {
       final isTowerGhost = [92, 93, 104, 105].contains(widget.pokemon.id);
       final statusWidget = Text(
         isHuntable
-            ? (Translator.get(
-                'shiny_gen1_huntable_yes',
-                fallback: 'Shiny Huntable: Ja (DV-basiert, Chance 1:8192)',
-              ))
-            : (Translator.get(
-                'shiny_huntable_no',
-                fallback: 'Shiny Huntable: Nein',
-              )),
+            ? (t.shiny_gen1_huntable_yes)
+            : (t.shiny_huntable_no),
         style: TextStyle(
           color: isHuntable ? Colors.green : Colors.red,
           fontWeight: FontWeight.bold,
@@ -196,7 +190,7 @@ class _Gen1ShinyGuideState extends State<Gen1ShinyGuide> {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    Translator.get('shiny_guide_gen1_desc'),
+                    t.shiny_guide_gen1_desc,
                     style: const TextStyle(
                       fontStyle: FontStyle.italic,
                       fontSize: 13,
@@ -209,7 +203,7 @@ class _Gen1ShinyGuideState extends State<Gen1ShinyGuide> {
           if (widget.pokemon.id == 151) ...[
             const SizedBox(height: 8),
             Text(
-              Translator.get('tutorials_mew'),
+              t.tutorials_mew,
               style: const TextStyle(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
@@ -217,7 +211,7 @@ class _Gen1ShinyGuideState extends State<Gen1ShinyGuide> {
               width: double.infinity,
               child: ElevatedButton.icon(
                 icon: const Icon(Icons.play_circle_filled),
-                label: Text(Translator.get('tutorial_mew_video_de')),
+                label: Text(t.tutorial_mew_video_de),
                 onPressed: () => widget.onLaunchUrl('https://www.youtube.com/watch?v=jJro6Hx4IfQ'),
               ),
             ),
@@ -226,7 +220,7 @@ class _Gen1ShinyGuideState extends State<Gen1ShinyGuide> {
               width: double.infinity,
               child: ElevatedButton.icon(
                 icon: const Icon(Icons.play_circle_filled),
-                label: Text(Translator.get('tutorial_mew_video_en')),
+                label: Text(t.tutorial_mew_video_en),
                 onPressed: () => widget.onLaunchUrl('https://www.youtube.com/watch?v=rvhuJsS4EhE'),
               ),
             ),
@@ -235,7 +229,7 @@ class _Gen1ShinyGuideState extends State<Gen1ShinyGuide> {
               width: double.infinity,
               child: ElevatedButton.icon(
                 icon: const Icon(Icons.article),
-                label: Text(Translator.get('tutorial_mew_text_en')),
+                label: Text(t.tutorial_mew_text_en),
                 onPressed: () => widget.onLaunchUrl('https://extratricky.com/md/mew.md'),
               ),
             ),
@@ -244,9 +238,9 @@ class _Gen1ShinyGuideState extends State<Gen1ShinyGuide> {
               width: double.infinity,
               child: ElevatedButton.icon(
                 icon: const Icon(Icons.article),
-                label: Text(Translator.get('tutorial_mew_normal_text')),
+                label: Text(t.tutorial_mew_normal_text),
                 onPressed: () {
-                  final url = Translator.currentLanguage == 'de'
+                  final url = LocaleSettings.currentLocale == AppLocale.de
                       ? 'https://www.pokewiki.de/Mew-Glitch'
                       : 'https://bulbapedia.bulbagarden.net/wiki/Mew_glitch';
                   widget.onLaunchUrl(url);
@@ -277,7 +271,7 @@ class _Gen1ShinyGuideState extends State<Gen1ShinyGuide> {
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      Translator.get('shiny_gen1_silph_scope_desc'),
+                      t.shiny_gen1_silph_scope_desc,
                       style: const TextStyle(
                         fontStyle: FontStyle.italic,
                         fontSize: 13,
@@ -288,7 +282,7 @@ class _Gen1ShinyGuideState extends State<Gen1ShinyGuide> {
               ),
             ),
             Text(
-              Translator.get('tutorials_silph_scope'),
+              t.tutorials_silph_scope,
               style: const TextStyle(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
@@ -296,7 +290,7 @@ class _Gen1ShinyGuideState extends State<Gen1ShinyGuide> {
               width: double.infinity,
               child: ElevatedButton.icon(
                 icon: const Icon(Icons.play_circle_filled),
-                label: Text(Translator.get('tutorial_silph_scope_video_en')),
+                label: Text(t.tutorial_silph_scope_video_en),
                 onPressed: () => widget.onLaunchUrl('https://youtu.be/2s6QxW-3BcE?is=T0lmNtgkVIMapARw'),
               ),
             ),
@@ -325,7 +319,7 @@ class _Gen1ShinyGuideState extends State<Gen1ShinyGuide> {
                 ExpansionTile(
                   tilePadding: EdgeInsets.zero,
                   title: Text(
-                    Translator.get('shiny_stat_calculator'),
+                    t.shiny_stat_calculator,
                     style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
                   children: [
@@ -335,7 +329,7 @@ class _Gen1ShinyGuideState extends State<Gen1ShinyGuide> {
                         const SizedBox(height: 8),
                         Row(
                           children: [
-                            Text('${Translator.get('level')}: '),
+                            Text('${t.level}: '),
                             const SizedBox(width: 16),
                             DropdownButton<int>(
                               value: _selectedLevel,
@@ -357,7 +351,7 @@ class _Gen1ShinyGuideState extends State<Gen1ShinyGuide> {
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          '${Translator.get('base_stats')}: ${baseStats[0]}/${baseStats[1]}/${baseStats[2]}/${baseStats[3]}/${baseStats[4]}',
+                          '${t.base_stats}: ${baseStats[0]}/${baseStats[1]}/${baseStats[2]}/${baseStats[3]}/${baseStats[4]}',
                           style: const TextStyle(
                             fontSize: 12,
                             color: Colors.grey,
@@ -365,14 +359,14 @@ class _Gen1ShinyGuideState extends State<Gen1ShinyGuide> {
                         ),
                         const SizedBox(height: 16),
                         Text(
-                          Translator.get('table_hp_0'),
+                          t.table_hp_0,
                           style: const TextStyle(fontWeight: FontWeight.w600),
                         ),
                         const SizedBox(height: 8),
                         _buildStatTable(baseStats, _selectedLevel, 0, [2, 6, 10, 14]),
                         const SizedBox(height: 24),
                         Text(
-                          Translator.get('table_hp_8'),
+                          t.table_hp_8,
                           style: const TextStyle(fontWeight: FontWeight.w600),
                         ),
                         const SizedBox(height: 8),
@@ -397,8 +391,8 @@ class _Gen1ShinyGuideState extends State<Gen1ShinyGuide> {
         ],
       );
     } catch (e) {
-      NotificationHelper.showError('${Translator.get('error_shiny_guide')} $e');
-      return Text('${Translator.get('error_shiny_guide')} $e');
+      NotificationHelper.showError('${t.error_shiny_guide} $e');
+      return Text('${t.error_shiny_guide} $e');
     }
   }
 }

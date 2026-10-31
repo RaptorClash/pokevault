@@ -5,7 +5,7 @@ import 'package:mocktail/mocktail.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:pokevault/models/user_dex.dart';
 import 'package:pokevault/screens/dex/box_edit_screen.dart';
-import 'package:pokevault/l10n/app_translations.dart';
+import 'package:pokevault/i18n/strings.g.dart';
 import '../../e2e/helpers/e2e_test_helper.dart';
 
 void main() {
@@ -355,7 +355,7 @@ void main() {
       await tester.pumpAndSettle();
       await tester.enterText(find.byType(TextField), 'First Box');
       await tester.pumpAndSettle();
-      await tester.tap(find.widgetWithText(ElevatedButton, Translator.get('create')));
+      await tester.tap(find.widgetWithText(ElevatedButton, t.create));
       await tester.pumpAndSettle();
 
       expect(dex.customBoxes.length, 1);
@@ -372,7 +372,7 @@ void main() {
       await tester.pumpAndSettle();
       await tester.enterText(find.byType(TextField), 'Second Box');
       await tester.pumpAndSettle();
-      await tester.tap(find.widgetWithText(ElevatedButton, Translator.get('create')));
+      await tester.tap(find.widgetWithText(ElevatedButton, t.create));
       await tester.pumpAndSettle();
 
       expect(dex.customBoxes.length, 2);
@@ -390,7 +390,7 @@ void main() {
       await tester.pumpAndSettle();
       await tester.enterText(find.byType(TextField), 'Third Box');
       await tester.pumpAndSettle();
-      await tester.tap(find.widgetWithText(ElevatedButton, Translator.get('create')));
+      await tester.tap(find.widgetWithText(ElevatedButton, t.create));
       await tester.pumpAndSettle();
 
       expect(dex.customBoxes.length, 3);

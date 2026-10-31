@@ -9,7 +9,7 @@ import 'package:pokevault/screens/pokemon_info/utils/pokemon_info_keys.dart';
 import 'package:pokevault/widgets/universal_poke_image.dart';
 import 'package:pokevault/models/user_dex.dart';
 import 'package:pokevault/services/database_service.dart';
-import 'package:pokevault/l10n/app_translations.dart';
+import 'package:pokevault/i18n/strings.g.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:pokevault/providers/dex_provider.dart';
 import 'package:provider/provider.dart';
@@ -65,7 +65,7 @@ void main() {
   });
 
   setUp(() {
-    Translator.currentLanguage = 'de';
+    LocaleSettings.setLocale(AppLocale.de);
   });
 
   final testPokemon = createTestPokemon(id: 1, nameDe: 'Bisasam', nameEn: 'Bulbasaur');

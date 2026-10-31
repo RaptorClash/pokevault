@@ -4,7 +4,7 @@ import 'models.dart';
 import 'strategies_classic.dart';
 import 'strategies_modern.dart';
 import 'strategies_special.dart';
-import '../../l10n/app_translations.dart';
+import '../../i18n/strings.g.dart';
 
 /// Base contract for generation-specific catch rate calculation algorithms.
 ///
@@ -27,7 +27,7 @@ abstract class CatchRateStrategy {
   List<DropdownMenuItem<double>> getPowerOptions() => [
     DropdownMenuItem(
       value: 1.0,
-      child: Text(Translator.get('calc_power_none')),
+      child: Text(t.calc_power_none),
     ),
   ];
 

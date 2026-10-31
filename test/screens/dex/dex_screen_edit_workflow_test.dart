@@ -1,7 +1,7 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:pokevault/l10n/app_translations.dart';
+import 'package:pokevault/i18n/strings.g.dart';
 import 'package:pokevault/models/dex_view_models.dart';
 import 'package:pokevault/models/user_dex.dart';
 import 'package:pokevault/screens/dex/dex_box_view.dart';
@@ -149,16 +149,16 @@ class DexScreenEditWorkflowHarnessState
       context: context,
       builder: (ctx) => AlertDialog(
         title: Text(
-          Translator.get('edit_mode_save_title', fallback: 'Änderungen speichern?'),
+          t.edit_mode_save_title,
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(false),
-            child: Text(Translator.get('cancel', fallback: 'Abbrechen')),
+            child: Text(t.cancel),
           ),
           ElevatedButton(
             onPressed: () => Navigator.of(ctx).pop(true),
-            child: Text(Translator.get('yes', fallback: 'Ja')),
+            child: Text(t.yes),
           ),
         ],
       ),
@@ -180,15 +180,12 @@ class DexScreenEditWorkflowHarnessState
       context: context,
       builder: (ctx) => AlertDialog(
         title: Text(
-          Translator.get(
-            'edit_mode_discard_title',
-            fallback: 'Möchtest du alle Änderungen verwerfen?',
-          ),
+          t.edit_mode_discard_title,
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(false),
-            child: Text(Translator.get('cancel', fallback: 'Abbrechen')),
+            child: Text(t.cancel),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
@@ -196,7 +193,7 @@ class DexScreenEditWorkflowHarnessState
               foregroundColor: Colors.white,
             ),
             onPressed: () => Navigator.of(ctx).pop(true),
-            child: Text(Translator.get('discard', fallback: 'Verwerfen')),
+            child: Text(t.discard),
           ),
         ],
       ),
@@ -243,14 +240,14 @@ class DexScreenEditWorkflowHarnessState
               IconButton(
                 key: const Key('edit_action_delete'),
                 icon: const Icon(Icons.delete),
-                tooltip: Translator.get('box_edit_remove_selected'),
+                tooltip: t.box_edit_remove_selected,
                 onPressed: executeDelete,
               ),
             if (isEditMode)
               IconButton(
                 key: const Key('edit_action_add'),
                 icon: const Icon(Icons.add),
-                tooltip: Translator.get('add_pokemon', fallback: 'Hinzufügen'),
+                tooltip: t.add_pokemon,
                 onPressed: () {
                   final targetBoxIndex = pageController.hasClients
                       ? (pageController.page?.round() ?? lastBoxIndex)
@@ -273,25 +270,25 @@ class DexScreenEditWorkflowHarnessState
               IconButton(
                 key: const Key('action_enter_edit_mode'),
                 icon: const Icon(Icons.checklist),
-                tooltip: Translator.get('box_edit_manage_content'),
+                tooltip: t.box_edit_manage_content,
                 onPressed: enterEditMode,
               ),
             IconButton(
               key: const Key('action_box_settings'),
               icon: const Icon(Icons.edit_note),
-              tooltip: Translator.get('box_edit_title'),
+              tooltip: t.box_edit_title,
               onPressed: () {},
             ),
             IconButton(
               key: const Key('action_route_tracker'),
               icon: const Icon(Icons.location_on),
-              tooltip: Translator.get('route_tracker'),
+              tooltip: t.route_tracker,
               onPressed: () {},
             ),
             PopupMenuButton<String>(
               key: const Key('action_sort_menu'),
               icon: const Icon(Icons.sort),
-              tooltip: Translator.get('tooltip_view_sort'),
+              tooltip: t.tooltip_view_sort,
               itemBuilder: (ctx) => [
                 const PopupMenuItem(
                   value: 'sort',
@@ -303,13 +300,13 @@ class DexScreenEditWorkflowHarnessState
               IconButton(
                 key: const Key('edit_action_cancel'),
                 icon: const Icon(Icons.close),
-                tooltip: Translator.get('cancel', fallback: 'Abbrechen'),
+                tooltip: t.cancel,
                 onPressed: handleCancelEditMode,
               ),
               IconButton(
                 key: const Key('edit_action_save'),
                 icon: const Icon(Icons.check),
-                tooltip: Translator.get('save', fallback: 'Speichern'),
+                tooltip: t.save,
                 onPressed: handleSaveEditMode,
               ),
             ],
@@ -412,17 +409,17 @@ void main() {
     // Translation Verification
     // =========================================================================
     test('Translations: Keys for save, discard, yes, discard exist in DE and EN', () {
-      Translator.currentLanguage = 'de';
-      expect(Translator.get('edit_mode_save_title'), equals('Änderungen speichern?'));
-      expect(Translator.get('edit_mode_discard_title'), equals('Möchtest du alle Änderungen verwerfen?'));
-      expect(Translator.get('yes'), equals('Ja'));
-      expect(Translator.get('discard'), equals('Verwerfen'));
+      LocaleSettings.setLocale(AppLocale.de);
+      expect(t.edit_mode_save_title, equals('Änderungen speichern?'));
+      expect(t.edit_mode_discard_title, equals('Möchtest du alle Änderungen verwerfen?'));
+      expect(t.yes, equals('Ja'));
+      expect(t.discard, equals('Verwerfen'));
 
-      Translator.currentLanguage = 'en';
-      expect(Translator.get('edit_mode_save_title'), equals('Save changes?'));
-      expect(Translator.get('edit_mode_discard_title'), equals('Do you want to discard all changes?'));
-      expect(Translator.get('yes'), equals('Yes'));
-      expect(Translator.get('discard'), equals('Discard'));
+      LocaleSettings.setLocale(AppLocale.en);
+      expect(t.edit_mode_save_title, equals('Save changes?'));
+      expect(t.edit_mode_discard_title, equals('Do you want to discard all changes?'));
+      expect(t.yes, equals('Yes'));
+      expect(t.discard, equals('Discard'));
     });
 
     // =========================================================================
@@ -551,7 +548,7 @@ void main() {
     // R3: Save (✓) Confirmation Dialog Workflow
     // =========================================================================
     testWidgets('R3: Save (✓) dialog cancel keeps edit mode active', (tester) async {
-      Translator.currentLanguage = 'de';
+      LocaleSettings.setLocale(AppLocale.de);
       final box1 = createTestCustomBox(title: 'Box 1', pokemonIds: ['P1']);
       final dex = createTestUserDex(customBoxes: [box1]);
 
@@ -585,7 +582,7 @@ void main() {
     });
 
     testWidgets('R3: Save (✓) dialog confirm persists changes and exits edit mode', (tester) async {
-      Translator.currentLanguage = 'de';
+      LocaleSettings.setLocale(AppLocale.de);
       final box1 = createTestCustomBox(title: 'Box 1', pokemonIds: ['P1']);
       final dex = createTestUserDex(customBoxes: [box1]);
 
@@ -617,7 +614,7 @@ void main() {
     // R3: Discard (✕) Confirmation Dialog & Rollback Workflow
     // =========================================================================
     testWidgets('R3: Discard (✕) dialog cancel keeps modifications and edit mode active', (tester) async {
-      Translator.currentLanguage = 'de';
+      LocaleSettings.setLocale(AppLocale.de);
       final box1 = createTestCustomBox(title: 'Box 1', pokemonIds: ['ORIGINAL_MON']);
       final dex = createTestUserDex(customBoxes: [box1]);
 
@@ -653,7 +650,7 @@ void main() {
     });
 
     testWidgets('R3: Discard (✕) dialog confirm rolls back customBoxes to snapshot and exits edit mode', (tester) async {
-      Translator.currentLanguage = 'de';
+      LocaleSettings.setLocale(AppLocale.de);
       final box1 = createTestCustomBox(title: 'Box 1', pokemonIds: ['ORIGINAL_1', 'ORIGINAL_2']);
       final dex = createTestUserDex(customBoxes: [box1]);
 
@@ -691,7 +688,7 @@ void main() {
     // R3: Back Navigation & PopScope Interception
     // =========================================================================
     testWidgets('R3: Leading back button triggers discard dialog and does not pop the screen', (tester) async {
-      Translator.currentLanguage = 'de';
+      LocaleSettings.setLocale(AppLocale.de);
       final box1 = createTestCustomBox(title: 'Box 1', pokemonIds: ['P1']);
       final dex = createTestUserDex(customBoxes: [box1]);
 

@@ -5,7 +5,7 @@ import '../../../models/tutorial_step.dart';
 import '../../../widgets/tutorial/tutorial_overlay.dart';
 import '../../../models/user_dex.dart';
 import '../../../providers/dex_provider.dart';
-import '../../../l10n/app_translations.dart';
+import '../../../i18n/strings.g.dart';
 import '../../../utils/notification_helper.dart';
 
 class HomeDialogs {
@@ -95,7 +95,7 @@ class HomeDialogs {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(ctx),
-              child: Text(Translator.get('cancel')),
+              child: Text(t.cancel),
             ),
             ElevatedButton(
               key: okKey,
@@ -106,7 +106,7 @@ class HomeDialogs {
                     Navigator.pop(ctx);
                   } catch (e) {
                     Navigator.pop(ctx);
-                    NotificationHelper.showError('${Translator.get('error')} $e');
+                    NotificationHelper.showError('${t.error} $e');
                   }
                 }
               },
@@ -134,7 +134,7 @@ class HomeDialogs {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: Text(Translator.get('cancel')),
+            child: Text(t.cancel),
           ),
           ElevatedButton(
             onPressed: () {
@@ -144,7 +144,7 @@ class HomeDialogs {
                   Navigator.pop(ctx);
                 } catch (e) {
                   Navigator.pop(ctx);
-                  NotificationHelper.showError('${Translator.get('error')} $e');
+                  NotificationHelper.showError('${t.error} $e');
                 }
               }
             },
@@ -233,7 +233,7 @@ class HomeDialogs {
                     } catch (e) {
                       Navigator.pop(ctx);
                       NotificationHelper.showError(
-                        '${Translator.get('error_move_item')} $e',
+                        '${t.error_move_item} $e',
                       );
                     }
                   },
@@ -244,7 +244,7 @@ class HomeDialogs {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(ctx),
-              child: Text(Translator.get('cancel')),
+              child: Text(t.cancel),
             ),
           ],
         );
@@ -261,18 +261,15 @@ class HomeDialogs {
       context: context,
       builder: (context) => AlertDialog(
         title: Text(
-          Translator.get('dex_delete_title', fallback: 'Pokédex löschen'),
+          t.dex_delete_title,
         ),
         content: Text(
-          Translator.get(
-            'dex_delete_text',
-            fallback: 'Möchtest du diesen Pokédex wirklich löschen?',
-          ),
+          t.dex_delete_text,
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text(Translator.get('cancel')),
+            child: Text(t.cancel),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
@@ -287,11 +284,11 @@ class HomeDialogs {
               } catch (e) {
                 Navigator.pop(context);
                 NotificationHelper.showError(
-                  '${Translator.get('error_delete_dex')} $e',
+                  '${t.error_delete_dex} $e',
                 );
               }
             },
-            child: Text(Translator.get('delete')),
+            child: Text(t.delete),
           ),
         ],
       ),
@@ -310,17 +307,14 @@ class HomeDialogs {
         builder: (context, setStateSB) {
           return AlertDialog(
             title: Text(
-              Translator.get('delete_folder_title', fallback: 'Ordner löschen'),
+              t.delete_folder_title,
             ),
             content: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  Translator.get(
-                    'delete_folder_text',
-                    fallback: 'Möchtest du diesen Ordner wirklich löschen?',
-                  ),
+                  t.delete_folder_text,
                 ),
                 const SizedBox(height: 16),
                 CheckboxListTile(
@@ -343,7 +337,7 @@ class HomeDialogs {
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context),
-                child: Text(Translator.get('cancel')),
+                child: Text(t.cancel),
               ),
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
@@ -362,11 +356,11 @@ class HomeDialogs {
                   } catch (e) {
                     Navigator.pop(context);
                     NotificationHelper.showError(
-                      '${Translator.get('error_delete_folder')} $e',
+                      '${t.error_delete_folder} $e',
                     );
                   }
                 },
-                child: Text(Translator.get('delete')),
+                child: Text(t.delete),
               ),
             ],
           );
@@ -388,12 +382,12 @@ class HomeDialogs {
       builder: (context) => StatefulBuilder(
         builder: (context, setStateSB) {
           return AlertDialog(
-            title: Text(Translator.get('delete_multiple_confirm_title')),
+            title: Text(t.delete_multiple_confirm_title),
             content: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(Translator.get('delete_multiple_confirm_text')),
+                Text(t.delete_multiple_confirm_text),
                 if (hasFolder) ...[
                   const SizedBox(height: 16),
                   CheckboxListTile(
@@ -417,7 +411,7 @@ class HomeDialogs {
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context),
-                child: Text(Translator.get('cancel')),
+                child: Text(t.cancel),
               ),
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
@@ -443,11 +437,11 @@ class HomeDialogs {
                   } catch (e) {
                     Navigator.pop(context);
                     NotificationHelper.showError(
-                      '${Translator.get('error')} $e',
+                      '${t.error} $e',
                     );
                   }
                 },
-                child: Text(Translator.get('delete')),
+                child: Text(t.delete),
               ),
             ],
           );
@@ -487,7 +481,7 @@ class HomeDialogs {
       context: context,
       builder: (ctx) => AlertDialog(
         title: Text(
-          Translator.get('search_help_title', fallback: 'Such-Befehle'),
+          t.search_help_title,
         ),
         content: SingleChildScrollView(
           child: Column(
@@ -495,59 +489,35 @@ class HomeDialogs {
             children: [
               helpItem(
                 '15 / #15',
-                Translator.get(
-                  'search_help_id',
-                  fallback: 'Sucht exakt nach einer ID.',
-                ),
+                t.search_help_id,
               ),
               helpItem(
                 '1-151',
-                Translator.get(
-                  'search_help_range',
-                  fallback: 'Zeigt Pokémon im ID-Bereich.',
-                ),
+                t.search_help_range,
               ),
               helpItem(
                 'shiny, caught, missing',
-                Translator.get(
-                  'search_help_status',
-                  fallback: 'Filtert nach Status.',
-                ),
+                t.search_help_status,
               ),
               helpItem(
                 'kanto, alola, mega',
-                Translator.get(
-                  'search_help_forms',
-                  fallback: 'Filtert nach Regionen oder Formen.',
-                ),
+                t.search_help_forms,
               ),
               helpItem(
                 '+Bisasam',
-                Translator.get(
-                  'search_help_family',
-                  fallback: 'Zeigt die Entwicklungsreihe.',
-                ),
+                t.search_help_family,
               ),
               helpItem(
                 'Pika* / *chu',
-                Translator.get(
-                  'search_help_wildcard',
-                  fallback: 'Wildcard-Suche.',
-                ),
+                t.search_help_wildcard,
               ),
               helpItem(
                 'shiny & kanto',
-                Translator.get(
-                  'search_help_and',
-                  fallback: 'Mit "&" müssen beide Begriffe zutreffen.',
-                ),
+                t.search_help_and,
               ),
               helpItem(
                 '1-9, Evoli',
-                Translator.get(
-                  'search_help_or',
-                  fallback: 'Mit "," reicht ein Treffer (ODER).',
-                ),
+                t.search_help_or,
               ),
             ],
           ),

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
-import '../../../../l10n/app_translations.dart';
+import '../../../../i18n/strings.g.dart';
 import '../../../../providers/theme_provider.dart';
 import '../../../../providers/settings_provider.dart';
 import 'settings_helper.dart';
@@ -31,7 +31,7 @@ class AppearanceCard extends StatelessWidget {
       children: [
         SettingsHelper.buildSectionHeader(
           context,
-          Translator.get('appearance'),
+          t.appearance,
           Icons.palette,
         ),
         Card(
@@ -39,7 +39,7 @@ class AppearanceCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               SwitchListTile(
-                title: Text(Translator.get('dark_mode')),
+                title: Text(t.dark_mode),
                 value: settingsProvider.themeMode == ThemeMode.dark,
                 onChanged: (bool value) => settingsProvider.toggleTheme(),
               ),
@@ -50,7 +50,7 @@ class AppearanceCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      Translator.get('choose_accent_color'),
+                      t.choose_accent_color,
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
@@ -73,7 +73,7 @@ class AppearanceCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      Translator.get('choose_bg_color'),
+                      t.choose_bg_color,
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
@@ -99,10 +99,7 @@ class AppearanceCard extends StatelessWidget {
                   onPressed: () => themeProvider.resetToDefault(),
                   icon: const Icon(Icons.restore),
                   label: Text(
-                    Translator.get(
-                      'reset_theme',
-                      fallback: 'Standarddesign wiederherstellen',
-                    ),
+                    t.reset_theme,
                   ),
                   style: TextButton.styleFrom(
                     foregroundColor: Theme.of(context).colorScheme.error,
@@ -229,8 +226,8 @@ class AppearanceCard extends StatelessWidget {
         return AlertDialog(
           title: Text(
             isBackground
-                ? Translator.get('choose_bg_color')
-                : Translator.get('choose_accent_color'),
+                ? t.choose_bg_color
+                : t.choose_accent_color,
           ),
           content: SingleChildScrollView(
             child: ColorPicker(
@@ -245,7 +242,7 @@ class AppearanceCard extends StatelessWidget {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: Text(Translator.get('cancel')),
+              child: Text(t.cancel),
             ),
             ElevatedButton(
               onPressed: () {
@@ -257,7 +254,7 @@ class AppearanceCard extends StatelessWidget {
                 }
                 Navigator.pop(context);
               },
-              child: Text(Translator.get('apply')),
+              child: Text(t.apply),
             ),
           ],
         );

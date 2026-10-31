@@ -4,7 +4,7 @@ import '../../models/pokemon.dart';
 import '../../models/tutorial_step.dart';
 import '../../providers/dex_provider.dart';
 import '../../providers/tutorial_provider.dart';
-import '../../l10n/app_translations.dart';
+import '../../i18n/strings.g.dart';
 import '../../widgets/tutorial/chapter_demo_dialog.dart';
 import '../../utils/notification_helper.dart';
 import '../dex/dex_screen.dart';
@@ -18,17 +18,14 @@ class TutorialSettingsScreen extends StatelessWidget {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text(Translator.get('tutorial_replay_all', fallback: 'Alle Tutorials zurücksetzen')),
+        title: Text(t.tutorial_replay_all),
         content: Text(
-          Translator.get(
-            'tutorial_reset_confirm_msg',
-            fallback: 'Möchtest du wirklich alle Tutorials zurücksetzen? Beim nächsten Besuch werden wieder alle Hilfen und Erklärungen angezeigt.',
-          ),
+          t.tutorial_reset_confirm_msg,
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(),
-            child: Text(Translator.get('cancel', fallback: 'Abbrechen')),
+            child: Text(t.cancel),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
@@ -40,10 +37,10 @@ class TutorialSettingsScreen extends StatelessWidget {
               final tutProvider = Provider.of<TutorialProvider>(context, listen: false);
               await tutProvider.resetAllTutorials();
               NotificationHelper.showSuccess(
-                Translator.get('tutorial_reset_success', fallback: 'Alle Tutorials wurden zurückgesetzt!'),
+                t.tutorial_reset_success,
               );
             },
-            child: Text(Translator.get('reset', fallback: 'Zurücksetzen')),
+            child: Text(t.reset),
           ),
         ],
       ),
@@ -105,7 +102,7 @@ class TutorialSettingsScreen extends StatelessWidget {
                         children: [
                           Expanded(
                             child: Text(
-                              Translator.get(chapter.titleKey),
+                              (t[chapter.titleKey] ?? chapter.titleKey),
                               style: const TextStyle(
                                 fontWeight: FontWeight.bold,
                                 fontSize: 14.5,
@@ -141,7 +138,7 @@ class TutorialSettingsScreen extends StatelessWidget {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        Translator.get(chapter.descKey),
+                        (t[chapter.descKey] ?? chapter.descKey),
                         style: TextStyle(
                           fontSize: 12,
                           color: theme.colorScheme.onSurfaceVariant,
@@ -187,7 +184,7 @@ class TutorialSettingsScreen extends StatelessWidget {
                   },
                   icon: const Icon(Icons.play_circle_outline, size: 16),
                   label: Text(
-                    Translator.get('tutorial_replay', fallback: 'Wiederholen'),
+                    t.tutorial_replay,
                     style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
                 ),
@@ -293,7 +290,7 @@ class TutorialSettingsScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(Translator.get('tutorial_menu_title', fallback: 'Tutorials & Hilfe')),
+        title: Text(t.tutorial_menu_title),
       ),
       body: ListView(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -329,15 +326,12 @@ class TutorialSettingsScreen extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              Translator.get('tutorial_center_title', fallback: 'Tutorials & Anleitungen'),
+                              t.tutorial_center_title,
                               style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                             ),
                             const SizedBox(height: 2),
                             Text(
-                              Translator.get(
-                                'tutorial_center_subtitle',
-                                fallback: 'Lerne alle Funktionen von PokéVault kennen oder wiederhole gezielt einzelne Bereiche.',
-                              ),
+                              t.tutorial_center_subtitle,
                               style: TextStyle(fontSize: 12, color: theme.colorScheme.onSurfaceVariant),
                             ),
                           ],
@@ -361,7 +355,7 @@ class TutorialSettingsScreen extends StatelessWidget {
                           await tutProvider.startV16DeltaTour();
                           if (context.mounted) {
                             NotificationHelper.showSuccess(
-                              Translator.get('tutorial_tour_started', fallback: 'v1.6 Neuheiten-Tour aktiviert!'),
+                              t.tutorial_tour_started,
                             );
                             Navigator.of(context).pop();
                           }
@@ -370,7 +364,7 @@ class TutorialSettingsScreen extends StatelessWidget {
                         label: ConstrainedBox(
                           constraints: const BoxConstraints(maxWidth: 200),
                           child: Text(
-                            Translator.get('tutorial_v16_tour_btn', fallback: 'v1.6 Neuheiten-Tour starten'),
+                            t.tutorial_v16_tour_btn,
                             style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
                             overflow: TextOverflow.ellipsis,
                           ),
@@ -387,7 +381,7 @@ class TutorialSettingsScreen extends StatelessWidget {
                         label: ConstrainedBox(
                           constraints: const BoxConstraints(maxWidth: 200),
                           child: Text(
-                            Translator.get('tutorial_replay_all', fallback: 'Alle Tutorials zurücksetzen'),
+                            t.tutorial_replay_all,
                             style: const TextStyle(fontSize: 12),
                             overflow: TextOverflow.ellipsis,
                           ),
@@ -410,7 +404,7 @@ class TutorialSettingsScreen extends StatelessWidget {
               children: [
                 Expanded(
                   child: Text(
-                    Translator.get('tutorial_chapters_header', fallback: 'Themen & Kapitel'),
+                    t.tutorial_chapters_header,
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.bold,

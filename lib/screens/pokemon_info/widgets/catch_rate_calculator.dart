@@ -1,6 +1,6 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
-import '../../../l10n/app_translations.dart';
+import '../../../i18n/strings.g.dart';
 import '../../../models/pokemon.dart';
 import '../../../utils/notification_helper.dart';
 import '../../../utils/catch_rate/models.dart';
@@ -218,7 +218,7 @@ class _CatchRateCalculatorState extends State<CatchRateCalculator> {
       _updateResult();
     } catch (e) {
       NotificationHelper.showError(
-        "${Translator.get('error_calc_catch_rate')} $e",
+        "${t.error_calc_catch_rate} $e",
       );
     }
   }
@@ -262,7 +262,7 @@ class _CatchRateCalculatorState extends State<CatchRateCalculator> {
       });
     } catch (e) {
       NotificationHelper.showError(
-        "${Translator.get('error_calc_catch_rate')} $e",
+        "${t.error_calc_catch_rate} $e",
       );
     }
   }
@@ -316,7 +316,7 @@ class _CatchRateCalculatorState extends State<CatchRateCalculator> {
       children: [
         if (titleKey.isNotEmpty) ...[
           const SizedBox(height: 8),
-          Text(Translator.get(titleKey).replaceAll('{0}', '$value')),
+          Text((t[titleKey] ?? titleKey).replaceAll('{0}', '$value')),
         ],
         Slider(
           value: value.toDouble(),
@@ -376,7 +376,7 @@ class _CatchRateCalculatorState extends State<CatchRateCalculator> {
             Icon(Icons.analytics, color: Theme.of(context).colorScheme.primary),
             const SizedBox(width: 8),
             Text(
-              '${Translator.get('calc_base_rate')}: ${_currentResult.baseRate}',
+              '${t.calc_base_rate}: ${_currentResult.baseRate}',
               style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
             ),
           ],
@@ -385,9 +385,7 @@ class _CatchRateCalculatorState extends State<CatchRateCalculator> {
           Padding(
             padding: const EdgeInsets.only(top: 4.0, left: 32.0),
             child: Text(
-              Translator.get(
-                'calc_modified_rate',
-              ).replaceAll('{0}', widget.pokemon.captureRate.toString()),
+              t.calc_modified_rate.replaceAll('{0}', widget.pokemon.captureRate.toString()),
               style: const TextStyle(
                 fontSize: 12,
                 color: Colors.grey,
@@ -405,7 +403,7 @@ class _CatchRateCalculatorState extends State<CatchRateCalculator> {
             : DropdownButtonFormField<double>(
                 initialValue: _selectedGen,
                 decoration: InputDecoration(
-                  labelText: Translator.get('generation'),
+                  labelText: t.generation,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
@@ -436,7 +434,7 @@ class _CatchRateCalculatorState extends State<CatchRateCalculator> {
                     }
                   } catch (e) {
                     NotificationHelper.showError(
-                      "${Translator.get('error_calc_catch_rate_ui')} $e",
+                      "${t.error_calc_catch_rate_ui} $e",
                     );
                   }
                 },
@@ -481,7 +479,7 @@ class _CatchRateCalculatorState extends State<CatchRateCalculator> {
                   focusNode: focusNode,
                   decoration: InputDecoration(
                     labelText:
-                        Translator.get('pokeball_bonus') +
+                        t.pokeball_bonus +
                         (_selectedBallId != 'master' &&
                                 _selectedBallId != 'origin' &&
                                 _selectedBallId != 'heavy' &&
@@ -591,8 +589,6 @@ class _CatchRateCalculatorState extends State<CatchRateCalculator> {
   }
 
   Widget _buildBattleConditions() {
-    String t(String key, String fallback) =>
-        Translator.get(key) != key ? Translator.get(key) : fallback;
     return Card(
       elevation: 0,
       shape: RoundedRectangleBorder(
@@ -604,7 +600,7 @@ class _CatchRateCalculatorState extends State<CatchRateCalculator> {
         initiallyExpanded: true,
         leading: const Icon(Icons.sports_martial_arts),
         title: Text(
-          Translator.get('calc_battle_conditions'),
+          t.calc_battle_conditions,
           style: const TextStyle(fontWeight: FontWeight.bold),
         ),
         children: [
@@ -616,26 +612,26 @@ class _CatchRateCalculatorState extends State<CatchRateCalculator> {
                 if (_currentStrategy.showPowerOptions)
                   _buildDropdown<double>(
                     _selectedGen == 7.5
-                        ? Translator.get('calc_berry_let_go')
-                        : Translator.get('calc_bonus_power'),
+                        ? t.calc_berry_let_go
+                        : t.calc_bonus_power,
                     _powerBonus,
                     _currentStrategy.getPowerOptions(),
                     (v) => _powerBonus = v,
                   ),
                 if (_currentStrategy.showMaxRaid) ...[
                   _buildSwitch(
-                    Translator.get('calc_max_raid'),
+                    t.calc_max_raid,
                     _isMaxRaid,
                     (v) => _isMaxRaid = v,
                   ),
                   if (_isMaxRaid) ...[
                     _buildSwitch(
-                      Translator.get('calc_max_raid_guest'),
+                      t.calc_max_raid_guest,
                       _isGuest,
                       (v) => _isGuest = v,
                     ),
                     _buildSwitch(
-                      Translator.get('calc_max_raid_gmax'),
+                      t.calc_max_raid_gmax,
                       _isGigantamax,
                       (v) => _isGigantamax = v,
                     ),
@@ -643,67 +639,67 @@ class _CatchRateCalculatorState extends State<CatchRateCalculator> {
                 ],
                 if (_currentStrategy.isArceus)
                   _buildDropdown<int>(
-                    Translator.get('calc_hisui_status'),
+                    t.calc_hisui_status,
                     _hisuiCatchStatus,
                     [
                       DropdownMenuItem(
                         value: 0,
-                        child: Text(Translator.get('hisui_status_0')),
+                        child: Text(t.hisui_status_0),
                       ),
                       DropdownMenuItem(
                         value: 1,
-                        child: Text(Translator.get('hisui_status_1')),
+                        child: Text(t.hisui_status_1),
                       ),
                       DropdownMenuItem(
                         value: 2,
-                        child: Text(Translator.get('hisui_status_2')),
+                        child: Text(t.hisui_status_2),
                       ),
                       DropdownMenuItem(
                         value: 3,
-                        child: Text(Translator.get('hisui_status_3')),
+                        child: Text(t.hisui_status_3),
                       ),
                     ],
                     (v) => _hisuiCatchStatus = v,
                   ),
                 if (_currentStrategy.showFlying)
                   _buildSwitch(
-                    Translator.get('calc_flying'),
+                    t.calc_flying,
                     _isFlying,
                     (v) => _isFlying = v,
                   ),
                 if (_currentStrategy.showUnnoticed)
                   _buildSwitch(
-                    t('calc_unnoticed', 'Unbemerkt'),
+                    t.calc_unnoticed,
                     _isUnnoticed,
                     (v) => _isUnnoticed = v,
                   ),
                 if (_currentStrategy.showBackstrike)
                   _buildSwitch(
-                    t('calc_backstrike', 'Rückenangriff'),
+                    t.calc_backstrike,
                     _isBackstrike,
                     (v) => _isBackstrike = v,
                   ),
                 if (_currentStrategy.showTargetShiny)
                   _buildSwitch(
-                    t('calc_target_shiny', 'Ziel ist Shiny'),
+                    t.calc_target_shiny,
                     _isTargetShiny,
                     (v) => _isTargetShiny = v,
                   ),
                 if (_currentStrategy.showCatchWindow)
                   _buildSwitch(
-                    t('calc_catch_window', 'Fangfenster (betäubt)'),
+                    t.calc_catch_window,
                     _isCatchWindow,
                     (v) => _isCatchWindow = v,
                   ),
                 if (_currentStrategy.showAlpha)
                   _buildSwitch(
-                    t('calc_alpha', 'Alpha Pokémon'),
+                    t.calc_alpha,
                     _isAlpha,
                     (v) => _isAlpha = v,
                   ),
                 if (_currentStrategy.showDarkGrass)
                   _buildSwitch(
-                    Translator.get('calc_dark_grass'),
+                    t.calc_dark_grass,
                     _isDarkGrass,
                     (v) => _isDarkGrass = v,
                   ),
@@ -736,7 +732,7 @@ class _CatchRateCalculatorState extends State<CatchRateCalculator> {
                   ),
                 if (_currentStrategy.showMissingBadges)
                   _buildDropdown<int>(
-                    t('calc_missing_badges', 'Fehlende Orden'),
+                    t.calc_missing_badges,
                     _missingBadges,
                     List.generate(
                       9,
@@ -746,7 +742,7 @@ class _CatchRateCalculatorState extends State<CatchRateCalculator> {
                   ),
                 if (_currentStrategy.showZaRank)
                   _buildDropdown<int>(
-                    t('calc_za_rank', 'Z-A Royale Rang'),
+                    t.calc_za_rank,
                     _zaRank,
                     [
                       const DropdownMenuItem(value: 0, child: Text('Z')),
@@ -765,12 +761,12 @@ class _CatchRateCalculatorState extends State<CatchRateCalculator> {
                   ),
                 if (_currentStrategy.showPlushLevel)
                   _buildDropdown<int>(
-                    t('calc_plush_level', 'Plüsch Level'),
+                    t.calc_plush_level,
                     _plushLevel,
                     [
                       DropdownMenuItem(
                         value: 0,
-                        child: Text(t('calc_plush_none', 'Keins')),
+                        child: Text(t.calc_plush_none),
                       ),
                       const DropdownMenuItem(
                         value: 1,
@@ -789,20 +785,20 @@ class _CatchRateCalculatorState extends State<CatchRateCalculator> {
                   ),
                 if (_currentStrategy.showDonutPenalty)
                   _buildDropdown<int>(
-                    t('calc_donut_penalty', 'Donut Malus'),
+                    t.calc_donut_penalty,
                     _donutPenalty,
                     [
                       DropdownMenuItem(
                         value: 0,
-                        child: Text(t('calc_donut_none', 'Keiner')),
+                        child: Text(t.calc_donut_none),
                       ),
                       DropdownMenuItem(
                         value: 1,
-                        child: Text(t('calc_donut_minus1', '-1 Stern')),
+                        child: Text(t.calc_donut_minus1),
                       ),
                       DropdownMenuItem(
                         value: 2,
-                        child: Text(t('calc_donut_minus2', '-2 Sterne')),
+                        child: Text(t.calc_donut_minus2),
                       ),
                     ],
                     (v) => _donutPenalty = v,
@@ -821,19 +817,19 @@ class _CatchRateCalculatorState extends State<CatchRateCalculator> {
                   ),
                 if (_currentStrategy.showNightEncounter)
                   _buildSwitch(
-                    Translator.get('calc_night_cave'),
+                    t.calc_night_cave,
                     _isNightOrCave,
                     (v) => _isNightOrCave = v,
                   ),
                 if (_currentStrategy.showLoveCondition)
                   _buildSwitch(
-                    Translator.get('calc_love_condition'),
+                    t.calc_love_condition,
                     _isLoveConditionMet,
                     (v) => _isLoveConditionMet = v,
                   ),
                 if (_currentStrategy.showRepeatCondition)
                   _buildSwitch(
-                    Translator.get('calc_already_caught'),
+                    t.calc_already_caught,
                     _isAlreadyCaught,
                     (v) => _isAlreadyCaught = v,
                   ),

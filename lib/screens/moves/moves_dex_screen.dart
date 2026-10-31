@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import '../../l10n/app_translations.dart';
+import '../../i18n/strings.g.dart';
 import '../../models/special_dex_models.dart';
 import '../../models/user_dex.dart';
 import '../../services/database_service.dart';
@@ -50,28 +50,19 @@ class _MovesDexScreenState extends State<MovesDexScreen> {
 
   void _applyFiltersAndSort() {
     final lowerQuery = _searchQuery.toLowerCase();
-    final lang = Translator.currentLanguage;
+    final lang = LocaleSettings.currentLocale.languageCode;
 
     var result = _allMoves.where((m) {
       if (lowerQuery.isEmpty) return true;
-      final typeName = Translator.get(
-        'type_${m.type.toLowerCase()}',
-        fallback: m.type,
-      ).toLowerCase();
+      final typeName = (t['type_${m.type.toLowerCase()}'] ?? m.type).toString().toLowerCase();
       return m.getName(lang).toLowerCase().contains(lowerQuery) ||
           typeName.contains(lowerQuery);
     }).toList();
 
     if (_sortMode == 'type') {
       result.sort((a, b) {
-        final typeA = Translator.get(
-          'type_${a.type.toLowerCase()}',
-          fallback: a.type,
-        );
-        final typeB = Translator.get(
-          'type_${b.type.toLowerCase()}',
-          fallback: b.type,
-        );
+        final typeA = (t['type_${a.type.toLowerCase()}'] ?? a.type).toString();
+        final typeB = (t['type_${b.type.toLowerCase()}'] ?? b.type).toString();
         int typeCmp = typeA.compareTo(typeB);
         if (typeCmp != 0) return typeCmp;
         return a.getName(lang).compareTo(b.getName(lang));
@@ -166,7 +157,7 @@ class _MovesDexScreenState extends State<MovesDexScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final lang = Translator.currentLanguage;
+    final lang = LocaleSettings.currentLocale.languageCode;
     final caughtCount = widget.dex.caughtIds
         .where((id) => id.startsWith('move_'))
         .length;
@@ -200,9 +191,9 @@ class _MovesDexScreenState extends State<MovesDexScreen> {
             title: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(Translator.get('dex_moves', fallback: 'Attacken-Dex')),
+                Text(t.dex_moves),
                 Text(
-                  '$caughtCount / ${_allMoves.length} ${Translator.get('registered', fallback: 'Registriert')}',
+                  '$caughtCount / ${_allMoves.length} ${t.registered}',
                   style: const TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.normal,
@@ -218,7 +209,7 @@ class _MovesDexScreenState extends State<MovesDexScreen> {
               ),
               PopupMenuButton<String>(
                 icon: const Icon(Icons.sort),
-                tooltip: Translator.get('sort_by', fallback: 'Sortieren'),
+                tooltip: t.sort_by,
                 onSelected: (val) {
                   _sortMode = val;
                   _applyFiltersAndSort();
@@ -227,7 +218,7 @@ class _MovesDexScreenState extends State<MovesDexScreen> {
                   PopupMenuItem(
                     value: 'az',
                     child: Text(
-                      Translator.get('sort_az', fallback: 'A - Z'),
+                      t.sort_az,
                       style: TextStyle(
                         fontWeight: _sortMode == 'az'
                             ? FontWeight.bold
@@ -238,10 +229,7 @@ class _MovesDexScreenState extends State<MovesDexScreen> {
                   PopupMenuItem(
                     value: 'type',
                     child: Text(
-                      Translator.get(
-                        'sort_type',
-                        fallback: 'Nach Typ gruppieren',
-                      ),
+                      t.sort_type,
                       style: TextStyle(
                         fontWeight: _sortMode == 'type'
                             ? FontWeight.bold
@@ -263,7 +251,7 @@ class _MovesDexScreenState extends State<MovesDexScreen> {
                     _applyFiltersAndSort();
                   },
                   decoration: InputDecoration(
-                    hintText: Translator.get('search', fallback: 'Suchen...'),
+                    hintText: t.search,
                     prefixIcon: const Icon(Icons.search),
                     filled: true,
                     fillColor: Theme.of(context)
@@ -368,10 +356,7 @@ class _MovesDexScreenState extends State<MovesDexScreen> {
                     borderRadius: BorderRadius.circular(4),
                   ),
                   child: Text(
-                    Translator.get(
-                      'type_${move.type.toLowerCase()}',
-                      fallback: move.type.toUpperCase(),
-                    ),
+                    (t['type_${move.type.toLowerCase()}'] ?? move.type.toUpperCase()).toString(),
                     style: const TextStyle(
                       fontSize: 10,
                       color: Colors.white,
@@ -381,7 +366,7 @@ class _MovesDexScreenState extends State<MovesDexScreen> {
                 ),
                 const SizedBox(height: 6),
                 Text(
-                  '${Translator.get('power_short', fallback: 'Stärke')}: ${move.power > 0 ? move.power : '-'}',
+                  '${t.power_short}: ${move.power > 0 ? move.power : '-'}',
                   style: TextStyle(
                     fontSize: 11,
                     color: Theme.of(context).hintColor,
@@ -397,9 +382,7 @@ class _MovesDexScreenState extends State<MovesDexScreen> {
 
   Widget _buildListItem(PokeMove move, String lang) {
     final isCaught = widget.dex.caughtIds.contains('move_${move.id}');
-    final typeStr = Translator.get(
-      'type_${move.type.toLowerCase()}',
-      fallback: move.type.toUpperCase(),
+    final typeStr = (t['type_${move.type.toLowerCase()}'] ?? move.type.toUpperCase(),
     );
 
     return GestureDetector(

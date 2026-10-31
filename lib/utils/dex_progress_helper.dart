@@ -3,7 +3,7 @@ import '../models/dex_progress_models.dart';
 import '../models/dex_view_models.dart';
 import '../models/user_dex.dart';
 import 'dex_logic_helper.dart';
-import '../l10n/app_translations.dart';
+import 'isolate_translator.dart';
 
 /// Helper for calculating detailed completion statistics, generation breakdowns,
 /// type coverage, and variant distributions for a Pokédex.
@@ -424,8 +424,6 @@ class DexProgressHelper {
   }
 
   static String _translate(String key, String language) {
-    return Translator.boxSettingsTranslations[language]?[key] ??
-        Translator.boxSettingsTranslations['en']?[key] ??
-        Translator.get(key);
+    return IsolateTranslator(language).get(key);
   }
 }

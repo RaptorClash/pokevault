@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../../l10n/app_translations.dart';
+import '../../../i18n/strings.g.dart';
 import '../../../models/user_dex.dart';
 import '../../../providers/dex_provider.dart';
 import '../../../providers/tutorial_provider.dart';
@@ -215,7 +215,7 @@ class DexCard extends StatelessWidget {
             style: const TextStyle(fontWeight: FontWeight.bold),
           ),
           subtitle: Text(
-            '${Translator.get('region')}: $regionName | ${Translator.get('caught')}: ${DexLogicHelper.getCaughtCount(dex)}',
+            '${t.region}: $regionName | ${t.caught}: ${DexLogicHelper.getCaughtCount(dex)}',
           ),
           trailing: Row(
             mainAxisSize: MainAxisSize.min,
@@ -235,7 +235,7 @@ class DexCard extends StatelessWidget {
                       children: [
                         const Icon(Icons.share, size: 20),
                         const SizedBox(width: 8),
-                        Text(Translator.get('share_dex_card_btn', fallback: 'Erfolgs-Grafik')),
+                        Text(t.share_dex_card_btn),
                       ],
                     ),
                   ),
@@ -355,7 +355,7 @@ class _HomeBottomSheetMenuState extends State<HomeBottomSheetMenu> {
                       }
                     } catch (e) {
                       NotificationHelper.showError(
-                        '${Translator.get('error')} $e',
+                        '${t.error} $e',
                       );
                     }
                   },
@@ -424,10 +424,7 @@ class _HomeBottomSheetMenuState extends State<HomeBottomSheetMenu> {
           key: _createFolderKey,
           leading: const Icon(Icons.folder, color: Colors.blueAccent),
           title: Text(
-            Translator.get(
-              'folder_create_title',
-              fallback: 'Neuen Ordner erstellen',
-            ),
+            t.folder_create_title,
           ),
           onTap: widget.onFolderCreate,
         ),

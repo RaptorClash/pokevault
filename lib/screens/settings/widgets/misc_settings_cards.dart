@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../../../l10n/app_translations.dart';
+import '../../../../i18n/strings.g.dart';
 import '../../../../providers/settings_provider.dart';
 import '../../../../providers/dex_provider.dart';
 import '../../../../utils/notification_helper.dart';
@@ -23,7 +23,7 @@ class UpdatesCard extends StatelessWidget {
       children: [
         SettingsHelper.buildSectionHeader(
           context,
-          Translator.get('updates'),
+          t.updates,
           Icons.system_update,
         ),
         Card(
@@ -31,7 +31,7 @@ class UpdatesCard extends StatelessWidget {
             children: [
               ListTile(
                 leading: const Icon(Icons.update),
-                title: Text(Translator.get('check_for_updates')),
+                title: Text(t.check_for_updates),
                 trailing: const Icon(Icons.arrow_forward_ios, size: 16),
                 onTap: () async {
                   showDialog(
@@ -53,7 +53,7 @@ class UpdatesCard extends StatelessWidget {
                         );
                       } else {
                         NotificationHelper.showInfo(
-                          Translator.get('up_to_date'),
+                          t.up_to_date,
                         );
                       }
                     }
@@ -61,7 +61,7 @@ class UpdatesCard extends StatelessWidget {
                     if (context.mounted) {
                       Navigator.pop(context);
                       NotificationHelper.showError(
-                        '${Translator.get('error')} $e',
+                        '${t.error} $e',
                       );
                     }
                   }
@@ -71,10 +71,7 @@ class UpdatesCard extends StatelessWidget {
               ListTile(
                 leading: const Icon(Icons.history, color: Colors.redAccent),
                 title: Text(
-                  Translator.get(
-                    'downgrades_title',
-                    fallback: 'Vorherige Versionen (Downgrades)',
-                  ),
+                  t.downgrades_title,
                 ),
                 trailing: const Icon(Icons.arrow_forward_ios, size: 16),
                 onTap: () => Navigator.push(
@@ -104,15 +101,15 @@ class GeneralCard extends StatelessWidget {
       children: [
         SettingsHelper.buildSectionHeader(
           context,
-          Translator.get('general'),
+          t.general,
           Icons.language,
         ),
         Card(
           child: Column(
             children: [
               ListTile(
-                title: Text(Translator.get('language')),
-                subtitle: Text(Translator.get('current_language')),
+                title: Text(t.language),
+                subtitle: Text(t.current_language),
                 trailing: const Icon(Icons.arrow_forward_ios, size: 16),
                 onTap: () => _showLanguageDialog(context, settingsProvider),
               ),
@@ -123,16 +120,10 @@ class GeneralCard extends StatelessWidget {
                   color: Colors.blueAccent,
                 ),
                 title: Text(
-                  Translator.get(
-                    'controls_guide_title',
-                    fallback: 'Bedienung & Tastaturkürzel',
-                  ),
+                  t.controls_guide_title,
                 ),
                 subtitle: Text(
-                  Translator.get(
-                    'controls_guide_sub',
-                    fallback: 'Shortcuts, Maus- & Touch-Gesten',
-                  ),
+                  t.controls_guide_sub,
                 ),
                 trailing: const Icon(Icons.arrow_forward_ios, size: 16),
                 onTap: () => Navigator.push(
@@ -149,16 +140,10 @@ class GeneralCard extends StatelessWidget {
                   color: Colors.amber,
                 ),
                 title: Text(
-                  Translator.get(
-                    'tutorial_center_title',
-                    fallback: 'Tutorials & Anleitungen',
-                  ),
+                  t.tutorial_center_title,
                 ),
                 subtitle: Text(
-                  Translator.get(
-                    'tutorial_center_subtitle',
-                    fallback: 'Interaktive Hilfen, Kapitel & v1.6 Neuheiten',
-                  ),
+                  t.tutorial_center_subtitle,
                 ),
                 trailing: const Icon(Icons.arrow_forward_ios, size: 16),
                 onTap: () => Navigator.push(
@@ -180,7 +165,7 @@ class GeneralCard extends StatelessWidget {
       context: context,
       builder: (context) {
         return SimpleDialog(
-          title: Text(Translator.get('language')),
+          title: Text(t.language),
           children: [
             SimpleDialogOption(
               onPressed: () {
@@ -215,7 +200,7 @@ class DataManagementCard extends StatelessWidget {
       children: [
         SettingsHelper.buildSectionHeader(
           context,
-          Translator.get('data_management'),
+          t.data_management,
           Icons.save,
         ),
         Card(
@@ -223,13 +208,13 @@ class DataManagementCard extends StatelessWidget {
             children: [
               ListTile(
                 leading: const Icon(Icons.download),
-                title: Text(Translator.get('import_tooltip')),
+                title: Text(t.import_tooltip),
                 onTap: () async => await dexProvider.importJsonData(),
               ),
               const Divider(height: 1),
               ListTile(
                 leading: const Icon(Icons.upload),
-                title: Text(Translator.get('export_tooltip')),
+                title: Text(t.export_tooltip),
                 onTap: () async {
                   if (dexProvider.userDexes.isNotEmpty) {
                     await DexStorageService.exportDexes(
@@ -258,7 +243,7 @@ class CommunityCard extends StatelessWidget {
       children: [
         SettingsHelper.buildSectionHeader(
           context,
-          Translator.get('community_support'),
+          t.community_support,
           Icons.people_alt,
         ),
         Card(
@@ -266,8 +251,8 @@ class CommunityCard extends StatelessWidget {
             children: [
               ListTile(
                 leading: const Icon(Icons.bug_report_outlined),
-                title: Text(Translator.get('report_issue_title')),
-                subtitle: Text(Translator.get('report_issue_sub')),
+                title: Text(t.report_issue_title),
+                subtitle: Text(t.report_issue_sub),
                 trailing: const Icon(Icons.open_in_new, size: 16),
                 onTap: () => SettingsHelper.launchURL(
                   'https://github.com/raptorclash/pokevault/issues/new/choose',
@@ -276,8 +261,8 @@ class CommunityCard extends StatelessWidget {
               const Divider(height: 1),
               ListTile(
                 leading: const Icon(Icons.code),
-                title: Text(Translator.get('contribute_title')),
-                subtitle: Text(Translator.get('contribute_sub')),
+                title: Text(t.contribute_title),
+                subtitle: Text(t.contribute_sub),
                 trailing: const Icon(Icons.open_in_new, size: 16),
                 onTap: () => SettingsHelper.launchURL(
                   'https://github.com/raptorclash/pokevault',
@@ -302,7 +287,7 @@ class CreditsCard extends StatelessWidget {
       children: [
         SettingsHelper.buildSectionHeader(
           context,
-          Translator.get('credits'),
+          t.credits,
           Icons.favorite_rounded,
         ),
         Card(
@@ -400,8 +385,8 @@ class CreditsCard extends StatelessWidget {
   }) {
     return ListTile(
       leading: Icon(icon),
-      title: Text(isDirectText ? titleKey : Translator.get(titleKey)),
-      subtitle: Text(isDirectText ? subKey : Translator.get(subKey)),
+      title: Text(isDirectText ? titleKey : (t[titleKey] ?? titleKey)),
+      subtitle: Text(isDirectText ? subKey : (t[subKey] ?? subKey)),
       trailing: const Icon(Icons.open_in_new, size: 16),
       onTap: () => SettingsHelper.launchURL(url),
     );

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../models/dex_view_models.dart';
-import '../../l10n/app_translations.dart';
+import '../../i18n/strings.g.dart';
 import '../../utils/notification_helper.dart';
 import '../../utils/shiny_logic_helper.dart';
 import '../../services/database_service.dart';
@@ -74,14 +74,14 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
       if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
         if (mounted) {
           NotificationHelper.showError(
-            '${Translator.get('error_launch_url')} $urlString',
+            '${t.error_launch_url} $urlString',
           );
         }
       }
     } catch (e) {
       if (mounted) {
         NotificationHelper.showError(
-          '${Translator.get('error_launch_url')} $e',
+          '${t.error_launch_url} $e',
         );
       }
     }
@@ -101,7 +101,7 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
       child: OutlinedButton.icon(
         icon: const Icon(Icons.track_changes, color: Colors.amber),
         label: Text(
-          buttonLabel ?? Translator.get('shiny_hunt_start_from_guide', fallback: '🎯 Hunt starten'),
+          buttonLabel ?? t.shiny_hunt_start_from_guide,
           style: const TextStyle(fontWeight: FontWeight.bold),
         ),
         style: OutlinedButton.styleFrom(
@@ -224,8 +224,8 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
           fallbackTitle = 'Generation ${gen.toInt()}';
         }
 
-        String resolvedTitle = Translator.get(titleKey) != titleKey
-            ? Translator.get(titleKey)
+        String resolvedTitle = (t[titleKey] ?? titleKey) != titleKey
+            ? (t[titleKey] ?? titleKey)
             : fallbackTitle;
 
         if (gen == 1.0) {
@@ -238,7 +238,7 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
               method: 'Pokémon-Turm / Silph Scope',
               baseOdds: 8192.0,
               game: 'Rot / Blau / Gelb',
-              buttonLabel: Translator.get('shiny_hunt_start_silph_scope'),
+              buttonLabel: t.shiny_hunt_start_silph_scope,
             ));
             gen1Actions.add(const SizedBox(height: 8));
           }
@@ -282,7 +282,7 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
               2.0,
               method: 'Kurioses Ei / Odd Egg (Kristall)',
               baseOdds: 100.0 / 14.0,
-              buttonLabel: Translator.get('shiny_hunt_start_odd_egg'),
+              buttonLabel: t.shiny_hunt_start_odd_egg,
             ));
             gen2Actions.add(const SizedBox(height: 8));
           }
@@ -292,7 +292,7 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
               2.0,
               method: 'Shiny-Zucht / Ditto-Glitch',
               baseOdds: 64.0,
-              buttonLabel: Translator.get('shiny_hunt_start_ditto_glitch'),
+              buttonLabel: t.shiny_hunt_start_ditto_glitch,
             ));
             gen2Actions.add(const SizedBox(height: 8));
           }
@@ -355,7 +355,7 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
               baseOdds: 8192.0,
               spawns: 3,
               game: 'HeartGold / SoulSilver',
-              buttonLabel: Translator.get('shiny_hunt_start_hgss_starters'),
+              buttonLabel: t.shiny_hunt_start_hgss_starters,
             ));
             gen4Actions.add(const SizedBox(height: 8));
           }
@@ -365,7 +365,7 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
               4.0,
               method: 'Cute Charm Glitch',
               baseOdds: 100.0 / 21.34,
-              buttonLabel: Translator.get('shiny_hunt_start_ccg'),
+              buttonLabel: t.shiny_hunt_start_ccg,
             ));
             gen4Actions.add(const SizedBox(height: 8));
           }
@@ -511,7 +511,7 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
           color: isLocked ? Colors.red : Colors.amber,
         ),
         title: Text(
-          Translator.get('shiny_guide_title'),
+          t.shiny_guide_title,
           style: const TextStyle(fontWeight: FontWeight.bold),
         ),
         children: [
@@ -534,7 +534,7 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          Translator.get('shiny_lock_banner', fallback: 'Shiny-Lock aktiv'),
+                          t.shiny_lock_banner,
                           style: const TextStyle(
                             fontWeight: FontWeight.bold,
                             color: Colors.red,
@@ -545,7 +545,7 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
                         Text(
                           ShinyLockService.getShinyLockReason(
                             widget.entry,
-                            lang: Translator.currentLanguage,
+                            lang: LocaleSettings.currentLocale.languageCode,
                           ),
                           style: const TextStyle(fontSize: 12),
                         ),
@@ -569,7 +569,7 @@ class _ShinyGuideWidgetState extends State<ShinyGuideWidget> {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    Translator.get('shiny_guide_missing_note'),
+                    t.shiny_guide_missing_note,
                     style: const TextStyle(
                       fontSize: 12,
                       fontStyle: FontStyle.italic,

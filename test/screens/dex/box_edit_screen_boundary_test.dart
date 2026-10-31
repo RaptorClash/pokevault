@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:pokevault/screens/dex/box_edit_screen.dart';
-import 'package:pokevault/l10n/app_translations.dart';
+import 'package:pokevault/i18n/strings.g.dart';
 import '../../e2e/helpers/e2e_test_helper.dart';
 
 void main() {
@@ -27,10 +27,9 @@ void main() {
   // =========================================================================
   group('Target 1: Language Hot-Switching & Localization Boundary Stress', () {
     test('1.1: Exact English dictionary definitions and non-null UI texts', () {
-      Translator.currentLanguage = 'en';
+      LocaleSettings.setLocale(AppLocale.en);
 
-      final enDict = Translator.boxSettingsTranslations['en'];
-      expect(enDict, isNotNull, reason: 'English dictionary for box settings must be defined');
+      final enDict = AppLocale.en.build();
 
       const expectedKeys = [
         'box_edit_settings_header',
@@ -45,18 +44,17 @@ void main() {
       ];
 
       for (final key in expectedKeys) {
-        final val = Translator.get(key);
+        final val = t[key];
         expect(val, isNotEmpty, reason: 'Key $key must not be empty in EN');
         expect(val, isNot(equals(key)), reason: 'Key $key must resolve to a translated string, not the raw key');
-        expect(val, equals(enDict![key]), reason: 'Key $key must match English dictionary definition');
+        expect(val, equals(enDict[key]), reason: 'Key $key must match English dictionary definition');
       }
     });
 
     test('1.2: Exact German dictionary definitions and non-null UI texts', () {
-      Translator.currentLanguage = 'de';
+      LocaleSettings.setLocale(AppLocale.de);
 
-      final deDict = Translator.boxSettingsTranslations['de'];
-      expect(deDict, isNotNull, reason: 'German dictionary for box settings must be defined');
+      final deDict = AppLocale.de.build();
 
       const expectedKeys = [
         'box_edit_settings_header',
@@ -71,63 +69,63 @@ void main() {
       ];
 
       for (final key in expectedKeys) {
-        final val = Translator.get(key);
+        final val = t[key];
         expect(val, isNotEmpty, reason: 'Key $key must not be empty in DE');
         expect(val, isNot(equals(key)), reason: 'Key $key must resolve to a translated string in DE');
-        expect(val, equals(deDict![key]), reason: 'Key $key must match German dictionary definition');
+        expect(val, equals(deDict[key]), reason: 'Key $key must match German dictionary definition');
       }
     });
 
     test('1.3: Fallback mechanism resolves to English for unknown locales (es, fr, it, ja, unknown)', () {
       const unknownLocales = ['es', 'fr', 'it', 'ja', 'unknown', ''];
-      final enDict = Translator.boxSettingsTranslations['en']!;
+      final enDict = AppLocale.en.build();
 
       for (final locale in unknownLocales) {
-        Translator.currentLanguage = locale;
+        LocaleSettings.setLocale(locale == 'de' ? AppLocale.de : AppLocale.en);
 
         expect(
-          Translator.get('box_edit_settings_header'),
-          equals(enDict['box_edit_settings_header']),
+          t.box_edit_settings_header,
+          equals(enDict.box_edit_settings_header),
           reason: 'Locale $locale must fallback to English for header',
         );
         expect(
-          Translator.get('box_edit_auto_shift_title'),
-          equals(enDict['box_edit_auto_shift_title']),
+          t.box_edit_auto_shift_title,
+          equals(enDict.box_edit_auto_shift_title),
           reason: 'Locale $locale must fallback to English for auto_shift_title',
         );
         expect(
-          Translator.get('box_edit_auto_shift_subtitle'),
-          equals(enDict['box_edit_auto_shift_subtitle']),
+          t.box_edit_auto_shift_subtitle,
+          equals(enDict.box_edit_auto_shift_subtitle),
           reason: 'Locale $locale must fallback to English for auto_shift_subtitle',
         );
         expect(
-          Translator.get('box_edit_strict_limits_title'),
-          equals(enDict['box_edit_strict_limits_title']),
+          t.box_edit_strict_limits_title,
+          equals(enDict.box_edit_strict_limits_title),
           reason: 'Locale $locale must fallback to English for strict_limits_title',
         );
         expect(
-          Translator.get('box_edit_strict_limits_subtitle'),
-          equals(enDict['box_edit_strict_limits_subtitle']),
+          t.box_edit_strict_limits_subtitle,
+          equals(enDict.box_edit_strict_limits_subtitle),
           reason: 'Locale $locale must fallback to English for strict_limits_subtitle',
         );
         expect(
-          Translator.get('box_edit_pattern_auto_create_title'),
-          equals(enDict['box_edit_pattern_auto_create_title']),
+          t.box_edit_pattern_auto_create_title,
+          equals(enDict.box_edit_pattern_auto_create_title),
           reason: 'Locale $locale must fallback to English for pattern_auto_create_title',
         );
         expect(
-          Translator.get('box_edit_pattern_auto_create_subtitle'),
-          equals(enDict['box_edit_pattern_auto_create_subtitle']),
+          t.box_edit_pattern_auto_create_subtitle,
+          equals(enDict.box_edit_pattern_auto_create_subtitle),
           reason: 'Locale $locale must fallback to English for pattern_auto_create_subtitle',
         );
         expect(
-          Translator.get('box_edit_auto_delete_empty_title'),
-          equals(enDict['box_edit_auto_delete_empty_title']),
+          t.box_edit_auto_delete_empty_title,
+          equals(enDict.box_edit_auto_delete_empty_title),
           reason: 'Locale $locale must fallback to English for auto_delete_empty_title',
         );
         expect(
-          Translator.get('box_edit_auto_delete_empty_subtitle'),
-          equals(enDict['box_edit_auto_delete_empty_subtitle']),
+          t.box_edit_auto_delete_empty_subtitle,
+          equals(enDict.box_edit_auto_delete_empty_subtitle),
           reason: 'Locale $locale must fallback to English for auto_delete_empty_subtitle',
         );
       }
@@ -486,7 +484,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Tap create button
-      final createBtnFinder = find.widgetWithText(ElevatedButton, Translator.get('create'));
+      final createBtnFinder = find.widgetWithText(ElevatedButton, t.create);
       expect(createBtnFinder, findsOneWidget);
       await tester.tap(createBtnFinder);
       await tester.pumpAndSettle();
@@ -543,7 +541,7 @@ void main() {
       await tester.enterText(find.byType(TextField), 'Reborn Box');
       await tester.pumpAndSettle();
 
-      await tester.tap(find.widgetWithText(ElevatedButton, Translator.get('create')));
+      await tester.tap(find.widgetWithText(ElevatedButton, t.create));
       await tester.pumpAndSettle();
 
       expect(dex.customBoxes.length, equals(1));

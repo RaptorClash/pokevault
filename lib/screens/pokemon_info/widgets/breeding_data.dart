@@ -1,6 +1,6 @@
 ﻿import '../../../models/pokemon.dart';
 import '../../../utils/shiny_logic_helper.dart';
-import '../../../l10n/app_translations.dart';
+import '../../../i18n/strings.g.dart';
 import '../../../providers/dex_provider.dart';
 
 class BreedingData {
@@ -20,7 +20,7 @@ class BreedingData {
     String totalOdds = '1:128';
     if (p.genderRate == 1) {
       if (requiredGender == 'm') return '~ 1:73';
-      return Translator.get('impossible', fallback: 'Unmöglich!');
+      return t.impossible;
     } else if (p.genderRate == 2) {
       if (requiredGender == 'm') return '~ 1:85';
       return '1:256';

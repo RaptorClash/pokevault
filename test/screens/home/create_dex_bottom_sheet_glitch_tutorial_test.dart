@@ -10,7 +10,7 @@ import 'package:pokevault/providers/dex_provider.dart';
 import 'package:pokevault/providers/tutorial_provider.dart';
 import 'package:pokevault/screens/home/create_dex_bottom_sheet.dart';
 import 'package:pokevault/widgets/tutorial/tutorial_overlay.dart';
-import 'package:pokevault/l10n/app_translations.dart';
+import 'package:pokevault/i18n/strings.g.dart';
 
 class _MockHttpOverrides extends HttpOverrides {
   @override
@@ -99,7 +99,7 @@ void main() {
 
   setUp(() {
     SharedPreferences.setMockInitialValues({});
-    Translator.currentLanguage = 'de';
+    LocaleSettings.setLocale(AppLocale.de);
     mockDexProvider = MockDexProvider();
     mockTutorialProvider = MockTutorialProvider();
   });
@@ -188,9 +188,9 @@ void main() {
     });
 
     test('Translation keys for glitch tutorial step exist in German and English', () {
-      Translator.currentLanguage = 'de';
-      final titleDe = Translator.get('tutorial_create_step7_glitch_title');
-      final textDe = Translator.get('tutorial_create_step7_glitch_text');
+      LocaleSettings.setLocale(AppLocale.de);
+      final titleDe = t.tutorial_create_step7_glitch_title;
+      final textDe = t.tutorial_create_step7_glitch_text;
 
       expect(titleDe, isNotEmpty);
       expect(titleDe, isNot(equals('tutorial_create_step7_glitch_title')));
@@ -200,9 +200,9 @@ void main() {
       expect(textDe, isNot(equals('tutorial_create_step7_glitch_text')));
       expect(textDe.toLowerCase(), contains('glitch'));
 
-      Translator.currentLanguage = 'en';
-      final titleEn = Translator.get('tutorial_create_step7_glitch_title');
-      final textEn = Translator.get('tutorial_create_step7_glitch_text');
+      LocaleSettings.setLocale(AppLocale.en);
+      final titleEn = t.tutorial_create_step7_glitch_title;
+      final textEn = t.tutorial_create_step7_glitch_text;
 
       expect(titleEn, isNotEmpty);
       expect(titleEn, isNot(equals('tutorial_create_step7_glitch_title')));

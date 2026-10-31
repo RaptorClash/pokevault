@@ -4,7 +4,7 @@ import '../../../models/pokemon.dart';
 import '../../../models/shiny_hunt.dart';
 import '../../../providers/dex_provider.dart';
 import '../../../providers/shiny_hunt_provider.dart';
-import '../../../l10n/app_translations.dart';
+import '../../../i18n/strings.g.dart';
 import '../../../widgets/universal_poke_image.dart';
 
 class RecordPhaseDialog extends StatefulWidget {
@@ -41,7 +41,7 @@ class _RecordPhaseDialogState extends State<RecordPhaseDialog> {
     final dexProvider = Provider.of<DexProvider>(context);
     final userDexes = dexProvider.userDexes;
     final allPokemon = dexProvider.allPokemon;
-    final lang = Translator.currentLanguage;
+    final lang = LocaleSettings.currentLocale.languageCode;
     final effectiveDexId = userDexes.any((d) => d.id == _selectedDexId)
         ? _selectedDexId
         : (userDexes.isNotEmpty ? userDexes.first.id : null);
@@ -65,7 +65,7 @@ class _RecordPhaseDialogState extends State<RecordPhaseDialog> {
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
-                        Translator.get('shiny_hunt_phase_dialog_title'),
+                        t.shiny_hunt_phase_dialog_title,
                         style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
                       ),
                     ),
@@ -103,7 +103,7 @@ class _RecordPhaseDialogState extends State<RecordPhaseDialog> {
                       controller: controller,
                       focusNode: focusNode,
                       decoration: InputDecoration(
-                        labelText: Translator.get('shiny_hunt_phase_pokemon_name'),
+                        labelText: t.shiny_hunt_phase_pokemon_name,
                         hintText: 'Z. B. Taubsi, Zubat, Garados...',
                         border: const OutlineInputBorder(),
                         prefixIcon: _selectedPokemonId != null
@@ -131,14 +131,14 @@ class _RecordPhaseDialogState extends State<RecordPhaseDialog> {
                     contentPadding: EdgeInsets.zero,
                     value: _syncToDex,
                     onChanged: (val) => setState(() => _syncToDex = val ?? false),
-                    title: Text(Translator.get('shiny_hunt_save_phase_to_dex')),
+                    title: Text(t.shiny_hunt_save_phase_to_dex),
                     controlAffinity: ListTileControlAffinity.leading,
                   ),
                   if (_syncToDex) ...[
                     DropdownButtonFormField<String>(
                       initialValue: effectiveDexId,
                       decoration: InputDecoration(
-                        labelText: Translator.get('shiny_hunt_target_dex'),
+                        labelText: t.shiny_hunt_target_dex,
                         border: const OutlineInputBorder(),
                         contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                       ),
@@ -163,7 +163,7 @@ class _RecordPhaseDialogState extends State<RecordPhaseDialog> {
                   children: [
                     TextButton(
                       onPressed: () => Navigator.of(context).pop(),
-                      child: Text(Translator.get('cancel', fallback: 'Abbrechen')),
+                      child: Text(t.cancel),
                     ),
                     ElevatedButton(
                       style: ElevatedButton.styleFrom(
@@ -187,7 +187,7 @@ class _RecordPhaseDialogState extends State<RecordPhaseDialog> {
                           Navigator.of(context).pop(true);
                         }
                       },
-                      child: Text(Translator.get('confirm', fallback: 'Phase abschließen')),
+                      child: Text(t.confirm),
                     ),
                   ],
                 ),

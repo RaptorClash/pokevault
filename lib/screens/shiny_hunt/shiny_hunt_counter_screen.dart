@@ -9,7 +9,7 @@ import '../../providers/shiny_hunt_provider.dart';
 import '../../providers/tutorial_provider.dart';
 import '../../utils/shiny_hunt_odds_helper.dart';
 import '../../utils/dex_logic_helper.dart';
-import '../../l10n/app_translations.dart';
+import '../../i18n/strings.g.dart';
 import '../../widgets/universal_poke_image.dart';
 import '../../widgets/tutorial/tutorial_overlay.dart';
 import 'dialogs/create_edit_hunt_dialog.dart';
@@ -186,20 +186,20 @@ class _ShinyHuntCounterScreenState extends State<ShinyHuntCounterScreen> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text(Translator.get('shiny_hunt_manual_count_title')),
+        title: Text(t.shiny_hunt_manual_count_title),
         content: TextField(
           controller: controller,
           keyboardType: TextInputType.number,
           autofocus: true,
           decoration: InputDecoration(
-            labelText: Translator.get('shiny_hunt_manual_count_hint'),
+            labelText: t.shiny_hunt_manual_count_hint,
             border: const OutlineInputBorder(),
           ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(),
-            child: Text(Translator.get('cancel', fallback: 'Abbrechen')),
+            child: Text(t.cancel),
           ),
           ElevatedButton(
             onPressed: () {
@@ -210,7 +210,7 @@ class _ShinyHuntCounterScreenState extends State<ShinyHuntCounterScreen> {
               }
               Navigator.of(ctx).pop();
             },
-            child: Text(Translator.get('save', fallback: 'Speichern')),
+            child: Text(t.save),
           ),
         ],
       ),
@@ -226,7 +226,7 @@ class _ShinyHuntCounterScreenState extends State<ShinyHuntCounterScreen> {
           children: [
             const Icon(Icons.tune_rounded, color: Colors.amber),
             const SizedBox(width: 8),
-            Text(Translator.get('shiny_hunt_step_custom_title', fallback: 'Eigene Schrittweite')),
+            Text(t.shiny_hunt_step_custom_title),
           ],
         ),
         content: TextField(
@@ -234,7 +234,7 @@ class _ShinyHuntCounterScreenState extends State<ShinyHuntCounterScreen> {
           keyboardType: TextInputType.number,
           autofocus: true,
           decoration: InputDecoration(
-            labelText: Translator.get('shiny_hunt_step_custom_hint', fallback: 'Schrittweite eingeben (z. B. 3, 30)...'),
+            labelText: t.shiny_hunt_step_custom_hint,
             border: const OutlineInputBorder(),
           ),
           onSubmitted: (val) {
@@ -250,7 +250,7 @@ class _ShinyHuntCounterScreenState extends State<ShinyHuntCounterScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(),
-            child: Text(Translator.get('cancel', fallback: 'Abbrechen')),
+            child: Text(t.cancel),
           ),
           ElevatedButton(
             onPressed: () {
@@ -262,7 +262,7 @@ class _ShinyHuntCounterScreenState extends State<ShinyHuntCounterScreen> {
               }
               Navigator.of(ctx).pop();
             },
-            child: Text(Translator.get('save', fallback: 'Speichern')),
+            child: Text(t.save),
           ),
         ],
       ),
@@ -277,7 +277,7 @@ class _ShinyHuntCounterScreenState extends State<ShinyHuntCounterScreen> {
           children: [
             const Icon(Icons.keyboard, color: Colors.amber),
             const SizedBox(width: 8),
-            Text(Translator.get('shiny_hunt_shortcuts_title')),
+            Text(t.shiny_hunt_shortcuts_title),
           ],
         ),
         content: Column(
@@ -287,17 +287,17 @@ class _ShinyHuntCounterScreenState extends State<ShinyHuntCounterScreen> {
             ListTile(
               dense: true,
               leading: const Icon(Icons.space_bar),
-              title: Text(Translator.get('shiny_hunt_shortcut_space')),
+              title: Text(t.shiny_hunt_shortcut_space),
             ),
             ListTile(
               dense: true,
               leading: const Icon(Icons.arrow_downward),
-              title: Text(Translator.get('shiny_hunt_shortcut_down')),
+              title: Text(t.shiny_hunt_shortcut_down),
             ),
             ListTile(
               dense: true,
               leading: const Icon(Icons.pause),
-              title: Text(Translator.get('shiny_hunt_shortcut_pause')),
+              title: Text(t.shiny_hunt_shortcut_pause),
             ),
           ],
         ),
@@ -321,18 +321,18 @@ class _ShinyHuntCounterScreenState extends State<ShinyHuntCounterScreen> {
             const SizedBox(width: 8),
             Expanded(
               child: Text(
-                Translator.get('shiny_hunt_finish_dialog_title', fallback: 'Hunt beenden / archivieren'),
+                t.shiny_hunt_finish_dialog_title,
               ),
             ),
           ],
         ),
         content: Text(
-          Translator.get('shiny_hunt_finish_dialog_desc', fallback: 'Möchtest du diesen Shiny Hunt als gefangen abschließen oder ohne Fang archivieren?'),
+          t.shiny_hunt_finish_dialog_desc,
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(),
-            child: Text(Translator.get('cancel', fallback: 'Abbrechen')),
+            child: Text(t.cancel),
           ),
           OutlinedButton(
             onPressed: () async {
@@ -342,13 +342,13 @@ class _ShinyHuntCounterScreenState extends State<ShinyHuntCounterScreen> {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text(
-                      Translator.get('shiny_hunt_completed_banner', fallback: 'Dieser Shiny Hunt ist abgeschlossen und im Archiv.'),
+                      t.shiny_hunt_completed_banner,
                     ),
                   ),
                 );
               }
             },
-            child: Text(Translator.get('shiny_hunt_finish_archive_only', fallback: 'Ohne Fang archivieren')),
+            child: Text(t.shiny_hunt_finish_archive_only),
           ),
           ElevatedButton.icon(
             style: ElevatedButton.styleFrom(
@@ -363,7 +363,7 @@ class _ShinyHuntCounterScreenState extends State<ShinyHuntCounterScreen> {
                 builder: (_) => ShinyCatchDialog(hunt: hunt),
               );
             },
-            label: Text(Translator.get('shiny_hunt_finish_as_caught', fallback: '🎉 Als Shiny gefangen abschließen')),
+            label: Text(t.shiny_hunt_finish_as_caught),
           ),
         ],
       ),
@@ -389,7 +389,7 @@ class _ShinyHuntCounterScreenState extends State<ShinyHuntCounterScreen> {
               const Icon(Icons.history_toggle_off, size: 16, color: Colors.amber),
               const SizedBox(width: 6),
               Text(
-                Translator.get('shiny_hunt_phase_history_card_title', fallback: 'Phasen-Shinies'),
+                t.shiny_hunt_phase_history_card_title,
                 style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
               ),
               const Spacer(),
@@ -420,10 +420,7 @@ class _ShinyHuntCounterScreenState extends State<ShinyHuntCounterScreen> {
                         )
                       : const Icon(Icons.star, size: 14, color: Colors.amber),
                   label: Text(
-                    Translator.get(
-                      'shiny_hunt_phase_badge',
-                      fallback: 'Phase {phase}: {name} ({encounters})',
-                    )
+                    t.shiny_hunt_phase_badge
                         .replaceAll('{phase}', phase.phaseNumber.toString())
                         .replaceAll('{name}', name)
                         .replaceAll('{encounters}', phase.encounters.toString()),
@@ -478,8 +475,8 @@ class _ShinyHuntCounterScreenState extends State<ShinyHuntCounterScreen> {
               avatar: const Icon(Icons.access_time_rounded, size: 16, color: Colors.amber),
               label: Text(
                 hunt.pauseHistory.isNotEmpty
-                    ? '${Translator.get('shiny_hunt_timeline_chip', fallback: 'Zeiten & Pausen')} (${hunt.pauseHistory.length})'
-                    : Translator.get('shiny_hunt_timeline_chip', fallback: 'Zeiten & Pausen'),
+                    ? '${t.shiny_hunt_timeline_chip} (${hunt.pauseHistory.length})'
+                    : t.shiny_hunt_timeline_chip,
                 style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
               ),
               onPressed: () => ShinyHuntTimelineDialog.show(context, hunt),
@@ -509,7 +506,7 @@ class _ShinyHuntCounterScreenState extends State<ShinyHuntCounterScreen> {
                 visualDensity: VisualDensity.compact,
                 avatar: const Icon(Icons.auto_awesome, size: 16, color: Colors.amber),
                 label: Text(
-                  Translator.get('shiny_hunt_charm_badge', fallback: 'Schillerpin'),
+                  t.shiny_hunt_charm_badge,
                   style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
                 ),
               ),
@@ -519,7 +516,7 @@ class _ShinyHuntCounterScreenState extends State<ShinyHuntCounterScreen> {
             if (hunt.pokemonFormId != null) ...[
               Builder(
                 builder: (context) {
-                  String label = '${Translator.get('shiny_hunt_form_label', fallback: 'Form')} #${hunt.pokemonFormId}';
+                  String label = '${t.shiny_hunt_form_label} #${hunt.pokemonFormId}';
                   if (dexProvider != null && hunt.pokemonFormId! > 0) {
                     final pokemon = dexProvider.allPokemon.where((p) => p.id == hunt.pokemonId).firstOrNull;
                     final form = pokemon?.forms.where((f) => (f.imageId > 0 ? f.imageId : pokemon.id) == hunt.pokemonFormId).firstOrNull;
@@ -555,7 +552,7 @@ class _ShinyHuntCounterScreenState extends State<ShinyHuntCounterScreen> {
                         children: [
                           const Icon(Icons.notes_rounded, color: Colors.amber),
                           const SizedBox(width: 8),
-                          Text(Translator.get('notes', fallback: 'Notizen')),
+                          Text(t.notes),
                         ],
                       ),
                       content: Text(hunt.notes!.trim()),
@@ -589,8 +586,8 @@ class _ShinyHuntCounterScreenState extends State<ShinyHuntCounterScreen> {
       final d = hunt.completedAt!;
       final dateStr = '${d.day.toString().padLeft(2, '0')}.${d.month.toString().padLeft(2, '0')}.${d.year}';
       dateLabel = hunt.ballUsed != null
-          ? Translator.get('shiny_hunt_caught_on', fallback: 'Gefangen am {date}').replaceAll('{date}', dateStr)
-          : Translator.get('shiny_hunt_archived_on', fallback: 'Archiviert am {date}').replaceAll('{date}', dateStr);
+          ? t.shiny_hunt_caught_on.replaceAll('{date}', dateStr)
+          : t.shiny_hunt_archived_on.replaceAll('{date}', dateStr);
     }
 
     final effectiveHuntingType = hunt.huntingType ?? ShinyHuntOddsHelper.inferHuntingTypeFromMethod(hunt.method);
@@ -619,11 +616,11 @@ class _ShinyHuntCounterScreenState extends State<ShinyHuntCounterScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      Translator.get('shiny_hunt_catch_details_title', fallback: 'Fang-Details'),
+                      t.shiny_hunt_catch_details_title,
                       style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
                     ),
                     Text(
-                      Translator.get('shiny_hunt_completed_banner', fallback: 'Dieser Shiny Hunt ist abgeschlossen und im Archiv.'),
+                      t.shiny_hunt_completed_banner,
                       style: TextStyle(
                         fontSize: 11,
                         color: Colors.green.shade700,
@@ -635,14 +632,14 @@ class _ShinyHuntCounterScreenState extends State<ShinyHuntCounterScreen> {
               ),
               IconButton(
                 icon: const Icon(Icons.refresh_rounded, color: Colors.amber),
-                tooltip: Translator.get('shiny_hunt_reopen_btn', fallback: 'Hunt wieder aufnehmen'),
+                tooltip: t.shiny_hunt_reopen_btn,
                 onPressed: () async {
                   await huntProvider.reopenHunt(hunt.id);
                   if (mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         content: Text(
-                          Translator.get('shiny_hunt_reopened_toast', fallback: 'Hunt wurde wieder aktiviert!'),
+                          t.shiny_hunt_reopened_toast,
                         ),
                       ),
                     );
@@ -695,7 +692,7 @@ class _ShinyHuntCounterScreenState extends State<ShinyHuntCounterScreen> {
                   const Icon(Icons.play_circle_outline, size: 14, color: Colors.grey),
                   const SizedBox(width: 4),
                   Text(
-                    '${Translator.get('shiny_hunt_started_label', fallback: 'Gestartet')}: ${hunt.createdAt.day.toString().padLeft(2, '0')}.${hunt.createdAt.month.toString().padLeft(2, '0')}.${hunt.createdAt.year}',
+                    '${t.shiny_hunt_started_label}: ${hunt.createdAt.day.toString().padLeft(2, '0')}.${hunt.createdAt.month.toString().padLeft(2, '0')}.${hunt.createdAt.year}',
                     style: const TextStyle(fontSize: 12),
                   ),
                 ],
@@ -711,7 +708,7 @@ class _ShinyHuntCounterScreenState extends State<ShinyHuntCounterScreen> {
                       const Icon(Icons.access_time_rounded, size: 14, color: Colors.amber),
                       const SizedBox(width: 4),
                       Text(
-                        '${hunt.pauseHistory.length} ${hunt.pauseHistory.length == 1 ? Translator.get('shiny_hunt_pause_label', fallback: 'Pause') : Translator.get('shiny_hunt_pauses_label', fallback: 'Pausen')}',
+                        '${hunt.pauseHistory.length} ${hunt.pauseHistory.length == 1 ? t.shiny_hunt_pause_label : t.shiny_hunt_pauses_label}',
                         style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.amber),
                       ),
                       const SizedBox(width: 2),
@@ -777,12 +774,12 @@ class _ShinyHuntCounterScreenState extends State<ShinyHuntCounterScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                Translator.get('shiny_hunt_settings_title'),
+                t.shiny_hunt_settings_title,
                 style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
               ),
               const SizedBox(height: 16),
               SwitchListTile(
-                title: Text(Translator.get('shiny_hunt_setting_haptics')),
+                title: Text(t.shiny_hunt_setting_haptics),
                 secondary: const Icon(Icons.vibration),
                 value: _hapticsEnabled,
                 onChanged: (val) {
@@ -791,7 +788,7 @@ class _ShinyHuntCounterScreenState extends State<ShinyHuntCounterScreen> {
                 },
               ),
               SwitchListTile(
-                title: Text(Translator.get('shiny_hunt_setting_wakelock')),
+                title: Text(t.shiny_hunt_setting_wakelock),
                 secondary: const Icon(Icons.screen_lock_portrait),
                 value: _wakelockEnabled,
                 onChanged: (val) {
@@ -816,7 +813,7 @@ class _ShinyHuntCounterScreenState extends State<ShinyHuntCounterScreen> {
 
     if (hunt == null) {
       return Scaffold(
-        appBar: AppBar(title: Text(Translator.get('shiny_hunt_hub_title'))),
+        appBar: AppBar(title: Text(t.shiny_hunt_hub_title)),
         body: const Center(child: Text('Hunt nicht gefunden.')),
       );
     }
@@ -864,7 +861,7 @@ class _ShinyHuntCounterScreenState extends State<ShinyHuntCounterScreen> {
                 _isLockMode ? Icons.lock_rounded : Icons.lock_open_rounded,
                 color: _isLockMode ? Colors.amber : null,
               ),
-              tooltip: Translator.get('shiny_hunt_lock_mode_title'),
+              tooltip: t.shiny_hunt_lock_mode_title,
               onPressed: () {
                 setState(() => _isLockMode = !_isLockMode);
                 ScaffoldMessenger.of(context).showSnackBar(
@@ -889,7 +886,7 @@ class _ShinyHuntCounterScreenState extends State<ShinyHuntCounterScreen> {
                 ),
                 icon: const Icon(Icons.flag_rounded, size: 16),
                 label: Text(
-                  Translator.get('shiny_hunt_finish_btn', fallback: 'Beenden'),
+                  t.shiny_hunt_finish_btn,
                   style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
                 ),
                 onPressed: () => _showFinishDialog(hunt),
@@ -899,12 +896,12 @@ class _ShinyHuntCounterScreenState extends State<ShinyHuntCounterScreen> {
             if (!_isLockMode) ...[
               IconButton(
                 icon: const Icon(Icons.info_outline),
-                tooltip: Translator.get('shiny_hunt_shortcuts_title'),
+                tooltip: t.shiny_hunt_shortcuts_title,
                 onPressed: _showShortcutsDialog,
               ),
               IconButton(
                 icon: const Icon(Icons.settings),
-                tooltip: Translator.get('shiny_hunt_settings_title'),
+                tooltip: t.shiny_hunt_settings_title,
                 onPressed: _showSettingsSheet,
               ),
               IconButton(
@@ -959,11 +956,11 @@ class _ShinyHuntCounterScreenState extends State<ShinyHuntCounterScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            '${(pProb * 100.0).toStringAsFixed(1)}% ${Translator.get('shiny_hunt_chance_at_least_one')}',
+                            '${(pProb * 100.0).toStringAsFixed(1)}% ${t.shiny_hunt_chance_at_least_one}',
                             style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
                           ),
                           Text(
-                            '${(qProb * 100.0).toStringAsFixed(1)}% ${Translator.get('shiny_hunt_chance_none_yet')} • ${ratio.toStringAsFixed(2)}x Odds',
+                            '${(qProb * 100.0).toStringAsFixed(1)}% ${t.shiny_hunt_chance_none_yet} • ${ratio.toStringAsFixed(2)}x Odds',
                             style: TextStyle(color: Colors.grey.shade600, fontSize: 11),
                           ),
                         ],
@@ -985,8 +982,8 @@ class _ShinyHuntCounterScreenState extends State<ShinyHuntCounterScreen> {
                             ),
                             label: Text(
                               hunt.isPaused
-                                  ? Translator.get('shiny_hunt_resume_hunt_btn', fallback: 'Fortsetzen')
-                                  : Translator.get('shiny_hunt_pause_hunt_btn', fallback: 'Pausieren'),
+                                  ? t.shiny_hunt_resume_hunt_btn
+                                  : t.shiny_hunt_pause_hunt_btn,
                               style: const TextStyle(fontSize: 12),
                             ),
                             onPressed: () {
@@ -1077,8 +1074,8 @@ class _ShinyHuntCounterScreenState extends State<ShinyHuntCounterScreen> {
                                           ),
                                           child: Text(
                                             _showShinySprite
-                                                ? Translator.get('shiny_hunt_sprite_toggle_shiny')
-                                                : Translator.get('shiny_hunt_sprite_toggle_normal'),
+                                                ? t.shiny_hunt_sprite_toggle_shiny
+                                                : t.shiny_hunt_sprite_toggle_normal,
                                             style: const TextStyle(
                                               color: Colors.white,
                                               fontWeight: FontWeight.bold,
@@ -1111,8 +1108,8 @@ class _ShinyHuntCounterScreenState extends State<ShinyHuntCounterScreen> {
                                       ),
                                       Text(
                                         hunt.priorPhaseEncounters > 0
-                                            ? 'Phase ${hunt.phase} • Gesamt: ${hunt.totalEncounters} (${hunt.totalRolls} ${Translator.get('shiny_hunt_rolls_label')})'
-                                            : '${Translator.get('shiny_hunt_total_label')}: ${hunt.totalEncounters} (${hunt.totalRolls} ${Translator.get('shiny_hunt_rolls_label')})',
+                                            ? 'Phase ${hunt.phase} • Gesamt: ${hunt.totalEncounters} (${hunt.totalRolls} ${t.shiny_hunt_rolls_label})'
+                                            : '${t.shiny_hunt_total_label}: ${hunt.totalEncounters} (${hunt.totalRolls} ${t.shiny_hunt_rolls_label})',
                                         style: TextStyle(
                                           color: Colors.grey.shade600,
                                           fontSize: 13,
@@ -1139,7 +1136,7 @@ class _ShinyHuntCounterScreenState extends State<ShinyHuntCounterScreen> {
                                 )
                               else
                                 Text(
-                                  Translator.get('shiny_hunt_tap_to_count'),
+                                  t.shiny_hunt_tap_to_count,
                                   style: TextStyle(
                                     color: Colors.grey.shade500,
                                     fontSize: 13,
@@ -1169,7 +1166,7 @@ class _ShinyHuntCounterScreenState extends State<ShinyHuntCounterScreen> {
                             ),
                             icon: const Icon(Icons.arrow_back),
                             label: Text(
-                              Translator.get('shiny_hunt_back_to_hub', fallback: 'Zurück zur Übersicht'),
+                              t.shiny_hunt_back_to_hub,
                             ),
                             onPressed: () => Navigator.of(context).pop(),
                           ),
@@ -1184,7 +1181,7 @@ class _ShinyHuntCounterScreenState extends State<ShinyHuntCounterScreen> {
                             ),
                             icon: const Icon(Icons.refresh_rounded),
                             label: Text(
-                              Translator.get('shiny_hunt_reopen_btn', fallback: 'Hunt wieder aufnehmen'),
+                              t.shiny_hunt_reopen_btn,
                             ),
                             onPressed: () async {
                               await huntProvider.reopenHunt(hunt.id);
@@ -1192,7 +1189,7 @@ class _ShinyHuntCounterScreenState extends State<ShinyHuntCounterScreen> {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(
                                     content: Text(
-                                      Translator.get('shiny_hunt_reopened_toast', fallback: 'Hunt wurde wieder aktiviert!'),
+                                      t.shiny_hunt_reopened_toast,
                                     ),
                                   ),
                                 );
@@ -1245,7 +1242,7 @@ class _ShinyHuntCounterScreenState extends State<ShinyHuntCounterScreen> {
                                 child: ActionChip(
                                   avatar: const Icon(Icons.edit, size: 14),
                                   label: Text(
-                                    Translator.get('shiny_hunt_step_custom', fallback: 'Custom'),
+                                    t.shiny_hunt_step_custom,
                                   ),
                                   onPressed: () => _showCustomStepDialog(hunt),
                                 ),
@@ -1295,7 +1292,7 @@ class _ShinyHuntCounterScreenState extends State<ShinyHuntCounterScreen> {
                                     },
                                     icon: const Icon(Icons.history_toggle_off, size: 18),
                                     label: Text(
-                                      Translator.get('shiny_hunt_record_phase_btn'),
+                                      t.shiny_hunt_record_phase_btn,
                                       overflow: TextOverflow.ellipsis,
                                     ),
                                   ),
@@ -1325,7 +1322,7 @@ class _ShinyHuntCounterScreenState extends State<ShinyHuntCounterScreen> {
                                     },
                                     icon: const Icon(Icons.auto_awesome),
                                     label: Text(
-                                      Translator.get('shiny_hunt_caught_btn'),
+                                      t.shiny_hunt_caught_btn,
                                       style: const TextStyle(fontWeight: FontWeight.bold),
                                     ),
                                   ),

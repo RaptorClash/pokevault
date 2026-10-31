@@ -18,7 +18,7 @@ import 'package:pokevault/screens/pokemon_info/shiny_guide_widget.dart';
 import 'package:pokevault/screens/dex/dex_list_view.dart';
 import 'package:pokevault/screens/dex/dex_box_view.dart';
 import 'package:pokevault/services/database_service.dart';
-import 'package:pokevault/l10n/app_translations.dart';
+import 'package:pokevault/i18n/strings.g.dart';
 
 class _MockHttpOverrides extends HttpOverrides {
   @override
@@ -142,7 +142,7 @@ void main() {
   });
 
   setUp(() {
-    Translator.currentLanguage = 'de';
+    LocaleSettings.setLocale(AppLocale.de);
     mockDexProvider = MockDexProvider();
     mockSettingsProvider = MockSettingsProvider();
     when(() => mockSettingsProvider.currentLanguage).thenReturn('de');
@@ -510,10 +510,10 @@ void main() {
       await tester.pump(const Duration(milliseconds: 300));
 
       // Expand main shiny guide tile
-      await tester.tap(find.text(Translator.get('shiny_guide_title')));
+      await tester.tap(find.text(t.shiny_guide_title));
       await tester.pump(const Duration(milliseconds: 300));
 
-      expect(find.text(Translator.get('shiny_lock_banner', fallback: 'Shiny-Lock aktiv')), findsOneWidget);
+      expect(find.text(t.shiny_lock_banner), findsOneWidget);
       expect(find.textContaining('Cosplay'), findsOneWidget);
 
       await tester.runAsync(() async {
@@ -539,10 +539,10 @@ void main() {
       await waitForLoaded(tester);
       await tester.pump(const Duration(milliseconds: 300));
 
-      await tester.tap(find.text(Translator.get('shiny_guide_title')));
+      await tester.tap(find.text(t.shiny_guide_title));
       await tester.pump(const Duration(milliseconds: 300));
 
-      expect(find.text(Translator.get('shiny_lock_banner', fallback: 'Shiny-Lock aktiv')), findsOneWidget);
+      expect(find.text(t.shiny_lock_banner), findsOneWidget);
       expect(find.textContaining('Starter'), findsOneWidget);
 
       await tester.runAsync(() async {
@@ -562,10 +562,10 @@ void main() {
       await waitForLoaded(tester);
       await tester.pump(const Duration(milliseconds: 300));
 
-      await tester.tap(find.text(Translator.get('shiny_guide_title')));
+      await tester.tap(find.text(t.shiny_guide_title));
       await tester.pump(const Duration(milliseconds: 300));
 
-      expect(find.text(Translator.get('shiny_lock_banner', fallback: 'Shiny-Lock aktiv')), findsOneWidget);
+      expect(find.text(t.shiny_lock_banner), findsOneWidget);
       expect(find.textContaining('Starter'), findsOneWidget);
 
       await tester.runAsync(() async {
