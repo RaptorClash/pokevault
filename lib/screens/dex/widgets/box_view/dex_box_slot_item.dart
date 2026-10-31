@@ -248,291 +248,295 @@ class DexBoxSlotItem extends StatelessWidget {
           }
           return KeyEventResult.ignored;
         },
-        child: InkWell(
-          key: (tutorialTargetId != null && entry.uniqueId == tutorialTargetId)
-              ? firstItemKey
-              : (tutorialTargetId == null && boxIndex == 0 && index == 0)
-                  ? firstItemKey
-                  : null,
-          onTap: isEditMode
-              ? () => actionDelegate.onSelectionChanged(boxIndex, index)
-              : (entry.isPlaceholder
-                  ? () => actionDelegate.onInsertPokemon(boxIndex, index)
-                  : () {
-                      if (liveDex.isShinyDex && isShinyLocked) {
-                        NotificationHelper.showError(
-                          ShinyLockService.getShinyLockReason(
-                            entry,
-                            dexRegion: liveDex.region,
-                            lang: LocaleSettings.currentLocale.languageCode,
-                          ),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            borderRadius: BorderRadius.circular(8),
+            key: (tutorialTargetId != null && entry.uniqueId == tutorialTargetId)
+                ? firstItemKey
+                : (tutorialTargetId == null && boxIndex == 0 && index == 0)
+                    ? firstItemKey
+                    : null,
+            onTap: isEditMode
+                ? () => actionDelegate.onSelectionChanged(boxIndex, index)
+                : (entry.isPlaceholder
+                    ? () => actionDelegate.onInsertPokemon(boxIndex, index)
+                    : () {
+                        if (liveDex.isShinyDex && isShinyLocked) {
+                          NotificationHelper.showError(
+                            ShinyLockService.getShinyLockReason(
+                              entry,
+                              dexRegion: liveDex.region,
+                              lang: LocaleSettings.currentLocale.languageCode,
+                            ),
+                          );
+                          return;
+                        }
+                        provider.togglePokemon(
+                          liveDex.id,
+                          entry.uniqueId,
                         );
-                        return;
-                      }
-                      provider.togglePokemon(
-                        liveDex.id,
-                        entry.uniqueId,
-                      );
-                    }),
-          onSecondaryTap:
-              (isEditMode || entry.isPlaceholder)
-                  ? null
-                  : () => _openInfoScreen(context),
-          onLongPress:
-              (isEditMode || entry.isPlaceholder)
-                  ? null
-                  : () => _openInfoScreen(context),
-          child: AnimatedOpacity(
-            duration: const Duration(milliseconds: 200),
-            opacity: isDimmed ? 0.2 : 1.0,
-            child: entry.isPlaceholder
-                ? CustomPaint(
-                    painter: DashedRRectPainter(
-                      color: isMatched
-                          ? Theme.of(context).colorScheme.primary
-                          : Theme.of(context)
-                              .dividerColor
-                              .withValues(alpha: 0.5),
-                      strokeWidth: isMatched ? 2.0 : 1.2,
-                      dash: 4.5,
-                      gap: 3.5,
-                      radius: 8.0,
-                    ),
-                    child: Stack(
-                      fit: StackFit.expand,
-                      children: [
-                        Container(
-                          decoration: BoxDecoration(
-                            color: isMatched
-                                ? Theme.of(context)
-                                    .colorScheme
-                                    .primaryContainer
-                                    .withValues(alpha: 0.25)
-                                : Theme.of(context)
-                                    .colorScheme
-                                    .surfaceContainerHighest
-                                    .withValues(alpha: 0.25),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Center(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  Icons.crop_free,
-                                  size: 22,
-                                  color: isMatched
-                                      ? Theme.of(context).colorScheme.primary
-                                      : Theme.of(context)
-                                          .colorScheme
-                                          .onSurface
-                                          .withValues(alpha: 0.4),
-                                ),
-                                const SizedBox(height: 3),
-                                Text(
-                                  t.placeholder,
-                                  style: TextStyle(
-                                    fontSize: 9,
-                                    fontWeight: FontWeight.bold,
+                      }),
+            onSecondaryTap:
+                (isEditMode || entry.isPlaceholder)
+                    ? null
+                    : () => _openInfoScreen(context),
+            onLongPress:
+                (isEditMode || entry.isPlaceholder)
+                    ? null
+                    : () => _openInfoScreen(context),
+            child: AnimatedOpacity(
+              duration: const Duration(milliseconds: 200),
+              opacity: isDimmed ? 0.2 : 1.0,
+              child: entry.isPlaceholder
+                  ? CustomPaint(
+                      painter: DashedRRectPainter(
+                        color: isMatched
+                            ? Theme.of(context).colorScheme.primary
+                            : Theme.of(context)
+                                .dividerColor
+                                .withValues(alpha: 0.5),
+                        strokeWidth: isMatched ? 2.0 : 1.2,
+                        dash: 4.5,
+                        gap: 3.5,
+                        radius: 8.0,
+                      ),
+                      child: Stack(
+                        fit: StackFit.expand,
+                        children: [
+                          Container(
+                            decoration: BoxDecoration(
+                              color: isMatched
+                                  ? Theme.of(context)
+                                      .colorScheme
+                                      .primaryContainer
+                                      .withValues(alpha: 0.25)
+                                  : Theme.of(context)
+                                      .colorScheme
+                                      .surfaceContainerHighest
+                                      .withValues(alpha: 0.25),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.crop_free,
+                                    size: 22,
                                     color: isMatched
                                         ? Theme.of(context).colorScheme.primary
                                         : Theme.of(context)
                                             .colorScheme
                                             .onSurface
-                                            .withValues(alpha: 0.45),
+                                            .withValues(alpha: 0.4),
                                   ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
+                                  const SizedBox(height: 3),
+                                  Text(
+                                    t.placeholder,
+                                    style: TextStyle(
+                                      fontSize: 9,
+                                      fontWeight: FontWeight.bold,
+                                      color: isMatched
+                                          ? Theme.of(context).colorScheme.primary
+                                          : Theme.of(context)
+                                              .colorScheme
+                                              .onSurface
+                                              .withValues(alpha: 0.45),
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          if (isEditMode &&
+                              selectedForEdit.contains('${boxIndex}_$index'))
+                            Container(
+                              decoration: BoxDecoration(
+                                color: Colors.redAccent.withValues(alpha: 0.3),
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(
+                                  color: Colors.red,
+                                  width: 2,
                                 ),
-                              ],
-                            ),
-                          ),
-                        ),
-                        if (isEditMode &&
-                            selectedForEdit.contains('${boxIndex}_$index'))
-                          Container(
-                            decoration: BoxDecoration(
-                              color: Colors.redAccent.withValues(alpha: 0.3),
-                              borderRadius: BorderRadius.circular(8),
-                              border: Border.all(
-                                color: Colors.red,
-                                width: 2,
+                              ),
+                              child: const Center(
+                                child: Icon(
+                                  Icons.remove_circle,
+                                  color: Colors.white,
+                                  size: 32,
+                                ),
                               ),
                             ),
-                            child: const Center(
-                              child: Icon(
-                                Icons.remove_circle,
-                                color: Colors.white,
-                                size: 32,
-                              ),
-                            ),
-                          ),
-                      ],
-                    ),
-                  )
-                : Card(
-                    color: isMatched
-                        ? Theme.of(context)
-                            .colorScheme
-                            .primaryContainer
-                            .withValues(alpha: 0.6)
-                        : (isCaught
-                            ? Theme.of(context)
-                                .colorScheme
-                                .primaryContainer
-                                .withValues(alpha: 0.2)
-                            : Theme.of(context).cardColor),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      side: BorderSide(
-                        color: isMatched
-                            ? Theme.of(context).colorScheme.primary
-                            : (isCaught
-                                ? Theme.of(context)
-                                    .colorScheme
-                                    .primary
-                                    .withValues(alpha: 0.5)
-                                : Theme.of(context)
-                                    .dividerColor
-                                    .withValues(alpha: 0.2)),
-                        width: isMatched ? 2.0 : 1,
+                        ],
                       ),
-                    ),
-                    elevation: isMatched ? 3 : 1,
-                    child: Stack(
-                      children: [
-                        Builder(
-                          builder: (context) {
-                            final imageWidget = Padding(
-                              padding: const EdgeInsets.all(4.0),
-                              child: CachedNetworkImage(
-                                imageUrl: entry.imageUrl,
-                                memCacheWidth: 200,
-                                fit: BoxFit.contain,
-                                fadeInDuration: const Duration(
-                                  milliseconds: 150,
+                    )
+                  : Container(
+                      decoration: BoxDecoration(
+                        color: isCaught
+                            ? Colors.green.withValues(alpha: 0.15)
+                            : Theme.of(context).cardColor,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: isMatched
+                              ? Theme.of(context).colorScheme.primary
+                              : (isCaught
+                                  ? Colors.green
+                                  : Theme.of(context)
+                                      .dividerColor
+                                      .withValues(alpha: 0.3)),
+                          width: (isMatched || isCaught) ? 2 : 1,
+                        ),
+                        boxShadow: isMatched
+                            ? [
+                                BoxShadow(
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .primary
+                                      .withValues(alpha: 0.4),
+                                  blurRadius: 8,
+                                  spreadRadius: 2,
                                 ),
-                                placeholder: (context, url) => const Center(
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                  ),
-                                ),
-                                errorWidget: (context, error, stackTrace) =>
-                                    CachedNetworkImage(
-                                  imageUrl:
-                                      'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${liveDex.isShinyDex ? 'shiny/' : ''}${entry.pokemon.id}.png',
+                              ]
+                            : null,
+                      ),
+                      child: Stack(
+                        children: [
+                          Builder(
+                            builder: (context) {
+                              final imageWidget = Padding(
+                                padding: const EdgeInsets.all(4.0),
+                                child: CachedNetworkImage(
+                                  imageUrl: entry.imageUrl,
                                   memCacheWidth: 200,
                                   fit: BoxFit.contain,
-                                  errorWidget: (c, e, s) => const Icon(
-                                    Icons.catching_pokemon,
-                                    size: 24,
+                                  fadeInDuration: const Duration(
+                                    milliseconds: 150,
+                                  ),
+                                  placeholder: (context, url) => const Center(
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                    ),
+                                  ),
+                                  errorWidget: (context, error, stackTrace) =>
+                                      CachedNetworkImage(
+                                    imageUrl:
+                                        'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${liveDex.isShinyDex ? 'shiny/' : ''}${entry.pokemon.id}.png',
+                                    memCacheWidth: 200,
+                                    fit: BoxFit.contain,
+                                    errorWidget: (c, e, s) => const Icon(
+                                      Icons.catching_pokemon,
+                                      size: 24,
+                                    ),
                                   ),
                                 ),
-                              ),
-                            );
+                              );
 
-                            return Center(
-                              child: isCaught
-                                  ? imageWidget
-                                  : ColorFiltered(
-                                      colorFilter: const ColorFilter.matrix(
-                                        <double>[
-                                          0.2126, 0.7152, 0.0722, 0, 0,
-                                          0.2126, 0.7152, 0.0722, 0, 0,
-                                          0.2126, 0.7152, 0.0722, 0, 0,
-                                          0,      0,      0,      1, 0,
-                                        ],
+                              return Center(
+                                child: isCaught
+                                    ? imageWidget
+                                    : ColorFiltered(
+                                        colorFilter: const ColorFilter.matrix(
+                                          <double>[
+                                            0.2126, 0.7152, 0.0722, 0, 0,
+                                            0.2126, 0.7152, 0.0722, 0, 0,
+                                            0.2126, 0.7152, 0.0722, 0, 0,
+                                            0,      0,      0,      1, 0,
+                                          ],
+                                        ),
+                                        child: imageWidget,
                                       ),
-                                      child: imageWidget,
-                                    ),
-                            );
-                          },
-                        ),
-                        if (isShinyLocked)
-                          Positioned(
-                            top: 2,
-                            left: 2,
-                            child: Tooltip(
-                              message: ShinyLockService.getShinyLockReason(
-                                entry,
-                                dexRegion: liveDex.region,
-                                lang: LocaleSettings.currentLocale.languageCode,
-                              ),
-                              child: Container(
-                                key: Key(
-                                  'box_shiny_lock_badge_${entry.uniqueId}',
+                              );
+                            },
+                          ),
+                          if (isShinyLocked)
+                            Positioned(
+                              top: 2,
+                              left: 2,
+                              child: Tooltip(
+                                message: ShinyLockService.getShinyLockReason(
+                                  entry,
+                                  dexRegion: liveDex.region,
+                                  lang: LocaleSettings.currentLocale.languageCode,
                                 ),
-                                padding: const EdgeInsets.all(1),
-                                decoration: BoxDecoration(
-                                  color: Colors.red.withValues(alpha: 0.15),
-                                  borderRadius: BorderRadius.circular(3),
-                                  border: Border.all(
+                                child: Container(
+                                  key: Key(
+                                    'box_shiny_lock_badge_${entry.uniqueId}',
+                                  ),
+                                  padding: const EdgeInsets.all(1),
+                                  decoration: BoxDecoration(
+                                    color: Colors.red.withValues(alpha: 0.15),
+                                    borderRadius: BorderRadius.circular(3),
+                                    border: Border.all(
+                                      color: Colors.red,
+                                      width: 0.8,
+                                    ),
+                                  ),
+                                  child: const Icon(
+                                    Icons.lock,
+                                    size: 12,
                                     color: Colors.red,
-                                    width: 0.8,
                                   ),
                                 ),
-                                child: const Icon(
-                                  Icons.lock,
-                                  size: 12,
+                              ),
+                            ),
+                          if (isCaught || isShiny || isAlpha)
+                            Positioned(
+                              top: 2,
+                              right: 2,
+                              child: Column(
+                                children: [
+                                  if (isCaught)
+                                    const Icon(
+                                      Icons.catching_pokemon,
+                                      color: Colors.green,
+                                      size: 14,
+                                    ),
+                                  if (isShiny)
+                                    const Icon(
+                                      Icons.star,
+                                      color: Colors.amber,
+                                      size: 14,
+                                    ),
+                                  if (isAlpha)
+                                    Padding(
+                                      padding: const EdgeInsets.only(
+                                        right: 4.0,
+                                      ),
+                                      child: SvgPicture.string(
+                                        AppVectors.alphaSymbol,
+                                        width: 16,
+                                        height: 16,
+                                      ),
+                                    ),
+                                ],
+                              ),
+                            ),
+                          if (isEditMode &&
+                              selectedForEdit.contains('${boxIndex}_$index'))
+                            Container(
+                              decoration: BoxDecoration(
+                                color: Colors.redAccent.withValues(alpha: 0.3),
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(
                                   color: Colors.red,
+                                  width: 2,
+                                ),
+                              ),
+                              child: const Center(
+                                child: Icon(
+                                  Icons.remove_circle,
+                                  color: Colors.white,
+                                  size: 32,
                                 ),
                               ),
                             ),
-                          ),
-                        if (isCaught || isShiny || isAlpha)
-                          Positioned(
-                            top: 2,
-                            right: 2,
-                            child: Column(
-                              children: [
-                                if (isCaught)
-                                  const Icon(
-                                    Icons.catching_pokemon,
-                                    color: Colors.green,
-                                    size: 14,
-                                  ),
-                                if (isShiny)
-                                  const Icon(
-                                    Icons.star,
-                                    color: Colors.amber,
-                                    size: 14,
-                                  ),
-                                if (isAlpha)
-                                  Padding(
-                                    padding: const EdgeInsets.only(
-                                      right: 4.0,
-                                    ),
-                                    child: SvgPicture.string(
-                                      AppVectors.alphaSymbol,
-                                      width: 16,
-                                      height: 16,
-                                    ),
-                                  ),
-                              ],
-                            ),
-                          ),
-                        if (isEditMode &&
-                            selectedForEdit.contains('${boxIndex}_$index'))
-                          Container(
-                            decoration: BoxDecoration(
-                              color: Colors.redAccent.withValues(alpha: 0.3),
-                              borderRadius: BorderRadius.circular(8),
-                              border: Border.all(
-                                color: Colors.red,
-                                width: 2,
-                              ),
-                            ),
-                            child: const Center(
-                              child: Icon(
-                                Icons.remove_circle,
-                                color: Colors.white,
-                                size: 32,
-                              ),
-                            ),
-                          ),
-                      ],
+                        ],
+                      ),
                     ),
-                  ),
+            ),
           ),
         ),
       );
