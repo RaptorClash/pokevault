@@ -74,6 +74,22 @@ def main():
         action="store_true",
         help="Simulate the version change without modifying pubspec.yaml"
     )
+    parser.add_argument(
+        "--build",
+        type=int,
+        default=None,
+        help="Explicit build number (override default auto-increment)"
+    )
+    parser.add_argument(
+        "--commit",
+        action="store_true",
+        help="Automatically create a git commit after updating pubspec.yaml"
+    )
+    parser.add_argument(
+        "--tag",
+        action="store_true",
+        help="Automatically create an annotated git tag after updating pubspec.yaml"
+    )
 
     args = parser.parse_args()
 
@@ -93,18 +109,22 @@ def main():
         print("\nBeispiel-Aufruf:")
         print("  python tool/bump_version.py 1.6.0 --dry-run")
         print("  python tool/bump_version.py 1.6.0")
+        print("  python tool/bump_version.py 1.6.0 --commit --tag")
         return
 
     new_ver = calculate_next_version(v_name, build, args.target)
     new_v_name, new_build = parse_version(new_ver)
+    if args.build is not None:
+        new_build = args.build
+        new_ver = f"{new_v_name}+{new_build}"
 
     print(f"Bumping Version: {current_ver} -> {new_ver}")
 
     if args.dry_run:
         print("[DRY-RUN] Es wurden keine Dateien geändert.")
-        print(f"Vorgeschlagener Git-Commit:")
+        print("Vorgeschlagener Git-Commit:")
         print(f'  git commit -am "chore(release): bump version to {new_ver}"')
-        print(f'  git tag v{new_v_name}')
+        print(f'  git tag -a v{new_v_name} -m "Release v{new_v_name}"')
         return
 
     # Read and update pubspec.yaml
@@ -117,9 +137,32 @@ def main():
         f.write(new_content)
 
     print(f"Erfolgreich aktualisiert: {PUBSPEC_PATH}")
-    print("\nEmpfohlene nächste Git-Schritte:")
-    print(f'  git commit -am "chore(release): bump version to {new_ver}"')
-    print(f'  git tag v{new_v_name}')
+
+    commit_msg = f"chore(release): bump version to {new_ver}"
+    tag_name = f"v{new_v_name}"
+
+    if args.commit:
+        try:
+            subprocess.run(["git", "add", PUBSPEC_PATH], check=True)
+            subprocess.run(["git", "commit", "-m", commit_msg], check=True)
+            print(f"Git-Commit erfolgreich erstellt: '{commit_msg}'")
+        except subprocess.CalledProcessError as e:
+            print(f"Fehler beim Git-Commit: {e}", file=sys.stderr)
+            return
+
+    if args.tag:
+        try:
+            subprocess.run(["git", "tag", "-a", tag_name, "-m", f"Release {tag_name}"], check=True)
+            print(f"Git-Tag erfolgreich erstellt: '{tag_name}'")
+        except subprocess.CalledProcessError as e:
+            print(f"Fehler beim Erstellen des Git-Tags: {e}", file=sys.stderr)
+            return
+
+    if not args.commit:
+        print("\nEmpfohlene nächste Git-Schritte:")
+        print(f'  git commit -am "{commit_msg}"')
+        if not args.tag:
+            print(f'  git tag -a {tag_name} -m "Release {tag_name}"')
 
 if __name__ == "__main__":
     main()
