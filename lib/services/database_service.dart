@@ -139,9 +139,10 @@ class DatabaseService {
         version: 1,
         onDowngrade: (db, oldVersion, newVersion) async {},
         onOpen: (db) async {
-          await db.execute('PRAGMA busy_timeout = 30000;');
-          await db.execute('PRAGMA synchronous = NORMAL;');
-          await db.execute('PRAGMA temp_store = MEMORY;');
+          // Use rawQuery for PRAGMA statements to avoid Android SQLiteDatabase execSQL query checks
+          await db.rawQuery('PRAGMA busy_timeout = 30000;');
+          await db.rawQuery('PRAGMA synchronous = NORMAL;');
+          await db.rawQuery('PRAGMA temp_store = MEMORY;');
           await DatabaseMigrator.ensureAppDatabaseIndexes(db);
         },
       ),
@@ -162,7 +163,7 @@ class DatabaseService {
     await db.execute('VACUUM;');
     if (!kIsWeb) {
       try {
-        await db.execute('PRAGMA wal_checkpoint(TRUNCATE);');
+        await db.rawQuery('PRAGMA wal_checkpoint(TRUNCATE);');
       } catch (_) {}
     }
   }
@@ -185,13 +186,14 @@ class DatabaseService {
         onUpgrade: DatabaseMigrator.upgradeUserDataTables,
         onDowngrade: DatabaseMigrator.downgradeUserDataTables,
         onOpen: (db) async {
-          await db.execute('PRAGMA busy_timeout = 30000;');
+          // Use rawQuery for PRAGMA statements to avoid Android SQLiteDatabase execSQL query checks
+          await db.rawQuery('PRAGMA busy_timeout = 30000;');
           if (!kIsWeb) {
-            await db.execute('PRAGMA journal_mode = WAL;');
+            await db.rawQuery('PRAGMA journal_mode = WAL;');
           }
-          await db.execute('PRAGMA synchronous = NORMAL;');
+          await db.rawQuery('PRAGMA synchronous = NORMAL;');
           await DatabaseMigrator.cleanOrphanedUserDataBeforeFk(db);
-          await db.execute('PRAGMA foreign_keys = ON;');
+          await db.rawQuery('PRAGMA foreign_keys = ON;');
           await DatabaseMigrator.ensureUserDataIndexes(db);
         },
       ),

@@ -242,7 +242,7 @@ class DatabaseMigrator {
       }
     } catch (_) {}
 
-    await db.execute('PRAGMA optimize;');
+    await db.rawQuery('PRAGMA optimize;');
   }
 
   /// Upgrades user database schema sequentially across versions using idempotent alter table statements.

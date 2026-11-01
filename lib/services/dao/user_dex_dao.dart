@@ -309,7 +309,7 @@ class UserDexDao {
   Future<void> clearUserData() async {
     final db = await _getDatabase();
     await db.transaction((txn) async {
-      await txn.execute('PRAGMA defer_foreign_keys = ON;');
+      await txn.rawQuery('PRAGMA defer_foreign_keys = ON;');
       await txn.delete('user_pokemon');
       await txn.delete('folder_structure');
       await txn.delete('shiny_hunts');

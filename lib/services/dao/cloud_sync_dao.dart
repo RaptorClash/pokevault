@@ -25,7 +25,7 @@ class CloudSyncDao {
   Future<void> mergeCloudSyncData(Map<String, dynamic> cloudData) async {
     final db = await _getDatabase();
     await db.transaction((txn) async {
-      await txn.execute('PRAGMA defer_foreign_keys = ON;');
+      await txn.rawQuery('PRAGMA defer_foreign_keys = ON;');
 
       final Map<String, Set<String>> cachedColumns = {};
       Future<Set<String>> getLocalColumns(String table) async {
