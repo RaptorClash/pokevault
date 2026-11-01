@@ -29,6 +29,14 @@ class TestBumpVersion(unittest.TestCase):
         next_v = calculate_next_version("1.5.0", 6, "major")
         self.assertEqual(next_v, "2.0.0+7")
 
+    def test_calculate_beta_initial(self):
+        next_v = calculate_next_version("1.6.1", 8, "beta")
+        self.assertEqual(next_v, "1.7.0-beta.1+9")
+
+    def test_calculate_beta_increment(self):
+        next_v = calculate_next_version("1.7.0-beta.1", 9, "beta")
+        self.assertEqual(next_v, "1.7.0-beta.2+10")
+
     def test_calculate_explicit_version(self):
         next_v = calculate_next_version("1.5.0", 6, "1.6.0")
         self.assertEqual(next_v, "1.6.0+7")

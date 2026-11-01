@@ -2,6 +2,11 @@
 
 Dieses Dokument beschreibt die technische Architektur, Datenhaltung, Cloud-Synchronisation, Modularisierung und Code-Standards von **PokéVault**. Es dient Entwicklern und KI-Assistenten als Referenz für Designentscheidungen und Erweiterungen.
 
+> [!TIP]
+> **Aktive Roadmap & Nächster Release (v1.7.0):**
+> Die vollständige Spezifikation und der Implementierungsplan für das nächste Release **v1.7.0 "The Language Expansion"** (getrennte Sprachen, 10 Franchise-Sprachen, Local REST Server, Multi-Emulator Hunting, Desktop OCR & Mobile PiP-Scanner) befindet sich in [docs/plans/v1_7_0_the_language_expansion.md](file:///c:/Marvin/Projekte/Code/pokevault/docs/plans/v1_7_0_the_language_expansion.md).
+> Der interaktive Prototyp ist verfügbar unter [docs/prototypes/v1_7_0_prototype.html](file:///c:/Marvin/Projekte/Code/pokevault/docs/prototypes/v1_7_0_prototype.html).
+
 ---
 
 ## 1. Übersicht & Technologie-Stack

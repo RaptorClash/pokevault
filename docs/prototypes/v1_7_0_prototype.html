@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="de" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PokéVault v1.7.0 - The Language Expansion (Interactive Prototype)</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            vaultPurple: '#9575CD',
+            vaultPurpleDark: '#7E57C2',
+            vaultRed: '#E53935',
+            vaultBg: '#121212',
+            vaultCard: '#1E1E1E',
+            vaultCardBorder: '#2C2C2C',
+            vaultSurface: '#262626',
+            vaultGold: '#FFB300',
+            vaultGreen: '#4CAF50'
+          }
+        }
+      }
+    }
+  </script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    body { 
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      background-color: #121212;
+      color: #E0E0E0;
+    }
+    .scan-line {
+      background: linear-gradient(180deg, rgba(149, 117, 205, 0) 0%, rgba(149, 117, 205, 0.45) 50%, rgba(149, 117, 205, 0) 100%);
+      animation: scan 2.2s infinite linear;
+    }
+    @keyframes scan {
+      0% { top: 0%; }
+      100% { top: 90%; }
+    }
+    .rotom-glow {
+      box-shadow: 0 0 15px rgba(229, 57, 53, 0.4);
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+  <!-- Top Navigation Bar -->
+  <header class="border-b border-vaultCardBorder bg-vaultCard/95 backdrop-blur sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 rounded-xl bg-vaultPurple flex items-center justify-center shadow-lg shadow-purple-900/30">
+          <i class="fa-solid fa-bolt text-white text-lg"></i>
+        </div>
+        <div>
+          <h1 class="text-lg font-bold flex items-center gap-2 text-white">
+            PokéVault <span class="text-xs px-2 py-0.5 rounded-full bg-vaultPurple/20 text-vaultPurple border border-vaultPurple/40 font-mono">v1.7.0</span>
+          </h1>
+          <p class="text-xs text-gray-400">The Language Expansion &bull; Multi-Instance &bull; Auto-Tracker &bull; CLI</p>
+        </div>
+      </div>
+
+      <!-- Tab Switcher -->
+      <nav class="flex space-x-1 bg-vaultBg p-1 rounded-xl border border-vaultCardBorder text-sm">
+        <button onclick="switchTab('languages')" id="tab-btn-languages" class="tab-btn px-3.5 py-1.5 rounded-lg font-medium transition bg-vaultPurple text-white shadow-sm flex items-center gap-1.5">
+          <i class="fa-solid fa-language"></i> Sprachen
+        </button>
+        <button onclick="switchTab('desktop-overlay')" id="tab-btn-desktop-overlay" class="tab-btn px-3.5 py-1.5 rounded-lg font-medium transition text-gray-400 hover:text-white flex items-center gap-1.5">
+          <i class="fa-solid fa-desktop"></i> Desktop & Multi-Emu
+        </button>
+        <button onclick="switchTab('mobile-scanner')" id="tab-btn-mobile-scanner" class="tab-btn px-3.5 py-1.5 rounded-lg font-medium transition text-gray-400 hover:text-white flex items-center gap-1.5">
+          <i class="fa-solid fa-camera"></i> Mobile Scanner (PiP)
+        </button>
+        <button onclick="switchTab('cli-api')" id="tab-btn-cli-api" class="tab-btn px-3.5 py-1.5 rounded-lg font-medium transition text-gray-400 hover:text-white flex items-center gap-1.5">
+          <i class="fa-solid fa-server"></i> Server, CLI & Lua
+        </button>
+        <button onclick="switchTab('rotom-tutorial')" id="tab-btn-rotom-tutorial" class="tab-btn px-3.5 py-1.5 rounded-lg font-medium transition text-gray-400 hover:text-white flex items-center gap-1.5">
+          <i class="fa-solid fa-robot text-vaultRed"></i> Rotom-Guide
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Main Content Area -->
+  <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6">
+
+    <!-- TAB 1: SPRACH-EINSTELLUNGEN -->
+    <section id="tab-languages" class="space-y-6">
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        <div class="lg:col-span-2 bg-vaultCard border border-vaultCardBorder rounded-2xl p-6 shadow-xl space-y-6">
+          <div class="border-b border-vaultCardBorder pb-4">
+            <h2 class="text-xl font-bold flex items-center gap-2 text-white">
+              <i class="fa-solid fa-sliders text-vaultPurple"></i> Spracheinstellungen
+            </h2>
+            <p class="text-sm text-gray-400 mt-1">
+              Volle Flexibilität: App-UI und Pokémon-Namen/Daten unabhängig voneinander einstellen.
+            </p>
+          </div>
+
+          <div class="space-y-2">
+            <label class="block text-sm font-semibold text-gray-200">
+              1. App-Sprache (Menüs, Dialoge, Buttons)
+            </label>
+            <p class="text-xs text-gray-400">
+              Wird via Python-Skript automatisch gepflegt. Master: Deutsch.
+            </p>
+            <div class="relative">
+              <select id="select-app-lang" onchange="updateLanguagePreview()" class="w-full bg-vaultSurface border border-vaultCardBorder rounded-xl px-4 py-2.5 text-sm text-white focus:ring-2 focus:ring-vaultPurple focus:outline-none">
+                <option value="de" selected>🇩🇪 Deutsch (Standard / Master)</option>
+                <option value="en">🇬🇧 English</option>
+                <option value="fr">🇫🇷 Français</option>
+                <option value="es">🇪🇸 Español</option>
+                <option value="it">🇮🇹 Italiano</option>
+                <option value="ja">🇯🇵 日本語</option>
+                <option value="ko">🇰🇷 한국어</option>
+                <option value="zh-Hans">🇨🇳 简体中文</option>
+                <option value="zh-Hant">🇹🇼 繁體中文</option>
+                <option value="pt">🇧🇷 Português</option>
+                <option value="nl">🇳🇱 Nederlands</option>
+                <option value="pl">🇵🇱 Polski</option>
+                <option value="ru">🇷🇺 Русский</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="space-y-2">
+            <label class="block text-sm font-semibold text-gray-200">
+              2. Pokémon-Sprache (Namen, Formen, Bänder)
+            </label>
+            <p class="text-xs text-gray-400">
+              Wähle aus den 10 offiziellen Pokémon-Franchise-Sprachen in SQLite.
+            </p>
+            <div class="relative">
+              <select id="select-poke-lang" onchange="updateLanguagePreview()" class="w-full bg-vaultSurface border border-vaultCardBorder rounded-xl px-4 py-2.5 text-sm text-white focus:ring-2 focus:ring-vaultPurple focus:outline-none">
+                <option value="auto">⚡ Automatisch (Folgt App-Sprache, Fallback: Englisch)</option>
+                <option value="de" selected>🇩🇪 Deutsch (z.B. Glumanda, Bisasam)</option>
+                <option value="en">🇬🇧 English (z.B. Charmander, Bulbasaur)</option>
+                <option value="fr">🇫🇷 Français (z.B. Salamèche, Bulbizarre)</option>
+                <option value="es">🇪🇸 Español (z.B. Charmander, Bulbasaur)</option>
+                <option value="it">🇮🇹 Italiano (z.B. Charmander, Bulbasaur)</option>
+                <option value="ja">🇯🇵 日本語 / Kana (z.B. ヒトカゲ, フシギダネ)</option>
+                <option value="ko">🇰🇷 한국어 (z.B. 파이리, 이상해씨)</option>
+                <option value="zh-Hans">🇨🇳 简体中文 (z.B. 小火龙, 妙蛙种子)</option>
+                <option value="zh-Hant">🇹🇼 繁體中文 (z.B. 小火龍, 妙蛙種子)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="p-4 rounded-xl bg-vaultSurface border border-vaultCardBorder flex items-start gap-3">
+            <i class="fa-solid fa-code text-vaultPurple mt-1 text-base"></i>
+            <div class="text-xs space-y-1 text-gray-300">
+              <p class="font-bold text-gray-100">Automatische Erweiterbarkeit & Skript:</p>
+              <p>
+                Du pflegst nur <code class="bg-vaultBg px-1.5 py-0.5 rounded text-vaultPurple">strings_de.i18n.json</code>. 
+                Mit <code class="bg-vaultBg px-1.5 py-0.5 rounded text-amber-300">python tool/translate_all.py</code> werden alle anderen Sprachen übersetzt, Variablen maskiert und <code class="text-vaultGreen">dart run slang</code> ausgeführt.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-vaultCard border border-vaultCardBorder rounded-2xl p-6 shadow-xl flex flex-col justify-between">
+          <div>
+            <h3 class="text-md font-bold text-gray-200 mb-4 flex items-center gap-2">
+              <i class="fa-solid fa-eye text-vaultPurple"></i> PokéVault Vorschau
+            </h3>
+            
+            <div class="bg-vaultBg border border-vaultCardBorder rounded-xl p-4 space-y-3">
+              <div class="flex items-center justify-between text-xs text-gray-400 border-b border-vaultCardBorder pb-2">
+                <span id="preview-ui-box">Box 1: Kanto</span>
+                <span class="px-2 py-0.5 rounded bg-vaultGreen/20 text-vaultGreen text-[10px] font-bold" id="preview-ui-caught">GEFANGEN</span>
+              </div>
+              <div class="flex items-center gap-4">
+                <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/4.png" alt="Glumanda" class="w-16 h-16 object-contain">
+                <div>
+                  <div class="text-[11px] font-bold text-gray-500">#004</div>
+                  <div id="preview-poke-name" class="text-base font-extrabold text-white">Glumanda</div>
+                  <div id="preview-poke-sub" class="text-xs text-gray-400">Typ: Feuer &bull; Gen 1</div>
+                </div>
+              </div>
+              <div class="pt-2 border-t border-vaultCardBorder text-[11px] text-gray-400 flex justify-between">
+                <span id="preview-ui-status">Status: Abgeschlossen</span>
+                <span id="preview-ui-count">1 / 151</span>
+              </div>
+            </div>
+
+            <div class="mt-4 p-3 rounded-lg bg-vaultSurface border border-vaultCardBorder text-xs text-gray-300 space-y-1">
+              <div><span class="text-gray-400">UI-Sprache:</span> <span id="info-app-lang" class="font-bold text-vaultPurple">DEUTSCH</span></div>
+              <div><span class="text-gray-400">Pokémon-Sprache:</span> <span id="info-poke-lang" class="font-bold text-vaultPurple">DEUTSCH</span></div>
+            </div>
+          </div>
+
+          <div class="mt-6 text-center text-xs text-gray-500">
+            Farben abgestimmt auf PokéVault Theme (Purple #9575CD / Red #E53935).
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- TAB 2: DESKTOP & MULTI-EMULATOR TRACKER -->
+    <section id="tab-desktop-overlay" class="hidden space-y-6">
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+        <div class="lg:col-span-1 bg-vaultCard border border-vaultCardBorder rounded-2xl p-6 shadow-xl space-y-5">
+          <div class="border-b border-vaultCardBorder pb-3">
+            <h2 class="text-lg font-bold flex items-center gap-2 text-white">
+              <i class="fa-solid fa-gamepad text-vaultPurple"></i> Multi-Emulator & Hunts
+            </h2>
+            <p class="text-xs text-gray-400 mt-0.5">Mehrere Emulatoren parallel betreiben & tracken.</p>
+          </div>
+
+          <div class="space-y-1.5">
+            <label class="text-xs font-semibold text-gray-300">Zähler-Zuordnung für Instanzen</label>
+            <select class="w-full bg-vaultSurface border border-vaultCardBorder rounded-lg px-3 py-2 text-xs text-white">
+              <option>⚡ Alle Instanzen erhöhen aktuellen Hunt (z.B. 4x Multi-Hunt)</option>
+              <option>🎯 Bestimmte Instanzen fest zuweisen (z.B. Emu 1=Glumanda, Emu 2=Schiggy)</option>
+              <option>🔄 Separate Hunts pro Emulator-Fenster</option>
+            </select>
+          </div>
+
+          <div class="space-y-1.5">
+            <label class="text-xs font-semibold text-gray-300">Aktive Shiny-Hunt Methode</label>
+            <select class="w-full bg-vaultSurface border border-vaultCardBorder rounded-lg px-3 py-2 text-xs text-white">
+              <option>🔄 Soft Resets (Starter, Legendäre, Geschenke)</option>
+              <option>🥚 Zucht / Masuda-Methode (Ei-Schlupf Erkennung)</option>
+              <option>🌿 Wilde Begegnungen / Random Encounters</option>
+              <option>⚔️ SOS-Chaining / Poké-Radar / Dynamax Abenteuer</option>
+            </select>
+          </div>
+
+          <div class="space-y-3 pt-2 border-t border-vaultCardBorder text-xs">
+            <div class="font-semibold text-gray-200">Intelligente Fang- & Phasenregeln:</div>
+
+            <label class="flex items-center justify-between p-2 rounded-lg bg-vaultSurface cursor-pointer">
+              <div>
+                <span class="block">Phasen-Shinys tracken</span>
+                <span class="text-[10px] text-gray-400">Als Phase im Hunt loggen; erst im Dex eintragen wenn GEFANGEN</span>
+              </div>
+              <input type="checkbox" checked class="rounded text-vaultPurple focus:ring-0">
+            </label>
+
+            <label class="flex items-center justify-between p-2 rounded-lg bg-vaultSurface cursor-pointer">
+              <div>
+                <span class="block">Schlauer Entwicklungs-Tracker</span>
+                <span class="text-[10px] text-gray-400">Vorentwicklung entfernen (Living Dex Modus)</span>
+              </div>
+              <input type="checkbox" checked class="rounded text-vaultPurple focus:ring-0">
+            </label>
+
+            <label class="flex items-center justify-between p-2 rounded-lg bg-vaultSurface cursor-pointer">
+              <div>
+                <span class="block">Alpha-Erkennung (Legenden: Arceus)</span>
+                <span class="text-[10px] text-gray-400">Erkennt Elite-Pokémon Text & Icon</span>
+              </div>
+              <input type="checkbox" checked class="rounded text-vaultPurple focus:ring-0">
+            </label>
+          </div>
+
+          <div class="pt-2 border-t border-vaultCardBorder space-y-2">
+            <div class="text-xs font-semibold text-gray-300 flex justify-between">
+              <span>Verbundene Emulatoren:</span>
+              <span class="text-vaultGreen font-mono">4 Aktiv</span>
+            </div>
+            <div class="space-y-1.5 text-xs font-mono">
+              <div class="flex justify-between items-center p-2 rounded bg-vaultSurface">
+                <span>[emu_1] mGBA (Feuerrot)</span>
+                <span class="text-vaultPurple font-bold">1.420 Enc.</span>
+              </div>
+              <div class="flex justify-between items-center p-2 rounded bg-vaultSurface">
+                <span>[emu_2] mGBA (Feuerrot)</span>
+                <span class="text-vaultPurple font-bold">1.418 Enc.</span>
+              </div>
+              <div class="flex justify-between items-center p-2 rounded bg-vaultSurface">
+                <span>[emu_3] mGBA (Blattgrün)</span>
+                <span class="text-vaultPurple font-bold">1.422 Enc.</span>
+              </div>
+              <div class="flex justify-between items-center p-2 rounded bg-vaultSurface">
+                <span>[emu_4] BizHawk (Smaragd)</span>
+                <span class="text-vaultPurple font-bold">1.419 Enc.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="lg:col-span-2 bg-vaultCard border border-vaultCardBorder rounded-2xl p-6 shadow-xl space-y-4">
+          <div class="flex items-center justify-between border-b border-vaultCardBorder pb-3">
+            <div class="flex items-center gap-2">
+              <span class="w-3 h-3 rounded-full bg-vaultGreen animate-pulse"></span>
+              <h3 class="text-sm font-bold text-white">Multi-Emulator Grid & Overlay Tracker</h3>
+            </div>
+            <span class="text-xs text-gray-400 font-mono">Gesamt-Encounters: <strong class="text-vaultGold">5.679</strong></span>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3 aspect-video bg-black rounded-xl p-3 border border-vaultCardBorder relative overflow-hidden">
+            <div class="bg-gray-900 border border-vaultCardBorder rounded-lg p-2 flex flex-col justify-between relative">
+              <div class="flex justify-between text-[10px] text-gray-400">
+                <span>Instanz 1 (mGBA)</span>
+                <span class="text-vaultGreen font-mono">Soft Reset #1420</span>
+              </div>
+              <div class="flex items-center justify-center">
+                <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/4.png" class="w-14 h-14">
+              </div>
+              <div class="text-[10px] text-gray-300 font-mono text-center">Glumanda (Normal)</div>
+            </div>
+
+            <div class="bg-purple-950/40 border-2 border-vaultGold rounded-lg p-2 flex flex-col justify-between relative shadow-lg shadow-amber-500/20">
+              <div class="flex justify-between text-[10px] text-vaultGold font-bold">
+                <span>Instanz 2 (mGBA)</span>
+                <span>✨ SHINY ERKANNT!</span>
+              </div>
+              <div class="flex items-center justify-center">
+                <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/shiny/4.png" class="w-16 h-16 drop-shadow-md">
+              </div>
+              <div class="text-[10px] text-vaultGold font-bold font-mono text-center">
+                Glumanda ♂ (Shiny) - Encounter #1418!
+              </div>
+            </div>
+
+            <div class="bg-gray-900 border border-vaultCardBorder rounded-lg p-2 flex flex-col justify-between">
+              <div class="flex justify-between text-[10px] text-gray-400">
+                <span>Instanz 3 (mGBA)</span>
+                <span class="text-vaultGreen font-mono">Soft Reset #1422</span>
+              </div>
+              <div class="flex items-center justify-center">
+                <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/4.png" class="w-14 h-14">
+              </div>
+              <div class="text-[10px] text-gray-300 font-mono text-center">Glumanda (Normal)</div>
+            </div>
+
+            <div class="bg-gray-900 border border-vaultCardBorder rounded-lg p-2 flex flex-col justify-between">
+              <div class="flex justify-between text-[10px] text-gray-400">
+                <span>Instanz 4 (BizHawk)</span>
+                <span class="text-vaultGreen font-mono">Soft Reset #1419</span>
+              </div>
+              <div class="flex items-center justify-center">
+                <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/4.png" class="w-14 h-14">
+              </div>
+              <div class="text-[10px] text-gray-300 font-mono text-center">Glumanda (Normal)</div>
+            </div>
+
+            <div class="absolute bottom-3 inset-x-6 bg-vaultCard/95 border border-vaultGold rounded-xl p-3 shadow-2xl flex items-center justify-between backdrop-blur">
+              <div class="flex items-center gap-3">
+                <i class="fa-solid fa-star text-vaultGold text-xl"></i>
+                <div class="text-xs">
+                  <div class="font-bold text-white">Glumanda (Shiny) auf Instanz 2 gefunden!</div>
+                  <div class="text-gray-400 text-[10px]">Wird im Dex eingetragen, sobald der Fang erfolgreich war.</div>
+                </div>
+              </div>
+              <button class="px-3 py-1.5 bg-vaultPurple hover:bg-vaultPurpleDark text-white text-xs font-bold rounded-lg shadow">
+                Als Gefangen markieren
+              </button>
+            </div>
+          </div>
+
+          <div class="flex items-center justify-between pt-2 text-xs text-gray-400">
+            <div>Multi-Instance Sync: <span class="text-vaultGreen font-semibold">Aktiv</span> (4x Zähl-Multiplikator)</div>
+            <button class="px-3 py-1.5 bg-vaultSurface hover:bg-vaultCardBorder text-white rounded-lg">Fenster-Layout kalibrieren</button>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- TAB 3: MOBILE LIVE-SCANNER MIT FLOATING PIP -->
+    <section id="tab-mobile-scanner" class="hidden space-y-6">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+
+        <div class="mx-auto w-[330px] h-[660px] bg-black border-4 border-gray-800 rounded-[44px] p-3 shadow-2xl relative flex flex-col justify-between overflow-hidden">
+          <div class="absolute top-2 left-1/2 transform -translate-x-1/2 w-28 h-5 bg-gray-900 rounded-full z-30 flex items-center justify-center">
+            <div class="w-3 h-3 rounded-full bg-black"></div>
+          </div>
+
+          <div class="relative flex-1 bg-vaultBg rounded-[32px] overflow-hidden flex flex-col justify-between p-3 z-10">
+            <div class="pt-6 pb-2 border-b border-vaultCardBorder flex justify-between items-center text-xs">
+              <span class="font-bold text-white flex items-center gap-1.5">
+                <i class="fa-solid fa-box text-vaultPurple"></i> Kanto Living Dex
+              </span>
+              <span class="text-vaultGreen font-mono text-[10px]">142 / 151</span>
+            </div>
+
+            <div class="grid grid-cols-4 gap-2 flex-1 my-2 overflow-y-auto pr-1">
+              <div class="bg-vaultCard p-1.5 rounded-lg border border-vaultCardBorder text-center">
+                <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/1.png" class="w-10 h-10 mx-auto">
+                <span class="text-[9px] text-gray-400">#001</span>
+              </div>
+              <div class="bg-vaultCard p-1.5 rounded-lg border border-vaultCardBorder text-center">
+                <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/2.png" class="w-10 h-10 mx-auto">
+                <span class="text-[9px] text-gray-400">#002</span>
+              </div>
+              <div class="bg-vaultCard p-1.5 rounded-lg border border-vaultCardBorder text-center">
+                <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/3.png" class="w-10 h-10 mx-auto">
+                <span class="text-[9px] text-gray-400">#003</span>
+              </div>
+              <div class="bg-vaultSurface p-1.5 rounded-lg border border-dashed border-gray-700 text-center opacity-60">
+                <div class="w-10 h-10 mx-auto flex items-center justify-center text-gray-600 text-xs">?</div>
+                <span class="text-[9px] text-gray-500">#004</span>
+              </div>
+              <div class="bg-vaultCard p-1.5 rounded-lg border border-vaultCardBorder text-center">
+                <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/5.png" class="w-10 h-10 mx-auto">
+                <span class="text-[9px] text-gray-400">#005</span>
+              </div>
+              <div class="bg-vaultCard p-1.5 rounded-lg border border-vaultCardBorder text-center">
+                <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/6.png" class="w-10 h-10 mx-auto">
+                <span class="text-[9px] text-gray-400">#006</span>
+              </div>
+            </div>
+
+            <div class="absolute bottom-16 right-3 w-40 h-52 bg-black border-2 border-vaultPurple rounded-2xl shadow-2xl overflow-hidden flex flex-col justify-between p-1.5 z-20">
+              <div class="scan-line absolute inset-x-0 h-10 pointer-events-none"></div>
+              
+              <div class="flex justify-between items-center text-[9px] text-white bg-black/60 px-1 py-0.5 rounded">
+                <span class="text-vaultGreen font-bold flex items-center gap-1">● CAM LIVE</span>
+                <div class="flex gap-1">
+                  <button class="hover:text-vaultPurple"><i class="fa-solid fa-expand"></i></button>
+                  <button class="hover:text-red-400"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+              </div>
+
+              <div class="flex-1 flex flex-col items-center justify-center p-1 text-center">
+                <div class="border border-vaultPurple/70 rounded p-1 bg-vaultPurple/10 text-[8px] font-mono text-white">
+                  "Glumanda gefangen!"
+                </div>
+              </div>
+
+              <div class="text-[8px] text-vaultGreen bg-vaultGreen/20 px-1 py-0.5 rounded text-center font-bold">
+                ✔ #004 Glumanda erkannt
+              </div>
+            </div>
+
+            <div class="pt-2 border-t border-vaultCardBorder flex justify-around text-gray-400 text-xs">
+              <i class="fa-solid fa-box text-vaultPurple"></i>
+              <i class="fa-solid fa-list"></i>
+              <i class="fa-solid fa-star"></i>
+              <i class="fa-solid fa-gear"></i>
+            </div>
+          </div>
+
+          <div class="absolute bottom-2 left-1/2 transform -translate-x-1/2 w-28 h-1 bg-gray-600 rounded-full z-30"></div>
+        </div>
+
+        <div class="flex flex-col justify-center space-y-4">
+          <div class="border-b border-vaultCardBorder pb-3">
+            <h3 class="text-xl font-bold text-white flex items-center gap-2">
+              <i class="fa-solid fa-window-restore text-vaultPurple"></i> Mobile Multitasking & PiP
+            </h3>
+            <p class="text-sm text-gray-400 mt-1">
+              App parallel weiternutzen, während der Kamera-Scanner im Hintergrund oder als Mini-Fenster aktiv bleibt.
+            </p>
+          </div>
+
+          <div class="space-y-3 text-sm text-gray-300">
+            <div class="p-3 rounded-xl bg-vaultCard border border-vaultCardBorder flex items-start gap-3">
+              <i class="fa-solid fa-hand-pointer text-vaultPurple mt-1"></i>
+              <div>
+                <span class="font-bold text-white block">Manuelle Anpassungen jederzeit:</span>
+                Du kannst Boxen sortieren, Shinies abhaken oder Einstellungen ändern, ohne den Scanner stoppen zu müssen.
+              </div>
+            </div>
+
+            <div class="p-3 rounded-xl bg-vaultCard border border-vaultCardBorder flex items-start gap-3">
+              <i class="fa-solid fa-compress text-vaultGreen mt-1"></i>
+              <div>
+                <span class="font-bold text-white block">Flexibler Viewfinder:</span>
+                1-Tap zwischen Vollbild-Scanner und schwebendem Mini-Fenster (Picture-in-Picture) umschaltbar.
+              </div>
+            </div>
+
+            <div class="p-3 rounded-xl bg-vaultCard border border-vaultCardBorder flex items-start gap-3">
+              <i class="fa-solid fa-bell text-vaultGold mt-1"></i>
+              <div>
+                <span class="font-bold text-white block">Akustisches Signal:</span>
+                Spielt auch im PiP-Modus den Catch-Sound ab, sobald ein Pokémon auf der Switch erkannt wurde.
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- TAB 4: SERVER, CLI & LUA DETAILS -->
+    <section id="tab-cli-api" class="hidden space-y-6">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+        <div class="bg-vaultCard border border-vaultCardBorder rounded-2xl p-6 shadow-xl space-y-4">
+          <div class="flex items-center justify-between border-b border-vaultCardBorder pb-3">
+            <h3 class="text-sm font-bold text-white flex items-center gap-2">
+              <i class="fa-solid fa-server text-vaultPurple"></i> HTTP Server & CLI Konfiguration
+            </h3>
+            <span class="text-xs text-vaultGreen font-mono bg-vaultGreen/10 px-2 py-0.5 rounded">Custom Server fähig</span>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3 text-xs">
+            <div>
+              <label class="text-gray-400 block mb-1">Server Host / Bind</label>
+              <input type="text" value="127.0.0.1" class="w-full bg-vaultSurface border border-vaultCardBorder rounded px-2.5 py-1.5 text-white font-mono">
+              <span class="text-[10px] text-gray-500">127.0.0.1 (Lokal) oder 0.0.0.0 (LAN)</span>
+            </div>
+            <div>
+              <label class="text-gray-400 block mb-1">Port</label>
+              <input type="number" value="59123" class="w-full bg-vaultSurface border border-vaultCardBorder rounded px-2.5 py-1.5 text-white font-mono">
+              <span class="text-[10px] text-gray-500">Frei konfigurierbar</span>
+            </div>
+            <div class="col-span-2">
+              <label class="text-gray-400 block mb-1">Optionaler API-Token / Secret</label>
+              <input type="password" value="••••••••••••••••" class="w-full bg-vaultSurface border border-vaultCardBorder rounded px-2.5 py-1.5 text-white font-mono">
+              <span class="text-[10px] text-gray-500">Schützt vor unbefugtem Zugriff bei Netzwerkfreigabe</span>
+            </div>
+          </div>
+
+          <div class="bg-black/80 rounded-xl p-3 text-xs space-y-1.5 text-gray-300 font-mono border border-vaultCardBorder h-48 overflow-y-auto">
+            <p class="text-gray-500"># Multi-Hunt Inkrement mit Instanz-Zuordnung:</p>
+            <p class="text-purple-300">$ pokevault shiny inc --id hunt_glumanda --instance emu_1</p>
+            <p class="text-vaultGreen">✔ Hunt 'Glumanda' incremented to 1,420 (from emu_1)!</p>
+            <br>
+            <p class="text-gray-500"># Phasen-Shiny loggen (nur Phase, noch kein Dex-Eintrag):</p>
+            <p class="text-purple-300">$ pokevault shiny phase --id hunt_mewtwo --pokemon Zubat --encounters 340</p>
+            <p class="text-vaultGold">⭐ Logged Phase 1: Shiny Zubat at 340 encounters! Main hunt continues.</p>
+          </div>
+        </div>
+
+        <div class="bg-vaultCard border border-vaultCardBorder rounded-2xl p-6 shadow-xl space-y-4">
+          <div class="flex items-center justify-between border-b border-vaultCardBorder pb-3">
+            <h3 class="text-sm font-bold text-white flex items-center gap-2">
+              <i class="fa-solid fa-code text-vaultGold"></i> Warum Lua sprachunabhängig ist
+            </h3>
+            <span class="text-xs text-vaultPurple font-mono bg-vaultPurple/10 px-2 py-0.5 rounded">Numerische RAM IDs</span>
+          </div>
+
+          <div class="text-xs text-gray-300 space-y-2">
+            <p>
+              In Emulatoren (BizHawk / mGBA) liest das Lua-Skript das <strong>Spiel-RAM</strong> direkt aus. Pokémon haben im RAM <strong>immer dieselbe numerische ID (1 bis 1025)</strong>, unabhängig davon, ob das Spiel auf Deutsch, Englisch oder Japanisch läuft!
+            </p>
+            <p>
+              Einzige Sprachabhängigkeit sind die Speicheradressen (ROM Game Code):
+            </p>
+          </div>
+
+          <div class="bg-black/80 rounded-xl p-3 text-xs font-mono text-gray-300 border border-vaultCardBorder space-y-1">
+            <p class="text-purple-400">local <span class="text-white">ROM_MAP = {</span></p>
+            <p>&nbsp;&nbsp;<span class="text-amber-300">["BPRD"]</span> = { name = <span class="text-vaultGreen">"Feuerrot (DE)"</span>, party = 0x02024284 },</p>
+            <p>&nbsp;&nbsp;<span class="text-amber-300">["BPRE"]</span> = { name = <span class="text-vaultGreen">"FireRed (US)"</span>, party = 0x02024284 },</p>
+            <p>&nbsp;&nbsp;<span class="text-amber-300">["BPEE"]</span> = { name = <span class="text-vaultGreen">"Emerald (US)"</span>, party = 0x020244EC },</p>
+            <p>&nbsp;&nbsp;<span class="text-amber-300">["BPED"]</span> = { name = <span class="text-vaultGreen">"Smaragd (DE)"</span>, party = 0x020244EC }</p>
+            <p class="text-purple-400">}</p>
+          </div>
+
+          <div class="text-[11px] text-gray-400 pt-2 border-t border-vaultCardBorder">
+            Umfassende Dokumentation wird in <code class="text-vaultPurple">docs/LUA_TRACKER_GUIDE.md</code> bereitgestellt.
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- TAB 5: ROTOM TUTORIAL GUIDE -->
+    <section id="tab-rotom-tutorial" class="hidden space-y-6">
+      <div class="max-w-3xl mx-auto bg-vaultCard border border-vaultCardBorder rounded-2xl p-6 shadow-xl space-y-6">
+        
+        <div class="flex items-center gap-4 border-b border-vaultCardBorder pb-4">
+          <div class="w-14 h-14 rounded-2xl bg-vaultRed flex items-center justify-center rotom-glow text-white text-2xl font-bold">
+            <i class="fa-solid fa-robot"></i>
+          </div>
+          <div>
+            <h2 class="text-xl font-bold text-white flex items-center gap-2">
+              Rotom Update-Tour (v1.7.0 Features)
+            </h2>
+            <p class="text-xs text-gray-400">
+              Interaktives Kapitel in PokéVaults Tutorial-System (TutorialChapter Version 3).
+            </p>
+          </div>
+        </div>
+
+        <div class="bg-vaultSurface border border-vaultCardBorder rounded-xl p-4 flex gap-4 items-start">
+          <div class="w-10 h-10 rounded-full bg-vaultRed/20 text-vaultRed flex items-center justify-center shrink-0">
+            <i class="fa-solid fa-face-smile text-lg"></i>
+          </div>
+          <div class="space-y-1 text-sm">
+            <div class="font-bold text-white flex items-center gap-2">
+              Rotom-Dex: <span class="text-xs px-2 py-0.5 rounded bg-vaultPurple/20 text-vaultPurple font-normal">Kapitel: Sprachen-Expansion</span>
+            </div>
+            <p class="text-gray-300 text-xs leading-relaxed">
+              "Zzzrrt! Willkommen in Version 1.7.0! Ab jetzt kannst du die App-Sprache völlig getrennt von den Pokémon-Namen wählen! Möchtest du deine UI auf Deutsch, aber Pokémon auf Japanisch sehen? Kein Problem!"
+            </p>
+          </div>
+        </div>
+
+        <div class="bg-vaultSurface border border-vaultCardBorder rounded-xl p-4 flex gap-4 items-start">
+          <div class="w-10 h-10 rounded-full bg-vaultPurple/20 text-vaultPurple flex items-center justify-center shrink-0">
+            <i class="fa-solid fa-crosshairs text-lg"></i>
+          </div>
+          <div class="space-y-1 text-sm">
+            <div class="font-bold text-white flex items-center gap-2">
+              Rotom-Dex: <span class="text-xs px-2 py-0.5 rounded bg-vaultPurple/20 text-vaultPurple font-normal">Kapitel: Auto-Tracker & CLI</span>
+            </div>
+            <p class="text-gray-300 text-xs leading-relaxed">
+              "Zzz-klick! Du spielst auf Emulatoren oder der Switch? Unser neuer Auto-Tracker erkennt Fänge, Shinies und Alphas automatisch! Mit unserem Lua-Skript kannst du sogar 4 Emulatoren gleichzeitig synchronisieren!"
+            </p>
+          </div>
+        </div>
+
+        <div class="bg-vaultSurface border border-vaultCardBorder rounded-xl p-4 flex gap-4 items-start">
+          <div class="w-10 h-10 rounded-full bg-vaultGreen/20 text-vaultGreen flex items-center justify-center shrink-0">
+            <i class="fa-solid fa-camera text-lg"></i>
+          </div>
+          <div class="space-y-1 text-sm">
+            <div class="font-bold text-white flex items-center gap-2">
+              Rotom-Dex: <span class="text-xs px-2 py-0.5 rounded bg-vaultPurple/20 text-vaultPurple font-normal">Kapitel: Mobile PiP-Scanner</span>
+            </div>
+            <p class="text-gray-300 text-xs leading-relaxed">
+              "Kamera an und los! Halte dein Handy einfach auf die Switch-Textbox. Der Scanner hakt das gefangene Pokémon automatisch ab, während du die App im Mini-Fenster weiternutzen kannst!"
+            </p>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <script>
+    const pokemonNames = {
+      de: { name: 'Glumanda', sub: 'Typ: Feuer • Gen 1', box: 'Box 1: Kanto', caught: 'GEFANGEN', status: 'Status: Abgeschlossen' },
+      en: { name: 'Charmander', sub: 'Type: Fire • Gen 1', box: 'Box 1: Kanto', caught: 'CAUGHT', status: 'Status: Completed' },
+      fr: { name: 'Salamèche', sub: 'Type: Feu • Gen 1', box: 'Boîte 1: Kanto', caught: 'ATTRAPÉ', status: 'Statut: Terminé' },
+      es: { name: 'Charmander', sub: 'Tipo: Fuego • Gen 1', box: 'Caja 1: Kanto', caught: 'ATRAPADO', status: 'Estado: Completado' },
+      it: { name: 'Charmander', sub: 'Tipo: Fuoco • Gen 1', box: 'Box 1: Kanto', caught: 'CATTURATO', status: 'Stato: Completato' },
+      ja: { name: 'ヒトカゲ (Hitokage)', sub: 'タイプ: ほのお • 第1世代', box: 'ボックス 1: カントー', caught: 'つかまえた', status: 'ステータス: 完了' },
+      ko: { name: '파이리 (Pairi)', sub: '타입: 불꽃 • 1세대', box: '박스 1: 관동', caught: '잡았다', status: '상태: 완료' },
+      'zh-Hans': { name: '小火龙 (Xiǎohuǒlóng)', sub: '属性: 火 • 第一世代', box: '盒子 1: 关都', caught: '已捕捉', status: '状态: 完成' },
+      'zh-Hant': { name: '小火龍 (Xiǎohuǒlóng)', sub: '屬性: 火 • 第一世代', box: '盒子 1: 關都', caught: '已捕捉', status: '狀態: 完成' },
+      pt: { name: 'Charmander', sub: 'Tipo: Fogo • Gen 1', box: 'Caixa 1: Kanto', caught: 'CAPTURADO', status: 'Status: Concluído' },
+      nl: { name: 'Charmander', sub: 'Type: Vuur • Gen 1', box: 'Box 1: Kanto', caught: 'GEVANGEN', status: 'Status: Voltooid' },
+      pl: { name: 'Charmander', sub: 'Typ: Ogień • Gen 1', box: 'Skrzynka 1: Kanto', caught: 'ZŁAPANY', status: 'Status: Ukończono' },
+      ru: { name: 'Чармандер', sub: 'Тип: Огонь • Ген 1', box: 'Бокс 1: Канто', caught: 'ПОЙМAN', status: 'Статус: Завершено' }
+    };
+
+    function updateLanguagePreview() {
+      const appLang = document.getElementById('select-app-lang').value;
+      const pokeLangSelect = document.getElementById('select-poke-lang').value;
+
+      let effectivePokeLang = pokeLangSelect;
+      if (pokeLangSelect === 'auto') {
+        const franchiseLangs = ['de', 'en', 'fr', 'es', 'it', 'ja', 'ko', 'zh-Hans', 'zh-Hant'];
+        effectivePokeLang = franchiseLangs.includes(appLang) ? appLang : 'en';
+      }
+
+      const uiData = pokemonNames[appLang] || pokemonNames['en'];
+      const pokeData = pokemonNames[effectivePokeLang] || pokemonNames['en'];
+
+      document.getElementById('preview-ui-box').textContent = uiData.box;
+      document.getElementById('preview-ui-caught').textContent = uiData.caught;
+      document.getElementById('preview-ui-status').textContent = uiData.status;
+
+      document.getElementById('preview-poke-name').textContent = pokeData.name;
+      document.getElementById('preview-poke-sub').textContent = pokeData.sub;
+
+      document.getElementById('info-app-lang').textContent = appLang.toUpperCase();
+      document.getElementById('info-poke-lang').textContent = effectivePokeLang.toUpperCase() + (pokeLangSelect === 'auto' ? ' (Auto-Fallback)' : ' (Manuell)');
+    }
+
+    function switchTab(tabId) {
+      ['languages', 'desktop-overlay', 'mobile-scanner', 'cli-api', 'rotom-tutorial'].forEach(t => {
+        const el = document.getElementById('tab-' + t);
+        const btn = document.getElementById('tab-btn-' + t);
+        if (t === tabId) {
+          el.classList.remove('hidden');
+          btn.classList.add('bg-vaultPurple', 'text-white', 'shadow-sm');
+          btn.classList.remove('text-gray-400');
+        } else {
+          el.classList.add('hidden');
+          btn.classList.remove('bg-vaultPurple', 'text-white', 'shadow-sm');
+          btn.classList.add('text-gray-400');
+        }
+      });
+    }
+
+    updateLanguagePreview();
+  </script>
+</body>
+</html>

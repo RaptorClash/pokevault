@@ -38,6 +38,14 @@ def calculate_next_version(v_name: str, build: int, target: str) -> str:
         return f"{major}.{minor + 1}.0+{next_build}"
     elif target_clean == "major":
         return f"{major + 1}.0.0+{next_build}"
+    elif target_clean == "beta":
+        beta_match = re.search(r'-beta\.(\d+)', v_name, flags=re.IGNORECASE)
+        if beta_match:
+            current_beta_num = int(beta_match.group(1))
+            base_v = v_name.split('-beta')[0]
+            return f"{base_v}-beta.{current_beta_num + 1}+{next_build}"
+        else:
+            return f"{major}.{minor + 1}.0-beta.1+{next_build}"
     elif "+" in target:
         explicit_parts = target.split("+")
         return f"{explicit_parts[0]}+{int(explicit_parts[1])}"
@@ -105,7 +113,8 @@ def main():
         print(f"  • patch: {calculate_next_version(v_name, build, 'patch')}")
         print(f"  • minor: {calculate_next_version(v_name, build, 'minor')}")
         print(f"  • major: {calculate_next_version(v_name, build, 'major')}")
-        print(f"  • explizit: python tool/bump_version.py 1.6.0")
+        print(f"  • beta:  {calculate_next_version(v_name, build, 'beta')}")
+        print(f"  • explizit: python tool/bump_version.py 1.7.0-beta.1")
         print("\nBeispiel-Aufruf:")
         print("  python tool/bump_version.py 1.6.0 --dry-run")
         print("  python tool/bump_version.py 1.6.0")

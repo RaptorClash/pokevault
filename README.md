@@ -107,6 +107,8 @@ flutter build web --release
 
 ## 📚 Architecture & Documentation
 * [Architecture Guide (`ARCHITECTURE.md`)](ARCHITECTURE.md): Comprehensive system overview, state architecture (Provider), DAO persistence model, Google Drive sync coordinator, Isolate translation bridge, and quality gates.
+* [Git Workflow & Release Pipeline (`docs/GIT_WORKFLOW_AND_RELEASES.md`)](docs/GIT_WORKFLOW_AND_RELEASES.md): Official Git branching model, branch protection rules, multi-platform builds (Android APK, Windows Zip, Linux AppImage/tar.gz), and automated beta pre-releases.
+* [v1.7.0 Roadmap: The Language Expansion (`docs/plans/v1_7_0_the_language_expansion.md`)](docs/plans/v1_7_0_the_language_expansion.md): Full technical specification for separate languages, local REST API, multi-emulator tracking, desktop OCR, and mobile camera scanner.
 * [Database Generator Pipeline (`tool/data_pipeline/README.md`)](tool/data_pipeline/README.md): Detailed developer documentation of offline PokeAPI parsing, web scrapers, legal Pokéball data, indexes, and database compilation steps.
 * [Developer & Release Tools (`tool/README.md`)](tool/README.md): Documentation for automated release version bumping (`bump_version.py`), unit tests, and code coverage.
 
