@@ -316,13 +316,13 @@ class _BoxEditScreenState extends State<BoxEditScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.restore),
-            tooltip: 'Auf Standard zurücksetzen',
+            tooltip: t.reset_boxes_tooltip,
             onPressed: () {
               showDialog(
                 context: context,
                 builder: (ctx) => AlertDialog(
-                  title: const Text('Boxen zurücksetzen?'),
-                  content: const Text('Möchtest du alle deine benutzerdefinierten Boxen löschen und das Layout auf den Standard-Pokédex zurücksetzen? Deine gefangenen Pokémon bleiben dabei erhalten!'),
+                  title: Text(t.reset_boxes_title),
+                  content: Text(t.reset_boxes_content),
                   actions: [
                     TextButton(
                        onPressed: () => Navigator.pop(ctx),
@@ -340,7 +340,7 @@ class _BoxEditScreenState extends State<BoxEditScreen> {
                         Navigator.pop(ctx); // Close dialog
                         Navigator.pop(context); // Go back to dex screen to trigger recalculation
                       },
-                      child: const Text('Zurücksetzen', style: TextStyle(color: Colors.white)),
+                      child: Text(t.reset_boxes_action, style: const TextStyle(color: Colors.white)),
                     ),
                   ],
                 ),

@@ -640,10 +640,37 @@ class _HomeScreenState extends State<HomeScreen> {
           });
         }
       },
-      child: Focus(
+      child: CallbackShortcuts(
+        bindings: {
+          const SingleActivator(LogicalKeyboardKey.keyF, control: true): () {
+            _searchFocusNode.requestFocus();
+          },
+          const SingleActivator(LogicalKeyboardKey.keyF, meta: true): () {
+            _searchFocusNode.requestFocus();
+          },
+        },
+        child: Focus(
         autofocus: true,
         onKeyEvent: (node, event) {
           if (event is KeyDownEvent) {
+            if ((HardwareKeyboard.instance.isControlPressed ||
+                    HardwareKeyboard.instance.isMetaPressed) &&
+                event.logicalKey == LogicalKeyboardKey.keyF) {
+              _searchFocusNode.requestFocus();
+              return KeyEventResult.handled;
+            }
+
+            if (event.logicalKey == LogicalKeyboardKey.escape) {
+              if (_searchFocusNode.hasFocus) {
+                _searchFocusNode.unfocus();
+                return KeyEventResult.handled;
+              }
+              if (_isSelectionMode) {
+                _clearSelection();
+                return KeyEventResult.handled;
+              }
+            }
+
             if (_searchFocusNode.hasFocus &&
                 event.logicalKey == LogicalKeyboardKey.backspace) {
               return KeyEventResult.ignored;
@@ -691,7 +718,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       : null),
             titleSpacing: _isSelectionMode ? null : 0,
             title: _isSelectionMode
-                ? Text('${_selectedItemIds.length} ausgewählt')
+                ? Text('${_selectedItemIds.length} ${t.selected}')
                 : BreadcrumbBar(
                     path: _getBreadcrumbs(provider),
                     onHomeTap: () {
@@ -716,7 +743,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     IconButton(
                       key: _moveActionKey,
                       icon: const Icon(Icons.drive_file_move_outline),
-                      tooltip: 'Verschieben',
+                      tooltip: t.move_tooltip,
                       onPressed: () => HomeDialogs.showMoveDialog(
                         context,
                         provider,
@@ -726,7 +753,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                     IconButton(
                       icon: const Icon(Icons.upload),
-                      tooltip: 'Exportieren',
+                      tooltip: t.export_tooltip,
                       onPressed: () async {
                         try {
                           final dexesToExport = HomeDialogs.getDexesToExport(
@@ -741,7 +768,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             _clearSelection();
                           } else {
                             NotificationHelper.showWarning(
-                              'Keine Dexe zum Exportieren in der Auswahl gefunden.',
+                              t.no_dexes_to_export,
                             );
                           }
                         } catch (e) {
@@ -753,7 +780,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                     IconButton(
                       icon: const Icon(Icons.delete, color: Colors.red),
-                      tooltip: 'Löschen',
+                      tooltip: t.delete_tooltip,
                       onPressed: () => HomeDialogs.confirmMultipleDelete(
                         context,
                         provider,
@@ -853,7 +880,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             PopupMenuItem(
                               value: 'manual',
                               child: Text(
-                                'Manuell',
+                                t.sort_manual,
                                 style: TextStyle(
                                   fontWeight: _currentSort == 'manual'
                                       ? FontWeight.bold
@@ -875,7 +902,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             PopupMenuItem(
                               value: 'caught',
                               child: Text(
-                                'Meiste Gefangen',
+                                t.sort_most_caught,
                                 style: TextStyle(
                                   fontWeight: _currentSort == 'caught'
                                       ? FontWeight.bold
@@ -886,7 +913,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             PopupMenuItem(
                               value: 'region',
                               child: Text(
-                                'Nach Region',
+                                t.sort_by_region,
                                 style: TextStyle(
                                   fontWeight: _currentSort == 'region'
                                       ? FontWeight.bold
@@ -938,6 +965,7 @@ class _HomeScreenState extends State<HomeScreen> {
               : null,
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 }

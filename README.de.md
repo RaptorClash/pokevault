@@ -107,7 +107,8 @@ flutter build web --release
 
 ## 📚 Architektur & Dokumentation
 * [Architektur-Leitfaden (`ARCHITECTURE.md`)](ARCHITECTURE.md): Detaillierte Übersicht über Systemarchitektur, Provider-State-Management, DAO-Persistenzmodell, Google Drive Sync Coordinator, Isolate-Translation-Bridge und Test-Quality-Gates.
-* [Datenbank-Generierungs-Pipeline (`tool/data_pipeline/README.md`)](tool/data_pipeline/README.md): Dokumentation der Offline-PokeAPI-Datenaufbereitung, Scraper, Matching-Balls-Import, Indizes und Datenbank-Kompilierung.
+* [Datenbank-Generierungs-Pipeline (`tool/data_pipeline/README.de.md`)](tool/data_pipeline/README.de.md): Dokumentation der Offline-PokeAPI-Datenaufbereitung, Scraper, Matching-Balls-Import, Indizes und Datenbank-Kompilierung.
+* [Entwickler- & Release-Werkzeuge (`tool/README.de.md`)](tool/README.de.md): Automatisierte Release-Versionsverwaltung (`bump_version.py`), Test-Suites und Code-Coverage.
 
 ## 🤝 Daten ergänzen (Community Contributions)
 Fehlen dir Fundorte oder passen die Matching Balls nicht? Du kannst diese Daten in den JSON-Dateien im Verzeichnis `tool/data_pipeline/` ergänzen (falls vorhanden) oder direkt über Issues/Pull Requests beitragen.

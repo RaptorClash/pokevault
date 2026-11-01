@@ -68,13 +68,15 @@ class HuntGameMethodSelector extends StatelessWidget {
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      'Spiel: $selectedGame (Gen ${generation.toString().replaceAll('.0', '')})',
+                      t.hunt_game_label
+                          .replaceAll('{game}', selectedGame)
+                          .replaceAll('{gen}', generation.toString().replaceAll('.0', '')),
                       style: const TextStyle(fontWeight: FontWeight.w600),
                     ),
                   ),
                   TextButton(
                     onPressed: onToggleGameSelector,
-                    child: const Text('Ändern'),
+                    child: Text(t.change_btn),
                   ),
                 ],
               ),

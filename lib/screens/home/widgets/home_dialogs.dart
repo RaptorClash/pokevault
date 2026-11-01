@@ -229,7 +229,7 @@ class HomeDialogs {
                       }
                       clearSelection();
                       Navigator.pop(ctx);
-                      NotificationHelper.showSuccess('Erfolgreich verschoben.');
+                      NotificationHelper.showSuccess(t.moved_successfully);
                     } catch (e) {
                       Navigator.pop(ctx);
                       NotificationHelper.showError(
@@ -280,7 +280,7 @@ class HomeDialogs {
               try {
                 provider.deleteDex(dex.id);
                 Navigator.pop(context);
-                NotificationHelper.showSuccess('Erfolgreich gelöscht.');
+                NotificationHelper.showSuccess(t.deleted_successfully);
               } catch (e) {
                 Navigator.pop(context);
                 NotificationHelper.showError(
@@ -352,7 +352,7 @@ class HomeDialogs {
                       provider.deleteFolder(folder.id, false);
                     }
                     Navigator.pop(context);
-                    NotificationHelper.showSuccess('Erfolgreich gelöscht.');
+                    NotificationHelper.showSuccess(t.deleted_successfully);
                   } catch (e) {
                     Navigator.pop(context);
                     NotificationHelper.showError(
@@ -433,7 +433,7 @@ class HomeDialogs {
                     }
                     clearSelection();
                     Navigator.pop(context);
-                    NotificationHelper.showSuccess('Elemente gelöscht.');
+                    NotificationHelper.showSuccess(t.items_deleted);
                   } catch (e) {
                     Navigator.pop(context);
                     NotificationHelper.showError(

@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../../models/user_dex.dart';
 import '../../models/pokemon.dart';
@@ -46,6 +47,7 @@ class DexScreen extends StatefulWidget {
 
 class _DexScreenState extends State<DexScreen> {
   final TextEditingController _searchController = TextEditingController();
+  final FocusNode _searchFocusNode = FocusNode();
   String _searchQuery = '';
   String _filter = 'all';
   String _lastSearchQuery = '';
@@ -113,6 +115,7 @@ class _DexScreenState extends State<DexScreen> {
   void dispose() {
     _debounce?.cancel();
     _searchController.dispose();
+    _searchFocusNode.dispose();
     _pageController.dispose();
     _customBoxesSnapshot = null;
     super.dispose();
@@ -1319,6 +1322,7 @@ class _DexScreenState extends State<DexScreen> {
         DexFilterBar(
           searchBarKey: _searchBarKey,
           searchController: _searchController,
+          searchFocusNode: _searchFocusNode,
           searchQuery: _searchQuery,
           filter: _filter,
           onClearSearch: () {
@@ -1665,7 +1669,16 @@ class _DexScreenState extends State<DexScreen> {
       ],
     );
 
-    return PopScope(
+    return CallbackShortcuts(
+      bindings: {
+        const SingleActivator(LogicalKeyboardKey.keyF, control: true): () {
+          _searchFocusNode.requestFocus();
+        },
+        const SingleActivator(LogicalKeyboardKey.keyF, meta: true): () {
+          _searchFocusNode.requestFocus();
+        },
+      },
+      child: PopScope(
       canPop: !_isEditMode,
       onPopInvokedWithResult: (bool didPop, dynamic result) async {
         if (didPop) return;
@@ -1973,7 +1986,8 @@ class _DexScreenState extends State<DexScreen> {
         ],
       ),
     ),
-  );
+  ),
+);
 }
 }
 

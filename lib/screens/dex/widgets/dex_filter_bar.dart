@@ -5,6 +5,7 @@ import '../../../i18n/strings.g.dart';
 class DexFilterBar extends StatelessWidget {
   final Key? searchBarKey;
   final TextEditingController searchController;
+  final FocusNode? searchFocusNode;
   final String searchQuery;
   final String filter;
   final ValueChanged<String> onSearchChanged;
@@ -16,6 +17,7 @@ class DexFilterBar extends StatelessWidget {
     super.key,
     this.searchBarKey,
     required this.searchController,
+    this.searchFocusNode,
     required this.searchQuery,
     required this.filter,
     required this.onSearchChanged,
@@ -33,6 +35,7 @@ class DexFilterBar extends StatelessWidget {
           Expanded(
             child: TextField(
               key: searchBarKey,
+              focusNode: searchFocusNode,
               controller: searchController,
               decoration: InputDecoration(
                 hintText: t.search_hint,

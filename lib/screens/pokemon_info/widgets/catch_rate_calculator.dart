@@ -54,26 +54,26 @@ class _CatchRateCalculatorState extends State<CatchRateCalculator> {
   late CatchRateResult _currentResult;
   late CatchRateStrategy _currentStrategy;
 
-  final Map<double, String> _genNames = {
-    1.0: 'Gen 1 (Rot/Blau/Gelb)',
-    2.0: 'Gen 2 (Gold/Silber/Kristall)',
-    3.0: 'Gen 3 & 4 (R/S/S/D/P/P)',
-    5.0: 'Gen 5 (Schwarz/Weiß 1&2)',
-    6.0: 'Gen 6 & 7 (X/Y/S/M)',
-    7.5: 'Gen 7.5 (Let\'s Go)',
-    8.0: 'Gen 8 (Schwert/Schild)',
-    8.5: 'Gen 8.5 (Legenden: Arceus)',
-    9.0: 'Gen 9 (Karmesin/Purpur)',
-    9.5: 'Gen 9.5 (Legenden: Z-A)',
+  Map<double, String> get _genNames => {
+    1.0: t.calc_gen_1,
+    2.0: t.calc_gen_2,
+    3.0: t.calc_gen_3_4,
+    5.0: t.calc_gen_5,
+    6.0: t.calc_gen_6_7,
+    7.5: t.calc_gen_7_5,
+    8.0: t.calc_gen_8,
+    8.5: t.calc_gen_8_5,
+    9.0: t.calc_gen_9,
+    9.5: t.calc_gen_9_5,
   };
 
-  final Map<double, String> _dexMultipliers = {
-    0.0: '< 30 gefangen (0.0x)',
-    0.5: '30+ gefangen (0.5x)',
-    1.0: '150+ gefangen (1.0x)',
-    1.5: '300+ gefangen (1.5x)',
-    2.0: '450+ gefangen (2.0x)',
-    2.5: '600+ gefangen (2.5x)',
+  Map<double, String> get _dexMultipliers => {
+    0.0: t.calc_mult_under_30,
+    0.5: t.calc_mult_30_plus,
+    1.0: t.calc_mult_150_plus,
+    1.5: t.calc_mult_300_plus,
+    2.0: t.calc_mult_450_plus,
+    2.5: t.calc_mult_600_plus,
   };
 
   @override

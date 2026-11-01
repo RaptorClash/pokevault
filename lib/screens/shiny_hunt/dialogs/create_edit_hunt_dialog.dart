@@ -1172,7 +1172,7 @@ class _CreateEditHuntDialogState extends State<CreateEditHuntDialog> {
                         onPressed: () async {
                           if (_pokemonId == null) {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Bitte ein Pokémon auswählen')),
+                              SnackBar(content: Text(t.select_pokemon_warning)),
                             );
                             return;
                           }

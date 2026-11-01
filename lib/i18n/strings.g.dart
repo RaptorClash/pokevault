@@ -4,9 +4,9 @@
 /// To regenerate, run: `dart run slang`
 ///
 /// Locales: 2
-/// Strings: 3722 (1861 per locale)
+/// Strings: 3796 (1898 per locale)
 ///
-/// Built on 2026-10-31 at 00:22 UTC
+/// Built on 2026-11-01 at 10:52 UTC
 
 // coverage:ignore-file
 // ignore_for_file: type=lint
@@ -2009,6 +2009,43 @@ class Translations implements BaseTranslations<AppLocale, Translations> {
 	String get status => 'Status ändern';
 	String get tutorial_wrong_tap => 'Klick direkt auf den markierten Bereich!';
 	String get unknown => 'Unbekannt';
+	String get sort_most_caught => 'Meiste Gefangen';
+	String get sort_by_region => 'Nach Region';
+	String get move_tooltip => 'Verschieben';
+	String get delete_tooltip => 'Löschen';
+	String get no_dexes_to_export => 'Keine Dexe zum Exportieren in der Auswahl gefunden.';
+	String get menu_edit => 'Bearbeiten';
+	String get menu_move => 'Verschieben...';
+	String get menu_delete => 'Löschen';
+	String get reset_boxes_title => 'Boxen zurücksetzen?';
+	String get reset_boxes_content => 'Möchtest du alle deine benutzerdefinierten Boxen löschen und das Layout auf den Standard-Pokédex zurücksetzen? Deine gefangenen Pokémon bleiben dabei erhalten!';
+	String get reset_boxes_action => 'Zurücksetzen';
+	String get reset_boxes_tooltip => 'Auf Standard zurücksetzen';
+	String get calc_gen_1 => 'Gen 1 (Rot/Blau/Gelb)';
+	String get calc_gen_2 => 'Gen 2 (Gold/Silber/Kristall)';
+	String get calc_gen_3_4 => 'Gen 3 & 4 (R/S/S/D/P/P)';
+	String get calc_gen_5 => 'Gen 5 (Schwarz/Weiß 1&2)';
+	String get calc_gen_6_7 => 'Gen 6 & 7 (X/Y/S/M)';
+	String get calc_gen_7_5 => 'Gen 7.5 (Let\'s Go)';
+	String get calc_gen_8 => 'Gen 8 (Schwert/Schild)';
+	String get calc_gen_8_5 => 'Gen 8.5 (Legenden: Arceus)';
+	String get calc_gen_9 => 'Gen 9 (Karmesin/Purpur)';
+	String get calc_gen_9_5 => 'Gen 9.5 (Legenden: Z-A)';
+	String get calc_mult_under_30 => '< 30 gefangen (0.0x)';
+	String get calc_mult_30_plus => '30+ gefangen (0.5x)';
+	String get calc_mult_150_plus => '150+ gefangen (1.0x)';
+	String get calc_mult_300_plus => '300+ gefangen (1.5x)';
+	String get calc_mult_450_plus => '450+ gefangen (2.0x)';
+	String get calc_mult_600_plus => '600+ gefangen (2.5x)';
+	String get no_older_versions => 'Keine älteren Versionen gefunden.';
+	String get select_pokemon_warning => 'Bitte ein Pokémon auswählen';
+	String get please_login_first => 'Bitte logge dich zuerst ein!';
+	String get hunt_game_label => 'Spiel: {game} (Gen {gen})';
+	String get change_btn => 'Ändern';
+	String get moved_successfully => 'Erfolgreich verschoben.';
+	String get deleted_successfully => 'Erfolgreich gelöscht.';
+	String get items_deleted => 'Elemente gelöscht.';
+	String get create_new_pokedex => 'Neuen Pokédex erstellen';
 }
 
 // Path: <root>
@@ -3898,6 +3935,43 @@ class _StringsEn extends Translations {
 	@override String get status => 'Change Status';
 	@override String get tutorial_wrong_tap => 'Click directly on the highlighted area!';
 	@override String get unknown => 'Unknown';
+	@override String get sort_most_caught => 'Most Caught';
+	@override String get sort_by_region => 'By Region';
+	@override String get move_tooltip => 'Move';
+	@override String get delete_tooltip => 'Delete';
+	@override String get no_dexes_to_export => 'No dexes found in selection to export.';
+	@override String get menu_edit => 'Edit';
+	@override String get menu_move => 'Move...';
+	@override String get menu_delete => 'Delete';
+	@override String get reset_boxes_title => 'Reset Boxes?';
+	@override String get reset_boxes_content => 'Do you want to delete all custom boxes and reset the layout to default Pokédex order? Caught Pokémon will remain safe!';
+	@override String get reset_boxes_action => 'Reset';
+	@override String get reset_boxes_tooltip => 'Reset to Default';
+	@override String get calc_gen_1 => 'Gen 1 (Red/Blue/Yellow)';
+	@override String get calc_gen_2 => 'Gen 2 (Gold/Silver/Crystal)';
+	@override String get calc_gen_3_4 => 'Gen 3 & 4 (R/S/E/D/P/Pt)';
+	@override String get calc_gen_5 => 'Gen 5 (Black/White 1&2)';
+	@override String get calc_gen_6_7 => 'Gen 6 & 7 (X/Y/S/M)';
+	@override String get calc_gen_7_5 => 'Gen 7.5 (Let\'s Go)';
+	@override String get calc_gen_8 => 'Gen 8 (Sword/Shield)';
+	@override String get calc_gen_8_5 => 'Gen 8.5 (Legends: Arceus)';
+	@override String get calc_gen_9 => 'Gen 9 (Scarlet/Violet)';
+	@override String get calc_gen_9_5 => 'Gen 9.5 (Legends: Z-A)';
+	@override String get calc_mult_under_30 => '< 30 caught (0.0x)';
+	@override String get calc_mult_30_plus => '30+ caught (0.5x)';
+	@override String get calc_mult_150_plus => '150+ caught (1.0x)';
+	@override String get calc_mult_300_plus => '300+ caught (1.5x)';
+	@override String get calc_mult_450_plus => '450+ caught (2.0x)';
+	@override String get calc_mult_600_plus => '600+ caught (2.5x)';
+	@override String get no_older_versions => 'No older versions found.';
+	@override String get select_pokemon_warning => 'Please select a Pokémon';
+	@override String get please_login_first => 'Please log in first!';
+	@override String get hunt_game_label => 'Game: {game} (Gen {gen})';
+	@override String get change_btn => 'Change';
+	@override String get moved_successfully => 'Successfully moved.';
+	@override String get deleted_successfully => 'Successfully deleted.';
+	@override String get items_deleted => 'Items deleted.';
+	@override String get create_new_pokedex => 'Create new Pokédex';
 }
 
 /// Flat map(s) containing all translations.
@@ -5767,6 +5841,43 @@ extension on Translations {
 			case 'status': return 'Status ändern';
 			case 'tutorial_wrong_tap': return 'Klick direkt auf den markierten Bereich!';
 			case 'unknown': return 'Unbekannt';
+			case 'sort_most_caught': return 'Meiste Gefangen';
+			case 'sort_by_region': return 'Nach Region';
+			case 'move_tooltip': return 'Verschieben';
+			case 'delete_tooltip': return 'Löschen';
+			case 'no_dexes_to_export': return 'Keine Dexe zum Exportieren in der Auswahl gefunden.';
+			case 'menu_edit': return 'Bearbeiten';
+			case 'menu_move': return 'Verschieben...';
+			case 'menu_delete': return 'Löschen';
+			case 'reset_boxes_title': return 'Boxen zurücksetzen?';
+			case 'reset_boxes_content': return 'Möchtest du alle deine benutzerdefinierten Boxen löschen und das Layout auf den Standard-Pokédex zurücksetzen? Deine gefangenen Pokémon bleiben dabei erhalten!';
+			case 'reset_boxes_action': return 'Zurücksetzen';
+			case 'reset_boxes_tooltip': return 'Auf Standard zurücksetzen';
+			case 'calc_gen_1': return 'Gen 1 (Rot/Blau/Gelb)';
+			case 'calc_gen_2': return 'Gen 2 (Gold/Silber/Kristall)';
+			case 'calc_gen_3_4': return 'Gen 3 & 4 (R/S/S/D/P/P)';
+			case 'calc_gen_5': return 'Gen 5 (Schwarz/Weiß 1&2)';
+			case 'calc_gen_6_7': return 'Gen 6 & 7 (X/Y/S/M)';
+			case 'calc_gen_7_5': return 'Gen 7.5 (Let\'s Go)';
+			case 'calc_gen_8': return 'Gen 8 (Schwert/Schild)';
+			case 'calc_gen_8_5': return 'Gen 8.5 (Legenden: Arceus)';
+			case 'calc_gen_9': return 'Gen 9 (Karmesin/Purpur)';
+			case 'calc_gen_9_5': return 'Gen 9.5 (Legenden: Z-A)';
+			case 'calc_mult_under_30': return '< 30 gefangen (0.0x)';
+			case 'calc_mult_30_plus': return '30+ gefangen (0.5x)';
+			case 'calc_mult_150_plus': return '150+ gefangen (1.0x)';
+			case 'calc_mult_300_plus': return '300+ gefangen (1.5x)';
+			case 'calc_mult_450_plus': return '450+ gefangen (2.0x)';
+			case 'calc_mult_600_plus': return '600+ gefangen (2.5x)';
+			case 'no_older_versions': return 'Keine älteren Versionen gefunden.';
+			case 'select_pokemon_warning': return 'Bitte ein Pokémon auswählen';
+			case 'please_login_first': return 'Bitte logge dich zuerst ein!';
+			case 'hunt_game_label': return 'Spiel: {game} (Gen {gen})';
+			case 'change_btn': return 'Ändern';
+			case 'moved_successfully': return 'Erfolgreich verschoben.';
+			case 'deleted_successfully': return 'Erfolgreich gelöscht.';
+			case 'items_deleted': return 'Elemente gelöscht.';
+			case 'create_new_pokedex': return 'Neuen Pokédex erstellen';
 			default: return null;
 		}
 	}
@@ -7636,6 +7747,43 @@ extension on _StringsEn {
 			case 'status': return 'Change Status';
 			case 'tutorial_wrong_tap': return 'Click directly on the highlighted area!';
 			case 'unknown': return 'Unknown';
+			case 'sort_most_caught': return 'Most Caught';
+			case 'sort_by_region': return 'By Region';
+			case 'move_tooltip': return 'Move';
+			case 'delete_tooltip': return 'Delete';
+			case 'no_dexes_to_export': return 'No dexes found in selection to export.';
+			case 'menu_edit': return 'Edit';
+			case 'menu_move': return 'Move...';
+			case 'menu_delete': return 'Delete';
+			case 'reset_boxes_title': return 'Reset Boxes?';
+			case 'reset_boxes_content': return 'Do you want to delete all custom boxes and reset the layout to default Pokédex order? Caught Pokémon will remain safe!';
+			case 'reset_boxes_action': return 'Reset';
+			case 'reset_boxes_tooltip': return 'Reset to Default';
+			case 'calc_gen_1': return 'Gen 1 (Red/Blue/Yellow)';
+			case 'calc_gen_2': return 'Gen 2 (Gold/Silver/Crystal)';
+			case 'calc_gen_3_4': return 'Gen 3 & 4 (R/S/E/D/P/Pt)';
+			case 'calc_gen_5': return 'Gen 5 (Black/White 1&2)';
+			case 'calc_gen_6_7': return 'Gen 6 & 7 (X/Y/S/M)';
+			case 'calc_gen_7_5': return 'Gen 7.5 (Let\'s Go)';
+			case 'calc_gen_8': return 'Gen 8 (Sword/Shield)';
+			case 'calc_gen_8_5': return 'Gen 8.5 (Legends: Arceus)';
+			case 'calc_gen_9': return 'Gen 9 (Scarlet/Violet)';
+			case 'calc_gen_9_5': return 'Gen 9.5 (Legends: Z-A)';
+			case 'calc_mult_under_30': return '< 30 caught (0.0x)';
+			case 'calc_mult_30_plus': return '30+ caught (0.5x)';
+			case 'calc_mult_150_plus': return '150+ caught (1.0x)';
+			case 'calc_mult_300_plus': return '300+ caught (1.5x)';
+			case 'calc_mult_450_plus': return '450+ caught (2.0x)';
+			case 'calc_mult_600_plus': return '600+ caught (2.5x)';
+			case 'no_older_versions': return 'No older versions found.';
+			case 'select_pokemon_warning': return 'Please select a Pokémon';
+			case 'please_login_first': return 'Please log in first!';
+			case 'hunt_game_label': return 'Game: {game} (Gen {gen})';
+			case 'change_btn': return 'Change';
+			case 'moved_successfully': return 'Successfully moved.';
+			case 'deleted_successfully': return 'Successfully deleted.';
+			case 'items_deleted': return 'Items deleted.';
+			case 'create_new_pokedex': return 'Create new Pokédex';
 			default: return null;
 		}
 	}

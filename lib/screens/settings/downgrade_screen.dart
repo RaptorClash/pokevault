@@ -56,8 +56,8 @@ class _DowngradeScreenState extends State<DowngradeScreen> {
               child: Text('${t.error} ${snapshot.error}'),
             );
           } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return const Center(
-              child: Text('Keine älteren Versionen gefunden.'),
+            return Center(
+              child: Text(t.no_older_versions),
             );
           }
 

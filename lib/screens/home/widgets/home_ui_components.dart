@@ -93,19 +93,19 @@ class FolderCard extends StatelessWidget {
                     if (val == 'delete') onDelete();
                   },
                   itemBuilder: (context) => [
-                    const PopupMenuItem(
+                    PopupMenuItem(
                       value: 'rename',
-                      child: Text('Umbenennen'),
+                      child: Text(t.action_rename),
                     ),
-                    const PopupMenuItem(
+                    PopupMenuItem(
                       value: 'move',
-                      child: Text('Verschieben...'),
+                      child: Text(t.menu_move),
                     ),
-                    const PopupMenuItem(
+                    PopupMenuItem(
                       value: 'delete',
                       child: Text(
-                        'Löschen',
-                        style: TextStyle(color: Colors.red),
+                        t.menu_delete,
+                        style: const TextStyle(color: Colors.red),
                       ),
                     ),
                   ],
@@ -239,33 +239,33 @@ class DexCard extends StatelessWidget {
                       ],
                     ),
                   ),
-                  const PopupMenuItem(
+                  PopupMenuItem(
                     value: 'edit',
                     child: Row(
                       children: [
-                        Icon(Icons.edit, size: 20),
-                        SizedBox(width: 8),
-                        Text('Bearbeiten'),
+                        const Icon(Icons.edit, size: 20),
+                        const SizedBox(width: 8),
+                        Text(t.menu_edit),
                       ],
                     ),
                   ),
-                  const PopupMenuItem(
+                  PopupMenuItem(
                     value: 'move',
                     child: Row(
                       children: [
-                        Icon(Icons.drive_file_move_outline, size: 20),
-                        SizedBox(width: 8),
-                        Text('Verschieben...'),
+                        const Icon(Icons.drive_file_move_outline, size: 20),
+                        const SizedBox(width: 8),
+                        Text(t.menu_move),
                       ],
                     ),
                   ),
-                  const PopupMenuItem(
+                  PopupMenuItem(
                     value: 'delete',
                     child: Row(
                       children: [
-                        Icon(Icons.delete, size: 20, color: Colors.red),
-                        SizedBox(width: 8),
-                        Text('Löschen', style: TextStyle(color: Colors.red)),
+                        const Icon(Icons.delete, size: 20, color: Colors.red),
+                        const SizedBox(width: 8),
+                        Text(t.menu_delete, style: const TextStyle(color: Colors.red)),
                       ],
                     ),
                   ),
@@ -403,7 +403,7 @@ class _HomeBottomSheetMenuState extends State<HomeBottomSheetMenu> {
         ListTile(
           key: _createDexKey,
           leading: const Icon(Icons.catching_pokemon, color: Colors.red),
-          title: const Text('Neuen Pokédex erstellen'),
+          title: Text(t.create_new_pokedex),
           onTap: () {
             Navigator.pop(context);
             if (widget.onDexCreate != null) {

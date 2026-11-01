@@ -1,167 +1,169 @@
 # PokéVault Database Generation Pipeline (`tool/data_pipeline/`)
 
-Dieses Verzeichnis enthält die vollständige Offline-Daten-Pipeline zur Erstellung und Optimierung der SQLite-Referenzdatenbank `assets/db/pokedex.sqlite` für PokéVault.
+> **Languages:** 🇬🇧 [English](README.md) | 🇩🇪 [Deutsch](README.de.md)
+
+This directory contains the complete offline data pipeline for compiling and optimizing the SQLite reference database `assets/db/pokedex.sqlite` for PokéVault.
 
 ---
 
-## 1. Übersicht & Zielsetzung
+## 1. Overview & Objectives
 
-PokéVault arbeitet nach einem **Offline-First**-Prinzip. Alle statischen Franchise-Daten (Pokémon-Basiswerte, alternative Formen, Fangraten, Bänder, Attacken-Learnsets, Fundorte, Shiny-Locks und passende Bälle) werden zur Build-Zeit in einer SQLite-Datenbank voraggregiert und mit der App ausgeliefert.
+PokéVault is built around an **Offline-First** philosophy. All static franchise data (base stats, alternative forms, catch rates, ribbons, marks, move learnsets, encounters, shiny locks, and matching Pokéballs) are pre-aggregated at build time into an SQLite database bundled directly with the application.
 
-Dadurch entfallen langsame API-Abfragen zur Laufzeit und Nutzer können die App überall ohne Internetverbindung verwenden.
+This eliminates slow runtime API calls and allows trainers to use PokéVault anywhere without requiring an active internet connection.
 
 ---
 
-## 2. Systemanforderungen & Setup
+## 2. Requirements & Setup
 
-- **Python 3.10 oder höher**
-- **Git** mit Submodul-Unterstützung
-- Erforderliche Python-Pakete installieren:
+- **Python 3.10 or higher**
+- **Git** with submodule support
+- Install required Python dependencies:
   ```bash
   pip install beautifulsoup4 openpyxl requests
   ```
-- Git-Submodule initialisieren:
+- Initialize Git submodules:
   ```bash
   git submodule update --init --recursive
   ```
 
 ---
 
-## 3. Datenquellen & Verzeichnisstruktur
+## 3. Data Sources & Directory Structure
 
-Die Pipeline führt Daten aus mehreren vertrauenswürdigen Quellen zusammen:
+The pipeline merges data from several authoritative sources:
 
 ```
 tool/data_pipeline/
-├── run_pipeline.py                 # All-in-One Runner: Führt alle Schritte nacheinander aus
-├── build_database.py               # Hauptskript zur Datenbank-Kompilierung
-├── database_constants.py           # Typen, Generationen-Mappings & ID-Konstanten
-├── update_evolutions_db.py         # Skript für komplexe Entwicklungsbäume
-├── update_cap_locks_and_trades.py  # Skript für Kappen-, Cosplay- & Tausch-Locks
-├── optimize_databases.py           # Indexierung, PRAGMA ANALYZE & VACUUM
-├── api-data/                       # Git-Submodul: Offizieller PokeAPI JSON-Dump
-├── ribbons_guide/                  # Git-Submodul: Ribbons.Guide Referenz
-├── Legal_Matching_Pokeballs.xlsx   # Community-Excel mit legalen Ball-Kombinationen
-├── custom_encounters.json          # Manuelle Ergänzungen für Fundorte
-├── custom_matching_balls.json      # Manuelle Overrides für empfohlene Bälle
-└── *.html                          # Offline HTML-Caches (Bulbapedia, PokéWiki, Bisafans)
+├── run_pipeline.py                 # All-in-One Runner: Executes all steps sequentially
+├── build_database.py               # Main compilation script
+├── database_constants.py           # Types, generation mappings & ID constants
+├── update_evolutions_db.py         # Script for complex evolution trees
+├── update_cap_locks_and_trades.py  # Script for cap, cosplay & in-game trade locks
+├── optimize_databases.py           # Indexing, PRAGMA ANALYZE & VACUUM
+├── api-data/                       # Git submodule: Official PokeAPI JSON dump
+├── ribbons_guide/                  # Git submodule: Ribbons.Guide reference
+├── Legal_Matching_Pokeballs.xlsx   # Community spreadsheet with legal ball combinations
+├── custom_encounters.json          # Manual encounter overrides and additions
+├── custom_matching_balls.json      # Manual overrides for recommended matching balls
+└── *.html                          # Offline HTML caches (Bulbapedia, PokéWiki, Bisafans)
 ```
 
 1. **[PokeAPI](https://pokeapi.co/) (`api-data/`)**:
-   - Bereitstellung strukturierter JSON-Dateien für Pokémon-Stammdaten, Basiswerte, Typen, Fähigkeiten, Attacken-Learnsets und Entwicklungen.
+   - Provides structured JSON files for Pokémon base data, stats, types, abilities, moves, and evolutions.
 2. **[PokéWiki](https://www.pokewiki.de/) (`*.html`)**:
-   - Deutsche Namen, Bänder- & Zeichenbeschreibungen (`Liste aller Bänder`, `Zeichen`), Geschlechtsunterschiede und Schillernde Pokémon.
+   - German names, ribbon & mark descriptions, gender differences, and shiny Pokémon.
 3. **[Bulbapedia](https://bulbapedia.bulbagarden.net/) (`*.html`)**:
-   - Globale Bänder-Listen, In-Game-Trades und Gift-Pokémon über alle Generationen (als Offline-HTML gesichert).
+   - Global ribbon lists, in-game trades, and gift Pokémon across all generations (stored as offline HTML caches).
 4. **[Bisafans](https://www.bisafans.de/) (`*.html`)**:
-   - Detaillierte Listen editionsspezifischer Geschenke und Tausche von Kanto bis Paldea und Z-A.
+   - Detailed edition-specific gift and trade tables from Kanto to Paldea and Z-A.
 5. **Community Spreadsheet (`Legal_Matching_Pokeballs.xlsx`)**:
-   - Detaillierte Matrix aller fangbaren Pokémon je Edition und passender Pokéball-Ästhetik.
+   - Detailed matrix of all catchable Pokémon per edition and their matching aesthetic Pokéballs.
 
 ---
 
-## 4. Schnelle Gesamtausführung (All-in-One Runner)
+## 4. Quick Execution (All-in-One Runner)
 
-Um die gesamte Pipeline mit allen Skripten in der korrekten Reihenfolge mit einem einzigen Befehl auszuführen, nutze `run_pipeline.py`:
+To run the entire pipeline with all scripts in the correct order with a single command, execute `run_pipeline.py`:
 
 ```bash
-# Gesamte Pipeline ausführen (Downloads + Submodule + DB Build + Optimierung):
+# Run full pipeline (downloads + submodules + DB build + optimization):
 python tool/data_pipeline/run_pipeline.py
 
-# Alternativ: Nur Datenbank kompilieren & optimieren (ohne erneutes Web-Scraping):
+# Alternatively: Compile & optimize DB only (without re-scraping web data):
 python tool/data_pipeline/run_pipeline.py --skip-download
 ```
 
-Dieser Runner kümmert sich automatisch um:
-1. `update_data.py` (externe Daten & Git-Submodule aktualisieren)
-2. `build_database.py` (`assets/db/pokedex.sqlite` generieren)
-3. `update_evolutions_db.py` (Evolutionsbäume anreichern)
-4. `update_cap_locks_and_trades.py` (Kappen-, Cosplay- & Tausch-Locks einpflegen)
-5. `optimize_databases.py` (Covering-Indizes erstellen, `ANALYZE`, `VACUUM`)
+This runner automatically handles:
+1. `update_data.py` (updates external data & Git submodules)
+2. `build_database.py` (generates `assets/db/pokedex.sqlite`)
+3. `update_evolutions_db.py` (enriches evolution branching)
+4. `update_cap_locks_and_trades.py` (inserts cap Pikachu, cosplay forms & trade locks)
+5. `optimize_databases.py` (creates covering indexes, `ANALYZE`, `VACUUM`)
 
 ---
 
-## 5. Manueller Ablauf (Einzelschritte)
+## 5. Manual Execution (Step-by-Step)
 
-Falls einzelne Skripte manuell ausgeführt werden sollen:
+If individual scripts need to be run separately:
 
-### Schritt 1: Externe Rohdaten & Submodule aktualisieren
+### Step 1: Update external raw data & submodules
 ```bash
 python update_data.py
 ```
-*Lädt aktuelle HTML-Caches herunter, zieht die neueste `Legal_Matching_Pokeballs.xlsx` und bringt das `api-data` Submodul auf den neuesten Stand.*
+*Downloads fresh HTML caches, fetches the latest `Legal_Matching_Pokeballs.xlsx`, and brings the `api-data` submodule up to date.*
 
-### Schritt 2: SQLite-Hauptdatenbank bauen
+### Step 2: Build main SQLite database
 ```bash
 python tool/data_pipeline/build_database.py
 ```
-*Erstellt `assets/db/pokedex.sqlite`, liest alle 1.025+ Pokémon und 250+ Formen ein und aggregiert über 500 Shiny-Locks.*
+*Generates `assets/db/pokedex.sqlite`, parsing all 1,025+ Pokémon and 250+ forms while aggregating over 500 shiny locks.*
 
-### Schritt 3: Entwicklungsbäume anreichern
+### Step 3: Enrich evolution trees
 ```bash
 python tool/data_pipeline/update_evolutions_db.py
 ```
-*Berechnet Entwicklungsbäume, Verzweigungen und Auslöser.*
+*Computes branching evolution paths, requirements, and triggers.*
 
-### Schritt 4: Kappen-, Cosplay- & Tausch-Locks einpflegen
+### Step 4: Add cap, cosplay & trade locks
 ```bash
 python tool/data_pipeline/update_cap_locks_and_trades.py
 ```
-*Pflegt Kappen-Pikachu, Cosplay-Formen und Tausche in `assets/db/pokedex.sqlite` und `database/pokedex.sqlite` ein.*
+*Applies cap Pikachu forms, cosplay variants, and gift/trade locks into `assets/db/pokedex.sqlite` and `database/pokedex.sqlite`.*
 
-### Schritt 5: Indizes erstellen, Optimieren & VACUUM
+### Step 5: Create indexes, optimize & VACUUM
 ```bash
 python tool/data_pipeline/optimize_databases.py
 ```
-*Erstellt Covering-Indizes, führt `ANALYZE`, `PRAGMA optimize;` und `VACUUM` aus.*
+*Creates covering indexes, executes `ANALYZE`, `PRAGMA optimize;`, and `VACUUM`.*
 
 ---
 
-## 6. Tabellen-Übersicht in `pokedex.sqlite`
+## 6. Table Overview in `pokedex.sqlite`
 
-| Tabelle | Beschreibung | Wichtige Indizes |
+| Table | Description | Key Indexes |
 |---|---|---|
-| `pokemon` | Basisdaten aller 1.025+ Pokémon | `PRIMARY KEY (id)` |
-| `forms` | Alternative Formen, Mega, G-Max, Regional | `idx_forms_poke (pokemon_id)` |
-| `dex_orders` | Regionale Pokédex-Reihenfolgen | `idx_dex_orders_poke_dex (pokemon_id, dex_name, order_index)` |
-| `special_dexes` | Spezial-Dexe (z. B. Legendary, Ultra Beasts) | `idx_special_dexes_poke_dex (pokemon_id, dex_name)` |
-| `pokemon_moves` | Attacken-Learnsets aller Versionen | `idx_pokemon_moves_poke (pokemon_id, version_group)` |
-| `pokemon_abilities` | Fähigkeiten & Hidden Abilities | `idx_pokemon_abilities_poke (pokemon_id)` |
-| `encounters` | Fundorte und Begegnungstypen | `idx_encounters_poke (pokemon_id, version_group)` |
-| `evolutions` | Vollständige Entwicklungsbäume | `PRIMARY KEY (species_id)` |
-| `ribbons` | Bänder aller Generationen | `PRIMARY KEY (id)` |
-| `marks` | Zeichen aller Editionen | `PRIMARY KEY (id)` |
-| `shiny_locks` | Sämtliche Shiny-Locks (Global & Edition) | `PRIMARY KEY (pokemon_id, form_name, game_version)` |
-| `legal_balls` | Legale Pokébälle je Pokémon & Edition | `idx_legal_balls_poke (pokemon_id, gen)` |
+| `pokemon` | Core stats and data for all 1,025+ Pokémon | `PRIMARY KEY (id)` |
+| `forms` | Alternative, Mega, G-Max, and Regional forms | `idx_forms_poke (pokemon_id)` |
+| `dex_orders` | Regional Pokédex ordering | `idx_dex_orders_poke_dex (pokemon_id, dex_name, order_index)` |
+| `special_dexes` | Special categorization (e.g. Legendary, Ultra Beasts) | `idx_special_dexes_poke_dex (pokemon_id, dex_name)` |
+| `pokemon_moves` | Move learnsets across all version groups | `idx_pokemon_moves_poke (pokemon_id, version_group)` |
+| `pokemon_abilities` | Standard and hidden abilities | `idx_pokemon_abilities_poke (pokemon_id)` |
+| `encounters` | In-game encounter locations and methods | `idx_encounters_poke (pokemon_id, version_group)` |
+| `evolutions` | Complete evolution chain hierarchies | `PRIMARY KEY (species_id)` |
+| `ribbons` | Ribbons across all generations | `PRIMARY KEY (id)` |
+| `marks` | Marks across all mainline games | `PRIMARY KEY (id)` |
+| `shiny_locks` | All global and game-specific shiny locks | `PRIMARY KEY (pokemon_id, form_name, game_version)` |
+| `legal_balls` | Legal Pokéballs per Pokémon and edition | `idx_legal_balls_poke (pokemon_id, gen)` |
 
 ---
 
-## 7. Verifikation & Qualitätssicherung
+## 7. Verification & Quality Assurance
 
-Nach jeder Ausführung der Pipeline muss sichergestellt werden, dass die generierte Datenbank vollständig und fehlerfrei ist:
+After running the pipeline, verify that the compiled database is complete and passes all tests:
 
 ```powershell
-# 1. Datenbank-spezifische Tests ausführen
+# 1. Run database-specific tests
 flutter test test/db/
 
-# 2. Shiny-Lock Tests ausführen
+# 2. Run Shiny Lock tests
 flutter test test/services/shiny_lock_service_test.dart
 flutter test test/screens/pokemon_info/shiny_lock_ui_test.dart
 
-# 3. Fangraten- & Matching-Ball Tests
+# 3. Run Catch Rate & Matching Ball tests
 flutter test test/screens/pokemon_info/catch_rate_calculator_test.dart
 ```
 
 ---
 
-## 8. Pfad- & Entwicklungskonventionen
+## 8. Path & Development Conventions
 
-Alle Skripte in diesem Verzeichnis nutzen dynamische, relative Pfadauflösung:
+All scripts in this directory resolve paths dynamically:
 ```python
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent
 REPO_ROOT = BASE_DIR.parent.parent
 ```
-- Niemals absolute Betriebssystem-Pfade hardcoden.
-- Keine temporären JSON-Dateien in `assets/data/` ablegen; alle statischen Daten gehören direkt in die relationale SQLite-Datenbank `assets/db/pokedex.sqlite`.
+- Never hardcode absolute operating system paths.
+- Do not store temporary JSON files in `assets/data/`; all static data belongs in the relational SQLite database `assets/db/pokedex.sqlite`.

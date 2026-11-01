@@ -102,28 +102,39 @@ class PokedexApp extends StatelessWidget {
           canRequestFocus: false,
           onKeyEvent: (node, event) {
             if (event is KeyDownEvent) {
+              final currentFocus = FocusManager.instance.primaryFocus;
+              bool isTextFieldActive = false;
+
+              if (currentFocus != null && currentFocus.context != null) {
+                isTextFieldActive =
+                    currentFocus.context!.widget is EditableText ||
+                    currentFocus.context!
+                            .findAncestorWidgetOfExactType<EditableText>() !=
+                        null ||
+                    currentFocus.context!
+                            .findAncestorWidgetOfExactType<TextField>() !=
+                        null;
+              }
+
+              if (event.logicalKey == LogicalKeyboardKey.escape) {
+                if (isTextFieldActive) {
+                  currentFocus?.unfocus();
+                  return KeyEventResult.handled;
+                }
+                if (appNavigatorKey.currentState?.canPop() ?? false) {
+                  appNavigatorKey.currentState?.maybePop();
+                  return KeyEventResult.handled;
+                }
+              }
+
               if (event.logicalKey == LogicalKeyboardKey.backspace ||
                   event.logicalKey == LogicalKeyboardKey.browserBack) {
-                final currentFocus = FocusManager.instance.primaryFocus;
-                bool isTextFieldActive = false;
-
-                if (currentFocus != null && currentFocus.context != null) {
-                  isTextFieldActive =
-                      currentFocus.context!.widget is EditableText ||
-                      currentFocus.context!
-                              .findAncestorWidgetOfExactType<EditableText>() !=
-                          null ||
-                      currentFocus.context!
-                              .findAncestorWidgetOfExactType<TextField>() !=
-                          null;
-                }
-
                 if (isTextFieldActive) {
                   return KeyEventResult.ignored;
                 }
 
                 if (appNavigatorKey.currentState?.canPop() ?? false) {
-                  appNavigatorKey.currentState?.pop();
+                  appNavigatorKey.currentState?.maybePop();
                   return KeyEventResult.handled;
                 }
               }

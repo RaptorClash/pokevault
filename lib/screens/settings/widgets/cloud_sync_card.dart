@@ -186,7 +186,7 @@ class _CloudSyncCardState extends State<CloudSyncCard> {
                         onPressed: () async {
                           if (!GoogleDriveSyncService.instance.isSignedIn) {
                             NotificationHelper.showWarning(
-                              "Bitte logge dich zuerst ein!",
+                              t.please_login_first,
                             );
                             return;
                           }

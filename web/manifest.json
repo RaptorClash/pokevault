@@ -1,11 +1,11 @@
 {
-    "name": "pokedex_app",
-    "short_name": "pokedex_app",
+    "name": "PokéVault",
+    "short_name": "PokéVault",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "background_color": "#F7F7F8",
+    "theme_color": "#E53935",
+    "description": "PokéVault - Your Ultimate Pokémon Companion for Living Dex, Shiny Hunting & Stats",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [
