@@ -1,5 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../../../../providers/settings_provider.dart';
 import '../../../../i18n/strings.g.dart';
 import '../../../../models/dex_view_models.dart';
 import '../../../../models/pokemon.dart';
@@ -70,8 +72,18 @@ class PokemonSearchTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isEn = LocaleSettings.currentLocale == AppLocale.en;
-    final name = isEn ? pokemon.nameEn : pokemon.nameDe;
+    String pokeLang = 'en';
+    try {
+      final settings = context.watch<SettingsProvider>();
+      pokeLang = settings.effectivePokemonLanguage;
+    } catch (_) {
+      try {
+        pokeLang = context.read<SettingsProvider>().currentLanguage;
+      } catch (_) {
+        pokeLang = LocaleSettings.currentLocale == AppLocale.en ? 'en' : 'de';
+      }
+    }
+    final name = pokemon.getName(pokeLang);
     final effectiveTypes = types ??
         (pokemon.forms.isNotEmpty && pokemon.forms.first.types.isNotEmpty
             ? pokemon.forms.first.types

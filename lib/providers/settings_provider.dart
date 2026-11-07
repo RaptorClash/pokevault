@@ -3,7 +3,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../i18n/strings.g.dart';
 import '../i18n/language_registry.g.dart';
 import '../services/google_drive_sync_service.dart';
-import 'dart:ui' as ui;
 
 /// Provider managing persistent user preferences such as theme, language, and cloud credentials.
 ///
@@ -76,14 +75,24 @@ class SettingsProvider with ChangeNotifier {
     if (prefs.containsKey('language')) {
       currentLanguage = prefs.getString('language')!;
     } else {
-      final deviceLanguageCode =
-          ui.PlatformDispatcher.instance.locale.languageCode;
+      final locale = WidgetsBinding.instance.platformDispatcher.locale;
+      String? matchedCode;
 
-      if (deviceLanguageCode == 'de') {
-        currentLanguage = 'de';
-      } else {
-        currentLanguage = 'en';
+      if (locale.scriptCode != null && locale.scriptCode!.isNotEmpty) {
+        matchedCode = LanguageRegistry.findByCode(
+          '${locale.languageCode}-${locale.scriptCode}',
+        )?.code;
       }
+      if (matchedCode == null &&
+          locale.countryCode != null &&
+          locale.countryCode!.isNotEmpty) {
+        matchedCode = LanguageRegistry.findByCode(
+          '${locale.languageCode}-${locale.countryCode}',
+        )?.code;
+      }
+      matchedCode ??= LanguageRegistry.findByCode(locale.languageCode)?.code;
+
+      currentLanguage = matchedCode ?? 'en';
       await prefs.setString('language', currentLanguage);
     }
 

@@ -9,6 +9,8 @@ import 'package:pokevault/providers/dex_provider.dart';
 import 'package:pokevault/providers/settings_provider.dart';
 import 'package:pokevault/providers/tutorial_provider.dart';
 import 'package:pokevault/screens/dex/dex_list_view.dart';
+import 'package:pokevault/screens/dex/pokemon_search_selection.dart';
+import 'package:pokevault/screens/dex/widgets/search/pokemon_search_tile.dart';
 import 'package:pokevault/screens/pokemon_info/widgets/pokemon_info_widgets.dart';
 
 class MockDexProvider extends Mock implements DexProvider {}
@@ -137,6 +139,83 @@ void main() {
       // Must display French name 'Bulbizarre', NOT German name 'Bisasam'
       expect(find.text('Bulbizarre'), findsOneWidget);
       expect(find.text('Bisasam'), findsNothing);
+    });
+
+    testWidgets('PokemonSearchTile renders pokemon name using effectivePokemonLanguage (Japanese)', (tester) async {
+      when(() => mockSettingsProvider.currentLanguage).thenReturn('de');
+      when(() => mockSettingsProvider.pokemonLanguage).thenReturn('ja');
+      when(() => mockSettingsProvider.effectivePokemonLanguage).thenReturn('ja');
+
+      await tester.pumpWidget(createTestWidget(
+        PokemonSearchTile(
+          pokemon: bulbasaur,
+          entry: bulbasaurEntry,
+          onTap: () {},
+        ),
+      ));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 50));
+
+      // Must display Japanese name 'フシギダネ', NOT 'Bisasam'
+      expect(find.text('フシギダネ'), findsOneWidget);
+      expect(find.text('Bisasam'), findsNothing);
+    });
+
+    testWidgets('PokemonSearchTile renders pokemon name using effectivePokemonLanguage (French)', (tester) async {
+      when(() => mockSettingsProvider.currentLanguage).thenReturn('de');
+      when(() => mockSettingsProvider.pokemonLanguage).thenReturn('fr');
+      when(() => mockSettingsProvider.effectivePokemonLanguage).thenReturn('fr');
+
+      await tester.pumpWidget(createTestWidget(
+        PokemonSearchTile(
+          pokemon: bulbasaur,
+          entry: bulbasaurEntry,
+          onTap: () {},
+        ),
+      ));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 50));
+
+      // Must display French name 'Bulbizarre', NOT 'Bisasam'
+      expect(find.text('Bulbizarre'), findsOneWidget);
+      expect(find.text('Bisasam'), findsNothing);
+    });
+
+    testWidgets('PokemonSearchSelectionScreen filters matching Pokemon by multi-language names', (tester) async {
+      when(() => mockSettingsProvider.currentLanguage).thenReturn('fr');
+      when(() => mockSettingsProvider.pokemonLanguage).thenReturn('fr');
+      when(() => mockSettingsProvider.effectivePokemonLanguage).thenReturn('fr');
+
+      await tester.pumpWidget(createTestWidget(
+        PokemonSearchSelectionScreen(
+          allAvailableEntries: [bulbasaurEntry],
+        ),
+      ));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 50));
+
+      // Enter French search query 'Bulbizarre'
+      final searchField = find.byType(TextField);
+      expect(searchField, findsOneWidget);
+      await tester.enterText(searchField, 'bulbizarre');
+      await tester.pump(const Duration(milliseconds: 250));
+      await tester.pumpAndSettle();
+
+      // Bulbasaur tile should still be in filtered results
+      expect(find.byType(PokemonSearchTile), findsOneWidget);
+      expect(find.text('Bulbizarre'), findsOneWidget);
+
+      // Enter Japanese search query 'フシギダネ'
+      await tester.enterText(searchField, 'フシギダネ');
+      await tester.pump(const Duration(milliseconds: 250));
+      await tester.pumpAndSettle();
+      expect(find.byType(PokemonSearchTile), findsOneWidget);
+
+      // Enter query that does not match any name
+      await tester.enterText(searchField, 'nonexistentpoke');
+      await tester.pump(const Duration(milliseconds: 250));
+      await tester.pumpAndSettle();
+      expect(find.byType(PokemonSearchTile), findsNothing);
     });
   });
 }

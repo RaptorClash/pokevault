@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../../models/pokemon.dart';
 import '../../../models/shiny_hunt.dart';
 import '../../../providers/dex_provider.dart';
+import '../../../providers/settings_provider.dart';
 import '../../../providers/shiny_hunt_provider.dart';
 import '../../../i18n/strings.g.dart';
 import '../../../widgets/universal_poke_image.dart';
@@ -41,7 +42,14 @@ class _RecordPhaseDialogState extends State<RecordPhaseDialog> {
     final dexProvider = Provider.of<DexProvider>(context);
     final userDexes = dexProvider.userDexes;
     final allPokemon = dexProvider.allPokemon;
-    final lang = LocaleSettings.currentLocale.languageCode;
+    String pokeLang = LocaleSettings.currentLocale.languageCode;
+    try {
+      final sp = Provider.of<SettingsProvider?>(context);
+      if (sp != null) {
+        final l = sp.effectivePokemonLanguage;
+        if (l.isNotEmpty) pokeLang = l;
+      }
+    } catch (_) {}
     final effectiveDexId = userDexes.any((d) => d.id == _selectedDexId)
         ? _selectedDexId
         : (userDexes.isNotEmpty ? userDexes.first.id : null);
@@ -80,7 +88,7 @@ class _RecordPhaseDialogState extends State<RecordPhaseDialog> {
 
                 // Pokémon-Suche / Autocomplete
                 Autocomplete<Pokemon>(
-                  displayStringForOption: (option) => option.getName(lang),
+                  displayStringForOption: (option) => option.getName(pokeLang),
                   optionsBuilder: (textEditingValue) {
                     final query = textEditingValue.text.trim().toLowerCase();
                     if (query.isEmpty) return const Iterable<Pokemon>.empty();
@@ -88,13 +96,14 @@ class _RecordPhaseDialogState extends State<RecordPhaseDialog> {
                       final de = p.nameDe.toLowerCase();
                       final en = p.nameEn.toLowerCase();
                       final id = p.id.toString();
-                      return de.contains(query) || en.contains(query) || id == query;
+                      final matchMulti = p.names.values.any((n) => n.toLowerCase().contains(query));
+                      return matchMulti || de.contains(query) || en.contains(query) || id == query;
                     }).take(10);
                   },
                   onSelected: (selection) {
                     setState(() {
                       _selectedPokemonId = selection.id;
-                      _selectedPokemonName = selection.getName(lang);
+                      _selectedPokemonName = selection.getName(pokeLang);
                       _pokemonNameController.text = _selectedPokemonName!;
                     });
                   },

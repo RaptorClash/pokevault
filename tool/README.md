@@ -72,7 +72,7 @@ The `translate_release_notes.py` script translates release note drafts into all 
 
 ### Usage:
 ```bash
-# 1. Write draft notes in RELEASE_NOTES_DRAFT.md
+# 1. Write draft notes in tool/RELEASE_NOTES_DRAFT.md
 # 2. Run the generator:
 python tool/translate_release_notes.py
 

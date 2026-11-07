@@ -364,8 +364,9 @@ class _RouteTrackerScreenState extends State<RouteTrackerScreen> {
   }
 
   Map<String, List<DexDisplayEntry>> _getFilteredRoutes(
-    String currentLanguage,
-  ) {
+    String currentLanguage, [
+    String? effectivePokemonLanguage,
+  ]) {
     Map<String, List<DexDisplayEntry>> map = {};
 
     for (var enc in _allEncounters) {
@@ -374,7 +375,15 @@ class _RouteTrackerScreenState extends State<RouteTrackerScreen> {
 
         if (_searchQuery.isNotEmpty) {
           final locMatch = enc.location.toLowerCase().contains(_searchQuery);
+          final pokeLang = (effectivePokemonLanguage != null &&
+                  effectivePokemonLanguage.isNotEmpty)
+              ? effectivePokemonLanguage
+              : currentLanguage;
           final pokeMatch = enc.entry.pokemon
+              .getName(pokeLang)
+              .toLowerCase()
+              .contains(_searchQuery) ||
+              enc.entry.pokemon
               .getName(currentLanguage)
               .toLowerCase()
               .contains(_searchQuery);
@@ -414,7 +423,16 @@ class _RouteTrackerScreenState extends State<RouteTrackerScreen> {
     final provider = context.watch<DexProvider>();
     final settingsProvider = context.watch<SettingsProvider>();
 
-    final routesMap = _getFilteredRoutes(settingsProvider.currentLanguage);
+    String effPokeLang = settingsProvider.currentLanguage;
+    try {
+      final l = settingsProvider.effectivePokemonLanguage;
+      if (l.isNotEmpty) effPokeLang = l;
+    } catch (_) {}
+
+    final routesMap = _getFilteredRoutes(
+      settingsProvider.currentLanguage,
+      effPokeLang,
+    );
 
     return Scaffold(
       appBar: AppBar(title: Text(t.route_tracker_title)),
@@ -482,7 +500,7 @@ class _RouteTrackerScreenState extends State<RouteTrackerScreen> {
                         ),
                         title: Text(
                           entry.pokemon.getName(
-                                settingsProvider.currentLanguage,
+                                settingsProvider.effectivePokemonLanguage,
                               ) +
                               entry.displaySuffix,
                         ),

@@ -30,7 +30,9 @@ from translate_all import (
     translate_single_string,
 )
 
-DEFAULT_DRAFT_PATH = REPO_ROOT / "RELEASE_NOTES_DRAFT.md"
+DEFAULT_DRAFT_PATH = REPO_ROOT / "tool" / "RELEASE_NOTES_DRAFT.md"
+if not DEFAULT_DRAFT_PATH.exists() and (REPO_ROOT / "RELEASE_NOTES_DRAFT.md").exists():
+    DEFAULT_DRAFT_PATH = REPO_ROOT / "RELEASE_NOTES_DRAFT.md"
 DEFAULT_OUTPUT_PATH = REPO_ROOT / "RELEASE_NOTES.md"
 
 def parse_draft_notes(content: str) -> tuple[str, str, str]:

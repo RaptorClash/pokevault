@@ -72,7 +72,7 @@ Das Skript `translate_release_notes.py` übersetzt Release-Notes-Entwürfe autom
 
 ### Verwendung:
 ```bash
-# 1. Entwurf in RELEASE_NOTES_DRAFT.md schreiben
+# 1. Entwurf in tool/RELEASE_NOTES_DRAFT.md schreiben
 # 2. Skript ausführen:
 python tool/translate_release_notes.py
 
