@@ -194,6 +194,10 @@ Widget wrapWithApp({
   final tutorialProvider = mockTutorialProvider ?? MockTutorialProvider();
 
   when(() => settingsProvider.currentLanguage).thenReturn(language);
+  when(() => settingsProvider.pokemonLanguage).thenReturn('auto');
+  when(() => settingsProvider.effectivePokemonLanguage).thenReturn(language);
+  when(() => settingsProvider.setLanguage(any())).thenReturn(null);
+  when(() => settingsProvider.setPokemonLanguage(any())).thenReturn(null);
   if (mockTutorialProvider == null) {
     when(() => tutorialProvider.hasSeenFeature(any())).thenReturn(true);
   }

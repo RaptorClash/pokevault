@@ -86,6 +86,11 @@ def main():
             [],
         ),
         (
+            "Mehrsprachige Pokémon-Namen synchronisieren",
+            BASE_DIR / "update_pokemon_languages.py",
+            [],
+        ),
+        (
             "Evolutionsbäume anreichern",
             BASE_DIR / "update_evolutions_db.py",
             [],

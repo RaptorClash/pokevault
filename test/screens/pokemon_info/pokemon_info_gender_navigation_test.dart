@@ -49,6 +49,19 @@ class FakeSettingsProvider extends ChangeNotifier implements SettingsProvider {
   }
 
   @override
+  String pokemonLanguage = 'auto';
+
+  @override
+  String get effectivePokemonLanguage =>
+      pokemonLanguage == 'auto' ? currentLanguage : pokemonLanguage;
+
+  @override
+  void setPokemonLanguage(String lang) {
+    pokemonLanguage = lang;
+    notifyListeners();
+  }
+
+  @override
   Future<void> setGoogleClientId(String id) async {}
 
   @override

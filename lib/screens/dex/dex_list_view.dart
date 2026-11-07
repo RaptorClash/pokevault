@@ -32,7 +32,17 @@ class DexListView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final currentLanguage = context.watch<SettingsProvider>().currentLanguage;
+    final settingsProvider = context.watch<SettingsProvider>();
+    final currentLanguage = settingsProvider.currentLanguage;
+    String effectivePokeLang = currentLanguage;
+    try {
+      final pokeLang = settingsProvider.effectivePokemonLanguage;
+      if (pokeLang.isNotEmpty) {
+        effectivePokeLang = pokeLang;
+      }
+    } catch (_) {
+      effectivePokeLang = currentLanguage;
+    }
 
     if (displayList.isEmpty) {
       return Center(
@@ -212,7 +222,7 @@ class DexListView extends StatelessWidget {
                           child: FittedBox(
                             fit: BoxFit.scaleDown,
                             child: Text(
-                              entry.pokemon.getName(currentLanguage) +
+                              entry.pokemon.getName(effectivePokeLang) +
                                   entry.displaySuffix,
                               style: TextStyle(
                                 fontWeight: isCaught

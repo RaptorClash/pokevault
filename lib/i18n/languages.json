@@ -1,0 +1,106 @@
+[
+  {
+    "code": "de",
+    "flag": "🇩🇪",
+    "nameNative": "Deutsch",
+    "nameEn": "German",
+    "isPokemonFranchise": true,
+    "slangCode": "de"
+  },
+  {
+    "code": "en",
+    "flag": "🇬🇧",
+    "nameNative": "English",
+    "nameEn": "English",
+    "isPokemonFranchise": true,
+    "slangCode": "en"
+  },
+  {
+    "code": "fr",
+    "flag": "🇫🇷",
+    "nameNative": "Français",
+    "nameEn": "French",
+    "isPokemonFranchise": true,
+    "slangCode": "fr"
+  },
+  {
+    "code": "es",
+    "flag": "🇪🇸",
+    "nameNative": "Español",
+    "nameEn": "Spanish",
+    "isPokemonFranchise": true,
+    "slangCode": "es"
+  },
+  {
+    "code": "it",
+    "flag": "🇮🇹",
+    "nameNative": "Italiano",
+    "nameEn": "Italian",
+    "isPokemonFranchise": true,
+    "slangCode": "it"
+  },
+  {
+    "code": "ja",
+    "flag": "🇯🇵",
+    "nameNative": "日本語",
+    "nameEn": "Japanese",
+    "isPokemonFranchise": true,
+    "slangCode": "ja"
+  },
+  {
+    "code": "ko",
+    "flag": "🇰🇷",
+    "nameNative": "한국어",
+    "nameEn": "Korean",
+    "isPokemonFranchise": true,
+    "slangCode": "ko"
+  },
+  {
+    "code": "zh-Hans",
+    "flag": "🇨🇳",
+    "nameNative": "简体中文",
+    "nameEn": "Simplified Chinese",
+    "isPokemonFranchise": true,
+    "slangCode": "zh-Hans"
+  },
+  {
+    "code": "zh-Hant",
+    "flag": "🇹🇼",
+    "nameNative": "繁體中文",
+    "nameEn": "Traditional Chinese",
+    "isPokemonFranchise": true,
+    "slangCode": "zh-Hant"
+  },
+  {
+    "code": "pt",
+    "flag": "🇵🇹",
+    "nameNative": "Português",
+    "nameEn": "Portuguese",
+    "isPokemonFranchise": false,
+    "slangCode": "pt"
+  },
+  {
+    "code": "nl",
+    "flag": "🇳🇱",
+    "nameNative": "Nederlands",
+    "nameEn": "Dutch",
+    "isPokemonFranchise": false,
+    "slangCode": "nl"
+  },
+  {
+    "code": "pl",
+    "flag": "🇵🇱",
+    "nameNative": "Polski",
+    "nameEn": "Polish",
+    "isPokemonFranchise": false,
+    "slangCode": "pl"
+  },
+  {
+    "code": "ru",
+    "flag": "🇷🇺",
+    "nameNative": "Русский",
+    "nameEn": "Russian",
+    "isPokemonFranchise": false,
+    "slangCode": "ru"
+  }
+]

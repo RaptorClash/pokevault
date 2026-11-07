@@ -2,6 +2,7 @@ class Pokemon {
   final int id;
   final String nameDe;
   final String nameEn;
+  final Map<String, String> names;
   final bool hasGenderDifferences;
   final int genderRate;
   final int captureRate;
@@ -16,6 +17,7 @@ class Pokemon {
     required this.id,
     required this.nameDe,
     required this.nameEn,
+    Map<String, String>? names,
     required this.hasGenderDifferences,
     required this.genderRate,
     required this.captureRate,
@@ -25,13 +27,37 @@ class Pokemon {
     required this.speed,
     required this.forms,
     this.catchRateTags = const [],
-  });
+  }) : names = {
+         ...?names,
+         if (names == null || !names.containsKey('de')) 'de': nameDe,
+         if (names == null || !names.containsKey('en')) 'en': nameEn,
+       };
 
-  factory Pokemon.fromMap(Map<String, dynamic> map, List<PokemonForm> forms) {
+  factory Pokemon.fromMap(
+    Map<String, dynamic> map, [
+    List<PokemonForm> forms = const [],
+  ]) {
+    final names = <String, String>{};
+    for (final key in map.keys) {
+      if (key.startsWith('name_')) {
+        final langKey = key.substring(5).replaceAll('_', '-');
+        final val = map[key]?.toString();
+        if (val != null && val.isNotEmpty) {
+          names[langKey] = val;
+        }
+      }
+    }
+
+    final de = names['de'] ?? map['name_de']?.toString() ?? 'Unknown';
+    final en = names['en'] ?? map['name_en']?.toString() ?? 'Unknown';
+    names['de'] = de;
+    names['en'] = en;
+
     return Pokemon(
       id: (map['id'] as num?)?.toInt() ?? 0,
-      nameDe: map['name_de']?.toString() ?? 'Unknown',
-      nameEn: map['name_en']?.toString() ?? 'Unknown',
+      nameDe: de,
+      nameEn: en,
+      names: names,
       hasGenderDifferences:
           (map['has_gender_differences'] as num?)?.toInt() == 1,
       genderRate: (map['gender_rate'] as num?)?.toInt() ?? -1,
@@ -52,7 +78,20 @@ class Pokemon {
   }
 
   String getName(String languageCode) {
-    return languageCode == 'de' ? nameDe : nameEn;
+    final normalized = languageCode.toLowerCase().replaceAll('_', '-');
+
+    for (final entry in names.entries) {
+      if (entry.key.toLowerCase().replaceAll('_', '-') == normalized) {
+        return entry.value;
+      }
+    }
+
+    if (normalized == 'de') {
+      return nameDe != 'Unknown' ? nameDe : nameEn;
+    }
+    return nameEn != 'Unknown'
+        ? nameEn
+        : (nameDe != 'Unknown' ? nameDe : 'Unknown');
   }
 
   bool get isUltraBeast => catchRateTags.contains('ultra_beast');

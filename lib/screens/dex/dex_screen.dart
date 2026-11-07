@@ -692,8 +692,8 @@ class _DexScreenState extends State<DexScreen> {
                     e.pokemon.nameDe.toLowerCase() == 'gengar');
                 if (!hasGengar && baseList.isNotEmpty) {
                   final target = baseList.length > 30 ? baseList[30] : baseList.last;
-                  final lang = context.read<SettingsProvider>().currentLanguage;
-                  targetSearch = lang == 'de' ? target.pokemon.nameDe : target.pokemon.nameEn;
+                  final settings = context.read<SettingsProvider>();
+                  targetSearch = target.pokemon.getName(settings.effectivePokemonLanguage);
                 }
                 _searchController.text = targetSearch;
                 setState(() => _searchQuery = targetSearch);
@@ -951,8 +951,9 @@ class _DexScreenState extends State<DexScreen> {
     DexDisplayEntry entry,
     UserDex liveDex,
     DexProvider provider,
-    String currentLanguage,
-  ) {
+    String currentLanguage, [
+    String? effectivePokemonLanguage,
+  ]) {
     if (_searchQuery.trim().isEmpty) return true;
 
     final form = entry.resolvedForm;
@@ -1023,11 +1024,14 @@ class _DexScreenState extends State<DexScreen> {
             } else if (term.startsWith('+')) {
               String familyTarget = term.substring(1).trim();
               if (familyTarget.isNotEmpty) {
+                final pokeLang = (effectivePokemonLanguage != null && effectivePokemonLanguage.isNotEmpty)
+                    ? effectivePokemonLanguage
+                    : currentLanguage;
                 final targetPoke = widget.pokemonList
                     .where(
                       (p) =>
-                          p.getName(currentLanguage).toLowerCase() ==
-                          familyTarget,
+                          p.getName(pokeLang).toLowerCase() == familyTarget ||
+                          p.getName(currentLanguage).toLowerCase() == familyTarget,
                     )
                     .firstOrNull;
 
@@ -1060,11 +1064,13 @@ class _DexScreenState extends State<DexScreen> {
               if (typeMatch) {
                 match = true;
               } else {
-                final baseName = entry.pokemon
-                    .getName(currentLanguage)
-                    .toLowerCase();
+                final pokeLang = (effectivePokemonLanguage != null && effectivePokemonLanguage.isNotEmpty)
+                    ? effectivePokemonLanguage
+                    : currentLanguage;
+                final baseName = entry.pokemon.getName(pokeLang).toLowerCase();
+                final altName = entry.pokemon.getName(currentLanguage).toLowerCase();
 
-                String searchableText = baseName;
+                String searchableText = '$baseName $altName';
                 if (form != null) {
                   searchableText += ' ${form.name.toLowerCase()}';
                   searchableText +=
@@ -1275,6 +1281,13 @@ class _DexScreenState extends State<DexScreen> {
         liveDex,
         provider,
         settingsProvider.currentLanguage,
+() {
+          try {
+            return settingsProvider.effectivePokemonLanguage;
+          } catch (_) {
+            return settingsProvider.currentLanguage;
+          }
+        }(),
       );
     }).toList();
 

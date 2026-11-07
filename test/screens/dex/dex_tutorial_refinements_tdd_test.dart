@@ -177,6 +177,8 @@ void main() {
     when(() => mockDexProvider.userDexes).thenReturn([UserDex.fallback('dex_1')]);
     when(() => mockDexProvider.allPokemon).thenReturn([bulbasaur, gengar]);
     when(() => mockSettingsProvider.currentLanguage).thenReturn('de');
+    when(() => mockSettingsProvider.pokemonLanguage).thenReturn('auto');
+    when(() => mockSettingsProvider.effectivePokemonLanguage).thenReturn('de');
     when(() => mockSettingsProvider.themeMode).thenReturn(ThemeMode.light);
     when(() => mockSettingsProvider.googleClientId).thenReturn('');
     when(() => mockSettingsProvider.googleClientSecret).thenReturn('');

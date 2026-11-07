@@ -186,7 +186,13 @@ class PokemonBasicInfoWidget extends StatelessWidget {
               ),
             ),
             Text(
-              entry.pokemon.getName(settingsProvider.currentLanguage),
+              entry.pokemon.getName(() {
+                try {
+                  return settingsProvider.effectivePokemonLanguage;
+                } catch (_) {
+                  return settingsProvider.currentLanguage;
+                }
+              }()),
               style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
               textAlign: TextAlign.center,
             ),
