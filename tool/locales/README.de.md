@@ -1,8 +1,8 @@
 # 🛠️ PokéVault Entwickler- & Wartungswerkzeuge
 
-> **Languages / Sprachen:** **[🇩🇪 Deutsch](README.de.md)** | [🇬🇧 English](../README.md) | [🇫🇷 Français](README.fr.md) | [🇪🇸 Español](README.es.md) | [🇮🇹 Italiano](README.it.md) | [🇯🇵 日本語](README.ja.md) | [🇰🇷 한국어](README.ko.md) | [🇨🇳 简体中文](README.zh-hans.md) | [🇹🇼 繁體中文](README.zh-hant.md) | [🇵🇹 Português](README.pt.md) | [🇳🇱 Nederlands](README.nl.md) | [🇵🇱 Polski](README.pl.md) | [🇷🇺 Русский](README.ru.md)
+> **Languages / Sprachen:** [🇬🇧 English](../README.md) | **[🇩🇪 Deutsch](README.de.md)** | [🇫🇷 Français](README.fr.md) | [🇪🇸 Español](README.es.md) | [🇮🇹 Italiano](README.it.md) | [🇯🇵 日本語](README.ja.md) | [🇰🇷 한국어](README.ko.md) | [🇨🇳 简体中文](README.zh-hans.md) | [🇹🇼 繁體中文](README.zh-hant.md) | [🇵🇹 Português](README.pt.md) | [🇳🇱 Nederlands](README.nl.md) | [🇵🇱 Polski](README.pl.md) | [🇷🇺 Русский](README.ru.md)
 
-Dieses Verzeichnis enthält Hilfsskripte und Automatisierungen für Entwicklung, Testabdeckung, Übersetzungspipeline, Datenpipeline und Release-Management.
+Dieses Verzeichnis enthält Hilfsskripte und Automatisierungen für Entwicklung, Testabdeckung, Übersetzungspipeline, Release-Notes-Generierung, Datenpipeline und Release-Management.
 
 ---
 
@@ -13,6 +13,7 @@ Dieses Verzeichnis enthält Hilfsskripte und Automatisierungen für Entwicklung,
 | [`bump_version.py`](../bump_version.py) | Python 3 | Automatisiertes Versions- & Build-Management für `pubspec.yaml` und Git-Releases. |
 | [`test_bump_version.py`](../test_bump_version.py) | Python 3 | Unit-Test-Suite für `bump_version.py` (SemVer-Validierung, Regex, CLI-Flags). |
 | [`translate_all.py`](../translate_all.py) | Python 3 | Vollautomatische Multi-Engine-Übersetzungspipeline für UI-Strings, Slang-Klassen und Dokumentationen. |
+| [`translate_release_notes.py`](../translate_release_notes.py) | Python 3 | Generiert GitHub Release Notes in allen 13 Sprachen formatiert in aufklappbaren `<details>`-Dropdowns. |
 | [`run_coverage.ps1`](../run_coverage.ps1) | PowerShell | Führt Tests mit Code-Coverage aus und generiert einen LCOV-Bericht. |
 | [`data_pipeline/`](../data_pipeline/locales/README.de.md) | Python 3 | Scraper, JSON-Importe und SQLite-Kompilierung für `pokedex.sqlite`. |
 
@@ -62,6 +63,33 @@ python test/tool/test_translation_pipeline.py
 
 ---
 
+## 📝 Multi-Language Release Notes Generator (`translate_release_notes.py`)
+
+Das Skript `translate_release_notes.py` übersetzt Release-Notes-Entwürfe automatisch in alle 13 Sprachen und formatiert sie in ein kompaktes, einklappbares GitHub-Markdown-Format:
+- Oben steht der Haupttitel (`# PokéVault v...`)
+- Darunter erscheint direkt eine übersichtliche Liste aller 13 Sprachen mit Flaggen als aufklappbare `<details><summary>`-Dropdowns
+- Voll kompatibel mit dem In-App-Updater von PokéVault (`UpdateHelper.filterReleaseNotes`)
+
+### Verwendung:
+```bash
+# 1. Entwurf in RELEASE_NOTES_DRAFT.md schreiben
+# 2. Skript ausführen:
+python tool/translate_release_notes.py
+
+# Alternativ mit spezifischer Entwurfsdatei:
+python tool/translate_release_notes.py my_draft.md -o RELEASE_NOTES.md
+
+# Vorschau ohne Datei zu schreiben (Dry-Run):
+python tool/translate_release_notes.py --dry-run
+```
+
+### Tests:
+```bash
+python test/tool/test_translate_release_notes.py
+```
+
+---
+
 ## 🚀 Release Bump Tool (`bump_version.py`)
 
 Das Skript `bump_version.py` liest und aktualisiert die Version in `pubspec.yaml` nach [Semantic Versioning (SemVer)](https://semver.org/) und inkrementiert automatisch die interne Flutter-Build-Nummer (`+<build>`).
@@ -71,40 +99,23 @@ Prüft die aktuelle Version und zeigt an, was geändert werden würde:
 ```bash
 python tool/bump_version.py 1.6.0 --dry-run
 ```
-*Ausgabebeispiel:*
-```text
-Current version in pubspec.yaml: 1.5.0+6
-Target version: 1.6.0+7
-[DRY-RUN] pubspec.yaml was not modified.
-Suggested git commands:
-  git add pubspec.yaml
-  git commit -m "chore(release): bump version to 1.6.0+7"
-  git tag -a v1.6.0 -m "Release v1.6.0"
-```
 
 ### 2. Version anheben (Build-Nummer automatisch +1)
 ```bash
 python tool/bump_version.py 1.6.0
 ```
-*Aktualisiert `version: 1.5.0+6` $\rightarrow$ `version: 1.6.0+7` in `pubspec.yaml`.*
 
 ### 3. Spezifische Build-Nummer vergeben (`--build`)
 ```bash
 python tool/bump_version.py 1.6.0 --build 10
 ```
-*Setzt die Version explizit auf `1.6.0+10`.*
 
 ### 4. Automatisch Git-Commit und Git-Tag erstellen (`--commit` & `--tag`)
 ```bash
-# Ändert pubspec.yaml und committet automatisch:
-python tool/bump_version.py 1.6.0 --commit
-
-# Oder direkt inklusive annotiertem Git-Tag:
 python tool/bump_version.py 1.6.0 --commit --tag
 ```
 
 ### 5. Tests für das Bump-Tool ausführen
-Die Logik des Skripts ist durch eine eigenständige Unit-Test-Suite abgesichert:
 ```bash
 python tool/test_bump_version.py
 ```

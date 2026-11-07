@@ -179,5 +179,137 @@ Deutscher Inhalt.
       expect(filtered, contains('Zeile 1'));
       expect(filtered.contains('Line 1'), isFalse);
     });
+
+    test('erkennt und filtert alle 13 Sprachen in aufklappbaren <details><summary>-Blöcken', () {
+      const collapsibleNotes = '''
+# PokéVault v1.7.0 Release Notes — "The Language Expansion"
+
+<details>
+<summary>🇬🇧 <b>English</b></summary>
+
+**New Features**
+* Great English feature.
+
+</details>
+
+<details>
+<summary>🇩🇪 <b>Deutsch</b></summary>
+
+**Neue Funktionen**
+* Tolles deutsches Feature.
+
+</details>
+
+<details>
+<summary>🇫🇷 <b>Français</b></summary>
+
+**Nouvelles fonctionnalités**
+* Fonctionnalité française.
+
+</details>
+
+<details>
+<summary>🇯🇵 <b>日本語</b></summary>
+
+**新機能**
+* 日本語の機能。
+
+</details>
+
+<details>
+<summary>🇰🇷 <b>한국어</b></summary>
+
+**새로운 기능**
+* 한국어 기능.
+
+</details>
+
+<details>
+<summary>🇨🇳 <b>简体中文</b></summary>
+
+**新功能**
+* 简体中文功能。
+
+</details>
+
+<details>
+<summary>🇹🇼 <b>繁體中文</b></summary>
+
+**新功能**
+* 繁體中文功能。
+
+</details>
+
+<details>
+<summary>🇵🇹 <b>Português</b></summary>
+
+**Novos Recursos**
+* Recurso em português.
+
+</details>
+
+<details>
+<summary>🇳🇱 <b>Nederlands</b></summary>
+
+**Nieuwe functies**
+* Nederlandse functie.
+
+</details>
+
+<details>
+<summary>🇵🇱 <b>Polski</b></summary>
+
+**Nowe funkcje**
+* Polska funkcja.
+
+</details>
+
+<details>
+<summary>🇷🇺 <b>Русский</b></summary>
+
+**Новые возможности**
+* Русская функция.
+
+</details>
+''';
+
+      // Test German
+      final filteredDe = UpdateHelper.filterReleaseNotes(collapsibleNotes, 'de');
+      expect(filteredDe, contains('Tolles deutsches Feature.'));
+      expect(filteredDe.contains('Great English feature.'), isFalse);
+      expect(filteredDe.contains('<details>'), isFalse);
+      expect(filteredDe.contains('</details>'), isFalse);
+      expect(filteredDe.contains('<summary>'), isFalse);
+
+      // Test Korean
+      final filteredKo = UpdateHelper.filterReleaseNotes(collapsibleNotes, 'ko');
+      expect(filteredKo, contains('한국어 기능.'));
+      expect(filteredKo.contains('Tolles deutsches Feature.'), isFalse);
+      expect(filteredKo.contains('<details>'), isFalse);
+
+      // Test Russian
+      final filteredRu = UpdateHelper.filterReleaseNotes(collapsibleNotes, 'ru');
+      expect(filteredRu, contains('Русская функция.'));
+
+      // Test Simplified Chinese
+      final filteredZhHans = UpdateHelper.filterReleaseNotes(collapsibleNotes, 'zh-Hans');
+      expect(filteredZhHans, contains('简体中文功能。'));
+
+      // Test Traditional Chinese
+      final filteredZhHant = UpdateHelper.filterReleaseNotes(collapsibleNotes, 'zh-Hant');
+      expect(filteredZhHant, contains('繁體中文功能。'));
+
+      // Test Portuguese
+      final filteredPt = UpdateHelper.filterReleaseNotes(collapsibleNotes, 'pt');
+      expect(filteredPt, contains('Recurso em português.'));
+
+      // Test Dutch
+      final filteredNl = UpdateHelper.filterReleaseNotes(collapsibleNotes, 'nl');
+      expect(filteredNl, contains('Nederlandse functie.'));
+
+      // Test Polish
+      final filteredPl = UpdateHelper.filterReleaseNotes(collapsibleNotes, 'pl');
+      expect(filteredPl, contains('Polska funkcja.'));
+    });
   });
 }

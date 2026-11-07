@@ -2,7 +2,7 @@
 
 > **Languages / Sprachen:** [🇩🇪 Deutsch](locales/README.de.md) | **[🇬🇧 English](README.md)** | [🇫🇷 Français](locales/README.fr.md) | [🇪🇸 Español](locales/README.es.md) | [🇮🇹 Italiano](locales/README.it.md) | [🇯🇵 日本語](locales/README.ja.md) | [🇰🇷 한국어](locales/README.ko.md) | [🇨🇳 简体中文](locales/README.zh-hans.md) | [🇹🇼 繁體中文](locales/README.zh-hant.md) | [🇵🇹 Português](locales/README.pt.md) | [🇳🇱 Nederlands](locales/README.nl.md) | [🇵🇱 Polski](locales/README.pl.md) | [🇷🇺 Русский](locales/README.ru.md)
 
-This directory contains utility scripts and automation tools for development, test coverage measurement, offline data pipelines, localization, and release management.
+This directory contains utility scripts and automation tools for development, test coverage measurement, offline data pipelines, localization, release notes generation, and release management.
 
 ---
 
@@ -13,6 +13,7 @@ This directory contains utility scripts and automation tools for development, te
 | [`bump_version.py`](bump_version.py) | Python 3 | Automated version and build number management for `pubspec.yaml` and Git releases. |
 | [`test_bump_version.py`](test_bump_version.py) | Python 3 | Unit test suite for `bump_version.py` (SemVer validation, regex matching, CLI flags). |
 | [`translate_all.py`](translate_all.py) | Python 3 | Automated multi-engine translation pipeline for UI strings, Slang classes, and documentation in `locales/`. |
+| [`translate_release_notes.py`](translate_release_notes.py) | Python 3 | Generates GitHub release notes in all 13 languages formatted into clean collapsible `<details>` dropdowns. |
 | [`run_coverage.ps1`](run_coverage.ps1) | PowerShell | Runs tests with code coverage enabled and generates an LCOV report. |
 | [`data_pipeline/`](data_pipeline/README.md) | Python 3 | Scrapers, JSON imports, and SQLite compilation pipeline for `pokedex.sqlite`. |
 
@@ -62,6 +63,33 @@ python test/tool/test_translation_pipeline.py
 
 ---
 
+## 📝 Multi-Language Release Notes Generator (`translate_release_notes.py`)
+
+The `translate_release_notes.py` script translates release note drafts into all 13 supported languages and structures them into compact, collapsible GitHub `<details><summary>` dropdowns:
+- Title at the top (`# PokéVault v...`)
+- Clean list of all 13 languages visible at once with flag icons
+- 100% compatible with PokéVault's In-App Updater (`UpdateHelper.filterReleaseNotes`)
+
+### Usage:
+```bash
+# 1. Write draft notes in RELEASE_NOTES_DRAFT.md
+# 2. Run the generator:
+python tool/translate_release_notes.py
+
+# Or specify custom input and output paths:
+python tool/translate_release_notes.py my_draft.md -o RELEASE_NOTES.md
+
+# Preview without writing output file (Dry Run):
+python tool/translate_release_notes.py --dry-run
+```
+
+### Tests:
+```bash
+python test/tool/test_translate_release_notes.py
+```
+
+---
+
 ## 🚀 Release Bump Tool (`bump_version.py`)
 
 The `bump_version.py` script reads and updates the application version in `pubspec.yaml` adhering to [Semantic Versioning (SemVer)](https://semver.org/), while automatically incrementing Flutter's internal build number (`+<build>`).
@@ -71,40 +99,23 @@ Inspects the current version and displays the planned changes without modifying 
 ```bash
 python tool/bump_version.py 1.6.0 --dry-run
 ```
-*Sample output:*
-```text
-Current version in pubspec.yaml: 1.5.0+6
-Target version: 1.6.0+7
-[DRY-RUN] pubspec.yaml was not modified.
-Suggested git commands:
-  git add pubspec.yaml
-  git commit -m "chore(release): bump version to 1.6.0+7"
-  git tag -a v1.6.0 -m "Release v1.6.0"
-```
 
 ### 2. Bump Version (Auto-increment Build Number)
 ```bash
 python tool/bump_version.py 1.6.0
 ```
-*Updates `version: 1.5.0+6` $\rightarrow$ `version: 1.6.0+7` in `pubspec.yaml`.*
 
 ### 3. Specify Custom Build Number (`--build`)
 ```bash
 python tool/bump_version.py 1.6.0 --build 10
 ```
-*Explicitly sets version to `1.6.0+10`.*
 
 ### 4. Automatically Create Git Commit & Tag (`--commit` & `--tag`)
 ```bash
-# Updates pubspec.yaml and creates commit automatically:
-python tool/bump_version.py 1.6.0 --commit
-
-# Or create commit and annotated Git tag together:
 python tool/bump_version.py 1.6.0 --commit --tag
 ```
 
 ### 5. Run Unit Tests for the Bump Tool
-The tool's parsing and validation logic is covered by standalone Python unit tests:
 ```bash
 python tool/test_bump_version.py
 ```
