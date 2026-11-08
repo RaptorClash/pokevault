@@ -106,11 +106,11 @@ flutter build web --release
 ```
 
 ## 📚 Architektura i dokumentacja
-* [Przewodnik po architekturze (`ARCHITECTURE.md`)](../../ARCHITECTURE.md): szczegółowy przegląd architektury systemu, zarządzanie stanem dostawcy, model trwałości DAO, koordynator Google Drive Sync, izolowany most translacyjny i testowanie bramek jakości.
-* [Rozgałęzianie i potok wydań Git (`docs/GIT_WORKFLOW_AND_RELEASES.md`)](../../docs/GIT_WORKFLOW_AND_RELEASES.md): Oficjalny model rozgałęzień Git, zasady ochrony gałęzi, kompilacje wieloplatformowe (Android APK, Windows Zip, Linux AppImage/tar.gz) i zautomatyzowane wersje wstępne Beta.
-* [Plan działania wersji 1.7.0: The Rozszerzenie języka (`docs/plans/v1_7_0_the_language_expansion.md`)](../../docs/plans/v1_7_0_the_language_expansion.md): Pełna specyfikacja techniczna dla oddzielnych języków, lokalny serwer REST, śledzenie za pomocą wielu emulatorów, stacjonarny OCR i mobilny skaner aparatu.
-* [Potok generowania bazy danych (`tool/data_pipeline/locales/README.de.md`)](../../tool/data_pipeline/locales/README.pl.md): Dokumentacja przygotowania danych offline PokeAPI, skrobaków, importu pasujących kulek, indeksów i kompilacji baz danych.
-* [Narzędzia dla programistów i wydań (`tool/locales/README.de.md`)](../../tool/locales/README.pl.md): Zautomatyzowane zarządzanie wersjami wydań (`bump_version.py`), zestawami testów, pokryciem kodu i potokiem tłumaczeń (`translate_all.py`).
+* [Przewodnik po architekturze (`ARCHITECTURE.md`)](ARCHITECTURE.pl.md): szczegółowy przegląd architektury systemu, zarządzanie stanem dostawcy, model trwałości DAO, koordynator Google Drive Sync, izolowany most translacyjny i testowanie bramek jakości.
+* [Rozgałęzianie i potok wydań Git (`docs/GIT_WORKFLOW_AND_RELEASES.md`)](../docs/locales/GIT_WORKFLOW_AND_RELEASES.pl.md): Oficjalny model rozgałęzień Git, zasady ochrony gałęzi, kompilacje wieloplatformowe (Android APK, Windows Zip, Linux AppImage/tar.gz) i zautomatyzowane wersje wstępne Beta.
+* [Plan działania wersji 1.7.0: The Rozszerzenie języka (`docs/plans/v1_7_0_the_language_expansion.md`)](../docs/plans/v1_7_0_the_language_expansion.md): Pełna specyfikacja techniczna dla oddzielnych języków, lokalny serwer REST, śledzenie za pomocą wielu emulatorów, stacjonarny OCR i mobilny skaner aparatu.
+* [Potok generowania bazy danych (`tool/data_pipeline/locales/README.de.md`)](../tool/data_pipeline/locales/README.pl.md): Dokumentacja przygotowania danych offline PokeAPI, skrobaków, importu pasujących kulek, indeksów i kompilacji baz danych.
+* [Narzędzia dla programistów i wydań (`tool/locales/README.de.md`)](../tool/locales/README.pl.md): Zautomatyzowane zarządzanie wersjami wydań (`bump_version.py`), zestawami testów, pokryciem kodu i potokiem tłumaczeń (`translate_all.py`).
 
 ## 🤝 Uzupełnianie danych (Wkład społeczności)
 Brakuje Ci miejsc znalezienia lub nie pasują Ci dopasowane kulki? Możesz uzupełnić te dane w plikach JSON w katalogu `tool/data_pipeline/` (jeśli istnieją) lub wnosić je bezpośrednio przez Issues/Pull Requests.

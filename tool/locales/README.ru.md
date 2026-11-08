@@ -14,7 +14,7 @@
 | [`test_bump_version.py`](../test_bump_version.py) | Python 3 | Набор модульных тестов для `bump_version.py` (проверка SemVer, Regex, CLI-флаги). |
 | [`translate_all.py`](../translate_all.py) | Python 3 | Полностью автоматическая много-движковая система перевода для UI-строк, классов сленга и документации. |
 | [`run_coverage.ps1`](../run_coverage.ps1) | PowerShell | Выполняет тесты с покрытием кода и генерирует отчет LCOV. |
-| [`data_pipeline/`](../../data_pipeline/locales/README.ru.md) | Python 3 | Скрейпер, импорт JSON и компиляция в SQLite для `pokedex.sqlite`. |
+| [`data_pipeline/`](../data_pipeline/locales/README.ru.md) | Python 3 | Скрейпер, импорт JSON и компиляция в SQLite для `pokedex.sqlite`. |
 
 ---
 
@@ -86,7 +86,8 @@ Suggested git commands:
 ```bash
 python tool/bump_version.py 1.6.0
 ```
-*Обновлено `version: 1.5.0+6` $ightarrow$ `version: 1.6.0+7` в `pubspec.yaml`.*
+*Обновлено `version: 1.5.0+6` $
+ightarrow$ `version: 1.6.0+7` в `pubspec.yaml`.*
 
 ### 3. Присвоение конкретного номера сборки (`--build`)
 ```bash

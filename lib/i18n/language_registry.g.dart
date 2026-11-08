@@ -127,9 +127,6 @@ class LanguageRegistry {
     ),
   ];
 
-  static List<AppLanguageConfig> get supportedPokemonLanguages =>
-      supportedAppLanguages.where((l) => l.isPokemonFranchise).toList();
-
   static const Map<String, String> _languageAliases = {
     'zh': 'zh-Hans',
     'zh-cn': 'zh-Hans',
@@ -140,6 +137,9 @@ class LanguageRegistry {
     'zh-mo': 'zh-Hant',
     'zh-cmn-hant': 'zh-Hant',
   };
+
+  static List<AppLanguageConfig> get supportedPokemonLanguages =>
+      supportedAppLanguages.where((l) => l.isPokemonFranchise).toList();
 
   static AppLanguageConfig? findByCode(String code) {
     final normalized = code.toLowerCase().replaceAll('_', '-');

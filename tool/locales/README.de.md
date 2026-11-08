@@ -1,6 +1,6 @@
 # 🛠️ PokéVault Entwickler- & Wartungswerkzeuge
 
-> **Languages / Sprachen:** [🇬🇧 English](../README.md) | **[🇩🇪 Deutsch](README.de.md)** | [🇫🇷 Français](README.fr.md) | [🇪🇸 Español](README.es.md) | [🇮🇹 Italiano](README.it.md) | [🇯🇵 日本語](README.ja.md) | [🇰🇷 한국어](README.ko.md) | [🇨🇳 简体中文](README.zh-hans.md) | [🇹🇼 繁體中文](README.zh-hant.md) | [🇵🇹 Português](README.pt.md) | [🇳🇱 Nederlands](README.nl.md) | [🇵🇱 Polski](README.pl.md) | [🇷🇺 Русский](README.ru.md)
+> **Languages / Sprachen:** **[🇩🇪 Deutsch](README.de.md)** | [🇬🇧 English](../README.md) | [🇫🇷 Français](README.fr.md) | [🇪🇸 Español](README.es.md) | [🇮🇹 Italiano](README.it.md) | [🇯🇵 日本語](README.ja.md) | [🇰🇷 한국어](README.ko.md) | [🇨🇳 简体中文](README.zh-hans.md) | [🇹🇼 繁體中文](README.zh-hant.md) | [🇵🇹 Português](README.pt.md) | [🇳🇱 Nederlands](README.nl.md) | [🇵🇱 Polski](README.pl.md) | [🇷🇺 Русский](README.ru.md)
 
 Dieses Verzeichnis enthält Hilfsskripte und Automatisierungen für Entwicklung, Testabdeckung, Übersetzungspipeline, Release-Notes-Generierung, Datenpipeline und Release-Management.
 

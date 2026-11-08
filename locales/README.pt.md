@@ -95,7 +95,7 @@ flutter build windows --release
 flutter build linux --release
 ```
 
-**Linux AppImage:**
+**Imagem do aplicativo Linux:**
 ```bash
 appimage-builder --recipe AppImageBuilder.yml
 ```
@@ -106,11 +106,11 @@ flutter build web --release
 ```
 
 ## 📚 Arquitetura e documentação
-* [Guia de arquitetura (`ARCHITECTURE.md`)](../../ARCHITECTURE.md): Visão geral detalhada da arquitetura do sistema, gerenciamento de estado do provedor, modelo de persistência DAO, coordenador de sincronização do Google Drive, ponte de tradução isolada e portas de qualidade de teste.
-* [ramificação do Git e pipeline de lançamento (`docs/GIT_WORKFLOW_AND_RELEASES.md`)](../../docs/GIT_WORKFLOW_AND_RELEASES.md): modelo oficial de ramificação do Git, regras de proteção de ramificação, compilações multiplataforma (Android APK, Windows Zip, Linux AppImage/tar.gz) e pré-lançamentos beta automatizados.
-* [v1.7.0 Roadmap: The Language Expansion (`docs/plans/v1_7_0_the_language_expansion.md`)](../../docs/plans/v1_7_0_the_language_expansion.md): Especificação técnica completa para idiomas separados, servidor REST local, rastreamento de vários emuladores, OCR de desktop e scanner de câmera móvel.
-* [Pipeline de geração de banco de dados (`tool/data_pipeline/locales/README.de.md`)](../../tool/data_pipeline/locales/README.pt.md): Documentação de preparação de dados PokeAPI offline, scrapers, importação de bolas correspondentes, índices e compilação de banco de dados.
-* [Ferramentas de desenvolvedor e lançamento (`tool/locales/README.de.md`)](../../tool/locales/README.pt.md): Gerenciamento automatizado de versões de lançamento (`bump_version.py`), suítes de testes, cobertura de código e pipeline de tradução (`translate_all.py`).
+* [Guia de arquitetura (`ARCHITECTURE.md`)](ARCHITECTURE.pt.md): Visão geral detalhada da arquitetura do sistema, gerenciamento de estado do provedor, modelo de persistência DAO, coordenador de sincronização do Google Drive, ponte de tradução isolada e portas de qualidade de teste.
+* [ramificação do Git e pipeline de lançamento (`docs/GIT_WORKFLOW_AND_RELEASES.md`)](../docs/locales/GIT_WORKFLOW_AND_RELEASES.pt.md): modelo oficial de ramificação do Git, regras de proteção de ramificação, compilações multiplataforma (Android APK, Windows Zip, Linux AppImage/tar.gz) e pré-lançamentos beta automatizados.
+* [v1.7.0 Roadmap: The Expansão de idioma (`docs/plans/v1_7_0_the_language_expansion.md`)](../docs/plans/v1_7_0_the_language_expansion.md): Especificação técnica completa para idiomas separados, servidor REST local, rastreamento de vários emuladores, OCR de desktop e scanner de câmera móvel.
+* [Pipeline de geração de banco de dados (`tool/data_pipeline/locales/README.de.md`)](../tool/data_pipeline/locales/README.pt.md): Documentação de preparação de dados PokeAPI offline, scrapers, importação de bolas correspondentes, índices e compilação de banco de dados.
+* [Ferramentas de desenvolvedor e lançamento (`tool/locales/README.de.md`)](../tool/locales/README.pt.md): Gerenciamento automatizado de versões de lançamento (`bump_version.py`), suítes de testes, cobertura de código e pipeline de tradução (`translate_all.py`).
 
 ## 🤝 Adicionar dados (Contribuições da comunidade)
 Você está sem locais ou as Bolas que correspondem não estão corretas? Você pode adicionar esses dados nos arquivos JSON no diretório `tool/data_pipeline/` (se existirem) ou contribuir diretamente através de Issues/Pull Requests.

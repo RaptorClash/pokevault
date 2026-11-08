@@ -54,7 +54,7 @@ class TestTranslationPipeline(unittest.TestCase):
         rewritten = rewrite_markdown_links(doc, target_lang="fr", is_target_in_locales=False)
         
         self.assertIn("tool/locales/README.fr.md", rewritten)
-        self.assertIn("docs/GIT_WORKFLOW_AND_RELEASES.md", rewritten)
+        self.assertIn("docs/locales/GIT_WORKFLOW_AND_RELEASES.fr.md", rewritten)
 
     def test_rewrite_markdown_links_when_target_in_locales(self):
         doc = "Hier ist das Skript [bump_version.py](bump_version.py) und die [Data Pipeline](data_pipeline/README.md)."
@@ -63,6 +63,41 @@ class TestTranslationPipeline(unittest.TestCase):
         self.assertIn("../bump_version.py", rewritten)
         # Other doc links must point to their respective locales folder
         self.assertIn("../data_pipeline/locales/README.de.md", rewritten)
+
+    def test_rewrite_markdown_links_architecture_and_docs(self):
+        doc = "Siehe [Architektur](ARCHITECTURE.md) und [Workflow](docs/GIT_WORKFLOW_AND_RELEASES.md)."
+        # From root to German
+        rewritten_root = rewrite_markdown_links(doc, target_lang="de", is_target_in_locales=False)
+        self.assertIn("locales/ARCHITECTURE.de.md", rewritten_root)
+        self.assertIn("docs/locales/GIT_WORKFLOW_AND_RELEASES.de.md", rewritten_root)
+
+        # From locales/ folder to German (both in same locales folder -> sibling)
+        rewritten_locale = rewrite_markdown_links(doc, target_lang="de", is_target_in_locales=True)
+        self.assertIn("ARCHITECTURE.de.md", rewritten_locale)
+        self.assertNotIn("../ARCHITECTURE.de.md", rewritten_locale)
+        self.assertNotIn("../../ARCHITECTURE.md", rewritten_locale)
+        self.assertIn("../docs/locales/GIT_WORKFLOW_AND_RELEASES.de.md", rewritten_locale)
+
+    def test_rewrite_markdown_links_prevents_double_parent_traversal(self):
+        # Even if source already has ../, it must not become ../../
+        doc = "Siehe [Architektur](../ARCHITECTURE.md) und [Pläne](../docs/plans/v1_7_0_the_language_expansion.md)."
+        rewritten = rewrite_markdown_links(doc, target_lang="de", is_target_in_locales=True)
+        self.assertIn("ARCHITECTURE.de.md", rewritten)
+        self.assertIn("../docs/plans/v1_7_0_the_language_expansion.md", rewritten)
+        self.assertNotIn("../../", rewritten)
+
+    def test_generate_header_language_nav_architecture(self):
+        languages = [
+            {"code": "en", "flag": "🇬🇧", "nameNative": "English"},
+            {"code": "de", "flag": "🇩🇪", "nameNative": "Deutsch"},
+        ]
+        nav_root = generate_header_language_nav("ARCHITECTURE.md", languages, current_lang="en", is_in_locales=False)
+        self.assertIn("**[🇬🇧 English](ARCHITECTURE.md)**", nav_root)
+        self.assertIn("[🇩🇪 Deutsch](locales/ARCHITECTURE.de.md)", nav_root)
+
+        nav_locale = generate_header_language_nav("ARCHITECTURE.de.md", languages, current_lang="de", is_in_locales=True)
+        self.assertIn("[🇬🇧 English](../ARCHITECTURE.md)", nav_locale)
+        self.assertIn("**[🇩🇪 Deutsch](ARCHITECTURE.de.md)**", nav_locale)
 
     def test_generate_header_language_nav_canonical_and_locales(self):
         languages = [

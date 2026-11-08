@@ -95,7 +95,7 @@ flutter build windows --release
 flutter build linux --release
 ```
 
-**Linux AppImage:**
+**Immagine dell'app Linux:**
 ```bash
 appimage-builder --recipe AppImageBuilder.yml
 ```
@@ -106,10 +106,11 @@ flutter build web --release
 ```
 
 ## 📚 Architettura e documentazione
-* [Guida all'architettura (`ARCHITECTURE.md`)](../../ARCHITECTURE.md): panoramica dettagliata dell'architettura del sistema, gestione dello stato del provider, modello di persistenza DAO, coordinatore di sincronizzazione di Google Drive, Isolate Translation Bridge e Test Quality Gates.
-* [Git ramificazione e pipeline di rilascio (`docs/GIT_WORKFLOW_AND_RELEASES.md`)](../../docs/GIT_WORKFLOW_AND_RELEASES.md): modello di branching Git ufficiale, regole di protezione dei branch, build multipiattaforma (APK Android, Windows Zip, Linux AppImage/tar.gz) e pre-release Beta automatizzate.
-* [v1.7.0 Roadmap: The Language Espansione (`docs/plans/v1_7_0_the_lang (`tool/data_pipeline/locales/README.de.md`)](../../tool/data_pipeline/locales/README.it.md): documentazione della preparazione dei dati PokeAPI offline, scraper, importazione di palline corrispondenti, indici e compilazione di database.
-* [Strumenti di sviluppo e rilascio (`tool/locales/README.de.md`)](../../tool/locales/README.it.md): gestione automatizzata delle versioni di rilascio (`bump_version.py`), suite di test, copertura del codice e pipeline di traduzione (`translate_all.py`).
+* [Guida all'architettura (`ARCHITECTURE.md`)](ARCHITECTURE.it.md): panoramica dettagliata dell'architettura del sistema, gestione dello stato del provider, modello di persistenza DAO, coordinatore di sincronizzazione di Google Drive, Isolate Translation Bridge e Test Quality Gates.
+* [Git ramificazione e pipeline di rilascio (`docs/GIT_WORKFLOW_AND_RELEASES.md`)](../docs/locales/GIT_WORKFLOW_AND_RELEASES.it.md): modello di branching Git ufficiale, regole di protezione dei branch, build multipiattaforma (APK Android, Windows Zip, Linux AppImage/tar.gz) e pre-release Beta automatizzate.
+* [v1.7.0 Roadmap: L'espansione linguistica (`docs/plans/v1_7_0_the_language_expansion.md`)](../docs/plans/v1_7_0_the_language_expansion.md): specifiche tecniche complete per lingue separate, server REST locale, tracciamento multi-emulatore, OCR desktop e scanner per fotocamera mobile.
+* [Pipeline di generazione di database (`tool/data_pipeline/locales/README.de.md`)](../tool/data_pipeline/locales/README.it.md): documentazione della preparazione dei dati PokeAPI offline, scraper, importazione di palline corrispondenti, indici e compilazione di database.
+* [Strumenti di sviluppo e rilascio (`tool/locales/README.de.md`)](../tool/locales/README.it.md): gestione automatizzata delle versioni di rilascio (`bump_version.py`), suite di test, copertura del codice e pipeline di traduzione (`translate_all.py`).
 
 ## 🤝 Aggiungi dati (Contributi della comunità)
 Ti mancano dei luoghi o le Palline corrispondenti non sono corrette? Puoi aggiungere questi dati nei file JSON nella directory `tool/data_pipeline/` (se presenti) o contribuire direttamente tramite Issues/Pull Request.

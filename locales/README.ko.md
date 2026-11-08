@@ -106,11 +106,11 @@ flutter build web --release
 ```
 
 ## 📚 아키텍처 및 문서
-* [아키텍처 가이드(`ARCHITECTURE.md`)](../../ARCHITECTURE.md): 시스템 아키텍처, 공급자 상태 관리, DAO 지속성 모델, Google 드라이브 동기화 코디네이터, 번역 브리지 격리 및 품질 게이트 테스트에 대한 자세한 개요.
-* [Git 분기 및 릴리스 파이프라인 (`docs/GIT_WORKFLOW_AND_RELEASES.md`)](../../docs/GIT_WORKFLOW_AND_RELEASES.md): 공식 Git 분기 모델, 분기 보호 규칙, 다중 플랫폼 빌드(Android APK, Windows Zip, Linux AppImage/tar.gz) 및 자동화된 베타 사전 릴리스.
-* [v1.7.0 로드맵: 언어 확장 (`docs/plans/v1_7_0_the_언어_expansion.md`)](../../docs/plans/v1_7_0_the_언어_expansion.md): 분리된 언어, 로컬 REST 서버, 다중 에뮬레이터 추적, 데스크톱 OCR 및 모바일 카메라 스캐너에 대한 전체 기술 사양입니다.
-* [데이터베이스 생성 파이프라인 (`tool/data_pipeline/locales/README.de.md`)](../../tool/data_pipeline/locales/README.ko.md): 오프라인 PokeAPI 데이터 준비, 스크레이퍼, 매칭 볼 가져오기, 인덱스 및 데이터베이스 컴파일에 대한 문서입니다.
-* [개발자 및 릴리스 도구(`tool/locales/README.de.md`)](../../tool/locales/README.ko.md): 자동화된 릴리스 버전 관리(`bump_version.py`), 테스트 스위트, 코드 적용 범위 및 번역 파이프라인(`translate_all.py`).
+* [아키텍처 가이드(`ARCHITECTURE.md`)](ARCHITECTURE.ko.md): 시스템 아키텍처, 공급자 상태 관리, DAO 지속성 모델, Google 드라이브 동기화 코디네이터, 번역 브리지 격리 및 품질 게이트 테스트에 대한 자세한 개요.
+* [Git 분기 및 릴리스 파이프라인 (`docs/GIT_WORKFLOW_AND_RELEASES.md`)](../docs/locales/GIT_WORKFLOW_AND_RELEASES.ko.md): 공식 Git 분기 모델, 분기 보호 규칙, 다중 플랫폼 빌드(Android APK, Windows Zip, Linux AppImage/tar.gz) 및 자동화된 베타 사전 릴리스.
+* [v1.7.0 로드맵: 언어 확장 (`docs/plans/v1_7_0_the_language_expansion.md`)](../docs/plans/v1_7_0_the_language_expansion.md): 분리된 언어, 로컬 REST 서버, 다중 에뮬레이터 추적, 데스크톱 OCR 및 모바일 카메라 스캐너에 대한 전체 기술 사양입니다.
+* [데이터베이스 생성 파이프라인 (`tool/data_pipeline/locales/README.de.md`)](../tool/data_pipeline/locales/README.ko.md): 오프라인 PokeAPI 데이터 준비, 스크레이퍼, 매칭 볼 가져오기, 인덱스 및 데이터베이스 컴파일에 대한 문서입니다.
+* [개발자 및 릴리스 도구(`tool/locales/README.de.md`)](../tool/locales/README.ko.md): 자동화된 릴리스 버전 관리(`bump_version.py`), 테스트 스위트, 코드 적용 범위 및 번역 파이프라인(`translate_all.py`).
 
 ## 🤝 데이터 추가 (커뮤니티 기여)
 발견 위치가 부족하거나 매칭 볼이 맞지 않나요? 이 데이터를 `tool/data_pipeline/` 디렉터리의 JSON 파일에 추가할 수 있습니다(있는 경우) 또는 직접 이슈/풀 리퀘스트를 통해 기여할 수 있습니다.

@@ -38,9 +38,13 @@ CACHE_PATH = REPO_ROOT / "tool" / ".translation_cache.json"
 
 DEFAULT_DOCS = [
     REPO_ROOT / "README.md",
+    REPO_ROOT / "ARCHITECTURE.md",
+    REPO_ROOT / "docs" / "GIT_WORKFLOW_AND_RELEASES.md",
     REPO_ROOT / "tool" / "README.md",
     REPO_ROOT / "tool" / "data_pipeline" / "README.md",
 ]
+
+MULTI_LANG_STEMS = {"README", "ARCHITECTURE", "GIT_WORKFLOW_AND_RELEASES"}
 
 # Language code mapping
 LANG_MAP = {
@@ -158,32 +162,46 @@ def rewrite_markdown_links(content: str, target_lang: str, is_target_in_locales:
         if url.startswith("http://") or url.startswith("https://") or url.startswith("#") or url.startswith("mailto:"):
             return match.group(0)
 
+        anchor = ""
+        if "#" in url:
+            url, anchor = url.split("#", 1)
+            anchor = "#" + anchor
+
         # Handle markdown doc links
         if url.endswith(".md"):
-            clean_url = re.sub(r'\.[a-z]{2}(?:-[A-Za-z]+)?\.md$', '.md', url)
+            clean_url = re.sub(r'^(?:\.\./)+', '', url)
+            clean_url = re.sub(r'\.[a-z]{2}(?:-[A-Za-z]+)?\.md$', '.md', clean_url)
             clean_url = clean_url.replace("/locales/", "/").replace("locales/", "")
             dir_part, file_part = os.path.split(clean_url)
             stem, _ = os.path.splitext(file_part)
 
-            if stem.startswith("README"):
-                if target_lang_lower == "en":
-                    target_file = f"{stem}.md"
+            is_multi = (stem in MULTI_LANG_STEMS) or stem.startswith("README")
+
+            if is_multi:
+                if is_target_in_locales:
+                    if target_lang_lower == "en":
+                        new_url = f"../{dir_part}/{stem}.md" if dir_part else f"../{stem}.md"
+                    else:
+                        if not dir_part:
+                            new_url = f"{stem}.{target_lang_lower}.md"
+                        else:
+                            new_url = f"../{dir_part}/locales/{stem}.{target_lang_lower}.md"
                 else:
-                    target_file = f"locales/{stem}.{target_lang_lower}.md"
-                new_url = f"{dir_part}/{target_file}" if dir_part else target_file
+                    if target_lang_lower == "en":
+                        new_url = f"{dir_part}/{stem}.md" if dir_part else f"{stem}.md"
+                    else:
+                        new_url = f"{dir_part}/locales/{stem}.{target_lang_lower}.md" if dir_part else f"locales/{stem}.{target_lang_lower}.md"
             else:
-                new_url = clean_url
+                new_url = f"../{clean_url}" if is_target_in_locales else clean_url
 
-            if is_target_in_locales:
-                new_url = f"../{new_url}"
-
-            return f"[{label}]({new_url})"
+            return f"[{label}]({new_url}{anchor})"
 
         # Handle other non-markdown relative links (e.g. scripts, images, etc.)
-        if is_target_in_locales and not url.startswith("../"):
-            return f"[{label}](../{url})"
+        clean_other = re.sub(r'^(?:\.\./)+', '', url)
+        if is_target_in_locales:
+            return f"[{label}](../{clean_other}{anchor})"
 
-        return match.group(0)
+        return f"[{label}]({clean_other}{anchor})"
 
     return re.sub(r'\[([^\]]+)\]\(([^)]+)\)', repl_link, content)
 
@@ -230,8 +248,15 @@ def load_cache():
 
 def save_cache(cache):
     with cache_lock:
-        with open(CACHE_PATH, "w", encoding="utf-8") as f:
-            json.dump(cache, f, ensure_ascii=False, indent=2)
+        try:
+            tmp_path = CACHE_PATH.with_suffix(".tmp")
+            with open(tmp_path, "w", encoding="utf-8") as f:
+                json.dump(cache, f, ensure_ascii=False, indent=2)
+            if tmp_path.exists():
+                os.replace(tmp_path, CACHE_PATH)
+        except Exception as e:
+            # Non-critical: avoid failing the translation pipeline on intermittent cache file lock
+            pass
 
 def generate_language_registry_dart(languages):
     """Generates lib/i18n/language_registry.g.dart from languages.json."""
@@ -438,16 +463,17 @@ def collect_uncached_strings(source_node, target_node, target_lang, cache, uncac
             return
         uncached_set.add(source_node)
 
-def batch_translate_strings(texts, target_lang, cache, batch_size=30):
+def batch_translate_strings(texts, target_lang, cache, batch_size=8, source_lang="de"):
     """Translates strings in batches to dramatically reduce HTTP requests and prevent rate-limiting."""
     if not texts:
         return
-    lang_cache = cache.setdefault(target_lang, {})
+    cache_key = target_lang if source_lang == "de" else f"{source_lang}->{target_lang}"
+    lang_cache = cache.setdefault(cache_key, {})
     text_list = list(texts)
     total_batches = (len(text_list) + batch_size - 1) // batch_size
     print(f"  Batch translating {len(text_list)} strings in {total_batches} batches to {target_lang}...")
 
-    DELIM = "\n###\n"
+    DELIM = "\n[[[PARAGRAPH_SPLIT]]]\n"
     for batch_idx in range(total_batches):
         batch = text_list[batch_idx * batch_size : (batch_idx + 1) * batch_size]
         masked_list = []
@@ -460,8 +486,8 @@ def batch_translate_strings(texts, target_lang, cache, batch_size=30):
         joined = DELIM.join(masked_list)
         split_res = []
         try:
-            raw_res = free_translate_direct(joined, target_lang)
-            split_res = [x.strip() for x in raw_res.split("###")]
+            raw_res = free_translate_direct(joined, target_lang, source_lang=source_lang)
+            split_res = [x.strip() for x in raw_res.split("[[[PARAGRAPH_SPLIT]]]")]
         except Exception:
             split_res = []
 
@@ -476,7 +502,7 @@ def batch_translate_strings(texts, target_lang, cache, batch_size=30):
         else:
             # Fallback to individual strings for this batch
             for s in batch:
-                translate_single_string(s, target_lang, cache)
+                translate_single_string(s, target_lang, cache, source_lang=source_lang)
 
         time.sleep(0.15)
         if (batch_idx + 1) % 5 == 0 or batch_idx == total_batches - 1:
@@ -582,7 +608,7 @@ def translate_markdown_file(
     cache,
     dry_run=False,
     source_lang="de",
-    overwrite_en=False
+    overwrite=False
 ):
     source_file = get_source_doc_path(canonical_file, source_lang)
     if not source_file.exists():
@@ -593,26 +619,46 @@ def translate_markdown_file(
     target_file.parent.mkdir(parents=True, exist_ok=True)
 
     if source_file.resolve() == target_file.resolve():
+        if not dry_run:
+            with open(source_file, "r", encoding="utf-8") as f:
+                content = f.read()
+            is_in_locales = (source_file.parent.name == "locales")
+            nav = generate_header_language_nav(source_file.name, languages, target_lang, is_in_locales=is_in_locales)
+            header_nav = f"> **Languages / Sprachen:** {nav}"
+            if re.search(r'> \*\*(?:Languages|Sprachen)[^*]*\*\*:?[^\n]+', content):
+                content = re.sub(r'> \*\*(?:Languages|Sprachen)[^*]*\*\*:?[^\n]+', header_nav, content)
+            elif not content.startswith("> **Languages"):
+                parts = content.split("\n\n", 1)
+                if len(parts) == 2:
+                    content = f"{parts[0]}\n\n{header_nav}\n\n{parts[1]}"
+            content = content.replace(header_nav, "__NAV_HEADER_PLACEHOLDER__")
+            content = rewrite_markdown_links(content, target_lang, is_target_in_locales=is_in_locales)
+            content = content.replace("__NAV_HEADER_PLACEHOLDER__", header_nav)
+            with open(source_file, "w", encoding="utf-8") as f:
+                f.write(content)
         return
 
-    # Preserve handcrafted English documentation, updating only the language switcher header, unless overwrite_en is requested or source is en
-    if target_lang.lower() == "en" and not overwrite_en and target_file.exists() and source_lang.lower() != "en":
-        print(f"Preserving existing English doc {target_file.name}, updating language switcher header...", flush=True)
+    # If target already exists and not overwrite, preserve content and update header & links
+    if target_file.exists() and not overwrite:
+        print(f"Preserving existing doc {target_file.name} ({target_lang}), updating language switcher header and links...", flush=True)
         if not dry_run:
             with open(target_file, "r", encoding="utf-8") as f:
-                en_content = f.read()
+                doc_content = f.read()
             is_in_locales = (target_file.parent.name == "locales")
-            nav = generate_header_language_nav(target_file.name, languages, "en", is_in_locales=is_in_locales)
+            nav = generate_header_language_nav(target_file.name, languages, target_lang, is_in_locales=is_in_locales)
             header_nav = f"> **Languages / Sprachen:** {nav}"
-            if re.search(r'> \*\*(?:Languages|Sprachen)[^*]*\*\*:?[^\n]+', en_content):
-                en_content = re.sub(r'> \*\*(?:Languages|Sprachen)[^*]*\*\*:?[^\n]+', header_nav, en_content)
-            elif not en_content.startswith("> **Languages"):
-                parts = en_content.split("\n\n", 1)
+            if re.search(r'> \*\*(?:Languages|Sprachen)[^*]*\*\*:?[^\n]+', doc_content):
+                doc_content = re.sub(r'> \*\*(?:Languages|Sprachen)[^*]*\*\*:?[^\n]+', header_nav, doc_content)
+            elif not doc_content.startswith("> **Languages"):
+                parts = doc_content.split("\n\n", 1)
                 if len(parts) == 2:
-                    en_content = f"{parts[0]}\n\n{header_nav}\n\n{parts[1]}"
+                    doc_content = f"{parts[0]}\n\n{header_nav}\n\n{parts[1]}"
+            doc_content = doc_content.replace(header_nav, "__NAV_HEADER_PLACEHOLDER__")
+            doc_content = rewrite_markdown_links(doc_content, target_lang, is_target_in_locales=is_in_locales)
+            doc_content = doc_content.replace("__NAV_HEADER_PLACEHOLDER__", header_nav)
             with open(target_file, "w", encoding="utf-8") as f:
-                f.write(en_content)
-            print(f"  -> Updated header in {target_file.name}", flush=True)
+                f.write(doc_content)
+            print(f"  -> Updated header & links in {target_file.name}", flush=True)
         return
 
     print(f"Translating {source_file.name} -> {target_file} ({target_lang})...")
@@ -649,6 +695,26 @@ def translate_markdown_file(
 
     # 4. Split by double newlines into paragraphs
     paragraphs = protected.split("\n\n")
+
+    # Pre-collect uncached paragraphs for batch translation
+    if not dry_run:
+        cache_key = target_lang if source_lang == "de" else f"{source_lang}->{target_lang}"
+        lang_cache = cache.setdefault(cache_key, {})
+        uncached = []
+        for para in paragraphs:
+            para_stripped = para.strip()
+            if not para_stripped:
+                continue
+            if re.match(r'^__(?:CODE|HTML|BADGE)_BLOCK_\d+__$', para_stripped):
+                continue
+            if "Languages:" in para or "Sprachen:" in para:
+                continue
+            h = compute_text_hash(para)
+            if h not in lang_cache:
+                uncached.append(para)
+        if uncached:
+            batch_translate_strings(uncached, target_lang, cache, batch_size=8, source_lang=source_lang)
+
     translated_paras = []
     header_nav = None
 
@@ -709,7 +775,8 @@ def run_doc_translations(
     dry_run=False,
     target_filter=None,
     source_lang="auto",
-    overwrite_en=False
+    overwrite=False,
+    workers=2
 ):
     print("Translating markdown documentation...")
     for canonical_doc in DEFAULT_DOCS:
@@ -719,7 +786,7 @@ def run_doc_translations(
         else:
             effective_source = source_lang
 
-        # Update language switcher header in source doc
+        # Update language switcher header and rewrite links in source doc
         src_path = get_source_doc_path(canonical_doc, effective_source)
         if src_path.exists() and not dry_run:
             try:
@@ -734,29 +801,48 @@ def run_doc_translations(
                     parts = src_content.split("\n\n", 1)
                     if len(parts) == 2:
                         src_content = f"{parts[0]}\n\n{src_header}\n\n{parts[1]}"
+                src_content = src_content.replace(src_header, "__NAV_HEADER_PLACEHOLDER__")
+                src_content = rewrite_markdown_links(src_content, effective_source, is_target_in_locales=is_in_locales)
+                src_content = src_content.replace("__NAV_HEADER_PLACEHOLDER__", src_header)
                 with open(src_path, "w", encoding="utf-8") as f:
                     f.write(src_content)
-                print(f"  -> Updated header in {src_path}")
+                print(f"  -> Updated header & links in {src_path}")
             except Exception as e:
                 print(f"  Warning: Could not update header in {src_path}: {e}")
 
-        for lang in languages:
-            code = lang["code"]
-            if code.lower() == effective_source.lower():
-                continue
-            if target_filter and code.lower() != target_filter.lower():
-                continue
-            translate_markdown_file(
-                canonical_doc,
-                code,
-                languages,
-                cache,
-                dry_run=dry_run,
-                source_lang=effective_source,
-                overwrite_en=overwrite_en
-            )
+        target_langs = [
+            l for l in languages
+            if l["code"].lower() != effective_source.lower() and (not target_filter or l["code"].lower() == target_filter.lower())
+        ]
 
-    save_cache(cache)
+        if workers > 1 and len(target_langs) > 1 and not dry_run:
+            from concurrent.futures import ThreadPoolExecutor
+            with ThreadPoolExecutor(max_workers=workers) as executor:
+                list(executor.map(
+                    lambda l: translate_markdown_file(
+                        canonical_doc,
+                        l["code"],
+                        languages,
+                        cache,
+                        dry_run=dry_run,
+                        source_lang=effective_source,
+                        overwrite=overwrite
+                    ),
+                    target_langs
+                ))
+        else:
+            for lang in target_langs:
+                translate_markdown_file(
+                    canonical_doc,
+                    lang["code"],
+                    languages,
+                    cache,
+                    dry_run=dry_run,
+                    source_lang=effective_source,
+                    overwrite=overwrite
+                )
+
+        save_cache(cache)
 
 def main():
     parser = argparse.ArgumentParser(description="PokéVault Multi-Language Translation Pipeline")
@@ -765,7 +851,7 @@ def main():
     parser.add_argument("--app-only", action="store_true", help="Only translate app UI strings")
     parser.add_argument("--lang", type=str, help="Translate only specific language code (e.g. 'fr')")
     parser.add_argument("--source-lang", type=str, default="auto", help="Source language for doc translation ('auto', 'de', 'en', etc., default: 'auto')")
-    parser.add_argument("--overwrite-en", action="store_true", help="Allow overwriting English documentation during translation")
+    parser.add_argument("--overwrite-docs", action="store_true", help="Allow overwriting existing translated documentation files")
     parser.add_argument("--skip-slang", action="store_true", help="Skip running 'dart run slang'")
     parser.add_argument("--workers", type=int, default=2, help="Number of concurrent language translation workers (default: 2)")
     args = parser.parse_args()
@@ -786,7 +872,8 @@ def main():
             dry_run=args.dry_run,
             target_filter=args.lang,
             source_lang=args.source_lang,
-            overwrite_en=args.overwrite_en
+            overwrite=args.overwrite_docs,
+            workers=args.workers
         )
 
     if not args.skip_slang and not args.dry_run:

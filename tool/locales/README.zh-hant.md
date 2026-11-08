@@ -14,7 +14,7 @@
 | [`test_bump_version.py`](../test_bump_version.py) | Python 3 | `bump_version.py` 的單元測試套件（SemVer 驗證、正則表達式、命令列標誌） |
 | [`translate_all.py`](../translate_all.py) | Python 3 | 用於 UI 字串、俚語類別及文件的全自動多引擎翻譯管線 |
 | [`run_coverage.ps1`](../run_coverage.ps1) | PowerShell | 執行測試並帶有程式碼覆蓋率，生成 LCOV 報告 |
-| [`data_pipeline/`](../../data_pipeline/locales/README.zh-hant.md) | Python 3 | 用於 `pokedex.sqlite` 的爬蟲、JSON 匯入與 SQLite 編譯 |
+| [`data_pipeline/`](../data_pipeline/locales/README.zh-hant.md) | Python 3 | 用於 `pokedex.sqlite` 的爬蟲、JSON 匯入與 SQLite 編譯 |
 
 ---
 

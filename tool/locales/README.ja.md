@@ -14,7 +14,7 @@
 | [`test_bump_version.py`](../test_bump_version.py) | Python 3 | `bump_version.py` のユニットテストスイート（SemVer検証、正規表現、CLIフラグ） |
 | [`translate_all.py`](../translate_all.py) | Python 3 | UI文字列、スラングクラスおよびドキュメントのための完全自動マルチエンジン翻訳パイプライン |
 | [`run_coverage.ps1`](../run_coverage.ps1) | PowerShell | コードカバレッジ付きでテストを実行し、LCOVレポートを生成 |
-| [`data_pipeline/`](../../data_pipeline/locales/README.ja.md) | Python 3 | `pokedex.sqlite` のためのスクレイパー、JSONインポートおよびSQLiteコンパイル |
+| [`data_pipeline/`](../data_pipeline/locales/README.ja.md) | Python 3 | `pokedex.sqlite` のためのスクレイパー、JSONインポートおよびSQLiteコンパイル |
 
 ---
 

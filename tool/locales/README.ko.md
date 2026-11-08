@@ -14,7 +14,7 @@
 | [`test_bump_version.py`](../test_bump_version.py) | Python 3 | `bump_version.py`의 단위 테스트 스위트 (SemVer 검증, 정규식, CLI 플래그) |
 | [`translate_all.py`](../translate_all.py) | Python 3 | UI 문자열, 슬랭 클래스 및 문서를 위한 완전 자동 다중 엔진 번역 파이프라인 |
 | [`run_coverage.ps1`](../run_coverage.ps1) | PowerShell | 코드 커버리지를 포함한 테스트 실행 및 LCOV 보고서 생성 |
-| [`data_pipeline/`](../../data_pipeline/locales/README.ko.md) | Python 3 | `pokedex.sqlite`를 위한 스크래퍼, JSON 가져오기 및 SQLite 컴파일
+| [`data_pipeline/`](../data_pipeline/locales/README.ko.md) | Python 3 | `pokedex.sqlite`를 위한 스크래퍼, JSON 가져오기 및 SQLite 컴파일
 
 ---
 
@@ -86,7 +86,8 @@ Suggested git commands:
 ```bash
 python tool/bump_version.py 1.6.0
 ```
-*`pubspec.yaml`에서 `version: 1.5.0+6` $ightarrow$ `version: 1.6.0+7`로 업데이트했습니다.*
+*`pubspec.yaml`에서 `version: 1.5.0+6` $
+ightarrow$ `version: 1.6.0+7`로 업데이트했습니다.*
 
 ### 3. 특정 빌드 번호 지정 (`--build`)
 ```bash

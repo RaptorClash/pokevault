@@ -14,7 +14,7 @@ Deze directory bevat hulpscripts en automatiseringen voor ontwikkeling, testdekk
 | [`test_bump_version.py`](../test_bump_version.py) | Python 3 | Unit-testsuite voor `bump_version.py` (SemVer-validatie, Regex, CLI-vlaggen). |
 | [`translate_all.py`](../translate_all.py) | Python 3 | Volledig automatische multi-engine vertaalpipeline voor UI-strings, slangklassen en documentatie. |
 | [`run_coverage.ps1`](../run_coverage.ps1) | PowerShell | Voert tests uit met code-coverage en genereert een LCOV-rapport. |
-| [`data_pipeline/`](../../data_pipeline/locales/README.nl.md) | Python 3 | Scraper, JSON-imports en SQLite-compilatie voor `pokedex.sqlite`. |
+| [`data_pipeline/`](../data_pipeline/locales/README.nl.md) | Python 3 | Scraper, JSON-imports en SQLite-compilatie voor `pokedex.sqlite`. |
 
 ---
 
@@ -86,7 +86,8 @@ Suggested git commands:
 ```bash
 python tool/bump_version.py 1.6.0
 ```
-*Bijgewerkt `version: 1.5.0+6` $ightarrow$ `version: 1.6.0+7` in `pubspec.yaml`.*
+*Bijgewerkt `version: 1.5.0+6` $
+ightarrow$ `version: 1.6.0+7` in `pubspec.yaml`.*
 
 ### 3. Specifiek buildnummer toekennen (`--build`)
 ```bash

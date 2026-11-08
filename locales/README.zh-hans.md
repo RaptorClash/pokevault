@@ -81,17 +81,17 @@ __徽章块_0____换行变量_0____徽章块_1____换行变量_1____徽章块_2_
 flutter build apk --release
 ```
 
-**Windows:**
+**Windows：**
 ```bash
 flutter build windows --release
 ```
 
-**Linux:**
+**Linux：**
 ```bash
 flutter build linux --release
 ```
 
-**Linux AppImage:**
+**Linux 应用程序映像：**
 ```bash
 appimage-builder --recipe AppImageBuilder.yml
 ```
@@ -102,11 +102,11 @@ flutter build web --release
 ```
 
 ## 📚 架构和文档
-* [架构指南 (`ARCHITECTURE.md`)](../../ARCHITECTURE.md)：系统架构、提供程序状态管理、DAO 持久性模型、Google Drive 同步协调器、隔离转换桥和测试质量门的详细概述。
-* [Git 分支和发布管道(`docs/GIT_WORKFLOW_AND_RELEASES.md`)](../../docs/GIT_WORKFLOW_AND_RELEASES.md)：官方 Git 分支模型、分支保护规则、多平台构建（Android APK、Windows Zip、Linux AppImage/tar.gz）和自动化 Beta 预发布.
-* [v1.7.0 路线图：语言扩展(`docs/plans/v1_7_0_the_language_expansion.md`)](../../docs/plans/v1_7_0_the_language_expansion.md)：分离语言、本地 REST 服务器、多模拟器跟踪、桌面 OCR 和移动相机扫描仪的完整技术规范.
-* [数据库生成管道(`tool/data_pipeline/locales/README.de.md`)](../../tool/data_pipeline/locales/README.zh-hans.md): 离线 PokeAPI 数据准备、抓取器、匹配球导入、索引和数据库编译的文档.
-* [开发者和发布工具 (`tool/locales/README.de.md`)](../../tool/locales/README.zh-hans.md):自动发布版本管理（“bump_version.py”）、测试套件、代码覆盖率和翻译管道（“translate_all.py”）。
+* [架构指南 (`ARCHITECTURE.md`)](ARCHITECTURE.zh-hans.md)：系统架构、提供程序状态管理、DAO 持久性模型、Google Drive 同步协调器、隔离转换桥和测试质量门的详细概述。
+* [Git 分支和发布管道(`docs/GIT_WORKFLOW_AND_RELEASES.md`)](../docs/locales/GIT_WORKFLOW_AND_RELEASES.zh-hans.md)：官方 Git 分支模型、分支保护规则、多平台构建（Android APK、Windows Zip、Linux AppImage/tar.gz）和自动化 Beta 预发布.
+* [v1.7.0 路线图：语言扩展(`docs/plans/v1_7_0_the_language_expansion.md`)](../docs/plans/v1_7_0_the_language_expansion.md)：分离语言、本地 REST 服务器、多模拟器跟踪、桌面 OCR 和移动相机扫描仪的完整技术规范.
+* [数据库生成管道(`tool/data_pipeline/locales/README.de.md`)](../tool/data_pipeline/locales/README.zh-hans.md): 离线 PokeAPI 数据准备、抓取器、匹配球导入、索引和数据库编译的文档.
+* [开发者和发布工具 (`tool/locales/README.de.md`)](../tool/locales/README.zh-hans.md):自动发布版本管理（“bump_version.py”）、测试套件、代码覆盖率和翻译管道（“translate_all.py”）。
 
 ## 🤝 补充数据（社区贡献）
 你是否缺少地点信息或者匹配球不合适？你可以在目录 `tool/data_pipeline/` 中的 JSON 文件里补充这些数据（如果存在的话），或者直接通过问题（Issues）/拉取请求（Pull Requests）进行贡献。

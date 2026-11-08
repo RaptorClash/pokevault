@@ -95,7 +95,7 @@ flutter build windows --release
 flutter build linux --release
 ```
 
-**Linux AppImage:**
+**Linux アプリイメージ:**
 ```bash
 appimage-builder --recipe AppImageBuilder.yml
 ```
@@ -106,9 +106,9 @@ flutter build web --release
 ```
 
 ## 📚 アーキテクチャとドキュメント
-* [アーキテクチャ ガイド (`ARCHITECTURE.md`)](../../ARCHITECTURE.md): システム アーキテクチャ、プロバイダーの状態管理、DAO 永続モデル、Google ドライブ同期コーディネーター、翻訳ブリッジの分離、およびテスト品質ゲートの詳細な概要。
-* [Git ブランチとリリース パイプライン(`docs/GIT_WORKFLOW_AND_RELEASES.md`)](../../docs/GIT_WORKFLOW_AND_RELEASES.md): 公式 Git ブランチング モデル、ブランチ保護ルール、マルチプラットフォーム ビルド (Android APK、Windows Zip、Linux AppImage/tar.gz) および自動ベータ プレリリース。
-* [v1.7.0 ロードマップ: 言語拡張(`docs/plans/v1_7_0_the_ language_expansion.md`)](../../docs/plans/v1_7_0_the_ language_expansion.md): 分離言語、ローカル REST サーバー、マルチエミュレータ トラッキング、デスクトップ OCR およびモバイル カメラ スキャナーの完全な技術仕様。
+* [アーキテクチャ ガイド (`ARCHITECTURE.md`)](ARCHITECTURE.ja.md): システム アーキテクチャ、プロバイダーの状態管理、DAO 永続モデル、Google ドライブ同期コーディネーター、翻訳ブリッジの分離、およびテスト品質ゲートの詳細な概要。
+* [Git ブランチとリリース パイプライン(`docs/GIT_WORKFLOW_AND_RELEASES.md`)](../docs/locales/GIT_WORKFLOW_AND_RELEASES.ja.md): 公式 Git ブランチ モデル、ブランチ保護ルール、マルチプラットフォーム ビルド (Android APK、Windows Zip、Linux AppImage/tar.gz) および自動ベータ プレリリース。
+* [v1.7.0 ロードマップ:言語拡張 (`docs/plans/v1_7_0_the_language_expansion.md`)](../docs/plans/v1_7_0_the_language_expansion.md): 分離言語、ローカル REST サーバー、マルチエミュレーター トラッキング、デスクトップ OCR、およびモバイル カメラ スキャナーの完全な技術仕様。
 * [データベース生成パイプライン] (`tool/data_pipeline/locales/README.de.md`)](../tool/data_pipeline/locales/README.de.md): オフライン PokeAPI データの準備、スクレイパー、マッチング ボールのインポート、インデックス、データベースのコンパイルに関するドキュメント。
 * [開発者およびリリース ツール] (`tool/locales/README.de.md`)](../tool/locales/README.de.md): 自動リリース バージョン管理 (`bump_version.py`)、テスト スイート、コード カバレッジ、および変換パイプライン (`translate_all.py`)。
 

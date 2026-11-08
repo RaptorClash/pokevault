@@ -14,7 +14,7 @@ Este diretório contém scripts auxiliares e automações para desenvolvimento, 
 | [`test_bump_version.py`](../test_bump_version.py) | Python 3 | Conjunto de testes unitários para `bump_version.py` (validação SemVer, Regex, flags de CLI). |
 | [`translate_all.py`](../translate_all.py) | Python 3 | Pipeline de tradução totalmente automática com múltiplos motores para strings de UI, classes de gírias e documentações. |
 | [`run_coverage.ps1`](../run_coverage.ps1) | PowerShell | Executa testes com cobertura de código e gera um relatório LCOV. |
-| [`data_pipeline/`](../../data_pipeline/locales/README.pt.md) | Python 3 | Scraper, importações JSON e compilação SQLite para `pokedex.sqlite`. |
+| [`data_pipeline/`](../data_pipeline/locales/README.pt.md) | Python 3 | Scraper, importações JSON e compilação SQLite para `pokedex.sqlite`. |
 
 ---
 
@@ -86,7 +86,8 @@ Suggested git commands:
 ```bash
 python tool/bump_version.py 1.6.0
 ```
-*Atualizado `version: 1.5.0+6` $ightarrow$ `version: 1.6.0+7` em `pubspec.yaml`.*
+*Atualizado `version: 1.5.0+6` $
+ightarrow$ `version: 1.6.0+7` em `pubspec.yaml`.*
 
 ### 3. Atribuir número de build específico (`--build`)
 ```bash

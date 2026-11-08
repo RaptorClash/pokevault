@@ -72,7 +72,7 @@
    *(Alternatief uitvoeren met `--skip-download` als je de externe webdumps al hebt en alleen de database opnieuw wilt bouwen).*
 
 6. App starten:
-   ```bash
+ ```bash
    flutter run
    ```
 
@@ -85,7 +85,7 @@ Om een release-build te maken, gebruik een van de volgende opdrachten:
 flutter build apk --release
 ```
 
-**Windows:**
+**Vensters:**
 ```bash
 flutter build windows --release
 ```
@@ -95,7 +95,7 @@ flutter build windows --release
 flutter build linux --release
 ```
 
-**Linux AppImage:**
+**Linux AppAfbeelding:**
 ```bash
 appimage-builder --recipe AppImageBuilder.yml
 ```
@@ -106,11 +106,11 @@ flutter build web --release
 ```
 
 ## 📚 Architectuur en documentatie
-* [Architectuurgids (`ARCHITECTURE.md`)](../../ARCHITECTURE.md): Gedetailleerd overzicht van systeemarchitectuur, providerstatusbeheer, DAO-persistentiemodel, Google Drive Sync Coordinator, Isolate Translation Bridge en Test Quality Gates.
-* [Git branching & release pipeline (`docs/GIT_WORKFLOW_AND_RELEASES.md`)](../../docs/GIT_WORKFLOW_AND_RELEASES.md): Officieel Git-vertakkingsmodel, vertakkingsbeschermingsregels, multi-platform builds (Android APK, Windows Zip, Linux AppImage/tar.gz) en geautomatiseerde bèta-pre-releases.
-* [v1.7.0 Roadmap: de taaluitbreiding (`docs/plans/v1_7_0_the_lingual_expansion.md`)](../../docs/plans/v1_7_0_the_lingual_expansion.md): Volledige technische specificatie voor afzonderlijke talen, lokale REST-server, tracking van meerdere emulators, desktop-OCR en mobiele camerascanner.
-* [Pipeline voor het genereren van databases (`tool/data_pipeline/locales/README.de.md`)](../../tool/data_pipeline/locales/README.nl.md): Documentatie van offline PokeAPI-gegevensvoorbereiding, scrapers, import van bijpassende ballen, indexen en databasecompilatie.
-* [Ontwikkelaars- en releasetools (`tool/locales/README.de.md`)](../../tool/locales/README.nl.md): Geautomatiseerd releaseversiebeheer (`bump_version.py`), testsuites, codedekking en vertaalpijplijn (`translate_all.py`).
+* [Architectuurgids (`ARCHITECTURE.md`)](ARCHITECTURE.nl.md): Gedetailleerd overzicht van systeemarchitectuur, providerstatusbeheer, DAO-persistentiemodel, Google Drive Sync Coordinator, Isolate Translation Bridge en Test Quality Gates.
+* [Git branching & release pipeline (`docs/GIT_WORKFLOW_AND_RELEASES.md`)](../docs/locales/GIT_WORKFLOW_AND_RELEASES.nl.md): Officieel Git-vertakkingsmodel, vertakkingsbeschermingsregels, multi-platform builds (Android APK, Windows Zip, Linux AppImage/tar.gz) en geautomatiseerde bèta-pre-releases.
+* [v1.7.0 Roadmap: de taal Uitbreiding (`docs/plans/v1_7_0_the_language_expansion.md`)](../docs/plans/v1_7_0_the_language_expansion.md): Volledige technische specificatie voor afzonderlijke talen, lokale REST-server, tracking van meerdere emulators, desktop-OCR en mobiele camerascanner.
+* [Pipeline voor het genereren van databases (`tool/data_pipeline/locales/README.de.md`)](../tool/data_pipeline/locales/README.nl.md): Documentatie van offline PokeAPI-gegevensvoorbereiding, scrapers, import van bijpassende ballen, indexen en databasecompilatie.
+* [Ontwikkelaars- en releasetools (`tool/locales/README.de.md`)](../tool/locales/README.nl.md): Geautomatiseerd releaseversiebeheer (`bump_version.py`), testsuites, codedekking en vertaalpijplijn (`translate_all.py`).
 
 ## 🤝 Gegevens aanvullen (Communitybijdragen)
 Mis je vindplaatsen of passen de overeenkomende ballen niet? Je kunt deze gegevens aanvullen in de JSON-bestanden in de map `tool/data_pipeline/` (indien aanwezig) of direct bijdragen via Issues/Pull Requests.

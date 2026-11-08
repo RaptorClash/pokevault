@@ -2,44 +2,44 @@
 
 > **Languages / Sprachen:** [🇩🇪 Deutsch](README.de.md) | [🇬🇧 English](../README.md) | **[🇫🇷 Français](README.fr.md)** | [🇪🇸 Español](README.es.md) | [🇮🇹 Italiano](README.it.md) | [🇯🇵 日本語](README.ja.md) | [🇰🇷 한국어](README.ko.md) | [🇨🇳 简体中文](README.zh-hans.md) | [🇹🇼 繁體中文](README.zh-hant.md) | [🇵🇹 Português](README.pt.md) | [🇳🇱 Nederlands](README.nl.md) | [🇵🇱 Polski](README.pl.md) | [🇷🇺 Русский](README.ru.md)
 
-**PokéVault** est un compagnon complet et entièrement personnalisable pour les dresseurs de Pokémon, les collectionneurs et les chasseurs de Shiny, développé avec Flutter. Que vous planifiiez un Dex régional, un Dex national, un Dex de formes ou un Dex Shiny – PokéVault vous aide à suivre facilement vos progrès et vous fournit les outils nécessaires pour votre chasse aux Shiny.
+**PokéVault** est une application compagnon complète et entièrement personnalisable pour les Dresseurs de Pokémon, les Collectionneurs et les Chasseurs de Shiny, développée avec Flutter. Que vous visiez un Dex Régional, un Dex National, un Dex de Formes ou un Dex Shiny – PokéVault vous aide à suivre vos progrès facilement et fournit l'ensemble d'outils ultime pour vos chasses aux shiny.
 
 [![CI Quality Gate](https://github.com/RaptorClash/pokevault/actions/workflows/ci.yml/badge.svg)](https://github.com/RaptorClash/pokevault/actions/workflows/ci.yml)
 ![Flutter](https://img.shields.io/badge/Made%20with-Flutter-02569B?logo=flutter)
 ![Dart](https://img.shields.io/badge/Dart-0175C2?logo=dart)
 ![Platform](https://img.shields.io/badge/Platform-Android%20%7C%20Windows%20%7C%20Linux%20%7C%20Web-lightgrey)
-![Lizenz](https://img.shields.io/badge/Lizenz-GPL--3.0-blue.svg)
+![License](https://img.shields.io/badge/License-GPL--3.0-blue.svg)
 
-## ✨ Fonctions principales
+## ✨ Fonctionnalités
 
-* **Gestion Multi-Dex :** Créez autant de trackers que vous le souhaitez pour différents jeux, générations ou vos propres défis.
-* **Suivi détaillé des formulaires :** Prise en charge complète des formes régionales, méga évolutions, Gigantamax et formes spéciales (Pokusan, Vivillon, Unown, etc.).
-* **Boîte PC et vue liste :** Visualisez vos Pokémon dans la grille classique à 30 emplacements "PC Box" ou dans une liste consultable avec glissement transparent & drop.
-* **Shiny Tracking & Hunt Counter :** Suivez les Pokémon normaux et brillants séparément. Compteur Shiny Hunt intégré avec calcul de probabilité en temps réel, sélection de méthode, historique des phases et minuterie de session avec détection de pause AFK.
-* **🎖️ Cartes de complétion Dex :** Concevez, personnalisez et exportez des certificats de réussite haute résolution, des cartes statistiques et des mosaïques Pokémon pour partager vos progrès.
-* **Balles correspondantes :** Recevez des recommandations organisées par la communauté pour les meilleures Poké Balls (pour les Poké Balls normales *et* brillantes). variantes) !
-* **📊 Calculateur avancé du taux de capture :** Calcul précis de la probabilité de capture sur toutes les générations, y compris les mécanismes spéciaux de *Pokémon Legends : Arceus* et *Pokémon Legends : Z-A*.
-* **🧬 Calculateur d'élevage et d'itinéraire brillant :** Calcule les chaînes de reproduction à plusieurs étapes (y compris Idem et les bébés Pokémon) et affiche les probabilités exactes pour la cible offspring.
-* **📖 Guides de chasse brillants détaillés :** Instructions étape par étape pour les méthodes spécifiques à la génération (par exemple, PokéRadar, DexNav, recettes de sandwich).
-* **🎮 Fonctionnement et raccourcis dans l'application Présentation :** Propre écran dans les paramètres avec des raccourcis adaptatifs à la plate-forme, des commandes de souris et des gestes tactiles.
-* **☁️ Cloud Sync & Hors ligne d'abord :** 100 % hors ligne avec une base de données SQLite locale robuste. Synchronisation facultative via votre Google Drive privé avec résilience de fusion de correctifs.
-* **Personnalisation complète :** Prend en charge le mode sombre/clair et les couleurs d'accent et d'arrière-plan personnalisables.
-* **Multilingue :** Entièrement disponible en 13 langues (UI via Slang). De plus, sélection indépendante de la langue de la franchise Pokémon (par exemple, interface utilisateur allemande avec noms de Pokémon anglais ou japonais) basée sur 10 langues officielles de la franchise dans « pokedex.sqlite ».
+* **Gestion de Dex multiples :** Créez autant de trackers que nécessaire pour différents jeux, générations ou défis personnalisés.
+* **Suivi approfondi des formulaires :** Prise en charge complète des formulaires régionaux, Mega Evolutions, Gigantamax et des formulaires spéciaux (Alcremie, Vivillon, Unown, etc.).
+* **PC Box & List Views :** Visualisez vos Pokémon dans une grille "PC Box" classique à 30 emplacements ou dans une vue détaillée, vue de liste consultable par glisser-déposer transparent.
+* **Shiny Tracking & Hunt Counter :** Suivez les Pokémon normaux et brillants séparément. Compteur Shiny Hunt intégré avec calcul des cotes en temps réel, préréglages de méthode, enregistrement des phases et minuterie avec détection de pause AFK.
+* **🎖️ Cartes de complétion Dex :** Concevez, personnalisez et exportez des cartes de complétion haute résolution et des mosaïques d'illustrations pour célébrer et partager vos réalisations Dex.
+* **Balles de correspondance légales :** Obtenez des recommandations organisées par la communauté pour les meilleures Poké Balls (balles de correspondance) pour les deux. variations normales et brillantes !
+* **📊 Calculateur avancé du taux de capture :** Calculs précis du taux de capture couvrant chaque génération, y compris des mécanismes spéciaux pour *Pokémon Legends : Arceus* et *Pokémon Legends : Z-A*.
+* **🧬 Shiny Breeding & Path Calculator :** Calcule les chaînes de reproduction en plusieurs étapes (y compris Idem et Bébé Pokémon) et affiche une probabilité précise cotes.
+* **📖 Guides complets de chasse Shiny :** Instructions étape par étape pour les méthodes spécifiques à une génération (par exemple, Poké Radar, DexNav, Recettes de sandwich).
+* **🎮 Guide des raccourcis et des gestes dans l'application :** Guide dédié dans les paramètres affichant les raccourcis clavier, les commandes de la souris et les gestes tactiles adaptés à la plate-forme.
+* **☁️ Cloud Sync et hors ligne d'abord :** 100 % hors ligne avec une base de données SQLite locale robuste. Sauvegarde et restauration transparentes en option via votre Google Drive personnel avec résilience de fusion de correctifs au niveau du champ.
+* **Personnalisation complète :** Prend en charge le mode sombre/clair et les couleurs d'accent et d'arrière-plan personnalisées.
+* **Multilingue :** Entièrement disponible en 13 langues (interface utilisateur via Slang). Propose une sélection indépendante de la langue de la franchise Pokémon (par exemple, une interface utilisateur allemande avec des noms de Pokémon anglais ou japonais) dans 10 langues officielles de la franchise dans « pokedex.sqlite ».
 
 ## 📸 Captures d’écran
 
 | Écran d'accueil | Vue boîte PC |
 | :---: | :---: |
-| <img src="../docs/screenshots/de/homescreen/homescreen1.png" width="250"/> | <img src="../docs/screenshots/de/pcboxview/nationaldexboxview.png" width="250"/> <img src="../docs/screenshots/de/pcboxview/nationaldexlistview.png" width="250"/> |
-| **Détails des Pokémon & Balles correspondantes** | **Création de Dex & Filtres** |
-| <img src="../docs/screenshots/de/pokemondetails/pokemondetails.png" width="250"/> | <img src="../docs/screenshots/de/dexcreation/dexcreation1.png" width="250"/> <img src="../docs/screenshots/de/dexcreation/dexcreation2.png" width="250"/> |
+| <img src="docs/screenshots/de/homescreen/homescreen1.png" width="250"/> | <img src="docs/screenshots/de/pcboxview/nationaldexboxview.png" width="250"/> <img src="docs/screenshots/de/pcboxview/nationaldexlistview.png" width="250"/> |
+| **Détails du Pokémon & Balls correspondantes** | **Création du Pokédex & Filtres** |
+| <img src="docs/screenshots/de/pokemondetails/pokemondetails.png" width="250"/> | <img src="docs/screenshots/de/dexcreation/dexcreation1.png" width="250"/> <img src="docs/screenshots/de/dexcreation/dexcreation2.png" width="250"/> |
 
-## 🚀 Premiers pas (Exécuter localement)
+## 🚀 Commencer
 
 ### Prérequis
-* [Flutter SDK](https://docs.flutter.dev/get-started/install) (version stable actuelle recommandée)
+* [SDK Flutter](https://docs.flutter.dev/get-started/install) (dernière version stable recommandée)
 * SDK Dart
-* Un IDE comme VS Code ou Android Studio
+* Un IDE tel que VS Code ou Android Studio
 
 ### Installation
 1. Cloner le dépôt :
@@ -47,38 +47,38 @@
    git clone https://github.com/RaptorClash/pokevault.git
    ```
 
-2. Changer de répertoire :
+2. Accédez au répertoire du projet :
    ```bash
    cd pokevault
    ```
 
-3. Télécharger les dépendances :
+3. Obtenez les dépendances :
    ```bash
    flutter pub get
    ```
 
 4. Télécharger des données externes et initialiser les sous-modules :
-   Téléchargez les dépôts de données et les wikis les plus récents nécessaires pour la base de données :
+   Récupérer les derniers dépôts de données et wikis utilisés par le générateur de base de données :
    ```bash
    python3 update_data.py
    ```
 
-5. Générer et optimiser la base de données SQLite :
-   *PokéVault nécessite une base de données SQLite précompilée pour les données de base des Pokémon.* 
-   Exécutez le script tout-en-un pour générer et optimiser `assets/db/pokedex.sqlite` en une seule commande :
+5. Configurer la base de données SQLite :
+   *PokéVault repose sur une base de données SQLite pré-construite pour les données de référence principales des Pokémon.* 
+   Exécutez le script de pipeline de données tout-en-un pour générer et optimiser `assets/db/pokedex.sqlite` :
    ```bash
    python3 tool/data_pipeline/run_pipeline.py
    ```
-   *(Alternativement, exécutez avec `--skip-download` si vous possédez déjà les dumps Web externes et souhaitez uniquement reconstruire la base de données).*
+   *(Sinon, exécutez avec `--skip-download` si vous avez déjà les dumps web externes et que vous voulez seulement recompiler la base de données).*
 
-6. Lancer l'application :
+6. Exécutez l'application :
    ```bash
    flutter run
    ```
 
-## 🛠️ Créer une build
+## 🛠️ Construire l'application
 
-Pour créer une version de production, utilisez l'une des commandes suivantes :
+Pour compiler une version de production pour votre plateforme spécifique, exécutez l'une des commandes suivantes :
 
 **Android (APK) :**
 ```bash
@@ -95,38 +95,38 @@ flutter build windows --release
 flutter build linux --release
 ```
 
-**Linux AppImage:**
+**Image d'application Linux :**
 ```bash
 appimage-builder --recipe AppImageBuilder.yml
 ```
 
-**Web:**
+**Web :**
 ```bash
 flutter build web --release
 ```
 
 ## 📚 Architecture et documentation
-* [Guide d'architecture (`ARCHITECTURE.md`)](../../ARCHITECTURE.md) : aperçu détaillé de l'architecture du système, de la gestion de l'état du fournisseur, du modèle de persistance DAO, du coordinateur de synchronisation Google Drive, du pont de traduction isolé et des portes de qualité de test.
-* [Branchage Git et pipeline de publication (`docs/GIT_WORKFLOW_AND_RELEASES.md`)](../../docs/GIT_WORKFLOW_AND_RELEASES.md) : modèle de branchement Git officiel, règles de protection des branches, versions multiplateformes (APK Android, Windows Zip, Linux AppImage/tar.gz) et pré-versions bêta automatisées.
-* [Feuille de route v1.7.0 : l'expansion du langage (`docs/plans/v1_7_0_the_lingual_expansion.md`)](../../docs/plans/v1_7_0_the_lingual_expansion.md) : Spécifications techniques complètes pour les langues séparées, le serveur REST local, le suivi multi-émulateur, l'OCR de bureau et le scanner de caméra mobile.
-* [Pipeline de génération de base de données (`tool/data_pipeline/locales/README.de.md`)](../../tool/data_pipeline/locales/README.fr.md) : Documentation sur la préparation des données PokeAPI hors ligne, les grattoirs, l'importation de balles correspondantes, les index et la compilation de bases de données.
-* [Outils de développement et de publication (`tool/locales/README.de.md`)](../../tool/locales/README.fr.md) : gestion automatisée des versions (`bump_version.py`), suites de tests, couverture de code et pipeline de traduction (`translate_all.py`).
+* [Guide d'architecture (`ARCHITECTURE.md`)](ARCHITECTURE.fr.md) : présentation complète du système, architecture d'état (fournisseur), modèle de persistance DAO, coordinateur de synchronisation Google Drive, pont de traduction Isolate et portes de qualité.
+* [Git Workflow & Release Pipeline (`docs/GIT_WORKFLOW_AND_RELEASES.md`)](../docs/locales/GIT_WORKFLOW_AND_RELEASES.fr.md) : modèle de branchement Git officiel, règles de protection des branches, versions multiplateformes (APK Android, Windows Zip, Linux AppImage/tar.gz) et versions bêta automatisées.
+* [Feuille de route v1.7.0 : l'expansion du langage (`docs/plans/v1_7_0_the_language_expansion.md`)](../docs/plans/v1_7_0_the_language_expansion.md) : spécifications techniques complètes pour des langues distinctes, API REST locale, suivi multi-émulateur, OCR de bureau et scanner de caméra mobile.
+* [Pipeline de générateur de base de données (`tool/data_pipeline/README.md`)](../tool/data_pipeline/locales/README.fr.md) : Documentation détaillée pour les développeurs sur l'analyse PokeAPI hors ligne, les web scrapers, les données légales Pokéball, les index et les étapes de compilation de base de données.
+* [Outils de développement et de publication (`tool/README.md`)](../tool/locales/README.fr.md) : Documentation pour le remplacement automatique des versions de version (`bump_version.py`), les tests unitaires, la couverture du code et le pipeline de traduction automatisée (`translate_all.py`).
 
-## 🤝 Compléter les données (Contributions de la communauté)
-Te manquent des lieux ou les boules correspondantes ne conviennent pas ? Tu peux compléter ces données dans les fichiers JSON du répertoire `tool/data_pipeline/` (si disponibles) ou contribuer directement via des Issues/Pull Requests.
+## 🤝 Données de contribution (correctifs communautaires)
+Rencontres manquantes ou avez-vous de meilleures suggestions de Matching Ball ? Vous pouvez facilement ajouter ou corriger ces données dans les fichiers JSON situés dans le répertoire `tool/data_pipeline/` (le cas échéant) ou contribuer directement via Issues/Pull Requests.
 
-Si tu souhaites contribuer du code, des fonctionnalités ou des corrections de bugs, utilise s'il te plaît les modèles de problème correspondants dans le dossier `.github/ISSUE_TEMPLATE` et ouvre une demande de tirage sur une branche de fonctionnalité distincte.
+Si vous souhaitez contribuer au code, aux fonctionnalités ou aux corrections de bogues, veuillez utiliser les modèles de problème appropriés dans le dossier `.github/ISSUE_TEMPLATE` et ouvrez une Pull Request sur une branche de fonctionnalités dédiée.
 
-## 🙏 Remerciements & Sources
-Cette application n'aurait pas été possible sans ces excellentes ressources de la communauté :
-*   [PokeAPI](https://pokeapi.co/) : données de base et illustrations officielles.
-*   [Inspiration pour Living Dex](https://drive.google.com/drive/folders/1jgopfeGuNA8oJX6mnYearpnNti4a8W-v) : Google Sheets de la communauté comme base de suivi.
-*   [Guide des Balls correspondantes](https://docs.google.com/spreadsheets/d/1bvIx7Q2Lxp7efHRrUh48WkuwirNlKardwSHVz_R8kA0/edit?gid=877479959#gid=877479959) : tableau Excel curaté par la communauté pour les Poké Balls parfaits.
-*   [Bulbapedia](https://bulbapedia.bulbagarden.net/wiki/Catch_rate) : mécanismes de taux de capture.
-*   [Google Gemini](https://gemini.google.com) : assistance IA pour programmer et refactoriser.
-* Et beaucoup d'autres!
+## 🙏 Crédits et sources
+Cette application ne serait pas possible sans ces incroyables ressources communautaires :
+* [PokeAPI](https://pokeapi.co/) : données de base et œuvres d'art officielles.
+* [Living Dex Inspiration](https://drive.google.com/drive/folders/1jgopfeGuNA8oJX6mnYearpnNti4a8W-v) : Communauté Google Sheets.
+* [Boules assorties Guide](https://docs.google.com/spreadsheets/d/1bvIx7Q2Lxp7efHRrUh48WkuwirNlKardwSHVz_R8kA0/edit?gid=877479959#gid=877479959) : feuille Excel organisée par la communauté pour faire correspondre les Poké Balls.
+* [Bulbapedia](https://bulbapedia.bulbagarden.net/wiki/Catch_rate) : Mécanique du taux de capture.
+* [Google Gemini](https://gemini.google.com) : Assistance de l'IA pour le codage et la refactorisation.
+* Et bien d'autres !
 
 ## 📄 Licence
 Ce projet est sous licence [GNU General Public License v3.0 (GPL-3.0)](../LICENSE).
 
-**Avertissement :** Pokémon et tous les noms associés sont des marques et © de Nintendo, Creatures Inc., et GAME FREAK inc. Il s'agit d'un projet de fans gratuit et non commercial et n'a aucun lien avec Nintendo et n'est ni soutenu ni sponsorisé par eux.
+**Avertissement :** Pokémon et tous les noms respectifs sont des marques déposées et © de Nintendo, Creatures Inc. et GAME FREAK inc. Il s'agit d'un projet de fan gratuit et non commercial et n'est en aucun cas affilié, approuvé ou soutenu par Nintendo.
