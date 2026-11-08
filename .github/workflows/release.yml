@@ -52,13 +52,14 @@ jobs:
       - name: Prepare APK Artifact
         run: |
           mkdir -p dist
-          cp build/app/outputs/flutter-apk/app-release.apk dist/PokeVault-Android.apk
+          VERSION=$(python3 -c "import re; print(re.search(r'^version:\s*([^\s+]+)', open('pubspec.yaml').read(), re.M).group(1))")
+          cp build/app/outputs/flutter-apk/app-release.apk "dist/PokeVault_V${VERSION}.apk"
 
       - name: Upload Android Artifact
         uses: actions/upload-artifact@v4
         with:
           name: PokeVault-Android
-          path: dist/PokeVault-Android.apk
+          path: dist/*
           retention-days: 2
 
   # =========================================================================
@@ -87,14 +88,15 @@ jobs:
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force -Path dist
+          $version = (Select-String -Path pubspec.yaml -Pattern '^version:\s*([^\s+]+)').Matches.Groups[1].Value
           $releaseDir = "build\windows\x64\runner\Release"
-          Compress-Archive -Path "$releaseDir\*" -DestinationPath "dist\PokeVault-Windows-x64.zip" -Force
+          Compress-Archive -Path "$releaseDir\*" -DestinationPath "dist\PokeVault_V${version}_Windows.zip" -Force
 
       - name: Upload Windows Artifact
         uses: actions/upload-artifact@v4
         with:
           name: PokeVault-Windows-x64
-          path: dist/PokeVault-Windows-x64.zip
+          path: dist/*
           retention-days: 2
 
   # =========================================================================
@@ -130,14 +132,16 @@ jobs:
       - name: Package Standalone Tar.gz
         run: |
           mkdir -p dist
-          tar -czvf dist/PokeVault-Linux-x64.tar.gz -C build/linux/x64/release/bundle .
+          VERSION=$(python3 -c "import re; print(re.search(r'^version:\s*([^\s+]+)', open('pubspec.yaml').read(), re.M).group(1))")
+          tar -czvf "dist/PokeVault_V${VERSION}.tar.gz" -C build/linux/x64/release/bundle .
 
       - name: Build AppImage
         continue-on-error: true
         run: |
           appimage-builder --recipe AppImageBuilder.yml --skip-test || true
           if [ -f "PokeVault-x86_64.AppImage" ]; then
-            cp PokeVault-x86_64.AppImage dist/
+            VERSION=$(python3 -c "import re; print(re.search(r'^version:\s*([^\s+]+)', open('pubspec.yaml').read(), re.M).group(1))")
+            cp PokeVault-x86_64.AppImage "dist/PokeVault_V${VERSION}.AppImage"
           fi
 
       - name: Upload Linux Artifacts
