@@ -1271,6 +1271,12 @@ class _DexScreenState extends State<DexScreen> {
     final double progressRatio = totalCount > 0 ? (caughtCount / totalCount).clamp(0.0, 1.0) : 0.0;
     final String progressPercent = (progressRatio * 100).toStringAsFixed(1);
 
+    String effectivePokeLang = settingsProvider.currentLanguage;
+    try {
+      final eff = settingsProvider.effectivePokemonLanguage;
+      if (eff.isNotEmpty) effectivePokeLang = eff;
+    } catch (_) {}
+
     final filteredList = baseList.where((entry) {
       final isCaught = DexLogicHelper.isPokemonCaught(liveDex, entry.uniqueId);
       if (_filter == 'caught' && !isCaught) return false;
@@ -1281,13 +1287,7 @@ class _DexScreenState extends State<DexScreen> {
         liveDex,
         provider,
         settingsProvider.currentLanguage,
-() {
-          try {
-            return settingsProvider.effectivePokemonLanguage;
-          } catch (_) {
-            return settingsProvider.currentLanguage;
-          }
-        }(),
+        effectivePokeLang,
       );
     }).toList();
 

@@ -69,6 +69,16 @@ void main() {
       expect(ja.flag, '🇯🇵');
       expect(ja.nameNative, '日本語');
 
+      // Chinese regional and generic aliases
+      expect(LanguageRegistry.findByCode('zh')?.code, 'zh-Hans');
+      expect(LanguageRegistry.findByCode('zh-CN')?.code, 'zh-Hans');
+      expect(LanguageRegistry.findByCode('zh_CN')?.code, 'zh-Hans');
+      expect(LanguageRegistry.findByCode('zh-SG')?.code, 'zh-Hans');
+      expect(LanguageRegistry.findByCode('zh-TW')?.code, 'zh-Hant');
+      expect(LanguageRegistry.findByCode('zh_TW')?.code, 'zh-Hant');
+      expect(LanguageRegistry.findByCode('zh-HK')?.code, 'zh-Hant');
+      expect(LanguageRegistry.findByCode('zh_HK')?.code, 'zh-Hant');
+
       final unknown = LanguageRegistry.findByCode('xyz');
       expect(unknown, isNull);
     });

@@ -108,6 +108,35 @@ void main() {
       expect(provider.currentLanguage, 'zh-Hant');
     });
 
+    test('first launch resolves Chinese regional tags without scriptCode (zh_CN -> zh-Hans, zh_TW -> zh-Hant)', () async {
+      SharedPreferences.setMockInitialValues({});
+      SharedPreferences.resetStatic();
+      TestWidgetsFlutterBinding.instance.platformDispatcher.localeTestValue =
+          const Locale.fromSubtags(languageCode: 'zh', countryCode: 'CN');
+
+      final providerCn = SettingsProvider();
+      await Future.delayed(const Duration(milliseconds: 50));
+      expect(providerCn.currentLanguage, 'zh-Hans');
+
+      SharedPreferences.setMockInitialValues({});
+      SharedPreferences.resetStatic();
+      TestWidgetsFlutterBinding.instance.platformDispatcher.localeTestValue =
+          const Locale.fromSubtags(languageCode: 'zh', countryCode: 'TW');
+
+      final providerTw = SettingsProvider();
+      await Future.delayed(const Duration(milliseconds: 50));
+      expect(providerTw.currentLanguage, 'zh-Hant');
+
+      SharedPreferences.setMockInitialValues({});
+      SharedPreferences.resetStatic();
+      TestWidgetsFlutterBinding.instance.platformDispatcher.localeTestValue =
+          const Locale('zh');
+
+      final providerZh = SettingsProvider();
+      await Future.delayed(const Duration(milliseconds: 50));
+      expect(providerZh.currentLanguage, 'zh-Hans');
+    });
+
     test('first launch falls back to en for unsupported device language', () async {
       SharedPreferences.setMockInitialValues({});
       SharedPreferences.resetStatic();

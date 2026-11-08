@@ -39,6 +39,16 @@ void main() {
       expect(p.getName('zh_hans'), '妙蛙种子');
       expect(p.getName('zh-Hant'), '妙蛙種子');
       expect(p.getName('zh_hant'), '妙蛙種子');
+
+      // Chinese regional and generic locale aliases
+      expect(p.getName('zh'), '妙蛙种子');
+      expect(p.getName('zh-CN'), '妙蛙种子');
+      expect(p.getName('zh_CN'), '妙蛙种子');
+      expect(p.getName('zh-sg'), '妙蛙种子');
+      expect(p.getName('zh-TW'), '妙蛙種子');
+      expect(p.getName('zh_TW'), '妙蛙種子');
+      expect(p.getName('zh-HK'), '妙蛙種子');
+      expect(p.getName('zh_HK'), '妙蛙種子');
     });
 
     test('backward compatibility: nameDe and nameEn getters work directly', () {

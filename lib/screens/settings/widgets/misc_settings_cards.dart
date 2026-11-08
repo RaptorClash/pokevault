@@ -110,33 +110,14 @@ class GeneralCard extends StatelessWidget {
             children: [
               ListTile(
                 title: Text(t.language),
-                subtitle: Text(
-                  () {
-                    final cur = LanguageRegistry.findByCode(settingsProvider.currentLanguage);
-                    return cur != null
-                        ? '${cur.flag}  ${cur.nameNative} (${cur.code.toUpperCase()})'
-                        : settingsProvider.currentLanguage.toUpperCase();
-                  }(),
-                ),
+                subtitle: Text(_getAppLanguageSubtitle(settingsProvider)),
                 trailing: const Icon(Icons.arrow_forward_ios, size: 16),
                 onTap: () => _showAppLanguageDialog(context, settingsProvider),
               ),
               const Divider(height: 1),
               ListTile(
                 title: Text(t.pokemon_language),
-                subtitle: Text(
-                  () {
-                    if (settingsProvider.pokemonLanguage == 'auto') {
-                      final eff = LanguageRegistry.findByCode(settingsProvider.effectivePokemonLanguage);
-                      final effLabel = eff != null ? '${eff.flag} ${eff.code.toUpperCase()}' : settingsProvider.effectivePokemonLanguage.toUpperCase();
-                      return '${t.language_auto} ($effLabel)';
-                    }
-                    final cur = LanguageRegistry.findByCode(settingsProvider.pokemonLanguage);
-                    return cur != null
-                        ? '${cur.flag}  ${cur.nameNative} (${cur.code.toUpperCase()})'
-                        : settingsProvider.pokemonLanguage.toUpperCase();
-                  }(),
-                ),
+                subtitle: Text(_getPokemonLanguageSubtitle(settingsProvider)),
                 trailing: const Icon(Icons.arrow_forward_ios, size: 16),
                 onTap: () => _showPokemonLanguageDialog(context, settingsProvider),
               ),
@@ -185,6 +166,27 @@ class GeneralCard extends StatelessWidget {
         ),
       ],
     );
+  }
+
+  String _getAppLanguageSubtitle(SettingsProvider provider) {
+    final cur = LanguageRegistry.findByCode(provider.currentLanguage);
+    return cur != null
+        ? '${cur.flag}  ${cur.nameNative} (${cur.code.toUpperCase()})'
+        : provider.currentLanguage.toUpperCase();
+  }
+
+  String _getPokemonLanguageSubtitle(SettingsProvider provider) {
+    if (provider.pokemonLanguage == 'auto') {
+      final eff = LanguageRegistry.findByCode(provider.effectivePokemonLanguage);
+      final effLabel = eff != null
+          ? '${eff.flag} ${eff.code.toUpperCase()}'
+          : provider.effectivePokemonLanguage.toUpperCase();
+      return '${t.language_auto} ($effLabel)';
+    }
+    final cur = LanguageRegistry.findByCode(provider.pokemonLanguage);
+    return cur != null
+        ? '${cur.flag}  ${cur.nameNative} (${cur.code.toUpperCase()})'
+        : provider.pokemonLanguage.toUpperCase();
   }
 
   void _showAppLanguageDialog(BuildContext context, SettingsProvider provider) {

@@ -34,7 +34,9 @@ jobs:
         run: dart analyze --fatal-infos
 
       - name: Run Release Tool Tests
-        run: python3 tool/test_bump_version.py
+        run: |
+          python3 tool/test_bump_version.py
+          python3 -m unittest discover -s test/tool
 
       - name: Run Automated Tests
         run: flutter test

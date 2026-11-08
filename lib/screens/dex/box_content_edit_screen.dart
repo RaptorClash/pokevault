@@ -225,6 +225,20 @@ class _BoxContentEditScreenState extends State<BoxContentEditScreen> {
             }
           }
 
+          String slotTitle = t.box_edit_empty_slot;
+          if (entry != null) {
+            if (entry.isPlaceholder) {
+              slotTitle = t.placeholder;
+            } else {
+              String pokeLang = LocaleSettings.currentLocale == AppLocale.en ? 'en' : 'de';
+              try {
+                final eff = context.read<SettingsProvider>().effectivePokemonLanguage;
+                if (eff.isNotEmpty) pokeLang = eff;
+              } catch (_) {}
+              slotTitle = entry.pokemon.getName(pokeLang);
+            }
+          }
+
           return ListTile(
             key: ValueKey(slot.keyId),
             leading: Row(
@@ -272,18 +286,7 @@ class _BoxContentEditScreenState extends State<BoxContentEditScreen> {
               ],
             ),
             title: Text(
-              entry != null 
-                  ? (entry.isPlaceholder
-                      ? t.placeholder
-                      : () {
-                          final p = entry!.pokemon;
-                          try {
-                            return p.getName(context.read<SettingsProvider>().effectivePokemonLanguage);
-                          } catch (_) {
-                            return LocaleSettings.currentLocale == AppLocale.en ? p.nameEn : p.nameDe;
-                          }
-                        }())
-                  : t.box_edit_empty_slot,
+              slotTitle,
               style: TextStyle(
                 color: entry != null ? Colors.white : Colors.white54,
               ),

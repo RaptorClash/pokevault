@@ -3,7 +3,7 @@
 **New Features**
 * **The Multi-Language Core:** Decoupled UI language from Pokémon franchise language. You can now use a German UI with English or Japanese Pokémon names!
 * **13 Supported Languages:** Full UI localization available in German, English, French, Spanish, Italian, Japanese, Korean, Simplified Chinese, Traditional Chinese, Portuguese, Dutch, Polish, and Russian.
-* **Expanded Database (pokedex.sqlite):** Includes localized names for all 1,025+ Pokémon across 10 official franchise languages.
+* **Expanded Database (pokedex.sqlite):** Includes localized names for all 1,025+ Pokémon across 9 official franchise languages.
 * **Automated Translation Pipeline:** Full CLI tooling (`tool/translate_all.py` & `tool/translate_release_notes.py`) with multi-engine fallback and placeholder protection.
 
 **Improvements & Bug Fixes**

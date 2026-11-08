@@ -156,19 +156,16 @@ Wenn alle Beta-Tests erfolgreich abgeschlossen sind und Version 1.7.0 live gehen
    git push origin release/1.7.0
    ```
 
-2. **Pull Request von `release/1.7.0` nach `main` öffnen**:
+2. **Pull Request von `release/1.7.0` nach `main` öffnen & mergen**:
    - Base: `main` $\leftarrow$ Compare: `release/1.7.0`.
    - CI Quality Gate läuft durch.
-   - Merge durchführen.
+   - PR mergen.
 
-3. **Release-Tag auf `main` setzen**:
-   ```bash
-   git checkout main
-   git pull origin main
-   git tag v1.7.0 -m "Release v1.7.0 (The Language Expansion)"
-   git push origin v1.7.0
-   ```
-
-4. **GitHub Actions erzeugt das finale Stable Release**:
-   - Alle 4 Binärdateien werden gebaut und als offizielles **Latest Stable Release** auf GitHub veröffentlicht.
-   - Der Web-Deploy-Workflow (`deploy.yml`) aktualisiert automatisch die GitHub Pages Web-App.
+3. **Vollautomatisiertes Release via GitHub Actions**:
+   - Durch den Push auf `main` startet automatisch `.github/workflows/release.yml`.
+   - Das Release-Metadaten-Tool (`tool/extract_release_info.py`) extrahiert:
+     - Den **Release-Titel** aus den Anführungszeichen der ersten Zeile von `RELEASE_NOTES.md` (z. B. `The Language Expansion`).
+     - Den **Versions-Tag** aus `pubspec.yaml` (z. B. `v1.7.0`).
+     - Den vollständigen mehrsprachigen Text aus `RELEASE_NOTES.md` als GitHub Release Body.
+   - Alle 4 Binärpakete (Android APK, Windows Zip, Linux Tar.gz & AppImage) werden gebaut und als offizielles **Latest Stable Release** veröffentlicht.
+   - Direkt im Anschluss deployt `deploy.yml` die neue Web-App auf GitHub Pages.

@@ -13,6 +13,17 @@ class Pokemon {
   final List<PokemonForm> forms;
   final List<String> catchRateTags;
 
+  static const Map<String, String> _languageAliases = {
+    'zh': 'zh-hans',
+    'zh-cn': 'zh-hans',
+    'zh-sg': 'zh-hans',
+    'zh-cmn-hans': 'zh-hans',
+    'zh-tw': 'zh-hant',
+    'zh-hk': 'zh-hant',
+    'zh-mo': 'zh-hant',
+    'zh-cmn-hant': 'zh-hant',
+  };
+
   Pokemon({
     required this.id,
     required this.nameDe,
@@ -27,11 +38,27 @@ class Pokemon {
     required this.speed,
     required this.forms,
     this.catchRateTags = const [],
-  }) : names = {
-         ...?names,
-         if (names == null || !names.containsKey('de')) 'de': nameDe,
-         if (names == null || !names.containsKey('en')) 'en': nameEn,
-       };
+  }) : names = _normalizeNamesMap(names, nameDe, nameEn);
+
+  static Map<String, String> _normalizeNamesMap(
+    Map<String, String>? rawNames,
+    String defaultDe,
+    String defaultEn,
+  ) {
+    final result = <String, String>{};
+    if (rawNames != null) {
+      for (final entry in rawNames.entries) {
+        result[entry.key.toLowerCase().replaceAll('_', '-')] = entry.value;
+      }
+    }
+    if (!result.containsKey('de') && defaultDe != 'Unknown') {
+      result['de'] = defaultDe;
+    }
+    if (!result.containsKey('en') && defaultEn != 'Unknown') {
+      result['en'] = defaultEn;
+    }
+    return result;
+  }
 
   factory Pokemon.fromMap(
     Map<String, dynamic> map, [
@@ -40,7 +67,7 @@ class Pokemon {
     final names = <String, String>{};
     for (final key in map.keys) {
       if (key.startsWith('name_')) {
-        final langKey = key.substring(5).replaceAll('_', '-');
+        final langKey = key.substring(5).toLowerCase().replaceAll('_', '-');
         final val = map[key]?.toString();
         if (val != null && val.isNotEmpty) {
           names[langKey] = val;
@@ -80,12 +107,22 @@ class Pokemon {
   String getName(String languageCode) {
     final normalized = languageCode.toLowerCase().replaceAll('_', '-');
 
-    for (final entry in names.entries) {
-      if (entry.key.toLowerCase().replaceAll('_', '-') == normalized) {
-        return entry.value;
+    // 1. Direct O(1) hash map lookup
+    final direct = names[normalized];
+    if (direct != null && direct.isNotEmpty) {
+      return direct;
+    }
+
+    // 2. Regional / generic alias lookup (e.g. zh, zh-cn -> zh-hans)
+    final alias = _languageAliases[normalized];
+    if (alias != null) {
+      final aliased = names[alias];
+      if (aliased != null && aliased.isNotEmpty) {
+        return aliased;
       }
     }
 
+    // 3. Fallbacks
     if (normalized == 'de') {
       return nameDe != 'Unknown' ? nameDe : nameEn;
     }
