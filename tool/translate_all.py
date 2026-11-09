@@ -21,7 +21,6 @@ import hashlib
 import subprocess
 import argparse
 import time
-import requests
 import threading
 from pathlib import Path
 

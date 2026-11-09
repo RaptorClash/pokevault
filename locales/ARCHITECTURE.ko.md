@@ -205,7 +205,7 @@ PC 상자 보기(`DexBoxView`)는 `BoxActionDelegate` 인터페이스를 통해 
 - **개별 파이프라인 단계**:
  1. `python update_data.py`: 현재 웹 덤프(Bulbapedia, Bisafans, PokéWiki), Legal Matching Pokéballs 테이블을 로드하고 PokeAPI 하위 모듈을 업데이트합니다.
  2. `python tool/data_pipeline/build_database.py`: 모든 소스를 집계하고 SQLite 데이터베이스를 구축합니다.
- 3. `python tool/data_pipeline/update_pokemon_언어s.py`: PokeAPI 하위 모듈의 10개 공식 프랜차이즈 언어에 대한 다국어 종 이름을 `name_<lang>` 열로 동기화합니다.
+ 3. `python tool/data_pipeline/update_pokemon_언어s.py`: PokeAPI 하위 모듈의 9개 공식 프랜차이즈 언어에 대한 다국어 종 이름을 `name_<lang>` 열로 동기화합니다.
  4. `python tool/data_pipeline/update_evolutions_db.py`: 원시 PokeAPI 데이터에서 구조화된 진화 트리를 추가합니다.
  5. `python tool/data_pipeline/update_cap_locks_and_trades.py`: 모자 피카츄, 코스프레 모양 및 거래에 빛나는 잠금 장치를 추가합니다.
  6. `python tool/data_pipeline/optimize_databases.py`: 커버링 인덱스를 생성하고 `ANALYZE` 및 `VACUUM`을 실행합니다.

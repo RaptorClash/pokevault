@@ -7,7 +7,7 @@ Dieses Dokument beschreibt die technische Architektur, Datenhaltung, Cloud-Synch
 
 > [!TIP]
 > **Aktive Roadmap & Nächster Release (v1.7.0):**
-> Die vollständige Spezifikation und der Implementierungsplan für das nächste Release **v1.7.0 "The Language Expansion"** (getrennte Sprachen, 10 Franchise-Sprachen, Local REST Server, Multi-Emulator Hunting, Desktop OCR & Mobile PiP-Scanner) befindet sich in [docs/plans/v1_7_0_the_language_expansion.md](../docs/plans/v1_7_0_the_language_expansion.md).
+> Die vollständige Spezifikation und der Implementierungsplan für das nächste Release **v1.7.0 "The Language Expansion"** (getrennte Sprachen, 9 Franchise-Sprachen, Local REST Server, Multi-Emulator Hunting, Desktop OCR & Mobile PiP-Scanner) befindet sich in [docs/plans/v1_7_0_the_language_expansion.md](../docs/plans/v1_7_0_the_language_expansion.md).
 > Der interaktive Prototyp ist verfügbar unter [docs/prototypes/v1_7_0_prototype.html](../docs/prototypes/v1_7_0_prototype.html).
 
 ---
@@ -205,7 +205,7 @@ Die Referenzdatenbank `assets/db/pokedex.sqlite` wird über eine Python-Monorepo
 - **Einzelne Pipeline-Schritte**:
   1. `python update_data.py`: Lädt aktuelle Web-Dumps (Bulbapedia, Bisafans, PokéWiki), die Legal Matching Pokéballs Tabelle und aktualisiert das PokeAPI Submodul.
   2. `python tool/data_pipeline/build_database.py`: Aggregiert alle Quellen und baut die SQLite-Datenbank.
-  3. `python tool/data_pipeline/update_pokemon_languages.py`: Synchronisiert mehrsprachige Speziesnamen für alle 10 offiziellen Franchise-Sprachen aus dem PokeAPI-Submodul in `name_<lang>`-Spalten.
+  3. `python tool/data_pipeline/update_pokemon_languages.py`: Synchronisiert mehrsprachige Speziesnamen für alle 9 offiziellen Franchise-Sprachen aus dem PokeAPI-Submodul in `name_<lang>`-Spalten.
   4. `python tool/data_pipeline/update_evolutions_db.py`: Ergänzt strukturierte Evolutionsbäume aus den PokeAPI-Rohdaten.
   5. `python tool/data_pipeline/update_cap_locks_and_trades.py`: Integriert Shiny-Locks für Kappen-Pikachu, Cosplay-Formen und Tausche.
   6. `python tool/data_pipeline/optimize_databases.py`: Erstellt Covering-Indexes, führt `ANALYZE` und `VACUUM` aus.

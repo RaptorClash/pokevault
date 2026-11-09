@@ -96,7 +96,7 @@ According to `AGENTS.md`:
 ### Step 3: Commit & Push
 ```bash
 git add .
-git commit -m "feat(i18n): add 10 franchise languages to pokemon database and dao"
+git commit -m "feat(i18n): add 9 franchise languages to pokemon database and dao"
 git push -u origin feature/1.7.0-languages
 ```
 
@@ -165,6 +165,9 @@ When all beta testing is complete and version 1.7.0 is ready for production:
 
 3. **Fully Automated Release via GitHub Actions**:
    - The push to `main` automatically triggers `.github/workflows/release.yml`.
+   - **Release Gate Evaluation**: The workflow checks if a git tag for `v<version>` already exists.
+     - If the tag exists (e.g. from an earlier release or a documentation push on `main`), the build is skipped in ~5 seconds without overwriting existing releases.
+     - If the tag is new, the multi-platform build proceeds automatically.
    - The release metadata extractor (`tool/extract_release_info.py`) extracts:
      - The **Release Title** from quotes on the first line of `RELEASE_NOTES.md` (e.g. `The Language Expansion`).
      - The **Version Tag** from `pubspec.yaml` (e.g. `v1.7.0`).

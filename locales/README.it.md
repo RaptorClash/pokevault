@@ -24,7 +24,7 @@
 * **🎮 Panoramica delle operazioni e scorciatoie in-app:** Schermata personale nelle impostazioni con scorciatoie adattabili alla piattaforma, comandi del mouse e gesti tattili.
 * **☁️ Cloud Sync e Offline-First:** compatibile al 100% offline con un robusto database SQLite locale. Sincronizzazione opzionale tramite il tuo Google Drive privato con resilienza di unione delle patch.
 * **Personalizzazione completa:** Supporta la modalità scuro/chiaro e colori di sfondo e accenti personalizzabili.
-* **Multilingue:** Completamente disponibile in 13 lingue (interfaccia utente tramite slang). Inoltre, selezione indipendente della lingua del franchise Pokémon (ad esempio interfaccia utente tedesca con nomi Pokémon inglesi o giapponesi) basata su 10 lingue ufficiali del franchise in "pokedex.sqlite".
+* **Multilingue:** Completamente disponibile in 13 lingue (interfaccia utente tramite slang). Inoltre, selezione indipendente della lingua del franchise Pokémon (ad esempio interfaccia utente tedesca con nomi Pokémon inglesi o giapponesi) basata su 9 lingue ufficiali del franchise in "pokedex.sqlite".
 
 ## 📸 Screenshot
 

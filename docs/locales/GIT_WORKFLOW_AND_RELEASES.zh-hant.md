@@ -96,7 +96,7 @@ git checkout -b feature/1.7.0-languages
 ### 第三步：提交並推送
 ```bash
 git add .
-git commit -m "feat(i18n): add 10 franchise languages to pokemon database and dao"
+git commit -m "feat(i18n): add 9 franchise languages to pokemon database and dao"
 git push -u origin feature/1.7.0-languages
 ```
 
@@ -104,7 +104,8 @@ git push -u origin feature/1.7.0-languages
 - **基礎分支**：`release/1.7.0`
 - **比較分支**：`feature/1.7.0-languages`
 - GitHub Actions 會自動啟動工作流程 `CI Quality Gate`（`.github/workflows/ci.yml`）。
-- 一旦檢查通過 $ightarrow$ 點擊 **Squash and merge**（或 *Rebase and merge*）。
+- 一旦檢查通過 $
+ightarrow$ 點擊 **Squash and merge**（或 *Rebase and merge*）。
 
 ---
 
@@ -140,7 +141,8 @@ git push -u origin feature/1.7.0-languages
    - PokéVault 內建的應用程式更新器（`UpdateHelper`）會偵測每個作業系統的適用檔案類型。
 
 ### 方法 B：透過 GitHub 網頁介面手動操作
-1. 在 GitHub 儲存庫中，導航至 **Actions** $ightarrow$ **Build & Release Multi-Platform Packages**.
+1. 在 GitHub 儲存庫中，導航至 **Actions** $
+ightarrow$ **Build & Release Multi-Platform Packages**.
 2. 在右側點擊 **Run workflow**.
 3. 選擇分支（例如 `release/1.7.0`），輸入版本標籤（例如 `v1.7.0-beta.1`），並保持勾選框 *"Mark as pre-release / beta"* 為 `true`.
 4. 點擊 **Run workflow**。

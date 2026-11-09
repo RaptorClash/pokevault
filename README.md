@@ -24,7 +24,7 @@
 * **🎮 In-App Shortcuts & Gestures Guide:** Dedicated guide in Settings displaying platform-adaptive keyboard shortcuts, mouse controls, and touch gestures.
 * **☁️ Cloud Sync & Offline-First:** 100% Offline Capable with a robust local SQLite database. Optional seamless backup and restore via your personal Google Drive with field-level patch-merge resilience.
 * **Full Customization:** Supports Dark/Light mode and custom accent & background colors.
-* **Multilingual:** Fully available in 13 languages (UI via Slang). Features independent Pokémon franchise language selection (e.g. German UI with English or Japanese Pokémon names) across 10 official franchise languages in `pokedex.sqlite`.
+* **Multilingual:** Fully available in 13 languages (UI via Slang). Features independent Pokémon franchise language selection (e.g. German UI with English or Japanese Pokémon names) across 9 official franchise languages in `pokedex.sqlite`.
 
 ## 📸 Screenshots
 

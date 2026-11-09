@@ -33,7 +33,8 @@ jobs:
       - name: Run Dart Analyzer
         run: dart analyze --fatal-infos
 
-      - name: Run Release Tool Tests
+      - name: Run Release Tool Tests (Python Stdlib)
+        # All test suites in test/tool exclusively use Python standard library modules
         run: |
           python3 tool/test_bump_version.py
           python3 -m unittest discover -s test/tool

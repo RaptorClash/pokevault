@@ -20,7 +20,7 @@ __徽章區塊_0____換行變量_0____徽章區塊_1____換行變量_1____徽章
 * **🎮 In-App Bedienung & Shortcuts Übersicht:** Eigener Screen in den Einstellungen mit plattform-adaptiven Shortcuts, Mausbefehlen und Touch-Gesten.
 * **☁️ Cloud Sync & Offline-First:** 100% Offline-fähig mit robuster lokaler SQLite-Datenbank. Optionale Synchronisierung über dein privates Google Drive mit Patch-Merge-Resilienz.
 * **Volle Personalisierung:** Unterstützt Dark/Light Mode sowie individuell anpassbare Akzent- und Hintergrundfarben.
-* **Mehrsprachig:** Vollständig in 13 Sprachen verfügbar (UI via Slang). Zudem unabhängige Auswahl der Pokémon-Franchise-Sprache (z. B. deutsches UI mit englischen oder japanischen Pokémon-Namen) basierend auf 10 offiziellen Franchise-Sprachen in `pokedex.sqlite`.
+* **Mehrsprachig:** Vollständig in 13 Sprachen verfügbar (UI via Slang). Zudem unabhängige Auswahl der Pokémon-Franchise-Sprache (z. B. deutsches UI mit englischen oder japanischen Pokémon-Namen) basierend auf 9 offiziellen Franchise-Sprachen in `pokedex.sqlite`.
 
 ## 📸 截圖
 

@@ -24,7 +24,7 @@ __BLOCO_DE_INSÍGNIA_4__
 * **🎮 Visão geral de atalhos e operação no aplicativo:** Tela própria nas configurações com atalhos adaptáveis à plataforma, comandos de mouse e gestos de toque.
 * **☁️ Nuvem Sincronização e off-line primeiro:** capacidade 100% off-line com banco de dados SQLite local robusto. Sincronização opcional por meio de seu Google Drive privado com resiliência de mesclagem de patches.
 * **Personalização total:** Suporta modo claro/escuro e cores de fundo e detalhes personalizáveis.
-* **Multilíngue:** Totalmente disponível em 13 idiomas (UI via gíria). Além disso, seleção independente do idioma da franquia Pokémon (por exemplo, UI em alemão com nomes de Pokémon em inglês ou japonês) com base em 10 idiomas oficiais da franquia em `pokedex.sqlite`.
+* **Multilíngue:** Totalmente disponível em 13 idiomas (UI via gíria). Além disso, seleção independente do idioma da franquia Pokémon (por exemplo, UI em alemão com nomes de Pokémon em inglês ou japonês) com base em 9 idiomas oficiais da franquia em `pokedex.sqlite`.
 
 ## 📸 Capturas de tela
 

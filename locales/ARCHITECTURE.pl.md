@@ -205,7 +205,7 @@ Referencyjna baza danych `assets/db/pokedex.sqlite` jest generowana poprzez poto
 - **Poszczególne kroki potoku**:
  1. `python update_data.py`: Ładuje aktualne zrzuty internetowe (Bulbapedia, Bisafans, PokéWiki), tabelę Legal Matching Pokéballs i aktualizuje podmoduł PokeAPI.
  2. `python Tool/data_pipeline/build_database.py`: Agreguje wszystkie źródła i buduje bazę danych SQLite.
- 3. `python Tool/data_pipeline/update_pokemon_languages.py`: Synchronizuje wielojęzyczne nazwy gatunków dla wszystkich 10 oficjalnych języków franczyzowych z podmodułu PokeAPI w kolumnach `name_<lang>`.
+ 3. `python Tool/data_pipeline/update_pokemon_languages.py`: Synchronizuje wielojęzyczne nazwy gatunków dla wszystkich 9 oficjalnych języków franczyzowych z podmodułu PokeAPI w kolumnach `name_<lang>`.
  4. `python Tool/data_pipeline/update_evolutions_db.py`: Dodaje uporządkowane drzewa ewolucji z surowych danych PokeAPI.
  5. `python Tool/data_pipeline/update_cap_locks_and_trades.py`: Dodaje błyszczące zamki dla czapki Pikachu, kształtów cosplay i transakcji.
  6. `python Tool/data_pipeline/optimize_databases.py`: Tworzy indeksy pokrywające, uruchamia `ANALYZE` i `VACUUM`.

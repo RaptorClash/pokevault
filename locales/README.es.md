@@ -24,15 +24,15 @@ __BLOQUE_DE_INSIGNIA_4__
 * **🎮 Guía de gestos y atajos en la aplicación:** Guía dedicada en Configuración que muestra atajos de teclado, controles de mouse y gestos táctiles adaptables a la plataforma.
 * **☁️ Sincronización en la nube y sin conexión primero:** 100% sin conexión con una sólida base de datos SQLite local. Copia de seguridad y restauración integradas opcionales a través de su Google Drive personal con resistencia a la fusión de parches a nivel de campo.
 * **Personalización completa:** Admite modo oscuro/claro y colores de fondo y acento personalizados.
-* **Multilingüe:** Totalmente disponible en 13 idiomas (UI a través de Slang). Incluye selección independiente del idioma de la franquicia Pokémon (por ejemplo, interfaz de usuario en alemán con nombres de Pokémon en inglés o japonés) en 10 idiomas oficiales de la franquicia en `pokedex.sqlite`.
+* **Multilingüe:** Totalmente disponible en 13 idiomas (UI a través de Slang). Incluye selección independiente del idioma de la franquicia Pokémon (por ejemplo, interfaz de usuario en alemán con nombres de Pokémon en inglés o japonés) en 9 idiomas oficiales de la franquicia en `pokedex.sqlite`.
 
 ## 📸 Capturas de pantalla
 
 | Pantalla de Inicio | Vista de Caja de PC |
 | :---: | :---: |
-| <img src="docs/screenshots/de/homescreen/homescreen1.png" width="250"/> | <img src="docs/screenshots/de/pcboxview/nationaldexboxview.png" width="250"/> <img src="docs/screenshots/de/pcboxview/nationaldexlistview.png" width="250"/> |
+| <img src="../docs/screenshots/de/homescreen/homescreen1.png" width="250"/> | <img src="../docs/screenshots/de/pcboxview/nationaldexboxview.png" width="250"/> <img src="../docs/screenshots/de/pcboxview/nationaldexlistview.png" width="250"/> |
 | **Detalles de Pokémon & Bolas Correspondientes** | **Creación del Dex & Filtros** |
-| <img src="docs/screenshots/de/pokemondetails/pokemondetails.png" width="250"/> | <img src="docs/screenshots/de/dexcreation/dexcreation1.png" width="250"/> <img src="docs/screenshots/de/dexcreation/dexcreation2.png" width="250"/> |
+| <img src="../docs/screenshots/de/pokemondetails/pokemondetails.png" width="250"/> | <img src="../docs/screenshots/de/dexcreation/dexcreation1.png" width="250"/> <img src="../docs/screenshots/de/dexcreation/dexcreation2.png" width="250"/> |
 
 ## 🚀 Empezando
 

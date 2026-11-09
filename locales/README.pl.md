@@ -24,7 +24,7 @@
 * **🎮 Obsługa i skróty w aplikacji Przegląd:** Własny ekran w ustawieniach ze skrótami dostosowanymi do platformy, poleceniami myszy i dotykiem gesty.
 * **☁️ Synchronizacja w chmurze i przede wszystkim tryb offline:** Możliwość pracy w 100% w trybie offline dzięki solidnej lokalnej bazie danych SQLite. Opcjonalna synchronizacja za pośrednictwem prywatnego Dysku Google z odpornością na łączenie poprawek.
 * **Pełna personalizacja:** Obsługuje tryb ciemny/jasny oraz konfigurowalne kolory akcentów i tła.
-* **Wielojęzyczny:** W pełni dostępny w 13 językach (UI poprzez slang). Dodatkowo niezależny wybór języka franczyzy Pokémon (np. niemiecki interfejs użytkownika z angielskimi lub japońskimi nazwami Pokémon) w oparciu o 10 oficjalnych języków franczyzy w `pokedex.sqlite`.
+* **Wielojęzyczny:** W pełni dostępny w 13 językach (UI poprzez slang). Dodatkowo niezależny wybór języka franczyzy Pokémon (np. niemiecki interfejs użytkownika z angielskimi lub japońskimi nazwami Pokémon) w oparciu o 9 oficjalnych języków franczyzy w `pokedex.sqlite`.
 
 ## 📸 Zrzuty ekranu
 

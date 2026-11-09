@@ -96,7 +96,7 @@ git checkout -b feature/1.7.0-languages
 ### 步骤 3：提交并推送
 ```bash
 git add .
-git commit -m "feat(i18n): add 10 franchise languages to pokemon database and dao"
+git commit -m "feat(i18n): add 9 franchise languages to pokemon database and dao"
 git push -u origin feature/1.7.0-languages
 ```
 

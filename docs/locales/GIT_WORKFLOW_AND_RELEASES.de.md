@@ -97,7 +97,7 @@ Gemäß `AGENTS.md`:
 ### Schritt 3: Commit & Push
 ```bash
 git add .
-git commit -m "feat(i18n): add 10 franchise languages to pokemon database and dao"
+git commit -m "feat(i18n): add 9 franchise languages to pokemon database and dao"
 git push -u origin feature/1.7.0-languages
 ```
 
@@ -166,6 +166,9 @@ Wenn alle Beta-Tests erfolgreich abgeschlossen sind und Version 1.7.0 live gehen
 
 3. **Vollautomatisiertes Release via GitHub Actions**:
    - Durch den Push auf `main` startet automatisch `.github/workflows/release.yml`.
+   - **Release-Gate-Evaluierung**: Der Workflow prüft zuerst, ob der Tag `v<version>` bereits existiert.
+     - Existiert der Tag bereits (z. B. aus einem früheren Release oder bei reinen Doku-Commits auf `main`), wird der Build nach ~5 Sekunden übersprungen, ohne bestehende Releases zu überschreiben.
+     - Ist der Tag neu, startet der vollständige Multi-Platform-Build automatisch.
    - Das Release-Metadaten-Tool (`tool/extract_release_info.py`) extrahiert:
      - Den **Release-Titel** aus den Anführungszeichen der ersten Zeile von `RELEASE_NOTES.md` (z. B. `The Language Expansion`).
      - Den **Versions-Tag** aus `pubspec.yaml` (z. B. `v1.7.0`).

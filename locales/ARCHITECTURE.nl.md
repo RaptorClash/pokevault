@@ -7,7 +7,7 @@ Dit document beschrijft de technische architectuur, gegevensopslag, cloudsynchro
 
 > [!TIP]
 > **Actieve Roadmap & Volgende Release (v1.7.0):**
-> Het volledige specificatie- en implementatieplan voor de volgende release **v1.7.0 "The Language Expansion"** (Niet-verbonden Talen, 10 Franchise Talen, Lokale REST Server, Multi-Emulator Hunting, Desktop OCR & Mobile PiP Scanner) bevindt zich in [docs/plans/v1_7_0_the_language_expansion.md](../docs/plans/v1_7_0_the_language_expansion.md).
+> Het volledige specificatie- en implementatieplan voor de volgende release **v1.7.0 "The Language Expansion"** (Niet-verbonden Talen, 9 Franchise Talen, Lokale REST Server, Multi-Emulator Hunting, Desktop OCR & Mobile PiP Scanner) bevindt zich in [docs/plans/v1_7_0_the_language_expansion.md](../docs/plans/v1_7_0_the_language_expansion.md).
 > Het interactieve prototype is beschikbaar op [docs/prototypes/v1_7_0_prototype.html](../docs/prototypes/v1_7_0_prototype.html).
 
 ---
@@ -205,7 +205,7 @@ De referentiedatabase `assets/db/pokedex.sqlite` wordt gegenereerd via een Pytho
 - **Individuele pijplijnstappen**:
  1. `python update_data.py`: Laadt huidige webdumps (Bulbapedia, Bisafans, PokéWiki), de Legal Matching Pokéballs-tabel en werkt de PokeAPI-submodule bij.
  2. `python tool/data_pipeline/build_database.py`: Aggregaat alle bronnen en bouwt de SQLite database.
- 3. `python tool/data_pipeline/update_pokemon_linguals.py`: Synchroniseert meertalige soortnamen voor alle 10 officiële franchisetalen uit de PokeAPI-submodule in `name_<lang>` kolommen.
+ 3. `python tool/data_pipeline/update_pokemon_linguals.py`: Synchroniseert meertalige soortnamen voor alle 9 officiële franchisetalen uit de PokeAPI-submodule in `name_<lang>` kolommen.
  4. `python tool/data_pipeline/update_evolutions_db.py`: Voegt gestructureerde evolutiebomen toe uit de onbewerkte versie PokeAPI data.
  5. `python tool/data_pipeline/update_cap_locks_and_trades.py`: Voegt glimmende sloten toe voor cap Pikachu, cosplayvormen en transacties.
  6. `python tool/data_pipeline/optimize_databases.py`: Creëert dekkingsindexen, voert `ANALYZE` en `VACUUM` uit.

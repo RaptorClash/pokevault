@@ -205,7 +205,7 @@ PC ボックス ビュー (`DexBoxView`) は、`BoxActionDelegate` インター�
 - **個々のパイプライン ステップ**:
  1. `python update_data.py`: 現在の Web ダンプ (Bulbapedia、Bisafans、PokéWiki)、Legal Matching Mokéballs テーブルをロードし、PokeAPI サブモジュールを更新します。
  2. `python tool/data_pipeline/build_database.py`: すべてのソースを集約し、SQLite データベースを構築します。
- 3. `python tool/data_pipeline/update_pokemon_langages.py`: PokeAPI サブモジュールから 10 の公式フランチャイズ言語すべての多言語種名を `name_<lang>` 列に同期します。
+ 3. `python tool/data_pipeline/update_pokemon_langages.py`: PokeAPI サブモジュールから 9 の公式フランチャイズ言語すべての多言語種名を `name_<lang>` 列に同期します。
  4. `python tool/data_pipeline/update_evolutions_db.py`: 生の PokeAPI データから構造化された進化ツリーを追加します。
  5. `python tool/data_pipeline/update_cap_locks_and_trades.py`: キャップ ピカチュウ、コスプレの形状、トレード用の光沢のあるロックを追加します。
  6. `python tool/data_pipeline/optimize_databases.py`: カバーインデックスを作成し、`ANALYZE` と `VACUUM` を実行します。

@@ -205,7 +205,7 @@ PokéVault строго разделяет неизменяемые статич
 - **Отдельные шаги конвейера**:
  1. `python update_data.py`: загружает текущие веб-дампы (Bulbapedia, Bisafans, PokéWiki), таблицу допустимых совпадений покеболов и обновляет подмодуль PokeAPI.
  2. `python tool/data_pipeline/build_database.py`: объединяет все источники и создает базу данных SQLite.
- 3. `pythontool/data_pipeline/update_pokemon_languages.py`: синхронизирует многоязычные названия видов для всех 10 официальных языков франшизы из подмодуля PokeAPI в столбцы `name_<lang>`.
+ 3. `pythontool/data_pipeline/update_pokemon_languages.py`: синхронизирует многоязычные названия видов для всех 9 официальных языков франшизы из подмодуля PokeAPI в столбцы `name_<lang>`.
  4. `pythontool/data_pipeline/update_evolutions_db.py`: добавляет структурированные деревья эволюции из необработанных данных PokeAPI.
  5. `pythontool/data_pipeline/update_cap_locks_and_trades.py`: добавляет блестящие замки для кепки Пикачу, форм косплея и сделок.
  6. `python Tool/data_pipeline/optimize_databases.py`: Создаёт покрывающие индексы, запускает `ANALYZE` и `VACUUM`.

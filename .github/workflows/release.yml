@@ -22,10 +22,67 @@ permissions:
 
 jobs:
   # =========================================================================
+  # 0. RELEASE GATE & TRIGGER EVALUATION
+  # =========================================================================
+  check-release-needed:
+    name: Check Release Trigger Condition
+    runs-on: ubuntu-latest
+    outputs:
+      should_release: ${{ steps.gate.outputs.should_release }}
+      target_tag: ${{ steps.gate.outputs.target_tag }}
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Evaluate Release Gate
+        id: gate
+        shell: bash
+        run: |
+          EVENT="${{ github.event_name }}"
+          REF_NAME="${{ github.ref_name }}"
+          TAG_INPUT="${{ github.event.inputs.version_tag }}"
+          
+          echo "Evaluating release trigger: event=$EVENT, ref=$REF_NAME, tag_input=$TAG_INPUT"
+          
+          # 1. Manual trigger (workflow_dispatch) always executes
+          if [ "$EVENT" = "workflow_dispatch" ]; then
+            echo "Manual workflow dispatch -> Release enabled."
+            echo "should_release=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          
+          # 2. Tag push (v*) always executes
+          if [[ "$REF_NAME" =~ ^v[0-9] ]]; then
+            echo "Direct tag push ($REF_NAME) -> Release enabled."
+            echo "should_release=true" >> "$GITHUB_OUTPUT"
+            echo "target_tag=$REF_NAME" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          
+          # 3. Push to main: only execute if target version tag does not already exist
+          git fetch --tags --force || true
+          PUBSPEC_VER=$(python3 -c "import re; print(re.search(r'^version:\s*([^\s+]+)', open('pubspec.yaml').read(), re.M).group(1))")
+          TARGET_TAG="v$PUBSPEC_VER"
+          echo "Target tag for current pubspec version on main: $TARGET_TAG"
+          echo "target_tag=$TARGET_TAG" >> "$GITHUB_OUTPUT"
+          
+          if git rev-parse "refs/tags/$TARGET_TAG" >/dev/null 2>&1; then
+            echo "::notice ::Release tag $TARGET_TAG already exists in repository. Skipping build & release on main to prevent unintentional overwrites."
+            echo "should_release=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "Release tag $TARGET_TAG does not exist yet -> New release detected on main! Release enabled."
+            echo "should_release=true" >> "$GITHUB_OUTPUT"
+          fi
+
+  # =========================================================================
   # 1. ANDROID BUILD (APK)
   # =========================================================================
   build-android:
     name: Build Android APK
+    needs: [check-release-needed]
+    if: needs.check-release-needed.outputs.should_release == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
@@ -67,6 +124,8 @@ jobs:
   # =========================================================================
   build-windows:
     name: Build Windows x64 (Zip)
+    needs: [check-release-needed]
+    if: needs.check-release-needed.outputs.should_release == 'true'
     runs-on: windows-latest
     steps:
       - name: Checkout Repository
@@ -104,6 +163,8 @@ jobs:
   # =========================================================================
   build-linux:
     name: Build Linux (Tar.gz & AppImage)
+    needs: [check-release-needed]
+    if: needs.check-release-needed.outputs.should_release == 'true'
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout Repository
@@ -156,7 +217,8 @@ jobs:
   # =========================================================================
   publish-release:
     name: Publish GitHub Release
-    needs: [build-android, build-windows, build-linux]
+    needs: [check-release-needed, build-android, build-windows, build-linux]
+    if: needs.check-release-needed.outputs.should_release == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository

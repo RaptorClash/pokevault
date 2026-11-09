@@ -24,7 +24,7 @@
 * **🎮 In-app bediening & snelkoppelingen Overzicht:** Eigen scherm in de instellingen met platform-adaptieve snelkoppelingen, muisopdrachten en aanraakgebaren.
 * **☁️ Cloud Sync & Offline-First:** 100% offline geschikt met robuuste lokale SQLite-database. Optionele synchronisatie via uw privé Google Drive met tolerantie voor het samenvoegen van patches.
 * **Volledige personalisatie:** Ondersteunt de donker/licht-modus en aanpasbare accent- en achtergrondkleuren.
-* **Meertalig:** Volledig beschikbaar in 13 talen (UI via Slang). Bovendien onafhankelijke selectie van de Pokémon-franchisetaal (bijvoorbeeld Duitse gebruikersinterface met Engelse of Japanse Pokémon-namen) op basis van 10 officiële franchisetalen in `pokedex.sqlite`.
+* **Meertalig:** Volledig beschikbaar in 13 talen (UI via Slang). Bovendien onafhankelijke selectie van de Pokémon-franchisetaal (bijvoorbeeld Duitse gebruikersinterface met Engelse of Japanse Pokémon-namen) op basis van 9 officiële franchisetalen in `pokedex.sqlite`.
 
 ## 📸 Screenshots
 
