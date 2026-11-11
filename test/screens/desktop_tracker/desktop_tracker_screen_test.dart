@@ -153,6 +153,7 @@ void main() {
       final markBtn = find.byKey(const Key('btn_mark_caught_in_dex'));
       expect(markBtn, findsOneWidget);
 
+      await tester.scrollUntilVisible(markBtn, 100, scrollable: find.byType(Scrollable).first);
       await tester.tap(markBtn);
       await tester.pumpAndSettle();
 
@@ -176,6 +177,123 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.byType(CompactMiniHud), findsOneWidget);
+    });
+
+    testWidgets('Refresh with changing window title does not crash dropdown assertion', (tester) async {
+      tester.view.physicalSize = const Size(1280, 800);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      const initialWindows = [
+        DesktopWindowInfo(
+          id: 16404,
+          title: '[92/60] melonDS 1.1',
+          processName: 'melonDS.exe',
+          emulatorType: EmulatorType.melonds,
+        ),
+      ];
+
+      await tester.pumpWidget(createWidgetUnderTest(detectedWindows: initialWindows));
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('melonDS 1.1'), findsWidgets);
+
+      // Tap refresh button
+      final refreshBtn = find.byKey(const Key('btn_refresh_windows'));
+      expect(refreshBtn, findsOneWidget);
+
+      await tester.tap(refreshBtn);
+      await tester.pumpAndSettle();
+
+      // Must not throw Assertion failed: items.where(...) == 1
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('Target Dex Modal allows searching and selecting a different dex', (tester) async {
+      tester.view.physicalSize = const Size(1280, 800);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      await tester.pumpWidget(createWidgetUnderTest(initialDexId: 'dex_kanto'));
+      await tester.pumpAndSettle();
+
+      // Tap the target dex selector pill in the header
+      final pill = find.byKey(const Key('target_dex_pill'));
+      expect(pill, findsOneWidget);
+
+      await tester.tap(pill);
+      await tester.pumpAndSettle();
+
+      // Dex modal should now be visible
+      expect(find.text('Ziel-Pokédex auswählen'), findsOneWidget);
+      expect(find.textContaining('Johto Living Dex'), findsWidgets);
+
+      // Select Johto Dex
+      await tester.tap(find.byKey(const Key('dex_item_dex_johto')));
+      await tester.pumpAndSettle();
+
+      // Modal closed, header reflects Johto
+      expect(find.text('Ziel-Pokédex auswählen'), findsNothing);
+      expect(find.textContaining('Johto Living Dex'), findsWidgets);
+    });
+
+    testWidgets('Settings dialog configures scan region presets and auto-catch options', (tester) async {
+      tester.view.physicalSize = const Size(1280, 800);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      await tester.pumpWidget(createWidgetUnderTest());
+      await tester.pumpAndSettle();
+
+      // Tap settings button
+      final settingsBtn = find.byKey(const Key('btn_tracker_settings'));
+      expect(settingsBtn, findsOneWidget);
+
+      await tester.tap(settingsBtn);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Tracker-Einstellungen'), findsOneWidget);
+      expect(find.textContaining('Ganzes Fenster'), findsWidgets);
+      expect(find.textContaining('Oberer DS-Bildschirm'), findsWidgets);
+
+      // Switch preset to DS Top Screen
+      await tester.tap(find.byKey(const Key('preset_ds_top_screen')));
+      await tester.pumpAndSettle();
+
+      // Close settings
+      await tester.tap(find.byKey(const Key('btn_close_settings')));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Tracker-Einstellungen'), findsNothing);
+    });
+
+    testWidgets('Manual scan button triggers on-demand inspection', (tester) async {
+      tester.view.physicalSize = const Size(1280, 800);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      await tester.pumpWidget(createWidgetUnderTest());
+      await tester.pumpAndSettle();
+
+      final scanNowBtn = find.byKey(const Key('btn_scan_now'));
+      expect(scanNowBtn, findsOneWidget);
+
+      await tester.tap(scanNowBtn);
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
     });
   });
 }

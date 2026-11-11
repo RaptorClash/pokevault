@@ -131,5 +131,85 @@ void main() {
       expect(detector.parseTasklistCsv('header only\n'), isEmpty);
       expect(detector.parseTasklistCsv('corrupted,data,"unclosed quote'), isEmpty);
     });
+
+    test('DesktopWindowInfo equality and hashCode are based on id (PID) and processName', () {
+      const w1 = DesktopWindowInfo(
+        id: 16404,
+        title: '[92/60] melonDS 1.1',
+        processName: 'melonDS.exe',
+        emulatorType: EmulatorType.melonds,
+      );
+
+      // Same process ID and processName, but title changed due to FPS counter
+      const w2 = DesktopWindowInfo(
+        id: 16404,
+        title: '[33/60] melonDS 1.1',
+        processName: 'melonDS.exe',
+        emulatorType: EmulatorType.melonds,
+      );
+
+      // Different PID
+      const w3 = DesktopWindowInfo(
+        id: 9999,
+        title: '[33/60] melonDS 1.1',
+        processName: 'melonDS.exe',
+        emulatorType: EmulatorType.melonds,
+      );
+
+      expect(w1 == w2, isTrue, reason: 'Windows with matching PID and process must be equal');
+      expect(w1.hashCode, equals(w2.hashCode));
+      expect(w1 == w3, isFalse);
+    });
+
+    test('calculateScanRegion supports all ScanRegionPreset options correctly', () {
+      const double width = 1000.0;
+      const double height = 800.0;
+
+      final full = detector.calculateScanRegion(
+        ScanRegionPreset.fullWindow,
+        windowWidth: width,
+        windowHeight: height,
+      );
+      expect(full.left, 0.0);
+      expect(full.top, 0.0);
+      expect(full.width, 1000.0);
+      expect(full.height, 800.0);
+
+      final topScreen = detector.calculateScanRegion(
+        ScanRegionPreset.dsTopScreen,
+        windowWidth: width,
+        windowHeight: height,
+      );
+      expect(topScreen.left, 0.0);
+      expect(topScreen.top, 0.0);
+      expect(topScreen.width, 1000.0);
+      expect(topScreen.height, 416.0); // 52% of 800
+
+      final bottomScreen = detector.calculateScanRegion(
+        ScanRegionPreset.dsBottomScreen,
+        windowWidth: width,
+        windowHeight: height,
+      );
+      expect(bottomScreen.left, 0.0);
+      expect(bottomScreen.top, 384.0); // starts at 48% of 800
+      expect(bottomScreen.width, 1000.0);
+      expect(bottomScreen.height, 416.0);
+
+      final dialogue = detector.calculateScanRegion(
+        ScanRegionPreset.bottomDialogue,
+        windowWidth: width,
+        windowHeight: height,
+      );
+      expect(dialogue.left, 0.0);
+      expect(dialogue.top, 560.0); // 70% of 800
+      expect(dialogue.width, 1000.0);
+      expect(dialogue.height, 240.0); // 30% of 800
+    });
+
+    test('getOpenWindowsAsync completes asynchronously without blocking', () async {
+      final windows = await detector.getOpenWindowsAsync();
+      expect(windows, isNotEmpty);
+      expect(windows.any((w) => w.isKnownEmulator), isTrue);
+    });
   });
 }

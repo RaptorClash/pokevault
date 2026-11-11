@@ -33,7 +33,6 @@ import 'widgets/dex_filter_bar.dart';
 import 'package:flutter/foundation.dart';
 import 'package:universal_io/io.dart' as io;
 import '../desktop_tracker/desktop_tracker_screen.dart';
-import '../../services/desktop_tracker/window_detector.dart';
 import '../../services/scanner_core/scanner_coordinator.dart';
 import '../../services/scanner_core/engine/ocr_detection_engine.dart';
 import '../../services/scanner_core/engine/pokemon_fuzzy_matcher.dart';
@@ -942,14 +941,11 @@ class _DexScreenState extends State<DexScreen> {
       settings: ScannerSettings.defaults(),
     );
 
-    final windows = WindowDetector().getOpenWindows();
-
     Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => DesktopTrackerScreen(
           coordinator: coordinator,
-          detectedWindows: windows,
           initialDexId: liveDex.id,
         ),
       ),

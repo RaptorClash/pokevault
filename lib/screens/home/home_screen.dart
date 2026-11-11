@@ -32,7 +32,6 @@ import '../../providers/shiny_hunt_provider.dart';
 import '../shiny_hunt/shiny_hunts_hub_screen.dart';
 import 'package:universal_io/io.dart' as io;
 import '../desktop_tracker/desktop_tracker_screen.dart';
-import '../../services/desktop_tracker/window_detector.dart';
 import '../../services/scanner_core/scanner_coordinator.dart';
 import '../../services/scanner_core/engine/ocr_detection_engine.dart';
 import '../../services/scanner_core/engine/pokemon_fuzzy_matcher.dart';
@@ -523,14 +522,11 @@ class _HomeScreenState extends State<HomeScreen> {
       settings: ScannerSettings.defaults(),
     );
 
-    final windows = WindowDetector().getOpenWindows();
-
     Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => DesktopTrackerScreen(
           coordinator: coordinator,
-          detectedWindows: windows,
         ),
       ),
     );

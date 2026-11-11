@@ -32,32 +32,30 @@ class DesktopTrackerScreen extends StatefulWidget {
 
 class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
   DesktopOverlayMode _activeMode = DesktopOverlayMode.floatingHud;
-  late List<DesktopWindowInfo> _windows;
+  List<DesktopWindowInfo> _windows = [];
   DesktopWindowInfo? _selectedWindow;
   String? _selectedDexId;
   final List<ScannerEvent> _events = [];
   StreamSubscription<ScannerEvent>? _eventSub;
   bool _isMiniHudView = false;
   bool _isScanningActive = true;
+  bool _isRefreshingWindows = false;
+  ScanRegionPreset _scanRegion = ScanRegionPreset.fullWindow;
   final TextEditingController _testTextController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
-    _windows = widget.detectedWindows.isNotEmpty
-        ? List.from(widget.detectedWindows)
-        : WindowDetector().getOpenWindows();
-
-    if (_windows.isNotEmpty) {
-      // Prioritize known emulators if present
-      _selectedWindow = _windows.firstWhere(
-        (w) => w.isKnownEmulator,
-        orElse: () => _windows.first,
-      );
-      widget.windowSource?.setSelectedWindow(_selectedWindow);
-    }
-
     _selectedDexId = widget.initialDexId;
+
+    if (widget.detectedWindows.isNotEmpty) {
+      _windows = List.from(widget.detectedWindows);
+      _selectDefaultWindow();
+    } else {
+      _windows = WindowDetector().getFallbackWindows();
+      _selectDefaultWindow();
+      _loadWindowsAsync();
+    }
 
     _eventSub = widget.coordinator.events.listen((event) {
       if (!mounted) return;
@@ -83,6 +81,55 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
     });
   }
 
+  Future<void> _loadWindowsAsync() async {
+    try {
+      final wins = await WindowDetector().getOpenWindowsAsync();
+      if (!mounted) return;
+      setState(() {
+        _windows = wins;
+        _selectDefaultWindow();
+          _isRefreshingWindows = false;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+          _isRefreshingWindows = false;
+      });
+    }
+  }
+
+  void _selectDefaultWindow() {
+    if (_windows.isEmpty) return;
+
+    final existing = _selectedWindow;
+    if (existing != null) {
+      final match = _windows.where((w) => w.id == existing.id).firstOrNull;
+      if (match != null) {
+        _selectedWindow = match;
+        _applyScanRegion(match);
+        widget.windowSource?.setSelectedWindow(_selectedWindow);
+        return;
+      }
+    }
+
+    _selectedWindow = _windows.firstWhere(
+      (w) => w.isKnownEmulator,
+      orElse: () => _windows.first,
+    );
+    _applyScanRegion(_selectedWindow);
+    widget.windowSource?.setSelectedWindow(_selectedWindow);
+  }
+
+  void _applyScanRegion(DesktopWindowInfo? window) {
+    if (window == null) return;
+    final region = WindowDetector().calculateScanRegion(
+      _scanRegion,
+      windowWidth: window.width,
+      windowHeight: window.height,
+    );
+    widget.windowSource?.setCropRegion(region);
+  }
+
   @override
   void dispose() {
     _eventSub?.cancel();
@@ -91,24 +138,22 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
   }
 
   void _refreshWindows() {
-    setState(() {
-      _windows = WindowDetector().getOpenWindows();
-      if (_windows.isNotEmpty) {
-        if (!_windows.any((w) => w.id == _selectedWindow?.id)) {
-          _selectedWindow = _windows.firstWhere(
-            (w) => w.isKnownEmulator,
-            orElse: () => _windows.first,
-          );
-          widget.windowSource?.setSelectedWindow(_selectedWindow);
-        }
-      }
-    });
+    setState(() => _isRefreshingWindows = true);
+    _loadWindowsAsync();
   }
 
   void _onWindowSelected(DesktopWindowInfo? window) {
     setState(() {
       _selectedWindow = window;
+      _applyScanRegion(window);
       widget.windowSource?.setSelectedWindow(window);
+    });
+  }
+
+  void _onScanRegionChanged(ScanRegionPreset preset) {
+    setState(() {
+      _scanRegion = preset;
+      _applyScanRegion(_selectedWindow);
     });
   }
 
@@ -132,6 +177,22 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
         widget.coordinator.stop();
       }
     });
+  }
+
+  Future<void> _triggerManualScan() async {
+    final win = _selectedWindow;
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          win != null
+              ? 'Scanne Fenster: "${win.title}"...'
+              : 'Kein Zielfenster ausgewählt.',
+        ),
+        duration: const Duration(seconds: 1),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
   }
 
   Future<void> _markPokemonCaughtInDex(
@@ -193,6 +254,42 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
         );
   }
 
+  void _openTargetDexModal(DexProvider dexProvider) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => _TargetDexSelectionSheet(
+        dexes: dexProvider.userDexes,
+        selectedDexId: _selectedDexId,
+        onSelect: (newDexId) {
+          setState(() {
+            _selectedDexId = newDexId;
+          });
+          Navigator.of(ctx).pop();
+        },
+      ),
+    );
+  }
+
+  void _openSettingsModal() {
+    showDialog(
+      context: context,
+      builder: (ctx) => _TrackerSettingsDialog(
+        currentPreset: _scanRegion,
+        settings: widget.coordinator.settings,
+        onPresetChanged: (preset) {
+          _onScanRegionChanged(preset);
+        },
+        onSettingsChanged: (newSettings) {
+          setState(() {
+            widget.coordinator.updateSettings(newSettings);
+          });
+        },
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -203,29 +300,54 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
 
     if (_isMiniHudView) {
       return Scaffold(
-        backgroundColor: Colors.transparent,
-        body: Center(
-          child: CompactMiniHud(
-            latestEvent: latestEvent,
-            onExpand: () {
-              setState(() {
-                _isMiniHudView = false;
-              });
-            },
-            onMarkCaught: () {
-              if (latestEvent?.pokemonId != null) {
-                _markPokemonCaughtInDex(
-                  latestEvent!.pokemonId!,
-                  isShiny: latestEvent.isShiny,
-                  isAlpha: latestEvent.isAlpha,
-                );
-              }
-            },
-            onClose: () => Navigator.of(context).pop(),
+        backgroundColor: isDark ? const Color(0xFF0F0F14) : Colors.grey.shade900,
+        body: SafeArea(
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    TextButton.icon(
+                      onPressed: () => setState(() => _isMiniHudView = false),
+                      icon: const Icon(Icons.fullscreen, color: Colors.white, size: 18),
+                      label: const Text('Vollansicht', style: TextStyle(color: Colors.white, fontSize: 12)),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.close, color: Colors.white70, size: 20),
+                      onPressed: () => Navigator.of(context).pop(),
+                    ),
+                  ],
+                ),
+              ),
+              Expanded(
+                child: Center(
+                  child: CompactMiniHud(
+                    latestEvent: latestEvent,
+                    onExpand: () => setState(() => _isMiniHudView = false),
+                    onMarkCaught: () {
+                      if (latestEvent?.pokemonId != null) {
+                        _markPokemonCaughtInDex(
+                          latestEvent!.pokemonId!,
+                          isShiny: latestEvent.isShiny,
+                          isAlpha: latestEvent.isAlpha,
+                        );
+                      }
+                    },
+                    onClose: () => Navigator.of(context).pop(),
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       );
     }
+
+    final validSelectedWindow = _windows.any((w) => w.id == _selectedWindow?.id)
+        ? _windows.firstWhere((w) => w.id == _selectedWindow?.id)
+        : (_windows.isNotEmpty ? _windows.first : null);
 
     return Scaffold(
       appBar: AppBar(
@@ -235,14 +357,14 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
               'Desktop Tracker & Overlay',
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: 10),
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
               decoration: BoxDecoration(
                 color: _isScanningActive
                     ? Colors.green.withValues(alpha: 0.15)
                     : Colors.amber.withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(14),
                 border: Border.all(
                   color: _isScanningActive
                       ? Colors.green.withValues(alpha: 0.4)
@@ -253,18 +375,18 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Container(
-                    width: 7,
-                    height: 7,
+                    width: 6,
+                    height: 6,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       color: _isScanningActive ? Colors.green : Colors.amber,
                     ),
                   ),
-                  const SizedBox(width: 6),
+                  const SizedBox(width: 5),
                   Text(
-                    _isScanningActive ? 'Live Aktiv' : 'Pausiert',
+                    _isScanningActive ? 'OCR Aktiv' : 'Pausiert',
                     style: TextStyle(
-                      fontSize: 11,
+                      fontSize: 10,
                       fontWeight: FontWeight.bold,
                       color: _isScanningActive ? Colors.green : Colors.amber,
                     ),
@@ -275,65 +397,64 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
           ],
         ),
         actions: [
-          // Target Dex Dropdown in AppBar
+          // Target Dex Pill Button (Opens Target Dex Selection Modal)
           if (dexProvider.userDexes.isNotEmpty)
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8.0),
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10),
-                decoration: BoxDecoration(
-                  color: isDark ? const Color(0xFF22222E) : Colors.grey.shade200,
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(
-                    color: isDark ? const Color(0xFF323242) : Colors.grey.shade300,
+              padding: const EdgeInsets.symmetric(horizontal: 4.0),
+              child: InkWell(
+                key: const Key('target_dex_pill'),
+                borderRadius: BorderRadius.circular(12),
+                onTap: () => _openTargetDexModal(dexProvider),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: isDark ? const Color(0xFF22222E) : Colors.grey.shade200,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: isDark ? const Color(0xFF323242) : Colors.grey.shade300,
+                    ),
                   ),
-                ),
-                child: DropdownButtonHideUnderline(
-                  child: DropdownButton<String>(
-                    key: const Key('target_dex_dropdown'),
-                    value: activeDex?.id,
-                    icon: const Icon(Icons.arrow_drop_down, size: 20),
-                    items: dexProvider.userDexes.map((d) {
-                      return DropdownMenuItem<String>(
-                        value: d.id,
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(Icons.book_outlined, size: 16),
-                            const SizedBox(width: 6),
-                            Text(
-                              '${d.title} (${d.caughtIds.length})',
-                              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
-                            ),
-                          ],
-                        ),
-                      );
-                    }).toList(),
-                    onChanged: (newDexId) {
-                      if (newDexId != null) {
-                        setState(() {
-                          _selectedDexId = newDexId;
-                        });
-                      }
-                    },
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.book_outlined, size: 15),
+                      const SizedBox(width: 6),
+                      Text(
+                        activeDex != null
+                            ? '${activeDex.title} (${activeDex.caughtIds.length})'
+                            : 'Ziel-Dex wählen',
+                        style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(width: 4),
+                      const Icon(Icons.arrow_drop_down, size: 18),
+                    ],
                   ),
                 ),
               ),
             ),
 
           IconButton(
-            icon: const Icon(Icons.refresh),
+            key: const Key('btn_refresh_windows_appbar'),
+            icon: _isRefreshingWindows
+                ? const SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : const Icon(Icons.refresh),
             tooltip: 'Fenster aktualisieren',
             onPressed: _refreshWindows,
           ),
           IconButton(
+            key: const Key('btn_tracker_settings'),
+            icon: const Icon(Icons.settings),
+            tooltip: 'Einstellungen',
+            onPressed: _openSettingsModal,
+          ),
+          IconButton(
             icon: const Icon(Icons.picture_in_picture_alt),
-            tooltip: 'Kompakt-HUD Modus',
-            onPressed: () {
-              setState(() {
-                _isMiniHudView = true;
-              });
-            },
+            tooltip: 'Mini-HUD Modus',
+            onPressed: () => setState(() => _isMiniHudView = true),
           ),
         ],
       ),
@@ -347,14 +468,14 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
                 ? Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Left Column: Control Panel (360px)
+                      // Left Column: Control Panel (380px)
                       SizedBox(
-                        width: 360,
+                        width: 380,
                         child: SingleChildScrollView(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
-                              _buildWindowControlCard(isDark, theme),
+                              _buildWindowControlCard(validSelectedWindow, activeDex, dexProvider, isDark, theme),
                               const SizedBox(height: 14),
                               _buildTargetFocusCard(latestEvent, activeDex, isDark, theme),
                               const SizedBox(height: 14),
@@ -374,7 +495,7 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        _buildWindowControlCard(isDark, theme),
+                        _buildWindowControlCard(validSelectedWindow, activeDex, dexProvider, isDark, theme),
                         const SizedBox(height: 14),
                         _buildTargetFocusCard(latestEvent, activeDex, isDark, theme),
                         const SizedBox(height: 14),
@@ -393,7 +514,13 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
     );
   }
 
-  Widget _buildWindowControlCard(bool isDark, ThemeData theme) {
+  Widget _buildWindowControlCard(
+    DesktopWindowInfo? validSelectedWindow,
+    UserDex? activeDex,
+    DexProvider dexProvider,
+    bool isDark,
+    ThemeData theme,
+  ) {
     return Card(
       elevation: 0,
       color: isDark ? const Color(0xFF1B1B24) : Colors.white,
@@ -416,47 +543,164 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
                   ),
                 ),
                 TextButton.icon(
+                  key: const Key('btn_refresh_windows'),
                   onPressed: _refreshWindows,
-                  icon: const Icon(Icons.refresh, size: 14),
-                  label: const Text('Aktualisieren', style: TextStyle(fontSize: 11)),
+                  icon: _isRefreshingWindows
+                      ? const SizedBox(
+                          width: 12,
+                          height: 12,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Icon(Icons.refresh, size: 14),
+                  label: Text(
+                    _isRefreshingWindows ? 'Lade...' : 'Aktualisieren',
+                    style: const TextStyle(fontSize: 11),
+                  ),
                   style: TextButton.styleFrom(visualDensity: VisualDensity.compact),
                 ),
               ],
             ),
             const SizedBox(height: 6),
-            DropdownButtonFormField<DesktopWindowInfo>(
-              key: const Key('emulator_dropdown'),
-              initialValue: _selectedWindow,
-              isExpanded: true,
+            InputDecorator(
               decoration: InputDecoration(
-                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                 filled: true,
                 fillColor: isDark ? const Color(0xFF242432) : Colors.grey.shade50,
               ),
-              items: _windows.map((w) {
-                return DropdownMenuItem<DesktopWindowInfo>(
-                  value: w,
-                  child: Row(
-                    children: [
-                      Text(w.isKnownEmulator ? '🎮' : '🖥️', style: const TextStyle(fontSize: 14)),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          w.title,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: w.isKnownEmulator ? FontWeight.bold : FontWeight.normal,
+              child: DropdownButtonHideUnderline(
+                child: DropdownButton<DesktopWindowInfo>(
+                  key: const Key('emulator_dropdown'),
+                  value: validSelectedWindow,
+                  isExpanded: true,
+                  items: _windows.map((w) {
+                    return DropdownMenuItem<DesktopWindowInfo>(
+                      value: w,
+                      child: Row(
+                        children: [
+                          Text(w.isKnownEmulator ? '🎮' : '🖥️', style: const TextStyle(fontSize: 14)),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              w.title,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: w.isKnownEmulator ? FontWeight.bold : FontWeight.normal,
+                              ),
+                            ),
                           ),
-                        ),
+                        ],
                       ),
-                    ],
-                  ),
-                );
-              }).toList(),
-              onChanged: _onWindowSelected,
+                    );
+                  }).toList(),
+                  onChanged: _onWindowSelected,
+                ),
+              ),
             ),
+            const SizedBox(height: 12),
+
+            // Target Dex Dropdown Selector inside Control Card
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Expanded(
+                  child: Text(
+                    'Ziel-Pokédex',
+                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                  ),
+                ),
+                InkWell(
+                  onTap: () => _openTargetDexModal(dexProvider),
+                  borderRadius: BorderRadius.circular(6),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                    child: Text(
+                      'Details ▾',
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: theme.colorScheme.primary,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 6),
+            InputDecorator(
+              decoration: InputDecoration(
+                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                filled: true,
+                fillColor: isDark ? const Color(0xFF242432) : Colors.grey.shade50,
+              ),
+              child: DropdownButtonHideUnderline(
+                child: DropdownButton<String>(
+                  key: const Key('target_dex_dropdown'),
+                  value: activeDex?.id,
+                  isExpanded: true,
+                  items: dexProvider.userDexes.map((d) {
+                    return DropdownMenuItem<String>(
+                      value: d.id,
+                      child: Row(
+                        children: [
+                          const Icon(Icons.book_outlined, size: 16),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              '${d.title} (${d.caughtIds.length})',
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }).toList(),
+                  onChanged: (newDexId) {
+                    if (newDexId != null) {
+                      setState(() => _selectedDexId = newDexId);
+                    }
+                  },
+                ),
+              ),
+            ),
+            const SizedBox(height: 14),
+
+            // Scan Region Preset Choice Row (Critical for DS Dual-Screen vs GBA/Switch)
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'Scanbereich',
+                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                ),
+                Flexible(
+                  child: Text(
+                    _getScanPresetLabel(_scanRegion),
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: theme.colorScheme.primary,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 6),
+            Wrap(
+              spacing: 6,
+              runSpacing: 6,
+              children: [
+                _buildPresetChip(ScanRegionPreset.fullWindow, 'Ganzes Fenster (DS)', isDark, theme),
+                _buildPresetChip(ScanRegionPreset.dsTopScreen, 'Oberer DS-Screen', isDark, theme),
+                _buildPresetChip(ScanRegionPreset.dsBottomScreen, 'Unterer DS-Screen', isDark, theme),
+                _buildPresetChip(ScanRegionPreset.bottomDialogue, 'Textbox unten', isDark, theme),
+              ],
+            ),
+
             const SizedBox(height: 14),
             const Text(
               'Modus',
@@ -504,26 +748,77 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
               ],
             ),
             const SizedBox(height: 14),
-            SizedBox(
-              width: double.infinity,
-              child: FilledButton.icon(
-                onPressed: _toggleScanning,
-                icon: Icon(_isScanningActive ? Icons.pause : Icons.play_arrow),
-                label: Text(
-                  _isScanningActive ? 'Erfassung pausieren' : 'Erfassung starten',
-                  style: const TextStyle(fontWeight: FontWeight.bold),
+            Row(
+              children: [
+                Expanded(
+                  flex: 2,
+                  child: FilledButton.icon(
+                    key: const Key('btn_scan_now'),
+                    onPressed: _triggerManualScan,
+                    icon: const Icon(Icons.search, size: 16),
+                    label: const Text(
+                      'Jetzt scannen',
+                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                    ),
+                    style: FilledButton.styleFrom(
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                    ),
+                  ),
                 ),
-                style: FilledButton.styleFrom(
-                  backgroundColor: _isScanningActive ? Colors.amber.shade800 : Colors.green.shade700,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  padding: const EdgeInsets.symmetric(vertical: 12),
+                const SizedBox(width: 8),
+                Expanded(
+                  flex: 3,
+                  child: OutlinedButton.icon(
+                    onPressed: _toggleScanning,
+                    icon: Icon(_isScanningActive ? Icons.pause : Icons.play_arrow, size: 16),
+                    label: Text(
+                      _isScanningActive ? 'Pausieren' : 'Fortsetzen',
+                      style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                    ),
+                    style: OutlinedButton.styleFrom(
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                    ),
+                  ),
                 ),
-              ),
+              ],
             ),
           ],
         ),
       ),
     );
+  }
+
+  Widget _buildPresetChip(
+    ScanRegionPreset preset,
+    String label,
+    bool isDark,
+    ThemeData theme,
+  ) {
+    final isSelected = _scanRegion == preset;
+    return ChoiceChip(
+      label: Text(label, style: const TextStyle(fontSize: 11)),
+      selected: isSelected,
+      onSelected: (_) => _onScanRegionChanged(preset),
+      selectedColor: theme.colorScheme.primary.withValues(alpha: 0.25),
+      backgroundColor: isDark ? const Color(0xFF242432) : Colors.grey.shade100,
+      visualDensity: VisualDensity.compact,
+      labelPadding: const EdgeInsets.symmetric(horizontal: 4),
+    );
+  }
+
+  String _getScanPresetLabel(ScanRegionPreset preset) {
+    switch (preset) {
+      case ScanRegionPreset.fullWindow:
+        return 'Ganzes Fenster (100%)';
+      case ScanRegionPreset.dsTopScreen:
+        return 'Oberer Bildschirm (0-52%)';
+      case ScanRegionPreset.dsBottomScreen:
+        return 'Unterer Bildschirm (48-100%)';
+      case ScanRegionPreset.bottomDialogue:
+        return 'Textbox (70-100%)';
+    }
   }
 
   Widget _buildModeOption({
@@ -896,7 +1191,7 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
             child: Center(
               child: id != null && id > 0
                   ? Image.network(
-                      'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${isShiny ? 'shiny/' : ''}$id.png',
+                              'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${isShiny ? 'shiny/' : ''}$id.png',
                       errorBuilder: (_, _, _) => const Icon(Icons.pets, size: 20),
                     )
                   : const Icon(Icons.help_outline, size: 20),
@@ -992,6 +1287,326 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
         label,
         style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: fg),
       ),
+    );
+  }
+}
+
+/// Target Dex Selection Modal with search, progress bar, and clean Material 3 design.
+class _TargetDexSelectionSheet extends StatefulWidget {
+  final List<UserDex> dexes;
+  final String? selectedDexId;
+  final ValueChanged<String> onSelect;
+
+  const _TargetDexSelectionSheet({
+    required this.dexes,
+    required this.selectedDexId,
+    required this.onSelect,
+  });
+
+  @override
+  State<_TargetDexSelectionSheet> createState() => _TargetDexSelectionSheetState();
+}
+
+class _TargetDexSelectionSheetState extends State<_TargetDexSelectionSheet> {
+  String _filterQuery = '';
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final filtered = widget.dexes.where((d) {
+      if (_filterQuery.isEmpty) return true;
+      return d.title.toLowerCase().contains(_filterQuery.toLowerCase());
+    }).toList();
+
+    return Container(
+      constraints: BoxConstraints(
+        maxHeight: MediaQuery.sizeOf(context).height * 0.75,
+      ),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1B1B24) : Colors.white,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Row(
+                children: [
+                  Icon(Icons.book, size: 20),
+                  SizedBox(width: 8),
+                  Text(
+                    'Ziel-Pokédex auswählen',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                ],
+              ),
+              IconButton(
+                icon: const Icon(Icons.close),
+                onPressed: () => Navigator.of(context).pop(),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          TextField(
+            key: const Key('dex_search_input'),
+            decoration: InputDecoration(
+              hintText: 'Nach Pokédex suchen...',
+              prefixIcon: const Icon(Icons.search, size: 20),
+              isDense: true,
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+              filled: true,
+              fillColor: isDark ? const Color(0xFF242432) : Colors.grey.shade100,
+            ),
+            onChanged: (q) => setState(() => _filterQuery = q),
+          ),
+          const SizedBox(height: 16),
+          Expanded(
+            child: filtered.isEmpty
+                ? const Center(
+                    child: Text('Keine Pokédexe gefunden', style: TextStyle(color: Colors.grey)),
+                  )
+                : ListView.separated(
+                    itemCount: filtered.length,
+                    separatorBuilder: (_, _) => const SizedBox(height: 8),
+                    itemBuilder: (context, index) {
+                      final dex = filtered[index];
+                      final isSelected = dex.id == widget.selectedDexId;
+                      final boxCount = dex.customBoxes.fold<int>(0, (sum, b) => sum + b.pokemonIds.length);
+                      final total = boxCount > 0 ? boxCount : (dex.caughtIds.length > 150 ? dex.caughtIds.length : 151);
+                      final caught = dex.caughtIds.length;
+                      final progress = total > 0 ? (caught / total).clamp(0.0, 1.0) : 0.0;
+
+                      return Card(
+                        key: Key('dex_item_${dex.id}'),
+                        elevation: 0,
+                        color: isSelected
+                            ? theme.colorScheme.primary.withValues(alpha: 0.15)
+                            : (isDark ? const Color(0xFF242432) : Colors.grey.shade50),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                          side: BorderSide(
+                            color: isSelected
+                                ? theme.colorScheme.primary
+                                : (isDark ? const Color(0xFF343444) : Colors.grey.shade300),
+                            width: isSelected ? 2 : 1,
+                          ),
+                        ),
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(14),
+                          onTap: () => widget.onSelect(dex.id),
+                          child: Padding(
+                            padding: const EdgeInsets.all(14.0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: Text(
+                                        dex.title,
+                                        style: TextStyle(
+                                          fontSize: 14,
+                                          fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+                                        ),
+                                      ),
+                                    ),
+                                    if (isSelected)
+                                      Icon(Icons.check_circle, color: theme.colorScheme.primary, size: 18),
+                                  ],
+                                ),
+                                const SizedBox(height: 8),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      '$caught von $total gefangen',
+                                      style: const TextStyle(fontSize: 11, color: Colors.grey),
+                                    ),
+                                    Text(
+                                      '${(progress * 100).toStringAsFixed(1)}%',
+                                      style: TextStyle(
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.bold,
+                                        color: isSelected ? theme.colorScheme.primary : Colors.grey,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 6),
+                                ClipRRect(
+                                  borderRadius: BorderRadius.circular(4),
+                                  child: LinearProgressIndicator(
+                                    value: progress,
+                                    minHeight: 6,
+                                    backgroundColor: isDark ? const Color(0xFF1B1B24) : Colors.grey.shade200,
+                                    valueColor: AlwaysStoppedAnimation(
+                                      isSelected ? theme.colorScheme.primary : Colors.green,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Tracker settings dialog configuring scan region presets, polling intervals, and auto-catch options.
+class _TrackerSettingsDialog extends StatefulWidget {
+  final ScanRegionPreset currentPreset;
+  final ScannerSettings settings;
+  final ValueChanged<ScanRegionPreset> onPresetChanged;
+  final ValueChanged<ScannerSettings> onSettingsChanged;
+
+  const _TrackerSettingsDialog({
+    required this.currentPreset,
+    required this.settings,
+    required this.onPresetChanged,
+    required this.onSettingsChanged,
+  });
+
+  @override
+  State<_TrackerSettingsDialog> createState() => _TrackerSettingsDialogState();
+}
+
+class _TrackerSettingsDialogState extends State<_TrackerSettingsDialog> {
+  late ScanRegionPreset _preset;
+  late bool _autoMark;
+
+  @override
+  void initState() {
+    super.initState();
+    _preset = widget.currentPreset;
+    _autoMark = widget.settings.autoMarkCaught;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          const Row(
+            children: [
+              Icon(Icons.settings, size: 20),
+              SizedBox(width: 8),
+              Text('Tracker-Einstellungen', style: TextStyle(fontSize: 16)),
+            ],
+          ),
+          IconButton(
+            key: const Key('btn_close_settings'),
+            icon: const Icon(Icons.close, size: 20),
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+        ],
+      ),
+      content: SizedBox(
+        width: 440,
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Scanbereich (Fensterbereich)',
+                style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 6),
+              const Text(
+                'Wähle welcher Teil des Emulatorfensters per OCR abgetastet werden soll:',
+                style: TextStyle(fontSize: 11, color: Colors.grey),
+              ),
+              const SizedBox(height: 10),
+              RadioGroup<ScanRegionPreset>(
+                groupValue: _preset,
+                onChanged: (p) {
+                  if (p != null) {
+                    setState(() => _preset = p);
+                    widget.onPresetChanged(p);
+                  }
+                },
+                child: Column(
+                  children: [
+                    _buildPresetOption(
+                      key: 'preset_full_window',
+                      preset: ScanRegionPreset.fullWindow,
+                      title: 'Ganzes Fenster (Empfohlen für DS & Multi-Screen)',
+                      subtitle: 'Scannt das gesamte Spielfenster (100%)',
+                    ),
+                    _buildPresetOption(
+                      key: 'preset_ds_top_screen',
+                      preset: ScanRegionPreset.dsTopScreen,
+                      title: 'Oberer DS-Bildschirm (DS-Kämpfe & Dialoge)',
+                      subtitle: 'Scannt oberen Bildschirm (0-52%)',
+                    ),
+                    _buildPresetOption(
+                      key: 'preset_ds_bottom_screen',
+                      preset: ScanRegionPreset.dsBottomScreen,
+                      title: 'Unterer DS-Bildschirm (Touchscreen)',
+                      subtitle: 'Scannt unteren Bildschirm (48-100%)',
+                    ),
+                    _buildPresetOption(
+                      key: 'preset_bottom_dialogue',
+                      preset: ScanRegionPreset.bottomDialogue,
+                      title: 'Klassische Textbox (GBA / 3DS unten)',
+                      subtitle: 'Scannt Textbox am unteren Fensterrand (70-100%)',
+                    ),
+                  ],
+                ),
+              ),
+              const Divider(height: 24),
+              SwitchListTile(
+                key: const Key('switch_auto_mark_caught'),
+                contentPadding: EdgeInsets.zero,
+                title: const Text('Automatisch eintragen', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
+                subtitle: const Text(
+                  'Erkannte Fänge direkt ohne Klick im Ziel-Dex speichern',
+                  style: TextStyle(fontSize: 11, color: Colors.grey),
+                ),
+                value: _autoMark,
+                onChanged: (val) {
+                  setState(() => _autoMark = val);
+                  widget.onSettingsChanged(widget.settings.copyWith(autoMarkCaught: val));
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPresetOption({
+    required String key,
+    required ScanRegionPreset preset,
+    required String title,
+    required String subtitle,
+  }) {
+    return ListTile(
+      key: Key(key),
+      dense: true,
+      contentPadding: EdgeInsets.zero,
+      leading: Radio<ScanRegionPreset>(
+        value: preset,
+      ),
+      title: Text(title, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+      subtitle: Text(subtitle, style: const TextStyle(fontSize: 10, color: Colors.grey)),
+      onTap: () {
+        setState(() => _preset = preset);
+        widget.onPresetChanged(preset);
+      },
     );
   }
 }

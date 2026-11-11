@@ -15,6 +15,14 @@ enum EmulatorType {
   unknown,
 }
 
+/// Pre-configured scan regions for different console types and emulator layouts.
+enum ScanRegionPreset {
+  fullWindow,
+  dsTopScreen,
+  dsBottomScreen,
+  bottomDialogue,
+}
+
 /// Metadata describing a desktop window.
 class DesktopWindowInfo {
   final int id;
@@ -36,6 +44,19 @@ class DesktopWindowInfo {
   });
 
   bool get isKnownEmulator => emulatorType != EmulatorType.unknown;
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is! DesktopWindowInfo) return false;
+    if (id > 0 && other.id > 0) {
+      return id == other.id;
+    }
+    return title == other.title && processName == other.processName;
+  }
+
+  @override
+  int get hashCode => id > 0 ? id.hashCode : Object.hash(title, processName);
 
   @override
   String toString() => 'DesktopWindowInfo(id: $id, title: "$title", emu: $emulatorType, proc: $processName)';
@@ -205,6 +226,35 @@ class WindowDetector {
     return values;
   }
 
+  /// Discovers all currently open desktop windows on the system asynchronously (non-blocking).
+  Future<List<DesktopWindowInfo>> getOpenWindowsAsync() async {
+    if (!kIsWeb && io.Platform.isWindows && !io.Platform.environment.containsKey('FLUTTER_TEST')) {
+      try {
+        final result = await io.Process.run('tasklist', ['/V', '/FO', 'CSV']);
+        if (result.exitCode == 0) {
+          final parsed = parseTasklistCsv(result.stdout.toString());
+          if (parsed.isNotEmpty) {
+            return parsed;
+          }
+        }
+      } catch (_) {
+        // Fall back gracefully if tasklist cannot be executed
+      }
+    }
+
+    return getFallbackWindows();
+  }
+
+  /// Default fallback windows for testing or when OS process inspection is disabled.
+  List<DesktopWindowInfo> getFallbackWindows() {
+    return filterAndRankWindows(const [
+      DesktopWindowInfo(id: 1, title: 'mGBA (GameBoy Advance)', emulatorType: EmulatorType.mgba),
+      DesktopWindowInfo(id: 2, title: 'melonDS (Nintendo DS)', emulatorType: EmulatorType.melonds),
+      DesktopWindowInfo(id: 3, title: 'Ryujinx (Nintendo Switch)', emulatorType: EmulatorType.ryujinx),
+      DesktopWindowInfo(id: 4, title: 'Citra (Nintendo 3DS)', emulatorType: EmulatorType.citra),
+    ]);
+  }
+
   /// Discovers all currently open desktop windows on the system.
   List<DesktopWindowInfo> getOpenWindows() {
     if (!kIsWeb && io.Platform.isWindows && !io.Platform.environment.containsKey('FLUTTER_TEST')) {
@@ -221,13 +271,7 @@ class WindowDetector {
       }
     }
 
-    // Default fallback windows
-    return filterAndRankWindows(const [
-      DesktopWindowInfo(id: 1, title: 'mGBA (GameBoy Advance)', emulatorType: EmulatorType.mgba),
-      DesktopWindowInfo(id: 2, title: 'melonDS (Nintendo DS)', emulatorType: EmulatorType.melonds),
-      DesktopWindowInfo(id: 3, title: 'Ryujinx (Nintendo Switch)', emulatorType: EmulatorType.ryujinx),
-      DesktopWindowInfo(id: 4, title: 'Citra (Nintendo 3DS)', emulatorType: EmulatorType.citra),
-    ]);
+    return getFallbackWindows();
   }
 
   /// Filters out empty windows and ranks known emulator windows at the top.
@@ -250,6 +294,27 @@ class WindowDetector {
     });
 
     return recognized;
+  }
+
+  /// Calculates scan region rectangle for any [ScanRegionPreset].
+  Rect calculateScanRegion(
+    ScanRegionPreset preset, {
+    required double windowWidth,
+    required double windowHeight,
+  }) {
+    switch (preset) {
+      case ScanRegionPreset.fullWindow:
+        return Rect.fromLTWH(0.0, 0.0, windowWidth, windowHeight);
+      case ScanRegionPreset.dsTopScreen:
+        return Rect.fromLTWH(0.0, 0.0, windowWidth, windowHeight * 0.52);
+      case ScanRegionPreset.dsBottomScreen:
+        return Rect.fromLTWH(0.0, windowHeight * 0.48, windowWidth, windowHeight * 0.52);
+      case ScanRegionPreset.bottomDialogue:
+        return calculateDefaultDialogueRegion(
+          windowWidth: windowWidth,
+          windowHeight: windowHeight,
+        );
+    }
   }
 
   /// Calculates default dialogue textbox scan rectangle (lower 30% of the window).
