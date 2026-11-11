@@ -7,6 +7,7 @@ class CompactMiniHud extends StatelessWidget {
   final VoidCallback? onExpand;
   final VoidCallback? onMarkCaught;
   final VoidCallback? onEvolve;
+  final VoidCallback? onClose;
 
   const CompactMiniHud({
     super.key,
@@ -14,6 +15,7 @@ class CompactMiniHud extends StatelessWidget {
     this.onExpand,
     this.onMarkCaught,
     this.onEvolve,
+    this.onClose,
   });
 
   @override
@@ -74,14 +76,29 @@ class CompactMiniHud extends StatelessWidget {
                     ),
                   ],
                 ),
-                if (onExpand != null)
-                  IconButton(
-                    icon: const Icon(Icons.open_in_full, size: 14),
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(),
-                    tooltip: 'Dashboard öffnen',
-                    onPressed: onExpand,
-                  ),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (onExpand != null)
+                      IconButton(
+                        icon: const Icon(Icons.open_in_full, size: 14),
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(),
+                        tooltip: 'Dashboard öffnen',
+                        onPressed: onExpand,
+                      ),
+                    if (onClose != null) ...[
+                      const SizedBox(width: 8),
+                      IconButton(
+                        icon: const Icon(Icons.close, size: 14),
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(),
+                        tooltip: 'Schließen',
+                        onPressed: onClose,
+                      ),
+                    ],
+                  ],
+                ),
               ],
             ),
             const SizedBox(height: 8),

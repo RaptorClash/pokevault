@@ -29,6 +29,7 @@ class DexAppBarActions extends StatelessWidget {
   final VoidCallback? onOpenBoxSettings;
   final VoidCallback? onOpenRouteTracker;
   final VoidCallback? onOpenShinyHunts;
+  final VoidCallback? onOpenDesktopTracker;
   final VoidCallback? onToggleView;
   final VoidCallback? onToggleSeparateForms;
   final VoidCallback? onOpenSortSettings;
@@ -58,6 +59,7 @@ class DexAppBarActions extends StatelessWidget {
     this.onOpenBoxSettings,
     this.onOpenRouteTracker,
     this.onOpenShinyHunts,
+    this.onOpenDesktopTracker,
     this.onToggleView,
     this.onToggleSeparateForms,
     this.onOpenSortSettings,
@@ -98,6 +100,7 @@ class DexAppBarActions extends StatelessWidget {
     }
 
     final isWideEnoughForShare = MediaQuery.sizeOf(context).width >= 360;
+    final isWideEnoughForTracker = MediaQuery.sizeOf(context).width >= 420;
 
     return Row(
       mainAxisSize: MainAxisSize.min,
@@ -157,6 +160,12 @@ class DexAppBarActions extends StatelessWidget {
               );
             },
           ),
+        if (isWideEnoughForTracker && onOpenDesktopTracker != null)
+          IconButton(
+            icon: const Icon(Icons.track_changes),
+            tooltip: 'Desktop Tracker & Overlay',
+            onPressed: onOpenDesktopTracker,
+          ),
         PopupMenuButton<String>(
           key: sortMenuKey ?? const Key('_sortMenuKey'),
           icon: const Icon(Icons.sort),
@@ -177,6 +186,9 @@ class DexAppBarActions extends StatelessWidget {
                 break;
               case 'share_card':
                 onShareCard?.call();
+                break;
+              case 'desktop_tracker':
+                onOpenDesktopTracker?.call();
                 break;
               case 'delete_dex':
                 onDeleteDex?.call();
@@ -256,6 +268,21 @@ class DexAppBarActions extends StatelessWidget {
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(t.share_dex_card),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+            if (!isWideEnoughForTracker && onOpenDesktopTracker != null) ...[
+              const PopupMenuDivider(),
+              const PopupMenuItem(
+                value: 'desktop_tracker',
+                child: Row(
+                  children: [
+                    Icon(Icons.track_changes, size: 20),
+                    SizedBox(width: 8),
+                    Expanded(
+                      child: Text('Desktop Tracker & Overlay'),
                     ),
                   ],
                 ),

@@ -38,6 +38,10 @@ void main() {
       final w7 = detector.identifyEmulator('melonDS 0.9.5 - Pokemon Platinum');
       expect(w7.isKnownEmulator, isTrue);
       expect(w7.emulatorType, EmulatorType.melonds);
+
+      final w8 = detector.identifyEmulator('[111/60] melonDS 1.1');
+      expect(w8.isKnownEmulator, isTrue);
+      expect(w8.emulatorType, EmulatorType.melonds);
     });
 
     test('Handles regular non-emulator applications safely', () {
@@ -83,6 +87,49 @@ void main() {
       expect(crop.top, 420.0); // 70% from top
       expect(crop.width, 1000.0);
       expect(crop.height, 180.0); // 30% height
+    });
+
+    test('parseTasklistCsv parses real windows and excludes system & PokéVault windows', () {
+      const sampleCsv = '''"Abbildname","PID","Sitzungsname","Sitz.-Nr.","Speichernutzung","Status","Benutzername","CPU-Zeit","Fenstertitel"
+"System","4","Services","0","7.116 K","Unknown","Nicht zutreffend","0:22:53","Nicht zutreffend"
+"dwm.exe","2544","Console","1","119.112 K","Running","Nicht zutreffend","0:27:17","DWM Notification Window"
+"taskhostw.exe","9164","Console","1","22.392 K","Running","DESKTOP\\user","0:00:02","Task Host Window"
+"Code.exe","24564","Console","1","134.180 K","Running","DESKTOP\\user","0:00:22","pokevault - Visual Studio Code"
+"powershell.exe","26128","Console","1","64.356 K","Running","DESKTOP\\user","0:00:01","OleMainThreadWndName"
+"melonDS.exe","16404","Console","1","672.504 K","Running","DESKTOP\\user","0:03:02","[111/60] melonDS 1.1"
+"Discord.exe","18064","Console","1","130.528 K","Running","DESKTOP\\user","0:00:58","Discord - Pokévault Community"
+"PokeVault.exe","6424","Console","1","500.840 K","Running","DESKTOP\\user","0:00:20","PokéVault"
+''';
+
+      final windows = detector.parseTasklistCsv(sampleCsv);
+
+      // Should extract 3 valid user windows: melonDS, Visual Studio Code, Discord
+      expect(windows.length, 3);
+
+      // melonDS must be first (isKnownEmulator)
+      expect(windows[0].processName, 'melonDS.exe');
+      expect(windows[0].id, 16404);
+      expect(windows[0].title, '[111/60] melonDS 1.1');
+      expect(windows[0].isKnownEmulator, isTrue);
+      expect(windows[0].emulatorType, EmulatorType.melonds);
+
+      // Non-emulators follow
+      final nonEmuTitles = windows.skip(1).map((w) => w.title).toList();
+      expect(nonEmuTitles, contains('pokevault - Visual Studio Code'));
+      expect(nonEmuTitles, contains('Discord - Pokévault Community'));
+
+      // Filtered out:
+      final allTitles = windows.map((w) => w.title).toList();
+      expect(allTitles, isNot(contains('DWM Notification Window')));
+      expect(allTitles, isNot(contains('Task Host Window')));
+      expect(allTitles, isNot(contains('OleMainThreadWndName')));
+      expect(allTitles, isNot(contains('PokéVault')));
+    });
+
+    test('parseTasklistCsv handles empty or invalid CSV gracefully without throwing', () {
+      expect(detector.parseTasklistCsv(''), isEmpty);
+      expect(detector.parseTasklistCsv('header only\n'), isEmpty);
+      expect(detector.parseTasklistCsv('corrupted,data,"unclosed quote'), isEmpty);
     });
   });
 }

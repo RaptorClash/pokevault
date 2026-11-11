@@ -131,5 +131,27 @@ void main() {
 
       expect(tester.takeException(), isNull);
     });
+
+    testWidgets('Renders Desktop Tracker icon button when onOpenDesktopTracker is provided', (tester) async {
+      bool trackerClicked = false;
+      await tester.pumpWidget(MaterialApp(
+        home: Scaffold(
+          appBar: AppBar(
+            actions: [
+              DexAppBarActions(
+                isEditMode: false,
+                onOpenDesktopTracker: () => trackerClicked = true,
+              ),
+            ],
+          ),
+        ),
+      ));
+
+      final trackerFinder = find.byTooltip('Desktop Tracker & Overlay');
+      expect(trackerFinder, findsOneWidget);
+
+      await tester.tap(trackerFinder);
+      expect(trackerClicked, isTrue);
+    });
   });
 }

@@ -30,6 +30,14 @@ import 'widgets/dex_progress_dialog.dart';
 import 'widgets/dex_completion_card_dialog.dart';
 import 'widgets/dex_app_bar_actions.dart';
 import 'widgets/dex_filter_bar.dart';
+import 'package:flutter/foundation.dart';
+import 'package:universal_io/io.dart' as io;
+import '../desktop_tracker/desktop_tracker_screen.dart';
+import '../../services/desktop_tracker/window_detector.dart';
+import '../../services/scanner_core/scanner_coordinator.dart';
+import '../../services/scanner_core/engine/ocr_detection_engine.dart';
+import '../../services/scanner_core/engine/pokemon_fuzzy_matcher.dart';
+import '../../services/scanner_core/models/scanner_settings.dart';
 
 class DexScreen extends StatefulWidget {
   final UserDex initialDex;
@@ -915,6 +923,39 @@ class _DexScreenState extends State<DexScreen> {
     });
   }
 
+  void _openDesktopTracker(UserDex liveDex) {
+    final dexProvider = Provider.of<DexProvider>(context, listen: false);
+    final pokemonEntries = <PokemonMatcherEntry>[];
+    for (final p in dexProvider.allPokemon) {
+      for (final entry in p.names.entries) {
+        pokemonEntries.add(PokemonMatcherEntry(
+          id: p.id,
+          name: entry.value,
+          language: entry.key,
+        ));
+      }
+    }
+
+    final coordinator = ScannerCoordinator(
+      engine: OcrDetectionEngine(),
+      matcher: PokemonFuzzyMatcher.withEntries(pokemonEntries),
+      settings: ScannerSettings.defaults(),
+    );
+
+    final windows = WindowDetector().getOpenWindows();
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => DesktopTrackerScreen(
+          coordinator: coordinator,
+          detectedWindows: windows,
+          initialDexId: liveDex.id,
+        ),
+      ),
+    );
+  }
+
   Future<void> _toggleBoxView() async {
     setState(() {
       _isBoxView = !_isBoxView;
@@ -1690,6 +1731,12 @@ class _DexScreenState extends State<DexScreen> {
         const SingleActivator(LogicalKeyboardKey.keyF, meta: true): () {
           _searchFocusNode.requestFocus();
         },
+        const SingleActivator(LogicalKeyboardKey.keyO, control: true, shift: true): () {
+          _openDesktopTracker(liveDex);
+        },
+        const SingleActivator(LogicalKeyboardKey.keyO, meta: true, shift: true): () {
+          _openDesktopTracker(liveDex);
+        },
       },
       child: PopScope(
       canPop: !_isEditMode,
@@ -1839,6 +1886,9 @@ class _DexScreenState extends State<DexScreen> {
                   ),
                 );
               },
+              onOpenDesktopTracker: !kIsWeb && (io.Platform.isWindows || io.Platform.isLinux || io.Platform.isMacOS)
+                  ? () => _openDesktopTracker(liveDex)
+                  : null,
               onToggleView: _toggleBoxView,
               onToggleSeparateForms: _toggleSeparateForms,
               onOpenSortSettings: () {

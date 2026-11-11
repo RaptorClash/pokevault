@@ -523,20 +523,14 @@ class _HomeScreenState extends State<HomeScreen> {
       settings: ScannerSettings.defaults(),
     );
 
-    final detector = WindowDetector();
-    final defaultWindows = detector.filterAndRankWindows(const [
-      DesktopWindowInfo(id: 1, title: 'mGBA (GameBoy Advance)', emulatorType: EmulatorType.mgba),
-      DesktopWindowInfo(id: 2, title: 'DeSmuME (Nintendo DS)', emulatorType: EmulatorType.desmume),
-      DesktopWindowInfo(id: 3, title: 'Ryujinx (Nintendo Switch)', emulatorType: EmulatorType.ryujinx),
-      DesktopWindowInfo(id: 4, title: 'Citra (Nintendo 3DS)', emulatorType: EmulatorType.citra),
-    ]);
+    final windows = WindowDetector().getOpenWindows();
 
     Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => DesktopTrackerScreen(
           coordinator: coordinator,
-          detectedWindows: defaultWindows,
+          detectedWindows: windows,
         ),
       ),
     );
