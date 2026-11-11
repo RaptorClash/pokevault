@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../i18n/strings.g.dart';
+import '../i18n/language_registry.g.dart';
 import '../services/google_drive_sync_service.dart';
-import 'dart:ui' as ui;
 
 /// Provider managing persistent user preferences such as theme, language, and cloud credentials.
 ///
@@ -11,8 +11,18 @@ class SettingsProvider with ChangeNotifier {
   /// The active UI theme mode (light, dark, or system).
   ThemeMode themeMode = ThemeMode.system;
 
-  /// The active two-letter ISO language code (`"de"` or `"en"`).
+  /// The active App UI language code (e.g. `"de"`, `"en"`, `"fr"`).
   String currentLanguage = 'en';
+
+  /// The selected Pokémon franchise language code (or `"auto"`).
+  String pokemonLanguage = 'auto';
+
+  /// Resolves the effective language code for Pokémon data.
+  String get effectivePokemonLanguage =>
+      LanguageRegistry.resolveEffectivePokemonLanguage(
+        currentLanguage,
+        pokemonLanguage,
+      );
 
   String _googleClientId = '';
   bool _autoSyncEnabled = false;
@@ -65,21 +75,37 @@ class SettingsProvider with ChangeNotifier {
     if (prefs.containsKey('language')) {
       currentLanguage = prefs.getString('language')!;
     } else {
-      final deviceLanguageCode =
-          ui.PlatformDispatcher.instance.locale.languageCode;
+      final locale = WidgetsBinding.instance.platformDispatcher.locale;
+      String? matchedCode;
 
-      if (deviceLanguageCode == 'de') {
-        currentLanguage = 'de';
-      } else {
-        currentLanguage = 'en';
+      if (locale.scriptCode != null && locale.scriptCode!.isNotEmpty) {
+        matchedCode = LanguageRegistry.findByCode(
+          '${locale.languageCode}-${locale.scriptCode}',
+        )?.code;
       }
+      if (matchedCode == null &&
+          locale.countryCode != null &&
+          locale.countryCode!.isNotEmpty) {
+        matchedCode = LanguageRegistry.findByCode(
+          '${locale.languageCode}-${locale.countryCode}',
+        )?.code;
+      }
+      matchedCode ??= LanguageRegistry.findByCode(locale.languageCode)?.code;
+
+      currentLanguage = matchedCode ?? 'en';
       await prefs.setString('language', currentLanguage);
     }
 
     currentLanguage = prefs.getString('language') ?? currentLanguage;
-    LocaleSettings.setLocale(
-      currentLanguage == 'de' ? AppLocale.de : AppLocale.en,
-    );
+    pokemonLanguage = prefs.getString('pokemonLanguage') ?? 'auto';
+
+    try {
+      LocaleSettings.setLocaleRaw(currentLanguage);
+    } catch (_) {
+      LocaleSettings.setLocale(
+        currentLanguage == 'de' ? AppLocale.de : AppLocale.en,
+      );
+    }
 
     String tm = 'system';
     try {
@@ -112,23 +138,37 @@ class SettingsProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  /// Changes the active language to [lang] (e.g. `"de"` or `"en"`) and updates translations.
-  void setLanguage(String lang) async {
+  /// Changes the active App UI language to [lang] (e.g. `"de"` or `"en"`) and updates translations.
+  void setLanguage(String lang) {
     currentLanguage = lang;
-    LocaleSettings.setLocale(lang == 'de' ? AppLocale.de : AppLocale.en);
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('language', lang);
+    try {
+      LocaleSettings.setLocaleRaw(lang);
+    } catch (_) {
+      LocaleSettings.setLocale(lang == 'de' ? AppLocale.de : AppLocale.en);
+    }
     notifyListeners();
+    SharedPreferences.getInstance().then((prefs) {
+      prefs.setString('language', lang);
+    });
+  }
+
+  /// Changes the Pokémon data language to [lang] (e.g. `"auto"`, `"de"`, `"ja"`).
+  void setPokemonLanguage(String lang) {
+    pokemonLanguage = lang;
+    notifyListeners();
+    SharedPreferences.getInstance().then((prefs) {
+      prefs.setString('pokemonLanguage', lang);
+    });
   }
 
   /// Toggles between light and dark theme mode.
   void toggleTheme() async {
     themeMode = themeMode == ThemeMode.dark ? ThemeMode.light : ThemeMode.dark;
+    notifyListeners();
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(
       'themeMode',
       themeMode == ThemeMode.dark ? 'dark' : 'light',
     );
-    notifyListeners();
   }
 }

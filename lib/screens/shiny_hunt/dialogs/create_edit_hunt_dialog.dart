@@ -4,6 +4,7 @@ import 'package:uuid/uuid.dart';
 import '../../../models/pokemon.dart';
 import '../../../models/shiny_hunt.dart';
 import '../../../providers/dex_provider.dart';
+import '../../../providers/settings_provider.dart';
 import '../../../providers/shiny_hunt_provider.dart';
 import '../../../utils/shiny_hunt_odds_helper.dart';
 import '../../../utils/shiny_logic_helper.dart';
@@ -659,7 +660,14 @@ class _CreateEditHuntDialogState extends State<CreateEditHuntDialog> {
     final allPokemon = dexProvider.allPokemon;
     final currentPokemon = allPokemon.where((p) => p.id == _pokemonId).firstOrNull;
     final availableForms = currentPokemon?.forms ?? [];
-    final lang = LocaleSettings.currentLocale.languageCode;
+    String pokeLang = LocaleSettings.currentLocale.languageCode;
+    try {
+      final sp = Provider.of<SettingsProvider?>(context);
+      if (sp != null) {
+        final l = sp.effectivePokemonLanguage;
+        if (l.isNotEmpty) pokeLang = l;
+      }
+    } catch (_) {}
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
@@ -712,7 +720,7 @@ class _CreateEditHuntDialogState extends State<CreateEditHuntDialog> {
                         // 1. Pokémon Auswahl
                         if (_pokemonId == null) ...[
                     Autocomplete<Pokemon>(
-                      displayStringForOption: (option) => option.getName(lang),
+                      displayStringForOption: (option) => option.getName(pokeLang),
                       optionsBuilder: (textEditingValue) {
                         final query = textEditingValue.text.trim().toLowerCase();
                         if (query.isEmpty) return const Iterable<Pokemon>.empty();
@@ -720,11 +728,12 @@ class _CreateEditHuntDialogState extends State<CreateEditHuntDialog> {
                           final de = p.nameDe.toLowerCase();
                           final en = p.nameEn.toLowerCase();
                           final id = p.id.toString();
-                          return de.contains(query) || en.contains(query) || id == query;
+                          final matchMulti = p.names.values.any((n) => n.toLowerCase().contains(query));
+                          return matchMulti || de.contains(query) || en.contains(query) || id == query;
                         }).take(10);
                       },
                       onSelected: (selection) {
-                        _onPokemonSelected(selection.id, selection.getName(lang));
+                        _onPokemonSelected(selection.id, selection.getName(pokeLang));
                       },
                       fieldViewBuilder: (context, controller, focusNode, onFieldSubmitted) {
                         return TextFormField(

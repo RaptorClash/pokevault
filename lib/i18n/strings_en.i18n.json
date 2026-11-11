@@ -1902,5 +1902,8 @@
   "moved_successfully": "Successfully moved.",
   "deleted_successfully": "Successfully deleted.",
   "items_deleted": "Items deleted.",
-  "create_new_pokedex": "Create new Pokédex"
+  "create_new_pokedex": "Create new Pokédex",
+  "pokemon_language": "Pokémon Language",
+  "language_auto": "Automatic",
+  "language_auto_desc": "Follows app language"
 }

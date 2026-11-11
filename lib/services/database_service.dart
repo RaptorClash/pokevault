@@ -85,7 +85,7 @@ class DatabaseService {
   }
 
   @visibleForTesting
-  static const int currentAppDbVersion = 29;
+  static const int currentAppDbVersion = 30;
   static const int _currentAppDbVersion = currentAppDbVersion;
 
   Future<Database> _initAppDB(String fileName) async {

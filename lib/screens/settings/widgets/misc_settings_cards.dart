@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../../i18n/strings.g.dart';
+import '../../../../i18n/language_registry.g.dart';
 import '../../../../providers/settings_provider.dart';
 import '../../../../providers/dex_provider.dart';
 import '../../../../utils/notification_helper.dart';
@@ -109,9 +110,16 @@ class GeneralCard extends StatelessWidget {
             children: [
               ListTile(
                 title: Text(t.language),
-                subtitle: Text(t.current_language),
+                subtitle: Text(_getAppLanguageSubtitle(settingsProvider)),
                 trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-                onTap: () => _showLanguageDialog(context, settingsProvider),
+                onTap: () => _showAppLanguageDialog(context, settingsProvider),
+              ),
+              const Divider(height: 1),
+              ListTile(
+                title: Text(t.pokemon_language),
+                subtitle: Text(_getPokemonLanguageSubtitle(settingsProvider)),
+                trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                onTap: () => _showPokemonLanguageDialog(context, settingsProvider),
               ),
               const Divider(height: 1),
               ListTile(
@@ -160,26 +168,153 @@ class GeneralCard extends StatelessWidget {
     );
   }
 
-  void _showLanguageDialog(BuildContext context, SettingsProvider provider) {
+  String _getAppLanguageSubtitle(SettingsProvider provider) {
+    final cur = LanguageRegistry.findByCode(provider.currentLanguage);
+    return cur != null
+        ? '${cur.flag}  ${cur.nameNative} (${cur.code.toUpperCase()})'
+        : provider.currentLanguage.toUpperCase();
+  }
+
+  String _getPokemonLanguageSubtitle(SettingsProvider provider) {
+    if (provider.pokemonLanguage == 'auto') {
+      final eff = LanguageRegistry.findByCode(provider.effectivePokemonLanguage);
+      final effLabel = eff != null
+          ? '${eff.flag} ${eff.code.toUpperCase()}'
+          : provider.effectivePokemonLanguage.toUpperCase();
+      return '${t.language_auto} ($effLabel)';
+    }
+    final cur = LanguageRegistry.findByCode(provider.pokemonLanguage);
+    return cur != null
+        ? '${cur.flag}  ${cur.nameNative} (${cur.code.toUpperCase()})'
+        : provider.pokemonLanguage.toUpperCase();
+  }
+
+  void _showAppLanguageDialog(BuildContext context, SettingsProvider provider) {
     showDialog(
       context: context,
       builder: (context) {
         return SimpleDialog(
           title: Text(t.language),
           children: [
-            SimpleDialogOption(
-              onPressed: () {
-                provider.setLanguage('de');
-                Navigator.pop(context);
-              },
-              child: const Text('  Deutsch (DE)'),
+            SizedBox(
+              width: double.maxFinite,
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxHeight: 400),
+                child: ListView(
+                  shrinkWrap: true,
+                  children: LanguageRegistry.supportedAppLanguages.map((lang) {
+                    final isSelected = provider.currentLanguage.toLowerCase() == lang.code.toLowerCase();
+                    return SimpleDialogOption(
+                      onPressed: () {
+                        provider.setLanguage(lang.code);
+                        Navigator.pop(context);
+                      },
+                      child: Row(
+                        children: [
+                          Text(lang.flag, style: const TextStyle(fontSize: 18)),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              '${lang.nameNative} (${lang.code.toUpperCase()})',
+                              style: TextStyle(
+                                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                                color: isSelected ? Theme.of(context).colorScheme.primary : null,
+                              ),
+                            ),
+                          ),
+                          if (isSelected)
+                            Icon(Icons.check, size: 18, color: Theme.of(context).colorScheme.primary),
+                        ],
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ),
             ),
-            SimpleDialogOption(
-              onPressed: () {
-                provider.setLanguage('en');
-                Navigator.pop(context);
-              },
-              child: const Text('  English (EN)'),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showPokemonLanguageDialog(BuildContext context, SettingsProvider provider) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        final isAuto = provider.pokemonLanguage == 'auto';
+        return SimpleDialog(
+          title: Text(t.pokemon_language),
+          children: [
+            SizedBox(
+              width: double.maxFinite,
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxHeight: 400),
+                child: ListView(
+                  shrinkWrap: true,
+                  children: [
+                    SimpleDialogOption(
+                      onPressed: () {
+                        provider.setPokemonLanguage('auto');
+                        Navigator.pop(context);
+                      },
+                      child: Row(
+                        children: [
+                          const Text('🔄', style: TextStyle(fontSize: 18)),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  t.language_auto,
+                                  style: TextStyle(
+                                    fontWeight: isAuto ? FontWeight.bold : FontWeight.normal,
+                                    color: isAuto ? Theme.of(context).colorScheme.primary : null,
+                                  ),
+                                ),
+                                Text(
+                                  '${t.language_auto_desc} (${provider.effectivePokemonLanguage.toUpperCase()})',
+                                  style: Theme.of(context).textTheme.bodySmall,
+                                ),
+                              ],
+                            ),
+                          ),
+                          if (isAuto)
+                            Icon(Icons.check, size: 18, color: Theme.of(context).colorScheme.primary),
+                        ],
+                      ),
+                    ),
+                    const Divider(height: 8),
+                    ...LanguageRegistry.supportedPokemonLanguages.map((lang) {
+                      final isSelected = !isAuto &&
+                          provider.pokemonLanguage.toLowerCase() == lang.code.toLowerCase();
+                      return SimpleDialogOption(
+                        onPressed: () {
+                          provider.setPokemonLanguage(lang.code);
+                          Navigator.pop(context);
+                        },
+                        child: Row(
+                          children: [
+                            Text(lang.flag, style: const TextStyle(fontSize: 18)),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Text(
+                                '${lang.nameNative} (${lang.code.toUpperCase()})',
+                                style: TextStyle(
+                                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                                  color: isSelected ? Theme.of(context).colorScheme.primary : null,
+                                ),
+                              ),
+                            ),
+                            if (isSelected)
+                              Icon(Icons.check, size: 18, color: Theme.of(context).colorScheme.primary),
+                          ],
+                        ),
+                      );
+                    }),
+                  ],
+                ),
+              ),
             ),
           ],
         );

@@ -557,6 +557,10 @@ class _DexCompletionCardDialogState extends State<DexCompletionCardDialog> {
       }).toList();
     }
 
+    SettingsProvider? settings;
+    try {
+      settings = context.read<SettingsProvider>();
+    } catch (_) {}
     final selectedId = await Navigator.of(context).push<String>(
       MaterialPageRoute(
         builder: (_) => PokemonSearchSelectionScreen(
@@ -590,7 +594,13 @@ class _DexCompletionCardDialogState extends State<DexCompletionCardDialog> {
     }).firstOrNull;
 
     if (foundEntry != null) {
-      final baseName = isEn ? foundEntry.pokemon.nameEn : foundEntry.pokemon.nameDe;
+      String pokeLang = isEn ? 'en' : 'de';
+      if (settings != null) {
+        try {
+          pokeLang = settings.effectivePokemonLanguage;
+        } catch (_) {}
+      }
+      final baseName = foundEntry.pokemon.getName(pokeLang);
       final displayName = foundEntry.displaySuffix.trim().isNotEmpty
           ? '$baseName ${foundEntry.displaySuffix.trim()}'
           : baseName;

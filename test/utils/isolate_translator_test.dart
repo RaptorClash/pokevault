@@ -382,4 +382,32 @@ void main() {
       });
     });
   });
+
+  group('IsolateTranslator - Multi-Language Support (FR, ES, IT, JA)', () {
+    test('resolves translations for French (fr)', () {
+      final fr = IsolateTranslator('fr');
+      expect(fr.language, equals('fr'));
+      expect(fr.isDe, isFalse);
+      expect(fr.get('box'), equals('Boîte'));
+      expect(fr.getFormsLabel(), equals('Formes'));
+      expect(fr.getRegionName('kanto'), equals('Kanto'));
+      expect(fr.formatFormBoxTitle(1, 0, 1), equals('Boîte 1 (Formes)'));
+    });
+
+    test('resolves translations for Spanish (es)', () {
+      final es = IsolateTranslator('es');
+      expect(es.language, equals('es'));
+      expect(es.get('box'), equals('Caja'));
+      expect(es.getFormsLabel(), equals('Formas'));
+      expect(es.getRegionName('kanto'), equals('Kanto'));
+      expect(es.formatFormBoxTitle(1, 0, 1), equals('Caja 1 (Formas)'));
+    });
+
+    test('resolves translations for Italian (it)', () {
+      final it = IsolateTranslator('it');
+      expect(it.language, equals('it'));
+      expect(it.get('box'), equals('Scatola'));
+      expect(it.getRegionName('unova'), equals('Unima'));
+    });
+  });
 }

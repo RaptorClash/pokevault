@@ -826,7 +826,9 @@ def main():
     print("Erstelle Tabellen...")
     c.executescript('''
         CREATE TABLE IF NOT EXISTS pokemon (
-            id INTEGER PRIMARY KEY, name_de TEXT, name_en TEXT,
+            id INTEGER PRIMARY KEY,
+            name_de TEXT, name_en TEXT, name_fr TEXT, name_es TEXT, name_it TEXT,
+            name_ja TEXT, name_ko TEXT, name_zh_hans TEXT, name_zh_hant TEXT,
             has_gender_differences INTEGER, gender_rate INTEGER, capture_rate INTEGER,
             evolution_chain_id INTEGER, egg_groups TEXT, weight REAL, speed INTEGER,
             catch_rate_tags TEXT
@@ -1055,24 +1057,33 @@ def main():
 
             has_gender_diff = species.get('has_gender_differences', False)
 
-            name_de = name_en = "Unknown"
+            name_de = name_en = name_fr = name_es = name_it = "Unknown"
+            name_ja = name_ko = name_zh_hans = name_zh_hant = "Unknown"
+
             for n in species.get('names', []):
                 lang_name = n['language']['name']
                 poke_name_val = n['name']
 
                 if lang_name == 'de': name_de = poke_name_val
-                if lang_name == 'en': name_en = poke_name_val
-                if n['language']['name'] == 'de': name_de = n['name']
-                if n['language']['name'] == 'en': name_en = n['name']
-                
+                elif lang_name == 'en': name_en = poke_name_val
+                elif lang_name == 'fr': name_fr = poke_name_val
+                elif lang_name == 'es': name_es = poke_name_val
+                elif lang_name == 'it': name_it = poke_name_val
+                elif lang_name in ('ja', 'ja-hrkt'):
+                    if name_ja == "Unknown" or lang_name == 'ja':
+                        name_ja = poke_name_val
+                elif lang_name == 'ko': name_ko = poke_name_val
+                elif lang_name == 'zh-hans': name_zh_hans = poke_name_val
+                elif lang_name == 'zh-hant': name_zh_hant = poke_name_val
+
                 norm = normalize_name(poke_name_val)
                 if norm: POKEMON_NAME_TO_ID[norm] = i
-            
+
             weight = poke.get('weight', 0) / 10.0
             speed = next((s['base_stat'] for s in poke.get('stats', []) if s['stat']['name'] == 'speed'), 0)
             egg_groups = ",".join([eg['name'] for eg in species.get('egg_groups', [])])
             evo_chain_id = int(species['evolution_chain']['url'].strip('/').split('/')[-1]) if species.get('evolution_chain') else -1
-            
+
             tags = []
             if i in [793, 794, 795, 796, 797, 798, 799, 803, 804, 805, 806]: tags.append('ultra_beast')
             if i in [81, 82, 88, 89, 114]: tags.append('fast_ball_gen2')
@@ -1080,9 +1091,11 @@ def main():
             catch_rate_tags = ",".join(tags)
 
             c.execute('''INSERT INTO pokemon
-                (id, name_de, name_en, has_gender_differences, gender_rate, capture_rate, evolution_chain_id, egg_groups, weight, speed, catch_rate_tags)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
-                (i, name_de, name_en, 1 if has_gender_diff else 0,
+                (id, name_de, name_en, name_fr, name_es, name_it, name_ja, name_ko, name_zh_hans, name_zh_hant,
+                 has_gender_differences, gender_rate, capture_rate, evolution_chain_id, egg_groups, weight, speed, catch_rate_tags)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
+                (i, name_de, name_en, name_fr, name_es, name_it, name_ja, name_ko, name_zh_hans, name_zh_hant,
+                 1 if has_gender_diff else 0,
                  species.get('gender_rate', -1), species.get('capture_rate', 255), evo_chain_id, egg_groups, weight, speed, catch_rate_tags))
 
             for ab in poke.get('abilities', []):

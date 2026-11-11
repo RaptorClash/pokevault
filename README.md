@@ -1,6 +1,6 @@
 # 🔴 PokéVault
 
-> **Languages:** 🇬🇧 [English](README.md) | 🇩🇪 [Deutsch](README.de.md)
+> **Languages / Sprachen:** [🇩🇪 Deutsch](locales/README.de.md) | **[🇬🇧 English](README.md)** | [🇫🇷 Français](locales/README.fr.md) | [🇪🇸 Español](locales/README.es.md) | [🇮🇹 Italiano](locales/README.it.md) | [🇯🇵 日本語](locales/README.ja.md) | [🇰🇷 한국어](locales/README.ko.md) | [🇨🇳 简体中文](locales/README.zh-hans.md) | [🇹🇼 繁體中文](locales/README.zh-hant.md) | [🇵🇹 Português](locales/README.pt.md) | [🇳🇱 Nederlands](locales/README.nl.md) | [🇵🇱 Polski](locales/README.pl.md) | [🇷🇺 Русский](locales/README.ru.md)
 
 **PokéVault** is a comprehensive, fully customizable companion app for Pokémon Trainers, Completionists, and Shiny Hunters, built with Flutter. Whether you are aiming for a Regional Dex, a National Dex, a Form Dex, or a Shiny Dex – PokéVault helps you keep track of your progress with ease and provides the ultimate toolset for your shiny hunts.
 
@@ -24,7 +24,7 @@
 * **🎮 In-App Shortcuts & Gestures Guide:** Dedicated guide in Settings displaying platform-adaptive keyboard shortcuts, mouse controls, and touch gestures.
 * **☁️ Cloud Sync & Offline-First:** 100% Offline Capable with a robust local SQLite database. Optional seamless backup and restore via your personal Google Drive with field-level patch-merge resilience.
 * **Full Customization:** Supports Dark/Light mode and custom accent & background colors.
-* **Multilingual:** Fully localized in English and German via type-safe translation (`slang`).
+* **Multilingual:** Fully available in 13 languages (UI via Slang). Features independent Pokémon franchise language selection (e.g. German UI with English or Japanese Pokémon names) across 9 official franchise languages in `pokedex.sqlite`.
 
 ## 📸 Screenshots
 
@@ -110,7 +110,7 @@ flutter build web --release
 * [Git Workflow & Release Pipeline (`docs/GIT_WORKFLOW_AND_RELEASES.md`)](docs/GIT_WORKFLOW_AND_RELEASES.md): Official Git branching model, branch protection rules, multi-platform builds (Android APK, Windows Zip, Linux AppImage/tar.gz), and automated beta pre-releases.
 * [v1.7.0 Roadmap: The Language Expansion (`docs/plans/v1_7_0_the_language_expansion.md`)](docs/plans/v1_7_0_the_language_expansion.md): Full technical specification for separate languages, local REST API, multi-emulator tracking, desktop OCR, and mobile camera scanner.
 * [Database Generator Pipeline (`tool/data_pipeline/README.md`)](tool/data_pipeline/README.md): Detailed developer documentation of offline PokeAPI parsing, web scrapers, legal Pokéball data, indexes, and database compilation steps.
-* [Developer & Release Tools (`tool/README.md`)](tool/README.md): Documentation for automated release version bumping (`bump_version.py`), unit tests, and code coverage.
+* [Developer & Release Tools (`tool/README.md`)](tool/README.md): Documentation for automated release version bumping (`bump_version.py`), unit tests, code coverage, and the automated translation pipeline (`translate_all.py`).
 
 ## 🤝 Contributing Data (Community Fixes)
 Missing encounters or do you have better Matching Ball suggestions? You can easily add or correct these data in the JSON files located in the `tool/data_pipeline/` directory (if applicable) or contribute directly via Issues/Pull Requests.

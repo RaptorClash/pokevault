@@ -2,6 +2,7 @@
 import 'package:provider/provider.dart';
 
 import '../../../providers/dex_provider.dart';
+import '../../../providers/settings_provider.dart';
 import '../../../i18n/strings.g.dart';
 import '../../../utils/notification_helper.dart';
 import '../../../widgets/universal_poke_image.dart'; // NEU
@@ -37,7 +38,16 @@ class PokemonAvatar extends StatelessWidget {
       final int spriteId = (imageId != null && imageId! > 0) ? imageId! : id;
       final String imgUrl =
           'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${showAsShiny ? "shiny/" : ""}$spriteId.png';
-      final String name = p.getName(LocaleSettings.currentLocale.languageCode);
+      final settings = context.watch<SettingsProvider>();
+      String pokeLang = 'en';
+      try {
+        pokeLang = settings.effectivePokemonLanguage;
+      } catch (_) {
+        try {
+          pokeLang = settings.currentLanguage;
+        } catch (_) {}
+      }
+      final String name = p.getName(pokeLang);
 
       IconData genderIcon = Icons.transgender;
       Color genderColor = Colors.grey;

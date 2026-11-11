@@ -268,24 +268,28 @@ class _PokemonSearchSelectionScreenState
       _filteredEntries = widget.allAvailableEntries.where((entry) {
         // Query match
         if (_searchQuery.isNotEmpty) {
-          final nameDe = entry.pokemon.nameDe.toLowerCase();
-          final nameEn = entry.pokemon.nameEn.toLowerCase();
           final cleanQuery = _searchQuery.replaceAll('#', '').trim();
           final numStr = entry.pokemon.id.toString();
           final paddedId3 = numStr.padLeft(3, '0');
           final paddedId4 = numStr.padLeft(4, '0');
 
-          final matchesName = nameDe.contains(_searchQuery) ||
-              nameEn.contains(_searchQuery) ||
-              nameDe.contains(cleanQuery) ||
-              nameEn.contains(cleanQuery);
+          final matchesName = entry.pokemon.names.values.any((name) {
+                final lower = name.toLowerCase();
+                return lower.contains(_searchQuery) ||
+                    (cleanQuery.isNotEmpty && lower.contains(cleanQuery));
+              }) ||
+              entry.pokemon.nameDe.toLowerCase().contains(_searchQuery) ||
+              entry.pokemon.nameEn.toLowerCase().contains(_searchQuery) ||
+              (cleanQuery.isNotEmpty &&
+                  (entry.pokemon.nameDe.toLowerCase().contains(cleanQuery) ||
+                      entry.pokemon.nameEn.toLowerCase().contains(cleanQuery)));
 
           final matchesNumber = cleanQuery.isNotEmpty &&
               (numStr == cleanQuery ||
-               paddedId3 == cleanQuery ||
-               paddedId4 == cleanQuery ||
-               numStr.contains(cleanQuery) ||
-               paddedId3.contains(cleanQuery));
+                  paddedId3 == cleanQuery ||
+                  paddedId4 == cleanQuery ||
+                  numStr.contains(cleanQuery) ||
+                  paddedId3.contains(cleanQuery));
 
           if (!matchesName && !matchesNumber) return false;
         }

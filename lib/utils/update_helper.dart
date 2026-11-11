@@ -357,6 +357,7 @@ rm -f "$shPath"
     final normalizedNotes = notes.replaceAll('\r\n', '\n').replaceAll('\r', '\n');
     final lines = normalizedNotes.split('\n');
     final headerRegex = RegExp(r'^(#{1,6})\s+(.+)$');
+    final summaryRegex = RegExp(r'<\s*summary[^>]*>(.*?)<\s*/\s*summary\s*>', caseSensitive: false);
 
     // First pass: find all language headers and determine language header level
     int? langHeaderLevel;
@@ -364,10 +365,21 @@ rm -f "$shPath"
     final List<String> langHeaderLangs = [];
 
     for (int i = 0; i < lines.length; i++) {
-      final match = headerRegex.firstMatch(lines[i]);
-      if (match != null) {
-        final level = match.group(1)!.length;
-        final title = match.group(2)!.trim();
+      final line = lines[i];
+      final headerMatch = headerRegex.firstMatch(line);
+      final summaryMatch = summaryRegex.firstMatch(line);
+
+      String? title;
+      int level = 2;
+
+      if (headerMatch != null) {
+        level = headerMatch.group(1)!.length;
+        title = headerMatch.group(2)!.trim();
+      } else if (summaryMatch != null) {
+        title = summaryMatch.group(1)!.replaceAll(RegExp(r'<[^>]+>'), '').trim();
+      }
+
+      if (title != null) {
         final lang = _detectLanguage(title);
 
         if (lang != null) {
@@ -389,7 +401,13 @@ rm -f "$shPath"
     }
 
     // Preamble: lines before the first language header
-    final preamble = lines.sublist(0, langHeaderIndices.first).join('\n').trim();
+    var preambleLines = lines.sublist(0, langHeaderIndices.first);
+    while (preambleLines.isNotEmpty &&
+        (preambleLines.last.trim().isEmpty ||
+            RegExp(r'<\s*details[^>]*>', caseSensitive: false).hasMatch(preambleLines.last.trim()))) {
+      preambleLines = preambleLines.sublist(0, preambleLines.length - 1);
+    }
+    final preamble = preambleLines.join('\n').trim();
 
     // Parse sections
     final Map<String, String> sections = {};
@@ -420,13 +438,22 @@ rm -f "$shPath"
       }
 
       var sectionLines = lines.sublist(startIndex, endIndex);
-      // Remove trailing horizontal rules / dividers and empty lines
+      // Remove trailing details closing tags, horizontal rules / dividers and empty lines
       while (sectionLines.isNotEmpty &&
           (sectionLines.last.trim().isEmpty ||
-              RegExp(r'^[-*_]{3,}$').hasMatch(sectionLines.last.trim()))) {
+              RegExp(r'^[-*_]{3,}$').hasMatch(sectionLines.last.trim()) ||
+              RegExp(r'<\s*/\s*details\s*>', caseSensitive: false).hasMatch(sectionLines.last.trim()) ||
+              RegExp(r'<\s*details[^>]*>', caseSensitive: false).hasMatch(sectionLines.last.trim()))) {
         sectionLines = sectionLines.sublist(0, sectionLines.length - 1);
       }
-      final sectionText = sectionLines.join('\n').trim();
+      // Remove leading details/summary opening tags
+      while (sectionLines.isNotEmpty &&
+          (sectionLines.first.trim().isEmpty ||
+              RegExp(r'<\s*/?\s*(?:details|summary)[^>]*>', caseSensitive: false).hasMatch(sectionLines.first.trim()))) {
+        sectionLines = sectionLines.sublist(1);
+      }
+      var sectionText = sectionLines.join('\n').trim();
+      sectionText = sectionText.replaceAll(RegExp(r'</?(?:details|summary)[^>]*>', caseSensitive: false), '').trim();
       sections[currentLang] = sectionText;
     }
 
@@ -501,6 +528,7 @@ rm -f "$shPath"
         lower.contains('español') ||
         lower.contains('espanol') ||
         lower.contains('spanish') ||
+        lower.contains('spanisch') ||
         _hasLangTag(title, 'es')) {
       return 'es';
     }
@@ -510,6 +538,7 @@ rm -f "$shPath"
         lower.contains('français') ||
         lower.contains('francais') ||
         lower.contains('french') ||
+        lower.contains('französisch') ||
         _hasLangTag(title, 'fr')) {
       return 'fr';
     }
@@ -518,6 +547,7 @@ rm -f "$shPath"
     if (title.contains('🇮🇹') ||
         lower.contains('italiano') ||
         lower.contains('italian') ||
+        lower.contains('italienisch') ||
         _hasLangTag(title, 'it')) {
       return 'it';
     }
@@ -529,6 +559,77 @@ rm -f "$shPath"
         title.contains('日本語') ||
         _hasLangTag(title, 'ja')) {
       return 'ja';
+    }
+
+    // Korean
+    if (title.contains('🇰🇷') ||
+        lower.contains('korean') ||
+        lower.contains('koreanisch') ||
+        title.contains('한국어') ||
+        _hasLangTag(title, 'ko')) {
+      return 'ko';
+    }
+
+    // Traditional Chinese (check before generic/simplified Chinese)
+    if (title.contains('🇹🇼') ||
+        title.contains('🇭🇰') ||
+        title.contains('繁體中文') ||
+        title.contains('繁体中文') ||
+        lower.contains('traditional chinese') ||
+        _hasLangTag(title, 'zh-hant') ||
+        _hasLangTag(title, 'zh_hant')) {
+      return 'zh-hant';
+    }
+
+    // Simplified Chinese
+    if (title.contains('🇨🇳') ||
+        title.contains('简体中文') ||
+        lower.contains('simplified chinese') ||
+        lower.contains('chinese') ||
+        lower.contains('chinesisch') ||
+        title.contains('中文') ||
+        _hasLangTag(title, 'zh-hans') ||
+        _hasLangTag(title, 'zh_hans') ||
+        _hasLangTag(title, 'zh')) {
+      return 'zh-hans';
+    }
+
+    // Portuguese
+    if (title.contains('🇵🇹') ||
+        title.contains('🇧🇷') ||
+        lower.contains('português') ||
+        lower.contains('portugues') ||
+        lower.contains('portuguese') ||
+        lower.contains('portugiesisch') ||
+        _hasLangTag(title, 'pt')) {
+      return 'pt';
+    }
+
+    // Dutch
+    if (title.contains('🇳🇱') ||
+        lower.contains('nederlands') ||
+        lower.contains('dutch') ||
+        lower.contains('niederländisch') ||
+        _hasLangTag(title, 'nl')) {
+      return 'nl';
+    }
+
+    // Polish
+    if (title.contains('🇵🇱') ||
+        lower.contains('polski') ||
+        lower.contains('polish') ||
+        lower.contains('polnisch') ||
+        _hasLangTag(title, 'pl')) {
+      return 'pl';
+    }
+
+    // Russian
+    if (title.contains('🇷🇺') ||
+        lower.contains('русский') ||
+        lower.contains('russian') ||
+        lower.contains('russisch') ||
+        _hasLangTag(title, 'ru')) {
+      return 'ru';
     }
 
     return null;

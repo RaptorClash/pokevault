@@ -113,7 +113,7 @@ class _IgnoredListScreenState extends State<IgnoredListScreen> {
                     height: 50,
                   ),
                   title: Text(
-                    entry.pokemon.getName(settingsProvider.currentLanguage) +
+                    entry.pokemon.getName(settingsProvider.effectivePokemonLanguage) +
                         entry.displaySuffix,
                   ),
                   subtitle: Text(

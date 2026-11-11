@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../models/user_dex.dart';
 import '../../models/dex_view_models.dart';
 import '../../providers/dex_provider.dart';
+import '../../providers/settings_provider.dart';
 import '../../utils/dex_logic_helper.dart';
 import '../../i18n/strings.g.dart';
 import '../../services/database_service.dart';
@@ -224,6 +225,20 @@ class _BoxContentEditScreenState extends State<BoxContentEditScreen> {
             }
           }
 
+          String slotTitle = t.box_edit_empty_slot;
+          if (entry != null) {
+            if (entry.isPlaceholder) {
+              slotTitle = t.placeholder;
+            } else {
+              String pokeLang = LocaleSettings.currentLocale == AppLocale.en ? 'en' : 'de';
+              try {
+                final eff = context.read<SettingsProvider>().effectivePokemonLanguage;
+                if (eff.isNotEmpty) pokeLang = eff;
+              } catch (_) {}
+              slotTitle = entry.pokemon.getName(pokeLang);
+            }
+          }
+
           return ListTile(
             key: ValueKey(slot.keyId),
             leading: Row(
@@ -271,11 +286,7 @@ class _BoxContentEditScreenState extends State<BoxContentEditScreen> {
               ],
             ),
             title: Text(
-              entry != null 
-                  ? (entry.isPlaceholder
-                      ? t.placeholder
-                      : (LocaleSettings.currentLocale == AppLocale.en ? entry.pokemon.nameEn : entry.pokemon.nameDe))
-                  : t.box_edit_empty_slot,
+              slotTitle,
               style: TextStyle(
                 color: entry != null ? Colors.white : Colors.white54,
               ),

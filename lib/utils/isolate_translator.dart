@@ -8,7 +8,22 @@ class IsolateTranslator {
 
   IsolateTranslator([String language = 'de'])
       : language = language.toLowerCase(),
-        _translations = (language.toLowerCase() == 'en' ? AppLocale.en : AppLocale.de).build();
+        _translations = _buildTranslations(language);
+
+  static Translations _buildTranslations(String language) {
+    final clean = language.toLowerCase().replaceAll('_', '-');
+    for (final locale in AppLocale.values) {
+      if (locale.languageCode.toLowerCase() == clean ||
+          locale.languageTag.toLowerCase() == clean) {
+        return locale.build();
+      }
+    }
+    try {
+      return AppLocaleUtils.parse(language).build();
+    } catch (_) {
+      return AppLocale.de.build();
+    }
+  }
 
   bool get isDe => language == 'de';
 
@@ -69,19 +84,46 @@ class IsolateTranslator {
 
   /// Returns fixed label for 'Box'.
   String getBoxLabel() => boxLabel;
-  String get boxLabel => _translations['box']?.toString() ?? 'Box';
+  String get boxLabel {
+    final val = _translations['box']?.toString();
+    if (val != null && val.isNotEmpty) {
+      return val[0].toUpperCase() + val.substring(1);
+    }
+    return 'Box';
+  }
 
   /// Returns fixed label for forms ('Formen' in de / 'Forms' in en).
   String getFormsLabel() => formsLabel;
-  String get formsLabel => isDe ? 'Formen' : 'Forms';
+  String get formsLabel {
+    final val = _translations['filter_forms'] ?? _translations['forms'];
+    if (val != null && val.toString().isNotEmpty) {
+      final s = val.toString();
+      return s[0].toUpperCase() + s.substring(1);
+    }
+    return isDe ? 'Formen' : 'Forms';
+  }
 
   /// Returns fixed label for trades ('Tausche' in de / 'Trades' in en).
   String getTradesLabel() => tradesLabel;
-  String get tradesLabel => isDe ? 'Tausche' : 'Trades';
+  String get tradesLabel {
+    final val = _translations['cat_trades'] ?? _translations['trades'];
+    if (val != null && val.toString().isNotEmpty) {
+      final s = val.toString();
+      return s[0].toUpperCase() + s.substring(1);
+    }
+    return isDe ? 'Tausche' : 'Trades';
+  }
 
   /// Returns fixed label for gifts ('Geschenke' in de / 'Gifts' in en).
   String getGiftsLabel() => giftsLabel;
-  String get giftsLabel => isDe ? 'Geschenke' : 'Gifts';
+  String get giftsLabel {
+    final val = _translations['cat_gifts'] ?? _translations['gifts'];
+    if (val != null && val.toString().isNotEmpty) {
+      final s = val.toString();
+      return s[0].toUpperCase() + s.substring(1);
+    }
+    return isDe ? 'Geschenke' : 'Gifts';
+  }
 
   /// Resolves category display name (e.g. 'trades' -> 'Tausche' / 'Trades').
   String getCategoryName(String catId) {

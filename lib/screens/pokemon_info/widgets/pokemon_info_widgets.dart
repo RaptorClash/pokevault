@@ -171,6 +171,11 @@ class PokemonBasicInfoWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final settingsProvider = context.watch<SettingsProvider>();
+    String pokeLang = settingsProvider.currentLanguage;
+    try {
+      final eff = settingsProvider.effectivePokemonLanguage;
+      if (eff.isNotEmpty) pokeLang = eff;
+    } catch (_) {}
 
     try {
       return Container(
@@ -186,7 +191,7 @@ class PokemonBasicInfoWidget extends StatelessWidget {
               ),
             ),
             Text(
-              entry.pokemon.getName(settingsProvider.currentLanguage),
+              entry.pokemon.getName(pokeLang),
               style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
               textAlign: TextAlign.center,
             ),

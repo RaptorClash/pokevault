@@ -189,12 +189,15 @@ void main() {
     when(() => mockSettingsProvider.themeMode).thenReturn(ThemeMode.light);
     when(() => mockSettingsProvider.toggleTheme()).thenAnswer((_) async {});
     when(() => mockSettingsProvider.currentLanguage).thenReturn('de');
+    when(() => mockSettingsProvider.pokemonLanguage).thenReturn('auto');
+    when(() => mockSettingsProvider.effectivePokemonLanguage).thenReturn('de');
     when(() => mockSettingsProvider.googleClientId).thenReturn('');
     when(() => mockSettingsProvider.googleClientSecret).thenReturn('');
     when(() => mockSettingsProvider.autoSyncEnabled).thenReturn(false);
     when(() => mockSettingsProvider.setGoogleClientId(any())).thenAnswer((_) async {});
     when(() => mockSettingsProvider.setGoogleClientSecret(any())).thenAnswer((_) async {});
     when(() => mockSettingsProvider.setLanguage(any())).thenAnswer((_) async {});
+    when(() => mockSettingsProvider.setPokemonLanguage(any())).thenReturn(null);
 
     // Default TutorialProvider stubs
     when(() => mockTutorialProvider.hasSeenFeature(any())).thenReturn(true);
@@ -405,18 +408,18 @@ void main() {
       await tester.tap(langTile);
       await tester.pumpAndSettle();
 
-      expect(find.text('  Deutsch (DE)'), findsOneWidget);
-      expect(find.text('  English (EN)'), findsOneWidget);
+      expect(find.text('Deutsch (DE)'), findsOneWidget);
+      expect(find.text('English (EN)'), findsOneWidget);
 
       // Select German
-      await tester.tap(find.text('  Deutsch (DE)'));
+      await tester.tap(find.text('Deutsch (DE)'));
       await tester.pumpAndSettle();
       verify(() => mockSettingsProvider.setLanguage('de')).called(1);
 
       // Open again and select English
       await tester.tap(langTile);
       await tester.pumpAndSettle();
-      await tester.tap(find.text('  English (EN)'));
+      await tester.tap(find.text('English (EN)'));
       await tester.pumpAndSettle();
       verify(() => mockSettingsProvider.setLanguage('en')).called(1);
     });

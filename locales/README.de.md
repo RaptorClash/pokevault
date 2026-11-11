@@ -1,6 +1,6 @@
 # 🔴 PokéVault
 
-> **Sprachen:** 🇬🇧 [English](README.md) | 🇩🇪 [Deutsch](README.de.md)
+> **Languages / Sprachen:** **[🇩🇪 Deutsch](README.de.md)** | [🇬🇧 English](../README.md) | [🇫🇷 Français](README.fr.md) | [🇪🇸 Español](README.es.md) | [🇮🇹 Italiano](README.it.md) | [🇯🇵 日本語](README.ja.md) | [🇰🇷 한국어](README.ko.md) | [🇨🇳 简体中文](README.zh-hans.md) | [🇹🇼 繁體中文](README.zh-hant.md) | [🇵🇹 Português](README.pt.md) | [🇳🇱 Nederlands](README.nl.md) | [🇵🇱 Polski](README.pl.md) | [🇷🇺 Русский](README.ru.md)
 
 **PokéVault** ist ein umfassender, vollständig anpassbarer Begleiter für Pokémon-Trainer, Sammler und Shiny-Hunter, entwickelt mit Flutter. Egal, ob du einen regionalen Dex, einen nationalen Dex, einen Form-Dex oder einen Shiny-Dex planst – PokéVault hilft dir dabei, deinen Fortschritt ganz einfach im Blick zu behalten und liefert dir die nötigen Werkzeuge für deine Shiny-Jagd.
 
@@ -24,15 +24,15 @@
 * **🎮 In-App Bedienung & Shortcuts Übersicht:** Eigener Screen in den Einstellungen mit plattform-adaptiven Shortcuts, Mausbefehlen und Touch-Gesten.
 * **☁️ Cloud Sync & Offline-First:** 100% Offline-fähig mit robuster lokaler SQLite-Datenbank. Optionale Synchronisierung über dein privates Google Drive mit Patch-Merge-Resilienz.
 * **Volle Personalisierung:** Unterstützt Dark/Light Mode sowie individuell anpassbare Akzent- und Hintergrundfarben.
-* **Mehrsprachig:** Vollständig auf Deutsch und Englisch verfügbar via typsicherer Übersetzung (`slang`).
+* **Mehrsprachig:** Vollständig in 13 Sprachen verfügbar (UI via Slang). Zudem unabhängige Auswahl der Pokémon-Franchise-Sprache (z. B. deutsches UI mit englischen oder japanischen Pokémon-Namen) basierend auf 9 offiziellen Franchise-Sprachen in `pokedex.sqlite`.
 
 ## 📸 Screenshots
 
 | Home Screen | PC Box Ansicht |
 | :---: | :---: |
-| <img src="docs/screenshots/de/homescreen/homescreen1.png" width="250"/> | <img src="docs/screenshots/de/pcboxview/nationaldexboxview.png" width="250"/> <img src="docs/screenshots/de/pcboxview/nationaldexlistview.png" width="250"/> |
+| <img src="../docs/screenshots/de/homescreen/homescreen1.png" width="250"/> | <img src="../docs/screenshots/de/pcboxview/nationaldexboxview.png" width="250"/> <img src="../docs/screenshots/de/pcboxview/nationaldexlistview.png" width="250"/> |
 | **Pokémon Details & Matching Balls** | **Dex Erstellung & Filters** |
-| <img src="docs/screenshots/de/pokemondetails/pokemondetails.png" width="250"/> | <img src="docs/screenshots/de/dexcreation/dexcreation1.png" width="250"/> <img src="docs/screenshots/de/dexcreation/dexcreation2.png" width="250"/> |
+| <img src="../docs/screenshots/de/pokemondetails/pokemondetails.png" width="250"/> | <img src="../docs/screenshots/de/dexcreation/dexcreation1.png" width="250"/> <img src="../docs/screenshots/de/dexcreation/dexcreation2.png" width="250"/> |
 
 ## 🚀 Erste Schritte (Lokal ausführen)
 
@@ -69,14 +69,14 @@
    ```bash
    python3 tool/data_pipeline/run_pipeline.py
    ```
-   *(Alternativ kannst du mit `--skip-download` nur die Datenbank kompilieren, falls die externen Web-Dumps bereits vorliegen).*
+   *(Alternativ mit `--skip-download` ausführen, falls du die externen Web-Dumps bereits besitzt und nur die Datenbank neu bauen möchtest).*
 
 6. App starten:
    ```bash
    flutter run
    ```
 
-## 🛠️ App kompilieren (Build)
+## 🛠️ Build erstellen
 
 Um einen Release-Build zu erstellen, nutze einen der folgenden Befehle:
 
@@ -106,11 +106,11 @@ flutter build web --release
 ```
 
 ## 📚 Architektur & Dokumentation
-* [Architektur-Leitfaden (`ARCHITECTURE.md`)](ARCHITECTURE.md): Detaillierte Übersicht über Systemarchitektur, Provider-State-Management, DAO-Persistenzmodell, Google Drive Sync Coordinator, Isolate-Translation-Bridge und Test-Quality-Gates.
-* [Git-Branching & Release-Pipeline (`docs/GIT_WORKFLOW_AND_RELEASES.md`)](docs/GIT_WORKFLOW_AND_RELEASES.md): Offizielles Git-Branching-Modell, Branch-Protection-Regeln, Multi-Plattform-Builds (Android APK, Windows Zip, Linux AppImage/tar.gz) und automatisierte Beta-Pre-Releases.
-* [v1.7.0 Roadmap: The Language Expansion (`docs/plans/v1_7_0_the_language_expansion.md`)](docs/plans/v1_7_0_the_language_expansion.md): Vollständige technische Spezifikation für getrennte Sprachen, lokalen REST-Server, Multi-Emulator-Tracking, Desktop-OCR und mobilen Kamera-Scanner.
-* [Datenbank-Generierungs-Pipeline (`tool/data_pipeline/README.de.md`)](tool/data_pipeline/README.de.md): Dokumentation der Offline-PokeAPI-Datenaufbereitung, Scraper, Matching-Balls-Import, Indizes und Datenbank-Kompilierung.
-* [Entwickler- & Release-Werkzeuge (`tool/README.de.md`)](tool/README.de.md): Automatisierte Release-Versionsverwaltung (`bump_version.py`), Test-Suites und Code-Coverage.
+* [Architektur-Leitfaden (`ARCHITECTURE.md`)](ARCHITECTURE.de.md): Detaillierte Übersicht über Systemarchitektur, Provider-State-Management, DAO-Persistenzmodell, Google Drive Sync Coordinator, Isolate-Translation-Bridge und Test-Quality-Gates.
+* [Git-Branching & Release-Pipeline (`docs/GIT_WORKFLOW_AND_RELEASES.md`)](../docs/locales/GIT_WORKFLOW_AND_RELEASES.de.md): Offizielles Git-Branching-Modell, Branch-Protection-Regeln, Multi-Plattform-Builds (Android APK, Windows Zip, Linux AppImage/tar.gz) und automatisierte Beta-Pre-Releases.
+* [v1.7.0 Roadmap: The Language Expansion (`docs/plans/v1_7_0_the_language_expansion.md`)](../docs/plans/v1_7_0_the_language_expansion.md): Vollständige technische Spezifikation für getrennte Sprachen, lokalen REST-Server, Multi-Emulator-Tracking, Desktop-OCR und mobilen Kamera-Scanner.
+* [Datenbank-Generierungs-Pipeline (`tool/data_pipeline/locales/README.de.md`)](../tool/data_pipeline/locales/README.de.md): Dokumentation der Offline-PokeAPI-Datenaufbereitung, Scraper, Matching-Balls-Import, Indizes und Datenbank-Kompilierung.
+* [Entwickler- & Release-Werkzeuge (`tool/locales/README.de.md`)](../tool/locales/README.de.md): Automatisierte Release-Versionsverwaltung (`bump_version.py`), Test-Suites, Code-Coverage und Übersetzungspipeline (`translate_all.py`).
 
 ## 🤝 Daten ergänzen (Community Contributions)
 Fehlen dir Fundorte oder passen die Matching Balls nicht? Du kannst diese Daten in den JSON-Dateien im Verzeichnis `tool/data_pipeline/` ergänzen (falls vorhanden) oder direkt über Issues/Pull Requests beitragen.
@@ -127,6 +127,6 @@ Diese App wäre ohne diese großartigen Ressourcen aus der Community nicht mögl
 * Und viele weitere!
 
 ## 📄 Lizenz
-Dieses Projekt ist lizenziert unter der [GNU General Public License v3.0 (GPL-3.0)](LICENSE).
+Dieses Projekt ist lizenziert unter der [GNU General Public License v3.0 (GPL-3.0)](../LICENSE).
 
 **Haftungsausschluss:** Pokémon und alle zugehörigen Namen sind Marken und © von Nintendo, Creatures Inc., und GAME FREAK inc. Dies ist ein kostenloses, nicht-kommerzielles Fan-Projekt und steht in keinerlei Verbindung zu Nintendo und wird von diesen weder unterstützt noch gesponsert.

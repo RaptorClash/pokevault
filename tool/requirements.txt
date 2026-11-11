@@ -1,0 +1,7 @@
+# Optional CLI dependencies for PokéVault translation scripts
+# (tool/translate_all.py and tool/translate_release_notes.py)
+#
+# Note: Unit tests (test/tool/*) exclusively use Python standard library
+# modules and do NOT require these packages to run.
+deep-translator>=1.11.4
+translators>=5.9.0
