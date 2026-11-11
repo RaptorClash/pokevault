@@ -30,6 +30,13 @@ import '../moves/moves_dex_screen.dart';
 import '../abilities/abilities_dex_screen.dart';
 import '../../providers/shiny_hunt_provider.dart';
 import '../shiny_hunt/shiny_hunts_hub_screen.dart';
+import 'package:universal_io/io.dart' as io;
+import '../desktop_tracker/desktop_tracker_screen.dart';
+import '../../services/desktop_tracker/window_detector.dart';
+import '../../services/scanner_core/scanner_coordinator.dart';
+import '../../services/scanner_core/engine/ocr_detection_engine.dart';
+import '../../services/scanner_core/engine/pokemon_fuzzy_matcher.dart';
+import '../../services/scanner_core/models/scanner_settings.dart';
 
 class HomeScreen extends StatefulWidget {
   final String currentFolderId;
@@ -497,6 +504,44 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
+  void _openDesktopTracker() {
+    final dexProvider = Provider.of<DexProvider>(context, listen: false);
+    final pokemonEntries = <PokemonMatcherEntry>[];
+    for (final p in dexProvider.allPokemon) {
+      for (final entry in p.names.entries) {
+        pokemonEntries.add(PokemonMatcherEntry(
+          id: p.id,
+          name: entry.value,
+          language: entry.key,
+        ));
+      }
+    }
+
+    final coordinator = ScannerCoordinator(
+      engine: OcrDetectionEngine(),
+      matcher: PokemonFuzzyMatcher.withEntries(pokemonEntries),
+      settings: ScannerSettings.defaults(),
+    );
+
+    final detector = WindowDetector();
+    final defaultWindows = detector.filterAndRankWindows(const [
+      DesktopWindowInfo(id: 1, title: 'mGBA (GameBoy Advance)', emulatorType: EmulatorType.mgba),
+      DesktopWindowInfo(id: 2, title: 'DeSmuME (Nintendo DS)', emulatorType: EmulatorType.desmume),
+      DesktopWindowInfo(id: 3, title: 'Ryujinx (Nintendo Switch)', emulatorType: EmulatorType.ryujinx),
+      DesktopWindowInfo(id: 4, title: 'Citra (Nintendo 3DS)', emulatorType: EmulatorType.citra),
+    ]);
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => DesktopTrackerScreen(
+          coordinator: coordinator,
+          detectedWindows: defaultWindows,
+        ),
+      ),
+    );
+  }
+
   void _openCreateBottomSheet() {
     final provider = Provider.of<DexProvider>(context, listen: false);
     showModalBottomSheet(
@@ -648,6 +693,12 @@ class _HomeScreenState extends State<HomeScreen> {
           const SingleActivator(LogicalKeyboardKey.keyF, meta: true): () {
             _searchFocusNode.requestFocus();
           },
+          const SingleActivator(LogicalKeyboardKey.keyO, control: true, shift: true): () {
+            _openDesktopTracker();
+          },
+          const SingleActivator(LogicalKeyboardKey.keyO, meta: true, shift: true): () {
+            _openDesktopTracker();
+          },
         },
         child: Focus(
         autofocus: true,
@@ -657,6 +708,14 @@ class _HomeScreenState extends State<HomeScreen> {
                     HardwareKeyboard.instance.isMetaPressed) &&
                 event.logicalKey == LogicalKeyboardKey.keyF) {
               _searchFocusNode.requestFocus();
+              return KeyEventResult.handled;
+            }
+
+            if ((HardwareKeyboard.instance.isControlPressed ||
+                    HardwareKeyboard.instance.isMetaPressed) &&
+                HardwareKeyboard.instance.isShiftPressed &&
+                event.logicalKey == LogicalKeyboardKey.keyO) {
+              _openDesktopTracker();
               return KeyEventResult.handled;
             }
 
@@ -818,7 +877,13 @@ class _HomeScreenState extends State<HomeScreen> {
                         );
                       },
                     ),
-                    if (_currentFolderId == 'root')
+                    if (_currentFolderId == 'root') ...[
+                      if (!kIsWeb && (io.Platform.isWindows || io.Platform.isLinux || io.Platform.isMacOS))
+                        IconButton(
+                          icon: const Icon(Icons.track_changes),
+                          tooltip: 'Desktop Tracker & Overlay',
+                          onPressed: _openDesktopTracker,
+                        ),
                       IconButton(
                         key: _settingsActionKey,
                         icon: const Icon(Icons.settings),
@@ -833,6 +898,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           });
                         },
                       ),
+                    ],
                   ],
           ),
           body: Column(
