@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pokevault/services/scanner_core/engine/ocr_detection_engine.dart';
 import 'package:pokevault/services/scanner_core/models/scanner_event.dart';
+import 'package:pokevault/services/scanner_core/models/scanner_settings.dart';
 
 void main() {
   group('OcrDetectionEngine Tests (TDD & Adversarial)', () {
@@ -211,6 +212,139 @@ Ein wildes Glumanda ♂ erscheint!
         expect(r!.type, ScannerEventType.encounter);
         expect(r.extractedPokemonName, 'Glumanda');
         expect(r.gender, 'male');
+      });
+
+      test('Ignores PokeVault UI dex counters like 0 von 1487 gefangen and pure numbers', () {
+        expect(engine.parse('0 von 1487 gefangen'), isNull);
+        expect(engine.parse('O von 1487 gefangen'), isNull);
+        expect(engine.parse('1487 gefangen'), isNull);
+        expect(engine.parse('12 / 1025 gefangen'), isNull);
+        expect(engine.parse('Alola (US/UM Akala)\n0 von 1487 gefangen'), isNull);
+        expect(engine.parse('ZIEL-POKÉDEX: 25 von 151 gefangen'), isNull);
+
+        // Legitimate Pokemon containing digits must still match
+        final porygon = engine.parse('Porygon2 wurde gefangen!');
+        expect(porygon, isNotNull);
+        expect(porygon!.extractedPokemonName, 'Porygon2');
+      });
+
+      test('Extracts caught Pokemon split across multiple lines (Gen 5 DS dialogue)', () {
+        final splitCatch = engine.parse('Klasse!\nFlampion wurde gefangen!');
+        expect(splitCatch, isNotNull);
+        expect(splitCatch!.type, ScannerEventType.caught);
+        expect(splitCatch.extractedPokemonName, 'Flampion');
+
+        final splitAcrossTwoLines = engine.parse('Klasse! Flampion\nwurde gefangen!');
+        expect(splitAcrossTwoLines, isNotNull);
+        expect(splitAcrossTwoLines!.type, ScannerEventType.caught);
+        expect(splitAcrossTwoLines.extractedPokemonName, 'Flampion');
+
+        final noisyGen5 = engine.parse("Klase!\nF'lanpign wurde gefangen!");
+        expect(noisyGen5, isNotNull);
+        expect(noisyGen5!.type, ScannerEventType.caught);
+      });
+
+      test('Extracts garbled Pokemon Black catch phrase with melonDS menu chrome via smart context', () {
+        const blackLog = '[110/601 melonDS 1.1\n'
+            'File System View Config Help\n'
+            'Klasse!\n'
+            'Zr-rrokex wrde aefar«t!\n'
+            '14 so\n'
+            '150/204';
+        final r = engine.parse(blackLog);
+        expect(r, isNotNull);
+        expect(r!.type, ScannerEventType.caught);
+        expect(r.isSmartSearchFallback, isTrue);
+        expect(r.extractedPokemonName, contains('Zr-rrokex'));
+
+        // Pure emulator menu chrome + FPS/Dex counters must still return null
+        expect(
+          engine.parse('[87/60] melonDS 1.1\nFile System View Config Help\n150/204'),
+          isNull,
+        );
+      });
+
+      test('Rejects battle menu command prompts so player starter is never misclassified as caught', () {
+        expect(engine.parse('Was soll Serpiroyal tun?'), isNull);
+        expect(engine.parse('What will Serperior do?'), isNull);
+        expect(engine.parse('Gib Serpiroyal einen Spitznamen?'), isNull);
+        expect(
+          engine.parse('[97/601 melonDS 1.1\nFile System View Config Help\nWas soll\nSerpiroyal tun?'),
+          isNull,
+        );
+        // Real screenshot 1 garbled OCR glitches ("Was" -> "Klas", "tun?" -> "tl.rt?")
+        expect(engine.parse('Klas soll Serpirogal tl.rt?'), isNull);
+        expect(engine.parse('Klas soll Serpiroyal tl.rt?'), isNull);
+        expect(engine.parse('Wlas soll Flampion tun?'), isNull);
+      });
+
+      test('Detects battle-menu and battle-end cues for single-screen state machine', () {
+        expect(engine.detectBattleCue('Klas soll Serpirogal tl.rt?'), BattleCue.battleMenu);
+        expect(engine.detectBattleCue('Was soll Serpiroyal tun?'), BattleCue.battleMenu);
+        expect(engine.detectBattleCue('KAMPF  BEUTEL  FLUCHT  POKÉMON'), BattleCue.battleMenu);
+        expect(engine.detectBattleCue('Du bist erfolgreich geflohen!'), BattleCue.battleEnded);
+        expect(engine.detectBattleCue('Wildes Flampion wurde besiegt!'), BattleCue.battleEnded);
+        expect(engine.detectBattleCue('Got away safely!'), BattleCue.battleEnded);
+        expect(engine.detectBattleCue('Ein wildes Flampion erscheint!'), BattleCue.none);
+      });
+
+      test('Parses multi-encounter and horde battle phrases plus enemyHudFocusOnly mode', () {
+        final multi = engine.parse('Ein wildes Pikachu und ein wildes Evoli erscheinen!');
+        expect(multi, isNotNull);
+        expect(multi!.type, ScannerEventType.encounter);
+        expect(multi.isMultiEncounter, isTrue);
+        expect(multi.extractedPokemonNames, containsAll(['Pikachu', 'Evoli']));
+
+        final horde = engine.parse('Eine Gruppe wilder Zurrokex erscheint!');
+        expect(horde, isNotNull);
+        expect(horde!.type, ScannerEventType.encounter);
+        expect(horde.isMultiEncounter, isTrue);
+
+        // enemyHudFocusOnly forces encounter role even on raw HUD text
+        final hudFocus = engine.parse(
+          'Zurrokex Lv.16   Ganovil Lv.17',
+          role: OcrScanRole.enemyHudFocusOnly,
+        );
+        expect(hudFocus, isNotNull);
+        expect(hudFocus!.type, ScannerEventType.encounter);
+        expect(hudFocus.isMultiEncounter, isTrue);
+      });
+    });
+
+    group('Custom user OCR patterns', () {
+      test('Matches enabled custom pattern with {pokemon} placeholder and * wildcard', () {
+        engine.updateCustomPatterns(const [
+          CustomOcrPattern(
+            id: 'gen5_klasse',
+            template: 'Klasse! {pokemon}',
+            eventType: ScannerEventType.caught,
+            enabled: true,
+          ),
+          CustomOcrPattern(
+            id: 'wildcard_enc',
+            template: 'Gefahr * greift {pokemon} an',
+            eventType: ScannerEventType.encounter,
+            enabled: true,
+          ),
+          CustomOcrPattern(
+            id: 'disabled_pat',
+            template: ' ignoriere {pokemon}',
+            eventType: ScannerEventType.caught,
+            enabled: false,
+          ),
+        ]);
+
+        final r1 = engine.parse('Klasse! Flampion');
+        expect(r1, isNotNull);
+        expect(r1!.type, ScannerEventType.caught);
+        expect(r1.extractedPokemonName, 'Flampion');
+
+        final r2 = engine.parse('Gefahr im hohen Gras greift Milza an');
+        expect(r2, isNotNull);
+        expect(r2!.type, ScannerEventType.encounter);
+        expect(r2.extractedPokemonName, 'Milza');
+
+        expect(engine.parse('ignoriere Flampion'), isNull);
       });
     });
   });

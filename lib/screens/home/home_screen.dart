@@ -32,10 +32,13 @@ import '../../providers/shiny_hunt_provider.dart';
 import '../shiny_hunt/shiny_hunts_hub_screen.dart';
 import 'package:universal_io/io.dart' as io;
 import '../desktop_tracker/desktop_tracker_screen.dart';
+import '../desktop_tracker/widgets/persistent_tracker_dock.dart';
+import '../../services/desktop_tracker/desktop_tracker_service.dart';
 import '../../services/scanner_core/scanner_coordinator.dart';
 import '../../services/scanner_core/engine/ocr_detection_engine.dart';
 import '../../services/scanner_core/engine/pokemon_fuzzy_matcher.dart';
 import '../../services/scanner_core/models/scanner_settings.dart';
+import '../../services/scanner_core/models/scanner_event.dart';
 
 class HomeScreen extends StatefulWidget {
   final String currentFolderId;
@@ -505,28 +508,37 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void _openDesktopTracker() {
     final dexProvider = Provider.of<DexProvider>(context, listen: false);
-    final pokemonEntries = <PokemonMatcherEntry>[];
-    for (final p in dexProvider.allPokemon) {
-      for (final entry in p.names.entries) {
-        pokemonEntries.add(PokemonMatcherEntry(
-          id: p.id,
-          name: entry.value,
-          language: entry.key,
-        ));
-      }
-    }
+    final existingService = DesktopTrackerService.instance;
+    final ScannerCoordinator coordinator;
 
-    final coordinator = ScannerCoordinator(
-      engine: OcrDetectionEngine(),
-      matcher: PokemonFuzzyMatcher.withEntries(pokemonEntries),
-      settings: ScannerSettings.defaults(),
-    );
+    if (existingService.coordinator != null && existingService.isTrackingActive) {
+      coordinator = existingService.coordinator!;
+    } else {
+      final pokemonEntries = <PokemonMatcherEntry>[];
+      for (final p in dexProvider.allPokemon) {
+        for (final entry in p.names.entries) {
+          pokemonEntries.add(PokemonMatcherEntry(
+            id: p.id,
+            name: entry.value,
+            language: entry.key,
+          ));
+        }
+      }
+
+      coordinator = ScannerCoordinator(
+        engine: OcrDetectionEngine(),
+        matcher: PokemonFuzzyMatcher.withEntries(pokemonEntries),
+        settings: ScannerSettings.defaults(),
+      );
+    }
 
     Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => DesktopTrackerScreen(
           coordinator: coordinator,
+          windowSource: existingService.windowSource,
+          initialDexId: existingService.activeDexId,
         ),
       ),
     );
@@ -1011,6 +1023,35 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
             ],
+          ),
+          bottomNavigationBar: ValueListenableBuilder<bool>(
+            valueListenable: DesktopTrackerService.instance.isTrackingNotifier,
+            builder: (context, isTracking, _) {
+              if (!isTracking) return const SizedBox.shrink();
+
+              return ValueListenableBuilder<ScannerEvent?>(
+                valueListenable: DesktopTrackerService.instance.latestEventNotifier,
+                builder: (context, latestEvent, _) {
+                  return ValueListenableBuilder<bool>(
+                    valueListenable: DesktopTrackerService.instance.isPausedNotifier,
+                    builder: (context, isPaused, _) {
+                      final activeDexId = DesktopTrackerService.instance.activeDexId;
+                      final activeDex = provider.userDexes.where((d) => d.id == activeDexId).firstOrNull;
+
+                      return PersistentTrackerDock(
+                        latestEvent: latestEvent,
+                        activeDex: activeDex,
+                        isScanningActive: !isPaused,
+                        onOpenHud: () => DesktopTrackerService.instance.toggleFloatingHud(),
+                        onOpenSetup: _openDesktopTracker,
+                        onTogglePause: () => DesktopTrackerService.instance.togglePause(),
+                        onClose: () => DesktopTrackerService.instance.stopTracking(),
+                      );
+                    },
+                  );
+                },
+              );
+            },
           ),
           floatingActionButton: !_isSelectionMode
               ? FloatingActionButton(

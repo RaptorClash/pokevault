@@ -1,3 +1,5 @@
+import '../engine/pokemon_fuzzy_matcher.dart';
+
 /// Enumeration of recognized in-game scanner events.
 enum ScannerEventType {
   encounter,
@@ -22,6 +24,13 @@ class ScannerEvent {
   final double confidence;
   final DateTime timestamp;
   final String? languageCode;
+  final List<FuzzyMatchResult> alternatives;
+  final bool isSmartMatch;
+  final bool autoAddedCaught;
+  final bool autoAddedShiny;
+  final bool autoAddedAlpha;
+  final int? instanceIndex;
+  final int? instanceColorHex;
 
   const ScannerEvent({
     required this.type,
@@ -36,7 +45,58 @@ class ScannerEvent {
     this.confidence = 1.0,
     required this.timestamp,
     this.languageCode,
+    this.alternatives = const [],
+    this.isSmartMatch = false,
+    this.autoAddedCaught = false,
+    this.autoAddedShiny = false,
+    this.autoAddedAlpha = false,
+    this.instanceIndex,
+    this.instanceColorHex,
   });
+
+  ScannerEvent copyWith({
+    ScannerEventType? type,
+    int? pokemonId,
+    String? rawText,
+    String? matchedName,
+    bool? isShiny,
+    String? gender,
+    bool? isAlpha,
+    int? preEvolutionId,
+    String? preEvolutionName,
+    double? confidence,
+    DateTime? timestamp,
+    String? languageCode,
+    List<FuzzyMatchResult>? alternatives,
+    bool? isSmartMatch,
+    bool? autoAddedCaught,
+    bool? autoAddedShiny,
+    bool? autoAddedAlpha,
+    int? instanceIndex,
+    int? instanceColorHex,
+  }) {
+    return ScannerEvent(
+      type: type ?? this.type,
+      pokemonId: pokemonId ?? this.pokemonId,
+      rawText: rawText ?? this.rawText,
+      matchedName: matchedName ?? this.matchedName,
+      isShiny: isShiny ?? this.isShiny,
+      gender: gender ?? this.gender,
+      isAlpha: isAlpha ?? this.isAlpha,
+      preEvolutionId: preEvolutionId ?? this.preEvolutionId,
+      preEvolutionName: preEvolutionName ?? this.preEvolutionName,
+      confidence: confidence ?? this.confidence,
+      timestamp: timestamp ?? this.timestamp,
+      languageCode: languageCode ?? this.languageCode,
+      alternatives: alternatives ?? this.alternatives,
+      isSmartMatch: isSmartMatch ?? this.isSmartMatch,
+      autoAddedCaught: autoAddedCaught ?? this.autoAddedCaught,
+      autoAddedShiny: autoAddedShiny ?? this.autoAddedShiny,
+      autoAddedAlpha: autoAddedAlpha ?? this.autoAddedAlpha,
+      instanceIndex: instanceIndex ?? this.instanceIndex,
+      instanceColorHex: instanceColorHex ?? this.instanceColorHex,
+    );
+  }
 
   @override
   String toString() {

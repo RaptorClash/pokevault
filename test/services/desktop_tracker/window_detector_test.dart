@@ -1,5 +1,8 @@
+import 'dart:ui';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:universal_io/io.dart' as io;
 import 'package:pokevault/services/desktop_tracker/window_detector.dart';
+import 'package:pokevault/services/scanner_core/models/scanner_settings.dart';
 
 void main() {
   group('WindowDetector Tests (TDD & Adversarial)', () {
@@ -42,6 +45,23 @@ void main() {
       final w8 = detector.identifyEmulator('[111/60] melonDS 1.1');
       expect(w8.isKnownEmulator, isTrue);
       expect(w8.emulatorType, EmulatorType.melonds);
+
+      final w9 = detector.identifyEmulator('[79/60] melonDS 1.1 - Pokémon Black Version');
+      expect(w9.isKnownEmulator, isTrue);
+      expect(w9.emulatorType, EmulatorType.melonds);
+      expect(w9.extractedRomName, 'Pokémon Black Version');
+
+      final w10 = detector.identifyEmulator('RetroArch 1.19.1 - mGBA (Pokémon Emerald)');
+      expect(w10.isKnownEmulator, isTrue);
+      expect(w10.emulatorType, EmulatorType.retroarch);
+
+      final w11 = detector.identifyEmulator('Cemu 2.0-89 (Experimental)');
+      expect(w11.isKnownEmulator, isTrue);
+      expect(w11.emulatorType, EmulatorType.cemu);
+
+      final w12 = detector.identifyEmulator('Snes9x 1.62.3 - Pokemon');
+      expect(w12.isKnownEmulator, isTrue);
+      expect(w12.emulatorType, EmulatorType.snes9x);
     });
 
     test('Handles regular non-emulator applications safely', () {
@@ -210,6 +230,179 @@ void main() {
       final windows = await detector.getOpenWindowsAsync();
       expect(windows, isNotEmpty);
       expect(windows.any((w) => w.isKnownEmulator), isTrue);
+    });
+
+    test('getOpenWindowsAsync executes tasklist with SESSION ne 0 filter and parses output', () async {
+      List<String>? capturedArgs;
+      final customDetector = WindowDetector(
+        processRunner: (exe, args) async {
+          capturedArgs = args;
+          return io.ProcessResult(
+            123,
+            0,
+            '''"Abbildname","PID","Sitzungsname","Sitz.-Nr.","Speichernutzung","Status","Benutzername","CPU-Zeit","Fenstertitel"\r\n"melonDS.exe","16404","Console","1","287.256 K","Running","DESKTOP\\user","0:01:00","[79/60] melonDS 1.1"\r\n"Spotify.exe","18444","Console","1","200.000 K","Running","DESKTOP\\user","0:01:00","Linkin Park - The Catalyst"\r\n''',
+            '',
+          );
+        },
+      );
+
+      final windows = await customDetector.getOpenWindowsAsync();
+
+      expect(capturedArgs, containsAllInOrder(['/FI', 'SESSION ne 0', '/V', '/FO', 'CSV']));
+      expect(windows.length, 3);
+      expect(windows[0].title, '[79/60] melonDS 1.1');
+      expect(windows[0].emulatorType, EmulatorType.melonds);
+      expect(windows[1].isDesktopScreen, isTrue);
+      expect(windows[2].title, 'Linkin Park - The Catalyst');
+    });
+
+    test('Includes Desktop / Primary Screen as selectable target in windows list', () async {
+      final screen = DesktopWindowInfo.primaryScreen(width: 1920, height: 1080);
+      expect(screen.isDesktopScreen, isTrue);
+      expect(screen.width, 1920.0);
+      expect(screen.height, 1080.0);
+      expect(screen.title, contains('Desktop'));
+
+      final fallbacks = detector.getFallbackWindows();
+      expect(fallbacks.any((w) => w.isDesktopScreen), isTrue);
+
+      final windows = await detector.getOpenWindowsAsync();
+      expect(windows.any((w) => w.isDesktopScreen), isTrue);
+    });
+
+    test('DesktopWindowInfo distinguishes multiple windows of same PID by hwnd and tracks bounds/minimized', () {
+      const w1 = DesktopWindowInfo(
+        id: 8800,
+        hwnd: 10001,
+        title: 'PokéWiki — Google Chrome',
+        processName: 'chrome.exe',
+        bounds: Rect.fromLTWH(0, 0, 1200, 800),
+      );
+      const w2 = DesktopWindowInfo(
+        id: 8800,
+        hwnd: 10002,
+        title: 'YouTube — Google Chrome',
+        processName: 'chrome.exe',
+        bounds: Rect.fromLTWH(100, 100, 1000, 700),
+        isMinimized: true,
+      );
+      const w1Updated = DesktopWindowInfo(
+        id: 8800,
+        hwnd: 10001,
+        title: 'PokéVault Docs — Google Chrome',
+        processName: 'chrome.exe',
+      );
+
+      expect(w1 == w2, isFalse);
+      expect(w1 == w1Updated, isTrue);
+      expect(w1.hashCode, equals(w1Updated.hashCode));
+      expect(w2.isMinimized, isTrue);
+      expect(w1.bounds, const Rect.fromLTWH(0, 0, 1200, 800));
+    });
+
+    test('getOpenWindowsAsync prefers nativeWindowEnumerator and does NOT inject fake emulators', () async {
+      final nativeDetector = WindowDetector(
+        nativeWindowEnumerator: () async => [
+          DesktopWindowInfo.primaryScreen(width: 2560, height: 1440),
+          const DesktopWindowInfo(
+            id: 500,
+            hwnd: 7701,
+            title: 'Discord',
+            processName: 'Discord.exe',
+            width: 1200,
+            height: 800,
+          ),
+          const DesktopWindowInfo(
+            id: 600,
+            hwnd: 7702,
+            title: 'Azahar 2120 | Pokémon X',
+            processName: 'azahar.exe',
+            width: 800,
+            height: 960,
+          ),
+        ],
+      );
+
+      final windows = await nativeDetector.getOpenWindowsAsync();
+
+      expect(windows.length, 3);
+      // Azahar recognized & ranked first
+      expect(windows[0].hwnd, 7702);
+      expect(windows[0].isKnownEmulator, isTrue);
+      // Desktop monitor second
+      expect(windows[1].isDesktopScreen, isTrue);
+      expect(windows[1].width, 2560.0);
+      // Discord third
+      expect(windows[2].title, 'Discord');
+      // No fake mGBA/Ryujinx injected!
+      expect(windows.any((w) => w.title.contains('mGBA (GameBoy Advance)')), isFalse);
+    });
+
+    test('getOpenWindowsAsync with nativeWindowEnumerator returning only monitors + regular apps returns no fake emulators', () async {
+      final nativeDetector = WindowDetector(
+        nativeWindowEnumerator: () async => [
+          DesktopWindowInfo.primaryScreen(width: 1920, height: 1080),
+          const DesktopWindowInfo(
+            id: 900,
+            hwnd: 8801,
+            title: 'Visual Studio Code',
+            processName: 'Code.exe',
+          ),
+        ],
+      );
+
+      final windows = await nativeDetector.getOpenWindowsAsync();
+      expect(windows.length, 2);
+      expect(windows.any((w) => w.isKnownEmulator), isFalse);
+    });
+
+    test('calculateEnemyHudCropRegion computes accurate Zone B presets for single and horde encounters', () {
+      expect(
+        detector.calculateEnemyHudCropRegion(
+          LiveFocusPreset.disabled,
+          windowWidth: 960,
+          windowHeight: 1040,
+        ),
+        isNull,
+      );
+      expect(
+        detector.calculateEnemyHudCropRegion(
+          LiveFocusPreset.customRegion,
+          windowWidth: 960,
+          windowHeight: 1040,
+        ),
+        isNull,
+      );
+
+      final topLeft = detector.calculateEnemyHudCropRegion(
+        LiveFocusPreset.topLeft,
+        windowWidth: 1000,
+        windowHeight: 1000,
+      )!;
+      expect(topLeft.left, 0.0);
+      expect(topLeft.top, 0.0);
+      expect(topLeft.width, closeTo(420.0, 0.01));
+      expect(topLeft.height, closeTo(220.0, 0.01));
+
+      final topRight = detector.calculateEnemyHudCropRegion(
+        LiveFocusPreset.topRight,
+        windowWidth: 1000,
+        windowHeight: 1000,
+      )!;
+      expect(topRight.left, closeTo(580.0, 0.01));
+      expect(topRight.top, 0.0);
+      expect(topRight.width, closeTo(420.0, 0.01));
+      expect(topRight.height, closeTo(220.0, 0.01));
+
+      final topBanner = detector.calculateEnemyHudCropRegion(
+        LiveFocusPreset.topBanner,
+        windowWidth: 1000,
+        windowHeight: 1000,
+      )!;
+      expect(topBanner.left, 0.0);
+      expect(topBanner.top, 0.0);
+      expect(topBanner.width, 1000.0);
+      expect(topBanner.height, closeTo(240.0, 0.01));
     });
   });
 }

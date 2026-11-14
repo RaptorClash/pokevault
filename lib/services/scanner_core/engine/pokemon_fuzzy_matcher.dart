@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+import 'dart:typed_data';
 
 /// Single Pokémon name entry in the fuzzy matcher dictionary.
 class PokemonMatcherEntry {
@@ -28,16 +29,122 @@ class FuzzyMatchResult {
   });
 }
 
-/// Robust, fault-tolerant Pokémon name resolver with OCR typo tolerance.
+/// Robust, fault-tolerant Pokémon name resolver with OCR typo tolerance and Smart-Search.
 class PokemonFuzzyMatcher {
+  static const Set<String> _noiseStopWords = {
+    // Emulator chrome & window titles
+    'melonds',
+    'desmume',
+    'mgba',
+    'vbam',
+    'retroarch',
+    'dolphin',
+    'citra',
+    'azahar',
+    'ryujinx',
+    'yuzu',
+    'file',
+    'system',
+    'view',
+    'config',
+    'help',
+    'tools',
+    'emulation',
+    'options',
+    'option',
+    'debug',
+    'fps',
+    // Common dialogue words & OCR garblings of German/English catch phrases
+    'klasse',
+    'super',
+    'prima',
+    'gotcha',
+    'hurra',
+    'wurde',
+    'wrde',
+    'worden',
+    'gefangen',
+    'aefart',
+    'aefar',
+    'gefan',
+    'erscheint',
+    'erscheinen',
+    'erschin',
+    'gruppe',
+    'wildes',
+    'wilde',
+    'wild',
+    'ein',
+    'eine',
+    'einer',
+    'und',
+    'der',
+    'die',
+    'das',
+    'so',
+    'soll',
+    'tun',
+    'gib',
+    'einen',
+    'spitzname',
+    'spitznamen',
+    'nickname',
+    'will',
+    'hat',
+    'sich',
+    'zu',
+    'entwickelt',
+    'was',
+    'were',
+    'been',
+    'caught',
+    'appeared',
+    'evolved',
+    'into',
+    'sauvage',
+    'apparaît',
+    'apparait',
+    'capture',
+    'capturé',
+    'beutel',
+    'flucht',
+    'tasche',
+    'speichern',
+    'gespeichert',
+    'bericht',
+    'pokemon',
+    'pokémon',
+    'pokmon',
+    'kp',
+    'hp',
+    'lv',
+    'lvl',
+    'level',
+  };
+
+  static final RegExp _letterRegExp = RegExp(
+    r'[A-Za-zÀ-ÿ\u3040-\u30FF\u4E00-\u9FFF\uAC00-\uD7AF]',
+  );
+
   final List<PokemonMatcherEntry> _entries;
   final Map<String, List<PokemonMatcherEntry>> _exactMap = {};
+  final List<_PreparedEntry> _prepared = [];
 
   PokemonFuzzyMatcher.withEntries(List<PokemonMatcherEntry> entries)
       : _entries = entries {
     for (final e in _entries) {
       final key = _normalizeKey(e.name);
+      if (key.isEmpty) continue;
       _exactMap.putIfAbsent(key, () => []).add(e);
+      final tri = _packedTrigrams('  $key ');
+      _prepared.add(
+        _PreparedEntry(
+          entry: e,
+          normKey: key,
+          codeUnits: Uint16List.fromList(key.codeUnits),
+          trigrams: tri,
+        ),
+      );
     }
   }
 
@@ -75,111 +182,492 @@ class PokemonFuzzyMatcher {
 
   /// Finds the best matching Pokémon entry for [query] if confidence >= [threshold].
   FuzzyMatchResult? match(String query, {double threshold = 0.75}) {
+    final results = matchTopK(query, limit: 1, threshold: threshold);
+    return results.isEmpty ? null : results.first;
+  }
+
+  /// Returns up to [limit] deduplicated Pokémon matches ranked by descending confidence
+  /// using exact lookup, pixel-font glitch variants, Damerau-Levenshtein distance, and Trigram Dice.
+  List<FuzzyMatchResult> matchTopK(
+    String query, {
+    int limit = 3,
+    double threshold = 0.65,
+  }) {
+    if (limit <= 0) return const [];
     final cleaned = _cleanQuery(query);
-    if (cleaned.isEmpty) return null;
+    if (cleaned.isEmpty) return const [];
 
     final normKey = _normalizeKey(cleaned);
-
-    // 1. Exact match check
-    if (_exactMap.containsKey(normKey)) {
-      final match = _exactMap[normKey]!.first;
-      return FuzzyMatchResult(
-        pokemonId: match.id,
-        canonicalName: match.name,
-        matchedLanguage: match.language,
-        confidence: 1.0,
-      );
+    if (normKey.isEmpty || _noiseStopWords.contains(normKey)) {
+      return const [];
     }
+    if (!_letterRegExp.hasMatch(normKey)) return const [];
 
-    // 2. OCR normalized match (handle '4' -> 'a', '1' -> 'i', '0' -> 'o', '@' -> 'a')
-    final ocrSubstituted = _substituteOcrGlitches(normKey);
-    if (_exactMap.containsKey(ocrSubstituted)) {
-      final match = _exactMap[ocrSubstituted]!.first;
-      return FuzzyMatchResult(
-        pokemonId: match.id,
-        canonicalName: match.name,
-        matchedLanguage: match.language,
-        confidence: 0.90,
-      );
-    }
+    final byPokemonId = <int, FuzzyMatchResult>{};
 
-    // 3. Levenshtein fuzzy distance scan
-    FuzzyMatchResult? bestResult;
-    double highestScore = 0.0;
-
-    for (final entry in _entries) {
-      final entryNorm = _normalizeKey(entry.name);
-      final score = _calculateSimilarity(normKey, entryNorm);
-      final ocrScore = _calculateSimilarity(ocrSubstituted, entryNorm);
-      final effectiveScore = math.max(score, ocrScore);
-
-      if (effectiveScore > highestScore && effectiveScore >= threshold) {
-        highestScore = effectiveScore;
-        bestResult = FuzzyMatchResult(
+    void recordCandidate(PokemonMatcherEntry entry, double score) {
+      final rounded = (score.clamp(0.0, 1.0) * 100).round() / 100.0;
+      if (rounded < threshold) return;
+      final existing = byPokemonId[entry.id];
+      if (existing == null || rounded > existing.confidence) {
+        byPokemonId[entry.id] = FuzzyMatchResult(
           pokemonId: entry.id,
           canonicalName: entry.name,
           matchedLanguage: entry.language,
-          confidence: (effectiveScore * 100).round() / 100.0,
+          confidence: rounded,
         );
       }
     }
 
-    return bestResult;
+    // 1. Exact match check
+    if (_exactMap.containsKey(normKey)) {
+      for (final m in _exactMap[normKey]!) {
+        recordCandidate(m, 1.0);
+      }
+    }
+
+    // 2. OCR normalized exact check across common pixel-font glyph confusions
+    final variants = _ocrVariants(normKey);
+    for (final variant in variants) {
+      final exactVariant = _exactMap[variant];
+      if (exactVariant != null) {
+        for (final m in exactVariant) {
+          recordCandidate(m, 0.92);
+        }
+      }
+    }
+
+    // Fast exit if an exact match is found and limit == 1
+    if (limit == 1 && byPokemonId.isNotEmpty) {
+      final sorted = byPokemonId.values.toList()
+        ..sort((a, b) => b.confidence.compareTo(a.confidence));
+      return [sorted.first];
+    }
+
+    // Avoid matching tiny 1-2 char fragments fuzzily unless exact
+    if (normKey.length >= 2) {
+      final allQueries = <String>{normKey, ...variants}.toList(growable: false);
+      final preparedQueries = allQueries
+          .where((q) => q.isNotEmpty)
+          .map(
+            (q) => _QueryProfile(
+              norm: q,
+              codeUnits: Uint16List.fromList(q.codeUnits),
+              trigrams: _packedTrigrams('  $q '),
+            ),
+          )
+          .toList(growable: false);
+
+      // Shared rolling DP scratchpad + O(1)-reset multiset overlap counters (zero per-entry allocations)
+      var scratchRow0 = Int32List(64);
+      var scratchRow1 = Int32List(64);
+      var scratchRow2 = Int32List(64);
+      final qEpoch = Int32List(128);
+      final qAvail = Int32List(128);
+      final eSeenEpoch = Int32List(128);
+      final eRem = Int32List(128);
+      int qId = 0;
+      int entryId = 0;
+
+      // Dynamic Top-K floor tightening once `limit` candidates have been seen
+      double currentKthFloor = threshold;
+      void refreshKthFloor() {
+        if (byPokemonId.length < limit) return;
+        final scores = byPokemonId.values.map((r) => r.confidence).toList()
+          ..sort((a, b) => b.compareTo(a));
+        final kth = scores[limit - 1];
+        if (kth > currentKthFloor) {
+          currentKthFloor = kth;
+        }
+      }
+      refreshKthFloor();
+
+      for (final pq in preparedQueries) {
+        final qUnits = pq.codeUnits;
+        final qLen = pq.norm.length;
+        qId++;
+        int qNonAscii = 0;
+        for (int k = 0; k < qUnits.length; k++) {
+          final cu = qUnits[k];
+          if (cu < 128) {
+            if (qEpoch[cu] != qId) {
+              qEpoch[cu] = qId;
+              qAvail[cu] = 1;
+            } else {
+              qAvail[cu]++;
+            }
+          } else {
+            qNonAscii++;
+          }
+        }
+
+        for (final pEntry in _prepared) {
+          final entryLen = pEntry.normKey.length;
+          final existingBest = byPokemonId[pEntry.entry.id]?.confidence ?? 0.0;
+          if (existingBest >= 1.0) continue;
+
+          final effectiveMin = existingBest > currentKthFloor
+              ? existingBest
+              : currentKthFloor;
+
+          final maxLen = qLen > entryLen ? qLen : entryLen;
+          final minLen = qLen < entryLen ? qLen : entryLen;
+          if (maxLen > 0 && minLen / maxLen < 0.45) continue;
+
+          // Exact O(1)-reset character-multiset upper bound (valid under Damerau-Levenshtein)
+          entryId++;
+          int shared = qNonAscii;
+          final eUnits = pEntry.codeUnits;
+          for (int k = 0; k < eUnits.length; k++) {
+            final cu = eUnits[k];
+            if (cu < 128) {
+              if (qEpoch[cu] == qId) {
+                if (eSeenEpoch[cu] != entryId) {
+                  eSeenEpoch[cu] = entryId;
+                  eRem[cu] = qAvail[cu];
+                }
+                if (eRem[cu] > 0) {
+                  eRem[cu]--;
+                  shared++;
+                }
+              }
+            } else {
+              shared++;
+            }
+          }
+          if (shared > minLen) shared = minLen;
+          final lenDiff = maxLen - minLen;
+          final multisetDiff = maxLen - shared;
+          final distLower = lenDiff > multisetDiff ? lenDiff : multisetDiff;
+          final damUpper = maxLen == 0 ? 1.0 : 1.0 - (distLower / maxLen);
+
+          // Skip even trigram calculation if max possible score with Dice=1.0 is below floor
+          final maxPossibleWithPerfectDice =
+              damUpper > (damUpper * 0.72 + 0.28)
+                  ? damUpper
+                  : (damUpper * 0.72 + 0.28);
+          if (maxPossibleWithPerfectDice + 0.005 < effectiveMin) continue;
+
+          final diceSim = pq.norm == pEntry.normKey
+              ? 1.0
+              : _trigramDiceFast(pq.trigrams, pEntry.trigrams);
+          final weightedUpper = (damUpper * 0.72) + (diceSim * 0.28);
+          final combinedUpper = damUpper > weightedUpper ? damUpper : weightedUpper;
+          if (combinedUpper + 0.005 < effectiveMin) continue;
+
+          final minDamFromWeighted = (effectiveMin - (diceSim * 0.28)) / 0.72;
+          final minDamRequired =
+              effectiveMin < minDamFromWeighted ? effectiveMin : minDamFromWeighted;
+          final maxAllowedDist = minDamRequired <= 0.0
+              ? maxLen
+              : ((1.0 - minDamRequired) * maxLen).ceil() + 1;
+
+          if (entryLen + 1 > scratchRow0.length) {
+            final nextCap = entryLen + 16;
+            scratchRow0 = Int32List(nextCap);
+            scratchRow1 = Int32List(nextCap);
+            scratchRow2 = Int32List(nextCap);
+          }
+
+          final dist = _damerauLevenshteinFast(
+            qUnits,
+            eUnits,
+            scratchRow0,
+            scratchRow1,
+            scratchRow2,
+            maxAllowedDist: maxAllowedDist,
+          );
+          if (dist > maxAllowedDist) continue;
+
+          final damSim = maxLen == 0 ? 1.0 : 1.0 - (dist / maxLen);
+          final combined = math.max(damSim, (damSim * 0.72) + (diceSim * 0.28));
+          if (combined >= effectiveMin) {
+            recordCandidate(pEntry.entry, combined);
+            refreshKthFloor();
+          }
+        }
+      }
+    }
+
+    final ranked = byPokemonId.values.toList()
+      ..sort((a, b) {
+        final cmp = b.confidence.compareTo(a.confidence);
+        if (cmp != 0) return cmp;
+        return a.pokemonId.compareTo(b.pokemonId);
+      });
+    return ranked.take(limit).toList(growable: false);
+  }
+
+  /// Extracts individual tokens (and adjacent token bigrams) from an OCR [line],
+  /// filters emulator UI / dialogue stop-words, and returns ranked Top-[limit] matches.
+  List<FuzzyMatchResult> matchTokensFromLine(
+    String line, {
+    int limit = 3,
+    double threshold = 0.72,
+  }) {
+    if (line.trim().isEmpty || limit <= 0) return const [];
+
+    final rawTokens = line.trim().split(RegExp(r'\s+'));
+    final cleanTokens = <String>[];
+
+    for (final raw in rawTokens) {
+      final cleaned = _cleanQuery(raw);
+      if (cleaned.isEmpty) continue;
+      // Ignore counters like "110/601", "150/204", versions like "1.1"
+      if (RegExp(r'^[\d/.,:\-\[\]()]+$').hasMatch(cleaned)) continue;
+
+      final norm = _normalizeKey(cleaned);
+      if (norm.length < 3 || _noiseStopWords.contains(norm)) continue;
+
+      // Require at least 3 alphabetic characters per token to dodge short noise ("14", "so")
+      final letterCount = _letterRegExp.allMatches(cleaned).length;
+      if (letterCount < 3) continue;
+
+      cleanTokens.add(cleaned);
+    }
+
+    if (cleanTokens.isEmpty) return const [];
+
+    final probeStrings = <String>[...cleanTokens];
+    for (int i = 0; i < cleanTokens.length - 1; i++) {
+      probeStrings.add('${cleanTokens[i]} ${cleanTokens[i + 1]}');
+    }
+
+    final merged = <int, FuzzyMatchResult>{};
+    for (final probe in probeStrings) {
+      final candidates = matchTopK(probe, limit: limit, threshold: threshold);
+      for (final cand in candidates) {
+        final existing = merged[cand.pokemonId];
+        if (existing == null || cand.confidence > existing.confidence) {
+          merged[cand.pokemonId] = cand;
+        }
+      }
+    }
+
+    final sorted = merged.values.toList()
+      ..sort((a, b) {
+        final cmp = b.confidence.compareTo(a.confidence);
+        if (cmp != 0) return cmp;
+        return a.pokemonId.compareTo(b.pokemonId);
+      });
+    return sorted.take(limit).toList(growable: false);
+  }
+
+  /// Extracts up to [maxPokemon] non-overlapping Pokémon from multi-encounter dialogue
+  /// or opponent HUD lines while preserving appearance order and deduplicating species IDs.
+  List<FuzzyMatchResult> matchAllFromText(
+    String text, {
+    int maxPokemon = 5,
+    double threshold = 0.78,
+  }) {
+    if (text.trim().isEmpty || maxPokemon <= 0) return const [];
+
+    final rawTokens = text.trim().split(RegExp(r'\s+'));
+    final cleanTokens = <String>[];
+    for (final raw in rawTokens) {
+      // Strip trailing level markers attached without space like "ZurrokexLv16" -> "Zurrokex"
+      var token = raw.replaceAll(RegExp(r'Lv\.?\d*$', caseSensitive: false), '');
+      final cleaned = _cleanQuery(token);
+      if (cleaned.isEmpty) continue;
+      if (RegExp(r'^[\d/.,:\-\[\]()]+$').hasMatch(cleaned)) continue;
+      final norm = _normalizeKey(cleaned);
+      if (norm.length < 3 || _noiseStopWords.contains(norm)) continue;
+      if (_letterRegExp.allMatches(cleaned).length < 3) continue;
+      cleanTokens.add(cleaned);
+    }
+
+    if (cleanTokens.isEmpty) return const [];
+
+    final seenIds = <int>{};
+    final orderedResults = <FuzzyMatchResult>[];
+
+    int i = 0;
+    while (i < cleanTokens.length && orderedResults.length < maxPokemon) {
+      final singleMatch = matchTopK(
+        cleanTokens[i],
+        limit: 1,
+        threshold: threshold,
+      ).firstOrNull;
+
+      FuzzyMatchResult? bigramMatch;
+      if (i + 1 < cleanTokens.length) {
+        bigramMatch = matchTopK(
+          '${cleanTokens[i]} ${cleanTokens[i + 1]}',
+          limit: 1,
+          threshold: threshold,
+        ).firstOrNull;
+      }
+
+      if (bigramMatch != null &&
+          (singleMatch == null ||
+              bigramMatch.confidence > singleMatch.confidence + 0.03)) {
+        if (seenIds.add(bigramMatch.pokemonId)) {
+          orderedResults.add(bigramMatch);
+        }
+        i += 2;
+      } else if (singleMatch != null) {
+        if (seenIds.add(singleMatch.pokemonId)) {
+          orderedResults.add(singleMatch);
+        }
+        i += 1;
+      } else {
+        i += 1;
+      }
+    }
+
+    return List.unmodifiable(orderedResults);
   }
 
   static String _cleanQuery(String raw) {
     return raw
-        .replaceAll(RegExp(r'[!?,.:;"]+'), '')
+        .replaceAll(RegExp(r'''[!?,.:;"'`’•·_«»‹›\[\]\(\)]+'''), '')
         .trim();
   }
 
   static String _normalizeKey(String input) {
-    return input.toLowerCase().replaceAll(RegExp(r'\s+'), '');
+    return input.toLowerCase().replaceAll(RegExp(r'[\s\-–—]+'), '');
   }
 
-  static String _substituteOcrGlitches(String s) {
+  static List<String> _ocrVariants(String s) {
+    final base = _substituteOcrGlitches(s, oneAsL: false);
+    final oneAsL = _substituteOcrGlitches(s, oneAsL: true);
+    final digraphFixed = oneAsL
+        .replaceAll('rn', 'm')
+        .replaceAll('rl', 'n')
+        .replaceAll('ri', 'n')
+        .replaceAll('np', 'mp')
+        .replaceAll('cl', 'd');
+    return {base, oneAsL, digraphFixed}.toList(growable: false);
+  }
+
+  static String _substituteOcrGlitches(String s, {bool oneAsL = false}) {
     return s
         .replaceAll('4', 'a')
         .replaceAll('@', 'a')
         .replaceAll('0', 'o')
-        .replaceAll('1', 'i')
+        .replaceAll('1', oneAsL ? 'l' : 'i')
         .replaceAll('vv', 'w')
         .replaceAll(r'$', 's');
   }
 
-  static double _calculateSimilarity(String s1, String s2) {
-    if (s1 == s2) return 1.0;
-    if (s1.isEmpty || s2.isEmpty) return 0.0;
+  /// Allocation-free rolling Optimal String Alignment (Damerau-Levenshtein)
+  /// with optional [maxAllowedDist] early-abort pruning.
+  static int _damerauLevenshteinFast(
+    Uint16List a,
+    Uint16List b,
+    Int32List row0,
+    Int32List row1,
+    Int32List row2, {
+    int? maxAllowedDist,
+  }) {
+    final la = a.length;
+    final lb = b.length;
+    if (la == 0) return lb;
+    if (lb == 0) return la;
 
-    final dist = _levenshtein(s1, s2);
-    final maxLen = math.max(s1.length, s2.length);
-    return 1.0 - (dist / maxLen);
-  }
-
-  static int _levenshtein(String a, String b) {
-    if (a == b) return 0;
-    if (a.isEmpty) return b.length;
-    if (b.isEmpty) return a.length;
-
-    List<int> v0 = List<int>.generate(b.length + 1, (i) => i);
-    List<int> v1 = List<int>.filled(b.length + 1, 0);
-
-    for (int i = 0; i < a.length; i++) {
-      v1[0] = i + 1;
-
-      for (int j = 0; j < b.length; j++) {
-        final cost = a[i] == b[j] ? 0 : 1;
-        v1[j + 1] = math.min(
-          v1[j] + 1,
-          math.min(v0[j + 1] + 1, v0[j] + cost),
-        );
-      }
-
-      for (int j = 0; j < v0.length; j++) {
-        v0[j] = v1[j];
-      }
+    for (int j = 0; j <= lb; j++) {
+      row1[j] = j;
     }
 
-    return v1[b.length];
+    var prevPrev = row0;
+    var prev = row1;
+    var curr = row2;
+
+    for (int i = 1; i <= la; i++) {
+      curr[0] = i;
+      int rowMin = i;
+      final ai = a[i - 1];
+      final aiPrev = i > 1 ? a[i - 2] : 0;
+
+      for (int j = 1; j <= lb; j++) {
+        final bj = b[j - 1];
+        final cost = ai == bj ? 0 : 1;
+        int best = prev[j] + 1;
+        final ins = curr[j - 1] + 1;
+        if (ins < best) best = ins;
+        final sub = prev[j - 1] + cost;
+        if (sub < best) best = sub;
+
+        if (i > 1 && j > 1 && ai == b[j - 2] && aiPrev == bj) {
+          final trans = prevPrev[j - 2] + 1;
+          if (trans < best) best = trans;
+        }
+        curr[j] = best;
+        if (best < rowMin) rowMin = best;
+      }
+
+      if (maxAllowedDist != null && rowMin > maxAllowedDist) {
+        return maxAllowedDist + 1;
+      }
+
+      final tmp = prevPrev;
+      prevPrev = prev;
+      prev = curr;
+      curr = tmp;
+    }
+    return prev[lb];
   }
+
+  static double _trigramDiceFast(Int64List a, Int64List b) {
+    final lenA = a.length;
+    final lenB = b.length;
+    if (lenA == 0 || lenB == 0) return 0.0;
+
+    int i = 0;
+    int j = 0;
+    int intersection = 0;
+    while (i < lenA && j < lenB) {
+      final va = a[i];
+      final vb = b[j];
+      if (va == vb) {
+        intersection++;
+        i++;
+        j++;
+      } else if (va < vb) {
+        i++;
+      } else {
+        j++;
+      }
+    }
+    return (2.0 * intersection) / (lenA + lenB);
+  }
+
+  static Int64List _packedTrigrams(String padded) {
+    final count = padded.length - 2;
+    if (count <= 0) return Int64List(0);
+    final result = Int64List(count);
+    for (int i = 0; i < count; i++) {
+      result[i] = ((padded.codeUnitAt(i) & 0xFFFF) << 32) |
+          ((padded.codeUnitAt(i + 1) & 0xFFFF) << 16) |
+          (padded.codeUnitAt(i + 2) & 0xFFFF);
+    }
+    result.sort();
+    return result;
+  }
+}
+
+class _PreparedEntry {
+  final PokemonMatcherEntry entry;
+  final String normKey;
+  final Uint16List codeUnits;
+  final Int64List trigrams;
+
+  const _PreparedEntry({
+    required this.entry,
+    required this.normKey,
+    required this.codeUnits,
+    required this.trigrams,
+  });
+}
+
+class _QueryProfile {
+  final String norm;
+  final Uint16List codeUnits;
+  final Int64List trigrams;
+
+  const _QueryProfile({
+    required this.norm,
+    required this.codeUnits,
+    required this.trigrams,
+  });
 }

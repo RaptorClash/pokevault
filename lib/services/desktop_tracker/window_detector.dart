@@ -1,6 +1,9 @@
 import 'dart:ui';
 import 'package:flutter/foundation.dart';
 import 'package:universal_io/io.dart' as io;
+import '../scanner_core/models/scanner_settings.dart';
+export '../scanner_core/models/scanner_settings.dart' show ScanRegionPreset;
+import 'windows_desktop_bridge.dart';
 
 /// Known supported emulator systems.
 enum EmulatorType {
@@ -8,40 +11,77 @@ enum EmulatorType {
   desmume,
   ryujinx,
   citra,
+  azahar,
+  lime3ds,
   dolphin,
   bizhawk,
   melonds,
   visualboyadvance,
+  retroarch,
+  cemu,
+  yuzu,
+  eden,
+  sudachi,
+  snes9x,
+  nogba,
+  skyemu,
+  duckstation,
+  pcsx2,
   unknown,
 }
 
-/// Pre-configured scan regions for different console types and emulator layouts.
-enum ScanRegionPreset {
-  fullWindow,
-  dsTopScreen,
-  dsBottomScreen,
-  bottomDialogue,
-}
-
-/// Metadata describing a desktop window.
+/// Metadata describing a desktop window or display monitor.
 class DesktopWindowInfo {
   final int id;
+  final int hwnd;
   final String title;
   final String? processName;
   final EmulatorType emulatorType;
   final String? extractedRomName;
   final double width;
   final double height;
+  final Rect? bounds;
+  final bool isDesktopScreen;
+  final bool isMinimized;
+  final bool isVirtualDesktop;
+  final int monitorIndex;
 
   const DesktopWindowInfo({
     required this.id,
+    this.hwnd = 0,
     required this.title,
     this.processName,
     this.emulatorType = EmulatorType.unknown,
     this.extractedRomName,
     this.width = 800.0,
     this.height = 600.0,
+    this.bounds,
+    this.isDesktopScreen = false,
+    this.isMinimized = false,
+    this.isVirtualDesktop = false,
+    this.monitorIndex = 0,
   });
+
+  /// Factory for the entire desktop / primary monitor display.
+  factory DesktopWindowInfo.primaryScreen({
+    double width = 1920.0,
+    double height = 1080.0,
+    String title = '🖥️ Gesamter Desktop (Bildschirm 1)',
+    int monitorIndex = 1,
+    Rect? bounds,
+  }) {
+    return DesktopWindowInfo(
+      id: -monitorIndex,
+      hwnd: 0,
+      title: title,
+      processName: 'Desktop',
+      isDesktopScreen: true,
+      monitorIndex: monitorIndex,
+      width: width,
+      height: height,
+      bounds: bounds ?? Rect.fromLTWH(0, 0, width, height),
+    );
+  }
 
   bool get isKnownEmulator => emulatorType != EmulatorType.unknown;
 
@@ -49,6 +89,15 @@ class DesktopWindowInfo {
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
     if (other is! DesktopWindowInfo) return false;
+    if (isDesktopScreen || other.isDesktopScreen) {
+      return isDesktopScreen &&
+          other.isDesktopScreen &&
+          monitorIndex == other.monitorIndex &&
+          isVirtualDesktop == other.isVirtualDesktop;
+    }
+    if (hwnd > 0 || other.hwnd > 0) {
+      return hwnd == other.hwnd;
+    }
     if (id > 0 && other.id > 0) {
       return id == other.id;
     }
@@ -56,24 +105,54 @@ class DesktopWindowInfo {
   }
 
   @override
-  int get hashCode => id > 0 ? id.hashCode : Object.hash(title, processName);
+  int get hashCode {
+    if (isDesktopScreen) {
+      return Object.hash(true, monitorIndex, isVirtualDesktop);
+    }
+    if (hwnd > 0) return hwnd.hashCode;
+    if (id > 0) return id.hashCode;
+    return Object.hash(title, processName);
+  }
 
   @override
-  String toString() => 'DesktopWindowInfo(id: $id, title: "$title", emu: $emulatorType, proc: $processName)';
+  String toString() =>
+      'DesktopWindowInfo(id: $id, hwnd: $hwnd, title: "$title", emu: $emulatorType, proc: $processName, desktop: $isDesktopScreen, min: $isMinimized)';
 }
 
 /// Detects running emulator windows, parses ROM titles, and calculates scan regions.
 class WindowDetector {
+  final Future<io.ProcessResult> Function(String exe, List<String> args)?
+      processRunner;
+  final Future<List<DesktopWindowInfo>> Function()? nativeWindowEnumerator;
+
+  WindowDetector({
+    this.processRunner,
+    this.nativeWindowEnumerator,
+  });
+
   static final Map<EmulatorType, RegExp> _emulatorSignatures = {
+    EmulatorType.retroarch: RegExp(r'\bRetroArch\b', caseSensitive: false),
     EmulatorType.mgba: RegExp(r'\bmGBA\b', caseSensitive: false),
     EmulatorType.desmume: RegExp(r'\bDeSmuME\b', caseSensitive: false),
     EmulatorType.ryujinx: RegExp(r'\bRyujinx\b', caseSensitive: false),
-    EmulatorType.citra: RegExp(r'\bCitra\b', caseSensitive: false),
+    EmulatorType.azahar: RegExp(r'\bAzahar\b', caseSensitive: false),
+    EmulatorType.lime3ds: RegExp(r'\bLime3DS\b', caseSensitive: false),
+    EmulatorType.citra: RegExp(r'\bCitra(?:-qt)?\b', caseSensitive: false),
     EmulatorType.dolphin: RegExp(r'\bDolphin\b', caseSensitive: false),
-    EmulatorType.bizhawk: RegExp(r'\bBizHawk\b', caseSensitive: false),
+    EmulatorType.bizhawk:
+        RegExp(r'\b(?:BizHawk|EmuHawk)\b', caseSensitive: false),
     EmulatorType.melonds: RegExp(r'\bmelonDS\b', caseSensitive: false),
     EmulatorType.visualboyadvance:
-        RegExp(r'\b(?:VisualBoyAdvance|VBA-M)\b', caseSensitive: false),
+        RegExp(r'\b(?:VisualBoyAdvance|VBA-M|visualboyadvance-m)\b', caseSensitive: false),
+    EmulatorType.cemu: RegExp(r'\bCemu\b', caseSensitive: false),
+    EmulatorType.yuzu: RegExp(r'\bYuzu\b', caseSensitive: false),
+    EmulatorType.eden: RegExp(r'\bEden\b', caseSensitive: false),
+    EmulatorType.sudachi: RegExp(r'\bSudachi\b', caseSensitive: false),
+    EmulatorType.snes9x: RegExp(r'\bSnes9x\b', caseSensitive: false),
+    EmulatorType.nogba: RegExp(r'\bNO\$GBA\b', caseSensitive: false),
+    EmulatorType.skyemu: RegExp(r'\bSkyEmu\b', caseSensitive: false),
+    EmulatorType.duckstation: RegExp(r'\bDuckStation\b', caseSensitive: false),
+    EmulatorType.pcsx2: RegExp(r'\bPCSX2\b', caseSensitive: false),
   };
 
   static const List<String> _systemWindowExclusions = [
@@ -103,22 +182,28 @@ class WindowDetector {
     'kein fan.',
   ];
 
-  /// Analyzes [title] and returns a [DesktopWindowInfo] identifying the emulator if recognized.
+  /// Analyzes [title] and [processName] and returns a [DesktopWindowInfo] identifying the emulator if recognized.
   DesktopWindowInfo identifyEmulator(
     String title, {
     int id = 0,
+    int hwnd = 0,
     String? processName,
     double width = 800.0,
     double height = 600.0,
+    Rect? bounds,
+    bool isMinimized = false,
   }) {
     final trimmed = title.trim();
     if (trimmed.isEmpty) {
       return DesktopWindowInfo(
         id: id,
+        hwnd: hwnd,
         title: title,
         processName: processName,
         width: width,
         height: height,
+        bounds: bounds,
+        isMinimized: isMinimized,
       );
     }
 
@@ -128,23 +213,29 @@ class WindowDetector {
         final rom = _extractRomTitle(trimmed, entry.key);
         return DesktopWindowInfo(
           id: id,
+          hwnd: hwnd,
           title: trimmed,
           processName: processName,
           emulatorType: entry.key,
           extractedRomName: rom,
           width: width,
           height: height,
+          bounds: bounds,
+          isMinimized: isMinimized,
         );
       }
     }
 
     return DesktopWindowInfo(
       id: id,
+      hwnd: hwnd,
       title: trimmed,
       processName: processName,
       emulatorType: EmulatorType.unknown,
       width: width,
       height: height,
+      bounds: bounds,
+      isMinimized: isMinimized,
     );
   }
 
@@ -226,19 +317,45 @@ class WindowDetector {
     return values;
   }
 
-  /// Discovers all currently open desktop windows on the system asynchronously (non-blocking).
+  /// Discovers all currently open desktop windows and monitors asynchronously.
   Future<List<DesktopWindowInfo>> getOpenWindowsAsync() async {
-    if (!kIsWeb && io.Platform.isWindows && !io.Platform.environment.containsKey('FLUTTER_TEST')) {
+    if (nativeWindowEnumerator != null) {
       try {
-        final result = await io.Process.run('tasklist', ['/V', '/FO', 'CSV']);
+        final wins = await nativeWindowEnumerator!();
+        return filterAndRankWindows(wins);
+      } catch (_) {}
+    }
+
+    if (processRunner != null) {
+      try {
+        final result = await processRunner!(
+          'tasklist',
+          ['/FI', 'SESSION ne 0', '/V', '/FO', 'CSV'],
+        );
         if (result.exitCode == 0) {
           final parsed = parseTasklistCsv(result.stdout.toString());
           if (parsed.isNotEmpty) {
-            return parsed;
+            return filterAndRankWindows([
+              DesktopWindowInfo.primaryScreen(),
+              ...parsed,
+            ]);
           }
         }
+      } catch (_) {}
+    }
+
+    if (!kIsWeb &&
+        io.Platform.isWindows &&
+        !io.Platform.environment.containsKey('FLUTTER_TEST')) {
+      try {
+        final nativeWins =
+            await WindowsDesktopBridge.instance.enumerateWindowsAndMonitors();
+        if (nativeWins.isNotEmpty) {
+          return filterAndRankWindows(nativeWins);
+        }
+        return [DesktopWindowInfo.primaryScreen()];
       } catch (_) {
-        // Fall back gracefully if tasklist cannot be executed
+        return [DesktopWindowInfo.primaryScreen()];
       }
     }
 
@@ -247,23 +364,36 @@ class WindowDetector {
 
   /// Default fallback windows for testing or when OS process inspection is disabled.
   List<DesktopWindowInfo> getFallbackWindows() {
-    return filterAndRankWindows(const [
-      DesktopWindowInfo(id: 1, title: 'mGBA (GameBoy Advance)', emulatorType: EmulatorType.mgba),
-      DesktopWindowInfo(id: 2, title: 'melonDS (Nintendo DS)', emulatorType: EmulatorType.melonds),
-      DesktopWindowInfo(id: 3, title: 'Ryujinx (Nintendo Switch)', emulatorType: EmulatorType.ryujinx),
-      DesktopWindowInfo(id: 4, title: 'Citra (Nintendo 3DS)', emulatorType: EmulatorType.citra),
+    return filterAndRankWindows([
+      DesktopWindowInfo.primaryScreen(),
+      const DesktopWindowInfo(
+          id: 1, title: 'mGBA (GameBoy Advance)', emulatorType: EmulatorType.mgba),
+      const DesktopWindowInfo(
+          id: 2, title: 'melonDS (Nintendo DS)', emulatorType: EmulatorType.melonds),
+      const DesktopWindowInfo(
+          id: 3, title: 'Ryujinx (Nintendo Switch)', emulatorType: EmulatorType.ryujinx),
+      const DesktopWindowInfo(
+          id: 4, title: 'Citra (Nintendo 3DS)', emulatorType: EmulatorType.citra),
     ]);
   }
 
   /// Discovers all currently open desktop windows on the system.
   List<DesktopWindowInfo> getOpenWindows() {
-    if (!kIsWeb && io.Platform.isWindows && !io.Platform.environment.containsKey('FLUTTER_TEST')) {
+    if (!kIsWeb &&
+        io.Platform.isWindows &&
+        !io.Platform.environment.containsKey('FLUTTER_TEST')) {
       try {
-        final result = io.Process.runSync('tasklist', ['/V', '/FO', 'CSV']);
+        final result = io.Process.runSync(
+          'tasklist',
+          ['/FI', 'SESSION ne 0', '/V', '/FO', 'CSV'],
+        );
         if (result.exitCode == 0) {
           final parsed = parseTasklistCsv(result.stdout.toString());
           if (parsed.isNotEmpty) {
-            return parsed;
+            return filterAndRankWindows([
+              DesktopWindowInfo.primaryScreen(),
+              ...parsed,
+            ]);
           }
         }
       } catch (_) {
@@ -274,22 +404,43 @@ class WindowDetector {
     return getFallbackWindows();
   }
 
-  /// Filters out empty windows and ranks known emulator windows at the top.
+  /// Filters out empty windows and ranks known emulator windows at the top,
+  /// followed by Desktop/Monitors and general application windows.
   List<DesktopWindowInfo> filterAndRankWindows(
     List<DesktopWindowInfo> rawWindows,
   ) {
     final recognized = <DesktopWindowInfo>[];
     for (final w in rawWindows) {
       if (w.title.trim().isEmpty) continue;
-      final info = w.emulatorType != EmulatorType.unknown
+      final info = (w.emulatorType != EmulatorType.unknown || w.isDesktopScreen)
           ? w
-          : identifyEmulator(w.title, id: w.id, processName: w.processName, width: w.width, height: w.height);
+          : identifyEmulator(
+              w.title,
+              id: w.id,
+              hwnd: w.hwnd,
+              processName: w.processName,
+              width: w.width,
+              height: w.height,
+              bounds: w.bounds,
+              isMinimized: w.isMinimized,
+            );
       recognized.add(info);
     }
 
     recognized.sort((a, b) {
       if (a.isKnownEmulator && !b.isKnownEmulator) return -1;
       if (!a.isKnownEmulator && b.isKnownEmulator) return 1;
+      if (a.isDesktopScreen && !b.isDesktopScreen) return -1;
+      if (!a.isDesktopScreen && b.isDesktopScreen) return 1;
+      if (a.isDesktopScreen && b.isDesktopScreen) {
+        if (a.isVirtualDesktop != b.isVirtualDesktop) {
+          return a.isVirtualDesktop ? 1 : -1;
+        }
+        return a.monitorIndex.compareTo(b.monitorIndex);
+      }
+      if (a.isMinimized != b.isMinimized) {
+        return a.isMinimized ? 1 : -1;
+      }
       return a.title.toLowerCase().compareTo(b.title.toLowerCase());
     });
 
@@ -308,7 +459,8 @@ class WindowDetector {
       case ScanRegionPreset.dsTopScreen:
         return Rect.fromLTWH(0.0, 0.0, windowWidth, windowHeight * 0.52);
       case ScanRegionPreset.dsBottomScreen:
-        return Rect.fromLTWH(0.0, windowHeight * 0.48, windowWidth, windowHeight * 0.52);
+        return Rect.fromLTWH(
+            0.0, windowHeight * 0.48, windowWidth, windowHeight * 0.52);
       case ScanRegionPreset.bottomDialogue:
         return calculateDefaultDialogueRegion(
           windowWidth: windowWidth,
@@ -327,15 +479,47 @@ class WindowDetector {
     return Rect.fromLTWH(0.0, top, windowWidth, height);
   }
 
+  /// Calculates Zone B (opponent HUD) crop region inside a window for [preset].
+  /// Returns `null` when [preset] is disabled or managed by an external custom screen region.
+  Rect? calculateEnemyHudCropRegion(
+    LiveFocusPreset preset, {
+    required double windowWidth,
+    required double windowHeight,
+  }) {
+    if (windowWidth <= 0 || windowHeight <= 0) return null;
+    switch (preset) {
+      case LiveFocusPreset.disabled:
+      case LiveFocusPreset.customRegion:
+        return null;
+      case LiveFocusPreset.topLeft:
+        return Rect.fromLTWH(0.0, 0.0, windowWidth * 0.42, windowHeight * 0.22);
+      case LiveFocusPreset.topRight:
+        return Rect.fromLTWH(
+          windowWidth * 0.58,
+          0.0,
+          windowWidth * 0.42,
+          windowHeight * 0.22,
+        );
+      case LiveFocusPreset.topBanner:
+        return Rect.fromLTWH(0.0, 0.0, windowWidth, windowHeight * 0.24);
+    }
+  }
+
   String? _extractRomTitle(String title, EmulatorType type) {
+    // Strip leading bracketed FPS counter like "[79/60] "
+    final cleaned =
+        title.replaceFirst(RegExp(r'^\[\s*\d+\s*/\s*\d+\s*\]\s*'), '');
+
     final match = RegExp(
-      r'^(?:mGBA|DeSmuME|Ryujinx|Citra|Dolphin|BizHawk|melonDS|VisualBoyAdvance|VBA-M)[^\-|]*[\-|]\s*(?:[\d\.]+[^\-|]*[\-|]\s*)?(.*)$',
+      r'^(?:mGBA|DeSmuME|Ryujinx|Citra|Azahar|Lime3DS|Dolphin|BizHawk|EmuHawk|melonDS|VisualBoyAdvance|VBA-M|RetroArch|Cemu|Yuzu|Eden|Sudachi|Snes9x|NO\$GBA|SkyEmu|DuckStation|PCSX2)[^\-|]*[\-|]\s*(?:[\d\.]+[^\-|]*[\-|]\s*)?(.*)$',
       caseSensitive: false,
-    ).firstMatch(title);
-    if (match != null && match.group(1) != null && match.group(1)!.trim().isNotEmpty) {
+    ).firstMatch(cleaned);
+    if (match != null &&
+        match.group(1) != null &&
+        match.group(1)!.trim().isNotEmpty) {
       return match.group(1)!.trim();
     }
-    final parts = title.split(RegExp(r'[-|]'));
+    final parts = cleaned.split(RegExp(r'[-|]'));
     if (parts.length > 1) {
       return parts.sublist(1).join('-').trim();
     }

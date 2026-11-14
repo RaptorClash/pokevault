@@ -9,6 +9,32 @@ abstract class ScannerSource {
   Future<void> dispose();
 }
 
+/// Optional extension for capture sources that provide a dedicated opponent-HUD
+/// stream (`focusTextStream`) in addition to the dialogue/catch stream (`textStream`).
+abstract interface class DualZoneScannerSource implements ScannerSource {
+  Stream<String> get focusTextStream;
+}
+
+/// Tagged OCR text emission from one numbered Multi-Instance desktop slot.
+class MultiInstanceTextEmission {
+  final int slotId;
+  final int colorHex;
+  final String rawText;
+  final bool encounterOnly;
+
+  const MultiInstanceTextEmission({
+    required this.slotId,
+    required this.colorHex,
+    required this.rawText,
+    this.encounterOnly = false,
+  });
+}
+
+/// Optional extension for capture sources emitting slot-tagged multi-instance OCR frames.
+abstract interface class MultiInstanceScannerSource implements ScannerSource {
+  Stream<MultiInstanceTextEmission> get multiInstanceTextStream;
+}
+
 /// In-memory mock scanner source for unit tests and simulations.
 class MockScannerSource implements ScannerSource {
   final StreamController<String> _controller =
