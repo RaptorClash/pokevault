@@ -12,7 +12,10 @@ import 'providers/tutorial_provider.dart';
 import 'providers/settings_provider.dart';
 import 'providers/shiny_hunt_provider.dart';
 import 'screens/home/home_screen.dart';
+import 'screens/mobile_scanner/widgets/mobile_camera_pip_overlay.dart';
+import 'services/mobile_scanner/mobile_camera_tracker_service.dart';
 import 'utils/notification_helper.dart';
+import 'utils/tracker_platform_helper.dart';
 import 'i18n/strings.g.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -141,7 +144,15 @@ class PokedexApp extends StatelessWidget {
             }
             return KeyEventResult.ignored;
           },
-          child: child ?? const SizedBox(),
+          child: Stack(
+            children: [
+              child ?? const SizedBox(),
+              if (TrackerPlatformHelper.isMobile)
+                MobileCameraPipOverlay(
+                  service: MobileCameraTrackerService.instance,
+                ),
+            ],
+          ),
         );
       },
 

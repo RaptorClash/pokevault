@@ -1,6 +1,20 @@
 import '../../desktop_tracker/screen_region.dart';
 import 'scanner_event.dart';
 
+/// Supported OCR language overrides shared across Desktop & Mobile trackers.
+const List<({String code, String label})> kSupportedScannerOcrLanguages = [
+  (code: 'auto', label: 'Automatisch (App/Dex-Sprache)'),
+  (code: 'de', label: 'Deutsch (DE)'),
+  (code: 'en', label: 'English (EN)'),
+  (code: 'fr', label: 'Français (FR)'),
+  (code: 'es', label: 'Español (ES)'),
+  (code: 'it', label: 'Italiano (IT)'),
+  (code: 'ja', label: '日本語 (JA)'),
+  (code: 'ko', label: '한국어 (KO)'),
+  (code: 'zh-Hans', label: '简体中文 (ZH-Hans)'),
+  (code: 'zh-Hant', label: '繁體中文 (ZH-Hant)'),
+];
+
 /// Behavior for Living Dex when an evolution is recognized.
 enum LivingDexEvolutionAction {
   askBeforeRemoving,

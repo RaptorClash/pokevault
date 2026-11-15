@@ -17,6 +17,7 @@ import '../settings/settings_screen.dart';
 import '../../utils/update_helper.dart';
 import '../../widgets/dialogs/update_dialog.dart';
 import '../../utils/notification_helper.dart';
+import '../../utils/tracker_platform_helper.dart';
 import 'create_dex_bottom_sheet.dart';
 import 'widgets/home_dialogs.dart';
 import 'widgets/home_ui_components.dart';
@@ -30,13 +31,13 @@ import '../moves/moves_dex_screen.dart';
 import '../abilities/abilities_dex_screen.dart';
 import '../../providers/shiny_hunt_provider.dart';
 import '../shiny_hunt/shiny_hunts_hub_screen.dart';
-import 'package:universal_io/io.dart' as io;
 import '../desktop_tracker/desktop_tracker_screen.dart';
 import '../desktop_tracker/widgets/persistent_tracker_dock.dart';
 import '../../services/desktop_tracker/desktop_tracker_service.dart';
+import '../mobile_scanner/mobile_camera_tracker_screen.dart';
+import '../../services/mobile_scanner/mobile_camera_tracker_service.dart';
 import '../../services/scanner_core/scanner_coordinator.dart';
-import '../../services/scanner_core/engine/ocr_detection_engine.dart';
-import '../../services/scanner_core/engine/pokemon_fuzzy_matcher.dart';
+import '../../services/scanner_core/scanner_launcher_helper.dart';
 import '../../services/scanner_core/models/scanner_settings.dart';
 import '../../services/scanner_core/models/scanner_event.dart';
 
@@ -507,6 +508,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _openDesktopTracker() {
+    if (!TrackerPlatformHelper.isDesktop) return;
     final dexProvider = Provider.of<DexProvider>(context, listen: false);
     final existingService = DesktopTrackerService.instance;
     final ScannerCoordinator coordinator;
@@ -514,21 +516,8 @@ class _HomeScreenState extends State<HomeScreen> {
     if (existingService.coordinator != null && existingService.isTrackingActive) {
       coordinator = existingService.coordinator!;
     } else {
-      final pokemonEntries = <PokemonMatcherEntry>[];
-      for (final p in dexProvider.allPokemon) {
-        for (final entry in p.names.entries) {
-          pokemonEntries.add(PokemonMatcherEntry(
-            id: p.id,
-            name: entry.value,
-            language: entry.key,
-          ));
-        }
-      }
-
-      coordinator = ScannerCoordinator(
-        engine: OcrDetectionEngine(),
-        matcher: PokemonFuzzyMatcher.withEntries(pokemonEntries),
-        settings: ScannerSettings.defaults(),
+      coordinator = ScannerLauncherHelper.buildCoordinator(
+        dexProvider.allPokemon,
       );
     }
 
@@ -542,6 +531,43 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       ),
     );
+  }
+
+  void _openMobileCameraTracker() {
+    if (!TrackerPlatformHelper.isMobile) return;
+    final dexProvider = Provider.of<DexProvider>(context, listen: false);
+    final mobileService = MobileCameraTrackerService.instance;
+    final ScannerCoordinator coordinator;
+
+    if (mobileService.coordinator != null && mobileService.isTrackingActive) {
+      coordinator = mobileService.coordinator!;
+    } else {
+      coordinator = ScannerLauncherHelper.buildCoordinator(
+        dexProvider.allPokemon,
+        settings: ScannerSettings.defaults().copyWith(
+          preprocessProfile: OcrPreprocessProfile.cameraDisplay,
+        ),
+      );
+    }
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => MobileCameraTrackerScreen(
+          coordinator: coordinator,
+          cameraSource: mobileService.cameraSource,
+          initialDexId: mobileService.activeDexId,
+        ),
+      ),
+    );
+  }
+
+  void _openPlatformTracker() {
+    if (TrackerPlatformHelper.isDesktop) {
+      _openDesktopTracker();
+    } else if (TrackerPlatformHelper.isMobile) {
+      _openMobileCameraTracker();
+    }
   }
 
   void _openCreateBottomSheet() {
@@ -696,10 +722,10 @@ class _HomeScreenState extends State<HomeScreen> {
             _searchFocusNode.requestFocus();
           },
           const SingleActivator(LogicalKeyboardKey.keyO, control: true, shift: true): () {
-            _openDesktopTracker();
+            _openPlatformTracker();
           },
           const SingleActivator(LogicalKeyboardKey.keyO, meta: true, shift: true): () {
-            _openDesktopTracker();
+            _openPlatformTracker();
           },
         },
         child: Focus(
@@ -717,7 +743,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     HardwareKeyboard.instance.isMetaPressed) &&
                 HardwareKeyboard.instance.isShiftPressed &&
                 event.logicalKey == LogicalKeyboardKey.keyO) {
-              _openDesktopTracker();
+              _openPlatformTracker();
               return KeyEventResult.handled;
             }
 
@@ -880,11 +906,17 @@ class _HomeScreenState extends State<HomeScreen> {
                       },
                     ),
                     if (_currentFolderId == 'root') ...[
-                      if (!kIsWeb && (io.Platform.isWindows || io.Platform.isLinux || io.Platform.isMacOS))
+                      if (TrackerPlatformHelper.isDesktop)
                         IconButton(
                           icon: const Icon(Icons.track_changes),
                           tooltip: 'Desktop Tracker & Overlay',
                           onPressed: _openDesktopTracker,
+                        ),
+                      if (TrackerPlatformHelper.isMobile)
+                        IconButton(
+                          icon: const Icon(Icons.photo_camera_outlined),
+                          tooltip: 'Kamera-Tracker',
+                          onPressed: _openMobileCameraTracker,
                         ),
                       IconButton(
                         key: _settingsActionKey,
@@ -1027,7 +1059,9 @@ class _HomeScreenState extends State<HomeScreen> {
           bottomNavigationBar: ValueListenableBuilder<bool>(
             valueListenable: DesktopTrackerService.instance.isTrackingNotifier,
             builder: (context, isTracking, _) {
-              if (!isTracking) return const SizedBox.shrink();
+              if (!TrackerPlatformHelper.isDesktop || !isTracking) {
+                return const SizedBox.shrink();
+              }
 
               return ValueListenableBuilder<ScannerEvent?>(
                 valueListenable: DesktopTrackerService.instance.latestEventNotifier,

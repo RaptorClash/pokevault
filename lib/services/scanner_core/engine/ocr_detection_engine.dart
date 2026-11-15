@@ -59,7 +59,7 @@ class OcrDetectionEngine {
   );
 
   static final RegExp _battleEndCuePattern = RegExp(
-    r'(?:\berfolgreich\s+geflohen\b|\bentkommen\b|\bgot\s+away\s+safely\b|\bran\s+away\b|\b(?:wurde\s+besiegt|ging\s+k\.?o\.?|fainted)\b)',
+    r'(?:\berfolgreich\s+geflohen\b|\bentkommen\b|\bgot\s+away\s+safely\b|\bran\s+away\b|\b(?:wurde\s+besiegt|ging\s+k\.?o\.?|fainted)\b|vous\s+prenez\s+la\s+fuite|escapaste\s+sin\s+problemas|scappato\s+senza\s+problemi|にげきれた|도망쳤다|逃走了|逃跑了)',
     caseSensitive: false,
   );
 
@@ -103,12 +103,12 @@ class OcrDetectionEngine {
   );
 
   static final RegExp _shinyPattern = RegExp(
-    r'(?:✨|\b(?:shiny|schillernd)\b)',
+    r'(?:✨|\b(?:shiny|schillernd|chromatique|variocolor|cromatico)\b|いろちがい|色違い|이로치|异色|異色)',
     caseSensitive: false,
   );
 
   static final RegExp _alphaPattern = RegExp(
-    r'\b(?:alpha|elite|herrscher)\b',
+    r'(?:\b(?:alpha|elite|herrscher|baron|alfa)\b|オヤブン|우두머리|头目|頭目)',
     caseSensitive: false,
   );
 
@@ -116,51 +116,72 @@ class OcrDetectionEngine {
   static final List<({RegExp regex, String lang})> _evolutionPatterns = [
     (
       regex: RegExp(
-        r'([^\n\r!]+?)\s+hat sich zu\s+([^\n\r!]+?)\s+entwickelt(?:!|$)',
+        r'([^\n\r!！]+?)\s+hat sich zu\s+([^\n\r!！]+?)\s+entwickelt(?:[!！]|$)',
         caseSensitive: false,
       ),
       lang: 'de',
     ),
     (
       regex: RegExp(
-        r'([^\n\r!]+?)\s+entwickelt sich zu\s+([^\n\r!]+)(?:!|$)',
+        r'([^\n\r!！]+?)\s+entwickelt sich zu\s+([^\n\r!！]+?)(?:[!！]|$)',
         caseSensitive: false,
       ),
       lang: 'de',
     ),
     (
       regex: RegExp(
-        r'([^\n\r!]+?)\s+evolved into\s+([^\n\r!]+)(?:!|$)',
+        r'([^\n\r!！]+?)\s+evolved into\s+([^\n\r!！]+?)(?:[!！]|$)',
         caseSensitive: false,
       ),
       lang: 'en',
     ),
     (
       regex: RegExp(
-        r'([^\n\r!]+?)\s+a évolué en\s+([^\n\r!]+)(?:!|$)',
+        r'([^\n\r!！]+?)\s+a évolué en\s+([^\n\r!！]+?)(?:[!！]|$)',
         caseSensitive: false,
       ),
       lang: 'fr',
     ),
     (
       regex: RegExp(
-        r'¡?([^\n\r!]+?)\s+evolucionó a\s+([^\n\r!]+)(?:!|$)',
+        r'¡?([^\n\r!！]+?)\s+(?:ha\s+)?evolucionado\s+a\s+([^\n\r!！]+?)(?:[!！]|$)|¡?([^\n\r!！]+?)\s+evolucionó\s+a\s+([^\n\r!！]+?)(?:[!！]|$)',
         caseSensitive: false,
       ),
       lang: 'es',
     ),
     (
       regex: RegExp(
-        r'([^\n\r!]+?)\s+si è evoluto in\s+([^\n\r!]+)(?:!|$)',
+        r'([^\n\r!！]+?)\s+si è evoluto in\s+([^\n\r!！]+?)(?:[!！]|$)',
         caseSensitive: false,
       ),
       lang: 'it',
     ),
     (
       regex: RegExp(
-        r'([^\n\r!]+?)は\s*([^\n\r!]+?)に\s*しんかした(?:!|$)',
+        r'([^\n\r!！]+?)は\s*([^\n\r!！]+?)に\s*しんかした(?:[!！]|$)',
       ),
       lang: 'ja',
+    ),
+    // Korean
+    (
+      regex: RegExp(
+        r'([^\n\r!！]+?)(?:은\(는\)|은|는)\s*([^\n\r!！]+?)(?:\(으\)로|으로|로)\s*진화했다(?:[!！]|$)',
+      ),
+      lang: 'ko',
+    ),
+    // Simplified Chinese
+    (
+      regex: RegExp(
+        r'([^\n\r!！]+?)进化成了\s*([^\n\r!！]+?)(?:[!！]|$)',
+      ),
+      lang: 'zh-Hans',
+    ),
+    // Traditional Chinese
+    (
+      regex: RegExp(
+        r'([^\n\r!！]+?)進化成了\s*([^\n\r!！]+?)(?:[!！]|$)',
+      ),
+      lang: 'zh-Hant',
     ),
   ];
 
@@ -169,14 +190,14 @@ class OcrDetectionEngine {
     // German
     (
       regex: RegExp(
-        r'(?:(?:Kl[aeuw]s+e|Super|Toll|Heureka)[!.,]?\s+)?([^\n\r!]+?)\s+wurde gefangen(?:!|$)',
+        r'(?:(?:Kl[aeuw]s+e|Super|Toll|Heureka)[!.,]?\s+)?([^\n\r!！]+?)\s+wurde gefangen(?:[!！]|$)',
         caseSensitive: false,
       ),
       lang: 'de',
     ),
     (
       regex: RegExp(
-        r'(?:(?:Kl[aeuw]s+e|Super|Toll|Heureka)[!.,]?\s+)?([^\n\r!]+?)\s+gefangen(?:!|$)',
+        r'(?:(?:Kl[aeuw]s+e|Super|Toll|Heureka)[!.,]?\s+)?([^\n\r!！]+?)\s+gefangen(?:[!！]|$)',
         caseSensitive: false,
       ),
       lang: 'de',
@@ -184,14 +205,14 @@ class OcrDetectionEngine {
     // English
     (
       regex: RegExp(
-        r'(?:(?:Gotcha|All right)!\s+)?([^\n\r!]+?)\s+was caught(?:!|$)',
+        r'(?:(?:Gotcha|All right)!\s+)?([^\n\r!！]+?)\s+was caught(?:[!！]|$)',
         caseSensitive: false,
       ),
       lang: 'en',
     ),
     (
       regex: RegExp(
-        r'You caught\s+([^\n\r!]+)(?:!|$)',
+        r'You caught\s+([^\n\r!！]+?)(?:[!！]|$)',
         caseSensitive: false,
       ),
       lang: 'en',
@@ -199,7 +220,7 @@ class OcrDetectionEngine {
     // French
     (
       regex: RegExp(
-        r'(?:Et hop!\s+)?([^\n\r!]+?)\s+est capturé(?:!|$)',
+        r'(?:Et hop\s*!\s+)?([^\n\r!！]+?)\s+(?:est capturé|a été attrapé)\s*(?:[!！]|$)',
         caseSensitive: false,
       ),
       lang: 'fr',
@@ -207,7 +228,7 @@ class OcrDetectionEngine {
     // Spanish
     (
       regex: RegExp(
-        r'(?:¡?Ya está!\s+)?¡?([^\n\r!]+?)\s+atrapado(?:!|$)',
+        r'(?:¡?Ya está!\s+)?¡?(?:Has atrapado a\s+([^\n\r!！]+?)|([^\n\r!！]+?)\s+atrapado)(?:[!！]|$)',
         caseSensitive: false,
       ),
       lang: 'es',
@@ -215,7 +236,7 @@ class OcrDetectionEngine {
     // Italian
     (
       regex: RegExp(
-        r'(?:Preso!\s+)?Hai catturato\s+([^\n\r!]+)(?:!|$)',
+        r'(?:Preso!\s+)?(?:Hai catturato\s+([^\n\r!！]+?)|([^\n\r!！]+?)\s+è stato catturato)(?:[!！]|$)',
         caseSensitive: false,
       ),
       lang: 'it',
@@ -223,9 +244,30 @@ class OcrDetectionEngine {
     // Japanese
     (
       regex: RegExp(
-        r'([^\n\r!]+?)を\s*つかまえた(?:!|$)',
+        r'([^\n\r!！]+?)を\s*つかまえた(?:[!！]|$)',
       ),
       lang: 'ja',
+    ),
+    // Korean
+    (
+      regex: RegExp(
+        r'(?:신난다[!！]?\s+)?([^\n\r!！]+?)(?:을\(를\)|을|를)\s*잡았다(?:[!！]|$)',
+      ),
+      lang: 'ko',
+    ),
+    // Simplified Chinese
+    (
+      regex: RegExp(
+        r'(?:太好了[!！]?\s*)?(?:收服了\s*([^\n\r!！]+?)|([^\n\r!！]+?)被收服了)(?:[!！]|$)',
+      ),
+      lang: 'zh-Hans',
+    ),
+    // Traditional Chinese
+    (
+      regex: RegExp(
+        r'(?:太好了[!！]?\s*)?(?:收服了\s*([^\n\r!！]+?)|([^\n\r!！]+?)被收服了)(?:[!！]|$)',
+      ),
+      lang: 'zh-Hant',
     ),
   ];
 
@@ -234,7 +276,7 @@ class OcrDetectionEngine {
     // German
     (
       regex: RegExp(
-        r'(?:Ein\s+)?wildes?\s+([^\n\r!]+?)\s+(?:erscheint|taucht auf|greift an)!?',
+        r'(?:Ein\s+)?wildes?\s+([^\n\r!！]+?)\s+(?:erscheint|taucht auf|greift an)[!！]?',
         caseSensitive: false,
       ),
       lang: 'de',
@@ -242,7 +284,7 @@ class OcrDetectionEngine {
     // English
     (
       regex: RegExp(
-        r'Wild\s+([^\n\r!]+?)\s+appeared!?',
+        r'Wild\s+([^\n\r!！]+?)\s+appeared[!！]?',
         caseSensitive: false,
       ),
       lang: 'en',
@@ -250,7 +292,7 @@ class OcrDetectionEngine {
     // French
     (
       regex: RegExp(
-        r'Un\s+([^\n\r!]+?)\s+sauvage apparaît!?',
+        r'(?:Un|Une)\s+([^\n\r!！]+?)\s+sauvage\s+apparaît\s*[!！]?',
         caseSensitive: false,
       ),
       lang: 'fr',
@@ -258,7 +300,7 @@ class OcrDetectionEngine {
     // Spanish
     (
       regex: RegExp(
-        r'¡?Un\s+([^\n\r!]+?)\s+salvaje apareció!?',
+        r'¡?(?:Un|Una)\s+([^\n\r!！]+?)\s+salvaje\s+apareció[!！]?',
         caseSensitive: false,
       ),
       lang: 'es',
@@ -266,7 +308,7 @@ class OcrDetectionEngine {
     // Italian
     (
       regex: RegExp(
-        r'Appare un\s+([^\n\r!]+?)\s+selvatico!?',
+        r'(?:È\s+apparso\s+un|Appare\s+un)\s+([^\n\r!！]+?)\s+selvatico[!！]?',
         caseSensitive: false,
       ),
       lang: 'it',
@@ -274,9 +316,30 @@ class OcrDetectionEngine {
     // Japanese
     (
       regex: RegExp(
-        r'やせいの\s*([^\n\r!]+?)が\s*とびだしてきた!?',
+        r'やせいの\s*([^\n\r!！]+?)が\s*とびだしてきた[!！]?',
       ),
       lang: 'ja',
+    ),
+    // Korean
+    (
+      regex: RegExp(
+        r'야생의\s*([^\n\r!！]+?)(?:이\(가\)|이|가)\s*나타났다[!！]?',
+      ),
+      lang: 'ko',
+    ),
+    // Simplified Chinese
+    (
+      regex: RegExp(
+        r'野生的\s*([^\n\r!！]+?)\s*出现了[!！]?',
+      ),
+      lang: 'zh-Hans',
+    ),
+    // Traditional Chinese
+    (
+      regex: RegExp(
+        r'野生的\s*([^\n\r!！]+?)\s*出現了[!！]?',
+      ),
+      lang: 'zh-Hant',
     ),
   ];
 
@@ -467,8 +530,9 @@ class OcrDetectionEngine {
       for (final ep in _evolutionPatterns) {
         final match = ep.regex.firstMatch(lineTrimmed);
         if (match != null) {
-          final pre = _cleanName(match.group(1) ?? '');
-          final evo = _cleanName(match.group(2) ?? '');
+          final (rawPre, rawEvo) = _extractTwoGroups(match);
+          final pre = _cleanName(rawPre);
+          final evo = _cleanName(rawEvo);
           if (pre.isNotEmpty &&
               evo.isNotEmpty &&
               !_isInvalidCandidate(pre) &&
@@ -491,7 +555,7 @@ class OcrDetectionEngine {
       for (final cp in _caughtPatterns) {
         final match = cp.regex.firstMatch(lineTrimmed);
         if (match != null) {
-          final name = _cleanName(match.group(1) ?? '');
+          final name = _cleanName(_extractFirstGroup(match));
           if (name.isNotEmpty && !_isInvalidCandidate(name)) {
             return OcrParseResult(
               type: ScannerEventType.caught,
@@ -538,7 +602,7 @@ class OcrDetectionEngine {
       for (final ec in _encounterPatterns) {
         final match = ec.regex.firstMatch(lineTrimmed);
         if (match != null) {
-          final name = _cleanName(match.group(1) ?? '');
+          final name = _cleanName(_extractFirstGroup(match));
           if (name.isNotEmpty && !_isInvalidCandidate(name)) {
             return OcrParseResult(
               type: ScannerEventType.encounter,
@@ -626,21 +690,52 @@ class OcrDetectionEngine {
     return false;
   }
 
+  String _extractFirstGroup(RegExpMatch match) {
+    for (int g = 1; g <= match.groupCount; g++) {
+      final value = match.group(g);
+      if (value != null && value.trim().isNotEmpty) {
+        return value;
+      }
+    }
+    return '';
+  }
+
+  (String, String) _extractTwoGroups(RegExpMatch match) {
+    final nonNull = <String>[];
+    for (int g = 1; g <= match.groupCount; g++) {
+      final value = match.group(g);
+      if (value != null && value.trim().isNotEmpty) {
+        nonNull.add(value);
+      }
+    }
+    if (nonNull.length >= 2) {
+      return (nonNull[0], nonNull[1]);
+    }
+    return ('', '');
+  }
+
   String _cleanName(String raw) {
     var s = raw.trim();
     // Strip common surrounding noise / quotes / punctuation
-    s = s.replaceAll(RegExp(r'^["\s¡!]+|["\s!]+$'), '');
+    s = s.replaceAll(RegExp(r'^["\s¡!！]+|["\s!！]+$'), '');
     // Strip tags like (Männlich), (Weiblich), (Shiny), (schillernd), ♂, ♀, ✨, Alpha, Elite
     s = s.replaceAll(
       RegExp(
-        r'[\(\[](?:männlich|weiblich|male|female|shiny|schillernd|alpha|elite)[\)\]]',
+        r'[\(\[](?:männlich|weiblich|male|female|shiny|schillernd|chromatique|variocolor|cromatico|alpha|elite|baron|alfa)[\)\]]',
         caseSensitive: false,
       ),
       '',
     );
     s = s.replaceAll(RegExp(r'[♂♀✨*]'), '');
     s = s.replaceAll(
-      RegExp(r'\b(?:shiny|alpha|elite)\b', caseSensitive: false),
+      RegExp(
+        r'\b(?:shiny|schillernd|chromatique|variocolor|cromatico|alpha|elite|baron|alfa)\b',
+        caseSensitive: false,
+      ),
+      '',
+    );
+    s = s.replaceAll(
+      RegExp(r'(?:いろちがい|色違い|이로치|异色|異色|オヤブン|우두머리|头目|頭目)'),
       '',
     );
     return s.trim();

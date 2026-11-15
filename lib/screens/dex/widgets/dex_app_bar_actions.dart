@@ -30,6 +30,7 @@ class DexAppBarActions extends StatelessWidget {
   final VoidCallback? onOpenRouteTracker;
   final VoidCallback? onOpenShinyHunts;
   final VoidCallback? onOpenDesktopTracker;
+  final VoidCallback? onOpenMobileScanner;
   final VoidCallback? onToggleView;
   final VoidCallback? onToggleSeparateForms;
   final VoidCallback? onOpenSortSettings;
@@ -60,6 +61,7 @@ class DexAppBarActions extends StatelessWidget {
     this.onOpenRouteTracker,
     this.onOpenShinyHunts,
     this.onOpenDesktopTracker,
+    this.onOpenMobileScanner,
     this.onToggleView,
     this.onToggleSeparateForms,
     this.onOpenSortSettings,
@@ -166,6 +168,12 @@ class DexAppBarActions extends StatelessWidget {
             tooltip: 'Desktop Tracker & Overlay',
             onPressed: onOpenDesktopTracker,
           ),
+        if (isWideEnoughForTracker && onOpenMobileScanner != null)
+          IconButton(
+            icon: const Icon(Icons.photo_camera_outlined),
+            tooltip: 'Kamera-Tracker',
+            onPressed: onOpenMobileScanner,
+          ),
         PopupMenuButton<String>(
           key: sortMenuKey ?? const Key('_sortMenuKey'),
           icon: const Icon(Icons.sort),
@@ -189,6 +197,9 @@ class DexAppBarActions extends StatelessWidget {
                 break;
               case 'desktop_tracker':
                 onOpenDesktopTracker?.call();
+                break;
+              case 'mobile_scanner':
+                onOpenMobileScanner?.call();
                 break;
               case 'delete_dex':
                 onDeleteDex?.call();
@@ -283,6 +294,21 @@ class DexAppBarActions extends StatelessWidget {
                     SizedBox(width: 8),
                     Expanded(
                       child: Text('Desktop Tracker & Overlay'),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+            if (!isWideEnoughForTracker && onOpenMobileScanner != null) ...[
+              const PopupMenuDivider(),
+              const PopupMenuItem(
+                value: 'mobile_scanner',
+                child: Row(
+                  children: [
+                    Icon(Icons.photo_camera_outlined, size: 20),
+                    SizedBox(width: 8),
+                    Expanded(
+                      child: Text('Kamera-Tracker'),
                     ),
                   ],
                 ),

@@ -260,6 +260,7 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
       if (!mounted) return;
       final isPristine = current.scanIntervalMs == 400 &&
           current.preprocessProfile == OcrPreprocessProfile.standard &&
+          current.ocrLanguage == 'auto' &&
           current.customPatterns.isEmpty &&
           current.liveFocusPreset == LiveFocusPreset.disabled &&
           current.ignoredPokemonIds.isEmpty &&
@@ -270,6 +271,7 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
       final merged = current.copyWith(
         scanIntervalMs: saved.scanIntervalMs,
         preprocessProfile: saved.preprocessProfile,
+        ocrLanguage: saved.ocrLanguage,
         customPatterns: saved.customPatterns,
         liveFocusPreset: saved.liveFocusPreset == LiveFocusPreset.customRegion
             ? LiveFocusPreset.disabled
@@ -280,6 +282,7 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
       );
       if (merged.scanIntervalMs == current.scanIntervalMs &&
           merged.preprocessProfile == current.preprocessProfile &&
+          merged.ocrLanguage == current.ocrLanguage &&
           merged.customPatterns.isEmpty &&
           merged.liveFocusPreset == current.liveFocusPreset &&
           merged.ignoredPokemonIds.isEmpty &&
@@ -294,6 +297,7 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
       _activeWindowSource.setPreprocessProfile(merged.preprocessProfile);
       _activeWindowSource.setLiveFocusPreset(merged.liveFocusPreset);
       _activeWindowSource.setMultiInstanceSlots(merged.multiInstanceSlots);
+      didChangeDependencies();
       _syncOverlayBorders();
       if (mounted) setState(() {});
     } catch (_) {
@@ -307,6 +311,7 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
     _activeWindowSource.setPreprocessProfile(next.preprocessProfile);
     _activeWindowSource.setLiveFocusPreset(next.liveFocusPreset);
     _activeWindowSource.setMultiInstanceSlots(next.multiInstanceSlots);
+    didChangeDependencies();
     _syncOverlayBorders();
     unawaited(_persistenceService.saveScannerSettings(next));
   }
@@ -578,12 +583,15 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    String effectiveLang = 'de';
-    try {
-      final settingsProvider = Provider.of<SettingsProvider>(context);
-      effectiveLang = settingsProvider.effectivePokemonLanguage;
-    } catch (_) {
-      effectiveLang = 'de';
+    final configured = widget.coordinator.settings.ocrLanguage;
+    String effectiveLang = configured;
+    if (effectiveLang == 'auto') {
+      try {
+        final settingsProvider = Provider.of<SettingsProvider>(context);
+        effectiveLang = settingsProvider.effectivePokemonLanguage;
+      } catch (_) {
+        effectiveLang = 'de';
+      }
     }
 
     final mappedTag = WindowsDesktopBridge.mapPokemonLanguageToBcp47(effectiveLang);
@@ -5002,12 +5010,14 @@ class _TrackerSettingsDialog extends StatefulWidget {
 class _TrackerSettingsDialogState extends State<_TrackerSettingsDialog> {
   late ScanRegionPreset _preset;
   late bool _autoMark;
+  late String _ocrLanguage;
 
   @override
   void initState() {
     super.initState();
     _preset = widget.currentPreset;
     _autoMark = widget.settings.autoMarkCaught;
+    _ocrLanguage = widget.settings.ocrLanguage;
   }
 
   @override
@@ -5097,6 +5107,38 @@ class _TrackerSettingsDialogState extends State<_TrackerSettingsDialog> {
                 onChanged: (val) {
                   setState(() => _autoMark = val);
                   widget.onSettingsChanged(widget.settings.copyWith(autoMarkCaught: val));
+                },
+              ),
+              const Divider(height: 24),
+              const Text(
+                'OCR-Sprache (Spieltext-Erkennung)',
+                style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 6),
+              DropdownButtonFormField<String>(
+                key: const Key('dropdown_desktop_ocr_language'),
+                initialValue: kSupportedScannerOcrLanguages
+                        .any((o) => o.code == _ocrLanguage)
+                    ? _ocrLanguage
+                    : 'auto',
+                decoration: const InputDecoration(
+                  isDense: true,
+                  border: OutlineInputBorder(),
+                ),
+                items: kSupportedScannerOcrLanguages
+                    .map(
+                      (o) => DropdownMenuItem(
+                        value: o.code,
+                        child: Text(o.label, overflow: TextOverflow.ellipsis),
+                      ),
+                    )
+                    .toList(),
+                onChanged: (val) {
+                  if (val == null) return;
+                  setState(() => _ocrLanguage = val);
+                  widget.onSettingsChanged(
+                    widget.settings.copyWith(ocrLanguage: val),
+                  );
                 },
               ),
             ],
