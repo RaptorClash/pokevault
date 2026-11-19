@@ -89,5 +89,25 @@ void main() {
       final nv21 = CameraFrameProcessor.bgraToNv21(frame);
       expect(nv21.length, 24);
     });
+
+    test('records lastDiagnosticHint when customRecognizer throws instead of swallowing silently', () async {
+      final driver = MobileOcrDriver(
+        customRecognizer: (_, _) async {
+          throw Exception('ML Kit Japanese model missing');
+        },
+      );
+
+      final frame = CapturedFrame(
+        width: 4,
+        height: 4,
+        bytes: Uint8List(4 * 4 * 4),
+        pixelFormat: 'bgra8888',
+      );
+
+      final lines = await driver.recognizeText(frame);
+      expect(lines, isEmpty);
+      expect(driver.lastDiagnosticHint, isNotNull);
+      expect(driver.lastDiagnosticHint, contains('ML Kit Japanese model missing'));
+    });
   });
 }

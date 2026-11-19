@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:math' as math;
 import 'package:camera/camera.dart';
-import 'package:file_selector/file_selector.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -11,25 +10,29 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 import '../../main.dart' show appNavigatorKey;
 import '../../models/pokemon.dart';
+import '../../models/tutorial_step.dart';
 import '../../models/user_dex.dart';
 import '../../providers/dex_provider.dart';
 import '../../providers/settings_provider.dart';
+import '../../providers/tutorial_provider.dart';
 import '../../services/database_service.dart';
 import '../../services/desktop_tracker/desktop_capture_driver.dart';
 import '../../services/desktop_tracker/evolution_chain_helper.dart';
 import '../../services/desktop_tracker/tracker_alert_service.dart';
 import '../../services/desktop_tracker/windows_desktop_bridge.dart';
-import '../../services/mobile_scanner/camera_frame_processor.dart';
+import '../../services/camera_ocr/platform_camera_ocr_driver.dart';
+import '../../services/mobile_scanner/camera_frame_pump.dart';
+import '../../services/mobile_scanner/camera_image_converter.dart';
 import '../../services/mobile_scanner/camera_scan_region.dart';
 import '../../services/mobile_scanner/mobile_camera_source.dart';
 import '../../services/mobile_scanner/mobile_camera_tracker_service.dart';
-import '../../services/mobile_scanner/mobile_ocr_driver.dart';
 import '../../services/scanner_core/media/image_frame_decoder.dart';
 import '../../services/scanner_core/models/scanner_event.dart';
 import '../../services/scanner_core/models/scanner_settings.dart';
 import '../../services/scanner_core/scanner_coordinator.dart';
 import '../../services/scanner_core/scanner_persistence_service.dart';
 import '../../utils/dex_logic_helper.dart';
+import '../../widgets/tutorial/tutorial_overlay.dart';
 import '../desktop_tracker/widgets/custom_pattern_studio_dialog.dart';
 import '../desktop_tracker/widgets/dex_selection_modal.dart';
 import 'widgets/camera_region_overlay.dart';
@@ -66,11 +69,18 @@ class MobileCameraTrackerScreen extends StatefulWidget {
 }
 
 class _MobileCameraTrackerScreenState extends State<MobileCameraTrackerScreen>
-    with SingleTickerProviderStateMixin {
+    with SingleTickerProviderStateMixin, WidgetsBindingObserver {
   static const String _regionsPrefsKey = 'pokevault_mobile_camera_regions_v1';
   static const String _scanModePrefsKey =
       'pokevault_mobile_camera_scan_mode_v1';
   static const String _multiSlotsPrefsKey = 'pokevault_mobile_multi_slots_v1';
+
+  final GlobalKey _tutModesKey = GlobalKey();
+  final GlobalKey _tutPhotoKey = GlobalKey();
+  final GlobalKey _tutPipKey = GlobalKey();
+  final GlobalKey _tutViewportKey = GlobalKey();
+  final GlobalKey _tutBottomPanelKey = GlobalKey();
+  bool _hasTriggeredMobileTutorial = false;
 
   late final MobileCameraSource _cameraSource;
   late final bool _ownsCameraSource;
@@ -85,6 +95,7 @@ class _MobileCameraTrackerScreenState extends State<MobileCameraTrackerScreen>
   StreamSubscription<List<ScannerEvent>>? _focusSub;
 
   CameraController? _cameraController;
+  CameraFramePump? _framePump;
   List<CameraDescription> _cameras = const [];
   int _selectedCameraIndex = 0;
   bool _isInitializingCamera = false;
@@ -92,7 +103,7 @@ class _MobileCameraTrackerScreenState extends State<MobileCameraTrackerScreen>
   String? _cameraErrorText;
   bool _convertingFrame = false;
   double _minZoom = 1.0;
-  double _maxZoom = 4.0;
+  double _maxZoom = 1.0;
   double _zoomLevel = 1.0;
   bool _torchEnabled = false;
   double? _livePreviewAspectRatio;
@@ -135,6 +146,7 @@ class _MobileCameraTrackerScreenState extends State<MobileCameraTrackerScreen>
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _splitTabController = TabController(length: 3, vsync: this);
     _selectedDexId = widget.initialDexId ?? _trackerService.activeDexId;
     _permissionDenied = widget.simulatePermissionDenied;
@@ -156,7 +168,9 @@ class _MobileCameraTrackerScreenState extends State<MobileCameraTrackerScreen>
       _ownsCameraSource = false;
     } else {
       _cameraSource = MobileCameraSource(
-        ocrDriver: MobileOcrDriver(),
+        ocrDriver: createPlatformCameraOcrDriver(
+          initialPreprocessProfile: widget.coordinator.settings.preprocessProfile,
+        ),
         preprocessProfile: widget.coordinator.settings.preprocessProfile,
       );
       _ownsCameraSource = true;
@@ -167,6 +181,12 @@ class _MobileCameraTrackerScreenState extends State<MobileCameraTrackerScreen>
     if (existingController is CameraController &&
         existingController.value.isInitialized) {
       _cameraController = existingController;
+      _framePump = _trackerService.activeFramePump;
+      _cameras = _trackerService.cachedCameras;
+      _selectedCameraIndex = _trackerService.selectedCameraIndex;
+      _minZoom = _trackerService.minZoom;
+      _maxZoom = _trackerService.maxZoom;
+      _livePreviewAspectRatio = _trackerService.previewAspectRatioNotifier.value;
       _torchEnabled = _trackerService.torchEnabledNotifier.value;
       _zoomLevel = _trackerService.zoomLevelNotifier.value;
     }
@@ -193,6 +213,7 @@ class _MobileCameraTrackerScreenState extends State<MobileCameraTrackerScreen>
       pipCameraPreviewBuilder: _buildPipPreviewWidget,
       onExpandFromPip: _reopenFromPip,
       onToggleTorch: _toggleTorch,
+      ownsCameraSource: _ownsCameraSource,
     );
     _trackerService.attachPipCallbacks(onDisposeCamera: _disposeHardwareCamera);
     if (_trackerService.viewMode == MobileScannerViewMode.pip) {
@@ -224,6 +245,28 @@ class _MobileCameraTrackerScreenState extends State<MobileCameraTrackerScreen>
         _cameraController == null) {
       unawaited(_initHardwareCamera());
     }
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        _showMobileScannerTutorialIfNeeded();
+      }
+    });
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    if (widget.disableHardwareCamera || widget.simulatePermissionDenied) return;
+    if (_handedOffToPip) return;
+
+    if (state == AppLifecycleState.inactive ||
+        state == AppLifecycleState.paused) {
+      unawaited(_disposeHardwareCamera());
+    } else if (state == AppLifecycleState.resumed) {
+      if (_cameraController == null && !_isInitializingCamera) {
+        unawaited(_initHardwareCamera());
+      }
+    }
   }
 
   @override
@@ -234,6 +277,8 @@ class _MobileCameraTrackerScreenState extends State<MobileCameraTrackerScreen>
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    TutorialOverlay.resetShowing();
     _splitTabController.dispose();
     _eventSub?.cancel();
     _focusSub?.cancel();
@@ -242,9 +287,6 @@ class _MobileCameraTrackerScreenState extends State<MobileCameraTrackerScreen>
       unawaited(_disableWakelock());
       unawaited(_disposeHardwareCamera());
       unawaited(_trackerService.stopSession());
-      if (_ownsCameraSource) {
-        unawaited(_cameraSource.dispose());
-      }
     }
     super.dispose();
   }
@@ -358,13 +400,11 @@ class _MobileCameraTrackerScreenState extends State<MobileCameraTrackerScreen>
       await _startCameraController(_cameras[_selectedCameraIndex]);
     } on CameraException catch (e) {
       if (!mounted) return;
-      final code = e.code.toLowerCase();
-      final isDenied =
-          code.contains('access') || code.contains('denied') || code.contains('permission');
+      final formatted = CameraImageConverter.formatCameraError(e);
       setState(() {
         _isInitializingCamera = false;
-        _permissionDenied = isDenied;
-        _cameraErrorText = e.description ?? e.code;
+        _permissionDenied = formatted.isPermissionDenied;
+        _cameraErrorText = formatted.message;
       });
     } catch (e) {
       if (!mounted) return;
@@ -375,7 +415,15 @@ class _MobileCameraTrackerScreenState extends State<MobileCameraTrackerScreen>
     }
   }
 
+  bool get _supportsTorchControl =>
+      !kIsWeb &&
+      (defaultTargetPlatform == TargetPlatform.android ||
+          defaultTargetPlatform == TargetPlatform.iOS);
+
   Future<void> _startCameraController(CameraDescription desc) async {
+    await _framePump?.dispose();
+    _framePump = null;
+
     final prev = _cameraController;
     _cameraController = null;
     if (prev != null) {
@@ -391,27 +439,71 @@ class _MobileCameraTrackerScreenState extends State<MobileCameraTrackerScreen>
       desc,
       ResolutionPreset.high,
       enableAudio: false,
-      imageFormatGroup: defaultTargetPlatform == TargetPlatform.iOS
-          ? ImageFormatGroup.bgra8888
-          : ImageFormatGroup.yuv420,
+      imageFormatGroup: CameraImageConverter.preferredImageFormatGroup(),
     );
 
     await controller.initialize();
-    final minZoom = await controller.getMinZoomLevel();
-    final maxZoom = await controller.getMaxZoomLevel();
-    await controller.startImageStream((image) {
-      unawaited(_handleCameraImage(image, desc.sensorOrientation));
-    });
+
+    double minZoom = 1.0;
+    double maxZoom = 1.0;
+    try {
+      minZoom = await controller.getMinZoomLevel();
+      maxZoom = await controller.getMaxZoomLevel();
+    } catch (_) {
+      minZoom = 1.0;
+      maxZoom = 1.0;
+    }
+
+    final pump = CameraFramePump(
+      startImageStream: () => controller.startImageStream((image) {
+        unawaited(_handleCameraImage(image, desc));
+      }),
+      stopImageStream: () async {
+        if (controller.value.isStreamingImages) {
+          await controller.stopImageStream();
+        }
+      },
+      captureStillBytes: () async {
+        if (!controller.value.isInitialized) return null;
+        final xfile = await controller.takePicture();
+        return await xfile.readAsBytes();
+      },
+      decodeStillFrame: (bytes) => ImageFrameDecoder.decodeBytesToBgraFrame(
+        bytes,
+        captureMethod: kIsWeb ? 'web_webcam_poll' : 'camera_still_poll',
+      ),
+      onDecodedFrame: (frame) async {
+        final nextAspect = frame.width / math.max(1, frame.height);
+        _trackerService.previewAspectRatioNotifier.value = nextAspect;
+        if (mounted &&
+            (_livePreviewAspectRatio == null ||
+                (_livePreviewAspectRatio! - nextAspect).abs() > 0.05)) {
+          setState(() => _livePreviewAspectRatio = nextAspect);
+        }
+        await _cameraSource.submitCameraFrame(frame);
+      },
+      pollInterval: Duration(
+        milliseconds: widget.coordinator.settings.scanIntervalMs,
+      ),
+      forcePollingFallback: kIsWeb,
+    );
+    await pump.start();
 
     if (!mounted) {
+      await pump.dispose();
       try {
-        await controller.stopImageStream();
         await controller.dispose();
       } catch (_) {}
       return;
     }
 
+    _framePump = pump;
     _trackerService.activeCameraController = controller;
+    _trackerService.activeFramePump = pump;
+    _trackerService.cachedCameras = _cameras;
+    _trackerService.selectedCameraIndex = _selectedCameraIndex;
+    _trackerService.minZoom = minZoom;
+    _trackerService.maxZoom = math.max(minZoom, maxZoom);
     setState(() {
       _cameraController = controller;
       _isInitializingCamera = false;
@@ -424,6 +516,10 @@ class _MobileCameraTrackerScreenState extends State<MobileCameraTrackerScreen>
   }
 
   Future<void> _disposeHardwareCamera() async {
+    await _framePump?.dispose();
+    _framePump = null;
+    _trackerService.activeFramePump = null;
+
     final controller = _cameraController ??
         (_trackerService.activeCameraController is CameraController
             ? _trackerService.activeCameraController as CameraController
@@ -444,57 +540,25 @@ class _MobileCameraTrackerScreenState extends State<MobileCameraTrackerScreen>
 
   Future<void> _handleCameraImage(
     CameraImage image,
-    int sensorOrientation,
+    CameraDescription desc,
   ) async {
-    if (_convertingFrame || !_isScanningActive) return;
+    // Cheap throttle check BEFORE copying/converting YUV planes on the UI thread
+    if (_convertingFrame ||
+        !_isScanningActive ||
+        !_cameraSource.shouldProcessFrameNow()) {
+      return;
+    }
     _convertingFrame = true;
     try {
-      CapturedFrame? upright;
-      if (image.planes.length >= 3) {
-        final yPlane = image.planes[0];
-        final uPlane = image.planes[1];
-        final vPlane = image.planes[2];
-        upright = CameraFrameProcessor.convertYuv420ToBgraFrame(
-          width: image.width,
-          height: image.height,
-          yBytes: yPlane.bytes,
-          uBytes: uPlane.bytes,
-          vBytes: vPlane.bytes,
-          yRowStride: yPlane.bytesPerRow,
-          uvRowStride: uPlane.bytesPerRow,
-          uvPixelStride: uPlane.bytesPerPixel ?? 1,
-          sensorOrientation: sensorOrientation,
-        );
-      } else if (image.planes.isNotEmpty) {
-        final p = image.planes.first;
-        final rowBytes = image.width * 4;
-        Uint8List bgra;
-        if (p.bytesPerRow == rowBytes && p.bytes.length >= rowBytes * image.height) {
-          bgra = p.bytes.sublist(0, rowBytes * image.height);
-        } else {
-          bgra = Uint8List(rowBytes * image.height);
-          for (int y = 0; y < image.height; y++) {
-            final srcStart = y * p.bytesPerRow;
-            final dstStart = y * rowBytes;
-            if (srcStart + rowBytes <= p.bytes.length) {
-              bgra.setRange(dstStart, dstStart + rowBytes, p.bytes, srcStart);
-            }
-          }
-        }
-        upright = CameraFrameProcessor.rotateBgraFrame(
-          CapturedFrame(
-            width: image.width,
-            height: image.height,
-            bytes: bgra,
-            pixelFormat: 'bgra8888',
-            captureMethod: 'mobile_camera_bgra',
-          ),
-          sensorOrientation,
-        );
-      }
-
+      final upright = await CameraImageConverter.convertCameraImageInIsolate(
+        image,
+        desc.sensorOrientation,
+        deviceOrientation: _cameraController?.value.deviceOrientation,
+        isFrontCamera: desc.lensDirection == CameraLensDirection.front,
+      );
       if (upright != null) {
         final nextAspect = upright.width / math.max(1, upright.height);
+        _trackerService.previewAspectRatioNotifier.value = nextAspect;
         if (mounted &&
             (_livePreviewAspectRatio == null ||
                 (_livePreviewAspectRatio! - nextAspect).abs() > 0.05)) {
@@ -696,20 +760,9 @@ class _MobileCameraTrackerScreenState extends State<MobileCameraTrackerScreen>
   }
 
   Future<void> _importAndScanPhoto() async {
-    CapturedFrame? frame;
-    if (widget.photoFramePicker != null) {
-      frame = await widget.photoFramePicker!();
-    } else {
-      const typeGroup = XTypeGroup(
-        label: 'Bilder',
-        extensions: ['png', 'jpg', 'jpeg', 'webp', 'bmp'],
-      );
-      final file = await openFile(acceptedTypeGroups: [typeGroup]);
-      if (file == null) return;
-      final bytes = await file.readAsBytes();
-      frame = await ImageFrameDecoder.decodeBytesToBgraFrame(bytes);
-    }
-
+    final frame = await CameraImageConverter.pickAndDecodePhotoFrame(
+      overridePicker: widget.photoFramePicker,
+    );
     if (frame == null || !mounted) return;
     await _cameraSource.processPhotoFrame(frame);
   }
@@ -829,8 +882,10 @@ class _MobileCameraTrackerScreenState extends State<MobileCameraTrackerScreen>
       _isScanningActive = !_isScanningActive;
       if (_isScanningActive) {
         widget.coordinator.start();
+        unawaited(_framePump?.resume());
       } else {
         widget.coordinator.stop();
+        unawaited(_framePump?.pause());
       }
     });
     _trackerService.isPausedNotifier.value = !_isScanningActive;
@@ -1172,65 +1227,126 @@ class _MobileCameraTrackerScreenState extends State<MobileCameraTrackerScreen>
               ),
             ),
             const SizedBox(width: 6),
-            ChoiceChip(
-              key: const Key('btn_scan_mode_auto'),
-              label: const Text('Auto', style: TextStyle(fontSize: 11)),
-              selected: _scanMode == MobileCameraScanMode.autoFull,
-              visualDensity: VisualDensity.compact,
-              onSelected: (_) => _setScanMode(MobileCameraScanMode.autoFull),
-            ),
-            const SizedBox(width: 4),
-            ChoiceChip(
-              key: const Key('btn_scan_mode_draw'),
-              label: const Text('Vierecke', style: TextStyle(fontSize: 11)),
-              selected: _scanMode == MobileCameraScanMode.customRegions,
-              visualDensity: VisualDensity.compact,
-              onSelected: (_) =>
-                  _setScanMode(MobileCameraScanMode.customRegions),
-            ),
-            const SizedBox(width: 4),
-            IconButton(
-              key: const Key('btn_import_photo_scan'),
-              icon: Icon(
-                Icons.photo_library_outlined,
-                color: colors.onSurface,
-                size: 20,
+            KeyedSubtree(
+              key: _tutModesKey,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  ChoiceChip(
+                    key: const Key('btn_scan_mode_auto'),
+                    label: const Text('Auto', style: TextStyle(fontSize: 11)),
+                    selected: _scanMode == MobileCameraScanMode.autoFull,
+                    visualDensity: VisualDensity.compact,
+                    onSelected: (_) =>
+                        _setScanMode(MobileCameraScanMode.autoFull),
+                  ),
+                  const SizedBox(width: 4),
+                  ChoiceChip(
+                    key: const Key('btn_scan_mode_draw'),
+                    label: const Text('Vierecke', style: TextStyle(fontSize: 11)),
+                    selected: _scanMode == MobileCameraScanMode.customRegions,
+                    visualDensity: VisualDensity.compact,
+                    onSelected: (_) =>
+                        _setScanMode(MobileCameraScanMode.customRegions),
+                  ),
+                ],
               ),
-              tooltip: 'Foto scannen',
-              visualDensity: VisualDensity.compact,
-              onPressed: _importAndScanPhoto,
+            ),
+            const SizedBox(width: 4),
+            if (_cameraSource.ocrDriver is WebOcrStatusReportingDriver)
+              Padding(
+                padding: const EdgeInsets.only(right: 4),
+                child: ValueListenableBuilder<WebOcrEngineStatus>(
+                  valueListenable:
+                      (_cameraSource.ocrDriver as WebOcrStatusReportingDriver)
+                          .statusListenable,
+                  builder: (context, status, _) {
+                    return Container(
+                      key: const Key('web_ocr_status_pill'),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: colors.secondaryContainer,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        status.displayLabelDe,
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w600,
+                          color: colors.onSecondaryContainer,
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            KeyedSubtree(
+              key: _tutPhotoKey,
+              child: IconButton(
+                key: const Key('btn_import_photo_scan'),
+                icon: Icon(
+                  Icons.photo_library_outlined,
+                  color: colors.onSurface,
+                  size: 20,
+                ),
+                tooltip: 'Foto scannen',
+                visualDensity: VisualDensity.compact,
+                onPressed: _importAndScanPhoto,
+              ),
+            ),
+            KeyedSubtree(
+              key: _tutPipKey,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  IconButton(
+                    key: const Key('btn_toggle_split_view'),
+                    icon: Icon(
+                      _viewMode == MobileScannerViewMode.split
+                          ? Icons.fullscreen
+                          : Icons.view_agenda_outlined,
+                      color: colors.primary,
+                      size: 20,
+                    ),
+                    tooltip: _viewMode == MobileScannerViewMode.split
+                        ? 'Vollbild'
+                        : 'Split-Screen',
+                    visualDensity: VisualDensity.compact,
+                    onPressed: () {
+                      final next = _viewMode == MobileScannerViewMode.split
+                          ? MobileScannerViewMode.fullscreen
+                          : MobileScannerViewMode.split;
+                      setState(() => _viewMode = next);
+                      _trackerService.setViewMode(next);
+                    },
+                  ),
+                  IconButton(
+                    key: const Key('btn_minimize_to_pip'),
+                    icon: Icon(
+                      Icons.picture_in_picture_alt,
+                      color: colors.onSurface,
+                      size: 20,
+                    ),
+                    tooltip: 'Als Mini-Fenster (PiP)',
+                    visualDensity: VisualDensity.compact,
+                    onPressed: _minimizeToPip,
+                  ),
+                ],
+              ),
             ),
             IconButton(
-              key: const Key('btn_toggle_split_view'),
+              key: const Key('btn_mobile_scanner_help'),
               icon: Icon(
-                _viewMode == MobileScannerViewMode.split
-                    ? Icons.fullscreen
-                    : Icons.view_agenda_outlined,
+                Icons.help_outline,
                 color: colors.primary,
                 size: 20,
               ),
-              tooltip: _viewMode == MobileScannerViewMode.split
-                  ? 'Vollbild'
-                  : 'Split-Screen',
+              tooltip: 'Scanner-Tutorial',
               visualDensity: VisualDensity.compact,
-              onPressed: () {
-                final next = _viewMode == MobileScannerViewMode.split
-                    ? MobileScannerViewMode.fullscreen
-                    : MobileScannerViewMode.split;
-                setState(() => _viewMode = next);
-                _trackerService.setViewMode(next);
-              },
-            ),
-            IconButton(
-              key: const Key('btn_minimize_to_pip'),
-              icon: Icon(
-                Icons.picture_in_picture_alt,
-                color: colors.onSurface,
-                size: 20,
-              ),
-              tooltip: 'Als Mini-Fenster (PiP)',
-              visualDensity: VisualDensity.compact,
-              onPressed: _minimizeToPip,
+              onPressed: () => _startMobileScannerTutorial(force: true),
             ),
           ],
         ),
@@ -1239,8 +1355,10 @@ class _MobileCameraTrackerScreenState extends State<MobileCameraTrackerScreen>
   }
 
   Widget _buildCameraViewport() {
-    return Container(
-      key: const Key('mobile_camera_preview_surface'),
+    return KeyedSubtree(
+      key: _tutViewportKey,
+      child: Container(
+        key: const Key('mobile_camera_preview_surface'),
       color: const Color(0xFF0A0C12),
       child: Stack(
         fit: StackFit.expand,
@@ -1318,13 +1436,15 @@ class _MobileCameraTrackerScreenState extends State<MobileCameraTrackerScreen>
                     onTap: _toggleScanning,
                     active: _isScanningActive,
                   ),
-                  const SizedBox(height: 6),
-                  _cameraSideButton(
-                    icon: _torchEnabled ? Icons.flash_on : Icons.flash_off,
-                    tooltip: 'Taschenlampe',
-                    onTap: _toggleTorch,
-                    active: _torchEnabled,
-                  ),
+                  if (_supportsTorchControl) ...[
+                    const SizedBox(height: 6),
+                    _cameraSideButton(
+                      icon: _torchEnabled ? Icons.flash_on : Icons.flash_off,
+                      tooltip: 'Taschenlampe',
+                      onTap: _toggleTorch,
+                      active: _torchEnabled,
+                    ),
+                  ],
                   if (_cameras.length > 1) ...[
                     const SizedBox(height: 6),
                     _cameraSideButton(
@@ -1345,14 +1465,25 @@ class _MobileCameraTrackerScreenState extends State<MobileCameraTrackerScreen>
           ],
         ],
       ),
+      ),
     );
   }
 
   Widget _buildFeedWithOverlay() {
     final ctrl = _cameraController;
     final hasLiveCtrl = ctrl != null && ctrl.value.isInitialized;
-    final aspect = _livePreviewAspectRatio ??
-        (hasLiveCtrl ? (1 / ctrl.value.aspectRatio) : null);
+    final isPortrait = MediaQuery.orientationOf(context) == Orientation.portrait;
+    final isMobilePortraitPlugin =
+        !kIsWeb &&
+        isPortrait &&
+        (defaultTargetPlatform == TargetPlatform.android ||
+            defaultTargetPlatform == TargetPlatform.iOS);
+    final controllerAspect = hasLiveCtrl
+        ? (isMobilePortraitPlugin
+            ? (1 / ctrl.value.aspectRatio)
+            : ctrl.value.aspectRatio)
+        : null;
+    final aspect = _livePreviewAspectRatio ?? controllerAspect;
 
     final overlay = CameraRegionOverlay(
       scanMode: _scanMode,
@@ -1623,46 +1754,52 @@ class _MobileCameraTrackerScreenState extends State<MobileCameraTrackerScreen>
   }) {
     final colors = Theme.of(context).colorScheme;
     if (!_isDrawerExpanded) {
-      return InkWell(
-        onTap: () => setState(() => _isDrawerExpanded = true),
-        child: Container(
-          key: const Key('mobile_collapsed_bottom_bar'),
-          decoration: BoxDecoration(
-            color: colors.surfaceContainerHigh,
-            border: Border(top: BorderSide(color: colors.outlineVariant)),
-          ),
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          child: Row(
-            children: [
-              Icon(Icons.keyboard_arrow_up, color: colors.primary, size: 18),
-              const SizedBox(width: 6),
-              Expanded(
-                child: Text(
-                  'Fokus, Zonen & Feed (${_events.length})',
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(color: colors.onSurface, fontSize: 12),
+      return KeyedSubtree(
+        key: _tutBottomPanelKey,
+        child: InkWell(
+          onTap: () => setState(() => _isDrawerExpanded = true),
+          child: Container(
+            key: const Key('mobile_collapsed_bottom_bar'),
+            decoration: BoxDecoration(
+              color: colors.surfaceContainerHigh,
+              border: Border(top: BorderSide(color: colors.outlineVariant)),
+            ),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            child: Row(
+              children: [
+                Icon(Icons.keyboard_arrow_up, color: colors.primary, size: 18),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: Text(
+                    'Fokus, Zonen & Feed (${_events.length})',
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(color: colors.onSurface, fontSize: 12),
+                  ),
                 ),
-              ),
-              Text(
-                activeDex?.title ?? '',
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(color: colors.onSurfaceVariant, fontSize: 11),
-              ),
-            ],
+                Text(
+                  activeDex?.title ?? '',
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(color: colors.onSurfaceVariant, fontSize: 11),
+                ),
+              ],
+            ),
           ),
         ),
       );
     }
 
-    return SizedBox(
-      height: maxHeight,
-      child: _buildTabbedPanel(
-        activeDex: activeDex,
-        byId: byId,
-        headerAction: IconButton(
-          icon: const Icon(Icons.keyboard_arrow_down, size: 18),
-          visualDensity: VisualDensity.compact,
-          onPressed: () => setState(() => _isDrawerExpanded = false),
+    return KeyedSubtree(
+      key: _tutBottomPanelKey,
+      child: SizedBox(
+        height: maxHeight,
+        child: _buildTabbedPanel(
+          activeDex: activeDex,
+          byId: byId,
+          headerAction: IconButton(
+            icon: const Icon(Icons.keyboard_arrow_down, size: 18),
+            visualDensity: VisualDensity.compact,
+            onPressed: () => setState(() => _isDrawerExpanded = false),
+          ),
         ),
       ),
     );
@@ -1678,6 +1815,8 @@ class _MobileCameraTrackerScreenState extends State<MobileCameraTrackerScreen>
       return Column(
         children: [
           _buildTopToolbar(dexProv, activeDex),
+          if (_scanMode == MobileCameraScanMode.customRegions)
+            _buildDrawBrushBar(),
           Expanded(
             child: Row(
               children: [
@@ -1844,6 +1983,86 @@ class _MobileCameraTrackerScreenState extends State<MobileCameraTrackerScreen>
           ),
         ],
       ),
+    );
+  }
+
+  void _showMobileScannerTutorialIfNeeded() {
+    if (!mounted || _hasTriggeredMobileTutorial) return;
+    _hasTriggeredMobileTutorial = true;
+
+    TutorialProvider? tutProvider;
+    try {
+      tutProvider = Provider.of<TutorialProvider>(context, listen: false);
+    } catch (_) {
+      return;
+    }
+
+    if (tutProvider.hasSeenFeature('mobile_scanner_tour')) return;
+    _startMobileScannerTutorial();
+  }
+
+  void _startMobileScannerTutorial({bool force = false}) {
+    if (!mounted) return;
+    TutorialProvider? tutProvider;
+    try {
+      tutProvider = Provider.of<TutorialProvider>(context, listen: false);
+    } catch (_) {
+      tutProvider = null;
+    }
+
+    if (force) {
+      TutorialOverlay.resetShowing();
+    }
+
+    TutorialOverlay.show(
+      context,
+      TutorialFeature(
+        id: 'mobile_scanner_tour',
+        nameKey: 'tutorial_chapter_scanner_mobile_title',
+        steps: [
+          TutorialStep(
+            targetKey: _tutViewportKey,
+            titleKey: 'tutorial_scanner_mob_camera_title',
+            textKey: 'tutorial_scanner_mob_camera_text',
+            rotomMood: RotomMood.happy,
+          ),
+          TutorialStep(
+            targetKey: _tutModesKey,
+            titleKey: 'tutorial_scanner_mob_modes_title',
+            textKey: 'tutorial_scanner_mob_modes_text',
+            rotomMood: RotomMood.explaining,
+          ),
+          TutorialStep(
+            targetKey: _tutPhotoKey,
+            titleKey: 'tutorial_scanner_mob_photo_title',
+            textKey: 'tutorial_scanner_mob_photo_text',
+            rotomMood: RotomMood.explaining,
+          ),
+          TutorialStep(
+            targetKey: _tutPipKey,
+            titleKey: 'tutorial_scanner_mob_pip_title',
+            textKey: 'tutorial_scanner_mob_pip_text',
+            rotomMood: RotomMood.thinking,
+          ),
+          TutorialStep(
+            targetKey: _viewMode == MobileScannerViewMode.fullscreen
+                ? _tutBottomPanelKey
+                : null,
+            titleKey: 'tutorial_scanner_mob_dex_title',
+            textKey: 'tutorial_scanner_mob_dex_text',
+            rotomMood: RotomMood.happy,
+          ),
+        ],
+      ),
+      () {
+        tutProvider?.markFeatureAsSeen('mobile_scanner_tour');
+        tutProvider?.endScannerDeltaTour();
+        if (tutProvider != null &&
+            tutProvider.completedTutorialVersion <
+                TutorialProvider.currentTutorialVersion) {
+          unawaited(tutProvider.completeScannerTutorial());
+        }
+      },
     );
   }
 }

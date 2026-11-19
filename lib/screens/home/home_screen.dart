@@ -31,15 +31,10 @@ import '../moves/moves_dex_screen.dart';
 import '../abilities/abilities_dex_screen.dart';
 import '../../providers/shiny_hunt_provider.dart';
 import '../shiny_hunt/shiny_hunts_hub_screen.dart';
-import '../desktop_tracker/desktop_tracker_screen.dart';
 import '../desktop_tracker/widgets/persistent_tracker_dock.dart';
 import '../../services/desktop_tracker/desktop_tracker_service.dart';
-import '../mobile_scanner/mobile_camera_tracker_screen.dart';
-import '../../services/mobile_scanner/mobile_camera_tracker_service.dart';
-import '../../services/scanner_core/scanner_coordinator.dart';
-import '../../services/scanner_core/scanner_launcher_helper.dart';
-import '../../services/scanner_core/models/scanner_settings.dart';
 import '../../services/scanner_core/models/scanner_event.dart';
+import '../../services/scanner_core/scanner_launcher_helper.dart';
 
 class HomeScreen extends StatefulWidget {
   final String currentFolderId;
@@ -57,6 +52,7 @@ class _HomeScreenState extends State<HomeScreen> {
   final GlobalKey _sortDropdownKey = GlobalKey();
   final GlobalKey _settingsActionKey = GlobalKey();
   final GlobalKey _shinyHuntActionKey = GlobalKey();
+  final GlobalKey _scannerActionKey = GlobalKey();
   final Map<String, GlobalKey> _dexKeys = {};
   final Set<String> _selectedItemIds = {};
   String _searchQuery = '';
@@ -171,6 +167,14 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  bool _safeTutFlag(bool Function() read) {
+    try {
+      return read();
+    } catch (_) {
+      return false;
+    }
+  }
+
   void _showTutorialIfNeeded() {
     final tutProvider = Provider.of<TutorialProvider>(context, listen: false);
     final dexProvider = Provider.of<DexProvider>(context, listen: false);
@@ -183,6 +187,48 @@ class _HomeScreenState extends State<HomeScreen> {
         },
       );
       return;
+    }
+
+    if (_safeTutFlag(() => tutProvider.shouldShowScannerUpdatePrompt)) {
+      RotomUpdateWelcomeDialog.show(
+        context,
+        updateType: RotomUpdateType.scanner,
+        onStartTour: () {
+          _showTutorialIfNeeded();
+        },
+      );
+      return;
+    }
+
+    if (_safeTutFlag(() => tutProvider.isScannerDeltaTourActive)) {
+      final hasScannerBtn =
+          TrackerPlatformHelper.isDesktopOverlaySupported ||
+              TrackerPlatformHelper.isCameraTrackerSupported;
+      if (hasScannerBtn && _currentFolderId == 'root') {
+        TutorialOverlay.show(
+          context,
+          TutorialFeature(
+            id: 'scanner_delta_home',
+            nameKey: 'tutorial_scanner_tour_btn',
+            steps: [
+              TutorialStep(
+                targetKey: _scannerActionKey,
+                titleKey: 'tutorial_scanner_home_delta_title',
+                textKey: 'tutorial_scanner_home_delta_text',
+                rotomMood: RotomMood.happy,
+                requireTargetTap: true,
+                onTargetTap: () {
+                  tutProvider.endScannerDeltaTour();
+                  _openPlatformTrackerSelector();
+                },
+              ),
+            ],
+          ),
+          () => tutProvider.endScannerDeltaTour(),
+        );
+        return;
+      }
+      tutProvider.endScannerDeltaTour();
     }
 
     if (tutProvider.isDeltaTourActive) {
@@ -508,67 +554,22 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _openDesktopTracker() {
-    if (!TrackerPlatformHelper.isDesktop) return;
     final dexProvider = Provider.of<DexProvider>(context, listen: false);
-    final existingService = DesktopTrackerService.instance;
-    final ScannerCoordinator coordinator;
-
-    if (existingService.coordinator != null && existingService.isTrackingActive) {
-      coordinator = existingService.coordinator!;
-    } else {
-      coordinator = ScannerLauncherHelper.buildCoordinator(
-        dexProvider.allPokemon,
-      );
-    }
-
-    Navigator.push(
+    ScannerLauncherHelper.openDesktopOverlayTracker(
       context,
-      MaterialPageRoute(
-        builder: (context) => DesktopTrackerScreen(
-          coordinator: coordinator,
-          windowSource: existingService.windowSource,
-          initialDexId: existingService.activeDexId,
-        ),
-      ),
+      allPokemon: dexProvider.allPokemon,
     );
   }
 
-  void _openMobileCameraTracker() {
-    if (!TrackerPlatformHelper.isMobile) return;
+  void _openPlatformTrackerSelector() {
     final dexProvider = Provider.of<DexProvider>(context, listen: false);
-    final mobileService = MobileCameraTrackerService.instance;
-    final ScannerCoordinator coordinator;
-
-    if (mobileService.coordinator != null && mobileService.isTrackingActive) {
-      coordinator = mobileService.coordinator!;
-    } else {
-      coordinator = ScannerLauncherHelper.buildCoordinator(
-        dexProvider.allPokemon,
-        settings: ScannerSettings.defaults().copyWith(
-          preprocessProfile: OcrPreprocessProfile.cameraDisplay,
-        ),
-      );
-    }
-
-    Navigator.push(
+    ScannerLauncherHelper.openPlatformTracker(
       context,
-      MaterialPageRoute(
-        builder: (context) => MobileCameraTrackerScreen(
-          coordinator: coordinator,
-          cameraSource: mobileService.cameraSource,
-          initialDexId: mobileService.activeDexId,
-        ),
-      ),
+      allPokemon: dexProvider.allPokemon,
     );
   }
 
-  void _openPlatformTracker() {
-    if (TrackerPlatformHelper.isDesktop) {
-      _openDesktopTracker();
-    } else if (TrackerPlatformHelper.isMobile) {
-      _openMobileCameraTracker();
-    }
-  }
+  void _openPlatformTracker() => _openPlatformTrackerSelector();
 
   void _openCreateBottomSheet() {
     final provider = Provider.of<DexProvider>(context, listen: false);
@@ -906,17 +907,23 @@ class _HomeScreenState extends State<HomeScreen> {
                       },
                     ),
                     if (_currentFolderId == 'root') ...[
-                      if (TrackerPlatformHelper.isDesktop)
+                      if (TrackerPlatformHelper.isDesktopOverlaySupported)
                         IconButton(
+                          key: _scannerActionKey,
                           icon: const Icon(Icons.track_changes),
-                          tooltip: 'Desktop Tracker & Overlay',
-                          onPressed: _openDesktopTracker,
-                        ),
-                      if (TrackerPlatformHelper.isMobile)
+                          tooltip: TrackerPlatformHelper.isCameraTrackerSupported
+                              ? 'Tracker & Webcam wählen'
+                              : 'Desktop Tracker & Overlay',
+                          onPressed: _openPlatformTrackerSelector,
+                        )
+                      else if (TrackerPlatformHelper.isCameraTrackerSupported)
                         IconButton(
+                          key: _scannerActionKey,
                           icon: const Icon(Icons.photo_camera_outlined),
-                          tooltip: 'Kamera-Tracker',
-                          onPressed: _openMobileCameraTracker,
+                          tooltip: TrackerPlatformHelper.isMobile
+                              ? 'Kamera-Tracker'
+                              : 'Webcam- & Foto-Tracker',
+                          onPressed: _openPlatformTrackerSelector,
                         ),
                       IconButton(
                         key: _settingsActionKey,

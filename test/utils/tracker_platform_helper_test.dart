@@ -71,14 +71,25 @@ void main() {
       expect(TrackerPlatformHelper.isDesktop, isFalse);
       expect(TrackerPlatformHelper.isMobile, isTrue);
 
+      TrackerPlatformHelper.debugIsWebOverride = () => true;
+      expect(TrackerPlatformHelper.isWeb, isTrue);
+
+      TrackerPlatformHelper.debugOverlaySupportedOverride = () => true;
+      TrackerPlatformHelper.debugCameraSupportedOverride = () => true;
+      expect(TrackerPlatformHelper.isDesktopOverlaySupported, isTrue);
+      expect(TrackerPlatformHelper.isCameraTrackerSupported, isTrue);
+
       TrackerPlatformHelper.resetDebugOverrides();
       // Test runner runs on desktop host (Windows/Linux/macOS)
       expect(TrackerPlatformHelper.isDesktop || TrackerPlatformHelper.isMobile, isTrue);
     });
 
-    testWidgets('HomeScreen shows Desktop Tracker icon on desktop and hides Camera icon', (tester) async {
+    testWidgets('HomeScreen on Windows shows 1 Tracker icon and opens unified DesktopTrackerScreen directly', (tester) async {
       TrackerPlatformHelper.debugIsDesktopOverride = () => true;
       TrackerPlatformHelper.debugIsMobileOverride = () => false;
+      TrackerPlatformHelper.debugIsWebOverride = () => false;
+      TrackerPlatformHelper.debugOverlaySupportedOverride = () => true;
+      TrackerPlatformHelper.debugCameraSupportedOverride = () => true;
 
       await tester.pumpWidget(
         MultiProvider(
@@ -96,11 +107,49 @@ void main() {
 
       expect(find.byIcon(Icons.track_changes), findsOneWidget);
       expect(find.byIcon(Icons.photo_camera_outlined), findsNothing);
+
+      await tester.tap(find.byIcon(Icons.track_changes));
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(const Key('tracker_chooser_overlay')), findsNothing);
+      expect(find.text('Desktop Tracker & Overlay'), findsOneWidget);
+    });
+
+    testWidgets('HomeScreen shows Camera/Webcam icon on Web/Linux/macOS and opens DesktopTrackerScreen directly', (tester) async {
+      TrackerPlatformHelper.debugIsDesktopOverride = () => false;
+      TrackerPlatformHelper.debugIsMobileOverride = () => false;
+      TrackerPlatformHelper.debugIsWebOverride = () => true;
+      TrackerPlatformHelper.debugOverlaySupportedOverride = () => false;
+      TrackerPlatformHelper.debugCameraSupportedOverride = () => true;
+
+      await tester.pumpWidget(
+        MultiProvider(
+          providers: [
+            ChangeNotifierProvider<DexProvider>.value(value: mockDexProvider),
+            ChangeNotifierProvider<TutorialProvider>.value(value: mockTutorialProvider),
+            ChangeNotifierProvider<SettingsProvider>.value(value: mockSettingsProvider),
+          ],
+          child: TranslationProvider(
+            child: const MaterialApp(home: HomeScreen()),
+          ),
+        ),
+      );
+      await tester.pump();
+
+      expect(find.byIcon(Icons.track_changes), findsNothing);
+      expect(find.byIcon(Icons.photo_camera_outlined), findsOneWidget);
+
+      await tester.tap(find.byIcon(Icons.photo_camera_outlined));
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(const Key('desktop_webcam_stage')), findsOneWidget);
     });
 
     testWidgets('HomeScreen hides Desktop Tracker icon on mobile and shows Camera Scanner icon', (tester) async {
       TrackerPlatformHelper.debugIsDesktopOverride = () => false;
       TrackerPlatformHelper.debugIsMobileOverride = () => true;
+      TrackerPlatformHelper.debugOverlaySupportedOverride = () => false;
+      TrackerPlatformHelper.debugCameraSupportedOverride = () => true;
 
       await tester.pumpWidget(
         MultiProvider(

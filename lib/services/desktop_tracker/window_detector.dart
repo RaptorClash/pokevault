@@ -45,6 +45,9 @@ class DesktopWindowInfo {
   final bool isMinimized;
   final bool isVirtualDesktop;
   final int monitorIndex;
+  final bool isCameraSource;
+  final int cameraIndex;
+  final int sensorOrientation;
 
   const DesktopWindowInfo({
     required this.id,
@@ -60,6 +63,9 @@ class DesktopWindowInfo {
     this.isMinimized = false,
     this.isVirtualDesktop = false,
     this.monitorIndex = 0,
+    this.isCameraSource = false,
+    this.cameraIndex = -1,
+    this.sensorOrientation = 0,
   });
 
   /// Factory for the entire desktop / primary monitor display.
@@ -83,12 +89,56 @@ class DesktopWindowInfo {
     );
   }
 
+  /// Factory for a live physical/virtual webcam source integrated into DesktopTrackerScreen.
+  factory DesktopWindowInfo.webcam({
+    required int index,
+    required String name,
+    int sensorOrientation = 0,
+    double width = 1280.0,
+    double height = 720.0,
+  }) {
+    final cleaned = name.trim().isEmpty ? 'Webcam ${index + 1}' : name.trim();
+    return DesktopWindowInfo(
+      id: -1000 - index,
+      hwnd: 0,
+      title: '📷 $cleaned',
+      processName: 'Webcam',
+      width: width,
+      height: height,
+      isCameraSource: true,
+      cameraIndex: index,
+      sensorOrientation: sensorOrientation,
+    );
+  }
+
+  /// Fallback camera source when no webcam is connected, enabling manual photo OCR import.
+  factory DesktopWindowInfo.webcamFallbackPhoto({
+    String title = '📷 Webcam / Foto-Scan',
+  }) {
+    return DesktopWindowInfo(
+      id: -1000,
+      hwnd: 0,
+      title: title,
+      processName: 'Webcam',
+      width: 1280.0,
+      height: 720.0,
+      isCameraSource: true,
+      cameraIndex: -1,
+    );
+  }
+
   bool get isKnownEmulator => emulatorType != EmulatorType.unknown;
 
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
     if (other is! DesktopWindowInfo) return false;
+    if (isCameraSource || other.isCameraSource) {
+      return isCameraSource &&
+          other.isCameraSource &&
+          cameraIndex == other.cameraIndex &&
+          title == other.title;
+    }
     if (isDesktopScreen || other.isDesktopScreen) {
       return isDesktopScreen &&
           other.isDesktopScreen &&
@@ -106,6 +156,9 @@ class DesktopWindowInfo {
 
   @override
   int get hashCode {
+    if (isCameraSource) {
+      return Object.hash('webcam', cameraIndex, title);
+    }
     if (isDesktopScreen) {
       return Object.hash(true, monitorIndex, isVirtualDesktop);
     }
@@ -116,7 +169,7 @@ class DesktopWindowInfo {
 
   @override
   String toString() =>
-      'DesktopWindowInfo(id: $id, hwnd: $hwnd, title: "$title", emu: $emulatorType, proc: $processName, desktop: $isDesktopScreen, min: $isMinimized)';
+      'DesktopWindowInfo(id: $id, hwnd: $hwnd, title: "$title", emu: $emulatorType, proc: $processName, desktop: $isDesktopScreen, cam: $isCameraSource#$cameraIndex, min: $isMinimized)';
 }
 
 /// Detects running emulator windows, parses ROM titles, and calculates scan regions.

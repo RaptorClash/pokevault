@@ -224,5 +224,23 @@ void main() {
       await sub.cancel();
       await source.dispose();
     });
+
+    test('shouldProcessFrameNow respects running state and pollInterval before frame conversion', () async {
+      final ocr = _FakeRegionOcrDriver((_) => 'Pikachu');
+      final source = MobileCameraSource(
+        ocrDriver: ocr,
+        pollInterval: const Duration(milliseconds: 500),
+      );
+
+      expect(source.shouldProcessFrameNow(), isFalse);
+      await source.start();
+      expect(source.shouldProcessFrameNow(), isTrue);
+
+      await source.submitCameraFrame(_makeTwoToneFrame(bottomVal: 200));
+      // Immediately after processing, shouldProcessFrameNow returns false until pollInterval elapses
+      expect(source.shouldProcessFrameNow(), isFalse);
+
+      await source.dispose();
+    });
   });
 }

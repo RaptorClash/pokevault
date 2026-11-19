@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../utils/tracker_platform_helper.dart';
 
 enum RotomMood { happy, explaining, thinking, alert }
 
@@ -63,6 +64,9 @@ class TutorialChapter {
   final int stepCount;
   final List<TutorialStep> demoSteps;
 
+  /// Platform filter: `null` = all platforms, `true` = Mobile only, `false` = Desktop/Web only.
+  final bool? mobileOnly;
+
   const TutorialChapter({
     required this.id,
     required this.titleKey,
@@ -72,13 +76,22 @@ class TutorialChapter {
     required this.requiredFeatureKeys,
     required this.stepCount,
     this.demoSteps = const [],
+    this.mobileOnly,
   });
 
   bool get isNewInV16 => version == 2;
+  bool get isNewInV17 => version == 3;
 }
 
 /// Central registry of all tutorial chapters and their interactive demo steps.
 class TutorialChapters {
+  static List<TutorialChapter> visibleForPlatform({bool? isMobile}) {
+    final mobile = isMobile ?? TrackerPlatformHelper.isMobile;
+    return all
+        .where((c) => c.mobileOnly == null || c.mobileOnly == mobile)
+        .toList(growable: false);
+  }
+
   static final List<TutorialChapter> all = [
     // 1. Home & Collection
     TutorialChapter(
@@ -429,6 +442,84 @@ class TutorialChapters {
         TutorialStep(
           titleKey: 'tutorial_backup_restore_title',
           textKey: 'tutorial_backup_restore_text',
+          rotomMood: RotomMood.happy,
+        ),
+      ],
+    ),
+
+    // 11a. Mobile Kamera- & Foto-Scanner (v1.7)
+    TutorialChapter(
+      id: 'module_scanner_mobile',
+      titleKey: 'tutorial_chapter_scanner_mobile_title',
+      descKey: 'tutorial_chapter_scanner_mobile_desc',
+      icon: Icons.photo_camera_outlined,
+      version: 3,
+      mobileOnly: true,
+      requiredFeatureKeys: const ['mobile_scanner_tour'],
+      stepCount: 5,
+      demoSteps: [
+        TutorialStep(
+          titleKey: 'tutorial_scanner_mob_camera_title',
+          textKey: 'tutorial_scanner_mob_camera_text',
+          rotomMood: RotomMood.happy,
+        ),
+        TutorialStep(
+          titleKey: 'tutorial_scanner_mob_modes_title',
+          textKey: 'tutorial_scanner_mob_modes_text',
+          rotomMood: RotomMood.explaining,
+        ),
+        TutorialStep(
+          titleKey: 'tutorial_scanner_mob_photo_title',
+          textKey: 'tutorial_scanner_mob_photo_text',
+          rotomMood: RotomMood.explaining,
+        ),
+        TutorialStep(
+          titleKey: 'tutorial_scanner_mob_pip_title',
+          textKey: 'tutorial_scanner_mob_pip_text',
+          rotomMood: RotomMood.thinking,
+        ),
+        TutorialStep(
+          titleKey: 'tutorial_scanner_mob_dex_title',
+          textKey: 'tutorial_scanner_mob_dex_text',
+          rotomMood: RotomMood.happy,
+        ),
+      ],
+    ),
+
+    // 11b. Desktop Overlay-, Fenster- & Kamera-Scanner (v1.7)
+    TutorialChapter(
+      id: 'module_scanner_desktop',
+      titleKey: 'tutorial_chapter_scanner_desktop_title',
+      descKey: 'tutorial_chapter_scanner_desktop_desc',
+      icon: Icons.track_changes,
+      version: 3,
+      mobileOnly: false,
+      requiredFeatureKeys: const ['desktop_scanner_tour'],
+      stepCount: 5,
+      demoSteps: [
+        TutorialStep(
+          titleKey: 'tutorial_scanner_desk_source_title',
+          textKey: 'tutorial_scanner_desk_source_text',
+          rotomMood: RotomMood.happy,
+        ),
+        TutorialStep(
+          titleKey: 'tutorial_scanner_desk_zones_title',
+          textKey: 'tutorial_scanner_desk_zones_text',
+          rotomMood: RotomMood.explaining,
+        ),
+        TutorialStep(
+          titleKey: 'tutorial_scanner_desk_hud_title',
+          textKey: 'tutorial_scanner_desk_hud_text',
+          rotomMood: RotomMood.explaining,
+        ),
+        TutorialStep(
+          titleKey: 'tutorial_scanner_desk_focus_title',
+          textKey: 'tutorial_scanner_desk_focus_text',
+          rotomMood: RotomMood.thinking,
+        ),
+        TutorialStep(
+          titleKey: 'tutorial_scanner_desk_ocr_title',
+          textKey: 'tutorial_scanner_desk_ocr_text',
           rotomMood: RotomMood.happy,
         ),
       ],

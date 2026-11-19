@@ -1,5 +1,6 @@
-import 'dart:typed_data';
+import 'dart:isolate';
 import 'dart:ui';
+import 'package:flutter/foundation.dart';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 import 'package:universal_io/io.dart' as io;
 import '../desktop_tracker/desktop_capture_driver.dart';
@@ -7,8 +8,8 @@ import '../desktop_tracker/desktop_ocr_driver.dart';
 import '../scanner_core/models/scanner_settings.dart';
 import 'camera_frame_processor.dart';
 
-/// On-device ML Kit OCR driver for Android & iOS supporting all PokéVault script families
-/// (Latin, Japanese, Korean, Chinese) and camera display preprocessing.
+/// On-device ML Kit OCR driver for Android & iOS supporting all 9 Pokémon game
+/// language scripts (Latin, Japanese, Korean, Chinese) and camera display preprocessing.
 class MobileOcrDriver implements LanguageAwareOcrDriver, PreprocessAwareOcrDriver {
   final Future<List<String>> Function(
     CapturedFrame frame,
@@ -18,6 +19,7 @@ class MobileOcrDriver implements LanguageAwareOcrDriver, PreprocessAwareOcrDrive
   String? _languageTag;
   OcrPreprocessProfile _preprocessProfile;
   final Map<TextRecognitionScript, TextRecognizer> _recognizers = {};
+  String? lastDiagnosticHint;
 
   MobileOcrDriver({
     String? initialLanguageTag,
@@ -60,23 +62,30 @@ class MobileOcrDriver implements LanguageAwareOcrDriver, PreprocessAwareOcrDrive
 
   @override
   Future<List<String>> recognizeText(CapturedFrame frame) async {
+    lastDiagnosticHint = null;
     if (frame.width <= 0 || frame.height <= 0 || frame.bytes.isEmpty) {
       return const [];
     }
 
-    final processed = CameraFrameProcessor.applyPreprocessProfile(
-      frame,
-      _preprocessProfile,
-    );
     final script = scriptForLanguageTag(_languageTag);
+    final profile = _preprocessProfile;
 
     if (customRecognizer != null) {
-      final raw = await customRecognizer!(processed, script);
-      return raw.map((l) => l.trim()).where((l) => l.isNotEmpty).toList();
+      try {
+        final processed = CameraFrameProcessor.applyPreprocessProfile(frame, profile);
+        final raw = await customRecognizer!(processed, script);
+        return raw.map((l) => l.trim()).where((l) => l.isNotEmpty).toList();
+      } catch (e) {
+        lastDiagnosticHint = 'ML Kit OCR Fehler (${script.name}): $e';
+        return const [];
+      }
     }
 
-    final inputImage = _buildInputImage(processed);
-    if (inputImage == null) return const [];
+    final inputImage = await _buildInputImageAsync(frame, profile);
+    if (inputImage == null) {
+      lastDiagnosticHint ??= 'Ungültige Bilddaten für ML Kit OCR';
+      return const [];
+    }
 
     try {
       final recognizer = _getOrCreateRecognizer(script);
@@ -86,12 +95,16 @@ class MobileOcrDriver implements LanguageAwareOcrDriver, PreprocessAwareOcrDrive
           .map((line) => line.text.trim())
           .where((text) => text.isNotEmpty)
           .toList();
-    } catch (_) {
+    } catch (e) {
+      lastDiagnosticHint = 'ML Kit OCR Fehler (${script.name}): $e';
       return const [];
     }
   }
 
-  InputImage? _buildInputImage(CapturedFrame frame) {
+  Future<InputImage?> _buildInputImageAsync(
+    CapturedFrame frame,
+    OcrPreprocessProfile profile,
+  ) async {
     if (frame.filePath != null && frame.filePath!.isNotEmpty) {
       return InputImage.fromFilePath(frame.filePath!);
     }
@@ -102,28 +115,52 @@ class MobileOcrDriver implements LanguageAwareOcrDriver, PreprocessAwareOcrDrive
     if (rawBytes.isEmpty) return null;
 
     final isIos = io.Platform.isIOS;
-    final Uint8List bytes;
-    final InputImageFormat format;
-    final int bytesPerRow;
+    final pixelCount = frame.width * frame.height;
+    final useIsolate = !kIsWeb && pixelCount > 16000;
 
     if (isIos) {
-      bytes = rawBytes;
-      format = InputImageFormat.bgra8888;
-      bytesPerRow = frame.width * 4;
-    } else {
-      bytes = CameraFrameProcessor.bgraToNv21(frame);
-      if (bytes.isEmpty) return null;
-      format = InputImageFormat.nv21;
-      bytesPerRow = frame.width;
+      final processed = useIsolate
+          ? await Isolate.run(
+              () => CameraFrameProcessor.applyPreprocessProfile(frame, profile),
+            )
+          : CameraFrameProcessor.applyPreprocessProfile(frame, profile);
+      final iosBytes = processed.bytes is Uint8List
+          ? processed.bytes as Uint8List
+          : Uint8List.fromList(processed.bytes);
+      return InputImage.fromBytes(
+        bytes: iosBytes,
+        metadata: InputImageMetadata(
+          size: Size(processed.width.toDouble(), processed.height.toDouble()),
+          rotation: InputImageRotation.rotation0deg,
+          format: InputImageFormat.bgra8888,
+          bytesPerRow: processed.width * 4,
+        ),
+      );
+    }
+
+    final nv21Payload = useIsolate
+        ? await Isolate.run(() {
+            final processed =
+                CameraFrameProcessor.applyPreprocessProfile(frame, profile);
+            return CameraFrameProcessor.bgraToEvenAlignedNv21(processed);
+          })
+        : CameraFrameProcessor.bgraToEvenAlignedNv21(
+            CameraFrameProcessor.applyPreprocessProfile(frame, profile),
+          );
+
+    if (nv21Payload.bytes.isEmpty ||
+        nv21Payload.width <= 0 ||
+        nv21Payload.height <= 0) {
+      return null;
     }
 
     return InputImage.fromBytes(
-      bytes: bytes,
+      bytes: nv21Payload.bytes,
       metadata: InputImageMetadata(
-        size: Size(frame.width.toDouble(), frame.height.toDouble()),
+        size: Size(nv21Payload.width.toDouble(), nv21Payload.height.toDouble()),
         rotation: InputImageRotation.rotation0deg,
-        format: format,
-        bytesPerRow: bytesPerRow,
+        format: InputImageFormat.nv21,
+        bytesPerRow: nv21Payload.width,
       ),
     );
   }

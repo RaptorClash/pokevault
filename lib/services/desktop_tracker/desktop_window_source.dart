@@ -183,6 +183,9 @@ class DesktopWindowSource
   Timer? _pollTimer;
   bool _running = false;
   bool _scanInFlight = false;
+  bool _disposed = false;
+
+  bool get isDisposed => _disposed;
 
   final StreamController<String> _textController =
       StreamController<String>.broadcast();
@@ -775,6 +778,7 @@ class DesktopWindowSource
 
   @override
   Future<void> dispose() async {
+    _disposed = true;
     await stop();
     liveScanStatusNotifier.dispose();
     liveFocusStatusNotifier.dispose();

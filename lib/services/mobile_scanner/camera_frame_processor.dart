@@ -1,6 +1,6 @@
 import 'dart:math' as math;
-import 'dart:typed_data';
 import 'package:flutter/painting.dart';
+import 'package:flutter/services.dart';
 import '../desktop_tracker/desktop_capture_driver.dart';
 import '../scanner_core/models/scanner_settings.dart';
 import 'camera_scan_region.dart';
@@ -9,6 +9,31 @@ import 'camera_scan_region.dart';
 /// strict pixel cropping, and display-glare preprocessing for mobile camera frames.
 class CameraFrameProcessor {
   CameraFrameProcessor._();
+
+  /// Packs a single-plane BGRA8888 image buffer stripping any row stride padding.
+  static Uint8List extractPackedBgraBytes({
+    required Uint8List planeBytes,
+    required int width,
+    required int height,
+    required int bytesPerRow,
+  }) {
+    if (width <= 0 || height <= 0 || planeBytes.isEmpty) {
+      return Uint8List(0);
+    }
+    final rowBytes = width * 4;
+    if (bytesPerRow == rowBytes && planeBytes.length >= rowBytes * height) {
+      return planeBytes.sublist(0, rowBytes * height);
+    }
+    final packed = Uint8List(rowBytes * height);
+    for (int y = 0; y < height; y++) {
+      final srcStart = y * bytesPerRow;
+      final dstStart = y * rowBytes;
+      if (srcStart + rowBytes <= planeBytes.length) {
+        packed.setRange(dstStart, dstStart + rowBytes, planeBytes, srcStart);
+      }
+    }
+    return packed;
+  }
 
   /// Converts Android/iOS YUV420 planes into an upright BGRA8888 [CapturedFrame].
   static CapturedFrame? convertYuv420ToBgraFrame({
@@ -66,6 +91,89 @@ class CameraFrameProcessor {
       captureMethod: captureMethod,
     );
     return rotateBgraFrame(baseFrame, sensorOrientation);
+  }
+
+  /// Converts a 2-plane semi-planar YUV420 (`Y` plane + interleaved `VU` or `UV` chroma)
+  /// frame (common on Android NV21/NV12 Camera2/CameraX streams) to upright BGRA8888.
+  static CapturedFrame? convertTwoPlaneYuvToBgraFrame({
+    required int width,
+    required int height,
+    required Uint8List yBytes,
+    required Uint8List uvBytes,
+    required int yRowStride,
+    required int uvRowStride,
+    bool isNv21Order = true,
+    int sensorOrientation = 0,
+    String captureMethod = 'mobile_camera_yuv2',
+  }) {
+    if (width <= 0 || height <= 0 || yBytes.isEmpty || uvBytes.isEmpty) {
+      return null;
+    }
+
+    final bgra = Uint8List(width * height * 4);
+    for (int y = 0; y < height; y++) {
+      final yRowOffset = y * yRowStride;
+      final uvRowOffset = (y >> 1) * uvRowStride;
+      for (int x = 0; x < width; x++) {
+        final yIdx = yRowOffset + x;
+        final uvIdx = uvRowOffset + ((x >> 1) * 2);
+        if (yIdx >= yBytes.length || uvIdx + 1 >= uvBytes.length) continue;
+
+        final yVal = yBytes[yIdx];
+        final first = uvBytes[uvIdx];
+        final second = uvBytes[uvIdx + 1];
+        final vVal = isNv21Order ? first : second;
+        final uVal = isNv21Order ? second : first;
+
+        final c = yVal - 16;
+        final d = uVal - 128;
+        final e = vVal - 128;
+
+        final r = ((298 * c + 409 * e + 128) >> 8).clamp(0, 255);
+        final g = ((298 * c - 100 * d - 208 * e + 128) >> 8).clamp(0, 255);
+        final b = ((298 * c + 516 * d + 128) >> 8).clamp(0, 255);
+
+        final outIdx = (y * width + x) * 4;
+        bgra[outIdx] = b;
+        bgra[outIdx + 1] = g;
+        bgra[outIdx + 2] = r;
+        bgra[outIdx + 3] = 255;
+      }
+    }
+
+    final baseFrame = CapturedFrame(
+      width: width,
+      height: height,
+      bytes: bgra,
+      pixelFormat: 'bgra8888',
+      captureMethod: captureMethod,
+    );
+    return rotateBgraFrame(baseFrame, sensorOrientation);
+  }
+
+  /// Maps Flutter [DeviceOrientation] to clockwise device rotation degrees.
+  static int deviceOrientationToDegrees(DeviceOrientation? orientation) {
+    return switch (orientation) {
+      DeviceOrientation.landscapeLeft => 90,
+      DeviceOrientation.portraitDown => 180,
+      DeviceOrientation.landscapeRight => 270,
+      DeviceOrientation.portraitUp || null => 0,
+    };
+  }
+
+  /// Resolves the effective clockwise rotation needed to make a camera sensor frame
+  /// upright for OCR, accounting for both [sensorOrientation] and [deviceRotationDegrees].
+  static int resolveEffectiveRotationDegrees({
+    required int sensorOrientation,
+    required int deviceRotationDegrees,
+    bool isFrontCamera = false,
+  }) {
+    final s = ((sensorOrientation % 360) + 360) % 360;
+    final d = ((deviceRotationDegrees % 360) + 360) % 360;
+    if (isFrontCamera) {
+      return (s + d) % 360;
+    }
+    return (s - d + 360) % 360;
   }
 
   /// Rotates a BGRA8888 [CapturedFrame] clockwise by 0, 90, 180, or 270 degrees.
@@ -269,22 +377,31 @@ class CameraFrameProcessor {
     );
   }
 
-  /// Converts a BGRA8888 [CapturedFrame] to NV21 (`Y` plane followed by interleaved `VU` chroma)
-  /// required by Android Google ML Kit `InputImage.fromBytes`.
-  static Uint8List bgraToNv21(CapturedFrame frame) {
-    final w = frame.width;
-    final h = frame.height;
-    if (w <= 0 || h <= 0 || frame.bytes.length < w * h * 4) {
-      return Uint8List(0);
+  /// Converts a BGRA8888 [CapturedFrame] to an even-dimension-aligned NV21 payload
+  /// (`Y` plane followed by interleaved `VU` chroma) required by Android Google ML Kit.
+  /// Odd dimensions (e.g. from arbitrary user-drawn ROIs) are edge-padded by 1 pixel so
+  /// no characters are clipped and the NV21 chroma plane never overflows or truncates.
+  static ({int width, int height, Uint8List bytes}) bgraToEvenAlignedNv21(
+    CapturedFrame frame,
+  ) {
+    final srcW = frame.width;
+    final srcH = frame.height;
+    if (srcW <= 0 || srcH <= 0 || frame.bytes.length < srcW * srcH * 4) {
+      return (width: 0, height: 0, bytes: Uint8List(0));
     }
-    final frameSize = w * h;
-    final nv21 = Uint8List(frameSize + (w * h ~/ 2));
+
+    final evenW = srcW.isEven ? srcW : srcW + 1;
+    final evenH = srcH.isEven ? srcH : srcH + 1;
+    final frameSize = evenW * evenH;
+    final nv21 = Uint8List(frameSize + (frameSize ~/ 2));
     int yIndex = 0;
     int uvIndex = frameSize;
 
-    for (int j = 0; j < h; j++) {
-      for (int i = 0; i < w; i++) {
-        final off = (j * w + i) * 4;
+    for (int j = 0; j < evenH; j++) {
+      final sj = j < srcH ? j : srcH - 1;
+      for (int i = 0; i < evenW; i++) {
+        final si = i < srcW ? i : srcW - 1;
+        final off = (sj * srcW + si) * 4;
         final b = frame.bytes[off];
         final g = frame.bytes[off + 1];
         final r = frame.bytes[off + 2];
@@ -300,6 +417,12 @@ class CameraFrameProcessor {
         }
       }
     }
-    return nv21;
+    return (width: evenW, height: evenH, bytes: nv21);
+  }
+
+  /// Converts a BGRA8888 [CapturedFrame] to NV21 (`Y` plane followed by interleaved `VU` chroma)
+  /// required by Android Google ML Kit `InputImage.fromBytes`.
+  static Uint8List bgraToNv21(CapturedFrame frame) {
+    return bgraToEvenAlignedNv21(frame).bytes;
   }
 }

@@ -816,7 +816,11 @@ class MobileZonesCameraTab extends StatelessWidget {
       CameraLensDirection.front => 'Frontkamera',
       CameraLensDirection.external => 'Externe Kamera',
     };
-    return '$lens #${index + 1} (${cam.name})';
+    final cleanName = cam.name.trim();
+    if (cleanName.length > 2) {
+      return '$cleanName ($lens)';
+    }
+    return '$lens #${index + 1} ($cleanName)';
   }
 
   Widget _buildMultiInstancesSection({

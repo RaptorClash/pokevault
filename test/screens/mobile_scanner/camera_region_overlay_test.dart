@@ -198,5 +198,71 @@ void main() {
       expect(currentRegions.any((r) => r.id == 'multi_2_scan' && !r.encounterOnly), isTrue);
       expect(currentRegions.any((r) => r.id == 'multi_2_focus' && r.encounterOnly), isTrue);
     });
+
+    testWidgets('supports tap-to-focus in autoFull mode and on empty canvas in customRegions mode', (tester) async {
+      Offset? tappedPoint;
+
+      // 1. AutoFull mode allows tap-to-focus
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: Center(
+              child: SizedBox(
+                width: 400,
+                height: 200,
+                child: CameraRegionOverlay(
+                  scanMode: MobileCameraScanMode.autoFull,
+                  regions: const [],
+                  activeBrushRole: CameraZoneRole.scan,
+                  isEditing: true,
+                  onRegionsChanged: (_) {},
+                  onTapCameraFocus: (pt) => tappedPoint = pt,
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      final autoBox = find.byType(CameraRegionOverlay);
+      await tester.tapAt(tester.getTopLeft(autoBox) + const Offset(200, 100));
+      await tester.pump();
+      expect(tappedPoint, isNotNull);
+      expect(tappedPoint!.dx, closeTo(0.5, 0.05));
+      expect(tappedPoint!.dy, closeTo(0.5, 0.05));
+      expect(find.byKey(const Key('camera_focus_indicator')), findsOneWidget);
+
+      // 2. CustomRegions mode allows tap-to-focus on empty canvas even while editing is enabled
+      tappedPoint = null;
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: Center(
+              child: SizedBox(
+                width: 400,
+                height: 200,
+                child: CameraRegionOverlay(
+                  scanMode: MobileCameraScanMode.customRegions,
+                  regions: const [],
+                  activeBrushRole: CameraZoneRole.scan,
+                  isEditing: true,
+                  onRegionsChanged: (_) {},
+                  onTapCameraFocus: (pt) => tappedPoint = pt,
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      await tester.tapAt(tester.getTopLeft(find.byKey(const Key('camera_region_canvas'))) + const Offset(100, 50));
+      await tester.pump();
+      expect(tappedPoint, isNotNull);
+      expect(tappedPoint!.dx, closeTo(0.25, 0.05));
+      expect(tappedPoint!.dy, closeTo(0.25, 0.05));
+
+      // Advance timer so focus ring timer cleans up cleanly
+      await tester.pump(const Duration(seconds: 2));
+    });
   });
 }

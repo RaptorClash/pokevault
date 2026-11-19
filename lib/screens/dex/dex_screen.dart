@@ -31,14 +31,9 @@ import 'widgets/dex_completion_card_dialog.dart';
 import 'widgets/dex_app_bar_actions.dart';
 import 'widgets/dex_filter_bar.dart';
 import '../../utils/tracker_platform_helper.dart';
-import '../desktop_tracker/desktop_tracker_screen.dart';
 import '../desktop_tracker/widgets/persistent_tracker_dock.dart';
 import '../../services/desktop_tracker/desktop_tracker_service.dart';
-import '../mobile_scanner/mobile_camera_tracker_screen.dart';
-import '../../services/mobile_scanner/mobile_camera_tracker_service.dart';
-import '../../services/scanner_core/scanner_coordinator.dart';
 import '../../services/scanner_core/scanner_launcher_helper.dart';
-import '../../services/scanner_core/models/scanner_settings.dart';
 import '../../services/scanner_core/models/scanner_event.dart';
 
 class DexScreen extends StatefulWidget {
@@ -926,67 +921,24 @@ class _DexScreenState extends State<DexScreen> {
   }
 
   void _openDesktopTracker(UserDex liveDex) {
-    if (!TrackerPlatformHelper.isDesktop) return;
     final dexProvider = Provider.of<DexProvider>(context, listen: false);
-    final existingService = DesktopTrackerService.instance;
-    final ScannerCoordinator coordinator;
-
-    if (existingService.coordinator != null && existingService.isTrackingActive) {
-      coordinator = existingService.coordinator!;
-    } else {
-      coordinator = ScannerLauncherHelper.buildCoordinator(
-        dexProvider.allPokemon,
-      );
-    }
-
-    Navigator.push(
+    ScannerLauncherHelper.openDesktopOverlayTracker(
       context,
-      MaterialPageRoute(
-        builder: (context) => DesktopTrackerScreen(
-          coordinator: coordinator,
-          windowSource: existingService.windowSource,
-          initialDexId: liveDex.id,
-        ),
-      ),
+      allPokemon: dexProvider.allPokemon,
+      dexId: liveDex.id,
     );
   }
 
-  void _openMobileCameraTracker(UserDex liveDex) {
-    if (!TrackerPlatformHelper.isMobile) return;
+  void _openTrackerSelector(UserDex liveDex) {
     final dexProvider = Provider.of<DexProvider>(context, listen: false);
-    final mobileService = MobileCameraTrackerService.instance;
-    final ScannerCoordinator coordinator;
-
-    if (mobileService.coordinator != null && mobileService.isTrackingActive) {
-      coordinator = mobileService.coordinator!;
-    } else {
-      coordinator = ScannerLauncherHelper.buildCoordinator(
-        dexProvider.allPokemon,
-        settings: ScannerSettings.defaults().copyWith(
-          preprocessProfile: OcrPreprocessProfile.cameraDisplay,
-        ),
-      );
-    }
-
-    Navigator.push(
+    ScannerLauncherHelper.openPlatformTracker(
       context,
-      MaterialPageRoute(
-        builder: (context) => MobileCameraTrackerScreen(
-          coordinator: coordinator,
-          cameraSource: mobileService.cameraSource,
-          initialDexId: liveDex.id,
-        ),
-      ),
+      allPokemon: dexProvider.allPokemon,
+      dexId: liveDex.id,
     );
   }
 
-  void _openPlatformTracker(UserDex liveDex) {
-    if (TrackerPlatformHelper.isDesktop) {
-      _openDesktopTracker(liveDex);
-    } else if (TrackerPlatformHelper.isMobile) {
-      _openMobileCameraTracker(liveDex);
-    }
-  }
+  void _openPlatformTracker(UserDex liveDex) => _openTrackerSelector(liveDex);
 
   Future<void> _toggleBoxView() async {
     setState(() {
@@ -1918,12 +1870,15 @@ class _DexScreenState extends State<DexScreen> {
                   ),
                 );
               },
-              onOpenDesktopTracker: TrackerPlatformHelper.isDesktop
-                  ? () => _openDesktopTracker(liveDex)
-                  : null,
-              onOpenMobileScanner: TrackerPlatformHelper.isMobile
-                  ? () => _openMobileCameraTracker(liveDex)
-                  : null,
+              onOpenDesktopTracker:
+                  TrackerPlatformHelper.isDesktopOverlaySupported
+                      ? () => _openTrackerSelector(liveDex)
+                      : null,
+              onOpenMobileScanner:
+                  (!TrackerPlatformHelper.isDesktopOverlaySupported &&
+                          TrackerPlatformHelper.isCameraTrackerSupported)
+                      ? () => _openTrackerSelector(liveDex)
+                      : null,
               onToggleView: _toggleBoxView,
               onToggleSeparateForms: _toggleSeparateForms,
               onOpenSortSettings: () {

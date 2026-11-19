@@ -10,7 +10,9 @@ import 'package:pokevault/models/pokemon.dart';
 import 'package:pokevault/models/user_dex.dart';
 import 'package:pokevault/providers/dex_provider.dart';
 import 'package:pokevault/providers/settings_provider.dart';
+import 'package:pokevault/providers/tutorial_provider.dart';
 import 'package:pokevault/screens/mobile_scanner/mobile_camera_tracker_screen.dart';
+import 'package:pokevault/widgets/tutorial/tutorial_overlay.dart';
 import 'package:pokevault/services/desktop_tracker/desktop_capture_driver.dart';
 import 'package:pokevault/services/mobile_scanner/camera_scan_region.dart';
 import 'package:pokevault/services/mobile_scanner/mobile_camera_source.dart';
@@ -460,6 +462,159 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.byKey(const Key('mobile_multi_card_2')), findsNothing);
       expect(cameraSource.regions.where((r) => r.slotId == 2), isEmpty);
+    });
+
+    testWidgets('renders multiple external/virtual cameras on wide desktop viewport without overflow', (tester) async {
+      tester.view.physicalSize = const Size(1280, 720);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+
+      const usbCams = [
+        CameraDescription(
+          name: 'Logitech Brio 4K',
+          lensDirection: CameraLensDirection.external,
+          sensorOrientation: 0,
+        ),
+        CameraDescription(
+          name: 'Elgato Cam Link 4K',
+          lensDirection: CameraLensDirection.external,
+          sensorOrientation: 0,
+        ),
+        CameraDescription(
+          name: 'OBS Virtual Camera',
+          lensDirection: CameraLensDirection.external,
+          sensorOrientation: 0,
+        ),
+      ];
+
+      await tester.pumpWidget(
+        MultiProvider(
+          providers: [
+            ChangeNotifierProvider<DexProvider>.value(value: mockDexProvider),
+            ChangeNotifierProvider<SettingsProvider>.value(value: mockSettingsProvider),
+          ],
+          child: TranslationProvider(
+            child: MaterialApp(
+              home: MobileCameraTrackerScreen(
+                coordinator: coordinator,
+                cameraSource: cameraSource,
+                disableHardwareCamera: true,
+                initialSplitView: true,
+                availableCamerasOverride: usbCams,
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byKey(const Key('split_tab_zones')));
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(const Key('dropdown_mobile_camera_selector')), findsOneWidget);
+      expect(find.textContaining('Logitech Brio 4K'), findsWidgets);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('handles tiny 320x480 viewport and runtime DE <-> EN language switch without overflow', (tester) async {
+      tester.view.physicalSize = const Size(320, 480);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+
+      await tester.pumpWidget(
+        MultiProvider(
+          providers: [
+            ChangeNotifierProvider<DexProvider>.value(value: mockDexProvider),
+            ChangeNotifierProvider<SettingsProvider>.value(value: mockSettingsProvider),
+          ],
+          child: TranslationProvider(
+            child: MaterialApp(
+              home: MobileCameraTrackerScreen(
+                coordinator: coordinator,
+                cameraSource: cameraSource,
+                disableHardwareCamera: true,
+                initialSplitView: true,
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
+
+      mockSettingsProvider.setPokemonLanguage('en');
+      LocaleSettings.setLocale(AppLocale.en);
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('renders draw brush bar in landscape split-screen when customRegions is active', (tester) async {
+      tester.view.physicalSize = const Size(800, 360);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+
+      await tester.pumpWidget(
+        buildScreen(
+          viewportSize: const Size(800, 360),
+          initialSplitView: true,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byKey(const Key('btn_scan_mode_draw')));
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(const Key('mobile_draw_brush_bar')), findsOneWidget);
+    });
+
+    testWidgets('triggers Mobile Scanner TutorialOverlay on first open and via help button without desktop steps', (tester) async {
+      TutorialOverlay.resetShowing();
+      final prefs = await SharedPreferences.getInstance();
+      final tutProvider = TutorialProvider(prefs);
+
+      await tester.pumpWidget(
+        MultiProvider(
+          providers: [
+            ChangeNotifierProvider<DexProvider>.value(value: mockDexProvider),
+            ChangeNotifierProvider<SettingsProvider>.value(value: mockSettingsProvider),
+            ChangeNotifierProvider<TutorialProvider>.value(value: tutProvider),
+          ],
+          child: TranslationProvider(
+            child: MaterialApp(
+              home: MobileCameraTrackerScreen(
+                coordinator: coordinator,
+                cameraSource: cameraSource,
+                disableHardwareCamera: true,
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
+
+      // Auto-triggered Mobile Scanner Tutorial should be visible
+      expect(find.byType(TutorialOverlay), findsOneWidget);
+      expect(find.byKey(const Key('btn_mobile_scanner_help')), findsOneWidget);
+      // Must NOT talk about Windows / Emulator window capture
+      expect(find.textContaining('Emulator-Fenster'), findsNothing);
+
+      // Dismiss tutorial by skipping
+      await tester.tap(find.text('Überspringen'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
+      expect(find.byType(TutorialOverlay), findsNothing);
+      expect(tutProvider.hasSeenFeature('mobile_scanner_tour'), isTrue);
+
+      // Help button replays the tour on demand
+      await tester.tap(find.byKey(const Key('btn_mobile_scanner_help')));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
+      expect(find.byType(TutorialOverlay), findsOneWidget);
+
+      await tester.tap(find.text('Überspringen'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
     });
   });
 }

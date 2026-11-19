@@ -8,6 +8,7 @@ import '../scanner_core/models/scanner_settings.dart';
 import '../scanner_core/source/scanner_source.dart';
 import 'camera_frame_processor.dart';
 import 'camera_scan_region.dart';
+import 'mobile_ocr_driver.dart';
 
 /// Camera-backed [ScannerSource] supporting Auto full-frame mode as well as
 /// strict per-rectangle ROI cropping for Zone A, Zone B (Live-Fokus), and Multi-Instance slots.
@@ -130,6 +131,17 @@ class MobileCameraSource
     final frame = _latestUprightFrame;
     if (frame == null) return;
     await _processFrameInternal(frame, bypassThrottle: true, bypassHash: true);
+  }
+
+  /// Checks whether a live camera frame should be converted and processed now,
+  /// allowing the camera stream callback to drop frames cheaply before YUV->BGRA work.
+  bool shouldProcessFrameNow() {
+    if (!_running || _scanInFlight) return false;
+    if (_lastProcessedAt != null &&
+        DateTime.now().difference(_lastProcessedAt!) < _pollInterval) {
+      return false;
+    }
+    return true;
   }
 
   /// Submits a live camera frame for throttled ROI cropping and OCR recognition.
@@ -256,6 +268,9 @@ class MobileCameraSource
     final lines = await ocrDriver.recognizeText(croppedFrame);
     final ocrMs = DateTime.now().difference(t0).inMilliseconds;
     final joined = lines.join('\n').trim();
+    final diagnosticHint = ocrDriver is MobileOcrDriver
+        ? (ocrDriver as MobileOcrDriver).lastDiagnosticHint
+        : null;
 
     _scanCounter++;
     _appendLog(
@@ -278,7 +293,8 @@ class MobileCameraSource
         usedFallbackLanguage: false,
         availableLanguages: const [],
         rawLines: lines,
-        ocrSucceeded: true,
+        ocrSucceeded: diagnosticHint == null,
+        errorHint: diagnosticHint,
         preprocessProfile: _preprocessProfile.name,
       ),
     );

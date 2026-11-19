@@ -1,8 +1,10 @@
 import 'dart:async';
+import 'package:camera/camera.dart';
 import 'package:flutter/widgets.dart';
 import '../desktop_tracker/evolution_chain_helper.dart';
 import '../scanner_core/models/scanner_event.dart';
 import '../scanner_core/scanner_coordinator.dart';
+import 'camera_frame_pump.dart';
 import 'camera_scan_region.dart';
 import 'mobile_camera_source.dart';
 
@@ -27,7 +29,14 @@ class MobileCameraTrackerService {
   Future<void> Function()? _onToggleTorchCallback;
   Future<void> Function()? _onDisposeCameraCallback;
   Object? activeCameraController;
+  CameraFramePump? activeFramePump;
+  List<CameraDescription> cachedCameras = const [];
+  int selectedCameraIndex = 0;
+  double minZoom = 1.0;
+  double maxZoom = 1.0;
+  bool _ownsCameraSourceOnStop = false;
 
+  final ValueNotifier<double?> previewAspectRatioNotifier = ValueNotifier(null);
   final ValueNotifier<bool> isTrackingNotifier = ValueNotifier(false);
   final ValueNotifier<bool> isPausedNotifier = ValueNotifier(false);
   final ValueNotifier<bool> isPipVisibleNotifier = ValueNotifier(false);
@@ -68,9 +77,11 @@ class MobileCameraTrackerService {
     WidgetBuilder? pipCameraPreviewBuilder,
     VoidCallback? onExpandFromPip,
     Future<void> Function()? onToggleTorch,
+    bool ownsCameraSource = false,
   }) {
     _coordinator = coordinator;
     _cameraSource = cameraSource;
+    _ownsCameraSourceOnStop = ownsCameraSource;
     _activeDexId = dexId;
     _pipCameraPreviewBuilder = pipCameraPreviewBuilder;
     _onExpandFromPip = onExpandFromPip;
@@ -209,8 +220,10 @@ class MobileCameraTrackerService {
     isPausedNotifier.value = !isPausedNotifier.value;
     if (isPausedNotifier.value) {
       _coordinator?.stop();
+      unawaited(activeFramePump?.pause());
     } else {
       _coordinator?.start();
+      unawaited(activeFramePump?.resume());
     }
   }
 
@@ -224,6 +237,11 @@ class MobileCameraTrackerService {
     evolutionStatusNotifier.value = null;
     torchEnabledNotifier.value = false;
     zoomLevelNotifier.value = 1.0;
+    previewAspectRatioNotifier.value = null;
+    cachedCameras = const [];
+    selectedCameraIndex = 0;
+    minZoom = 1.0;
+    maxZoom = 1.0;
 
     _pipCameraPreviewBuilder = null;
     _onExpandFromPip = null;
@@ -231,6 +249,8 @@ class MobileCameraTrackerService {
     final disposeCamera = _onDisposeCameraCallback;
     _onDisposeCameraCallback = null;
     activeCameraController = null;
+    await activeFramePump?.dispose();
+    activeFramePump = null;
 
     if (disposeCamera != null) {
       try {
@@ -244,6 +264,10 @@ class MobileCameraTrackerService {
     _focusSub = null;
 
     await _coordinator?.stop();
+    if (_ownsCameraSourceOnStop) {
+      await _cameraSource?.dispose();
+    }
+    _ownsCameraSourceOnStop = false;
     _coordinator = null;
     _cameraSource = null;
     _activeDexId = null;

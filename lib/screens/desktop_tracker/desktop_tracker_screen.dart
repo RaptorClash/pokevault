@@ -1,14 +1,18 @@
 import 'dart:async';
 import 'dart:ui' as ui;
+import 'package:camera/camera.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:universal_io/io.dart' as io;
 import '../../models/pokemon.dart';
+import '../../models/tutorial_step.dart';
 import '../../models/user_dex.dart';
 import '../../providers/dex_provider.dart';
 import '../../providers/settings_provider.dart';
+import '../../providers/tutorial_provider.dart';
+import '../../services/camera_ocr/platform_camera_ocr_driver.dart';
 import '../../services/database_service.dart';
 import '../../services/desktop_tracker/desktop_capture_driver.dart';
 import '../../services/desktop_tracker/desktop_ocr_driver.dart';
@@ -18,6 +22,11 @@ import '../../services/desktop_tracker/desktop_window_source.dart';
 import '../../services/desktop_tracker/evolution_chain_helper.dart';
 import '../../services/desktop_tracker/window_detector.dart';
 import '../../services/desktop_tracker/windows_desktop_bridge.dart';
+import '../../services/mobile_scanner/camera_frame_pump.dart';
+import '../../services/mobile_scanner/camera_image_converter.dart';
+import '../../services/mobile_scanner/camera_scan_region.dart';
+import '../../services/mobile_scanner/mobile_camera_source.dart';
+import '../../services/scanner_core/media/image_frame_decoder.dart';
 import '../../services/scanner_core/models/scanner_event.dart';
 import '../../services/scanner_core/models/scanner_settings.dart';
 import '../../services/scanner_core/scanner_coordinator.dart';
@@ -25,7 +34,10 @@ import '../../services/scanner_core/scanner_persistence_service.dart';
 import '../../services/desktop_tracker/screen_region.dart';
 import '../../services/desktop_tracker/tracker_alert_service.dart';
 import '../../utils/dex_logic_helper.dart';
+import '../../utils/tracker_platform_helper.dart';
+import '../../widgets/tutorial/tutorial_overlay.dart';
 import 'widgets/custom_pattern_studio_dialog.dart';
+import 'widgets/desktop_webcam_stage.dart';
 import 'widgets/dex_selection_modal.dart';
 import 'widgets/floating_overlay_hud.dart';
 import 'widgets/screen_snipping_overlay.dart';
@@ -40,6 +52,9 @@ class DesktopTrackerScreen extends StatefulWidget {
   final Future<ScreenRegionCaptureResult?> Function()? desktopSnippingLauncher;
   final Future<CapturedFrame?> Function()? sandboxImagePicker;
   final DesktopPlatformBridge? nativeBridge;
+  final List<CameraDescription>? availableCamerasOverride;
+  final bool disableHardwareCamera;
+  final DesktopOcrDriver? cameraOcrDriverOverride;
 
   const DesktopTrackerScreen({
     super.key,
@@ -51,6 +66,9 @@ class DesktopTrackerScreen extends StatefulWidget {
     this.desktopSnippingLauncher,
     this.sandboxImagePicker,
     this.nativeBridge,
+    this.availableCamerasOverride,
+    this.disableHardwareCamera = false,
+    this.cameraOcrDriverOverride,
   });
 
   @override
@@ -97,15 +115,69 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
   bool _showZoneAInfo = false;
   bool _showZoneBInfo = false;
   bool _showScanProfileInfo = false;
+  List<CameraDescription> _cameras = const [];
+  CameraController? _cameraController;
+  CameraFramePump? _cameraFramePump;
+  DesktopOcrDriver? _cameraOcrDriver;
+  MobileCameraSource? _cameraSource;
+  bool _isInitializingCamera = false;
+  String? _cameraErrorText;
+  bool _isCameraPermissionDenied = false;
+  bool _convertingCameraFrame = false;
+  bool _isEditingCameraRegions = false;
+  MobileCameraScanMode _cameraScanMode = MobileCameraScanMode.autoFull;
+  List<NormalizedScanRect> _cameraRegions = const [];
+  final GlobalKey _tutSourceKey = GlobalKey();
+  final GlobalKey _tutHudKey = GlobalKey();
+  final GlobalKey _tutFocusKey = GlobalKey();
+  final GlobalKey _tutOcrSettingsKey = GlobalKey();
+  bool _hasTriggeredDesktopTutorial = false;
 
   bool get _isLiveWindows =>
       !kIsWeb &&
       io.Platform.isWindows &&
       !io.Platform.environment.containsKey('FLUTTER_TEST');
 
+  bool get _showOverlayControls =>
+      TrackerPlatformHelper.isDesktopOverlaySupported || widget.nativeBridge != null;
+
+  bool get _isCameraSourceSelected => _selectedWindow?.isCameraSource ?? false;
+
   DesktopPlatformBridge? get _effectiveNativeBridge =>
       widget.nativeBridge ??
       (_isLiveWindows ? WindowsDesktopBridge.instance : null);
+
+  ValueListenable<WebOcrEngineStatus>? get _webOcrStatusListenable {
+    if (!kIsWeb) return null;
+    final driver = _cameraOcrDriver;
+    if (driver is WebOcrStatusReportingDriver) {
+      return (driver as WebOcrStatusReportingDriver).statusListenable;
+    }
+    return null;
+  }
+
+  DesktopOcrDriver _ensureCameraOcrDriver() {
+    return _cameraOcrDriver ??= widget.cameraOcrDriverOverride ??
+        createPlatformCameraOcrDriver(
+          windowsBridge: _effectiveNativeBridge,
+          initialLanguageTag: _ocrLanguageTag,
+        );
+  }
+
+  MobileCameraSource _ensureCameraSource() {
+    final existing = _cameraSource;
+    if (existing != null) return existing;
+    final source = MobileCameraSource(ocrDriver: _ensureCameraOcrDriver());
+    source.setOcrLanguageTag(_ocrLanguageTag);
+    source.setPreprocessProfile(OcrPreprocessProfile.cameraDisplay);
+    source.setAutoPreset(_scanRegion);
+    source.setScanMode(_cameraScanMode);
+    if (_cameraRegions.isNotEmpty) {
+      source.setRegions(_cameraRegions);
+    }
+    _cameraSource = source;
+    return source;
+  }
 
   @override
   void initState() {
@@ -176,20 +248,53 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
         windowSource: _activeWindowSource,
         dexId: _selectedDexId,
       );
+      _showDesktopScannerTutorialIfNeeded();
     });
 
     if (widget.detectedWindows.isNotEmpty) {
       _windows = List.from(widget.detectedWindows);
+      if (widget.availableCamerasOverride != null) {
+        _cameras = List.unmodifiable(widget.availableCamerasOverride!);
+        _windows.addAll(
+          _buildCameraWindowEntries(_cameras, includeFallbackIfEmpty: false),
+        );
+      }
       _activeWindowSource.updateKnownWindows(_windows);
       _selectDefaultWindow();
+    } else if (!_showOverlayControls) {
+      if (widget.availableCamerasOverride != null) {
+        _cameras = List.unmodifiable(widget.availableCamerasOverride!);
+        _windows = _buildCameraWindowEntries(
+          _cameras,
+          includeFallbackIfEmpty: true,
+        );
+        _activeWindowSource.updateKnownWindows(_windows);
+        _selectDefaultWindow();
+      } else {
+        _windows = [DesktopWindowInfo.webcamFallbackPhoto()];
+        _activeWindowSource.updateKnownWindows(_windows);
+        _selectDefaultWindow();
+        if (!io.Platform.environment.containsKey('FLUTTER_TEST')) {
+          _isRefreshingWindows = true;
+          _loadWindowsAsync();
+        }
+      }
     } else if (_isLiveWindows) {
       _isRefreshingWindows = true;
       _loadWindowsAsync();
     } else {
       _windows = WindowDetector().getFallbackWindows();
+      if (widget.availableCamerasOverride != null) {
+        _cameras = List.unmodifiable(widget.availableCamerasOverride!);
+        _windows.addAll(
+          _buildCameraWindowEntries(_cameras, includeFallbackIfEmpty: false),
+        );
+      }
       _activeWindowSource.updateKnownWindows(_windows);
       _selectDefaultWindow();
-      _loadWindowsAsync();
+      if (widget.availableCamerasOverride == null) {
+        _loadWindowsAsync();
+      }
     }
 
     _eventSub = widget.coordinator.events.listen((event) {
@@ -311,6 +416,7 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
     _activeWindowSource.setPreprocessProfile(next.preprocessProfile);
     _activeWindowSource.setLiveFocusPreset(next.liveFocusPreset);
     _activeWindowSource.setMultiInstanceSlots(next.multiInstanceSlots);
+    _cameraSource?.setOcrLanguageTag(_ocrLanguageTag);
     didChangeDependencies();
     _syncOverlayBorders();
     unawaited(_persistenceService.saveScannerSettings(next));
@@ -600,6 +706,7 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
       _ocrUsedFallbackLanguage = false;
       _ocrFallbackResolvedTag = null;
       _activeWindowSource.setOcrLanguageTag(mappedTag);
+      _cameraSource?.setOcrLanguageTag(mappedTag);
     }
   }
 
@@ -634,16 +741,64 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
     }
   }
 
+  Future<List<CameraDescription>> _loadCameraDescriptions() async {
+    if (widget.availableCamerasOverride != null) {
+      return List.unmodifiable(widget.availableCamerasOverride!);
+    }
+    if (!TrackerPlatformHelper.isCameraTrackerSupported) {
+      return const [];
+    }
+    if (!kIsWeb && io.Platform.environment.containsKey('FLUTTER_TEST')) {
+      return const [];
+    }
+    try {
+      return await availableCameras();
+    } catch (_) {
+      return const [];
+    }
+  }
+
+  List<DesktopWindowInfo> _buildCameraWindowEntries(
+    List<CameraDescription> cameras, {
+    required bool includeFallbackIfEmpty,
+  }) {
+    if (cameras.isEmpty) {
+      return includeFallbackIfEmpty
+          ? [DesktopWindowInfo.webcamFallbackPhoto()]
+          : const [];
+    }
+    return [
+      for (int i = 0; i < cameras.length; i++)
+        DesktopWindowInfo.webcam(
+          index: i,
+          name: cameras[i].name,
+          sensorOrientation: cameras[i].sensorOrientation,
+        ),
+    ];
+  }
+
   Future<void> _loadWindowsAsync() async {
     try {
-      final bridge = _effectiveNativeBridge;
-      final wins = bridge != null
-          ? await WindowDetector(
-              nativeWindowEnumerator: bridge.enumerateWindowsAndMonitors,
-            ).getOpenWindowsAsync()
-          : await WindowDetector().getOpenWindowsAsync();
+      final cams = await _loadCameraDescriptions();
+      List<DesktopWindowInfo> wins;
+      if (_showOverlayControls) {
+        final bridge = _effectiveNativeBridge;
+        final detected = bridge != null
+            ? await WindowDetector(
+                nativeWindowEnumerator: bridge.enumerateWindowsAndMonitors,
+              ).getOpenWindowsAsync()
+            : await WindowDetector().getOpenWindowsAsync();
+        wins = [
+          ...detected,
+          ..._buildCameraWindowEntries(cams, includeFallbackIfEmpty: false),
+        ];
+      } else {
+        wins = _buildCameraWindowEntries(cams, includeFallbackIfEmpty: true);
+      }
+
       if (!mounted) return;
       setState(() {
+        _cameras = cams;
         _windows = wins;
         _activeWindowSource.updateKnownWindows(_windows);
         _selectDefaultWindow();
@@ -660,6 +815,20 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
   bool _shouldAutoScan(DesktopWindowInfo? win, ScreenRegion? region) {
     if (region != null) return true;
     return win != null && !win.isDesktopScreen;
+  }
+
+  void _bindSourceForSelection(DesktopWindowInfo? window) {
+    if (window != null && window.isCameraSource) {
+      if (_activeWindowSource.isRunning) {
+        unawaited(_activeWindowSource.stop());
+      }
+      widget.coordinator.bindSource(_ensureCameraSource());
+    } else {
+      if (_cameraSource != null && _cameraSource!.isRunning) {
+        unawaited(_cameraSource!.stop());
+      }
+      widget.coordinator.bindSource(_activeWindowSource);
+    }
   }
 
   void _syncAutoScanState({bool force = false}) {
@@ -684,7 +853,9 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
         _selectedWindow = match;
         _applyScanRegion(match);
         _activeWindowSource.setSelectedWindow(_selectedWindow);
+        _bindSourceForSelection(_selectedWindow);
         _syncAutoScanState();
+        unawaited(_syncCameraHardwareForSelection(_selectedWindow));
         DesktopTrackerService.instance.updateHudTarget(
           window: _selectedWindow,
           screenRegion: _customScreenRegion,
@@ -699,14 +870,17 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
     );
     _applyScanRegion(_selectedWindow);
     _activeWindowSource.setSelectedWindow(_selectedWindow);
+    _bindSourceForSelection(_selectedWindow);
     _syncAutoScanState();
+    unawaited(_syncCameraHardwareForSelection(_selectedWindow));
     DesktopTrackerService.instance.updateHudTarget(
       window: _selectedWindow,
       screenRegion: _customScreenRegion,
     );
     if (_customScreenRegion == null &&
         _selectedWindow != null &&
-        !_selectedWindow!.isDesktopScreen) {
+        !_selectedWindow!.isDesktopScreen &&
+        !_selectedWindow!.isCameraSource) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted) return;
         unawaited(_activeWindowSource.triggerSingleScan());
@@ -714,8 +888,165 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
     }
   }
 
+  Future<void> _syncCameraHardwareForSelection(DesktopWindowInfo? window) async {
+    if (window == null || !window.isCameraSource) {
+      await _stopHardwareCamera();
+      return;
+    }
+    if (window.cameraIndex < 0 || window.cameraIndex >= _cameras.length) {
+      await _stopHardwareCamera();
+      if (mounted) {
+        setState(() {
+          _isInitializingCamera = false;
+          _isCameraPermissionDenied = false;
+          _cameraErrorText = null;
+        });
+      }
+      return;
+    }
+    if (widget.disableHardwareCamera) {
+      if (mounted) {
+        setState(() {
+          _isInitializingCamera = false;
+          _isCameraPermissionDenied = false;
+          _cameraErrorText = null;
+        });
+      }
+      return;
+    }
+    await _startHardwareCameraController(_cameras[window.cameraIndex]);
+  }
+
+  Future<void> _stopHardwareCamera() async {
+    await _cameraFramePump?.dispose();
+    _cameraFramePump = null;
+    final prev = _cameraController;
+    _cameraController = null;
+    if (prev != null) {
+      try {
+        if (prev.value.isStreamingImages) {
+          await prev.stopImageStream();
+        }
+      } catch (_) {}
+      try {
+        await prev.dispose();
+      } catch (_) {}
+    }
+  }
+
+  Future<void> _startHardwareCameraController(CameraDescription desc) async {
+    if (!mounted) return;
+    setState(() {
+      _isInitializingCamera = true;
+      _cameraErrorText = null;
+      _isCameraPermissionDenied = false;
+    });
+    await _stopHardwareCamera();
+
+    final controller = CameraController(
+      desc,
+      ResolutionPreset.high,
+      enableAudio: false,
+      imageFormatGroup: CameraImageConverter.preferredImageFormatGroup(),
+    );
+
+    try {
+      await controller.initialize();
+      if (!mounted ||
+          !_isCameraSourceSelected ||
+          _selectedWindow?.cameraIndex != _cameras.indexOf(desc)) {
+        await controller.dispose();
+        return;
+      }
+      _cameraController = controller;
+      final pump = CameraFramePump(
+        forcePollingFallback: kIsWeb,
+        startImageStream: () => controller.startImageStream(
+          (img) => unawaited(_handleCameraStreamImage(img, desc.sensorOrientation)),
+        ),
+        stopImageStream: () => controller.stopImageStream(),
+        captureStillBytes: () async {
+          if (!controller.value.isInitialized) return null;
+          final xfile = await controller.takePicture();
+          return xfile.readAsBytes();
+        },
+        decodeStillFrame: (bytes) => ImageFrameDecoder.decodeBytesToBgraFrame(bytes),
+        onDecodedFrame: (frame) => _ensureCameraSource().submitCameraFrame(frame),
+      );
+      _cameraFramePump = pump;
+      if (_isScanningActive) {
+        await pump.start();
+      }
+      if (!mounted) return;
+      setState(() {
+        _isInitializingCamera = false;
+      });
+    } on CameraException catch (e) {
+      try {
+        await controller.dispose();
+      } catch (_) {}
+      if (!mounted) return;
+      final formatted = CameraImageConverter.formatCameraError(e);
+      setState(() {
+        _isInitializingCamera = false;
+        _isCameraPermissionDenied = formatted.isPermissionDenied;
+        _cameraErrorText = formatted.message;
+      });
+    } catch (e) {
+      try {
+        await controller.dispose();
+      } catch (_) {}
+      if (!mounted) return;
+      setState(() {
+        _isInitializingCamera = false;
+        _cameraErrorText = e.toString();
+      });
+    }
+  }
+
+  Future<void> _handleCameraStreamImage(
+    CameraImage image,
+    int sensorOrientation,
+  ) async {
+    if (_convertingCameraFrame || !_isScanningActive) return;
+    _convertingCameraFrame = true;
+    try {
+      final upright = CameraImageConverter.convertToUprightBgra(
+        image,
+        sensorOrientation,
+      );
+      if (upright != null) {
+        await _ensureCameraSource().submitCameraFrame(upright);
+      }
+    } finally {
+      _convertingCameraFrame = false;
+    }
+  }
+
+  Future<void> _importPhotoForWebcam() async {
+    final frame = await CameraImageConverter.pickAndDecodePhotoFrame(
+      overridePicker: widget.sandboxImagePicker,
+    );
+    if (frame == null || !mounted) return;
+    final src = _ensureCameraSource();
+    _bindSourceForSelection(_selectedWindow);
+    await src.processPhotoFrame(frame);
+  }
+
+  void _switchWebcam() {
+    final camEntries = _windows.where((w) => w.isCameraSource && w.cameraIndex >= 0).toList();
+    if (camEntries.length < 2) return;
+    final curIdx = camEntries.indexOf(_selectedWindow ?? camEntries.first);
+    final next = camEntries[(curIdx + 1) % camEntries.length];
+    _onWindowSelected(next);
+  }
+
   void _applyScanRegion(DesktopWindowInfo? window) {
     if (window == null) return;
+    if (window.isCameraSource) {
+      _cameraSource?.setAutoPreset(_scanRegion);
+      return;
+    }
     final region = WindowDetector().calculateScanRegion(
       _scanRegion,
       windowWidth: window.width,
@@ -726,12 +1057,18 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
 
   @override
   void dispose() {
+    TutorialOverlay.resetShowing();
     unawaited(_effectiveNativeBridge?.setScanRegionBorder(null));
     unawaited(_effectiveNativeBridge?.setOverlayBorders(const []));
     DesktopTrackerService.instance.showFloatingHudNotifier
         .removeListener(_onServiceHudVisibilityChanged);
+    unawaited(_stopHardwareCamera());
+    _cameraSource?.dispose();
     widget.coordinator.stop();
     if (widget.windowSource == null) {
+      if (identical(DesktopTrackerService.instance.windowSource, _activeWindowSource)) {
+        unawaited(DesktopTrackerService.instance.stopTracking());
+      }
       _activeWindowSource.dispose();
     }
     _alertService.dispose();
@@ -1010,15 +1347,17 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
       _activeWindowSource.setScreenRegion(null);
       _applyScanRegion(window);
       _activeWindowSource.setSelectedWindow(window);
+      _bindSourceForSelection(window);
       _hasUserToggledScan = false;
       _syncAutoScanState(force: true);
     });
     _syncOverlayBorders();
+    unawaited(_syncCameraHardwareForSelection(window));
     DesktopTrackerService.instance.updateHudTarget(
       window: window,
       screenRegion: null,
     );
-    if (window != null) {
+    if (window != null && !window.isCameraSource) {
       if (window.isDesktopScreen) {
         unawaited(_activeWindowSource.capturePreviewOnly());
       } else {
@@ -1649,6 +1988,10 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
   }
 
   Future<void> _handleStartSnipping() async {
+    if (_isCameraSourceSelected) {
+      setState(() => _isEditingCameraRegions = !_isEditingCameraRegions);
+      return;
+    }
     if (_isLaunchingSnipping) return;
 
     final bridge = _effectiveNativeBridge;
@@ -1697,8 +2040,10 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
       _isScanningActive = !_isScanningActive;
       if (_isScanningActive) {
         widget.coordinator.start();
+        unawaited(_cameraFramePump?.resume());
       } else {
         widget.coordinator.stop();
+        unawaited(_cameraFramePump?.pause());
       }
     });
     _syncOverlayBorders();
@@ -1714,6 +2059,10 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
           behavior: SnackBarBehavior.floating,
         ),
       );
+      return;
+    }
+    if (win.isCameraSource) {
+      await _ensureCameraSource().triggerSingleScan();
       return;
     }
     ScaffoldMessenger.of(context).hideCurrentSnackBar();
@@ -2009,11 +2358,13 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
             return Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Flexible(
+                Flexible(
                   child: Text(
-                    'Desktop Tracker & Overlay',
+                    _showOverlayControls
+                        ? 'Desktop Tracker & Overlay'
+                        : 'Webcam Tracker',
                     overflow: TextOverflow.ellipsis,
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                 ),
                 if (constraints.maxWidth > 220) ...[
@@ -2085,15 +2436,19 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
           },
         ),
         actions: [
-          IconButton(
-            key: const Key('btn_open_floating_hud'),
-            icon: Icon(
-              _showFloatingHud ? Icons.picture_in_picture : Icons.picture_in_picture_alt,
-              color: _showFloatingHud ? const Color(0xFFEF5350) : null,
+          if (_showOverlayControls)
+            KeyedSubtree(
+              key: _tutHudKey,
+              child: IconButton(
+                key: const Key('btn_open_floating_hud'),
+                icon: Icon(
+                  _showFloatingHud ? Icons.picture_in_picture : Icons.picture_in_picture_alt,
+                  color: _showFloatingHud ? const Color(0xFFEF5350) : null,
+                ),
+                tooltip: _showFloatingHud ? 'Floating HUD schließen' : 'Floating HUD öffnen',
+                onPressed: _toggleFloatingHud,
+              ),
             ),
-            tooltip: _showFloatingHud ? 'Floating HUD schließen' : 'Floating HUD öffnen',
-            onPressed: _toggleFloatingHud,
-          ),
           IconButton(
             key: const Key('btn_alert_settings'),
             icon: const Icon(Icons.notifications_active_outlined),
@@ -2112,11 +2467,20 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
             tooltip: 'Fenster aktualisieren',
             onPressed: _refreshWindows,
           ),
+          KeyedSubtree(
+            key: _tutOcrSettingsKey,
+            child: IconButton(
+              key: const Key('btn_tracker_settings'),
+              icon: const Icon(Icons.settings),
+              tooltip: 'Einstellungen',
+              onPressed: _openSettingsModal,
+            ),
+          ),
           IconButton(
-            key: const Key('btn_tracker_settings'),
-            icon: const Icon(Icons.settings),
-            tooltip: 'Einstellungen',
-            onPressed: _openSettingsModal,
+            key: const Key('btn_desktop_scanner_help'),
+            icon: const Icon(Icons.help_outline),
+            tooltip: 'Scanner-Tutorial',
+            onPressed: () => _startDesktopScannerTutorial(force: true),
           ),
         ],
       ),
@@ -2147,9 +2511,14 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
                             ),
                           ),
                           const SizedBox(width: 16),
-                          // Right Column: Live Event Feed
+                          // Right Column: Optional Webcam Stage + Live Event Feed
                           Expanded(
-                            child: _buildEventFeedCard(activeDex, isDark, theme),
+                            child: _buildRightColumn(
+                              activeDex,
+                              isDark,
+                              theme,
+                              isWide: true,
+                            ),
                           ),
                         ],
                       )
@@ -2161,9 +2530,11 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
                             const SizedBox(height: 14),
                             _buildTargetFocusCard(latestEvent, activeDex, isDark, theme),
                             const SizedBox(height: 14),
-                            SizedBox(
-                              height: 360,
-                              child: _buildEventFeedCard(activeDex, isDark, theme),
+                            _buildRightColumn(
+                              activeDex,
+                              isDark,
+                              theme,
+                              isWide: false,
                             ),
                           ],
                         ),
@@ -2272,6 +2643,71 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
     );
   }
 
+  Widget _buildRightColumn(
+    UserDex? activeDex,
+    bool isDark,
+    ThemeData theme, {
+    required bool isWide,
+  }) {
+    final feedCard = _buildEventFeedCard(activeDex, isDark, theme);
+    if (!_isCameraSourceSelected) {
+      return isWide ? feedCard : SizedBox(height: 360, child: feedCard);
+    }
+
+    final selectedCamTitle = _selectedWindow?.title ?? '📷 Webcam / Foto-Scan';
+    final liveCamCount = _windows.where((w) => w.isCameraSource && w.cameraIndex >= 0).length;
+    final webcamStage = DesktopWebcamStage(
+      cameraTitle: selectedCamTitle,
+      cameraController: _cameraController,
+      isInitializing: _isInitializingCamera,
+      errorText: _cameraErrorText,
+      isPermissionDenied: _isCameraPermissionDenied,
+      isTrackingActive: _isScanningActive,
+      hasMultipleCameras: liveCamCount > 1,
+      isEditingRegions: _isEditingCameraRegions,
+      scanMode: _cameraScanMode,
+      autoPreset: _scanRegion,
+      regions: _cameraRegions,
+      activeBrushRole: CameraZoneRole.scan,
+      webOcrStatusListenable: _webOcrStatusListenable,
+      onRegionsChanged: (nextRegions) {
+        setState(() {
+          _cameraRegions = nextRegions;
+          _cameraScanMode = MobileCameraScanMode.customRegions;
+        });
+        _ensureCameraSource()
+          ..setScanMode(MobileCameraScanMode.customRegions)
+          ..setRegions(nextRegions);
+      },
+      onToggleEditRegions: () {
+        setState(() => _isEditingCameraRegions = !_isEditingCameraRegions);
+      },
+      onImportPhoto: _importPhotoForWebcam,
+      onSwitchCamera: liveCamCount > 1 ? _switchWebcam : null,
+      onRetryCamera: () => unawaited(_syncCameraHardwareForSelection(_selectedWindow)),
+    );
+
+    if (isWide) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          webcamStage,
+          const SizedBox(height: 12),
+          Expanded(child: feedCard),
+        ],
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        webcamStage,
+        const SizedBox(height: 12),
+        SizedBox(height: 360, child: feedCard),
+      ],
+    );
+  }
+
   Widget _buildWindowControlCard(
     DesktopWindowInfo? validSelectedWindow,
     UserDex? activeDex,
@@ -2280,6 +2716,7 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
     ThemeData theme,
   ) {
     return Card(
+      key: _tutSourceKey,
       elevation: 0,
       color: isDark ? const Color(0xFF1B1B24) : Colors.white,
       shape: RoundedRectangleBorder(
@@ -2388,17 +2825,26 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
                     value: validSelectedWindow,
                     isExpanded: true,
                     items: _windows.map((w) {
-                      final icon = w.isKnownEmulator
-                          ? '🎮'
-                          : (w.isDesktopScreen ? '🖥️' : '🪟');
-                      final metaParts = <String>[
-                        if (!w.isDesktopScreen &&
-                            w.processName != null &&
-                            w.processName!.isNotEmpty)
-                          w.processName!,
-                        '${w.width.round()}×${w.height.round()}',
-                        if (w.isMinimized) 'minimiert',
-                      ];
+                      final icon = w.isCameraSource
+                          ? '📷'
+                          : (w.isKnownEmulator
+                              ? '🎮'
+                              : (w.isDesktopScreen ? '🖥️' : '🪟'));
+                      final metaParts = w.isCameraSource
+                          ? <String>[
+                              if (w.cameraIndex >= 0)
+                                '${w.width.round()}×${w.height.round()}'
+                              else
+                                'Foto',
+                            ]
+                          : <String>[
+                              if (!w.isDesktopScreen &&
+                                  w.processName != null &&
+                                  w.processName!.isNotEmpty)
+                                w.processName!,
+                              '${w.width.round()}×${w.height.round()}',
+                              if (w.isMinimized) 'minimiert',
+                            ];
                       return DropdownMenuItem<DesktopWindowInfo>(
                         value: w,
                         child: Row(
@@ -2450,33 +2896,35 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
 
             const SizedBox(height: 10),
 
-            // Quick Actions: Launch Floating HUD
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton.icon(
-                    key: const Key('btn_launch_floating_hud'),
-                    onPressed: _toggleFloatingHud,
-                    icon: Icon(
-                      _showFloatingHud ? Icons.picture_in_picture : Icons.picture_in_picture_alt,
-                      size: 16,
-                      color: const Color(0xFFEF5350),
-                    ),
-                    label: Text(
-                      _showFloatingHud ? 'HUD schließen' : 'Floating HUD öffnen',
-                      style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
-                    ),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: isDark ? Colors.white : Colors.black87,
-                      side: const BorderSide(color: Color(0xFFEF5350)),
-                      visualDensity: VisualDensity.compact,
-                      padding: const EdgeInsets.symmetric(vertical: 8),
+            if (_showOverlayControls) ...[
+              // Quick Actions: Launch Floating HUD
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      key: const Key('btn_launch_floating_hud'),
+                      onPressed: _toggleFloatingHud,
+                      icon: Icon(
+                        _showFloatingHud ? Icons.picture_in_picture : Icons.picture_in_picture_alt,
+                        size: 16,
+                        color: const Color(0xFFEF5350),
+                      ),
+                      label: Text(
+                        _showFloatingHud ? 'HUD schließen' : 'Floating HUD öffnen',
+                        style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
+                      ),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: isDark ? Colors.white : Colors.black87,
+                        side: const BorderSide(color: Color(0xFFEF5350)),
+                        visualDensity: VisualDensity.compact,
+                        padding: const EdgeInsets.symmetric(vertical: 8),
+                      ),
                     ),
                   ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 14),
+                ],
+              ),
+              const SizedBox(height: 14),
+            ],
             Row(
               children: [
                 Expanded(
@@ -2657,8 +3105,16 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
       _customScreenRegion = null;
       _snippetPreviewBytes = null;
       _scanRegion = preset;
-      _activeWindowSource.setScreenRegion(null);
-      _applyScanRegion(_selectedWindow);
+      if (_isCameraSourceSelected) {
+        _cameraScanMode = MobileCameraScanMode.autoFull;
+        _isEditingCameraRegions = false;
+        _ensureCameraSource()
+          ..setScanMode(MobileCameraScanMode.autoFull)
+          ..setAutoPreset(preset);
+      } else {
+        _activeWindowSource.setScreenRegion(null);
+        _applyScanRegion(_selectedWindow);
+      }
       _hasUserToggledScan = false;
       _syncAutoScanState(force: true);
     });
@@ -2668,7 +3124,11 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
       screenRegion: null,
     );
     if (_shouldAutoScan(_selectedWindow, null)) {
-      unawaited(_activeWindowSource.triggerSingleScan());
+      if (_isCameraSourceSelected) {
+        unawaited(_ensureCameraSource().triggerSingleScan());
+      } else {
+        unawaited(_activeWindowSource.triggerSingleScan());
+      }
     }
   }
 
@@ -2800,43 +3260,44 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Global Desktop Border Visibility Switch (#4)
-        Container(
-          margin: const EdgeInsets.only(bottom: 10),
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-          decoration: BoxDecoration(
-            color: isDark ? const Color(0xFF222230) : Colors.grey.shade50,
-            borderRadius: BorderRadius.circular(10),
-            border: Border.all(
-              color: showBorders
-                  ? Colors.cyanAccent.withValues(alpha: 0.45)
-                  : (isDark ? const Color(0xFF2F2F42) : Colors.grey.shade300),
+        if (_showOverlayControls)
+          // Global Desktop Border Visibility Switch (#4)
+          Container(
+            margin: const EdgeInsets.only(bottom: 10),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            decoration: BoxDecoration(
+              color: isDark ? const Color(0xFF222230) : Colors.grey.shade50,
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(
+                color: showBorders
+                    ? Colors.cyanAccent.withValues(alpha: 0.45)
+                    : (isDark ? const Color(0xFF2F2F42) : Colors.grey.shade300),
+              ),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  showBorders ? Icons.visibility : Icons.visibility_off_outlined,
+                  size: 15,
+                  color: showBorders ? Colors.cyanAccent : Colors.grey,
+                ),
+                const SizedBox(width: 8),
+                const Expanded(
+                  child: Text(
+                    'Farbige Bildschirm-Rahmen anzeigen',
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
+                  ),
+                ),
+                Switch.adaptive(
+                  key: const Key('switch_screen_borders'),
+                  value: showBorders,
+                  onChanged: _toggleScreenBorders,
+                  materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                ),
+              ],
             ),
           ),
-          child: Row(
-            children: [
-              Icon(
-                showBorders ? Icons.visibility : Icons.visibility_off_outlined,
-                size: 15,
-                color: showBorders ? Colors.cyanAccent : Colors.grey,
-              ),
-              const SizedBox(width: 8),
-              const Expanded(
-                child: Text(
-                  'Farbige Bildschirm-Rahmen anzeigen',
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
-                ),
-              ),
-              Switch.adaptive(
-                key: const Key('switch_screen_borders'),
-                value: showBorders,
-                onChanged: _toggleScreenBorders,
-                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-              ),
-            ],
-          ),
-        ),
         // ZONE A: Symmetrical Card Matching Zone B Design (#2)
         Container(
           key: const Key('scan_zone_a_card'),
@@ -4070,6 +4531,7 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
     final isShiny = singleEvent?.isShiny ?? false;
 
     return Card(
+      key: _tutFocusKey,
       elevation: 0,
       color: isDark ? const Color(0xFF1B1B24) : Colors.white,
       shape: RoundedRectangleBorder(
@@ -4813,6 +5275,87 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
         label,
         style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: fg),
       ),
+    );
+  }
+
+  void _showDesktopScannerTutorialIfNeeded() {
+    if (!mounted || _hasTriggeredDesktopTutorial) return;
+    _hasTriggeredDesktopTutorial = true;
+
+    TutorialProvider? tutProvider;
+    try {
+      tutProvider = Provider.of<TutorialProvider>(context, listen: false);
+    } catch (_) {
+      return;
+    }
+
+    if (tutProvider.hasSeenFeature('desktop_scanner_tour')) return;
+    _startDesktopScannerTutorial();
+  }
+
+  void _startDesktopScannerTutorial({bool force = false}) {
+    if (!mounted) return;
+    TutorialProvider? tutProvider;
+    try {
+      tutProvider = Provider.of<TutorialProvider>(context, listen: false);
+    } catch (_) {
+      tutProvider = null;
+    }
+
+    if (force) {
+      TutorialOverlay.resetShowing();
+    }
+
+    final steps = <TutorialStep>[
+      TutorialStep(
+        targetKey: _tutSourceKey,
+        titleKey: 'tutorial_scanner_desk_source_title',
+        textKey: 'tutorial_scanner_desk_source_text',
+        rotomMood: RotomMood.happy,
+      ),
+      TutorialStep(
+        targetKey: _tutSourceKey,
+        titleKey: 'tutorial_scanner_desk_zones_title',
+        textKey: 'tutorial_scanner_desk_zones_text',
+        rotomMood: RotomMood.explaining,
+      ),
+      if (_showOverlayControls)
+        TutorialStep(
+          targetKey: _tutHudKey,
+          titleKey: 'tutorial_scanner_desk_hud_title',
+          textKey: 'tutorial_scanner_desk_hud_text',
+          rotomMood: RotomMood.explaining,
+        ),
+      TutorialStep(
+        targetKey: _tutFocusKey,
+        titleKey: 'tutorial_scanner_desk_focus_title',
+        textKey: 'tutorial_scanner_desk_focus_text',
+        rotomMood: RotomMood.thinking,
+      ),
+      TutorialStep(
+        targetKey: _tutOcrSettingsKey,
+        titleKey: 'tutorial_scanner_desk_ocr_title',
+        textKey: 'tutorial_scanner_desk_ocr_text',
+        rotomMood: RotomMood.happy,
+      ),
+    ];
+
+    TutorialOverlay.show(
+      context,
+      TutorialFeature(
+        id: 'desktop_scanner_tour',
+        nameKey: 'tutorial_chapter_scanner_desktop_title',
+        steps: steps,
+      ),
+      () {
+        tutProvider?.markFeatureAsSeen('desktop_scanner_tour');
+        tutProvider?.endScannerDeltaTour();
+        if (tutProvider != null &&
+            tutProvider.completedTutorialVersion <
+                TutorialProvider.currentTutorialVersion) {
+          unawaited(tutProvider.completeScannerTutorial());
+        }
+      },
     );
   }
 }

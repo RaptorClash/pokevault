@@ -43,3 +43,11 @@ kotlin {
 flutter {
     source = "../.."
 }
+
+dependencies {
+    // Offline ML Kit text recognition scripts for all 9 Pokémon game languages
+    // (Latin is bundled by google_mlkit_text_recognition; CJK scripts added explicitly).
+    implementation("com.google.mlkit:text-recognition-japanese:16.0.1")
+    implementation("com.google.mlkit:text-recognition-korean:16.0.1")
+    implementation("com.google.mlkit:text-recognition-chinese:16.0.1")
+}

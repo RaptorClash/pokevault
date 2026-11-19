@@ -87,8 +87,7 @@ class MobileCameraPipOverlay extends StatelessWidget {
                               child: Stack(
                                 fit: StackFit.expand,
                                 children: [
-                                  _buildPreviewFeed(context),
-                                  _buildMiniRectangles(),
+                                  _buildAspectAlignedStage(context),
                                   _buildTopControls(context, latestEvent),
                                   _buildBottomEventBadge(latestEvent),
                                 ],
@@ -104,6 +103,33 @@ class MobileCameraPipOverlay extends StatelessWidget {
               ),
             );
           },
+        );
+      },
+    );
+  }
+
+  Widget _buildAspectAlignedStage(BuildContext context) {
+    return ValueListenableBuilder<double?>(
+      valueListenable: service.previewAspectRatioNotifier,
+      builder: (context, aspect, _) {
+        final content = Stack(
+          fit: StackFit.expand,
+          children: [
+            _buildPreviewFeed(context),
+            _buildMiniRectangles(),
+          ],
+        );
+        if (aspect == null || aspect <= 0) {
+          return content;
+        }
+        return Container(
+          color: const Color(0xFF0E111A),
+          child: Center(
+            child: AspectRatio(
+              aspectRatio: aspect,
+              child: content,
+            ),
+          ),
         );
       },
     );

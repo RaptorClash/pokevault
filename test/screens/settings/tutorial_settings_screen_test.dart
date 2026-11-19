@@ -18,6 +18,7 @@ import 'package:pokevault/providers/shiny_hunt_provider.dart';
 import 'package:pokevault/screens/dex/dex_screen.dart';
 import 'package:pokevault/screens/shiny_hunt/shiny_hunts_hub_screen.dart';
 import 'package:pokevault/services/database_service.dart';
+import 'package:pokevault/utils/tracker_platform_helper.dart';
 import 'package:pokevault/widgets/tutorial/tutorial_overlay.dart';
 
 class MockDexProviderForTest extends ChangeNotifier implements DexProvider {
@@ -107,7 +108,7 @@ void main() {
       );
     }
 
-    testWidgets('Renders header with v1.6 tour button and all 10 chapters', (
+    testWidgets('Renders header with v1.6 tour button and all 11 platform-visible chapters', (
       WidgetTester tester,
     ) async {
       tester.view.physicalSize = const Size(800, 2000);
@@ -120,7 +121,7 @@ void main() {
       // Check header buttons
       expect(find.textContaining('v1.6'), findsWidgets);
       expect(find.textContaining('zurücksetzen'), findsWidgets);
-      expect(find.text('10 Kapitel'), findsOneWidget);
+      expect(find.text('11 Kapitel'), findsOneWidget);
 
       // Check that chapters appear (e.g., Home, Boxen, Shiny Hunt, Backup)
       expect(find.textContaining('Sammlung'), findsWidgets);
@@ -128,7 +129,7 @@ void main() {
       expect(find.textContaining('Shiny Hunt'), findsWidgets);
       expect(find.textContaining('Backup'), findsWidgets);
 
-      // Verify "NEU" badge on v1.6 chapters
+      // Verify "NEU" badge on v1.6/v1.7 chapters
       expect(find.textContaining('NEU'), findsWidgets);
     });
 
@@ -172,11 +173,16 @@ void main() {
       await tester.pumpWidget(createTestWidget());
       await tester.pumpAndSettle();
 
-      // Find the last "Wiederholen" button (which corresponds to chapter 10: module_backup_sync)
-      final replayButtons = find.text('Wiederholen');
-      expect(replayButtons, findsWidgets);
-
-      await tester.tap(replayButtons.last);
+      final backupCard = find.ancestor(
+        of: find.text('10. Cloud-Sync & Backups'),
+        matching: find.byType(Card),
+      );
+      final backupReplay = find.descendant(
+        of: backupCard,
+        matching: find.text('Wiederholen'),
+      );
+      await tester.ensureVisible(backupReplay);
+      await tester.tap(backupReplay);
       await tester.pumpAndSettle();
 
       // Verify ChapterDemoDialog opened with cloud visual
@@ -445,9 +451,16 @@ void main() {
 
       expect(find.byType(TutorialSettingsScreen), findsOneWidget);
 
-      // Chapter 10 is index 9 (last)
-      final replayButtons = find.text('Wiederholen');
-      await tester.tap(replayButtons.last);
+      final backupCard = find.ancestor(
+        of: find.text('10. Cloud-Sync & Backups'),
+        matching: find.byType(Card),
+      );
+      final backupReplay = find.descendant(
+        of: backupCard,
+        matching: find.text('Wiederholen'),
+      );
+      await tester.ensureVisible(backupReplay);
+      await tester.tap(backupReplay);
       await tester.pumpAndSettle();
 
       expect(find.byType(ChapterDemoDialog), findsOneWidget);
@@ -467,6 +480,29 @@ void main() {
       // Should have popped TutorialSettingsScreen back to caller
       expect(popped, isTrue);
       expect(find.byType(TutorialSettingsScreen), findsNothing);
+    });
+
+    testWidgets('Shows only platform-appropriate scanner chapter in TutorialSettingsScreen', (tester) async {
+      tester.view.physicalSize = const Size(800, 2400);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(TrackerPlatformHelper.resetDebugOverrides);
+
+      // Mobile view
+      TrackerPlatformHelper.debugIsMobileOverride = () => true;
+      TrackerPlatformHelper.debugIsDesktopOverride = () => false;
+      await tester.pumpWidget(createTestWidget(key: const Key('tut_mob')));
+      await tester.pumpAndSettle();
+      expect(find.text('11. Kamera- & Foto-Scanner'), findsOneWidget);
+      expect(find.text('11. Overlay-, Fenster- & Kamera-Scanner'), findsNothing);
+
+      // Desktop view
+      TrackerPlatformHelper.debugIsMobileOverride = () => false;
+      TrackerPlatformHelper.debugIsDesktopOverride = () => true;
+      await tester.pumpWidget(createTestWidget(key: const Key('tut_desk')));
+      await tester.pumpAndSettle();
+      expect(find.text('11. Overlay-, Fenster- & Kamera-Scanner'), findsOneWidget);
+      expect(find.text('11. Kamera- & Foto-Scanner'), findsNothing);
     });
   });
 }

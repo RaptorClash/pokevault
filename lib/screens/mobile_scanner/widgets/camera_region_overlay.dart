@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import '../../../services/mobile_scanner/camera_scan_region.dart';
@@ -38,6 +39,29 @@ class _CameraRegionOverlayState extends State<CameraRegionOverlay> {
   Offset? _drawStart;
   Offset? _drawCurrent;
   String? _selectedRegionId;
+  Offset? _focusPointNorm;
+  Timer? _focusTimer;
+
+  @override
+  void dispose() {
+    _focusTimer?.cancel();
+    super.dispose();
+  }
+
+  void _triggerFocusAt(Offset localPos, double w, double h) {
+    final norm = Offset(
+      (localPos.dx / math.max(1.0, w)).clamp(0.0, 1.0),
+      (localPos.dy / math.max(1.0, h)).clamp(0.0, 1.0),
+    );
+    _focusTimer?.cancel();
+    setState(() => _focusPointNorm = norm);
+    _focusTimer = Timer(const Duration(milliseconds: 1100), () {
+      if (mounted) {
+        setState(() => _focusPointNorm = null);
+      }
+    });
+    widget.onTapCameraFocus?.call(norm);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -53,7 +77,7 @@ class _CameraRegionOverlayState extends State<CameraRegionOverlay> {
         return Stack(
           clipBehavior: Clip.none,
           children: [
-            // Empty canvas gesture detector for drawing new rectangles
+            // Empty canvas gesture detector for drawing new rectangles and tap-to-focus
             Positioned.fill(
               child: GestureDetector(
                 key: const Key('camera_region_canvas'),
@@ -63,13 +87,8 @@ class _CameraRegionOverlayState extends State<CameraRegionOverlay> {
                     setState(() => _selectedRegionId = null);
                     return;
                   }
-                  if (!widget.isEditing && widget.onTapCameraFocus != null) {
-                    widget.onTapCameraFocus!(
-                      Offset(
-                        (details.localPosition.dx / w).clamp(0.0, 1.0),
-                        (details.localPosition.dy / h).clamp(0.0, 1.0),
-                      ),
-                    );
+                  if (widget.onTapCameraFocus != null) {
+                    _triggerFocusAt(details.localPosition, w, h);
                   }
                 },
                 onPanStart: widget.isEditing
@@ -110,6 +129,9 @@ class _CameraRegionOverlayState extends State<CameraRegionOverlay> {
             if (widget.showBorderOutlines)
               for (final region in widget.regions)
                 _buildRegionWidget(region, w, h),
+
+            // Transient tap-to-focus reticle
+            if (_focusPointNorm != null) _buildFocusIndicator(w, h),
           ],
         );
       },
@@ -117,40 +139,80 @@ class _CameraRegionOverlayState extends State<CameraRegionOverlay> {
   }
 
   Widget _buildAutoModeOverlay() {
-    if (!widget.showBorderOutlines) {
-      return const SizedBox.shrink();
-    }
-    return IgnorePointer(
-      child: Container(
-        margin: const EdgeInsets.all(8),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(
-            color: const Color(0xFF10B981).withValues(alpha: 0.65),
-            width: 1.5,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final w = math.max(1.0, constraints.maxWidth);
+        final h = math.max(1.0, constraints.maxHeight);
+        return GestureDetector(
+          behavior: HitTestBehavior.translucent,
+          onTapUp: widget.onTapCameraFocus != null
+              ? (details) => _triggerFocusAt(details.localPosition, w, h)
+              : null,
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              if (widget.showBorderOutlines)
+                IgnorePointer(
+                  child: Container(
+                    margin: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(
+                        color: const Color(0xFF10B981).withValues(alpha: 0.65),
+                        width: 1.5,
+                      ),
+                    ),
+                    child: Align(
+                      alignment: Alignment.topCenter,
+                      child: Container(
+                        key: const Key('auto_full_scan_badge'),
+                        margin: const EdgeInsets.only(top: 6),
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withValues(alpha: 0.65),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: const Color(0xFF10B981).withValues(alpha: 0.6),
+                          ),
+                        ),
+                        child: Text(
+                          'AUTO-MODUS · ${widget.autoPreset.labelDe}',
+                          style: const TextStyle(
+                            color: Color(0xFF6EE7B7),
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              if (_focusPointNorm != null) _buildFocusIndicator(w, h),
+            ],
           ),
-        ),
-        child: Align(
-          alignment: Alignment.topCenter,
-          child: Container(
-            key: const Key('auto_full_scan_badge'),
-            margin: const EdgeInsets.only(top: 6),
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
-            decoration: BoxDecoration(
-              color: Colors.black.withValues(alpha: 0.65),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: const Color(0xFF10B981).withValues(alpha: 0.6),
-              ),
-            ),
-            child: Text(
-              'AUTO-MODUS · ${widget.autoPreset.labelDe}',
-              style: const TextStyle(
-                color: Color(0xFF6EE7B7),
-                fontSize: 10,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
+        );
+      },
+    );
+  }
+
+  Widget _buildFocusIndicator(double w, double h) {
+    final pt = _focusPointNorm!;
+    const size = 48.0;
+    return Positioned(
+      left: (pt.dx * w - size / 2).clamp(0.0, math.max(0.0, w - size)),
+      top: (pt.dy * h - size / 2).clamp(0.0, math.max(0.0, h - size)),
+      child: IgnorePointer(
+        child: Container(
+          key: const Key('camera_focus_indicator'),
+          width: size,
+          height: size,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            border: Border.all(color: Colors.amberAccent, width: 2.2),
+            color: Colors.amberAccent.withValues(alpha: 0.12),
+          ),
+          child: const Center(
+            child: Icon(Icons.center_focus_strong, color: Colors.amberAccent, size: 18),
           ),
         ),
       ),

@@ -154,5 +154,101 @@ void main() {
         isEmpty,
       );
     });
+
+    test('bgraToEvenAlignedNv21 safely aligns odd dimensions without truncating chroma', () {
+      const w = 101;
+      const h = 51;
+      final bgra = Uint8List(w * h * 4);
+      for (int i = 0; i < bgra.length; i += 4) {
+        bgra[i] = 80;
+        bgra[i + 1] = 160;
+        bgra[i + 2] = 220;
+        bgra[i + 3] = 255;
+      }
+      final frame = CapturedFrame(
+        width: w,
+        height: h,
+        bytes: bgra,
+        pixelFormat: 'bgra8888',
+      );
+
+      final aligned = CameraFrameProcessor.bgraToEvenAlignedNv21(frame);
+      expect(aligned.width.isEven, isTrue);
+      expect(aligned.height.isEven, isTrue);
+      expect(aligned.width, greaterThanOrEqualTo(100));
+      expect(aligned.height, greaterThanOrEqualTo(50));
+      expect(
+        aligned.bytes.length,
+        aligned.width * aligned.height + (aligned.width * aligned.height ~/ 2),
+      );
+    });
+
+    test('convertTwoPlaneYuvToBgraFrame decodes 2-plane NV21/NV12 frames and rotates accurately', () {
+      const width = 4;
+      const height = 2;
+      final yPlane = Uint8List.fromList([
+        235, 235, 235, 235,
+        16, 16, 16, 16,
+      ]);
+      // Interleaved VU (NV21) for 2x1 chroma blocks -> 4 bytes
+      final vuPlane = Uint8List.fromList([128, 128, 128, 128]);
+
+      final frame = CameraFrameProcessor.convertTwoPlaneYuvToBgraFrame(
+        width: width,
+        height: height,
+        yBytes: yPlane,
+        uvBytes: vuPlane,
+        yRowStride: 4,
+        uvRowStride: 4,
+        isNv21Order: true,
+        sensorOrientation: 90,
+      );
+
+      expect(frame, isNotNull);
+      expect(frame!.width, 2);
+      expect(frame.height, 4);
+      expect(frame.pixelFormat, 'bgra8888');
+      expect(frame.bytes.length, 2 * 4 * 4);
+    });
+
+    test('resolveEffectiveRotationDegrees accounts for device orientation and lens direction', () {
+      // Back camera with sensorOrientation 90:
+      // PortraitUp (0 deg) -> 90 deg rotation needed
+      expect(
+        CameraFrameProcessor.resolveEffectiveRotationDegrees(
+          sensorOrientation: 90,
+          deviceRotationDegrees: 0,
+          isFrontCamera: false,
+        ),
+        90,
+      );
+      // LandscapeLeft (90 deg CCW / deviceOrientation.landscapeLeft) -> 0 deg rotation needed
+      expect(
+        CameraFrameProcessor.resolveEffectiveRotationDegrees(
+          sensorOrientation: 90,
+          deviceRotationDegrees: 90,
+          isFrontCamera: false,
+        ),
+        0,
+      );
+      // LandscapeRight (270 deg) -> 180 deg rotation needed
+      expect(
+        CameraFrameProcessor.resolveEffectiveRotationDegrees(
+          sensorOrientation: 90,
+          deviceRotationDegrees: 270,
+          isFrontCamera: false,
+        ),
+        180,
+      );
+      // Front camera sensorOrientation 270 in PortraitUp -> 270 deg
+      expect(
+        CameraFrameProcessor.resolveEffectiveRotationDegrees(
+          sensorOrientation: 270,
+          deviceRotationDegrees: 0,
+          isFrontCamera: true,
+        ),
+        270,
+      );
+    });
   });
 }

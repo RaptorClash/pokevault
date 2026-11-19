@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:pokevault/screens/home/home_screen.dart';
 import 'package:pokevault/screens/desktop_tracker/desktop_tracker_screen.dart';
+import 'package:pokevault/utils/tracker_platform_helper.dart';
 import 'package:pokevault/providers/dex_provider.dart';
 import 'package:pokevault/providers/tutorial_provider.dart';
 import 'package:pokevault/providers/settings_provider.dart';
@@ -37,6 +38,7 @@ void main() {
     when(() => mockSettingsProvider.autoSyncEnabled).thenReturn(false);
     when(() => mockSettingsProvider.googleClientId).thenReturn('');
     when(() => mockSettingsProvider.googleClientSecret).thenReturn('');
+    when(() => mockSettingsProvider.effectivePokemonLanguage).thenReturn('de');
 
     when(() => mockDexProvider.isInitialized).thenReturn(true);
     when(() => mockDexProvider.isMigrating).thenReturn(false);
@@ -60,7 +62,11 @@ void main() {
     );
   }
 
-  testWidgets('Desktop Tracker action icon appears on Desktop platforms and opens DesktopTrackerScreen', (tester) async {
+  testWidgets('Windows Tracker action icon opens unified DesktopTrackerScreen directly without modal sheet', (tester) async {
+    TrackerPlatformHelper.debugOverlaySupportedOverride = () => true;
+    TrackerPlatformHelper.debugCameraSupportedOverride = () => true;
+    addTearDown(TrackerPlatformHelper.resetDebugOverrides);
+
     tester.view.physicalSize = const Size(1280, 800);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(() => tester.view.resetPhysicalSize());
@@ -68,15 +74,13 @@ void main() {
     await tester.pumpWidget(buildWidget());
     await tester.pumpAndSettle();
 
-    // Verify track_changes icon button exists
-    final trackerIconFinder = find.byTooltip('Desktop Tracker & Overlay');
+    final trackerIconFinder = find.byIcon(Icons.track_changes);
     expect(trackerIconFinder, findsOneWidget);
 
-    // Tap icon
     await tester.tap(trackerIconFinder);
     await tester.pumpAndSettle();
 
-    // Verify DesktopTrackerScreen was pushed
+    expect(find.byKey(const Key('tracker_chooser_overlay')), findsNothing);
     expect(find.byType(DesktopTrackerScreen), findsOneWidget);
   });
 }
