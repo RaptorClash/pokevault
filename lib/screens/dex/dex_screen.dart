@@ -32,9 +32,7 @@ import 'widgets/dex_app_bar_actions.dart';
 import 'widgets/dex_filter_bar.dart';
 import '../../utils/tracker_platform_helper.dart';
 import '../desktop_tracker/widgets/persistent_tracker_dock.dart';
-import '../../services/desktop_tracker/desktop_tracker_service.dart';
 import '../../services/scanner_core/scanner_launcher_helper.dart';
-import '../../services/scanner_core/models/scanner_event.dart';
 
 class DexScreen extends StatefulWidget {
   final UserDex initialDex;
@@ -2038,37 +2036,9 @@ class _DexScreenState extends State<DexScreen> {
             ),
         ],
       ),
-      bottomNavigationBar: ValueListenableBuilder<bool>(
-        valueListenable: DesktopTrackerService.instance.isTrackingNotifier,
-        builder: (context, isTracking, _) {
-          if (!TrackerPlatformHelper.isDesktop || !isTracking) {
-            return const SizedBox.shrink();
-          }
-
-          return ValueListenableBuilder<ScannerEvent?>(
-            valueListenable: DesktopTrackerService.instance.latestEventNotifier,
-            builder: (context, latestEvent, _) {
-              return ValueListenableBuilder<bool>(
-                valueListenable: DesktopTrackerService.instance.isPausedNotifier,
-                builder: (context, isPaused, _) {
-                  final activeDexId = DesktopTrackerService.instance.activeDexId;
-                  final dexProvider = Provider.of<DexProvider>(context, listen: false);
-                  final activeDex = dexProvider.userDexes.where((d) => d.id == activeDexId).firstOrNull ?? liveDex;
-
-                  return PersistentTrackerDock(
-                    latestEvent: latestEvent,
-                    activeDex: activeDex,
-                    isScanningActive: !isPaused,
-                    onOpenHud: () => DesktopTrackerService.instance.toggleFloatingHud(),
-                    onOpenSetup: () => _openDesktopTracker(liveDex),
-                    onTogglePause: () => DesktopTrackerService.instance.togglePause(),
-                    onClose: () => DesktopTrackerService.instance.stopTracking(),
-                  );
-                },
-              );
-            },
-          );
-        },
+      bottomNavigationBar: PersistentTrackerDockHost(
+        fallbackDex: liveDex,
+        onOpenSetup: () => _openDesktopTracker(liveDex),
       ),
     ),
   ),

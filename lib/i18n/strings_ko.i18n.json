@@ -1950,5 +1950,17 @@
   "tutorial_scanner_home_delta_title": "새 스캐너 가이드!",
   "tutorial_scanner_home_delta_text": "스캐너 아이콘을 눌러 바로 스캐너에서 인터랙티브 로톰 투어를 시작하세요!",
   "tutorial_scanner_tour_btn": "스캐너 투어 시작",
-  "tutorial_new_badge": "새로움"
+  "tutorial_new_badge": "새로움",
+  "tutorial_scanner_desk_dex_title": "목표 포켓덱스 선택",
+  "tutorial_scanner_desk_dex_text": "여기에서 인식된 포켓몬과 포획한 포켓몬이 자동으로 기록될 포켓덱스를 설정합니다.",
+  "tutorial_scanner_desk_borders_title": "컬러 스캔 프레임",
+  "tutorial_scanner_desk_borders_text": "선택한 스캔 영역을 색상 오버레이 프레임으로 데스크탑이나 게임 화면 위에 직접 표시합니다.",
+  "tutorial_scanner_desk_zone_a_title": "스캔 영역 (구역 A)",
+  "tutorial_scanner_desk_zone_a_text": "포획 및 조우 메시지를 위한 텍스트 박스를 정의합니다 – 프리셋(예: 아래) 또는 자유롭게 그리기 방식으로.",
+  "tutorial_scanner_desk_zone_b_title": "라이브 포커스 존 (존 B)",
+  "tutorial_scanner_desk_zone_b_text": "상대 정보 바(왼쪽/오른쪽 상단)를 위한 선택적 두 번째 존: 포켓몬을 즉시 인식하고 진화 누락을 확인합니다.",
+  "tutorial_scanner_desk_multi_title": "멀티 인스턴스 (#2, #3 ...)",
+  "tutorial_scanner_desk_multi_text": "여러 게임을 동시에 Encounters와 Shinys에서 스캔할 수 있도록 병렬 에뮬레이터 창이나 영역을 추가하세요.",
+  "tutorial_scanner_desk_feed_title": "라이브 이벤트 & OCR 옵션",
+  "tutorial_scanner_desk_feed_text": "여기에는 모든 결과와 1클릭 항목이 표시됩니다. 위의 톱니바퀴를 통해 9개의 게임 언어, 스캔 간격 및 사용자 정의 패턴을 설정할 수 있습니다."
 }

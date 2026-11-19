@@ -1950,5 +1950,17 @@
   "tutorial_scanner_home_delta_title": "Nouveau guide du scanner !",
   "tutorial_scanner_home_delta_text": "Appuie ici sur l'icône du scanner pour lancer directement ta visite interactive Rotom dans le scanner !",
   "tutorial_scanner_tour_btn": "Démarrer la visite du scanner",
-  "tutorial_new_badge": "NOUVEAU"
+  "tutorial_new_badge": "NOUVEAU",
+  "tutorial_scanner_desk_dex_title": "Choisir le Pokédex cible",
+  "tutorial_scanner_desk_dex_text": "Définissez ici dans quel Pokédex les Pokémon et captures détectés sont automatiquement enregistrés.",
+  "tutorial_scanner_desk_borders_title": "Cadres de numérisation colorés",
+  "tutorial_scanner_desk_borders_text": "Affiche les zones de scan marquées comme des cadres superposés colorés directement sur ton bureau ou ton jeu.",
+  "tutorial_scanner_desk_zone_a_title": "Zone de scan (Zone A)",
+  "tutorial_scanner_desk_zone_a_text": "Définit la zone de texte pour les messages de capture et de rencontre – via un preset (par ex. en bas) ou dessiné librement.",
+  "tutorial_scanner_desk_zone_b_title": "Zone de mise au point en direct (Zone B)",
+  "tutorial_scanner_desk_zone_b_text": "Zone optionnelle secondaire pour les barres d'information des ennemis (en haut à gauche/droite) : détecte les Pokémon immédiatement et vérifie les évolutions manquantes.",
+  "tutorial_scanner_desk_multi_title": "Multi-instances (#2, #3 ...)",
+  "tutorial_scanner_desk_multi_text": "Ajoutez des fenêtres ou zones d'émulateur parallèles pour scanner plusieurs jeux simultanément pour les rencontres et les shinys.",
+  "tutorial_scanner_desk_feed_title": "Événements en direct & options OCR",
+  "tutorial_scanner_desk_feed_text": "Ici apparaissent tous les résultats avec l'entrée en un clic. Depuis l'engrenage en haut, vous pouvez définir 9 langues de jeu, l'intervalle de numérisation et vos propres modèles."
 }

@@ -1950,5 +1950,17 @@
   "tutorial_scanner_home_delta_title": "Neuer Scanner-Guide!",
   "tutorial_scanner_home_delta_text": "Tippe hier auf das Scanner-Icon, um direkt deine interaktive Rotom-Tour im Scanner zu starten!",
   "tutorial_scanner_tour_btn": "Scanner-Tour starten",
-  "tutorial_new_badge": "NEU"
+  "tutorial_new_badge": "NEU",
+  "tutorial_scanner_desk_dex_title": "Ziel-Pokédex wählen",
+  "tutorial_scanner_desk_dex_text": "Lege hier fest, in welchem Pokédex erkannte Pokémon und Fänge automatisch eingetragen werden.",
+  "tutorial_scanner_desk_borders_title": "Farbige Scan-Rahmen",
+  "tutorial_scanner_desk_borders_text": "Zeigt die markierten Scan-Zonen als farbige Overlay-Rahmen direkt über deinem Desktop oder Spiel an.",
+  "tutorial_scanner_desk_zone_a_title": "Scan-Bereich (Zone A)",
+  "tutorial_scanner_desk_zone_a_text": "Definiert die Textbox für Fang- und Encounter-Meldungen – per Preset (z. B. Unten) oder frei gezeichnet.",
+  "tutorial_scanner_desk_zone_b_title": "Live-Fokus-Zone (Zone B)",
+  "tutorial_scanner_desk_zone_b_text": "Optionale zweite Zone für Gegner-Infoleisten (oben links/rechts): erkennt Pokémon sofort und prüft fehlende Entwicklungen.",
+  "tutorial_scanner_desk_multi_title": "Multi-Instanzen (#2, #3 ...)",
+  "tutorial_scanner_desk_multi_text": "Füge parallele Emulator-Fenster oder Zonen hinzu, um mehrere Spiele gleichzeitig auf Encounters und Shinys zu scannen.",
+  "tutorial_scanner_desk_feed_title": "Live-Ereignisse & OCR-Optionen",
+  "tutorial_scanner_desk_feed_text": "Hier erscheinen alle Treffer samt 1-Klick-Eintrag. Über das Zahnrad oben stellst du 9 Spielsprachen, Scan-Intervall und eigene Muster ein."
 }

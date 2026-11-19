@@ -1950,5 +1950,17 @@
   "tutorial_scanner_home_delta_title": "Nuova guida scanner!",
   "tutorial_scanner_home_delta_text": "Tocca qui sull'icona dello scanner per avviare direttamente il tuo tour interattivo di Rotom nello scanner!",
   "tutorial_scanner_tour_btn": "Avvia tour dello scanner",
-  "tutorial_new_badge": "NUOVO"
+  "tutorial_new_badge": "NUOVO",
+  "tutorial_scanner_desk_dex_title": "Seleziona Pokédex di destinazione",
+  "tutorial_scanner_desk_dex_text": "Imposta qui in quale Pokédex i Pokémon riconosciuti e le catture vengono registrati automaticamente.",
+  "tutorial_scanner_desk_borders_title": "Cornici di scansione colorate",
+  "tutorial_scanner_desk_borders_text": "Mostra le zone di scansione evidenziate come cornici sovrapposte colorate direttamente sul tuo desktop o sul gioco.",
+  "tutorial_scanner_desk_zone_a_title": "Area di scansione (Zona A)",
+  "tutorial_scanner_desk_zone_a_text": "Definisce la casella di testo per i messaggi di cattura e incontro – tramite preset (ad es. in basso) o disegnata liberamente.",
+  "tutorial_scanner_desk_zone_b_title": "Zona di messa a fuoco live (Zona B)",
+  "tutorial_scanner_desk_zone_b_text": "Zona opzionale seconda per le barre delle informazioni dei nemici (in alto a sinistra/destra): rileva immediatamente i Pokémon e controlla eventuali evoluzioni mancanti.",
+  "tutorial_scanner_desk_multi_title": "Multi-istanze (#2, #3 ...)",
+  "tutorial_scanner_desk_multi_text": "Aggiungi finestre o zone emulator parallele per scansionare più giochi contemporaneamente su Incontri e Shinies.",
+  "tutorial_scanner_desk_feed_title": "Eventi live e opzioni OCR",
+  "tutorial_scanner_desk_feed_text": "Qui appaiono tutti i risultati con voce a un clic. Attraverso l'ingranaggio in alto puoi impostare 9 lingue di gioco, intervallo di scansione e modelli personalizzati."
 }

@@ -1950,5 +1950,17 @@
   "tutorial_scanner_home_delta_title": "新的扫描器指南！",
   "tutorial_scanner_home_delta_text": "点击这里的扫描器图标，即可直接在扫描器中启动你的互动罗托姆之旅！",
   "tutorial_scanner_tour_btn": "启动扫描器导览",
-  "tutorial_new_badge": "新"
+  "tutorial_new_badge": "新",
+  "tutorial_scanner_desk_dex_title": "选择目标宝可梦图鉴",
+  "tutorial_scanner_desk_dex_text": "在这里设定，在所选宝可梦图鉴中，已识别的宝可梦和捕获的宝可梦将自动登记。",
+  "tutorial_scanner_desk_borders_title": "彩色扫描框",
+  "tutorial_scanner_desk_borders_text": "在桌面或游戏上直接以彩色覆盖框显示标记的扫描区域。",
+  "tutorial_scanner_desk_zone_a_title": "扫描区域（区域 A）",
+  "tutorial_scanner_desk_zone_a_text": "定义用于捕获和遭遇消息的文本框——通过预设（例如底部）或自由绘制。",
+  "tutorial_scanner_desk_zone_b_title": "实时聚焦区（B区）",
+  "tutorial_scanner_desk_zone_b_text": "用于对手信息条的可选第二区域（左上/右上）：可以立即识别宝可梦并检查缺失的进化。",
+  "tutorial_scanner_desk_multi_title": "多实例 (#2, #3 ...)",
+  "tutorial_scanner_desk_multi_text": "添加平行的模拟器窗口或区域，以同时扫描多个游戏的遭遇和闪光宝可梦。",
+  "tutorial_scanner_desk_feed_title": "实时事件与 OCR 选项",
+  "tutorial_scanner_desk_feed_text": "这里显示所有匹配项及一键条目。点击上方的齿轮可以设置9种游戏语言、扫描间隔和自定义模式。"
 }

@@ -1950,5 +1950,17 @@
   "tutorial_scanner_home_delta_title": "新的掃描器指南！",
   "tutorial_scanner_home_delta_text": "點擊此處的掃描器圖示，即可直接在掃描器中啟動你的互動式洛托姆導覽！",
   "tutorial_scanner_tour_btn": "啟動掃描器之旅",
-  "tutorial_new_badge": "新增"
+  "tutorial_new_badge": "新增",
+  "tutorial_scanner_desk_dex_title": "選擇目標寶可夢圖鑑",
+  "tutorial_scanner_desk_dex_text": "在此設定已識別的寶可夢及捕獲將自動登錄到哪個圖鑑。",
+  "tutorial_scanner_desk_borders_title": "彩色掃描框",
+  "tutorial_scanner_desk_borders_text": "以彩色覆蓋框的形式直接在你的桌面或遊戲上顯示標記的掃描區域。",
+  "tutorial_scanner_desk_zone_a_title": "掃描範圍（區域 A）",
+  "tutorial_scanner_desk_zone_a_text": "定義捕獲和遭遇訊息的文字框—可使用預設（例如：底部）或自由繪製。",
+  "tutorial_scanner_desk_zone_b_title": "實時焦點區域 (區域 B)",
+  "tutorial_scanner_desk_zone_b_text": "選擇性的第二區域用於敵方資訊條（左上/右上）：立即識別寶可夢並檢查缺失的進化階段。",
+  "tutorial_scanner_desk_multi_title": "多重實例 (#2, #3 ...)",
+  "tutorial_scanner_desk_multi_text": "添加平行的模擬器窗口或區域，以同時掃描多個遊戲中的遭遇和閃光寶可夢。",
+  "tutorial_scanner_desk_feed_title": "實時事件與 OCR 選項",
+  "tutorial_scanner_desk_feed_text": "這裡會顯示所有命中結果以及一鍵點擊條目。通過上方的齒輪，你可以設置9種遊戲語言、掃描間隔和自定義樣式。"
 }

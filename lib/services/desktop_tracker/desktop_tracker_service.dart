@@ -33,8 +33,13 @@ class DesktopTrackerService {
   double _hudOpacity = 0.92;
   String _evolutionSummary = '';
   bool _hasMissingEvolutions = false;
+  bool _ownsWindowSource = false;
   bool Function(int pokemonId)? _isCaughtChecker;
   Future<void> Function(ScannerEvent event)? _onHudMarkCaughtCallback;
+  Future<void> Function(ScannerEvent event)? _onBackgroundAutoCatchCallback;
+  final List<ScannerEvent> _recentEvents = [];
+
+  List<ScannerEvent> get recentEvents => List.unmodifiable(_recentEvents);
 
   final ValueNotifier<ScannerEvent?> latestEventNotifier = ValueNotifier(null);
   final ValueNotifier<bool> isTrackingNotifier = ValueNotifier(false);
@@ -67,10 +72,48 @@ class DesktopTrackerService {
     Future<void> Function(ScannerEvent event)? onMarkCaught,
   }) {
     _nativeBridge = bridge;
-    _isCaughtChecker = isCaughtChecker;
-    _onHudMarkCaughtCallback = onMarkCaught;
+    if (isCaughtChecker != null) {
+      _isCaughtChecker = isCaughtChecker;
+    }
+    if (onMarkCaught != null) {
+      _onHudMarkCaughtCallback = onMarkCaught;
+    }
     if (bridge != null) {
       bridge.onHudAction = _handleNativeHudAction;
+    }
+  }
+
+  void configureBackgroundHandlers({
+    bool Function(int pokemonId)? isCaughtChecker,
+    Future<void> Function(ScannerEvent event)? onMarkCaught,
+    Future<void> Function(ScannerEvent event)? onBackgroundAutoCatch,
+  }) {
+    if (isCaughtChecker != null) {
+      _isCaughtChecker = isCaughtChecker;
+    }
+    if (onMarkCaught != null) {
+      _onHudMarkCaughtCallback = onMarkCaught;
+    }
+    _onBackgroundAutoCatchCallback = onBackgroundAutoCatch;
+    _syncNativeHudIfVisible();
+  }
+
+  void recordUiEvent(ScannerEvent event) {
+    if (_recentEvents.isEmpty || _recentEvents.first != event) {
+      _recentEvents.insert(0, event);
+      if (_recentEvents.length > 50) {
+        _recentEvents.removeLast();
+      }
+    }
+  }
+
+  bool get hasMarkCaughtHandler => _onHudMarkCaughtCallback != null;
+
+  Future<void> markLatestEventCaught() async {
+    final ev = latestEventNotifier.value;
+    if (ev != null && _onHudMarkCaughtCallback != null) {
+      await _onHudMarkCaughtCallback!(ev);
+      _syncNativeHudIfVisible();
     }
   }
 
@@ -146,10 +189,12 @@ class DesktopTrackerService {
     required ScannerCoordinator coordinator,
     DesktopWindowSource? windowSource,
     String? dexId,
+    bool ownsWindowSource = false,
   }) {
     _coordinator = coordinator;
     _windowSource = windowSource;
     _activeDexId = dexId;
+    _ownsWindowSource = ownsWindowSource;
 
     _eventSubscription?.cancel();
     _eventSubscription = coordinator.events.listen(handleScannerEvent);
@@ -159,8 +204,14 @@ class DesktopTrackerService {
   }
 
   void handleScannerEvent(ScannerEvent event) {
+    recordUiEvent(event);
     latestEventNotifier.value = event;
-    _syncNativeHudIfVisible();
+    if (_onBackgroundAutoCatchCallback != null) {
+      _onBackgroundAutoCatchCallback!(event)
+          .then((_) => _syncNativeHudIfVisible());
+    } else {
+      _syncNativeHudIfVisible();
+    }
   }
 
   Future<void> setFloatingHudVisible(bool visible) async {
@@ -217,25 +268,41 @@ class DesktopTrackerService {
     } else {
       _coordinator?.start();
     }
+    if (_activeScreenRegion != null) {
+      _nativeBridge?.setScanRegionBorder(
+        _activeScreenRegion,
+        active: !isPausedNotifier.value,
+      );
+    }
+    _syncNativeHudIfVisible();
   }
 
   Future<void> stopTracking() async {
     isTrackingNotifier.value = false;
+    isPausedNotifier.value = false;
     showFloatingHudNotifier.value = false;
     latestEventNotifier.value = null;
+    _recentEvents.clear();
     _activeScreenRegion = null;
     _activeSnippetPreview = null;
     _activeWindow = null;
 
     await _nativeBridge?.hideFloatingHud();
+    await _nativeBridge?.setScanRegionBorder(null);
+    await _nativeBridge?.setOverlayBorders(const []);
     _nativeBridge = null;
     _isCaughtChecker = null;
     _onHudMarkCaughtCallback = null;
+    _onBackgroundAutoCatchCallback = null;
 
     await _eventSubscription?.cancel();
     _eventSubscription = null;
 
     await _coordinator?.stop();
+    if (_ownsWindowSource) {
+      await _windowSource?.dispose();
+    }
+    _ownsWindowSource = false;
     _coordinator = null;
     _windowSource = null;
     _activeDexId = null;

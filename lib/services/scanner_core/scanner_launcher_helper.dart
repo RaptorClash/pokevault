@@ -67,6 +67,7 @@ class ScannerLauncherHelper {
           coordinator: coordinator,
           windowSource: reusableWindowSource,
           initialDexId: dexId ?? existingService.activeDexId,
+          keepTrackingInBackground: true,
         ),
       ),
     );

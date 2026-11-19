@@ -1950,5 +1950,17 @@
   "tutorial_scanner_home_delta_title": "New scanner guide!",
   "tutorial_scanner_home_delta_text": "Tap here on the scanner icon to start your interactive Rotom tour directly in the scanner!",
   "tutorial_scanner_tour_btn": "Start scanner tour",
-  "tutorial_new_badge": "NEW"
+  "tutorial_new_badge": "NEW",
+  "tutorial_scanner_desk_dex_title": "Choose Target Pokédex",
+  "tutorial_scanner_desk_dex_text": "Select which Pokédex detected Pokémon and catches are automatically recorded into.",
+  "tutorial_scanner_desk_borders_title": "Colored Scan Borders",
+  "tutorial_scanner_desk_borders_text": "Displays the marked scan zones as colored overlay frames directly over your desktop or game.",
+  "tutorial_scanner_desk_zone_a_title": "Scan Area (Zone A)",
+  "tutorial_scanner_desk_zone_a_text": "Defines the text box for catch and encounter messages — via preset (e.g. Bottom) or custom drawn.",
+  "tutorial_scanner_desk_zone_b_title": "Live Focus Zone (Zone B)",
+  "tutorial_scanner_desk_zone_b_text": "Optional second zone for opponent info bars (top left/right): detects Pokémon instantly and checks missing evolutions.",
+  "tutorial_scanner_desk_multi_title": "Multi-Instances (#2, #3 ...)",
+  "tutorial_scanner_desk_multi_text": "Add parallel emulator windows or zones to scan multiple games simultaneously for encounters and shinies.",
+  "tutorial_scanner_desk_feed_title": "Live Events & OCR Options",
+  "tutorial_scanner_desk_feed_text": "All matches appear here with 1-click dex entry. Use the gear icon at the top to configure 9 game languages, scan interval, and custom patterns."
 }

@@ -48,7 +48,7 @@ void main() {
         ),
       );
 
-      expect(find.textContaining('Live-Tracker aktiv'), findsOneWidget);
+      expect(find.text('LIVE'), findsOneWidget);
       expect(find.textContaining('Glumanda'), findsOneWidget);
       expect(find.textContaining('Fehlt im Ziel-Dex'), findsOneWidget);
       expect(find.byKey(const Key('btn_dock_open_hud')), findsOneWidget);
@@ -86,6 +86,45 @@ void main() {
       await tester.tap(find.byKey(const Key('btn_dock_toggle_pause')));
       await tester.pump();
       expect(pauseToggled, isTrue);
+    });
+
+    testWidgets('shows HUD active state, LIVE/PAUSIERT badge, and quick + Eintragen action', (tester) async {
+      bool markCaughtTapped = false;
+      final event = ScannerEvent(
+        type: ScannerEventType.encounter,
+        matchedName: 'Pikachu',
+        pokemonId: 25,
+        rawText: 'Wildes Pikachu',
+        timestamp: DateTime.now(),
+      );
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            bottomNavigationBar: PersistentTrackerDock(
+              latestEvent: event,
+              activeDex: mockDex,
+              isScanningActive: true,
+              isHudVisible: true,
+              activeSourceTitle: 'melonDS',
+              onOpenHud: () {},
+              onOpenSetup: () {},
+              onTogglePause: () {},
+              onMarkCaught: () => markCaughtTapped = true,
+            ),
+          ),
+        ),
+      );
+
+      expect(find.text('LIVE'), findsOneWidget);
+      expect(find.textContaining('HUD aktiv'), findsOneWidget);
+      expect(find.textContaining('melonDS'), findsOneWidget);
+
+      final markBtn = find.byKey(const Key('btn_dock_mark_caught'));
+      expect(markBtn, findsOneWidget);
+      await tester.tap(markBtn);
+      await tester.pump();
+      expect(markCaughtTapped, isTrue);
     });
   });
 }

@@ -12,6 +12,7 @@ import 'package:pokevault/providers/settings_provider.dart';
 import 'package:pokevault/providers/tutorial_provider.dart';
 import 'package:pokevault/screens/dex/widgets/dex_app_bar_actions.dart';
 import 'package:pokevault/screens/home/home_screen.dart';
+import 'package:pokevault/services/desktop_tracker/desktop_tracker_service.dart';
 import 'package:pokevault/utils/tracker_platform_helper.dart';
 import 'package:pokevault/widgets/tutorial/tutorial_overlay.dart';
 
@@ -76,6 +77,7 @@ void main() {
 
       TrackerPlatformHelper.debugOverlaySupportedOverride = () => true;
       TrackerPlatformHelper.debugCameraSupportedOverride = () => true;
+      addTearDown(() => DesktopTrackerService.instance.stopTracking());
       expect(TrackerPlatformHelper.isDesktopOverlaySupported, isTrue);
       expect(TrackerPlatformHelper.isCameraTrackerSupported, isTrue);
 
@@ -90,6 +92,7 @@ void main() {
       TrackerPlatformHelper.debugIsWebOverride = () => false;
       TrackerPlatformHelper.debugOverlaySupportedOverride = () => true;
       TrackerPlatformHelper.debugCameraSupportedOverride = () => true;
+      addTearDown(() => DesktopTrackerService.instance.stopTracking());
 
       await tester.pumpWidget(
         MultiProvider(

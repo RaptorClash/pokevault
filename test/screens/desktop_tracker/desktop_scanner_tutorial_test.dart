@@ -10,11 +10,13 @@ import 'package:pokevault/providers/dex_provider.dart';
 import 'package:pokevault/providers/settings_provider.dart';
 import 'package:pokevault/providers/tutorial_provider.dart';
 import 'package:pokevault/screens/desktop_tracker/desktop_tracker_screen.dart';
+import 'package:pokevault/services/desktop_tracker/desktop_tracker_service.dart';
 import 'package:pokevault/services/scanner_core/engine/ocr_detection_engine.dart';
 import 'package:pokevault/services/scanner_core/engine/pokemon_fuzzy_matcher.dart';
 import 'package:pokevault/services/scanner_core/models/scanner_settings.dart';
 import 'package:pokevault/services/scanner_core/scanner_coordinator.dart';
 import 'package:pokevault/utils/tracker_platform_helper.dart';
+import 'package:pokevault/models/tutorial_step.dart';
 import 'package:pokevault/widgets/tutorial/tutorial_overlay.dart';
 
 class _MockDexProvider extends Mock implements DexProvider {}
@@ -93,6 +95,7 @@ void main() {
 
     tearDown(() async {
       TutorialOverlay.resetShowing();
+      await DesktopTrackerService.instance.stopTracking();
       await coordinator.stop();
       await coordinator.dispose();
       TrackerPlatformHelper.resetDebugOverrides();
@@ -145,9 +148,173 @@ void main() {
       await tester.pump(const Duration(milliseconds: 400));
       expect(find.byType(TutorialOverlay), findsOneWidget);
 
+      // Step through granular Desktop sections (Source -> Target Dex -> Borders -> Zone A -> Zone B -> Multi -> HUD -> Feed/OCR)
+      expect(find.textContaining('Schritt 1 von 8'), findsOneWidget);
+      await tester.tap(find.text('Weiter'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 450));
+      expect(find.textContaining('Schritt 2 von 8'), findsOneWidget);
+
       await tester.tap(find.text('Überspringen'));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 400));
+    });
+
+    testWidgets('transitioning from HomeScreen Delta-Tour onTargetTap does not get blocked by _isShowing', (tester) async {
+      TrackerPlatformHelper.debugIsDesktopOverride = () => true;
+      TrackerPlatformHelper.debugIsMobileOverride = () => false;
+      TrackerPlatformHelper.debugOverlaySupportedOverride = () => true;
+      TrackerPlatformHelper.debugCameraSupportedOverride = () => true;
+
+      tester.view.physicalSize = const Size(1280, 800);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+
+      final prefs = await SharedPreferences.getInstance();
+      final tutProvider = TutorialProvider(prefs);
+      final launcherKey = GlobalKey();
+
+      await tester.pumpWidget(
+        MultiProvider(
+          providers: [
+            ChangeNotifierProvider<DexProvider>.value(value: mockDexProvider),
+            ChangeNotifierProvider<SettingsProvider>.value(value: mockSettingsProvider),
+            ChangeNotifierProvider<TutorialProvider>.value(value: tutProvider),
+          ],
+          child: TranslationProvider(
+            child: MaterialApp(
+              home: Builder(
+                builder: (context) => Scaffold(
+                  appBar: AppBar(
+                    actions: [
+                      IconButton(
+                        key: launcherKey,
+                        icon: const Icon(Icons.track_changes),
+                        onPressed: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) => DesktopTrackerScreen(
+                                coordinator: coordinator,
+                                disableHardwareCamera: true,
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+                  body: ElevatedButton(
+                    onPressed: () {
+                      TutorialOverlay.show(
+                        context,
+                        TutorialFeature(
+                          id: 'delta_test',
+                          nameKey: 'tutorial_scanner_tour_btn',
+                          steps: [
+                            TutorialStep(
+                              targetKey: launcherKey,
+                              titleKey: 'tutorial_scanner_home_delta_title',
+                              textKey: 'tutorial_scanner_home_delta_text',
+                              requireTargetTap: true,
+                              onTargetTap: () {
+                                Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                    builder: (_) => DesktopTrackerScreen(
+                                      coordinator: coordinator,
+                                      disableHardwareCamera: true,
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                          ],
+                        ),
+                        () {},
+                      );
+                    },
+                    child: const Text('Start Delta'),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      await tester.tap(find.text('Start Delta'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
+      expect(find.byType(TutorialOverlay), findsOneWidget);
+
+      await tester.tap(find.byIcon(Icons.track_changes), warnIfMissed: false);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
+
+      expect(find.byType(DesktopTrackerScreen), findsOneWidget);
+      // DesktopTrackerScreen's own TutorialOverlay MUST appear immediately!
+      expect(find.byType(TutorialOverlay), findsOneWidget);
+      expect(find.textContaining('Schritt 1 von 8'), findsOneWidget);
+    });
+
+    testWidgets('keepTrackingInBackground preserves active coordinator when DesktopTrackerScreen pops', (tester) async {
+      TrackerPlatformHelper.debugIsDesktopOverride = () => true;
+      TrackerPlatformHelper.debugIsMobileOverride = () => false;
+      TrackerPlatformHelper.debugOverlaySupportedOverride = () => true;
+
+      tester.view.physicalSize = const Size(1280, 800);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+
+      final prefs = await SharedPreferences.getInstance();
+      final tutProvider = TutorialProvider(prefs);
+      await tutProvider.markFeatureAsSeen('desktop_scanner_tour');
+
+      await tester.pumpWidget(
+        MultiProvider(
+          providers: [
+            ChangeNotifierProvider<DexProvider>.value(value: mockDexProvider),
+            ChangeNotifierProvider<SettingsProvider>.value(value: mockSettingsProvider),
+            ChangeNotifierProvider<TutorialProvider>.value(value: tutProvider),
+          ],
+          child: TranslationProvider(
+            child: MaterialApp(
+              home: Builder(
+                builder: (context) => Scaffold(
+                  body: ElevatedButton(
+                    onPressed: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => DesktopTrackerScreen(
+                            coordinator: coordinator,
+                            disableHardwareCamera: true,
+                            keepTrackingInBackground: true,
+                          ),
+                        ),
+                      );
+                    },
+                    child: const Text('Open Tracker'),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      await tester.tap(find.text('Open Tracker'));
+      await tester.pumpAndSettle();
+      expect(find.byType(DesktopTrackerScreen), findsOneWidget);
+      expect(find.byType(TutorialOverlay), findsNothing);
+
+      // Pop back to Home
+      await tester.tap(find.byType(BackButton));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(DesktopTrackerScreen), findsNothing);
+      expect(DesktopTrackerService.instance.isTrackingActive, isTrue);
+
+      await tester.runAsync(() => DesktopTrackerService.instance.stopTracking());
+      await tester.pump();
     });
   });
 }

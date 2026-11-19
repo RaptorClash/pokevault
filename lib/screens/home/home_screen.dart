@@ -32,8 +32,6 @@ import '../abilities/abilities_dex_screen.dart';
 import '../../providers/shiny_hunt_provider.dart';
 import '../shiny_hunt/shiny_hunts_hub_screen.dart';
 import '../desktop_tracker/widgets/persistent_tracker_dock.dart';
-import '../../services/desktop_tracker/desktop_tracker_service.dart';
-import '../../services/scanner_core/models/scanner_event.dart';
 import '../../services/scanner_core/scanner_launcher_helper.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -1063,36 +1061,8 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ],
           ),
-          bottomNavigationBar: ValueListenableBuilder<bool>(
-            valueListenable: DesktopTrackerService.instance.isTrackingNotifier,
-            builder: (context, isTracking, _) {
-              if (!TrackerPlatformHelper.isDesktop || !isTracking) {
-                return const SizedBox.shrink();
-              }
-
-              return ValueListenableBuilder<ScannerEvent?>(
-                valueListenable: DesktopTrackerService.instance.latestEventNotifier,
-                builder: (context, latestEvent, _) {
-                  return ValueListenableBuilder<bool>(
-                    valueListenable: DesktopTrackerService.instance.isPausedNotifier,
-                    builder: (context, isPaused, _) {
-                      final activeDexId = DesktopTrackerService.instance.activeDexId;
-                      final activeDex = provider.userDexes.where((d) => d.id == activeDexId).firstOrNull;
-
-                      return PersistentTrackerDock(
-                        latestEvent: latestEvent,
-                        activeDex: activeDex,
-                        isScanningActive: !isPaused,
-                        onOpenHud: () => DesktopTrackerService.instance.toggleFloatingHud(),
-                        onOpenSetup: _openDesktopTracker,
-                        onTogglePause: () => DesktopTrackerService.instance.togglePause(),
-                        onClose: () => DesktopTrackerService.instance.stopTracking(),
-                      );
-                    },
-                  );
-                },
-              );
-            },
+          bottomNavigationBar: PersistentTrackerDockHost(
+            onOpenSetup: _openDesktopTracker,
           ),
           floatingActionButton: !_isSelectionMode
               ? FloatingActionButton(

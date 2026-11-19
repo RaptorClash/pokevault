@@ -1950,5 +1950,17 @@
   "tutorial_scanner_home_delta_title": "Nowy przewodnik skanera!",
   "tutorial_scanner_home_delta_text": "Stuknij tutaj ikonę skanera, aby od razu rozpocząć swoją interaktywną wycieczkę Rotom w skanerze!",
   "tutorial_scanner_tour_btn": "Rozpocznij wycieczkę skanera",
-  "tutorial_new_badge": "NOWOŚĆ"
+  "tutorial_new_badge": "NOWOŚĆ",
+  "tutorial_scanner_desk_dex_title": "Wybierz docelowy Pokédex",
+  "tutorial_scanner_desk_dex_text": "Ustal tutaj, w którym Pokédexie wykryte Pokémony i złapane automatycznie zostaną zapisane.",
+  "tutorial_scanner_desk_borders_title": "Kolorowe ramki skanera",
+  "tutorial_scanner_desk_borders_text": "Wyświetla zaznaczone strefy skanowania jako kolorowe ramki nakładane bezpośrednio na Twój pulpit lub grę.",
+  "tutorial_scanner_desk_zone_a_title": "Obszar skanowania (Strefa A)",
+  "tutorial_scanner_desk_zone_a_text": "Definiuje pole tekstowe dla wiadomości o złapaniu i spotkaniu – według ustawienia wstępnego (np. na dole) lub dowolnie narysowane.",
+  "tutorial_scanner_desk_zone_b_title": "Strefa live-fokusu (Strefa B)",
+  "tutorial_scanner_desk_zone_b_text": "Opcjonalna druga strefa dla pasków informacji przeciwnika (u góry po lewej/prawej): natychmiast rozpoznaje Pokémony i sprawdza brakujące ewolucje.",
+  "tutorial_scanner_desk_multi_title": "Wielokrotne instancje (#2, #3 ...)",
+  "tutorial_scanner_desk_multi_text": "Dodaj równoległe okna emulatora lub strefy, aby skanować kilka gier jednocześnie pod kątem Encounterów i Shiny.",
+  "tutorial_scanner_desk_feed_title": "Wydarzenia na żywo i opcje OCR",
+  "tutorial_scanner_desk_feed_text": "Tutaj pojawiają się wszystkie trafienia wraz z wpisem jednym kliknięciem. Za pomocą koła zębatego u góry ustawiasz 9 języków gry, interwał skanowania i własne wzorce."
 }

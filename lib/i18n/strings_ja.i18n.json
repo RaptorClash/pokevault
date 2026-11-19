@@ -1950,5 +1950,17 @@
   "tutorial_scanner_home_delta_title": "新しいスキャナーガイド！",
   "tutorial_scanner_home_delta_text": "スキャナーアイコンをタップして、直接インタラクティブルートムツアーをスキャナーで開始！",
   "tutorial_scanner_tour_btn": "スキャナーツアーを開始",
-  "tutorial_new_badge": "新しい"
+  "tutorial_new_badge": "新しい",
+  "tutorial_scanner_desk_dex_title": "ターゲットポケモン図鑑を選択",
+  "tutorial_scanner_desk_dex_text": "ここで、どのポケモン図鑑に認識されたポケモンや捕獲が自動的に登録されるかを設定します。",
+  "tutorial_scanner_desk_borders_title": "カラースキャン枠",
+  "tutorial_scanner_desk_borders_text": "マークされたスキャンゾーンを、デスクトップやゲーム上に直接カラフルなオーバーレイ枠として表示します。",
+  "tutorial_scanner_desk_zone_a_title": "スキャンエリア（ゾーンA）",
+  "tutorial_scanner_desk_zone_a_text": "捕獲および遭遇メッセージ用のテキストボックスを定義します—プリセット（例：下）または自由に描画して設定できます。",
+  "tutorial_scanner_desk_zone_b_title": "ライブフォーカスゾーン（ゾーンB）",
+  "tutorial_scanner_desk_zone_b_text": "敵の情報バー用のオプションの第2ゾーン（左上/右上）：ポケモンをすぐに認識し、進化が不足しているものを確認します。",
+  "tutorial_scanner_desk_multi_title": "マルチインスタンス（#2、#3 ...）",
+  "tutorial_scanner_desk_multi_text": "複数のゲームを同時にエンカウンターや色違いの対象をスキャンするために、並列のエミュレーターウィンドウやゾーンを追加してください。",
+  "tutorial_scanner_desk_feed_title": "ライブイベント＆OCRオプション",
+  "tutorial_scanner_desk_feed_text": "ここには、すべてのヒットとワンクリック登録が表示されます。上の歯車アイコンで、9つのゲーム言語、スキャン間隔、および独自のパターンを設定できます。"
 }

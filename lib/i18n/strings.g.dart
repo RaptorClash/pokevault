@@ -4,9 +4,9 @@
 /// To regenerate, run: `dart run slang`
 ///
 /// Locales: 13
-/// Strings: 25298 (1946 per locale)
+/// Strings: 25454 (1958 per locale)
 ///
-/// Built on 2026-11-19 at 14:07 UTC
+/// Built on 2026-11-19 at 15:10 UTC
 
 // coverage:ignore-file
 // ignore_for_file: type=lint
@@ -2105,6 +2105,18 @@ class Translations implements BaseTranslations<AppLocale, Translations> {
 	String get tutorial_scanner_home_delta_text => 'Tippe hier auf das Scanner-Icon, um direkt deine interaktive Rotom-Tour im Scanner zu starten!';
 	String get tutorial_scanner_tour_btn => 'Scanner-Tour starten';
 	String get tutorial_new_badge => 'NEU';
+	String get tutorial_scanner_desk_dex_title => 'Ziel-Pokédex wählen';
+	String get tutorial_scanner_desk_dex_text => 'Lege hier fest, in welchem Pokédex erkannte Pokémon und Fänge automatisch eingetragen werden.';
+	String get tutorial_scanner_desk_borders_title => 'Farbige Scan-Rahmen';
+	String get tutorial_scanner_desk_borders_text => 'Zeigt die markierten Scan-Zonen als farbige Overlay-Rahmen direkt über deinem Desktop oder Spiel an.';
+	String get tutorial_scanner_desk_zone_a_title => 'Scan-Bereich (Zone A)';
+	String get tutorial_scanner_desk_zone_a_text => 'Definiert die Textbox für Fang- und Encounter-Meldungen – per Preset (z. B. Unten) oder frei gezeichnet.';
+	String get tutorial_scanner_desk_zone_b_title => 'Live-Fokus-Zone (Zone B)';
+	String get tutorial_scanner_desk_zone_b_text => 'Optionale zweite Zone für Gegner-Infoleisten (oben links/rechts): erkennt Pokémon sofort und prüft fehlende Entwicklungen.';
+	String get tutorial_scanner_desk_multi_title => 'Multi-Instanzen (#2, #3 ...)';
+	String get tutorial_scanner_desk_multi_text => 'Füge parallele Emulator-Fenster oder Zonen hinzu, um mehrere Spiele gleichzeitig auf Encounters und Shinys zu scannen.';
+	String get tutorial_scanner_desk_feed_title => 'Live-Ereignisse & OCR-Optionen';
+	String get tutorial_scanner_desk_feed_text => 'Hier erscheinen alle Treffer samt 1-Klick-Eintrag. Über das Zahnrad oben stellst du 9 Spielsprachen, Scan-Intervall und eigene Muster ein.';
 }
 
 // Path: <root>
@@ -4079,6 +4091,18 @@ class _StringsEn extends Translations {
 	@override String get tutorial_scanner_home_delta_text => 'Tap here on the scanner icon to start your interactive Rotom tour directly in the scanner!';
 	@override String get tutorial_scanner_tour_btn => 'Start scanner tour';
 	@override String get tutorial_new_badge => 'NEW';
+	@override String get tutorial_scanner_desk_dex_title => 'Choose Target Pokédex';
+	@override String get tutorial_scanner_desk_dex_text => 'Select which Pokédex detected Pokémon and catches are automatically recorded into.';
+	@override String get tutorial_scanner_desk_borders_title => 'Colored Scan Borders';
+	@override String get tutorial_scanner_desk_borders_text => 'Displays the marked scan zones as colored overlay frames directly over your desktop or game.';
+	@override String get tutorial_scanner_desk_zone_a_title => 'Scan Area (Zone A)';
+	@override String get tutorial_scanner_desk_zone_a_text => 'Defines the text box for catch and encounter messages — via preset (e.g. Bottom) or custom drawn.';
+	@override String get tutorial_scanner_desk_zone_b_title => 'Live Focus Zone (Zone B)';
+	@override String get tutorial_scanner_desk_zone_b_text => 'Optional second zone for opponent info bars (top left/right): detects Pokémon instantly and checks missing evolutions.';
+	@override String get tutorial_scanner_desk_multi_title => 'Multi-Instances (#2, #3 ...)';
+	@override String get tutorial_scanner_desk_multi_text => 'Add parallel emulator windows or zones to scan multiple games simultaneously for encounters and shinies.';
+	@override String get tutorial_scanner_desk_feed_title => 'Live Events & OCR Options';
+	@override String get tutorial_scanner_desk_feed_text => 'All matches appear here with 1-click dex entry. Use the gear icon at the top to configure 9 game languages, scan interval, and custom patterns.';
 }
 
 // Path: <root>
@@ -6053,6 +6077,18 @@ class _StringsEs extends Translations {
 	@override String get tutorial_scanner_home_delta_text => '¡Toca aquí el ícono del escáner para iniciar directamente tu Tour Rotom interactiva en el escáner!';
 	@override String get tutorial_scanner_tour_btn => 'Iniciar recorrido del escáner';
 	@override String get tutorial_new_badge => 'NUEVO';
+	@override String get tutorial_scanner_desk_dex_title => 'Elegir Pokédex objetivo';
+	@override String get tutorial_scanner_desk_dex_text => 'Establece aquí en qué Pokédex se registrarán automáticamente los Pokémon reconocidos y las capturas.';
+	@override String get tutorial_scanner_desk_borders_title => 'Marcos de escaneo de color';
+	@override String get tutorial_scanner_desk_borders_text => 'Muestra las zonas de escaneo marcadas como marcos de superposición de colores directamente sobre tu escritorio o juego.';
+	@override String get tutorial_scanner_desk_zone_a_title => 'Área de escaneo (Zona A)';
+	@override String get tutorial_scanner_desk_zone_a_text => 'Define el cuadro de texto para los mensajes de captura y encuentro, ya sea mediante un preset (por ejemplo, abajo) o dibujado libremente.';
+	@override String get tutorial_scanner_desk_zone_b_title => 'Zona de enfoque en vivo (Zona B)';
+	@override String get tutorial_scanner_desk_zone_b_text => 'Zona opcional segunda para barras de información de enemigos (arriba a la izquierda/derecha): detecta Pokémon inmediatamente y verifica evoluciones faltantes.';
+	@override String get tutorial_scanner_desk_multi_title => 'Múltiples instancias (#2, #3 ...)';
+	@override String get tutorial_scanner_desk_multi_text => 'Agrega ventanas o zonas de emulador paralelas para escanear varios juegos simultáneamente en Encounters y Shinys.';
+	@override String get tutorial_scanner_desk_feed_title => 'Eventos en vivo y opciones OCR';
+	@override String get tutorial_scanner_desk_feed_text => 'Aquí aparecen todos los resultados junto con la entrada de un clic. A través del engranaje de arriba ajustas 9 idiomas de juego, el intervalo de escaneo y tus propios patrones.';
 }
 
 // Path: <root>
@@ -8027,6 +8063,18 @@ class _StringsFr extends Translations {
 	@override String get tutorial_scanner_home_delta_text => 'Appuie ici sur l\'icône du scanner pour lancer directement ta visite interactive Rotom dans le scanner !';
 	@override String get tutorial_scanner_tour_btn => 'Démarrer la visite du scanner';
 	@override String get tutorial_new_badge => 'NOUVEAU';
+	@override String get tutorial_scanner_desk_dex_title => 'Choisir le Pokédex cible';
+	@override String get tutorial_scanner_desk_dex_text => 'Définissez ici dans quel Pokédex les Pokémon et captures détectés sont automatiquement enregistrés.';
+	@override String get tutorial_scanner_desk_borders_title => 'Cadres de numérisation colorés';
+	@override String get tutorial_scanner_desk_borders_text => 'Affiche les zones de scan marquées comme des cadres superposés colorés directement sur ton bureau ou ton jeu.';
+	@override String get tutorial_scanner_desk_zone_a_title => 'Zone de scan (Zone A)';
+	@override String get tutorial_scanner_desk_zone_a_text => 'Définit la zone de texte pour les messages de capture et de rencontre – via un preset (par ex. en bas) ou dessiné librement.';
+	@override String get tutorial_scanner_desk_zone_b_title => 'Zone de mise au point en direct (Zone B)';
+	@override String get tutorial_scanner_desk_zone_b_text => 'Zone optionnelle secondaire pour les barres d\'information des ennemis (en haut à gauche/droite) : détecte les Pokémon immédiatement et vérifie les évolutions manquantes.';
+	@override String get tutorial_scanner_desk_multi_title => 'Multi-instances (#2, #3 ...)';
+	@override String get tutorial_scanner_desk_multi_text => 'Ajoutez des fenêtres ou zones d\'émulateur parallèles pour scanner plusieurs jeux simultanément pour les rencontres et les shinys.';
+	@override String get tutorial_scanner_desk_feed_title => 'Événements en direct & options OCR';
+	@override String get tutorial_scanner_desk_feed_text => 'Ici apparaissent tous les résultats avec l\'entrée en un clic. Depuis l\'engrenage en haut, vous pouvez définir 9 langues de jeu, l\'intervalle de numérisation et vos propres modèles.';
 }
 
 // Path: <root>
@@ -10001,6 +10049,18 @@ class _StringsIt extends Translations {
 	@override String get tutorial_scanner_home_delta_text => 'Tocca qui sull\'icona dello scanner per avviare direttamente il tuo tour interattivo di Rotom nello scanner!';
 	@override String get tutorial_scanner_tour_btn => 'Avvia tour dello scanner';
 	@override String get tutorial_new_badge => 'NUOVO';
+	@override String get tutorial_scanner_desk_dex_title => 'Seleziona Pokédex di destinazione';
+	@override String get tutorial_scanner_desk_dex_text => 'Imposta qui in quale Pokédex i Pokémon riconosciuti e le catture vengono registrati automaticamente.';
+	@override String get tutorial_scanner_desk_borders_title => 'Cornici di scansione colorate';
+	@override String get tutorial_scanner_desk_borders_text => 'Mostra le zone di scansione evidenziate come cornici sovrapposte colorate direttamente sul tuo desktop o sul gioco.';
+	@override String get tutorial_scanner_desk_zone_a_title => 'Area di scansione (Zona A)';
+	@override String get tutorial_scanner_desk_zone_a_text => 'Definisce la casella di testo per i messaggi di cattura e incontro – tramite preset (ad es. in basso) o disegnata liberamente.';
+	@override String get tutorial_scanner_desk_zone_b_title => 'Zona di messa a fuoco live (Zona B)';
+	@override String get tutorial_scanner_desk_zone_b_text => 'Zona opzionale seconda per le barre delle informazioni dei nemici (in alto a sinistra/destra): rileva immediatamente i Pokémon e controlla eventuali evoluzioni mancanti.';
+	@override String get tutorial_scanner_desk_multi_title => 'Multi-istanze (#2, #3 ...)';
+	@override String get tutorial_scanner_desk_multi_text => 'Aggiungi finestre o zone emulator parallele per scansionare più giochi contemporaneamente su Incontri e Shinies.';
+	@override String get tutorial_scanner_desk_feed_title => 'Eventi live e opzioni OCR';
+	@override String get tutorial_scanner_desk_feed_text => 'Qui appaiono tutti i risultati con voce a un clic. Attraverso l\'ingranaggio in alto puoi impostare 9 lingue di gioco, intervallo di scansione e modelli personalizzati.';
 }
 
 // Path: <root>
@@ -11975,6 +12035,18 @@ class _StringsJa extends Translations {
 	@override String get tutorial_scanner_home_delta_text => 'スキャナーアイコンをタップして、直接インタラクティブルートムツアーをスキャナーで開始！';
 	@override String get tutorial_scanner_tour_btn => 'スキャナーツアーを開始';
 	@override String get tutorial_new_badge => '新しい';
+	@override String get tutorial_scanner_desk_dex_title => 'ターゲットポケモン図鑑を選択';
+	@override String get tutorial_scanner_desk_dex_text => 'ここで、どのポケモン図鑑に認識されたポケモンや捕獲が自動的に登録されるかを設定します。';
+	@override String get tutorial_scanner_desk_borders_title => 'カラースキャン枠';
+	@override String get tutorial_scanner_desk_borders_text => 'マークされたスキャンゾーンを、デスクトップやゲーム上に直接カラフルなオーバーレイ枠として表示します。';
+	@override String get tutorial_scanner_desk_zone_a_title => 'スキャンエリア（ゾーンA）';
+	@override String get tutorial_scanner_desk_zone_a_text => '捕獲および遭遇メッセージ用のテキストボックスを定義します—プリセット（例：下）または自由に描画して設定できます。';
+	@override String get tutorial_scanner_desk_zone_b_title => 'ライブフォーカスゾーン（ゾーンB）';
+	@override String get tutorial_scanner_desk_zone_b_text => '敵の情報バー用のオプションの第2ゾーン（左上/右上）：ポケモンをすぐに認識し、進化が不足しているものを確認します。';
+	@override String get tutorial_scanner_desk_multi_title => 'マルチインスタンス（#2、#3 ...）';
+	@override String get tutorial_scanner_desk_multi_text => '複数のゲームを同時にエンカウンターや色違いの対象をスキャンするために、並列のエミュレーターウィンドウやゾーンを追加してください。';
+	@override String get tutorial_scanner_desk_feed_title => 'ライブイベント＆OCRオプション';
+	@override String get tutorial_scanner_desk_feed_text => 'ここには、すべてのヒットとワンクリック登録が表示されます。上の歯車アイコンで、9つのゲーム言語、スキャン間隔、および独自のパターンを設定できます。';
 }
 
 // Path: <root>
@@ -13949,6 +14021,18 @@ class _StringsKo extends Translations {
 	@override String get tutorial_scanner_home_delta_text => '스캐너 아이콘을 눌러 바로 스캐너에서 인터랙티브 로톰 투어를 시작하세요!';
 	@override String get tutorial_scanner_tour_btn => '스캐너 투어 시작';
 	@override String get tutorial_new_badge => '새로움';
+	@override String get tutorial_scanner_desk_dex_title => '목표 포켓덱스 선택';
+	@override String get tutorial_scanner_desk_dex_text => '여기에서 인식된 포켓몬과 포획한 포켓몬이 자동으로 기록될 포켓덱스를 설정합니다.';
+	@override String get tutorial_scanner_desk_borders_title => '컬러 스캔 프레임';
+	@override String get tutorial_scanner_desk_borders_text => '선택한 스캔 영역을 색상 오버레이 프레임으로 데스크탑이나 게임 화면 위에 직접 표시합니다.';
+	@override String get tutorial_scanner_desk_zone_a_title => '스캔 영역 (구역 A)';
+	@override String get tutorial_scanner_desk_zone_a_text => '포획 및 조우 메시지를 위한 텍스트 박스를 정의합니다 – 프리셋(예: 아래) 또는 자유롭게 그리기 방식으로.';
+	@override String get tutorial_scanner_desk_zone_b_title => '라이브 포커스 존 (존 B)';
+	@override String get tutorial_scanner_desk_zone_b_text => '상대 정보 바(왼쪽/오른쪽 상단)를 위한 선택적 두 번째 존: 포켓몬을 즉시 인식하고 진화 누락을 확인합니다.';
+	@override String get tutorial_scanner_desk_multi_title => '멀티 인스턴스 (#2, #3 ...)';
+	@override String get tutorial_scanner_desk_multi_text => '여러 게임을 동시에 Encounters와 Shinys에서 스캔할 수 있도록 병렬 에뮬레이터 창이나 영역을 추가하세요.';
+	@override String get tutorial_scanner_desk_feed_title => '라이브 이벤트 & OCR 옵션';
+	@override String get tutorial_scanner_desk_feed_text => '여기에는 모든 결과와 1클릭 항목이 표시됩니다. 위의 톱니바퀴를 통해 9개의 게임 언어, 스캔 간격 및 사용자 정의 패턴을 설정할 수 있습니다.';
 }
 
 // Path: <root>
@@ -15923,6 +16007,18 @@ class _StringsNl extends Translations {
 	@override String get tutorial_scanner_home_delta_text => 'Tik hier op het scanner-icoon om direct je interactieve Rotom-tour in de scanner te starten!';
 	@override String get tutorial_scanner_tour_btn => 'Scanner-tour starten';
 	@override String get tutorial_new_badge => 'NIEUW';
+	@override String get tutorial_scanner_desk_dex_title => 'Doel-Pokédex kiezen';
+	@override String get tutorial_scanner_desk_dex_text => 'Hier vastleggen in welke Pokédex herkende Pokémon en vangsten automatisch worden geregistreerd.';
+	@override String get tutorial_scanner_desk_borders_title => 'Gekleurde scan-frames';
+	@override String get tutorial_scanner_desk_borders_text => 'Toont de gemarkeerde scanzones als gekleurde overlay-frames direct boven je bureaublad of spel.';
+	@override String get tutorial_scanner_desk_zone_a_title => 'Scangebied (Zone A)';
+	@override String get tutorial_scanner_desk_zone_a_text => 'Definieert de tekstbox voor vang- en ontmoetingmeldingen – via preset (bijv. Onderaan) of vrij getekend.';
+	@override String get tutorial_scanner_desk_zone_b_title => 'Live-focuszone (Zone B)';
+	@override String get tutorial_scanner_desk_zone_b_text => 'Optionele tweede zone voor tegenstander-informatiebalken (links/rechts boven): herkent Pokémon onmiddellijk en controleert ontbrekende evoluties.';
+	@override String get tutorial_scanner_desk_multi_title => 'Multi-instanties (#2, #3 ...)';
+	@override String get tutorial_scanner_desk_multi_text => 'Voeg parallelle emulatorvensters of zones toe om meerdere spellen tegelijk te scannen op Encounters en Shinys.';
+	@override String get tutorial_scanner_desk_feed_title => 'Live-evenementen & OCR-opties';
+	@override String get tutorial_scanner_desk_feed_text => 'Hier verschijnen alle treffers inclusief 1-klik-invoer. Bovenaan met het tandwiel stel je 9 spelletjestalen, scanafinterval en eigen patronen in.';
 }
 
 // Path: <root>
@@ -17897,6 +17993,18 @@ class _StringsPl extends Translations {
 	@override String get tutorial_scanner_home_delta_text => 'Stuknij tutaj ikonę skanera, aby od razu rozpocząć swoją interaktywną wycieczkę Rotom w skanerze!';
 	@override String get tutorial_scanner_tour_btn => 'Rozpocznij wycieczkę skanera';
 	@override String get tutorial_new_badge => 'NOWOŚĆ';
+	@override String get tutorial_scanner_desk_dex_title => 'Wybierz docelowy Pokédex';
+	@override String get tutorial_scanner_desk_dex_text => 'Ustal tutaj, w którym Pokédexie wykryte Pokémony i złapane automatycznie zostaną zapisane.';
+	@override String get tutorial_scanner_desk_borders_title => 'Kolorowe ramki skanera';
+	@override String get tutorial_scanner_desk_borders_text => 'Wyświetla zaznaczone strefy skanowania jako kolorowe ramki nakładane bezpośrednio na Twój pulpit lub grę.';
+	@override String get tutorial_scanner_desk_zone_a_title => 'Obszar skanowania (Strefa A)';
+	@override String get tutorial_scanner_desk_zone_a_text => 'Definiuje pole tekstowe dla wiadomości o złapaniu i spotkaniu – według ustawienia wstępnego (np. na dole) lub dowolnie narysowane.';
+	@override String get tutorial_scanner_desk_zone_b_title => 'Strefa live-fokusu (Strefa B)';
+	@override String get tutorial_scanner_desk_zone_b_text => 'Opcjonalna druga strefa dla pasków informacji przeciwnika (u góry po lewej/prawej): natychmiast rozpoznaje Pokémony i sprawdza brakujące ewolucje.';
+	@override String get tutorial_scanner_desk_multi_title => 'Wielokrotne instancje (#2, #3 ...)';
+	@override String get tutorial_scanner_desk_multi_text => 'Dodaj równoległe okna emulatora lub strefy, aby skanować kilka gier jednocześnie pod kątem Encounterów i Shiny.';
+	@override String get tutorial_scanner_desk_feed_title => 'Wydarzenia na żywo i opcje OCR';
+	@override String get tutorial_scanner_desk_feed_text => 'Tutaj pojawiają się wszystkie trafienia wraz z wpisem jednym kliknięciem. Za pomocą koła zębatego u góry ustawiasz 9 języków gry, interwał skanowania i własne wzorce.';
 }
 
 // Path: <root>
@@ -19871,6 +19979,18 @@ class _StringsPt extends Translations {
 	@override String get tutorial_scanner_home_delta_text => 'Toque aqui no ícone do scanner para iniciar diretamente seu Tour Rotom interativo no scanner!';
 	@override String get tutorial_scanner_tour_btn => 'Iniciar tour do scanner';
 	@override String get tutorial_new_badge => 'NOVO';
+	@override String get tutorial_scanner_desk_dex_title => 'Escolher Pokédex alvo';
+	@override String get tutorial_scanner_desk_dex_text => 'Defina aqui em qual Pokédex os Pokémon reconhecidos e capturados serão registrados automaticamente.';
+	@override String get tutorial_scanner_desk_borders_title => 'Molduras de escaneamento coloridas';
+	@override String get tutorial_scanner_desk_borders_text => 'Mostra as zonas de varredura marcadas como molduras de sobreposição coloridas diretamente sobre sua área de trabalho ou jogo.';
+	@override String get tutorial_scanner_desk_zone_a_title => 'Área de escaneamento (Zona A)';
+	@override String get tutorial_scanner_desk_zone_a_text => 'Define a caixa de texto para mensagens de captura e encontro – por preset (por exemplo, embaixo) ou desenhada livremente.';
+	@override String get tutorial_scanner_desk_zone_b_title => 'Zona de Foco Ao Vivo (Zona B)';
+	@override String get tutorial_scanner_desk_zone_b_text => 'Zona opcional secundária para barras de informações dos oponentes (canto superior esquerdo/direito): reconhece Pokémon imediatamente e verifica evoluções faltantes.';
+	@override String get tutorial_scanner_desk_multi_title => 'Múltiplas instâncias (#2, #3 ...)';
+	@override String get tutorial_scanner_desk_multi_text => 'Adicione janelas ou zonas de emulador paralelas para escanear vários jogos simultaneamente em encontros e shinies.';
+	@override String get tutorial_scanner_desk_feed_title => 'Eventos ao vivo & opções de OCR';
+	@override String get tutorial_scanner_desk_feed_text => 'Aqui aparecem todos os acertos junto com entrada de 1 clique. Pelo engrenagem no topo você ajusta 9 idiomas do jogo, intervalo de escaneamento e padrões próprios.';
 }
 
 // Path: <root>
@@ -21845,6 +21965,18 @@ class _StringsRu extends Translations {
 	@override String get tutorial_scanner_home_delta_text => 'Нажмите здесь на значок сканера, чтобы сразу начать вашу интерактивную тур-экскурсию с Ротом в сканере!';
 	@override String get tutorial_scanner_tour_btn => 'Начать тур по сканеру';
 	@override String get tutorial_new_badge => 'НОВОЕ';
+	@override String get tutorial_scanner_desk_dex_title => 'Выбрать целевой Покедекс';
+	@override String get tutorial_scanner_desk_dex_text => 'Здесь установите, в каком Покедексе распознанные покемоны и пойманные автоматически будут заноситься.';
+	@override String get tutorial_scanner_desk_borders_title => 'Цветные рамки сканирования';
+	@override String get tutorial_scanner_desk_borders_text => 'Показывает выделенные зоны сканирования в виде цветных рамок поверх вашего рабочего стола или игры.';
+	@override String get tutorial_scanner_desk_zone_a_title => 'Область сканирования (Зона А)';
+	@override String get tutorial_scanner_desk_zone_a_text => 'Определяет текстовое поле для сообщений о поимке и встречи – по предустановке (например, внизу) или произвольно нарисованное.';
+	@override String get tutorial_scanner_desk_zone_b_title => 'Зона живого фокуса (Зона B)';
+	@override String get tutorial_scanner_desk_zone_b_text => 'Дополнительная вторая зона для информационных панелей противников (вверху слева/справа): сразу распознаёт Покемонов и проверяет недостающие эволюции.';
+	@override String get tutorial_scanner_desk_multi_title => 'Множественные экземпляры (#2, #3 ...)';
+	@override String get tutorial_scanner_desk_multi_text => 'Добавьте параллельные окна эмулятора или зоны, чтобы сканировать несколько игр одновременно на Encounters и Shinys.';
+	@override String get tutorial_scanner_desk_feed_title => 'Прямые события и варианты OCR';
+	@override String get tutorial_scanner_desk_feed_text => 'Здесь отображаются все результаты вместе с записью в 1 клик. Через шестерёнку вверху вы можете настроить 9 языков игры, интервал сканирования и собственные шаблоны.';
 }
 
 // Path: <root>
@@ -23819,6 +23951,18 @@ class _StringsZhHans extends Translations {
 	@override String get tutorial_scanner_home_delta_text => '点击这里的扫描器图标，即可直接在扫描器中启动你的互动罗托姆之旅！';
 	@override String get tutorial_scanner_tour_btn => '启动扫描器导览';
 	@override String get tutorial_new_badge => '新';
+	@override String get tutorial_scanner_desk_dex_title => '选择目标宝可梦图鉴';
+	@override String get tutorial_scanner_desk_dex_text => '在这里设定，在所选宝可梦图鉴中，已识别的宝可梦和捕获的宝可梦将自动登记。';
+	@override String get tutorial_scanner_desk_borders_title => '彩色扫描框';
+	@override String get tutorial_scanner_desk_borders_text => '在桌面或游戏上直接以彩色覆盖框显示标记的扫描区域。';
+	@override String get tutorial_scanner_desk_zone_a_title => '扫描区域（区域 A）';
+	@override String get tutorial_scanner_desk_zone_a_text => '定义用于捕获和遭遇消息的文本框——通过预设（例如底部）或自由绘制。';
+	@override String get tutorial_scanner_desk_zone_b_title => '实时聚焦区（B区）';
+	@override String get tutorial_scanner_desk_zone_b_text => '用于对手信息条的可选第二区域（左上/右上）：可以立即识别宝可梦并检查缺失的进化。';
+	@override String get tutorial_scanner_desk_multi_title => '多实例 (#2, #3 ...)';
+	@override String get tutorial_scanner_desk_multi_text => '添加平行的模拟器窗口或区域，以同时扫描多个游戏的遭遇和闪光宝可梦。';
+	@override String get tutorial_scanner_desk_feed_title => '实时事件与 OCR 选项';
+	@override String get tutorial_scanner_desk_feed_text => '这里显示所有匹配项及一键条目。点击上方的齿轮可以设置9种游戏语言、扫描间隔和自定义模式。';
 }
 
 // Path: <root>
@@ -25793,6 +25937,18 @@ class _StringsZhHant extends Translations {
 	@override String get tutorial_scanner_home_delta_text => '點擊此處的掃描器圖示，即可直接在掃描器中啟動你的互動式洛托姆導覽！';
 	@override String get tutorial_scanner_tour_btn => '啟動掃描器之旅';
 	@override String get tutorial_new_badge => '新增';
+	@override String get tutorial_scanner_desk_dex_title => '選擇目標寶可夢圖鑑';
+	@override String get tutorial_scanner_desk_dex_text => '在此設定已識別的寶可夢及捕獲將自動登錄到哪個圖鑑。';
+	@override String get tutorial_scanner_desk_borders_title => '彩色掃描框';
+	@override String get tutorial_scanner_desk_borders_text => '以彩色覆蓋框的形式直接在你的桌面或遊戲上顯示標記的掃描區域。';
+	@override String get tutorial_scanner_desk_zone_a_title => '掃描範圍（區域 A）';
+	@override String get tutorial_scanner_desk_zone_a_text => '定義捕獲和遭遇訊息的文字框—可使用預設（例如：底部）或自由繪製。';
+	@override String get tutorial_scanner_desk_zone_b_title => '實時焦點區域 (區域 B)';
+	@override String get tutorial_scanner_desk_zone_b_text => '選擇性的第二區域用於敵方資訊條（左上/右上）：立即識別寶可夢並檢查缺失的進化階段。';
+	@override String get tutorial_scanner_desk_multi_title => '多重實例 (#2, #3 ...)';
+	@override String get tutorial_scanner_desk_multi_text => '添加平行的模擬器窗口或區域，以同時掃描多個遊戲中的遭遇和閃光寶可夢。';
+	@override String get tutorial_scanner_desk_feed_title => '實時事件與 OCR 選項';
+	@override String get tutorial_scanner_desk_feed_text => '這裡會顯示所有命中結果以及一鍵點擊條目。通過上方的齒輪，你可以設置9種遊戲語言、掃描間隔和自定義樣式。';
 }
 
 /// Flat map(s) containing all translations.
@@ -27747,6 +27903,18 @@ extension on Translations {
 			case 'tutorial_scanner_home_delta_text': return 'Tippe hier auf das Scanner-Icon, um direkt deine interaktive Rotom-Tour im Scanner zu starten!';
 			case 'tutorial_scanner_tour_btn': return 'Scanner-Tour starten';
 			case 'tutorial_new_badge': return 'NEU';
+			case 'tutorial_scanner_desk_dex_title': return 'Ziel-Pokédex wählen';
+			case 'tutorial_scanner_desk_dex_text': return 'Lege hier fest, in welchem Pokédex erkannte Pokémon und Fänge automatisch eingetragen werden.';
+			case 'tutorial_scanner_desk_borders_title': return 'Farbige Scan-Rahmen';
+			case 'tutorial_scanner_desk_borders_text': return 'Zeigt die markierten Scan-Zonen als farbige Overlay-Rahmen direkt über deinem Desktop oder Spiel an.';
+			case 'tutorial_scanner_desk_zone_a_title': return 'Scan-Bereich (Zone A)';
+			case 'tutorial_scanner_desk_zone_a_text': return 'Definiert die Textbox für Fang- und Encounter-Meldungen – per Preset (z. B. Unten) oder frei gezeichnet.';
+			case 'tutorial_scanner_desk_zone_b_title': return 'Live-Fokus-Zone (Zone B)';
+			case 'tutorial_scanner_desk_zone_b_text': return 'Optionale zweite Zone für Gegner-Infoleisten (oben links/rechts): erkennt Pokémon sofort und prüft fehlende Entwicklungen.';
+			case 'tutorial_scanner_desk_multi_title': return 'Multi-Instanzen (#2, #3 ...)';
+			case 'tutorial_scanner_desk_multi_text': return 'Füge parallele Emulator-Fenster oder Zonen hinzu, um mehrere Spiele gleichzeitig auf Encounters und Shinys zu scannen.';
+			case 'tutorial_scanner_desk_feed_title': return 'Live-Ereignisse & OCR-Optionen';
+			case 'tutorial_scanner_desk_feed_text': return 'Hier erscheinen alle Treffer samt 1-Klick-Eintrag. Über das Zahnrad oben stellst du 9 Spielsprachen, Scan-Intervall und eigene Muster ein.';
 			default: return null;
 		}
 	}
@@ -29701,6 +29869,18 @@ extension on _StringsEn {
 			case 'tutorial_scanner_home_delta_text': return 'Tap here on the scanner icon to start your interactive Rotom tour directly in the scanner!';
 			case 'tutorial_scanner_tour_btn': return 'Start scanner tour';
 			case 'tutorial_new_badge': return 'NEW';
+			case 'tutorial_scanner_desk_dex_title': return 'Choose Target Pokédex';
+			case 'tutorial_scanner_desk_dex_text': return 'Select which Pokédex detected Pokémon and catches are automatically recorded into.';
+			case 'tutorial_scanner_desk_borders_title': return 'Colored Scan Borders';
+			case 'tutorial_scanner_desk_borders_text': return 'Displays the marked scan zones as colored overlay frames directly over your desktop or game.';
+			case 'tutorial_scanner_desk_zone_a_title': return 'Scan Area (Zone A)';
+			case 'tutorial_scanner_desk_zone_a_text': return 'Defines the text box for catch and encounter messages — via preset (e.g. Bottom) or custom drawn.';
+			case 'tutorial_scanner_desk_zone_b_title': return 'Live Focus Zone (Zone B)';
+			case 'tutorial_scanner_desk_zone_b_text': return 'Optional second zone for opponent info bars (top left/right): detects Pokémon instantly and checks missing evolutions.';
+			case 'tutorial_scanner_desk_multi_title': return 'Multi-Instances (#2, #3 ...)';
+			case 'tutorial_scanner_desk_multi_text': return 'Add parallel emulator windows or zones to scan multiple games simultaneously for encounters and shinies.';
+			case 'tutorial_scanner_desk_feed_title': return 'Live Events & OCR Options';
+			case 'tutorial_scanner_desk_feed_text': return 'All matches appear here with 1-click dex entry. Use the gear icon at the top to configure 9 game languages, scan interval, and custom patterns.';
 			default: return null;
 		}
 	}
@@ -31655,6 +31835,18 @@ extension on _StringsEs {
 			case 'tutorial_scanner_home_delta_text': return '¡Toca aquí el ícono del escáner para iniciar directamente tu Tour Rotom interactiva en el escáner!';
 			case 'tutorial_scanner_tour_btn': return 'Iniciar recorrido del escáner';
 			case 'tutorial_new_badge': return 'NUEVO';
+			case 'tutorial_scanner_desk_dex_title': return 'Elegir Pokédex objetivo';
+			case 'tutorial_scanner_desk_dex_text': return 'Establece aquí en qué Pokédex se registrarán automáticamente los Pokémon reconocidos y las capturas.';
+			case 'tutorial_scanner_desk_borders_title': return 'Marcos de escaneo de color';
+			case 'tutorial_scanner_desk_borders_text': return 'Muestra las zonas de escaneo marcadas como marcos de superposición de colores directamente sobre tu escritorio o juego.';
+			case 'tutorial_scanner_desk_zone_a_title': return 'Área de escaneo (Zona A)';
+			case 'tutorial_scanner_desk_zone_a_text': return 'Define el cuadro de texto para los mensajes de captura y encuentro, ya sea mediante un preset (por ejemplo, abajo) o dibujado libremente.';
+			case 'tutorial_scanner_desk_zone_b_title': return 'Zona de enfoque en vivo (Zona B)';
+			case 'tutorial_scanner_desk_zone_b_text': return 'Zona opcional segunda para barras de información de enemigos (arriba a la izquierda/derecha): detecta Pokémon inmediatamente y verifica evoluciones faltantes.';
+			case 'tutorial_scanner_desk_multi_title': return 'Múltiples instancias (#2, #3 ...)';
+			case 'tutorial_scanner_desk_multi_text': return 'Agrega ventanas o zonas de emulador paralelas para escanear varios juegos simultáneamente en Encounters y Shinys.';
+			case 'tutorial_scanner_desk_feed_title': return 'Eventos en vivo y opciones OCR';
+			case 'tutorial_scanner_desk_feed_text': return 'Aquí aparecen todos los resultados junto con la entrada de un clic. A través del engranaje de arriba ajustas 9 idiomas de juego, el intervalo de escaneo y tus propios patrones.';
 			default: return null;
 		}
 	}
@@ -33609,6 +33801,18 @@ extension on _StringsFr {
 			case 'tutorial_scanner_home_delta_text': return 'Appuie ici sur l\'icône du scanner pour lancer directement ta visite interactive Rotom dans le scanner !';
 			case 'tutorial_scanner_tour_btn': return 'Démarrer la visite du scanner';
 			case 'tutorial_new_badge': return 'NOUVEAU';
+			case 'tutorial_scanner_desk_dex_title': return 'Choisir le Pokédex cible';
+			case 'tutorial_scanner_desk_dex_text': return 'Définissez ici dans quel Pokédex les Pokémon et captures détectés sont automatiquement enregistrés.';
+			case 'tutorial_scanner_desk_borders_title': return 'Cadres de numérisation colorés';
+			case 'tutorial_scanner_desk_borders_text': return 'Affiche les zones de scan marquées comme des cadres superposés colorés directement sur ton bureau ou ton jeu.';
+			case 'tutorial_scanner_desk_zone_a_title': return 'Zone de scan (Zone A)';
+			case 'tutorial_scanner_desk_zone_a_text': return 'Définit la zone de texte pour les messages de capture et de rencontre – via un preset (par ex. en bas) ou dessiné librement.';
+			case 'tutorial_scanner_desk_zone_b_title': return 'Zone de mise au point en direct (Zone B)';
+			case 'tutorial_scanner_desk_zone_b_text': return 'Zone optionnelle secondaire pour les barres d\'information des ennemis (en haut à gauche/droite) : détecte les Pokémon immédiatement et vérifie les évolutions manquantes.';
+			case 'tutorial_scanner_desk_multi_title': return 'Multi-instances (#2, #3 ...)';
+			case 'tutorial_scanner_desk_multi_text': return 'Ajoutez des fenêtres ou zones d\'émulateur parallèles pour scanner plusieurs jeux simultanément pour les rencontres et les shinys.';
+			case 'tutorial_scanner_desk_feed_title': return 'Événements en direct & options OCR';
+			case 'tutorial_scanner_desk_feed_text': return 'Ici apparaissent tous les résultats avec l\'entrée en un clic. Depuis l\'engrenage en haut, vous pouvez définir 9 langues de jeu, l\'intervalle de numérisation et vos propres modèles.';
 			default: return null;
 		}
 	}
@@ -35563,6 +35767,18 @@ extension on _StringsIt {
 			case 'tutorial_scanner_home_delta_text': return 'Tocca qui sull\'icona dello scanner per avviare direttamente il tuo tour interattivo di Rotom nello scanner!';
 			case 'tutorial_scanner_tour_btn': return 'Avvia tour dello scanner';
 			case 'tutorial_new_badge': return 'NUOVO';
+			case 'tutorial_scanner_desk_dex_title': return 'Seleziona Pokédex di destinazione';
+			case 'tutorial_scanner_desk_dex_text': return 'Imposta qui in quale Pokédex i Pokémon riconosciuti e le catture vengono registrati automaticamente.';
+			case 'tutorial_scanner_desk_borders_title': return 'Cornici di scansione colorate';
+			case 'tutorial_scanner_desk_borders_text': return 'Mostra le zone di scansione evidenziate come cornici sovrapposte colorate direttamente sul tuo desktop o sul gioco.';
+			case 'tutorial_scanner_desk_zone_a_title': return 'Area di scansione (Zona A)';
+			case 'tutorial_scanner_desk_zone_a_text': return 'Definisce la casella di testo per i messaggi di cattura e incontro – tramite preset (ad es. in basso) o disegnata liberamente.';
+			case 'tutorial_scanner_desk_zone_b_title': return 'Zona di messa a fuoco live (Zona B)';
+			case 'tutorial_scanner_desk_zone_b_text': return 'Zona opzionale seconda per le barre delle informazioni dei nemici (in alto a sinistra/destra): rileva immediatamente i Pokémon e controlla eventuali evoluzioni mancanti.';
+			case 'tutorial_scanner_desk_multi_title': return 'Multi-istanze (#2, #3 ...)';
+			case 'tutorial_scanner_desk_multi_text': return 'Aggiungi finestre o zone emulator parallele per scansionare più giochi contemporaneamente su Incontri e Shinies.';
+			case 'tutorial_scanner_desk_feed_title': return 'Eventi live e opzioni OCR';
+			case 'tutorial_scanner_desk_feed_text': return 'Qui appaiono tutti i risultati con voce a un clic. Attraverso l\'ingranaggio in alto puoi impostare 9 lingue di gioco, intervallo di scansione e modelli personalizzati.';
 			default: return null;
 		}
 	}
@@ -37517,6 +37733,18 @@ extension on _StringsJa {
 			case 'tutorial_scanner_home_delta_text': return 'スキャナーアイコンをタップして、直接インタラクティブルートムツアーをスキャナーで開始！';
 			case 'tutorial_scanner_tour_btn': return 'スキャナーツアーを開始';
 			case 'tutorial_new_badge': return '新しい';
+			case 'tutorial_scanner_desk_dex_title': return 'ターゲットポケモン図鑑を選択';
+			case 'tutorial_scanner_desk_dex_text': return 'ここで、どのポケモン図鑑に認識されたポケモンや捕獲が自動的に登録されるかを設定します。';
+			case 'tutorial_scanner_desk_borders_title': return 'カラースキャン枠';
+			case 'tutorial_scanner_desk_borders_text': return 'マークされたスキャンゾーンを、デスクトップやゲーム上に直接カラフルなオーバーレイ枠として表示します。';
+			case 'tutorial_scanner_desk_zone_a_title': return 'スキャンエリア（ゾーンA）';
+			case 'tutorial_scanner_desk_zone_a_text': return '捕獲および遭遇メッセージ用のテキストボックスを定義します—プリセット（例：下）または自由に描画して設定できます。';
+			case 'tutorial_scanner_desk_zone_b_title': return 'ライブフォーカスゾーン（ゾーンB）';
+			case 'tutorial_scanner_desk_zone_b_text': return '敵の情報バー用のオプションの第2ゾーン（左上/右上）：ポケモンをすぐに認識し、進化が不足しているものを確認します。';
+			case 'tutorial_scanner_desk_multi_title': return 'マルチインスタンス（#2、#3 ...）';
+			case 'tutorial_scanner_desk_multi_text': return '複数のゲームを同時にエンカウンターや色違いの対象をスキャンするために、並列のエミュレーターウィンドウやゾーンを追加してください。';
+			case 'tutorial_scanner_desk_feed_title': return 'ライブイベント＆OCRオプション';
+			case 'tutorial_scanner_desk_feed_text': return 'ここには、すべてのヒットとワンクリック登録が表示されます。上の歯車アイコンで、9つのゲーム言語、スキャン間隔、および独自のパターンを設定できます。';
 			default: return null;
 		}
 	}
@@ -39471,6 +39699,18 @@ extension on _StringsKo {
 			case 'tutorial_scanner_home_delta_text': return '스캐너 아이콘을 눌러 바로 스캐너에서 인터랙티브 로톰 투어를 시작하세요!';
 			case 'tutorial_scanner_tour_btn': return '스캐너 투어 시작';
 			case 'tutorial_new_badge': return '새로움';
+			case 'tutorial_scanner_desk_dex_title': return '목표 포켓덱스 선택';
+			case 'tutorial_scanner_desk_dex_text': return '여기에서 인식된 포켓몬과 포획한 포켓몬이 자동으로 기록될 포켓덱스를 설정합니다.';
+			case 'tutorial_scanner_desk_borders_title': return '컬러 스캔 프레임';
+			case 'tutorial_scanner_desk_borders_text': return '선택한 스캔 영역을 색상 오버레이 프레임으로 데스크탑이나 게임 화면 위에 직접 표시합니다.';
+			case 'tutorial_scanner_desk_zone_a_title': return '스캔 영역 (구역 A)';
+			case 'tutorial_scanner_desk_zone_a_text': return '포획 및 조우 메시지를 위한 텍스트 박스를 정의합니다 – 프리셋(예: 아래) 또는 자유롭게 그리기 방식으로.';
+			case 'tutorial_scanner_desk_zone_b_title': return '라이브 포커스 존 (존 B)';
+			case 'tutorial_scanner_desk_zone_b_text': return '상대 정보 바(왼쪽/오른쪽 상단)를 위한 선택적 두 번째 존: 포켓몬을 즉시 인식하고 진화 누락을 확인합니다.';
+			case 'tutorial_scanner_desk_multi_title': return '멀티 인스턴스 (#2, #3 ...)';
+			case 'tutorial_scanner_desk_multi_text': return '여러 게임을 동시에 Encounters와 Shinys에서 스캔할 수 있도록 병렬 에뮬레이터 창이나 영역을 추가하세요.';
+			case 'tutorial_scanner_desk_feed_title': return '라이브 이벤트 & OCR 옵션';
+			case 'tutorial_scanner_desk_feed_text': return '여기에는 모든 결과와 1클릭 항목이 표시됩니다. 위의 톱니바퀴를 통해 9개의 게임 언어, 스캔 간격 및 사용자 정의 패턴을 설정할 수 있습니다.';
 			default: return null;
 		}
 	}
@@ -41425,6 +41665,18 @@ extension on _StringsNl {
 			case 'tutorial_scanner_home_delta_text': return 'Tik hier op het scanner-icoon om direct je interactieve Rotom-tour in de scanner te starten!';
 			case 'tutorial_scanner_tour_btn': return 'Scanner-tour starten';
 			case 'tutorial_new_badge': return 'NIEUW';
+			case 'tutorial_scanner_desk_dex_title': return 'Doel-Pokédex kiezen';
+			case 'tutorial_scanner_desk_dex_text': return 'Hier vastleggen in welke Pokédex herkende Pokémon en vangsten automatisch worden geregistreerd.';
+			case 'tutorial_scanner_desk_borders_title': return 'Gekleurde scan-frames';
+			case 'tutorial_scanner_desk_borders_text': return 'Toont de gemarkeerde scanzones als gekleurde overlay-frames direct boven je bureaublad of spel.';
+			case 'tutorial_scanner_desk_zone_a_title': return 'Scangebied (Zone A)';
+			case 'tutorial_scanner_desk_zone_a_text': return 'Definieert de tekstbox voor vang- en ontmoetingmeldingen – via preset (bijv. Onderaan) of vrij getekend.';
+			case 'tutorial_scanner_desk_zone_b_title': return 'Live-focuszone (Zone B)';
+			case 'tutorial_scanner_desk_zone_b_text': return 'Optionele tweede zone voor tegenstander-informatiebalken (links/rechts boven): herkent Pokémon onmiddellijk en controleert ontbrekende evoluties.';
+			case 'tutorial_scanner_desk_multi_title': return 'Multi-instanties (#2, #3 ...)';
+			case 'tutorial_scanner_desk_multi_text': return 'Voeg parallelle emulatorvensters of zones toe om meerdere spellen tegelijk te scannen op Encounters en Shinys.';
+			case 'tutorial_scanner_desk_feed_title': return 'Live-evenementen & OCR-opties';
+			case 'tutorial_scanner_desk_feed_text': return 'Hier verschijnen alle treffers inclusief 1-klik-invoer. Bovenaan met het tandwiel stel je 9 spelletjestalen, scanafinterval en eigen patronen in.';
 			default: return null;
 		}
 	}
@@ -43379,6 +43631,18 @@ extension on _StringsPl {
 			case 'tutorial_scanner_home_delta_text': return 'Stuknij tutaj ikonę skanera, aby od razu rozpocząć swoją interaktywną wycieczkę Rotom w skanerze!';
 			case 'tutorial_scanner_tour_btn': return 'Rozpocznij wycieczkę skanera';
 			case 'tutorial_new_badge': return 'NOWOŚĆ';
+			case 'tutorial_scanner_desk_dex_title': return 'Wybierz docelowy Pokédex';
+			case 'tutorial_scanner_desk_dex_text': return 'Ustal tutaj, w którym Pokédexie wykryte Pokémony i złapane automatycznie zostaną zapisane.';
+			case 'tutorial_scanner_desk_borders_title': return 'Kolorowe ramki skanera';
+			case 'tutorial_scanner_desk_borders_text': return 'Wyświetla zaznaczone strefy skanowania jako kolorowe ramki nakładane bezpośrednio na Twój pulpit lub grę.';
+			case 'tutorial_scanner_desk_zone_a_title': return 'Obszar skanowania (Strefa A)';
+			case 'tutorial_scanner_desk_zone_a_text': return 'Definiuje pole tekstowe dla wiadomości o złapaniu i spotkaniu – według ustawienia wstępnego (np. na dole) lub dowolnie narysowane.';
+			case 'tutorial_scanner_desk_zone_b_title': return 'Strefa live-fokusu (Strefa B)';
+			case 'tutorial_scanner_desk_zone_b_text': return 'Opcjonalna druga strefa dla pasków informacji przeciwnika (u góry po lewej/prawej): natychmiast rozpoznaje Pokémony i sprawdza brakujące ewolucje.';
+			case 'tutorial_scanner_desk_multi_title': return 'Wielokrotne instancje (#2, #3 ...)';
+			case 'tutorial_scanner_desk_multi_text': return 'Dodaj równoległe okna emulatora lub strefy, aby skanować kilka gier jednocześnie pod kątem Encounterów i Shiny.';
+			case 'tutorial_scanner_desk_feed_title': return 'Wydarzenia na żywo i opcje OCR';
+			case 'tutorial_scanner_desk_feed_text': return 'Tutaj pojawiają się wszystkie trafienia wraz z wpisem jednym kliknięciem. Za pomocą koła zębatego u góry ustawiasz 9 języków gry, interwał skanowania i własne wzorce.';
 			default: return null;
 		}
 	}
@@ -45333,6 +45597,18 @@ extension on _StringsPt {
 			case 'tutorial_scanner_home_delta_text': return 'Toque aqui no ícone do scanner para iniciar diretamente seu Tour Rotom interativo no scanner!';
 			case 'tutorial_scanner_tour_btn': return 'Iniciar tour do scanner';
 			case 'tutorial_new_badge': return 'NOVO';
+			case 'tutorial_scanner_desk_dex_title': return 'Escolher Pokédex alvo';
+			case 'tutorial_scanner_desk_dex_text': return 'Defina aqui em qual Pokédex os Pokémon reconhecidos e capturados serão registrados automaticamente.';
+			case 'tutorial_scanner_desk_borders_title': return 'Molduras de escaneamento coloridas';
+			case 'tutorial_scanner_desk_borders_text': return 'Mostra as zonas de varredura marcadas como molduras de sobreposição coloridas diretamente sobre sua área de trabalho ou jogo.';
+			case 'tutorial_scanner_desk_zone_a_title': return 'Área de escaneamento (Zona A)';
+			case 'tutorial_scanner_desk_zone_a_text': return 'Define a caixa de texto para mensagens de captura e encontro – por preset (por exemplo, embaixo) ou desenhada livremente.';
+			case 'tutorial_scanner_desk_zone_b_title': return 'Zona de Foco Ao Vivo (Zona B)';
+			case 'tutorial_scanner_desk_zone_b_text': return 'Zona opcional secundária para barras de informações dos oponentes (canto superior esquerdo/direito): reconhece Pokémon imediatamente e verifica evoluções faltantes.';
+			case 'tutorial_scanner_desk_multi_title': return 'Múltiplas instâncias (#2, #3 ...)';
+			case 'tutorial_scanner_desk_multi_text': return 'Adicione janelas ou zonas de emulador paralelas para escanear vários jogos simultaneamente em encontros e shinies.';
+			case 'tutorial_scanner_desk_feed_title': return 'Eventos ao vivo & opções de OCR';
+			case 'tutorial_scanner_desk_feed_text': return 'Aqui aparecem todos os acertos junto com entrada de 1 clique. Pelo engrenagem no topo você ajusta 9 idiomas do jogo, intervalo de escaneamento e padrões próprios.';
 			default: return null;
 		}
 	}
@@ -47287,6 +47563,18 @@ extension on _StringsRu {
 			case 'tutorial_scanner_home_delta_text': return 'Нажмите здесь на значок сканера, чтобы сразу начать вашу интерактивную тур-экскурсию с Ротом в сканере!';
 			case 'tutorial_scanner_tour_btn': return 'Начать тур по сканеру';
 			case 'tutorial_new_badge': return 'НОВОЕ';
+			case 'tutorial_scanner_desk_dex_title': return 'Выбрать целевой Покедекс';
+			case 'tutorial_scanner_desk_dex_text': return 'Здесь установите, в каком Покедексе распознанные покемоны и пойманные автоматически будут заноситься.';
+			case 'tutorial_scanner_desk_borders_title': return 'Цветные рамки сканирования';
+			case 'tutorial_scanner_desk_borders_text': return 'Показывает выделенные зоны сканирования в виде цветных рамок поверх вашего рабочего стола или игры.';
+			case 'tutorial_scanner_desk_zone_a_title': return 'Область сканирования (Зона А)';
+			case 'tutorial_scanner_desk_zone_a_text': return 'Определяет текстовое поле для сообщений о поимке и встречи – по предустановке (например, внизу) или произвольно нарисованное.';
+			case 'tutorial_scanner_desk_zone_b_title': return 'Зона живого фокуса (Зона B)';
+			case 'tutorial_scanner_desk_zone_b_text': return 'Дополнительная вторая зона для информационных панелей противников (вверху слева/справа): сразу распознаёт Покемонов и проверяет недостающие эволюции.';
+			case 'tutorial_scanner_desk_multi_title': return 'Множественные экземпляры (#2, #3 ...)';
+			case 'tutorial_scanner_desk_multi_text': return 'Добавьте параллельные окна эмулятора или зоны, чтобы сканировать несколько игр одновременно на Encounters и Shinys.';
+			case 'tutorial_scanner_desk_feed_title': return 'Прямые события и варианты OCR';
+			case 'tutorial_scanner_desk_feed_text': return 'Здесь отображаются все результаты вместе с записью в 1 клик. Через шестерёнку вверху вы можете настроить 9 языков игры, интервал сканирования и собственные шаблоны.';
 			default: return null;
 		}
 	}
@@ -49241,6 +49529,18 @@ extension on _StringsZhHans {
 			case 'tutorial_scanner_home_delta_text': return '点击这里的扫描器图标，即可直接在扫描器中启动你的互动罗托姆之旅！';
 			case 'tutorial_scanner_tour_btn': return '启动扫描器导览';
 			case 'tutorial_new_badge': return '新';
+			case 'tutorial_scanner_desk_dex_title': return '选择目标宝可梦图鉴';
+			case 'tutorial_scanner_desk_dex_text': return '在这里设定，在所选宝可梦图鉴中，已识别的宝可梦和捕获的宝可梦将自动登记。';
+			case 'tutorial_scanner_desk_borders_title': return '彩色扫描框';
+			case 'tutorial_scanner_desk_borders_text': return '在桌面或游戏上直接以彩色覆盖框显示标记的扫描区域。';
+			case 'tutorial_scanner_desk_zone_a_title': return '扫描区域（区域 A）';
+			case 'tutorial_scanner_desk_zone_a_text': return '定义用于捕获和遭遇消息的文本框——通过预设（例如底部）或自由绘制。';
+			case 'tutorial_scanner_desk_zone_b_title': return '实时聚焦区（B区）';
+			case 'tutorial_scanner_desk_zone_b_text': return '用于对手信息条的可选第二区域（左上/右上）：可以立即识别宝可梦并检查缺失的进化。';
+			case 'tutorial_scanner_desk_multi_title': return '多实例 (#2, #3 ...)';
+			case 'tutorial_scanner_desk_multi_text': return '添加平行的模拟器窗口或区域，以同时扫描多个游戏的遭遇和闪光宝可梦。';
+			case 'tutorial_scanner_desk_feed_title': return '实时事件与 OCR 选项';
+			case 'tutorial_scanner_desk_feed_text': return '这里显示所有匹配项及一键条目。点击上方的齿轮可以设置9种游戏语言、扫描间隔和自定义模式。';
 			default: return null;
 		}
 	}
@@ -51195,6 +51495,18 @@ extension on _StringsZhHant {
 			case 'tutorial_scanner_home_delta_text': return '點擊此處的掃描器圖示，即可直接在掃描器中啟動你的互動式洛托姆導覽！';
 			case 'tutorial_scanner_tour_btn': return '啟動掃描器之旅';
 			case 'tutorial_new_badge': return '新增';
+			case 'tutorial_scanner_desk_dex_title': return '選擇目標寶可夢圖鑑';
+			case 'tutorial_scanner_desk_dex_text': return '在此設定已識別的寶可夢及捕獲將自動登錄到哪個圖鑑。';
+			case 'tutorial_scanner_desk_borders_title': return '彩色掃描框';
+			case 'tutorial_scanner_desk_borders_text': return '以彩色覆蓋框的形式直接在你的桌面或遊戲上顯示標記的掃描區域。';
+			case 'tutorial_scanner_desk_zone_a_title': return '掃描範圍（區域 A）';
+			case 'tutorial_scanner_desk_zone_a_text': return '定義捕獲和遭遇訊息的文字框—可使用預設（例如：底部）或自由繪製。';
+			case 'tutorial_scanner_desk_zone_b_title': return '實時焦點區域 (區域 B)';
+			case 'tutorial_scanner_desk_zone_b_text': return '選擇性的第二區域用於敵方資訊條（左上/右上）：立即識別寶可夢並檢查缺失的進化階段。';
+			case 'tutorial_scanner_desk_multi_title': return '多重實例 (#2, #3 ...)';
+			case 'tutorial_scanner_desk_multi_text': return '添加平行的模擬器窗口或區域，以同時掃描多個遊戲中的遭遇和閃光寶可夢。';
+			case 'tutorial_scanner_desk_feed_title': return '實時事件與 OCR 選項';
+			case 'tutorial_scanner_desk_feed_text': return '這裡會顯示所有命中結果以及一鍵點擊條目。通過上方的齒輪，你可以設置9種遊戲語言、掃描間隔和自定義樣式。';
 			default: return null;
 		}
 	}

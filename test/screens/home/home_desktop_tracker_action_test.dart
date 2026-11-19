@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:pokevault/screens/home/home_screen.dart';
 import 'package:pokevault/screens/desktop_tracker/desktop_tracker_screen.dart';
+import 'package:pokevault/services/desktop_tracker/desktop_tracker_service.dart';
 import 'package:pokevault/utils/tracker_platform_helper.dart';
 import 'package:pokevault/providers/dex_provider.dart';
 import 'package:pokevault/providers/tutorial_provider.dart';
@@ -66,6 +67,7 @@ void main() {
     TrackerPlatformHelper.debugOverlaySupportedOverride = () => true;
     TrackerPlatformHelper.debugCameraSupportedOverride = () => true;
     addTearDown(TrackerPlatformHelper.resetDebugOverrides);
+    addTearDown(() => DesktopTrackerService.instance.stopTracking());
 
     tester.view.physicalSize = const Size(1280, 800);
     tester.view.devicePixelRatio = 1.0;

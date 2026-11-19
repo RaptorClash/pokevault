@@ -1950,5 +1950,17 @@
   "tutorial_scanner_home_delta_title": "Nieuwe scanner-gids!",
   "tutorial_scanner_home_delta_text": "Tik hier op het scanner-icoon om direct je interactieve Rotom-tour in de scanner te starten!",
   "tutorial_scanner_tour_btn": "Scanner-tour starten",
-  "tutorial_new_badge": "NIEUW"
+  "tutorial_new_badge": "NIEUW",
+  "tutorial_scanner_desk_dex_title": "Doel-Pokédex kiezen",
+  "tutorial_scanner_desk_dex_text": "Hier vastleggen in welke Pokédex herkende Pokémon en vangsten automatisch worden geregistreerd.",
+  "tutorial_scanner_desk_borders_title": "Gekleurde scan-frames",
+  "tutorial_scanner_desk_borders_text": "Toont de gemarkeerde scanzones als gekleurde overlay-frames direct boven je bureaublad of spel.",
+  "tutorial_scanner_desk_zone_a_title": "Scangebied (Zone A)",
+  "tutorial_scanner_desk_zone_a_text": "Definieert de tekstbox voor vang- en ontmoetingmeldingen – via preset (bijv. Onderaan) of vrij getekend.",
+  "tutorial_scanner_desk_zone_b_title": "Live-focuszone (Zone B)",
+  "tutorial_scanner_desk_zone_b_text": "Optionele tweede zone voor tegenstander-informatiebalken (links/rechts boven): herkent Pokémon onmiddellijk en controleert ontbrekende evoluties.",
+  "tutorial_scanner_desk_multi_title": "Multi-instanties (#2, #3 ...)",
+  "tutorial_scanner_desk_multi_text": "Voeg parallelle emulatorvensters of zones toe om meerdere spellen tegelijk te scannen op Encounters en Shinys.",
+  "tutorial_scanner_desk_feed_title": "Live-evenementen & OCR-opties",
+  "tutorial_scanner_desk_feed_text": "Hier verschijnen alle treffers inclusief 1-klik-invoer. Bovenaan met het tandwiel stel je 9 spelletjestalen, scanafinterval en eigen patronen in."
 }

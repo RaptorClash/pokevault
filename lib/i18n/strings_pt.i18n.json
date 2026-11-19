@@ -1950,5 +1950,17 @@
   "tutorial_scanner_home_delta_title": "Novo guia de scanner!",
   "tutorial_scanner_home_delta_text": "Toque aqui no ícone do scanner para iniciar diretamente seu Tour Rotom interativo no scanner!",
   "tutorial_scanner_tour_btn": "Iniciar tour do scanner",
-  "tutorial_new_badge": "NOVO"
+  "tutorial_new_badge": "NOVO",
+  "tutorial_scanner_desk_dex_title": "Escolher Pokédex alvo",
+  "tutorial_scanner_desk_dex_text": "Defina aqui em qual Pokédex os Pokémon reconhecidos e capturados serão registrados automaticamente.",
+  "tutorial_scanner_desk_borders_title": "Molduras de escaneamento coloridas",
+  "tutorial_scanner_desk_borders_text": "Mostra as zonas de varredura marcadas como molduras de sobreposição coloridas diretamente sobre sua área de trabalho ou jogo.",
+  "tutorial_scanner_desk_zone_a_title": "Área de escaneamento (Zona A)",
+  "tutorial_scanner_desk_zone_a_text": "Define a caixa de texto para mensagens de captura e encontro – por preset (por exemplo, embaixo) ou desenhada livremente.",
+  "tutorial_scanner_desk_zone_b_title": "Zona de Foco Ao Vivo (Zona B)",
+  "tutorial_scanner_desk_zone_b_text": "Zona opcional secundária para barras de informações dos oponentes (canto superior esquerdo/direito): reconhece Pokémon imediatamente e verifica evoluções faltantes.",
+  "tutorial_scanner_desk_multi_title": "Múltiplas instâncias (#2, #3 ...)",
+  "tutorial_scanner_desk_multi_text": "Adicione janelas ou zonas de emulador paralelas para escanear vários jogos simultaneamente em encontros e shinies.",
+  "tutorial_scanner_desk_feed_title": "Eventos ao vivo & opções de OCR",
+  "tutorial_scanner_desk_feed_text": "Aqui aparecem todos os acertos junto com entrada de 1 clique. Pelo engrenagem no topo você ajusta 9 idiomas do jogo, intervalo de escaneamento e padrões próprios."
 }

@@ -55,6 +55,7 @@ class DesktopTrackerScreen extends StatefulWidget {
   final List<CameraDescription>? availableCamerasOverride;
   final bool disableHardwareCamera;
   final DesktopOcrDriver? cameraOcrDriverOverride;
+  final bool keepTrackingInBackground;
 
   const DesktopTrackerScreen({
     super.key,
@@ -69,6 +70,7 @@ class DesktopTrackerScreen extends StatefulWidget {
     this.availableCamerasOverride,
     this.disableHardwareCamera = false,
     this.cameraOcrDriverOverride,
+    this.keepTrackingInBackground = false,
   });
 
   @override
@@ -127,11 +129,16 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
   bool _isEditingCameraRegions = false;
   MobileCameraScanMode _cameraScanMode = MobileCameraScanMode.autoFull;
   List<NormalizedScanRect> _cameraRegions = const [];
-  final GlobalKey _tutSourceKey = GlobalKey();
+  final GlobalKey _tutSourceSectionKey = GlobalKey();
+  final GlobalKey _tutTargetDexSectionKey = GlobalKey();
+  final GlobalKey _tutBordersToggleKey = GlobalKey();
+  final GlobalKey _tutZoneASectionKey = GlobalKey();
+  final GlobalKey _tutZoneBSectionKey = GlobalKey();
+  final GlobalKey _tutMultiSectionKey = GlobalKey();
   final GlobalKey _tutHudKey = GlobalKey();
-  final GlobalKey _tutFocusKey = GlobalKey();
-  final GlobalKey _tutOcrSettingsKey = GlobalKey();
+  final GlobalKey _tutEventFeedKey = GlobalKey();
   bool _hasTriggeredDesktopTutorial = false;
+  DexProvider? _dexProvider;
 
   bool get _isLiveWindows =>
       !kIsWeb &&
@@ -216,15 +223,48 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
       widget.coordinator.settings.multiInstanceSlots,
     );
     unawaited(_loadPersistedSettings());
-    _customScreenRegion = DesktopTrackerService.instance.activeScreenRegion ??
+    final service = DesktopTrackerService.instance;
+    final reusedExistingSession = widget.windowSource != null &&
+        service.isTrackingActive &&
+        identical(service.windowSource, _activeWindowSource);
+    _customScreenRegion = service.activeScreenRegion ??
         _activeWindowSource.screenRegion;
-    _snippetPreviewBytes = DesktopTrackerService.instance.activeSnippetPreview;
-    _showFloatingHud = DesktopTrackerService.instance.showFloatingHud;
+    _snippetPreviewBytes = service.activeSnippetPreview;
+    _showFloatingHud = service.showFloatingHud;
 
-    DesktopTrackerService.instance.showFloatingHudNotifier
+    if (widget.windowSource != null) {
+      _selectedWindow = widget.windowSource!.selectedWindow ?? service.activeWindow;
+      final restoredCrop = widget.windowSource!.cropRegion;
+      if (_selectedWindow != null &&
+          restoredCrop != null &&
+          _customScreenRegion == null) {
+        final detector = WindowDetector();
+        for (final preset in ScanRegionPreset.values) {
+          if (detector.calculateScanRegion(
+                preset,
+                windowWidth: _selectedWindow!.width,
+                windowHeight: _selectedWindow!.height,
+              ) ==
+              restoredCrop) {
+            _scanRegion = preset;
+            break;
+          }
+        }
+      }
+      if (service.recentEvents.isNotEmpty) {
+        _events.addAll(service.recentEvents);
+      }
+      if (reusedExistingSession) {
+        _isScanningActive = !service.isPaused;
+        _hasUserToggledScan = true;
+      }
+    }
+
+    service.showFloatingHudNotifier
         .addListener(_onServiceHudVisibilityChanged);
+    service.configureBackgroundHandlers(onBackgroundAutoCatch: null);
 
-    DesktopTrackerService.instance.configureNativeHudBridge(
+    service.configureNativeHudBridge(
       bridge: bridge,
       isCaughtChecker: _isPokemonIdCaughtInActiveDex,
       onMarkCaught: (ev) async {
@@ -243,11 +283,15 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      DesktopTrackerService.instance.startTracking(
-        coordinator: widget.coordinator,
-        windowSource: _activeWindowSource,
-        dexId: _selectedDexId,
-      );
+      if (!reusedExistingSession) {
+        service.startTracking(
+          coordinator: widget.coordinator,
+          windowSource: _activeWindowSource,
+          dexId: _selectedDexId,
+          ownsWindowSource:
+              widget.keepTrackingInBackground && widget.windowSource == null,
+        );
+      }
       _showDesktopScannerTutorialIfNeeded();
     });
 
@@ -689,6 +733,9 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+    try {
+      _dexProvider = Provider.of<DexProvider>(context, listen: false);
+    } catch (_) {}
     final configured = widget.coordinator.settings.ocrLanguage;
     String effectiveLang = configured;
     if (effectiveLang == 'auto') {
@@ -1055,22 +1102,124 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
     _activeWindowSource.setCropRegion(region);
   }
 
+  static UserDex? _resolveTargetDex(DexProvider dexProvider, String? dexId) {
+    final dexes = dexProvider.userDexes;
+    if (dexes.isEmpty) return null;
+    return dexes.cast<UserDex?>().firstWhere(
+          (d) => d?.id == dexId,
+          orElse: () => dexes.first,
+        );
+  }
+
+  static Future<void> _persistCaughtStatus(
+    DexProvider dexProvider,
+    UserDex targetDex,
+    int pokemonId, {
+    bool isShiny = false,
+    bool isAlpha = false,
+  }) async {
+    final idStr = pokemonId.toString();
+    if (!targetDex.caughtIds.contains(idStr)) {
+      targetDex.caughtIds.add(idStr);
+    }
+    if (isShiny && !targetDex.shinyIds.contains(idStr)) {
+      targetDex.shinyIds.add(idStr);
+    }
+    if (isAlpha && !targetDex.alphaIds.contains(idStr)) {
+      targetDex.alphaIds.add(idStr);
+    }
+    try {
+      await DatabaseService.instance.savePokemonStatus(
+        targetDex.id,
+        idStr,
+        isCaught: true,
+        isShiny: isShiny ? true : null,
+        isAlpha: isAlpha ? true : null,
+      );
+    } catch (_) {
+      // DatabaseService might be mocked or in memory in tests
+    }
+    await dexProvider.saveUserDexAndSync(targetDex);
+  }
+
   @override
   void dispose() {
     TutorialOverlay.resetShowing();
-    unawaited(_effectiveNativeBridge?.setScanRegionBorder(null));
-    unawaited(_effectiveNativeBridge?.setOverlayBorders(const []));
-    DesktopTrackerService.instance.showFloatingHudNotifier
+    final service = DesktopTrackerService.instance;
+    service.showFloatingHudNotifier
         .removeListener(_onServiceHudVisibilityChanged);
     unawaited(_stopHardwareCamera());
     _cameraSource?.dispose();
-    widget.coordinator.stop();
-    if (widget.windowSource == null) {
-      if (identical(DesktopTrackerService.instance.windowSource, _activeWindowSource)) {
-        unawaited(DesktopTrackerService.instance.stopTracking());
+
+    final keepAlive = widget.keepTrackingInBackground &&
+        !_isCameraSourceSelected &&
+        (_isScanningActive ||
+            _showFloatingHud ||
+            (widget.windowSource != null && service.isTrackingActive));
+
+    if (keepAlive) {
+      service.isPaused = !_isScanningActive;
+      final dexProv = _dexProvider;
+      final fallbackDexId = _selectedDexId;
+      final autoMark = widget.coordinator.settings.autoMarkCaught;
+      service.configureBackgroundHandlers(
+        isCaughtChecker: (pid) {
+          if (dexProv == null) return false;
+          final targetDex = _resolveTargetDex(
+            dexProv,
+            service.activeDexId ?? fallbackDexId,
+          );
+          return targetDex != null &&
+              DexLogicHelper.isPokemonCaught(targetDex, pid.toString());
+        },
+        onMarkCaught: (ev) async {
+          if (dexProv == null || ev.pokemonId == null) return;
+          final targetDex = _resolveTargetDex(
+            dexProv,
+            service.activeDexId ?? fallbackDexId,
+          );
+          if (targetDex == null) return;
+          await _persistCaughtStatus(
+            dexProv,
+            targetDex,
+            ev.pokemonId!,
+            isShiny: ev.isShiny,
+            isAlpha: ev.isAlpha,
+          );
+        },
+        onBackgroundAutoCatch: autoMark
+            ? (ev) async {
+                if (dexProv == null ||
+                    ev.type != ScannerEventType.caught ||
+                    ev.pokemonId == null) {
+                  return;
+                }
+                final targetDex = _resolveTargetDex(
+                  dexProv,
+                  service.activeDexId ?? fallbackDexId,
+                );
+                if (targetDex == null) return;
+                await _persistCaughtStatus(
+                  dexProv,
+                  targetDex,
+                  ev.pokemonId!,
+                  isShiny: ev.isShiny,
+                  isAlpha: ev.isAlpha,
+                );
+              }
+            : null,
+      );
+    } else {
+      unawaited(_effectiveNativeBridge?.setScanRegionBorder(null));
+      unawaited(_effectiveNativeBridge?.setOverlayBorders(const []));
+      widget.coordinator.stop();
+      if (identical(service.windowSource, _activeWindowSource)) {
+        unawaited(service.stopTracking());
+      } else if (widget.windowSource == null) {
+        _activeWindowSource.dispose();
       }
-      _activeWindowSource.dispose();
     }
+
     _alertService.dispose();
     _eventSub?.cancel();
     _activeFocusSub?.cancel();
@@ -2147,30 +2296,13 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
     final targetDex = _getActiveDex(dexProvider);
     if (targetDex == null) return;
 
-    final idStr = pokemonId.toString();
-    if (!targetDex.caughtIds.contains(idStr)) {
-      targetDex.caughtIds.add(idStr);
-    }
-    if (isShiny && !targetDex.shinyIds.contains(idStr)) {
-      targetDex.shinyIds.add(idStr);
-    }
-    if (isAlpha && !targetDex.alphaIds.contains(idStr)) {
-      targetDex.alphaIds.add(idStr);
-    }
-
-    try {
-      await DatabaseService.instance.savePokemonStatus(
-        targetDex.id,
-        idStr,
-        isCaught: true,
-        isShiny: isShiny ? true : null,
-        isAlpha: isAlpha ? true : null,
-      );
-    } catch (_) {
-      // DatabaseService might be mocked or in memory in tests
-    }
-
-    await dexProvider.saveUserDexAndSync(targetDex);
+    await _persistCaughtStatus(
+      dexProvider,
+      targetDex,
+      pokemonId,
+      isShiny: isShiny,
+      isAlpha: isAlpha,
+    );
 
     if (mounted) {
       setState(() {});
@@ -2467,14 +2599,11 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
             tooltip: 'Fenster aktualisieren',
             onPressed: _refreshWindows,
           ),
-          KeyedSubtree(
-            key: _tutOcrSettingsKey,
-            child: IconButton(
-              key: const Key('btn_tracker_settings'),
-              icon: const Icon(Icons.settings),
-              tooltip: 'Einstellungen',
-              onPressed: _openSettingsModal,
-            ),
+          IconButton(
+            key: const Key('btn_tracker_settings'),
+            icon: const Icon(Icons.settings),
+            tooltip: 'Einstellungen',
+            onPressed: _openSettingsModal,
           ),
           IconButton(
             key: const Key('btn_desktop_scanner_help'),
@@ -2716,7 +2845,6 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
     ThemeData theme,
   ) {
     return Card(
-      key: _tutSourceKey,
       elevation: 0,
       color: isDark ? const Color(0xFF1B1B24) : Colors.white,
       shape: RoundedRectangleBorder(
@@ -2728,162 +2856,170 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children: [
-                const Expanded(
-                  child: Text(
-                    'Scan-Quelle / Zielfenster',
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 0.5),
+            KeyedSubtree(
+              key: _tutSourceSectionKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      const Expanded(
+                        child: Text(
+                          'Scan-Quelle / Zielfenster',
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 0.5),
+                        ),
+                      ),
+                      TextButton.icon(
+                        key: const Key('btn_refresh_windows'),
+                        onPressed: _refreshWindows,
+                        icon: _isRefreshingWindows
+                            ? const SizedBox(
+                                width: 12,
+                                height: 12,
+                                child: CircularProgressIndicator(strokeWidth: 2),
+                              )
+                            : const Icon(Icons.refresh, size: 14),
+                        label: Text(
+                          _isRefreshingWindows ? 'Lade...' : 'Aktualisieren',
+                          style: const TextStyle(fontSize: 11),
+                        ),
+                        style: TextButton.styleFrom(visualDensity: VisualDensity.compact),
+                      ),
+                    ],
                   ),
-                ),
-                TextButton.icon(
-                  key: const Key('btn_refresh_windows'),
-                  onPressed: _refreshWindows,
-                  icon: _isRefreshingWindows
-                      ? const SizedBox(
-                          width: 12,
-                          height: 12,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : const Icon(Icons.refresh, size: 14),
-                  label: Text(
-                    _isRefreshingWindows ? 'Lade...' : 'Aktualisieren',
-                    style: const TextStyle(fontSize: 11),
-                  ),
-                  style: TextButton.styleFrom(visualDensity: VisualDensity.compact),
-                ),
-              ],
-            ),
-            if (_customScreenRegion != null) ...[
-              const SizedBox(height: 6),
-              Container(
-                key: const Key('custom_region_source_banner'),
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                decoration: BoxDecoration(
-                  color: Colors.green.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: Colors.green.withValues(alpha: 0.4)),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(Icons.crop_free, size: 15, color: Colors.green),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                  if (_customScreenRegion != null) ...[
+                    const SizedBox(height: 6),
+                    Container(
+                      key: const Key('custom_region_source_banner'),
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: Colors.green.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: Colors.green.withValues(alpha: 0.4)),
+                      ),
+                      child: Row(
                         children: [
-                          const Text(
-                            'Eigener Desktop-Bereich',
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.green,
+                          const Icon(Icons.crop_free, size: 15, color: Colors.green),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  'Eigener Desktop-Bereich',
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.green,
+                                  ),
+                                ),
+                                Text(
+                                  '${_customScreenRegion!.width.round()}×${_customScreenRegion!.height.round()} px '
+                                  'bei (${_customScreenRegion!.x.round()}, ${_customScreenRegion!.y.round()})',
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    color: isDark ? Colors.white70 : Colors.black54,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
-                          Text(
-                            '${_customScreenRegion!.width.round()}×${_customScreenRegion!.height.round()} px '
-                            'bei (${_customScreenRegion!.x.round()}, ${_customScreenRegion!.y.round()})',
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              fontSize: 10,
-                              color: isDark ? Colors.white70 : Colors.black54,
+                          const SizedBox(width: 6),
+                          TextButton(
+                            key: const Key('btn_exit_custom_region'),
+                            onPressed: () => _selectPresetMode(_scanRegion),
+                            style: TextButton.styleFrom(
+                              visualDensity: VisualDensity.compact,
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            ),
+                            child: const Text(
+                              'Zu Fenster',
+                              style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold),
                             ),
                           ),
                         ],
                       ),
                     ),
-                    const SizedBox(width: 6),
-                    TextButton(
-                      key: const Key('btn_exit_custom_region'),
-                      onPressed: () => _selectPresetMode(_scanRegion),
-                      style: TextButton.styleFrom(
-                        visualDensity: VisualDensity.compact,
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  ] else ...[
+                    const SizedBox(height: 6),
+                    InputDecorator(
+                      decoration: InputDecoration(
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                        filled: true,
+                        fillColor: isDark ? const Color(0xFF242432) : Colors.grey.shade50,
                       ),
-                      child: const Text(
-                        'Zu Fenster',
-                        style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold),
+                      child: DropdownButtonHideUnderline(
+                        child: DropdownButton<DesktopWindowInfo>(
+                          key: const Key('emulator_dropdown'),
+                          value: validSelectedWindow,
+                          isExpanded: true,
+                          items: _windows.map((w) {
+                            final icon = w.isCameraSource
+                                ? '📷'
+                                : (w.isKnownEmulator
+                                    ? '🎮'
+                                    : (w.isDesktopScreen ? '🖥️' : '🪟'));
+                            final metaParts = w.isCameraSource
+                                ? <String>[
+                                    if (w.cameraIndex >= 0)
+                                      '${w.width.round()}×${w.height.round()}'
+                                    else
+                                      'Foto',
+                                  ]
+                                : <String>[
+                                    if (!w.isDesktopScreen &&
+                                        w.processName != null &&
+                                        w.processName!.isNotEmpty)
+                                      w.processName!,
+                                    '${w.width.round()}×${w.height.round()}',
+                                    if (w.isMinimized) 'minimiert',
+                                  ];
+                            return DropdownMenuItem<DesktopWindowInfo>(
+                              value: w,
+                              child: Row(
+                                children: [
+                                  Text(icon, style: const TextStyle(fontSize: 14)),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                      w.title,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: w.isKnownEmulator
+                                            ? FontWeight.bold
+                                            : FontWeight.normal,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 6),
+                                  Flexible(
+                                    flex: 0,
+                                    child: Text(
+                                      metaParts.join(' · '),
+                                      overflow: TextOverflow.ellipsis,
+                                      style: TextStyle(
+                                        fontSize: 10,
+                                        color: isDark ? Colors.white54 : Colors.black54,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            );
+                          }).toList(),
+                          onChanged: _onWindowSelected,
+                        ),
                       ),
                     ),
                   ],
-                ),
+                ],
               ),
-            ] else ...[
-              const SizedBox(height: 6),
-              InputDecorator(
-                decoration: InputDecoration(
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                  filled: true,
-                  fillColor: isDark ? const Color(0xFF242432) : Colors.grey.shade50,
-                ),
-                child: DropdownButtonHideUnderline(
-                  child: DropdownButton<DesktopWindowInfo>(
-                    key: const Key('emulator_dropdown'),
-                    value: validSelectedWindow,
-                    isExpanded: true,
-                    items: _windows.map((w) {
-                      final icon = w.isCameraSource
-                          ? '📷'
-                          : (w.isKnownEmulator
-                              ? '🎮'
-                              : (w.isDesktopScreen ? '🖥️' : '🪟'));
-                      final metaParts = w.isCameraSource
-                          ? <String>[
-                              if (w.cameraIndex >= 0)
-                                '${w.width.round()}×${w.height.round()}'
-                              else
-                                'Foto',
-                            ]
-                          : <String>[
-                              if (!w.isDesktopScreen &&
-                                  w.processName != null &&
-                                  w.processName!.isNotEmpty)
-                                w.processName!,
-                              '${w.width.round()}×${w.height.round()}',
-                              if (w.isMinimized) 'minimiert',
-                            ];
-                      return DropdownMenuItem<DesktopWindowInfo>(
-                        value: w,
-                        child: Row(
-                          children: [
-                            Text(icon, style: const TextStyle(fontSize: 14)),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: Text(
-                                w.title,
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: w.isKnownEmulator
-                                      ? FontWeight.bold
-                                      : FontWeight.normal,
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 6),
-                            Flexible(
-                              flex: 0,
-                              child: Text(
-                                metaParts.join(' · '),
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(
-                                  fontSize: 10,
-                                  color: isDark ? Colors.white54 : Colors.black54,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      );
-                    }).toList(),
-                    onChanged: _onWindowSelected,
-                  ),
-                ),
-              ),
-            ],
+            ),
             const SizedBox(height: 10),
 
             // Target Dex Preview Card (Replacing old dropdown)
@@ -2989,6 +3125,7 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
     final percent = stats.percent;
 
     return Column(
+      key: _tutTargetDexSectionKey,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
@@ -3263,6 +3400,7 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
         if (_showOverlayControls)
           // Global Desktop Border Visibility Switch (#4)
           Container(
+            key: _tutBordersToggleKey,
             margin: const EdgeInsets.only(bottom: 10),
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
             decoration: BoxDecoration(
@@ -3299,8 +3437,10 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
             ),
           ),
         // ZONE A: Symmetrical Card Matching Zone B Design (#2)
-        Container(
-          key: const Key('scan_zone_a_card'),
+        KeyedSubtree(
+          key: _tutZoneASectionKey,
+          child: Container(
+            key: const Key('scan_zone_a_card'),
           padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
             color: isDark ? const Color(0xFF222230) : Colors.grey.shade50,
@@ -3653,10 +3793,17 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
             ],
           ),
         ),
+        ),
         const SizedBox(height: 10),
-        _buildLiveFocusZoneBar(isDark),
+        KeyedSubtree(
+          key: _tutZoneBSectionKey,
+          child: _buildLiveFocusZoneBar(isDark),
+        ),
         const SizedBox(height: 10),
-        _buildMultiInstanceCard(isDark),
+        KeyedSubtree(
+          key: _tutMultiSectionKey,
+          child: _buildMultiInstanceCard(isDark),
+        ),
         const SizedBox(height: 10),
         _buildRefreshRateAndPatternsBar(isDark),
       ],
@@ -4531,7 +4678,6 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
     final isShiny = singleEvent?.isShiny ?? false;
 
     return Card(
-      key: _tutFocusKey,
       elevation: 0,
       color: isDark ? const Color(0xFF1B1B24) : Colors.white,
       shape: RoundedRectangleBorder(
@@ -4983,48 +5129,51 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Flexible(
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(Icons.history, size: 18),
-                      const SizedBox(width: 8),
-                      const Flexible(
-                        child: Text(
-                          'Live-Ereignisse',
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: theme.colorScheme.primary.withValues(alpha: 0.15),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Text(
-                          '${_events.length}',
-                          style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.bold,
-                            color: theme.colorScheme.primary,
+            KeyedSubtree(
+              key: _tutEventFeedKey,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Flexible(
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.history, size: 18),
+                        const SizedBox(width: 8),
+                        const Flexible(
+                          child: Text(
+                            'Live-Ereignisse',
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
                           ),
                         ),
-                      ),
-                    ],
+                        const SizedBox(width: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: theme.colorScheme.primary.withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Text(
+                            '${_events.length}',
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold,
+                              color: theme.colorScheme.primary,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-                if (_events.isNotEmpty)
-                  TextButton.icon(
-                    onPressed: () => setState(() => _events.clear()),
-                    icon: const Icon(Icons.clear_all, size: 16),
-                    label: const Text('Leeren', style: TextStyle(fontSize: 11)),
-                  ),
-              ],
+                  if (_events.isNotEmpty)
+                    TextButton.icon(
+                      onPressed: () => setState(() => _events.clear()),
+                      icon: const Icon(Icons.clear_all, size: 16),
+                      label: const Text('Leeren', style: TextStyle(fontSize: 11)),
+                    ),
+                ],
+              ),
             ),
             const Divider(height: 20),
             Expanded(
@@ -5308,15 +5457,40 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
 
     final steps = <TutorialStep>[
       TutorialStep(
-        targetKey: _tutSourceKey,
+        targetKey: _tutSourceSectionKey,
         titleKey: 'tutorial_scanner_desk_source_title',
         textKey: 'tutorial_scanner_desk_source_text',
         rotomMood: RotomMood.happy,
       ),
       TutorialStep(
-        targetKey: _tutSourceKey,
-        titleKey: 'tutorial_scanner_desk_zones_title',
-        textKey: 'tutorial_scanner_desk_zones_text',
+        targetKey: _tutTargetDexSectionKey,
+        titleKey: 'tutorial_scanner_desk_dex_title',
+        textKey: 'tutorial_scanner_desk_dex_text',
+        rotomMood: RotomMood.explaining,
+      ),
+      if (_showOverlayControls)
+        TutorialStep(
+          targetKey: _tutBordersToggleKey,
+          titleKey: 'tutorial_scanner_desk_borders_title',
+          textKey: 'tutorial_scanner_desk_borders_text',
+          rotomMood: RotomMood.explaining,
+        ),
+      TutorialStep(
+        targetKey: _tutZoneASectionKey,
+        titleKey: 'tutorial_scanner_desk_zone_a_title',
+        textKey: 'tutorial_scanner_desk_zone_a_text',
+        rotomMood: RotomMood.explaining,
+      ),
+      TutorialStep(
+        targetKey: _tutZoneBSectionKey,
+        titleKey: 'tutorial_scanner_desk_zone_b_title',
+        textKey: 'tutorial_scanner_desk_zone_b_text',
+        rotomMood: RotomMood.thinking,
+      ),
+      TutorialStep(
+        targetKey: _tutMultiSectionKey,
+        titleKey: 'tutorial_scanner_desk_multi_title',
+        textKey: 'tutorial_scanner_desk_multi_text',
         rotomMood: RotomMood.explaining,
       ),
       if (_showOverlayControls)
@@ -5327,15 +5501,9 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
           rotomMood: RotomMood.explaining,
         ),
       TutorialStep(
-        targetKey: _tutFocusKey,
-        titleKey: 'tutorial_scanner_desk_focus_title',
-        textKey: 'tutorial_scanner_desk_focus_text',
-        rotomMood: RotomMood.thinking,
-      ),
-      TutorialStep(
-        targetKey: _tutOcrSettingsKey,
-        titleKey: 'tutorial_scanner_desk_ocr_title',
-        textKey: 'tutorial_scanner_desk_ocr_text',
+        targetKey: _tutEventFeedKey,
+        titleKey: 'tutorial_scanner_desk_feed_title',
+        textKey: 'tutorial_scanner_desk_feed_text',
         rotomMood: RotomMood.happy,
       ),
     ];
