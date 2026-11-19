@@ -18,6 +18,7 @@ import 'package:pokevault/services/scanner_core/scanner_coordinator.dart';
 class _FakeBridge implements DesktopPlatformBridge {
   bool hudVisible = false;
   int clearedBordersCount = 0;
+  List<OverlayBorderSpec> lastBorders = const [];
   @override
   ValueChanged<NativeHudAction>? onHudAction;
   @override
@@ -44,6 +45,7 @@ class _FakeBridge implements DesktopPlatformBridge {
       const OcrRecognitionResult(lines: []);
   @override
   Future<void> setOverlayBorders(List<OverlayBorderSpec> borders) async {
+    lastBorders = borders;
     if (borders.isEmpty) clearedBordersCount++;
   }
   @override
@@ -197,6 +199,51 @@ void main() {
       service.recordUiEvent(ev);
       expect(service.recentEvents.length, 1);
       expect(service.recentEvents.first.matchedName, 'Glumanda');
+    });
+
+    test('togglePause updates overlay borders to amber paused state and restores on resume; repeated stopTracking is safe', () async {
+      final fakeBridge = _FakeBridge();
+      final source = DesktopWindowSource(
+        captureDriver: const DefaultDesktopCaptureDriver(),
+        ocrDriver: DefaultDesktopOcrDriver(),
+      );
+      final coordinator = ScannerCoordinator(
+        engine: OcrDetectionEngine(),
+        matcher: PokemonFuzzyMatcher.withEntries([]),
+        settings: ScannerSettings.defaults(),
+      );
+      coordinator.bindSource(source);
+
+      service.configureNativeHudBridge(bridge: fakeBridge);
+      service.startTracking(
+        coordinator: coordinator,
+        windowSource: source,
+        ownsWindowSource: true,
+      );
+      service.updateOverlayBorders([
+        OverlayBorderSpec(
+          id: 'zone_a',
+          region: ScreenRegion(x: 10, y: 20, width: 300, height: 100, isAbsoluteScreen: true),
+          colorArgb: 0xFF10B981,
+          label: 'Scan',
+        ),
+      ]);
+
+      service.togglePause();
+      expect(service.isTrackingActive, isTrue);
+      expect(service.isPaused, isTrue);
+      expect(fakeBridge.lastBorders, isNotEmpty);
+      expect(fakeBridge.lastBorders.first.colorArgb, 0xFFF59E0B);
+
+      service.togglePause();
+      expect(service.isPaused, isFalse);
+      expect(fakeBridge.lastBorders.first.colorArgb, 0xFF10B981);
+
+      // Concurrent/repeated stopTracking must not throw or double-dispose
+      await Future.wait([service.stopTracking(), service.stopTracking()]);
+      expect(service.isTrackingActive, isFalse);
+      expect(source.isDisposed, isTrue);
+      await coordinator.dispose();
     });
   });
 }

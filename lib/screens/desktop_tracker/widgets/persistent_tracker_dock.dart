@@ -61,36 +61,34 @@ class PersistentTrackerDock extends StatelessWidget {
 
         return SafeArea(
           top: false,
-          child: Container(
-            margin: isVeryCompact
+          child: Padding(
+            padding: isVeryCompact
                 ? EdgeInsets.zero
                 : const EdgeInsets.fromLTRB(12, 0, 12, 10),
-            padding: EdgeInsets.symmetric(
-              horizontal: isVeryCompact ? 10 : 14,
-              vertical: 8,
-            ),
-            decoration: BoxDecoration(
+            child: Material(
               color: isDark ? const Color(0xFF1A1B26) : colors.surfaceContainerHigh,
-              borderRadius: isVeryCompact
-                  ? const BorderRadius.vertical(top: Radius.circular(14))
-                  : BorderRadius.circular(16),
-              border: Border.all(
-                color: isShiny
-                    ? const Color(0xFFFBC02D).withValues(alpha: 0.7)
-                    : (isScanningActive
-                        ? statusColor.withValues(alpha: 0.35)
-                        : colors.outlineVariant),
-                width: isShiny ? 1.5 : 1.0,
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: isDark ? 0.42 : 0.14),
-                  blurRadius: 16,
-                  offset: const Offset(0, 4),
+              elevation: isDark ? 6 : 3,
+              shadowColor: Colors.black.withValues(alpha: isDark ? 0.45 : 0.18),
+              shape: RoundedRectangleBorder(
+                borderRadius: isVeryCompact
+                    ? const BorderRadius.vertical(top: Radius.circular(14))
+                    : BorderRadius.circular(16),
+                side: BorderSide(
+                  color: isShiny
+                      ? const Color(0xFFFBC02D).withValues(alpha: 0.7)
+                      : (isScanningActive
+                          ? statusColor.withValues(alpha: 0.35)
+                          : colors.outlineVariant),
+                  width: isShiny ? 1.5 : 1.0,
                 ),
-              ],
-            ),
-            child: Row(
+              ),
+              clipBehavior: Clip.antiAlias,
+              child: Padding(
+                padding: EdgeInsets.symmetric(
+                  horizontal: isVeryCompact ? 10 : 14,
+                  vertical: 8,
+                ),
+                child: Row(
               children: [
                 // Status Pill (LIVE / PAUSIERT)
                 Container(
@@ -349,6 +347,10 @@ class PersistentTrackerDock extends StatelessWidget {
                         ),
                         tooltip: 'Tracker beenden',
                         visualDensity: VisualDensity.compact,
+                        constraints: const BoxConstraints(
+                          minWidth: 36,
+                          minHeight: 36,
+                        ),
                         onPressed: onClose,
                       ),
                     ],
@@ -356,6 +358,8 @@ class PersistentTrackerDock extends StatelessWidget {
                 ),
               ],
             ),
+            ),
+          ),
           ),
         );
       },

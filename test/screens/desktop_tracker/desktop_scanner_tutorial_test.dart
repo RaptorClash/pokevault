@@ -316,5 +316,75 @@ void main() {
       await tester.runAsync(() => DesktopTrackerService.instance.stopTracking());
       await tester.pump();
     });
+
+    testWidgets('pausing inside DesktopTrackerScreen and popping preserves paused session in dock instead of terminating', (tester) async {
+      TrackerPlatformHelper.debugIsDesktopOverride = () => true;
+      TrackerPlatformHelper.debugIsMobileOverride = () => false;
+      TrackerPlatformHelper.debugOverlaySupportedOverride = () => true;
+
+      tester.view.physicalSize = const Size(1280, 800);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+
+      final prefs = await SharedPreferences.getInstance();
+      final tutProvider = TutorialProvider(prefs);
+      await tutProvider.markFeatureAsSeen('desktop_scanner_tour');
+
+      await tester.pumpWidget(
+        MultiProvider(
+          providers: [
+            ChangeNotifierProvider<DexProvider>.value(value: mockDexProvider),
+            ChangeNotifierProvider<SettingsProvider>.value(value: mockSettingsProvider),
+            ChangeNotifierProvider<TutorialProvider>.value(value: tutProvider),
+          ],
+          child: TranslationProvider(
+            child: MaterialApp(
+              home: Builder(
+                builder: (context) => Scaffold(
+                  body: ElevatedButton(
+                    onPressed: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => DesktopTrackerScreen(
+                            coordinator: coordinator,
+                            disableHardwareCamera: true,
+                            keepTrackingInBackground: true,
+                          ),
+                        ),
+                      );
+                    },
+                    child: const Text('Open Tracker'),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      await tester.tap(find.text('Open Tracker'));
+      await tester.pumpAndSettle();
+      expect(find.byType(DesktopTrackerScreen), findsOneWidget);
+
+      // Pause inside DesktopTrackerScreen
+      final pauseFinder = find.text('Pausieren');
+      expect(pauseFinder, findsOneWidget);
+      await tester.ensureVisible(pauseFinder);
+      await tester.pump();
+      await tester.tap(pauseFinder);
+      await tester.pump();
+      expect(find.text('Fortsetzen'), findsOneWidget);
+
+      // Pop back -> must keep tracking session alive as PAUSED, NOT terminate
+      await tester.tap(find.byType(BackButton));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(DesktopTrackerScreen), findsNothing);
+      expect(DesktopTrackerService.instance.isTrackingActive, isTrue);
+      expect(DesktopTrackerService.instance.isPaused, isTrue);
+
+      await tester.runAsync(() => DesktopTrackerService.instance.stopTracking());
+      await tester.pump();
+    });
   });
 }

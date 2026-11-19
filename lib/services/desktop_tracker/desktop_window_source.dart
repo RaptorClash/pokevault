@@ -422,6 +422,7 @@ class DesktopWindowSource
   }
 
   void _appendLogEntry(OcrScanLogEntry entry) {
+    if (_disposed) return;
     final next = [entry, ...scanLogsNotifier.value];
     if (next.length > _maxScanLogs) {
       next.removeRange(_maxScanLogs, next.length);
@@ -432,7 +433,7 @@ class DesktopWindowSource
   /// Triggers an immediate capture and recognition cycle on demand,
   /// even if periodic polling is paused.
   Future<CapturedFrame?> triggerSingleScan() async {
-    if (_scanInFlight) return null;
+    if (_disposed || _scanInFlight) return null;
     final window = _selectedWindow ??
         ((_screenRegion != null || _multiInstanceSlots.any((s) => s.enabled))
             ? DesktopWindowInfo.primaryScreen()
@@ -451,6 +452,7 @@ class DesktopWindowSource
         screenRegion: _screenRegion,
       );
       capWatch.stop();
+      if (_disposed) return frame;
 
       if (frame != null) {
         final fp = computeFrameFingerprint(frame);
@@ -471,6 +473,7 @@ class DesktopWindowSource
             recognizedLines = await ocrDriver.recognizeText(frame);
           }
           ocrWatch.stop();
+          if (_disposed) return frame;
 
           final validLines = recognizedLines
               .map((l) => l.trim())
@@ -778,6 +781,7 @@ class DesktopWindowSource
 
   @override
   Future<void> dispose() async {
+    if (_disposed) return;
     _disposed = true;
     await stop();
     liveScanStatusNotifier.dispose();

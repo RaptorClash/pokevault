@@ -626,6 +626,7 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
     }
 
     unawaited(bridge.setScanRegionBorder(null));
+    DesktopTrackerService.instance.updateOverlayBorders(specs);
     unawaited(bridge.setOverlayBorders(specs));
   }
 
@@ -1154,6 +1155,8 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
     final keepAlive = widget.keepTrackingInBackground &&
         !_isCameraSourceSelected &&
         (_isScanningActive ||
+            _hasUserToggledScan ||
+            _customScreenRegion != null ||
             _showFloatingHud ||
             (widget.windowSource != null && service.isTrackingActive));
 
@@ -2187,6 +2190,7 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
     setState(() {
       _hasUserToggledScan = true;
       _isScanningActive = !_isScanningActive;
+      DesktopTrackerService.instance.isPaused = !_isScanningActive;
       if (_isScanningActive) {
         widget.coordinator.start();
         unawaited(_cameraFramePump?.resume());

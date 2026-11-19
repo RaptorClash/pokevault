@@ -1,8 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mocktail/mocktail.dart';
+import 'package:provider/provider.dart';
+import 'package:pokevault/models/pokemon.dart';
 import 'package:pokevault/models/user_dex.dart';
+import 'package:pokevault/providers/dex_provider.dart';
 import 'package:pokevault/screens/desktop_tracker/widgets/persistent_tracker_dock.dart';
+import 'package:pokevault/services/desktop_tracker/desktop_tracker_service.dart';
+import 'package:pokevault/services/scanner_core/engine/ocr_detection_engine.dart';
+import 'package:pokevault/services/scanner_core/engine/pokemon_fuzzy_matcher.dart';
 import 'package:pokevault/services/scanner_core/models/scanner_event.dart';
+import 'package:pokevault/services/scanner_core/models/scanner_settings.dart';
+import 'package:pokevault/services/scanner_core/scanner_coordinator.dart';
+import 'package:pokevault/utils/tracker_platform_helper.dart';
+
+class _MockDexProvider extends Mock implements DexProvider {}
 
 void main() {
   group('PersistentTrackerDock Widget Tests (TDD)', () {
@@ -125,6 +137,71 @@ void main() {
       await tester.tap(markBtn);
       await tester.pump();
       expect(markCaughtTapped, isTrue);
+    });
+
+    testWidgets('PersistentTrackerDockHost pauses without closing, resumes, and closes cleanly on X', (tester) async {
+      TrackerPlatformHelper.debugIsDesktopOverride = () => true;
+      addTearDown(TrackerPlatformHelper.resetDebugOverrides);
+      addTearDown(() async {
+        await DesktopTrackerService.instance.stopTracking();
+      });
+
+      final mockDexProvider = _MockDexProvider();
+      when(() => mockDexProvider.userDexes).thenReturn([mockDex]);
+      when(() => mockDexProvider.allPokemon).thenReturn(<Pokemon>[]);
+
+      final coordinator = ScannerCoordinator(
+        engine: OcrDetectionEngine(),
+        matcher: PokemonFuzzyMatcher.withEntries(const []),
+        settings: ScannerSettings.defaults(),
+      );
+      DesktopTrackerService.instance.startTracking(
+        coordinator: coordinator,
+        dexId: mockDex.id,
+      );
+
+      await tester.pumpWidget(
+        ChangeNotifierProvider<DexProvider>.value(
+          value: mockDexProvider,
+          child: MaterialApp(
+            home: Scaffold(
+              body: const Center(child: Text('Home')),
+              bottomNavigationBar: PersistentTrackerDockHost(
+                onOpenSetup: () {},
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+
+      expect(find.byType(PersistentTrackerDock), findsOneWidget);
+      expect(find.text('LIVE'), findsOneWidget);
+
+      // Pause button MUST pause without closing/terminating the dock!
+      await tester.tap(find.byKey(const Key('btn_dock_toggle_pause')));
+      await tester.pump();
+
+      expect(find.byType(PersistentTrackerDock), findsOneWidget);
+      expect(find.text('PAUSIERT'), findsOneWidget);
+      expect(DesktopTrackerService.instance.isTrackingActive, isTrue);
+      expect(DesktopTrackerService.instance.isPaused, isTrue);
+
+      // Resume button restores LIVE state
+      await tester.tap(find.byKey(const Key('btn_dock_toggle_pause')));
+      await tester.pump();
+
+      expect(find.byType(PersistentTrackerDock), findsOneWidget);
+      expect(find.text('LIVE'), findsOneWidget);
+      expect(DesktopTrackerService.instance.isPaused, isFalse);
+
+      // Close (X) button terminates tracking and removes the dock
+      await tester.tap(find.byKey(const Key('btn_dock_close')));
+      await tester.pump();
+
+      expect(DesktopTrackerService.instance.isTrackingActive, isFalse);
+      expect(find.byType(PersistentTrackerDock), findsNothing);
+      await coordinator.dispose();
     });
   });
 }

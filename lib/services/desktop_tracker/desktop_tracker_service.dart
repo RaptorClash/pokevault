@@ -34,6 +34,7 @@ class DesktopTrackerService {
   String _evolutionSummary = '';
   bool _hasMissingEvolutions = false;
   bool _ownsWindowSource = false;
+  List<OverlayBorderSpec> _activeOverlayBorders = const [];
   bool Function(int pokemonId)? _isCaughtChecker;
   Future<void> Function(ScannerEvent event)? _onHudMarkCaughtCallback;
   Future<void> Function(ScannerEvent event)? _onBackgroundAutoCatchCallback;
@@ -261,9 +262,14 @@ class DesktopTrackerService {
     }
   }
 
+  void updateOverlayBorders(List<OverlayBorderSpec> borders) {
+    _activeOverlayBorders = List.unmodifiable(borders);
+  }
+
   void togglePause() {
     isPausedNotifier.value = !isPausedNotifier.value;
-    if (isPausedNotifier.value) {
+    final paused = isPausedNotifier.value;
+    if (paused) {
       _coordinator?.stop();
     } else {
       _coordinator?.start();
@@ -271,40 +277,65 @@ class DesktopTrackerService {
     if (_activeScreenRegion != null) {
       _nativeBridge?.setScanRegionBorder(
         _activeScreenRegion,
-        active: !isPausedNotifier.value,
+        active: !paused,
       );
+    }
+    if (_activeOverlayBorders.isNotEmpty) {
+      final syncedBorders = paused
+          ? _activeOverlayBorders
+              .map(
+                (b) => OverlayBorderSpec(
+                  id: b.id,
+                  region: b.region,
+                  colorArgb: 0xFFF59E0B,
+                  label: b.label.isEmpty ? 'Pause' : '${b.label} (Pause)',
+                  visible: b.visible,
+                ),
+              )
+              .toList(growable: false)
+          : _activeOverlayBorders;
+      _nativeBridge?.setOverlayBorders(syncedBorders);
     }
     _syncNativeHudIfVisible();
   }
 
   Future<void> stopTracking() async {
-    isTrackingNotifier.value = false;
-    isPausedNotifier.value = false;
-    showFloatingHudNotifier.value = false;
-    latestEventNotifier.value = null;
+    final bridge = _nativeBridge;
+    final eventSub = _eventSubscription;
+    final coordinator = _coordinator;
+    final windowSource = _windowSource;
+    final shouldDisposeSource = _ownsWindowSource;
+
+    _nativeBridge = null;
+    _isCaughtChecker = null;
+    _onHudMarkCaughtCallback = null;
+    _onBackgroundAutoCatchCallback = null;
+    _eventSubscription = null;
+    _coordinator = null;
+    _windowSource = null;
+    _ownsWindowSource = false;
+    _activeDexId = null;
+    _activeOverlayBorders = const [];
     _recentEvents.clear();
     _activeScreenRegion = null;
     _activeSnippetPreview = null;
     _activeWindow = null;
 
-    await _nativeBridge?.hideFloatingHud();
-    await _nativeBridge?.setScanRegionBorder(null);
-    await _nativeBridge?.setOverlayBorders(const []);
-    _nativeBridge = null;
-    _isCaughtChecker = null;
-    _onHudMarkCaughtCallback = null;
-    _onBackgroundAutoCatchCallback = null;
+    isTrackingNotifier.value = false;
+    isPausedNotifier.value = false;
+    showFloatingHudNotifier.value = false;
+    latestEventNotifier.value = null;
 
-    await _eventSubscription?.cancel();
-    _eventSubscription = null;
+    try {
+      await bridge?.hideFloatingHud();
+      await bridge?.setScanRegionBorder(null);
+      await bridge?.setOverlayBorders(const []);
+    } catch (_) {}
 
-    await _coordinator?.stop();
-    if (_ownsWindowSource) {
-      await _windowSource?.dispose();
+    await eventSub?.cancel();
+    await coordinator?.stop();
+    if (shouldDisposeSource) {
+      await windowSource?.dispose();
     }
-    _ownsWindowSource = false;
-    _coordinator = null;
-    _windowSource = null;
-    _activeDexId = null;
   }
 }
