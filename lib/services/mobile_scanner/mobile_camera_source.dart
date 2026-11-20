@@ -268,8 +268,8 @@ class MobileCameraSource
     final lines = await ocrDriver.recognizeText(croppedFrame);
     final ocrMs = DateTime.now().difference(t0).inMilliseconds;
     final joined = lines.join('\n').trim();
-    final diagnosticHint = ocrDriver is MobileOcrDriver
-        ? (ocrDriver as MobileOcrDriver).lastDiagnosticHint
+    final diagnosticHint = ocrDriver is DiagnosticOcrDriver
+        ? (ocrDriver as DiagnosticOcrDriver).lastDiagnosticHint
         : null;
 
     _scanCounter++;

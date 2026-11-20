@@ -404,5 +404,15 @@ void main() {
       expect(topBanner.width, 1000.0);
       expect(topBanner.height, closeTo(240.0, 0.01));
     });
+
+    test('parseTasklistCsv dynamically locates Fenstertitel / Window Title column regardless of locale column order', () {
+      const shiftedGermanCsv =
+          '"Abbildname","PID","Status","Fenstertitel","Benutzername"\n'
+          '"melonDS.exe","4321","Wird ausgeführt","melonDS 1.0 - Pokemon Schwarz","PC\\User"\n';
+      final parsed = detector.parseTasklistCsv(shiftedGermanCsv);
+      expect(parsed, hasLength(1));
+      expect(parsed.first.emulatorType, EmulatorType.melonds);
+      expect(parsed.first.title, 'melonDS 1.0 - Pokemon Schwarz');
+    });
   });
 }

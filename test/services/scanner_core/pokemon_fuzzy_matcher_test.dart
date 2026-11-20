@@ -215,5 +215,34 @@ void main() {
       }
       expect(topSw.elapsedMilliseconds, lessThan(100));
     });
+
+    test('matches unspaced CJK dialogue and 2-char CJK HUD tokens', () {
+      final cjkMatcher = PokemonFuzzyMatcher.withEntries(const [
+        PokemonMatcherEntry(id: 25, name: 'ピカチュウ', language: 'ja'),
+        PokemonMatcherEntry(id: 133, name: 'イーブイ', language: 'ja'),
+        PokemonMatcherEntry(id: 151, name: 'ミュウ', language: 'ja'),
+        PokemonMatcherEntry(id: 25, name: '皮卡丘', language: 'zh-Hans'),
+        PokemonMatcherEntry(id: 151, name: '梦幻', language: 'zh-Hans'),
+        PokemonMatcherEntry(id: 25, name: '피카츄', language: 'ko'),
+      ]);
+
+      // Unspaced Japanese dialogue via matchTokensFromLine
+      final jaDialogue = cjkMatcher.matchTokensFromLine('やせいのピカチュウがとびだしてきた');
+      expect(jaDialogue, isNotEmpty);
+      expect(jaDialogue.first.pokemonId, 25);
+
+      // Unspaced multi-Pokemon Japanese HUD / phrase via matchAllFromText
+      final jaMulti = cjkMatcher.matchAllFromText('ピカチュウとイーブイLv12');
+      expect(jaMulti.map((m) => m.pokemonId).toList(), [25, 133]);
+
+      // 2-character CJK names (e.g. 梦幻 / ミュウ=3 chars, 梦幻=2 chars)
+      final zhTwoChar = cjkMatcher.matchAllFromText('梦幻 Lv.50');
+      expect(zhTwoChar.map((m) => m.pokemonId).toList(), [151]);
+
+      // Unspaced Simplified Chinese sentence
+      final zhSentence = cjkMatcher.matchTokensFromLine('野生的皮卡丘出现了');
+      expect(zhSentence, isNotEmpty);
+      expect(zhSentence.first.pokemonId, 25);
+    });
   });
 }

@@ -54,32 +54,48 @@ class DesktopSystemSnippingService {
         final tempDir = io.Platform.environment['TEMP'] ?? io.Directory.systemTemp.path;
         final outPath = '$tempDir\\pv_clipboard_${DateTime.now().millisecondsSinceEpoch}.png';
 
-        final script = '''
+        const script = r'''
 Add-Type -AssemblyName System.Windows.Forms,System.Drawing;
-\$img = [System.Windows.Forms.Clipboard]::GetImage();
-if (\$img) {
-  \$img.Save('$outPath', [System.Drawing.Imaging.ImageFormat]::Png);
-  \$img.Dispose();
+$outPath = $env:PV_CLIP_OUT;
+$img = [System.Windows.Forms.Clipboard]::GetImage();
+if ($img -and $outPath) {
+  $img.Save($outPath, [System.Drawing.Imaging.ImageFormat]::Png);
+  $img.Dispose();
   Write-Host "OK";
 } else {
+  if ($img) { $img.Dispose(); }
   Write-Host "EMPTY";
 }
 ''';
 
-        final result = await io.Process.run(
+        final process = await io.Process.start(
           'powershell',
           ['-Sta', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-Command', script],
-        ).timeout(const Duration(seconds: 4));
+          environment: {'PV_CLIP_OUT': outPath},
+        );
+        final stdoutFuture = process.stdout.transform(const io.SystemEncoding().decoder).join();
+        final stderrFuture = process.stderr.drain<void>();
+        final exitCode = await process.exitCode.timeout(
+          const Duration(seconds: 4),
+          onTimeout: () {
+            process.kill(io.ProcessSignal.sigkill);
+            throw TimeoutException('PowerShell clipboard read timed out');
+          },
+        );
+        final stdoutStr = await stdoutFuture;
+        await stderrFuture;
 
-        if (result.exitCode == 0 && result.stdout.toString().contains('OK')) {
-          final file = io.File(outPath);
-          if (await file.exists()) {
-            final bytes = await file.readAsBytes();
-            try {
-              await file.delete();
-            } catch (_) {}
-            return bytes;
+        final file = io.File(outPath);
+        try {
+          if (exitCode == 0 && stdoutStr.contains('OK') && await file.exists()) {
+            return await file.readAsBytes();
           }
+        } finally {
+          try {
+            if (await file.exists()) {
+              await file.delete();
+            }
+          } catch (_) {}
         }
       }
       return null;

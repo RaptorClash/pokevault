@@ -5,8 +5,13 @@ import 'package:provider/provider.dart';
 import 'package:pokevault/models/pokemon.dart';
 import 'package:pokevault/models/user_dex.dart';
 import 'package:pokevault/providers/dex_provider.dart';
+import 'package:pokevault/screens/desktop_tracker/desktop_tracker_screen.dart';
 import 'package:pokevault/screens/desktop_tracker/widgets/persistent_tracker_dock.dart';
+import 'package:pokevault/services/desktop_tracker/desktop_capture_driver.dart';
 import 'package:pokevault/services/desktop_tracker/desktop_tracker_service.dart';
+import 'package:pokevault/services/desktop_tracker/screen_region.dart';
+import 'package:pokevault/services/desktop_tracker/window_detector.dart';
+import 'package:pokevault/services/desktop_tracker/windows_desktop_bridge.dart';
 import 'package:pokevault/services/scanner_core/engine/ocr_detection_engine.dart';
 import 'package:pokevault/services/scanner_core/engine/pokemon_fuzzy_matcher.dart';
 import 'package:pokevault/services/scanner_core/models/scanner_event.dart';
@@ -15,6 +20,67 @@ import 'package:pokevault/services/scanner_core/scanner_coordinator.dart';
 import 'package:pokevault/utils/tracker_platform_helper.dart';
 
 class _MockDexProvider extends Mock implements DexProvider {}
+
+class _FakeDesktopBridge implements DesktopPlatformBridge {
+  final List<List<OverlayBorderSpec>> overlayBorderCalls = [];
+  int hideHudCount = 0;
+
+  @override
+  ValueChanged<NativeHudAction>? onHudAction;
+
+  @override
+  Future<CapturedFrame?> captureRegion(ScreenRegion region) async => null;
+
+  @override
+  Future<CapturedFrame?> captureWindow(
+    DesktopWindowInfo window, {
+    Rect? cropRegion,
+  }) async =>
+      null;
+
+  @override
+  Future<List<DesktopWindowInfo>> enumerateWindowsAndMonitors() async =>
+      const [];
+
+  @override
+  Future<void> hideFloatingHud() async {
+    hideHudCount++;
+  }
+
+  @override
+  Future<OcrRecognitionResult> recognizeText(
+    CapturedFrame frame, {
+    String? languageTag,
+    String? preprocessProfile,
+  }) async =>
+      const OcrRecognitionResult();
+
+  @override
+  Future<void> setOverlayBorders(List<OverlayBorderSpec> borders) async {
+    overlayBorderCalls.add(borders);
+  }
+
+  @override
+  Future<void> setScanRegionBorder(
+    ScreenRegion? region, {
+    bool active = true,
+  }) async {}
+
+  @override
+  Future<bool> showFloatingHud(NativeHudState state) async => true;
+
+  @override
+  Future<ScreenRegionCaptureResult?> startDesktopSnipping({
+    bool hideAppWindow = false,
+    String? hintLabel,
+    String? confirmLabel,
+    String? cancelLabel,
+  }) async =>
+      null;
+
+  @override
+  Future<bool> updateFloatingHud(NativeHudState state) async => true;
+}
 
 void main() {
   group('PersistentTrackerDock Widget Tests (TDD)', () {
@@ -203,5 +269,210 @@ void main() {
       expect(find.byType(PersistentTrackerDock), findsNothing);
       await coordinator.dispose();
     });
+
+    testWidgets('PersistentTrackerDockHost pause and close buttons work across compact/wide widths without terminating on pause', (tester) async {
+      TrackerPlatformHelper.debugIsDesktopOverride = () => true;
+      addTearDown(TrackerPlatformHelper.resetDebugOverrides);
+      addTearDown(() async {
+        await DesktopTrackerService.instance.stopTracking();
+      });
+
+      final mockDexProvider = _MockDexProvider();
+      when(() => mockDexProvider.userDexes).thenReturn([mockDex]);
+      when(() => mockDexProvider.allPokemon).thenReturn(<Pokemon>[]);
+
+      for (final width in [360.0, 500.0, 1024.0]) {
+        tester.view.physicalSize = Size(width, 800);
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(tester.view.resetPhysicalSize);
+
+        final coordinator = ScannerCoordinator(
+          engine: OcrDetectionEngine(),
+          matcher: PokemonFuzzyMatcher.withEntries(const []),
+          settings: ScannerSettings.defaults(),
+        );
+        DesktopTrackerService.instance.startTracking(
+          coordinator: coordinator,
+          dexId: mockDex.id,
+        );
+
+        await tester.pumpWidget(
+          ChangeNotifierProvider<DexProvider>.value(
+            value: mockDexProvider,
+            child: MaterialApp(
+              home: Scaffold(
+                body: const Center(child: Text('Home')),
+                bottomNavigationBar: PersistentTrackerDockHost(
+                  onOpenSetup: () {},
+                ),
+                floatingActionButton: FloatingActionButton(
+                  onPressed: () {},
+                  child: const Icon(Icons.add),
+                ),
+              ),
+            ),
+          ),
+        );
+        await tester.pump();
+
+        // Tap Pause -> must stay active and show PAUSIERT
+        await tester.tap(find.byKey(const Key('btn_dock_toggle_pause')));
+        await tester.pump();
+        expect(DesktopTrackerService.instance.isTrackingActive, isTrue);
+        expect(DesktopTrackerService.instance.isPaused, isTrue);
+        expect(find.byType(PersistentTrackerDock), findsOneWidget);
+
+        // Tap Resume -> must stay active and unpause
+        await tester.tap(find.byKey(const Key('btn_dock_toggle_pause')));
+        await tester.pump();
+        expect(DesktopTrackerService.instance.isTrackingActive, isTrue);
+        expect(DesktopTrackerService.instance.isPaused, isFalse);
+
+        // Tap Close (X) -> must stop tracking and hide dock
+        await tester.tap(find.byKey(const Key('btn_dock_close')));
+        await tester.pump();
+        expect(DesktopTrackerService.instance.isTrackingActive, isFalse);
+        expect(find.byType(PersistentTrackerDock), findsNothing);
+        await coordinator.dispose();
+      }
+    });
+
+    testWidgets(
+      'Navigation round-trip: DesktopTrackerScreen -> Back -> Dock Pause/Resume/Reopen/Close stops cleanly on X',
+      (tester) async {
+        tester.view.physicalSize = const Size(1280, 800);
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(() {
+          tester.view.resetPhysicalSize();
+          tester.view.resetDevicePixelRatio();
+        });
+
+        TrackerPlatformHelper.debugIsDesktopOverride = () => true;
+        addTearDown(TrackerPlatformHelper.resetDebugOverrides);
+        addTearDown(() async {
+          await DesktopTrackerService.instance.stopTracking();
+        });
+
+        final mockDexProvider = _MockDexProvider();
+        when(() => mockDexProvider.userDexes).thenReturn([mockDex]);
+        when(() => mockDexProvider.allPokemon).thenReturn(<Pokemon>[]);
+
+        final fakeBridge = _FakeDesktopBridge();
+        final coordinator = ScannerCoordinator(
+          engine: OcrDetectionEngine(),
+          matcher: PokemonFuzzyMatcher.withEntries(const []),
+          settings: ScannerSettings.defaults(),
+        );
+        addTearDown(() async {
+          await coordinator.dispose();
+        });
+
+        const emulatorWindow = DesktopWindowInfo(
+          id: 42,
+          hwnd: 42,
+          title: 'mGBA - Pokemon Smaragd',
+          processName: 'mGBA.exe',
+          isDesktopScreen: false,
+        );
+
+        Future<void> openTracker(BuildContext context) async {
+          final existing = DesktopTrackerService.instance;
+          final reusableSource = existing.isTrackingActive &&
+                  existing.windowSource != null &&
+                  !existing.windowSource!.isDisposed
+              ? existing.windowSource
+              : null;
+          await Navigator.of(context).push(
+            MaterialPageRoute<void>(
+              builder: (_) => DesktopTrackerScreen(
+                coordinator: coordinator,
+                initialDexId: mockDex.id,
+                detectedWindows: const [emulatorWindow],
+                windowSource: reusableSource,
+                nativeBridge: fakeBridge,
+                keepTrackingInBackground: true,
+              ),
+            ),
+          );
+        }
+
+        await tester.pumpWidget(
+          ChangeNotifierProvider<DexProvider>.value(
+            value: mockDexProvider,
+            child: MaterialApp(
+              home: Builder(
+                builder: (homeContext) => Scaffold(
+                  body: Center(
+                    child: ElevatedButton(
+                      key: const Key('btn_open_tracker_home'),
+                      onPressed: () => openTracker(homeContext),
+                      child: const Text('Open Tracker'),
+                    ),
+                  ),
+                  bottomNavigationBar: PersistentTrackerDockHost(
+                    onOpenSetup: () => openTracker(homeContext),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        // 1. Navigate to DesktopTrackerScreen
+        await tester.tap(find.byKey(const Key('btn_open_tracker_home')));
+        await tester.pumpAndSettle();
+        expect(find.byType(DesktopTrackerScreen), findsOneWidget);
+
+        final ownedSource = DesktopTrackerService.instance.windowSource;
+        expect(ownedSource, isNotNull);
+
+        // 2. Pop back to Home -> PersistentTrackerDock must remain visible
+        await tester.pageBack();
+        await tester.pumpAndSettle();
+        expect(find.byType(DesktopTrackerScreen), findsNothing);
+        expect(find.byType(PersistentTrackerDock), findsOneWidget);
+        expect(DesktopTrackerService.instance.isTrackingActive, isTrue);
+        expect(DesktopTrackerService.instance.isPaused, isFalse);
+
+        // 3. Tap Pause on Dock -> MUST pause without closing
+        await tester.tap(find.byKey(const Key('btn_dock_toggle_pause')));
+        await tester.pump();
+        expect(DesktopTrackerService.instance.isTrackingActive, isTrue);
+        expect(DesktopTrackerService.instance.isPaused, isTrue);
+        expect(find.text('PAUSIERT'), findsOneWidget);
+        expect(find.byType(PersistentTrackerDock), findsOneWidget);
+
+        // 4. Tap Resume on Dock -> LIVE again
+        await tester.tap(find.byKey(const Key('btn_dock_toggle_pause')));
+        await tester.pump();
+        expect(DesktopTrackerService.instance.isTrackingActive, isTrue);
+        expect(DesktopTrackerService.instance.isPaused, isFalse);
+        expect(find.text('LIVE'), findsOneWidget);
+
+        // 5. Re-open Setup from Dock, then pop back
+        await tester.tap(find.byKey(const Key('btn_dock_open_setup')));
+        await tester.pumpAndSettle();
+        expect(find.byType(DesktopTrackerScreen), findsOneWidget);
+
+        await tester.pageBack();
+        await tester.pumpAndSettle();
+        expect(find.byType(PersistentTrackerDock), findsOneWidget);
+        expect(DesktopTrackerService.instance.isTrackingActive, isTrue);
+
+        // 6. Tap Close (X) on Dock -> MUST stop tracking, dispose source, clear borders & hide HUD
+        final hideBeforeClose = fakeBridge.hideHudCount;
+        await tester.tap(find.byKey(const Key('btn_dock_close')));
+        await tester.pumpAndSettle();
+        await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 10)));
+        await tester.pump();
+
+        expect(DesktopTrackerService.instance.isTrackingActive, isFalse);
+        expect(find.byType(PersistentTrackerDock), findsNothing);
+        expect(ownedSource!.isDisposed, isTrue);
+        expect(fakeBridge.hideHudCount, greaterThan(hideBeforeClose));
+        expect(fakeBridge.overlayBorderCalls.last, isEmpty);
+      },
+    );
   });
 }

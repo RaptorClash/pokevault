@@ -41,10 +41,14 @@ typedef LinuxProcessRunner = Future<LinuxOcrProcessResult> Function(
 
 /// Windows Camera OCR driver reusing native WinRT `Windows Media OCR` over [DesktopPlatformBridge].
 class WindowsCameraOcrDriver
-    implements LanguageAwareOcrDriver, PreprocessAwareOcrDriver {
+    implements
+        LanguageAwareOcrDriver,
+        PreprocessAwareOcrDriver,
+        DiagnosticOcrDriver {
   final DesktopPlatformBridge bridge;
   String? _languageTag;
   OcrPreprocessProfile _preprocessProfile;
+  @override
   String? lastDiagnosticHint;
 
   WindowsCameraOcrDriver({
@@ -96,10 +100,14 @@ class WindowsCameraOcrDriver
 
 /// macOS Camera OCR driver backed by native Apple Vision (`VNRecognizeTextRequest`).
 class MacosVisionOcrDriver
-    implements LanguageAwareOcrDriver, PreprocessAwareOcrDriver {
+    implements
+        LanguageAwareOcrDriver,
+        PreprocessAwareOcrDriver,
+        DiagnosticOcrDriver {
   final MethodChannel channel;
   String? _languageTag;
   OcrPreprocessProfile _preprocessProfile;
+  @override
   String? lastDiagnosticHint;
 
   MacosVisionOcrDriver({
@@ -152,6 +160,12 @@ class MacosVisionOcrDriver
         lastDiagnosticHint = 'macOS Vision Channel hat null geliefert';
         return const [];
       }
+      final succeeded = raw['ocrSucceeded'] as bool? ?? true;
+      if (!succeeded) {
+        lastDiagnosticHint =
+            raw['errorHint']?.toString() ?? 'macOS Vision OCR fehlgeschlagen';
+        return const [];
+      }
       final linesRaw = raw['lines'] as List? ?? const [];
       lastDiagnosticHint = null;
       return linesRaw
@@ -171,10 +185,14 @@ class MacosVisionOcrDriver
 
 /// Linux Camera OCR driver invoking system `tesseract` CLI via binary PPM (`P6`) stdin.
 class LinuxTesseractOcrDriver
-    implements LanguageAwareOcrDriver, PreprocessAwareOcrDriver {
+    implements
+        LanguageAwareOcrDriver,
+        PreprocessAwareOcrDriver,
+        DiagnosticOcrDriver {
   final LinuxProcessRunner _processRunner;
   String? _languageTag;
   OcrPreprocessProfile _preprocessProfile;
+  @override
   String? lastDiagnosticHint;
 
   LinuxTesseractOcrDriver({

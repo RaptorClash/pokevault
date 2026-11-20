@@ -257,7 +257,8 @@ class TutorialProvider extends ChangeNotifier {
     ];
 
     for (String key in allKeys) {
-      if (!systemKeys.contains(key)) {
+      final isProtected = systemKeys.contains(key) || key.startsWith('pokevault_');
+      if (!isProtected) {
         await _prefs.remove(key);
       }
     }

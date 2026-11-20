@@ -156,6 +156,12 @@ void main() {
         expect(matcher.match('salvaje'), isNull);
         expect(matcher.match('selvatico'), isNull);
       });
+
+      test('OcrDetectionEngine enemyHudFocusOnly preserves 2-char CJK tokens', () {
+        final hudRes = engine.parse('梦幻', role: OcrScanRole.enemyHudFocusOnly);
+        expect(hudRes, isNotNull);
+        expect(hudRes!.extractedPokemonName, '梦幻');
+      });
     });
   });
 }

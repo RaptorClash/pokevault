@@ -19,10 +19,13 @@ class WebTesseractOcrDriver
     implements
         LanguageAwareOcrDriver,
         PreprocessAwareOcrDriver,
+        DiagnosticOcrDriver,
         WebOcrStatusReportingDriver {
   final WebTesseractDelegate _delegate;
   String? _languageTag;
   OcrPreprocessProfile _preprocessProfile;
+  @override
+  String? lastDiagnosticHint;
 
   final ValueNotifier<WebOcrEngineStatus> statusNotifier = ValueNotifier(
     const WebOcrEngineStatus(),
@@ -131,6 +134,7 @@ class WebTesseractOcrDriver
       cacheSource: result.cacheSource,
       errorMessage: result.error,
     );
+    lastDiagnosticHint = result.error;
 
     return result.lines
         .map((l) => l.trim())

@@ -192,10 +192,18 @@ class DesktopTrackerService {
     String? dexId,
     bool ownsWindowSource = false,
   }) {
+    final previousSource = _windowSource;
+    final previouslyOwned = _ownsWindowSource;
     _coordinator = coordinator;
     _windowSource = windowSource;
     _activeDexId = dexId;
     _ownsWindowSource = ownsWindowSource;
+
+    if (previousSource != null &&
+        !identical(previousSource, windowSource) &&
+        previouslyOwned) {
+      unawaited(previousSource.dispose());
+    }
 
     _eventSubscription?.cancel();
     _eventSubscription = coordinator.events.listen(handleScannerEvent);
@@ -274,12 +282,6 @@ class DesktopTrackerService {
     } else {
       _coordinator?.start();
     }
-    if (_activeScreenRegion != null) {
-      _nativeBridge?.setScanRegionBorder(
-        _activeScreenRegion,
-        active: !paused,
-      );
-    }
     if (_activeOverlayBorders.isNotEmpty) {
       final syncedBorders = paused
           ? _activeOverlayBorders
@@ -295,6 +297,11 @@ class DesktopTrackerService {
               .toList(growable: false)
           : _activeOverlayBorders;
       _nativeBridge?.setOverlayBorders(syncedBorders);
+    } else if (_activeScreenRegion != null) {
+      _nativeBridge?.setScanRegionBorder(
+        _activeScreenRegion,
+        active: !paused,
+      );
     }
     _syncNativeHudIfVisible();
   }

@@ -28,6 +28,7 @@ class MobileCameraTrackerService {
   VoidCallback? _onExpandFromPip;
   Future<void> Function()? _onToggleTorchCallback;
   Future<void> Function()? _onDisposeCameraCallback;
+  Future<void> Function()? _onDisableWakelockCallback;
   Object? activeCameraController;
   CameraFramePump? activeFramePump;
   List<CameraDescription> cachedCameras = const [];
@@ -104,6 +105,7 @@ class MobileCameraTrackerService {
     VoidCallback? onExpandFromPip,
     Future<void> Function()? onToggleTorch,
     Future<void> Function()? onDisposeCamera,
+    Future<void> Function()? onDisableWakelock,
   }) {
     if (pipCameraPreviewBuilder != null) {
       _pipCameraPreviewBuilder = pipCameraPreviewBuilder;
@@ -116,6 +118,9 @@ class MobileCameraTrackerService {
     }
     if (onDisposeCamera != null) {
       _onDisposeCameraCallback = onDisposeCamera;
+    }
+    if (onDisableWakelock != null) {
+      _onDisableWakelockCallback = onDisableWakelock;
     }
   }
 
@@ -248,6 +253,8 @@ class MobileCameraTrackerService {
     _onToggleTorchCallback = null;
     final disposeCamera = _onDisposeCameraCallback;
     _onDisposeCameraCallback = null;
+    final disableWakelock = _onDisableWakelockCallback;
+    _onDisableWakelockCallback = null;
     activeCameraController = null;
     await activeFramePump?.dispose();
     activeFramePump = null;
@@ -255,6 +262,12 @@ class MobileCameraTrackerService {
     if (disposeCamera != null) {
       try {
         await disposeCamera();
+      } catch (_) {}
+    }
+
+    if (disableWakelock != null) {
+      try {
+        await disableWakelock();
       } catch (_) {}
     }
 

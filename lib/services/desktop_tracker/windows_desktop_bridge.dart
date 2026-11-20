@@ -101,6 +101,10 @@ class NativeHudState {
   final String evolutionSummary;
   final bool hasMissingEvolutions;
   final String? instanceLabel;
+  final String? waitingLabel;
+  final String? caughtLabel;
+  final String? missingLabel;
+  final String? footerLabel;
 
   const NativeHudState({
     this.pokemonName = 'Warte auf Spiel...',
@@ -115,6 +119,10 @@ class NativeHudState {
     this.evolutionSummary = '',
     this.hasMissingEvolutions = false,
     this.instanceLabel,
+    this.waitingLabel,
+    this.caughtLabel,
+    this.missingLabel,
+    this.footerLabel,
   });
 
   Map<String, dynamic> toMap() {
@@ -130,6 +138,10 @@ class NativeHudState {
       'evolutionSummary': evolutionSummary,
       'hasMissingEvolutions': hasMissingEvolutions,
       if (instanceLabel != null) 'instanceLabel': instanceLabel,
+      if (waitingLabel != null) 'waitingLabel': waitingLabel,
+      if (caughtLabel != null) 'caughtLabel': caughtLabel,
+      if (missingLabel != null) 'missingLabel': missingLabel,
+      if (footerLabel != null) 'footerLabel': footerLabel,
       if (anchorRect != null)
         'anchorRect': {
           'x': anchorRect!.left,
@@ -150,6 +162,9 @@ abstract class DesktopPlatformBridge {
 
   Future<ScreenRegionCaptureResult?> startDesktopSnipping({
     bool hideAppWindow = false,
+    String? hintLabel,
+    String? confirmLabel,
+    String? cancelLabel,
   });
 
   Future<CapturedFrame?> captureRegion(ScreenRegion region);
@@ -344,11 +359,19 @@ class WindowsDesktopBridge implements DesktopPlatformBridge {
   @override
   Future<ScreenRegionCaptureResult?> startDesktopSnipping({
     bool hideAppWindow = false,
+    String? hintLabel,
+    String? confirmLabel,
+    String? cancelLabel,
   }) async {
     try {
       final raw = await channel.invokeMapMethod<String, dynamic>(
         'startDesktopSnipping',
-        {'hideAppWindow': hideAppWindow},
+        {
+          'hideAppWindow': hideAppWindow,
+          if (hintLabel != null) 'hintLabel': hintLabel,
+          if (confirmLabel != null) 'confirmLabel': confirmLabel,
+          if (cancelLabel != null) 'cancelLabel': cancelLabel,
+        },
       );
       if (raw == null) return null;
 
@@ -450,13 +473,21 @@ class WindowsDesktopBridge implements DesktopPlatformBridge {
     final width = (raw['width'] as num?)?.toInt() ?? 0;
     final height = (raw['height'] as num?)?.toInt() ?? 0;
     final bytesRaw = raw['bytes'];
-    if (width <= 0 || height <= 0 || bytesRaw is! List<int>) {
+    if (width <= 0 || height <= 0 || bytesRaw is! List) {
       return null;
+    }
+    final Uint8List bytes;
+    if (bytesRaw is Uint8List) {
+      bytes = bytesRaw;
+    } else if (bytesRaw is List<int>) {
+      bytes = Uint8List.fromList(bytesRaw);
+    } else {
+      bytes = Uint8List.fromList(bytesRaw.whereType<num>().map((n) => n.toInt()).toList(growable: false));
     }
     return CapturedFrame(
       width: width,
       height: height,
-      bytes: bytesRaw is Uint8List ? bytesRaw : Uint8List.fromList(bytesRaw),
+      bytes: bytes,
       pixelFormat: (raw['pixelFormat'] as String?) ?? 'bgra8888',
       captureMethod: raw['captureMethod'] as String?,
     );

@@ -146,6 +146,14 @@ class PokemonFuzzyMatcher {
     r'[A-Za-zÀ-ÿ\u3040-\u30FF\u4E00-\u9FFF\uAC00-\uD7AF]',
   );
 
+  static final RegExp _cjkRegExp = RegExp(
+    r'[\u3040-\u30FF\u4E00-\u9FFF\uAC00-\uD7AF]',
+  );
+
+  static final RegExp _cjkRunRegExp = RegExp(
+    r'[\u3040-\u30FF\u4E00-\u9FFF\uAC00-\uD7AF]{2,}',
+  );
+
   final List<PokemonMatcherEntry> _entries;
   final Map<String, List<PokemonMatcherEntry>> _exactMap = {};
   final List<_PreparedEntry> _prepared = [];
@@ -437,16 +445,18 @@ class PokemonFuzzyMatcher {
       if (RegExp(r'^[\d/.,:\-\[\]()]+$').hasMatch(cleaned)) continue;
 
       final norm = _normalizeKey(cleaned);
-      if (norm.length < 3 || _noiseStopWords.contains(norm)) continue;
+      final minTokenLen = _cjkRegExp.hasMatch(cleaned) ? 2 : 3;
+      if (norm.length < minTokenLen || _noiseStopWords.contains(norm)) continue;
 
-      // Require at least 3 alphabetic characters per token to dodge short noise ("14", "so")
+      // Require at least 3 alphabetic characters (or 2 for CJK) per token
       final letterCount = _letterRegExp.allMatches(cleaned).length;
-      if (letterCount < 3) continue;
+      if (letterCount < minTokenLen) continue;
 
       cleanTokens.add(cleaned);
     }
 
-    if (cleanTokens.isEmpty) return const [];
+    final cjkCandidates = _extractCjkExactCandidates(line);
+    if (cleanTokens.isEmpty && cjkCandidates.isEmpty) return const [];
 
     final probeStrings = <String>[...cleanTokens];
     for (int i = 0; i < cleanTokens.length - 1; i++) {
@@ -454,6 +464,12 @@ class PokemonFuzzyMatcher {
     }
 
     final merged = <int, FuzzyMatchResult>{};
+    for (final cand in cjkCandidates) {
+      final existing = merged[cand.pokemonId];
+      if (existing == null || cand.confidence > existing.confidence) {
+        merged[cand.pokemonId] = cand;
+      }
+    }
     for (final probe in probeStrings) {
       final candidates = matchTopK(probe, limit: limit, threshold: threshold);
       for (final cand in candidates) {
@@ -491,15 +507,24 @@ class PokemonFuzzyMatcher {
       if (cleaned.isEmpty) continue;
       if (RegExp(r'^[\d/.,:\-\[\]()]+$').hasMatch(cleaned)) continue;
       final norm = _normalizeKey(cleaned);
-      if (norm.length < 3 || _noiseStopWords.contains(norm)) continue;
-      if (_letterRegExp.allMatches(cleaned).length < 3) continue;
+      final minTokenLen = _cjkRegExp.hasMatch(cleaned) ? 2 : 3;
+      if (norm.length < minTokenLen || _noiseStopWords.contains(norm)) continue;
+      if (_letterRegExp.allMatches(cleaned).length < minTokenLen) continue;
       cleanTokens.add(cleaned);
     }
 
-    if (cleanTokens.isEmpty) return const [];
+    final cjkCandidates = _extractCjkExactCandidates(text);
+    if (cleanTokens.isEmpty && cjkCandidates.isEmpty) return const [];
 
     final seenIds = <int>{};
     final orderedResults = <FuzzyMatchResult>[];
+
+    for (final cjkHit in cjkCandidates) {
+      if (orderedResults.length >= maxPokemon) break;
+      if (seenIds.add(cjkHit.pokemonId)) {
+        orderedResults.add(cjkHit);
+      }
+    }
 
     int i = 0;
     while (i < cleanTokens.length && orderedResults.length < maxPokemon) {
@@ -536,6 +561,50 @@ class PokemonFuzzyMatcher {
     }
 
     return List.unmodifiable(orderedResults);
+  }
+
+  /// Extracts non-overlapping CJK Pokémon names in appearance order from unspaced runs
+  /// using longest-match-first lookup against [_exactMap].
+  List<FuzzyMatchResult> _extractCjkExactCandidates(String input) {
+    if (!_cjkRegExp.hasMatch(input)) return const [];
+    final results = <FuzzyMatchResult>[];
+    final seenIds = <int>{};
+
+    for (final runMatch in _cjkRunRegExp.allMatches(input)) {
+      final run = runMatch.group(0)!;
+      int pos = 0;
+      while (pos <= run.length - 2) {
+        final maxSpan = math.min(8, run.length - pos);
+        PokemonMatcherEntry? hit;
+        int hitLen = 0;
+        for (int len = maxSpan; len >= 2; len--) {
+          final sub = run.substring(pos, pos + len);
+          if (_noiseStopWords.contains(sub)) continue;
+          final entries = _exactMap[sub];
+          if (entries != null && entries.isNotEmpty) {
+            hit = entries.first;
+            hitLen = len;
+            break;
+          }
+        }
+        if (hit != null) {
+          if (seenIds.add(hit.id)) {
+            results.add(
+              FuzzyMatchResult(
+                pokemonId: hit.id,
+                canonicalName: hit.name,
+                matchedLanguage: hit.language,
+                confidence: 1.0,
+              ),
+            );
+          }
+          pos += hitLen;
+        } else {
+          pos += 1;
+        }
+      }
+    }
+    return results;
   }
 
   static String _cleanQuery(String raw) {

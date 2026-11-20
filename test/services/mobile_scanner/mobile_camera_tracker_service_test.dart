@@ -112,5 +112,27 @@ void main() {
       expect(service.isPipVisible, isFalse);
       expect(service.latestEvent, isNull);
     });
+
+    test('stopSession invokes onDisableWakelock callback exactly once when PiP closes', () async {
+      int wakelockDisableCount = 0;
+      service.startSession(
+        coordinator: coordinator,
+        cameraSource: source,
+        dexId: 'dex_kanto',
+      );
+      service.attachPipCallbacks(
+        onDisableWakelock: () async {
+          wakelockDisableCount++;
+        },
+      );
+      service.enterPipMode();
+
+      await service.stopSession();
+      expect(wakelockDisableCount, 1);
+
+      // Stopping again must not invoke stale callback
+      await service.stopSession();
+      expect(wakelockDisableCount, 1);
+    });
   });
 }

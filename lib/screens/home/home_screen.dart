@@ -738,14 +738,6 @@ class _HomeScreenState extends State<HomeScreen> {
               return KeyEventResult.handled;
             }
 
-            if ((HardwareKeyboard.instance.isControlPressed ||
-                    HardwareKeyboard.instance.isMetaPressed) &&
-                HardwareKeyboard.instance.isShiftPressed &&
-                event.logicalKey == LogicalKeyboardKey.keyO) {
-              _openPlatformTracker();
-              return KeyEventResult.handled;
-            }
-
             if (event.logicalKey == LogicalKeyboardKey.escape) {
               if (_searchFocusNode.hasFocus) {
                 _searchFocusNode.unfocus();

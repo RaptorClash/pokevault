@@ -82,5 +82,21 @@ void main() {
       await tutorialProvider.markFeatureAsSeen('home_screen');
       expect(tutorialProvider.shouldShowScannerUpdatePrompt, isFalse);
     });
+
+    test('resetAllTutorials preserves scanner settings and mobile scan region preferences', () async {
+      await prefs.setBool('home_screen', true);
+      await prefs.setString('pokevault_scanner_settings_v1', '{"ocrLanguage":"ja"}');
+      await prefs.setString('pokevault_mobile_camera_regions_v1', '[{"id":"zone_a"}]');
+      await prefs.setString('pokevault_mobile_camera_scan_mode_v1', 'customRegions');
+      await prefs.setString('pokevault_mobile_multi_slots_v1', '[2,3]');
+
+      await tutorialProvider.resetAllTutorials();
+
+      expect(prefs.getBool('home_screen'), isNull);
+      expect(prefs.getString('pokevault_scanner_settings_v1'), '{"ocrLanguage":"ja"}');
+      expect(prefs.getString('pokevault_mobile_camera_regions_v1'), '[{"id":"zone_a"}]');
+      expect(prefs.getString('pokevault_mobile_camera_scan_mode_v1'), 'customRegions');
+      expect(prefs.getString('pokevault_mobile_multi_slots_v1'), '[2,3]');
+    });
   });
 }

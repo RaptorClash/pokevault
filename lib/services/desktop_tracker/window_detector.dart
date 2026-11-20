@@ -298,20 +298,37 @@ class WindowDetector {
 
     final lines = csv.split(RegExp(r'\r?\n'));
     final rawWindows = <DesktopWindowInfo>[];
+    int procIdx = 0;
+    int pidIdx = 1;
+    int titleIdx = 8;
 
     for (final line in lines) {
       final trimmed = line.trim();
       if (trimmed.isEmpty) continue;
 
       final values = _parseCsvRow(trimmed);
-      if (values.length < 9) continue;
+      if (values.length < 3) continue;
 
-      final processName = values[0];
-      final pidStr = values[1];
-      final title = values[8];
+      final maybePidCol = values.length > 1 ? values[1].toLowerCase() : '';
+      // Detect localized CSV header dynamically (EN: "Image Name","PID",...,"Window Title"; DE: "Abbildname","PID",...,"Fenstertitel")
+      if (maybePidCol == 'pid' ||
+          values.any((v) => v.toLowerCase() == 'fenstertitel' || v.toLowerCase() == 'window title')) {
+        for (int i = 0; i < values.length; i++) {
+          final lower = values[i].toLowerCase();
+          if (lower == 'pid') pidIdx = i;
+          if (lower == 'image name' || lower == 'abbildname') procIdx = i;
+          if (lower == 'window title' || lower == 'fenstertitel') titleIdx = i;
+        }
+        continue;
+      }
 
-      // Skip header row
-      if (pidStr.toLowerCase() == 'pid') continue;
+      if (titleIdx >= values.length || pidIdx >= values.length || procIdx >= values.length) {
+        if (values.length < 9) continue;
+      }
+      final safeTitleIdx = titleIdx < values.length ? titleIdx : values.length - 1;
+      final processName = values[procIdx];
+      final pidStr = values[pidIdx];
+      final title = values[safeTitleIdx];
 
       final pid = int.tryParse(pidStr) ?? 0;
       final cleanTitle = title.trim();

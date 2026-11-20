@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:math' as math;
 import 'package:camera/camera.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -10,23 +9,19 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 import '../../main.dart' show appNavigatorKey;
 import '../../models/pokemon.dart';
-import '../../models/tutorial_step.dart';
 import '../../models/user_dex.dart';
 import '../../providers/dex_provider.dart';
 import '../../providers/settings_provider.dart';
-import '../../providers/tutorial_provider.dart';
+import '../../services/camera_ocr/platform_camera_ocr_driver.dart';
 import '../../services/database_service.dart';
 import '../../services/desktop_tracker/desktop_capture_driver.dart';
 import '../../services/desktop_tracker/evolution_chain_helper.dart';
 import '../../services/desktop_tracker/tracker_alert_service.dart';
 import '../../services/desktop_tracker/windows_desktop_bridge.dart';
-import '../../services/camera_ocr/platform_camera_ocr_driver.dart';
-import '../../services/mobile_scanner/camera_frame_pump.dart';
 import '../../services/mobile_scanner/camera_image_converter.dart';
 import '../../services/mobile_scanner/camera_scan_region.dart';
 import '../../services/mobile_scanner/mobile_camera_source.dart';
 import '../../services/mobile_scanner/mobile_camera_tracker_service.dart';
-import '../../services/scanner_core/media/image_frame_decoder.dart';
 import '../../services/scanner_core/models/scanner_event.dart';
 import '../../services/scanner_core/models/scanner_settings.dart';
 import '../../services/scanner_core/scanner_coordinator.dart';
@@ -35,7 +30,11 @@ import '../../utils/dex_logic_helper.dart';
 import '../../widgets/tutorial/tutorial_overlay.dart';
 import '../desktop_tracker/widgets/custom_pattern_studio_dialog.dart';
 import '../desktop_tracker/widgets/dex_selection_modal.dart';
-import 'widgets/camera_region_overlay.dart';
+import 'controllers/mobile_camera_hardware_controller.dart';
+import 'controllers/mobile_scanner_tutorial_controller.dart';
+import 'widgets/mobile_camera_viewport.dart';
+import 'widgets/mobile_scanner_bottom_panel.dart';
+import 'widgets/mobile_scanner_dialogs.dart';
 import 'widgets/mobile_tracker_tabs.dart';
 
 /// Feature-complete Mobile Camera Tracker screen supporting Auto full-frame OCR,
@@ -80,7 +79,6 @@ class _MobileCameraTrackerScreenState extends State<MobileCameraTrackerScreen>
   final GlobalKey _tutPipKey = GlobalKey();
   final GlobalKey _tutViewportKey = GlobalKey();
   final GlobalKey _tutBottomPanelKey = GlobalKey();
-  bool _hasTriggeredMobileTutorial = false;
 
   late final MobileCameraSource _cameraSource;
   late final bool _ownsCameraSource;
@@ -90,23 +88,11 @@ class _MobileCameraTrackerScreenState extends State<MobileCameraTrackerScreen>
       ScannerPersistenceService();
   late final TrackerAlertService _alertService;
   late final TabController _splitTabController;
+  late final MobileCameraHardwareController _hardwareController;
+  late final MobileScannerTutorialController _tutorialController;
 
   StreamSubscription<ScannerEvent>? _eventSub;
   StreamSubscription<List<ScannerEvent>>? _focusSub;
-
-  CameraController? _cameraController;
-  CameraFramePump? _framePump;
-  List<CameraDescription> _cameras = const [];
-  int _selectedCameraIndex = 0;
-  bool _isInitializingCamera = false;
-  bool _permissionDenied = false;
-  String? _cameraErrorText;
-  bool _convertingFrame = false;
-  double _minZoom = 1.0;
-  double _maxZoom = 1.0;
-  double _zoomLevel = 1.0;
-  bool _torchEnabled = false;
-  double? _livePreviewAspectRatio;
 
   MobileScannerViewMode _viewMode = MobileScannerViewMode.fullscreen;
   MobileCameraScanMode _scanMode = MobileCameraScanMode.autoFull;
@@ -149,7 +135,6 @@ class _MobileCameraTrackerScreenState extends State<MobileCameraTrackerScreen>
     WidgetsBinding.instance.addObserver(this);
     _splitTabController = TabController(length: 3, vsync: this);
     _selectedDexId = widget.initialDexId ?? _trackerService.activeDexId;
-    _permissionDenied = widget.simulatePermissionDenied;
     if (widget.initialSplitView) {
       _viewMode = MobileScannerViewMode.split;
     }
@@ -176,32 +161,29 @@ class _MobileCameraTrackerScreenState extends State<MobileCameraTrackerScreen>
       _ownsCameraSource = true;
     }
 
-    // Re-attach seamlessly if returning from PiP or reuse live session
-    final existingController = _trackerService.activeCameraController;
-    if (existingController is CameraController &&
-        existingController.value.isInitialized) {
-      _cameraController = existingController;
-      _framePump = _trackerService.activeFramePump;
-      _cameras = _trackerService.cachedCameras;
-      _selectedCameraIndex = _trackerService.selectedCameraIndex;
-      _minZoom = _trackerService.minZoom;
-      _maxZoom = _trackerService.maxZoom;
-      _livePreviewAspectRatio = _trackerService.previewAspectRatioNotifier.value;
-      _torchEnabled = _trackerService.torchEnabledNotifier.value;
-      _zoomLevel = _trackerService.zoomLevelNotifier.value;
-    }
+    _hardwareController = MobileCameraHardwareController(
+      trackerService: _trackerService,
+      cameraSource: _cameraSource,
+      getScanIntervalMs: () => widget.coordinator.settings.scanIntervalMs,
+      isScanningActive: () => _isScanningActive,
+      disableHardwareCamera: widget.disableHardwareCamera,
+      simulatePermissionDenied: widget.simulatePermissionDenied,
+      availableCamerasOverride: widget.availableCamerasOverride,
+    );
+    _hardwareController.tryReattachExisting();
+
+    _tutorialController = MobileScannerTutorialController(
+      viewportKey: _tutViewportKey,
+      modesKey: _tutModesKey,
+      photoKey: _tutPhotoKey,
+      pipKey: _tutPipKey,
+      bottomPanelKey: _tutBottomPanelKey,
+    );
 
     _scanMode = _cameraSource.scanMode;
     _autoPreset = _cameraSource.autoPreset;
     _regions = _cameraSource.regions;
     _multiSlotIds = List<int>.from(_regions.multiSlotIds);
-    if (widget.availableCamerasOverride != null) {
-      _cameras = widget.availableCamerasOverride!;
-      final backIdx = _cameras.indexWhere(
-        (c) => c.lensDirection == CameraLensDirection.back,
-      );
-      _selectedCameraIndex = backIdx >= 0 ? backIdx : 0;
-    }
 
     widget.coordinator.bindSource(_cameraSource);
     widget.coordinator.start();
@@ -212,10 +194,13 @@ class _MobileCameraTrackerScreenState extends State<MobileCameraTrackerScreen>
       dexId: _selectedDexId,
       pipCameraPreviewBuilder: _buildPipPreviewWidget,
       onExpandFromPip: _reopenFromPip,
-      onToggleTorch: _toggleTorch,
+      onToggleTorch: _hardwareController.toggleTorch,
       ownsCameraSource: _ownsCameraSource,
     );
-    _trackerService.attachPipCallbacks(onDisposeCamera: _disposeHardwareCamera);
+    _trackerService.attachPipCallbacks(
+      onDisposeCamera: _hardwareController.disposeHardwareCamera,
+      onDisableWakelock: _disableWakelock,
+    );
     if (_trackerService.viewMode == MobileScannerViewMode.pip) {
       _trackerService.exitPipMode(targetMode: _viewMode);
     }
@@ -242,13 +227,16 @@ class _MobileCameraTrackerScreenState extends State<MobileCameraTrackerScreen>
     unawaited(_loadPersistedState());
     if (!widget.disableHardwareCamera &&
         !widget.simulatePermissionDenied &&
-        _cameraController == null) {
-      unawaited(_initHardwareCamera());
+        _hardwareController.controller == null) {
+      unawaited(_hardwareController.initHardwareCamera());
     }
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
-        _showMobileScannerTutorialIfNeeded();
+        _tutorialController.maybeShowIfNeeded(
+          context,
+          getViewMode: () => _viewMode,
+        );
       }
     });
   }
@@ -256,17 +244,8 @@ class _MobileCameraTrackerScreenState extends State<MobileCameraTrackerScreen>
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
-    if (widget.disableHardwareCamera || widget.simulatePermissionDenied) return;
     if (_handedOffToPip) return;
-
-    if (state == AppLifecycleState.inactive ||
-        state == AppLifecycleState.paused) {
-      unawaited(_disposeHardwareCamera());
-    } else if (state == AppLifecycleState.resumed) {
-      if (_cameraController == null && !_isInitializingCamera) {
-        unawaited(_initHardwareCamera());
-      }
-    }
+    _hardwareController.handleAppLifecycleChange(state);
   }
 
   @override
@@ -285,9 +264,10 @@ class _MobileCameraTrackerScreenState extends State<MobileCameraTrackerScreen>
 
     if (!_handedOffToPip) {
       unawaited(_disableWakelock());
-      unawaited(_disposeHardwareCamera());
+      unawaited(_hardwareController.disposeHardwareCamera());
       unawaited(_trackerService.stopSession());
     }
+    _hardwareController.dispose();
     super.dispose();
   }
 
@@ -324,7 +304,9 @@ class _MobileCameraTrackerScreenState extends State<MobileCameraTrackerScreen>
       }
       final savedMode = prefs.getString(_scanModePrefsKey);
       if (savedMode != null && mounted && _cameraSource.regions.isEmpty) {
-        final mode = MobileCameraScanMode.values.where((m) => m.name == savedMode).firstOrNull;
+        final mode = MobileCameraScanMode.values
+            .where((m) => m.name == savedMode)
+            .firstOrNull;
         if (mode != null) {
           setState(() => _scanMode = mode);
           _trackerService.setScanMode(mode);
@@ -374,210 +356,12 @@ class _MobileCameraTrackerScreenState extends State<MobileCameraTrackerScreen>
     } catch (_) {}
   }
 
-  Future<void> _initHardwareCamera() async {
-    if (_isInitializingCamera) return;
-    setState(() {
-      _isInitializingCamera = true;
-      _cameraErrorText = null;
-      _permissionDenied = false;
-    });
-
-    try {
-      _cameras = widget.availableCamerasOverride ?? await availableCameras();
-      if (_cameras.isEmpty) {
-        if (!mounted) return;
-        setState(() {
-          _isInitializingCamera = false;
-          _cameraErrorText = 'Keine Kamera auf diesem Gerät gefunden.';
-        });
-        return;
-      }
-
-      final backIdx = _cameras.indexWhere(
-        (c) => c.lensDirection == CameraLensDirection.back,
-      );
-      _selectedCameraIndex = backIdx >= 0 ? backIdx : 0;
-      await _startCameraController(_cameras[_selectedCameraIndex]);
-    } on CameraException catch (e) {
-      if (!mounted) return;
-      final formatted = CameraImageConverter.formatCameraError(e);
-      setState(() {
-        _isInitializingCamera = false;
-        _permissionDenied = formatted.isPermissionDenied;
-        _cameraErrorText = formatted.message;
-      });
-    } catch (e) {
-      if (!mounted) return;
-      setState(() {
-        _isInitializingCamera = false;
-        _cameraErrorText = e.toString();
-      });
-    }
-  }
-
-  bool get _supportsTorchControl =>
-      !kIsWeb &&
-      (defaultTargetPlatform == TargetPlatform.android ||
-          defaultTargetPlatform == TargetPlatform.iOS);
-
-  Future<void> _startCameraController(CameraDescription desc) async {
-    await _framePump?.dispose();
-    _framePump = null;
-
-    final prev = _cameraController;
-    _cameraController = null;
-    if (prev != null) {
-      try {
-        if (prev.value.isStreamingImages) {
-          await prev.stopImageStream();
-        }
-        await prev.dispose();
-      } catch (_) {}
-    }
-
-    final controller = CameraController(
-      desc,
-      ResolutionPreset.high,
-      enableAudio: false,
-      imageFormatGroup: CameraImageConverter.preferredImageFormatGroup(),
-    );
-
-    await controller.initialize();
-
-    double minZoom = 1.0;
-    double maxZoom = 1.0;
-    try {
-      minZoom = await controller.getMinZoomLevel();
-      maxZoom = await controller.getMaxZoomLevel();
-    } catch (_) {
-      minZoom = 1.0;
-      maxZoom = 1.0;
-    }
-
-    final pump = CameraFramePump(
-      startImageStream: () => controller.startImageStream((image) {
-        unawaited(_handleCameraImage(image, desc));
-      }),
-      stopImageStream: () async {
-        if (controller.value.isStreamingImages) {
-          await controller.stopImageStream();
-        }
-      },
-      captureStillBytes: () async {
-        if (!controller.value.isInitialized) return null;
-        final xfile = await controller.takePicture();
-        return await xfile.readAsBytes();
-      },
-      decodeStillFrame: (bytes) => ImageFrameDecoder.decodeBytesToBgraFrame(
-        bytes,
-        captureMethod: kIsWeb ? 'web_webcam_poll' : 'camera_still_poll',
-      ),
-      onDecodedFrame: (frame) async {
-        final nextAspect = frame.width / math.max(1, frame.height);
-        _trackerService.previewAspectRatioNotifier.value = nextAspect;
-        if (mounted &&
-            (_livePreviewAspectRatio == null ||
-                (_livePreviewAspectRatio! - nextAspect).abs() > 0.05)) {
-          setState(() => _livePreviewAspectRatio = nextAspect);
-        }
-        await _cameraSource.submitCameraFrame(frame);
-      },
-      pollInterval: Duration(
-        milliseconds: widget.coordinator.settings.scanIntervalMs,
-      ),
-      forcePollingFallback: kIsWeb,
-    );
-    await pump.start();
-
-    if (!mounted) {
-      await pump.dispose();
-      try {
-        await controller.dispose();
-      } catch (_) {}
-      return;
-    }
-
-    _framePump = pump;
-    _trackerService.activeCameraController = controller;
-    _trackerService.activeFramePump = pump;
-    _trackerService.cachedCameras = _cameras;
-    _trackerService.selectedCameraIndex = _selectedCameraIndex;
-    _trackerService.minZoom = minZoom;
-    _trackerService.maxZoom = math.max(minZoom, maxZoom);
-    setState(() {
-      _cameraController = controller;
-      _isInitializingCamera = false;
-      _permissionDenied = false;
-      _minZoom = minZoom;
-      _maxZoom = math.max(minZoom, maxZoom);
-      _zoomLevel = minZoom;
-      _torchEnabled = false;
-    });
-  }
-
-  Future<void> _disposeHardwareCamera() async {
-    await _framePump?.dispose();
-    _framePump = null;
-    _trackerService.activeFramePump = null;
-
-    final controller = _cameraController ??
-        (_trackerService.activeCameraController is CameraController
-            ? _trackerService.activeCameraController as CameraController
-            : null);
-    _cameraController = null;
-    _trackerService.activeCameraController = null;
-    if (controller != null) {
-      try {
-        if (controller.value.isStreamingImages) {
-          await controller.stopImageStream();
-        }
-      } catch (_) {}
-      try {
-        await controller.dispose();
-      } catch (_) {}
-    }
-  }
-
-  Future<void> _handleCameraImage(
-    CameraImage image,
-    CameraDescription desc,
-  ) async {
-    // Cheap throttle check BEFORE copying/converting YUV planes on the UI thread
-    if (_convertingFrame ||
-        !_isScanningActive ||
-        !_cameraSource.shouldProcessFrameNow()) {
-      return;
-    }
-    _convertingFrame = true;
-    try {
-      final upright = await CameraImageConverter.convertCameraImageInIsolate(
-        image,
-        desc.sensorOrientation,
-        deviceOrientation: _cameraController?.value.deviceOrientation,
-        isFrontCamera: desc.lensDirection == CameraLensDirection.front,
-      );
-      if (upright != null) {
-        final nextAspect = upright.width / math.max(1, upright.height);
-        _trackerService.previewAspectRatioNotifier.value = nextAspect;
-        if (mounted &&
-            (_livePreviewAspectRatio == null ||
-                (_livePreviewAspectRatio! - nextAspect).abs() > 0.05)) {
-          setState(() => _livePreviewAspectRatio = nextAspect);
-        }
-        await _cameraSource.submitCameraFrame(upright);
-      }
-    } finally {
-      _convertingFrame = false;
-    }
-  }
-
   void _syncOcrLanguageTag() {
     String effectiveLang = widget.coordinator.settings.ocrLanguage;
     if (effectiveLang == 'auto') {
       try {
-        effectiveLang =
-            Provider.of<SettingsProvider>(context, listen: false)
-                .effectivePokemonLanguage;
+        effectiveLang = Provider.of<SettingsProvider>(context, listen: false)
+            .effectivePokemonLanguage;
       } catch (_) {
         effectiveLang = 'de';
       }
@@ -767,43 +551,6 @@ class _MobileCameraTrackerScreenState extends State<MobileCameraTrackerScreen>
     await _cameraSource.processPhotoFrame(frame);
   }
 
-  Future<void> _toggleTorch() async {
-    final next = !_torchEnabled;
-    final ctrl = _cameraController;
-    if (ctrl != null && ctrl.value.isInitialized) {
-      try {
-        await ctrl.setFlashMode(next ? FlashMode.torch : FlashMode.off);
-      } catch (_) {}
-    }
-    _trackerService.torchEnabledNotifier.value = next;
-    if (mounted) setState(() => _torchEnabled = next);
-  }
-
-  Future<void> _setZoom(double zoom) async {
-    final clamped = zoom.clamp(_minZoom, _maxZoom);
-    final ctrl = _cameraController;
-    if (ctrl != null && ctrl.value.isInitialized) {
-      try {
-        await ctrl.setZoomLevel(clamped);
-      } catch (_) {}
-    }
-    _trackerService.zoomLevelNotifier.value = clamped;
-    if (mounted) setState(() => _zoomLevel = clamped);
-  }
-
-  Future<void> _selectCameraByIndex(int index) async {
-    if (index < 0 || index >= _cameras.length) return;
-    setState(() => _selectedCameraIndex = index);
-    if (!widget.disableHardwareCamera) {
-      await _startCameraController(_cameras[index]);
-    }
-  }
-
-  Future<void> _switchCamera() async {
-    if (_cameras.length < 2) return;
-    await _selectCameraByIndex((_selectedCameraIndex + 1) % _cameras.length);
-  }
-
   void _selectBrushTarget(CameraBrushTarget target) {
     setState(() {
       _activeBrushTarget = target;
@@ -827,9 +574,8 @@ class _MobileCameraTrackerScreenState extends State<MobileCameraTrackerScreen>
   }
 
   void _removeMultiSlot(int slotId) {
-    final nextRegions = _regions
-        .where((r) => r.slotId != slotId)
-        .toList(growable: false);
+    final nextRegions =
+        _regions.where((r) => r.slotId != slotId).toList(growable: false);
     setState(() {
       _multiSlotIds = _multiSlotIds.where((id) => id != slotId).toList();
       _focusByInstance.remove(slotId);
@@ -849,20 +595,9 @@ class _MobileCameraTrackerScreenState extends State<MobileCameraTrackerScreen>
     final enableNext = !slotRegions.every((r) => r.enabled);
     _updateRegions(
       _regions
-          .map(
-            (r) => r.slotId == slotId ? r.copyWith(enabled: enableNext) : r,
-          )
+          .map((r) => r.slotId == slotId ? r.copyWith(enabled: enableNext) : r)
           .toList(growable: false),
     );
-  }
-
-  Future<void> _handleTapCameraFocus(Offset normalizedPoint) async {
-    final ctrl = _cameraController;
-    if (ctrl == null || !ctrl.value.isInitialized) return;
-    try {
-      await ctrl.setFocusPoint(normalizedPoint);
-      await ctrl.setExposurePoint(normalizedPoint);
-    } catch (_) {}
   }
 
   void _setScanMode(MobileCameraScanMode mode) {
@@ -882,10 +617,10 @@ class _MobileCameraTrackerScreenState extends State<MobileCameraTrackerScreen>
       _isScanningActive = !_isScanningActive;
       if (_isScanningActive) {
         widget.coordinator.start();
-        unawaited(_framePump?.resume());
+        unawaited(_hardwareController.framePump?.resume());
       } else {
         widget.coordinator.stop();
-        unawaited(_framePump?.pause());
+        unawaited(_hardwareController.framePump?.pause());
       }
     });
     _trackerService.isPausedNotifier.value = !_isScanningActive;
@@ -896,8 +631,9 @@ class _MobileCameraTrackerScreenState extends State<MobileCameraTrackerScreen>
     _trackerService.attachPipCallbacks(
       pipCameraPreviewBuilder: _buildPipPreviewWidget,
       onExpandFromPip: _reopenFromPip,
-      onToggleTorch: _toggleTorch,
-      onDisposeCamera: _disposeHardwareCamera,
+      onToggleTorch: _hardwareController.toggleTorch,
+      onDisposeCamera: _hardwareController.disposeHardwareCamera,
+      onDisableWakelock: _disableWakelock,
     );
     _trackerService.enterPipMode();
     Navigator.of(context).pop();
@@ -922,7 +658,7 @@ class _MobileCameraTrackerScreenState extends State<MobileCameraTrackerScreen>
   }
 
   Widget _buildPipPreviewWidget(BuildContext context) {
-    final ctrl = _cameraController;
+    final ctrl = _hardwareController.controller;
     if (ctrl != null && ctrl.value.isInitialized) {
       return CameraPreview(ctrl);
     }
@@ -977,120 +713,24 @@ class _MobileCameraTrackerScreenState extends State<MobileCameraTrackerScreen>
 
   Future<void> _openEventCorrectionDialog(int index) async {
     if (index < 0 || index >= _events.length) return;
-    final ev = _events[index];
     final dexProv = Provider.of<DexProvider>(context, listen: false);
-    final allPokemon = dexProv.allPokemon;
-    var query = ev.matchedName;
-    var isShiny = ev.isShiny;
-    var isAlpha = ev.isAlpha;
-    var selectedType = ev.type;
-
-    await showDialog(
+    await showMobileEventCorrectionDialog(
       context: context,
-      builder: (ctx) => StatefulBuilder(
-        builder: (context, setDlg) {
-          final candidates = allPokemon
-              .where(
-                (p) =>
-                    p.nameDe.toLowerCase().contains(query.toLowerCase()) ||
-                    p.nameEn.toLowerCase().contains(query.toLowerCase()) ||
-                    p.id.toString() == query.trim(),
-              )
-              .take(8)
-              .toList();
-
-          return AlertDialog(
-            title: const Text('Ereignis korrigieren', style: TextStyle(fontSize: 16)),
-            content: SizedBox(
-              width: 340,
-              child: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    SegmentedButton<ScannerEventType>(
-                      segments: const [
-                        ButtonSegment(
-                          value: ScannerEventType.caught,
-                          label: Text('Gefangen'),
-                        ),
-                        ButtonSegment(
-                          value: ScannerEventType.encounter,
-                          label: Text('Begegnung'),
-                        ),
-                      ],
-                      selected: {
-                        selectedType == ScannerEventType.caught
-                            ? ScannerEventType.caught
-                            : ScannerEventType.encounter,
-                      },
-                      onSelectionChanged: (s) =>
-                          setDlg(() => selectedType = s.first),
-                    ),
-                    const SizedBox(height: 8),
-                    Row(
-                      children: [
-                        FilterChip(
-                          label: const Text('✨ Shiny'),
-                          selected: isShiny,
-                          onSelected: (v) => setDlg(() => isShiny = v),
-                        ),
-                        const SizedBox(width: 8),
-                        FilterChip(
-                          label: const Text('🔥 Alpha'),
-                          selected: isAlpha,
-                          onSelected: (v) => setDlg(() => isAlpha = v),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    TextField(
-                      decoration: const InputDecoration(
-                        labelText: 'Pokémon suchen',
-                        isDense: true,
-                        border: OutlineInputBorder(),
-                      ),
-                      onChanged: (v) => setDlg(() => query = v),
-                    ),
-                    const SizedBox(height: 8),
-                    ...candidates.map(
-                      (p) => ListTile(
-                        dense: true,
-                        title: Text('${p.nameDe} (#${p.id})'),
-                        onTap: () {
-                          final updated = ev.copyWith(
-                            pokemonId: p.id,
-                            matchedName: p.nameDe,
-                            type: selectedType,
-                            isShiny: isShiny,
-                            isAlpha: isAlpha,
-                          );
-                          setState(() => _events[index] = updated);
-                          if (selectedType == ScannerEventType.caught) {
-                            unawaited(
-                              _markPokemonCaughtInDex(
-                                p.id,
-                                isShiny: isShiny,
-                                isAlpha: isAlpha,
-                              ),
-                            );
-                          }
-                          Navigator.of(ctx).pop();
-                        },
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+      event: _events[index],
+      allPokemon: dexProv.allPokemon,
+      onEventUpdated: (updated) {
+        setState(() => _events[index] = updated);
+        if (updated.type == ScannerEventType.caught &&
+            updated.pokemonId != null) {
+          unawaited(
+            _markPokemonCaughtInDex(
+              updated.pokemonId!,
+              isShiny: updated.isShiny,
+              isAlpha: updated.isAlpha,
             ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(ctx).pop(),
-                child: const Text('Schließen'),
-              ),
-            ],
           );
-        },
-      ),
+        }
+      },
     );
   }
 
@@ -1127,24 +767,6 @@ class _MobileCameraTrackerScreenState extends State<MobileCameraTrackerScreen>
     );
   }
 
-  void _showStarterFilterDialog() {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Team- & Starter-Schutz'),
-        content: const Text(
-          'Ignorierte Pokémon (z. B. dein eigenes Starter-Pokémon aus "Los, Pikachu!") werden bei Kampfeintritten übersprungen, bis du sie hier wieder entfernst.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('OK'),
-          ),
-        ],
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final dexProv = Provider.of<DexProvider>(context);
@@ -1154,25 +776,30 @@ class _MobileCameraTrackerScreenState extends State<MobileCameraTrackerScreen>
     final isLandscape = media.width > media.height && media.height < 520;
     final theme = Theme.of(context);
 
-    return PopScope(
-      canPop: true,
-      child: Scaffold(
-        backgroundColor: theme.scaffoldBackgroundColor,
-        body: SafeArea(
-          child: _viewMode == MobileScannerViewMode.split
-              ? _buildSplitLayout(
-                  dexProv: dexProv,
-                  activeDex: activeDex,
-                  byId: byId,
-                  isLandscape: isLandscape,
-                )
-              : _buildFullscreenLayout(
-                  dexProv: dexProv,
-                  activeDex: activeDex,
-                  byId: byId,
-                ),
-        ),
-      ),
+    return ListenableBuilder(
+      listenable: _hardwareController,
+      builder: (context, _) {
+        return PopScope(
+          canPop: true,
+          child: Scaffold(
+            backgroundColor: theme.scaffoldBackgroundColor,
+            body: SafeArea(
+              child: _viewMode == MobileScannerViewMode.split
+                  ? _buildSplitLayout(
+                      dexProv: dexProv,
+                      activeDex: activeDex,
+                      byId: byId,
+                      isLandscape: isLandscape,
+                    )
+                  : _buildFullscreenLayout(
+                      dexProv: dexProv,
+                      activeDex: activeDex,
+                      byId: byId,
+                    ),
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -1346,7 +973,11 @@ class _MobileCameraTrackerScreenState extends State<MobileCameraTrackerScreen>
               ),
               tooltip: 'Scanner-Tutorial',
               visualDensity: VisualDensity.compact,
-              onPressed: () => _startMobileScannerTutorial(force: true),
+              onPressed: () => _tutorialController.startTutorial(
+                context,
+                getViewMode: () => _viewMode,
+                force: true,
+              ),
             ),
           ],
         ),
@@ -1354,223 +985,43 @@ class _MobileCameraTrackerScreenState extends State<MobileCameraTrackerScreen>
     );
   }
 
-  Widget _buildCameraViewport() {
-    return KeyedSubtree(
-      key: _tutViewportKey,
-      child: Container(
-        key: const Key('mobile_camera_preview_surface'),
-      color: const Color(0xFF0A0C12),
-      child: Stack(
-        fit: StackFit.expand,
-        children: [
-          if (_permissionDenied)
-            Center(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(14),
-                child: Container(
-                  key: const Key('camera_permission_denied_banner'),
-                  padding: const EdgeInsets.all(14),
-                  decoration: BoxDecoration(
-                    color: Colors.redAccent.withValues(alpha: 0.14),
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: Colors.redAccent),
-                  ),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(
-                        Icons.no_photography_outlined,
-                        color: Colors.redAccent,
-                        size: 32,
-                      ),
-                      const SizedBox(height: 8),
-                      const Text(
-                        'Kamerazugriff verweigert',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 14,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      const Text(
-                        'Bitte erlaube den Kamerazugriff in den Systemeinstellungen oder importiere stattdessen ein Foto.',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(color: Colors.white70, fontSize: 11),
-                      ),
-                      const SizedBox(height: 10),
-                      Wrap(
-                        spacing: 8,
-                        runSpacing: 6,
-                        alignment: WrapAlignment.center,
-                        children: [
-                          ElevatedButton.icon(
-                            onPressed: _initHardwareCamera,
-                            icon: const Icon(Icons.refresh, size: 16),
-                            label: const Text('Erneut versuchen'),
-                          ),
-                          OutlinedButton.icon(
-                            onPressed: _importAndScanPhoto,
-                            icon: const Icon(Icons.photo_library_outlined, size: 16),
-                            label: const Text('Foto scannen'),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            )
-          else ...[
-            _buildFeedWithOverlay(),
-            Positioned(
-              right: 8,
-              top: 8,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  _cameraSideButton(
-                    icon: _isScanningActive ? Icons.pause : Icons.play_arrow,
-                    tooltip: _isScanningActive ? 'Pause' : 'Fortsetzen',
-                    onTap: _toggleScanning,
-                    active: _isScanningActive,
-                  ),
-                  if (_supportsTorchControl) ...[
-                    const SizedBox(height: 6),
-                    _cameraSideButton(
-                      icon: _torchEnabled ? Icons.flash_on : Icons.flash_off,
-                      tooltip: 'Taschenlampe',
-                      onTap: _toggleTorch,
-                      active: _torchEnabled,
-                    ),
-                  ],
-                  if (_cameras.length > 1) ...[
-                    const SizedBox(height: 6),
-                    _cameraSideButton(
-                      icon: Icons.cameraswitch_outlined,
-                      tooltip: 'Kamera wechseln',
-                      onTap: _switchCamera,
-                    ),
-                  ],
-                  const SizedBox(height: 6),
-                  _cameraSideButton(
-                    icon: Icons.touch_app,
-                    tooltip: 'Jetzt scannen',
-                    onTap: () => unawaited(_cameraSource.triggerSingleScan()),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ],
-      ),
-      ),
-    );
-  }
-
-  Widget _buildFeedWithOverlay() {
-    final ctrl = _cameraController;
-    final hasLiveCtrl = ctrl != null && ctrl.value.isInitialized;
-    final isPortrait = MediaQuery.orientationOf(context) == Orientation.portrait;
-    final isMobilePortraitPlugin =
-        !kIsWeb &&
-        isPortrait &&
-        (defaultTargetPlatform == TargetPlatform.android ||
-            defaultTargetPlatform == TargetPlatform.iOS);
-    final controllerAspect = hasLiveCtrl
-        ? (isMobilePortraitPlugin
-            ? (1 / ctrl.value.aspectRatio)
-            : ctrl.value.aspectRatio)
-        : null;
-    final aspect = _livePreviewAspectRatio ?? controllerAspect;
-
-    final overlay = CameraRegionOverlay(
+  Widget _buildViewport() {
+    return MobileCameraViewport(
+      tutorialKey: _tutViewportKey,
+      cameraController: _hardwareController.controller,
+      permissionDenied: _hardwareController.permissionDenied,
+      isInitializingCamera: _hardwareController.isInitializing,
+      cameraErrorText: _hardwareController.cameraErrorText,
+      livePreviewAspectRatio: _hardwareController.livePreviewAspectRatio,
       scanMode: _scanMode,
       autoPreset: _autoPreset,
       regions: _regions,
-      activeBrushRole: _activeBrushTarget.role,
-      activeBrush: _activeBrushTarget,
-      isEditing: _isEditingRegions,
+      activeBrushTarget: _activeBrushTarget,
+      isEditingRegions: _isEditingRegions,
+      isScanningActive: _isScanningActive,
+      supportsTorchControl: _hardwareController.supportsTorchControl,
+      torchEnabled: _hardwareController.torchEnabled,
+      cameraCount: _hardwareController.cameras.length,
       onRegionsChanged: _updateRegions,
-      onTapCameraFocus: _handleTapCameraFocus,
-    );
-
-    if (hasLiveCtrl) {
-      return Center(
-        child: AspectRatio(
-          aspectRatio: aspect ?? 3 / 4,
-          child: Stack(
-            fit: StackFit.expand,
-            children: [
-              CameraPreview(ctrl),
-              overlay,
-            ],
-          ),
-        ),
-      );
-    }
-
-    return Stack(
-      fit: StackFit.expand,
-      children: [
-        Center(
-          child: _isInitializingCamera
-              ? const CircularProgressIndicator(color: Colors.cyanAccent)
-              : Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(
-                      Icons.videocam_outlined,
-                      color: Colors.white24,
-                      size: 40,
-                    ),
-                    if (_cameraErrorText != null)
-                      Padding(
-                        padding: const EdgeInsets.all(8),
-                        child: Text(
-                          _cameraErrorText!,
-                          textAlign: TextAlign.center,
-                          style: const TextStyle(
-                            color: Colors.white54,
-                            fontSize: 11,
-                          ),
-                        ),
-                      ),
-                  ],
-                ),
-        ),
-        overlay,
-      ],
+      onTapCameraFocus: _hardwareController.handleTapCameraFocus,
+      onRetryCamera: () => unawaited(_hardwareController.initHardwareCamera()),
+      onImportPhoto: _importAndScanPhoto,
+      onToggleScanning: _toggleScanning,
+      onToggleTorch: () => unawaited(_hardwareController.toggleTorch()),
+      onSwitchCamera: () => unawaited(_hardwareController.switchCamera()),
+      onTriggerManualScan: () => unawaited(_cameraSource.triggerSingleScan()),
     );
   }
 
-  Widget _cameraSideButton({
-    required IconData icon,
-    required String tooltip,
-    required VoidCallback onTap,
-    bool active = false,
-  }) {
-    return Material(
-      color: active
-          ? Colors.cyanAccent.withValues(alpha: 0.28)
-          : Colors.black.withValues(alpha: 0.55),
-      shape: const CircleBorder(),
-      child: InkWell(
-        customBorder: const CircleBorder(),
-        onTap: onTap,
-        child: Tooltip(
-          message: tooltip,
-          child: Padding(
-            padding: const EdgeInsets.all(7),
-            child: Icon(
-              icon,
-              size: 18,
-              color: active ? Colors.cyanAccent : Colors.white,
-            ),
-          ),
-        ),
-      ),
+  Widget _buildBrushBar() {
+    return MobileDrawBrushBar(
+      activeBrushTarget: _activeBrushTarget,
+      multiSlotIds: _effectiveMultiSlotIds,
+      isEditingRegions: _isEditingRegions,
+      onSelectBrushTarget: (target) =>
+          setState(() => _activeBrushTarget = target),
+      onAddMultiSlot: _addMultiSlot,
+      onEditingChanged: (v) => setState(() => _isEditingRegions = v),
     );
   }
 
@@ -1587,221 +1038,50 @@ class _MobileCameraTrackerScreenState extends State<MobileCameraTrackerScreen>
     return Column(
       children: [
         _buildTopToolbar(dexProv, activeDex),
-        if (_scanMode == MobileCameraScanMode.customRegions)
-          _buildDrawBrushBar(),
+        if (_scanMode == MobileCameraScanMode.customRegions) _buildBrushBar(),
         Expanded(
           child: Stack(
             fit: StackFit.expand,
             children: [
-              _buildCameraViewport(),
+              _buildViewport(),
               if (focusEvent != null)
                 Positioned(
                   left: 10,
                   right: 52,
                   bottom: 8,
-                  child: _buildCompactFocusPill(focusEvent),
+                  child: MobileCompactFocusPill(
+                    event: focusEvent,
+                    isCaught: focusEvent.pokemonId != null &&
+                        _isPokemonCaughtInActiveDex(focusEvent.pokemonId!),
+                    evolutionStatus: _activeEvolutionStatus,
+                    onMarkCaught: focusEvent.pokemonId != null
+                        ? () => unawaited(
+                              _markPokemonCaughtInDex(
+                                focusEvent.pokemonId!,
+                                isShiny: focusEvent.isShiny,
+                                isAlpha: focusEvent.isAlpha,
+                              ),
+                            )
+                        : null,
+                  ),
                 ),
             ],
           ),
         ),
-        _buildFullscreenBottomPanel(
+        MobileFullscreenBottomPanel(
+          tutorialKey: _tutBottomPanelKey,
+          isExpanded: _isDrawerExpanded,
+          eventCount: _events.length,
           activeDex: activeDex,
-          byId: byId,
           maxHeight: math.max(90, mediaH * 0.42),
+          onExpandedChanged: (v) => setState(() => _isDrawerExpanded = v),
+          buildTabbedPanel: (headerAction) => _buildTabbedPanel(
+            activeDex: activeDex,
+            byId: byId,
+            headerAction: headerAction,
+          ),
         ),
       ],
-    );
-  }
-
-  Widget _buildDrawBrushBar() {
-    final colors = Theme.of(context).colorScheme;
-    final slotIds = _effectiveMultiSlotIds;
-    return Container(
-      key: const Key('mobile_draw_brush_bar'),
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: colors.surfaceContainerLow,
-        border: Border(bottom: BorderSide(color: colors.outlineVariant)),
-      ),
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: Row(
-          children: [
-            ChoiceChip(
-              label: const Text('Zone A', style: TextStyle(fontSize: 10)),
-              selected: _activeBrushTarget == CameraBrushTarget.zoneA(),
-              visualDensity: VisualDensity.compact,
-              onSelected: (_) =>
-                  setState(() => _activeBrushTarget = CameraBrushTarget.zoneA()),
-            ),
-            const SizedBox(width: 4),
-            ChoiceChip(
-              label: const Text('Zone B (Fokus)', style: TextStyle(fontSize: 10)),
-              selected: _activeBrushTarget == CameraBrushTarget.zoneB(),
-              visualDensity: VisualDensity.compact,
-              onSelected: (_) =>
-                  setState(() => _activeBrushTarget = CameraBrushTarget.zoneB()),
-            ),
-            for (final slotId in slotIds) ...[
-              const SizedBox(width: 4),
-              ChoiceChip(
-                label: Text('#$slotId Scan', style: const TextStyle(fontSize: 10)),
-                selected:
-                    _activeBrushTarget == CameraBrushTarget.multiScan(slotId),
-                visualDensity: VisualDensity.compact,
-                onSelected: (_) => setState(
-                  () => _activeBrushTarget = CameraBrushTarget.multiScan(slotId),
-                ),
-              ),
-              const SizedBox(width: 4),
-              ChoiceChip(
-                label: Text('#$slotId Fokus', style: const TextStyle(fontSize: 10)),
-                selected:
-                    _activeBrushTarget == CameraBrushTarget.multiFocus(slotId),
-                visualDensity: VisualDensity.compact,
-                onSelected: (_) => setState(
-                  () => _activeBrushTarget = CameraBrushTarget.multiFocus(slotId),
-                ),
-              ),
-            ],
-            const SizedBox(width: 4),
-            ActionChip(
-              avatar: const Icon(Icons.add, size: 14),
-              label: const Text('Instanz', style: TextStyle(fontSize: 10)),
-              visualDensity: VisualDensity.compact,
-              onPressed: _addMultiSlot,
-            ),
-            const SizedBox(width: 6),
-            FilterChip(
-              label: Text(
-                _isEditingRegions ? 'Bearbeiten' : 'Gesperrt',
-                style: const TextStyle(fontSize: 10),
-              ),
-              selected: _isEditingRegions,
-              visualDensity: VisualDensity.compact,
-              onSelected: (v) => setState(() => _isEditingRegions = v),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildCompactFocusPill(ScannerEvent ev) {
-    final pid = ev.pokemonId;
-    final caught = pid != null && _isPokemonCaughtInActiveDex(pid);
-    return Material(
-      color: Colors.black.withValues(alpha: 0.78),
-      borderRadius: BorderRadius.circular(14),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
-        child: Row(
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    '${ev.isShiny ? '✨ ' : ''}${ev.isAlpha ? '🔥 ' : ''}${ev.matchedName}${pid != null ? ' (#$pid)' : ''}',
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 12,
-                    ),
-                  ),
-                  if (_activeEvolutionStatus != null &&
-                      _activeEvolutionStatus!.hasEvolutions)
-                    Text(
-                      _activeEvolutionStatus!.summaryLabel,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        color: Colors.amberAccent,
-                        fontSize: 10,
-                      ),
-                    ),
-                ],
-              ),
-            ),
-            if (pid != null)
-              TextButton(
-                onPressed: () => _markPokemonCaughtInDex(
-                  pid,
-                  isShiny: ev.isShiny,
-                  isAlpha: ev.isAlpha,
-                ),
-                style: TextButton.styleFrom(
-                  visualDensity: VisualDensity.compact,
-                  foregroundColor:
-                      caught ? Colors.greenAccent : Colors.cyanAccent,
-                ),
-                child: Text(
-                  caught ? 'Im Dex ✓' : '+ Eintragen',
-                  style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
-                ),
-              ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildFullscreenBottomPanel({
-    required UserDex? activeDex,
-    required Map<int, Pokemon> byId,
-    required double maxHeight,
-  }) {
-    final colors = Theme.of(context).colorScheme;
-    if (!_isDrawerExpanded) {
-      return KeyedSubtree(
-        key: _tutBottomPanelKey,
-        child: InkWell(
-          onTap: () => setState(() => _isDrawerExpanded = true),
-          child: Container(
-            key: const Key('mobile_collapsed_bottom_bar'),
-            decoration: BoxDecoration(
-              color: colors.surfaceContainerHigh,
-              border: Border(top: BorderSide(color: colors.outlineVariant)),
-            ),
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            child: Row(
-              children: [
-                Icon(Icons.keyboard_arrow_up, color: colors.primary, size: 18),
-                const SizedBox(width: 6),
-                Expanded(
-                  child: Text(
-                    'Fokus, Zonen & Feed (${_events.length})',
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(color: colors.onSurface, fontSize: 12),
-                  ),
-                ),
-                Text(
-                  activeDex?.title ?? '',
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(color: colors.onSurfaceVariant, fontSize: 11),
-                ),
-              ],
-            ),
-          ),
-        ),
-      );
-    }
-
-    return KeyedSubtree(
-      key: _tutBottomPanelKey,
-      child: SizedBox(
-        height: maxHeight,
-        child: _buildTabbedPanel(
-          activeDex: activeDex,
-          byId: byId,
-          headerAction: IconButton(
-            icon: const Icon(Icons.keyboard_arrow_down, size: 18),
-            visualDensity: VisualDensity.compact,
-            onPressed: () => setState(() => _isDrawerExpanded = false),
-          ),
-        ),
-      ),
     );
   }
 
@@ -1811,37 +1091,31 @@ class _MobileCameraTrackerScreenState extends State<MobileCameraTrackerScreen>
     required Map<int, Pokemon> byId,
     required bool isLandscape,
   }) {
-    if (isLandscape) {
-      return Column(
-        children: [
-          _buildTopToolbar(dexProv, activeDex),
-          if (_scanMode == MobileCameraScanMode.customRegions)
-            _buildDrawBrushBar(),
-          Expanded(
-            child: Row(
-              children: [
-                Expanded(flex: 5, child: _buildCameraViewport()),
-                Expanded(
-                  flex: 6,
-                  child: _buildTabbedPanel(activeDex: activeDex, byId: byId),
-                ),
-              ],
-            ),
-          ),
-        ],
-      );
-    }
+    final content = isLandscape
+        ? Row(
+            children: [
+              Expanded(flex: 5, child: _buildViewport()),
+              Expanded(
+                flex: 6,
+                child: _buildTabbedPanel(activeDex: activeDex, byId: byId),
+              ),
+            ],
+          )
+        : Column(
+            children: [
+              Expanded(flex: 4, child: _buildViewport()),
+              Expanded(
+                flex: 6,
+                child: _buildTabbedPanel(activeDex: activeDex, byId: byId),
+              ),
+            ],
+          );
 
     return Column(
       children: [
         _buildTopToolbar(dexProv, activeDex),
-        if (_scanMode == MobileCameraScanMode.customRegions)
-          _buildDrawBrushBar(),
-        Expanded(flex: 4, child: _buildCameraViewport()),
-        Expanded(
-          flex: 6,
-          child: _buildTabbedPanel(activeDex: activeDex, byId: byId),
-        ),
+        if (_scanMode == MobileCameraScanMode.customRegions) _buildBrushBar(),
+        Expanded(child: content),
       ],
     );
   }
@@ -1891,7 +1165,8 @@ class _MobileCameraTrackerScreenState extends State<MobileCameraTrackerScreen>
                       widget.coordinator.settings.ignoredPokemonIds,
                   isPokemonCaught: _isPokemonCaughtInActiveDex,
                   onSelectDex: () => _openTargetDexModal(dexProv),
-                  onOpenStarterFilterInfo: _showStarterFilterDialog,
+                  onOpenStarterFilterInfo: () =>
+                      showMobileStarterFilterDialog(context),
                   onUnignorePokemon: _unignorePokemon,
                   onIgnorePokemon: _ignorePokemon,
                   onMarkCaught: (pid, {isShiny = false, isAlpha = false}) =>
@@ -1913,12 +1188,12 @@ class _MobileCameraTrackerScreenState extends State<MobileCameraTrackerScreen>
                   settings: widget.coordinator.settings,
                   ocrLanguageCode: widget.coordinator.settings.ocrLanguage,
                   alertSettings: _alertService.settings,
-                  torchEnabled: _torchEnabled,
-                  zoomLevel: _zoomLevel,
-                  minZoom: _minZoom,
-                  maxZoom: _maxZoom,
-                  cameras: _cameras,
-                  selectedCameraIndex: _selectedCameraIndex,
+                  torchEnabled: _hardwareController.torchEnabled,
+                  zoomLevel: _hardwareController.zoomLevel,
+                  minZoom: _hardwareController.minZoom,
+                  maxZoom: _hardwareController.maxZoom,
+                  cameras: _hardwareController.cameras,
+                  selectedCameraIndex: _hardwareController.selectedCameraIndex,
                   onScanModeChanged: _setScanMode,
                   onAutoPresetChanged: (p) {
                     setState(() => _autoPreset = p);
@@ -1941,11 +1216,14 @@ class _MobileCameraTrackerScreenState extends State<MobileCameraTrackerScreen>
                         )
                         .toList(),
                   ),
-                  onToggleTorch: () => unawaited(_toggleTorch()),
-                  onZoomChanged: (z) => unawaited(_setZoom(z)),
+                  onToggleTorch: () =>
+                      unawaited(_hardwareController.toggleTorch()),
+                  onZoomChanged: (z) =>
+                      unawaited(_hardwareController.setZoom(z)),
                   onSelectCameraIndex: (idx) =>
-                      unawaited(_selectCameraByIndex(idx)),
-                  onSwitchCamera: () => unawaited(_switchCamera()),
+                      unawaited(_hardwareController.selectCameraByIndex(idx)),
+                  onSwitchCamera: () =>
+                      unawaited(_hardwareController.switchCamera()),
                   onImportPhoto: () => unawaited(_importAndScanPhoto()),
                   onSettingsChanged: _updateSettings,
                   onOcrLanguageChanged: (lang) {
@@ -1983,86 +1261,6 @@ class _MobileCameraTrackerScreenState extends State<MobileCameraTrackerScreen>
           ),
         ],
       ),
-    );
-  }
-
-  void _showMobileScannerTutorialIfNeeded() {
-    if (!mounted || _hasTriggeredMobileTutorial) return;
-    _hasTriggeredMobileTutorial = true;
-
-    TutorialProvider? tutProvider;
-    try {
-      tutProvider = Provider.of<TutorialProvider>(context, listen: false);
-    } catch (_) {
-      return;
-    }
-
-    if (tutProvider.hasSeenFeature('mobile_scanner_tour')) return;
-    _startMobileScannerTutorial();
-  }
-
-  void _startMobileScannerTutorial({bool force = false}) {
-    if (!mounted) return;
-    TutorialProvider? tutProvider;
-    try {
-      tutProvider = Provider.of<TutorialProvider>(context, listen: false);
-    } catch (_) {
-      tutProvider = null;
-    }
-
-    if (force) {
-      TutorialOverlay.resetShowing();
-    }
-
-    TutorialOverlay.show(
-      context,
-      TutorialFeature(
-        id: 'mobile_scanner_tour',
-        nameKey: 'tutorial_chapter_scanner_mobile_title',
-        steps: [
-          TutorialStep(
-            targetKey: _tutViewportKey,
-            titleKey: 'tutorial_scanner_mob_camera_title',
-            textKey: 'tutorial_scanner_mob_camera_text',
-            rotomMood: RotomMood.happy,
-          ),
-          TutorialStep(
-            targetKey: _tutModesKey,
-            titleKey: 'tutorial_scanner_mob_modes_title',
-            textKey: 'tutorial_scanner_mob_modes_text',
-            rotomMood: RotomMood.explaining,
-          ),
-          TutorialStep(
-            targetKey: _tutPhotoKey,
-            titleKey: 'tutorial_scanner_mob_photo_title',
-            textKey: 'tutorial_scanner_mob_photo_text',
-            rotomMood: RotomMood.explaining,
-          ),
-          TutorialStep(
-            targetKey: _tutPipKey,
-            titleKey: 'tutorial_scanner_mob_pip_title',
-            textKey: 'tutorial_scanner_mob_pip_text',
-            rotomMood: RotomMood.thinking,
-          ),
-          TutorialStep(
-            targetKey: _viewMode == MobileScannerViewMode.fullscreen
-                ? _tutBottomPanelKey
-                : null,
-            titleKey: 'tutorial_scanner_mob_dex_title',
-            textKey: 'tutorial_scanner_mob_dex_text',
-            rotomMood: RotomMood.happy,
-          ),
-        ],
-      ),
-      () {
-        tutProvider?.markFeatureAsSeen('mobile_scanner_tour');
-        tutProvider?.endScannerDeltaTour();
-        if (tutProvider != null &&
-            tutProvider.completedTutorialVersion <
-                TutorialProvider.currentTutorialVersion) {
-          unawaited(tutProvider.completeScannerTutorial());
-        }
-      },
     );
   }
 }

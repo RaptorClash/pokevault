@@ -7,6 +7,7 @@
 #include <flutter/standard_method_codec.h>
 #include <windows.h>
 
+#include <atomic>
 #include <cstdint>
 #include <map>
 #include <memory>
@@ -53,6 +54,10 @@ class DesktopTrackerPlugin {
     std::wstring evolution_summary;
     bool has_missing_evolutions = false;
     std::wstring instance_label;
+    std::wstring waiting_label = L"Warte auf Spiel-Ereignis...";
+    std::wstring caught_label = L"\u2714 Gefangen";
+    std::wstring missing_label = L"\u26A0 Fehlt im Ziel-Dex";
+    std::wstring footer_label;
   };
 
   struct OverlayBorderEntry {
@@ -80,6 +85,7 @@ class DesktopTrackerPlugin {
   // Method handlers
   flutter::EncodableValue EnumerateWindowsAndMonitors();
   void StartDesktopSnipping(
+      const flutter::EncodableMap* args,
       std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result);
   flutter::EncodableValue CaptureRegion(const flutter::EncodableMap& args);
   flutter::EncodableValue CaptureWindow(const flutter::EncodableMap& args);
@@ -154,6 +160,12 @@ class DesktopTrackerPlugin {
   RECT snip_cancel_btn_{};
   std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>>
       pending_snip_result_;
+  std::wstring snip_hint_label_ =
+      L"Live-OCR-Bereich aufziehen: Bereich wird laufend gescannt  \u00B7  ESC = Abbrechen";
+  std::wstring snip_confirm_label_ = L"\u2713 Live-OCR starten (Enter)";
+  std::wstring snip_cancel_label_ = L"Abbrechen";
+  std::shared_ptr<std::atomic<bool>> alive_flag_ =
+      std::make_shared<std::atomic<bool>>(true);
 
   // HUD state
   HWND hud_hwnd_ = nullptr;

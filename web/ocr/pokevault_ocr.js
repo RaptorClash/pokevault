@@ -7,7 +7,20 @@
   let activeWorker = null;
   let activeLang = null;
   let pendingChain = Promise.resolve();
+  let reusableCanvas = null;
   const cachedExtraLangs = new Set();
+
+  function getReusableCanvas(width, height) {
+    if (!reusableCanvas) {
+      reusableCanvas =
+        typeof OffscreenCanvas !== 'undefined'
+          ? new OffscreenCanvas(width, height)
+          : document.createElement('canvas');
+    }
+    if (reusableCanvas.width !== width) reusableCanvas.width = width;
+    if (reusableCanvas.height !== height) reusableCanvas.height = height;
+    return reusableCanvas;
+  }
 
   function getBaseHrefPath() {
     const baseEl = document.querySelector('base');
@@ -104,12 +117,14 @@
     if (!rgbaBytes || width <= 0 || height <= 0) {
       return { lines: [], cacheSource: 'localBundled', error: 'Empty frame' };
     }
+    const expectedLen = width * height * 4;
+    if (rgbaBytes.byteLength < expectedLen) {
+      return { lines: [], cacheSource: 'localBundled', error: 'Buffer smaller than frame dimensions' };
+    }
     const { worker, cacheSource } = await ensureWorker(langCode || 'eng');
-    const canvas = document.createElement('canvas');
-    canvas.width = width;
-    canvas.height = height;
+    const canvas = getReusableCanvas(width, height);
     const ctx = canvas.getContext('2d');
-    const clamped = new Uint8ClampedArray(rgbaBytes.buffer, rgbaBytes.byteOffset, width * height * 4);
+    const clamped = new Uint8ClampedArray(rgbaBytes.buffer, rgbaBytes.byteOffset, expectedLen);
     const imgData = new ImageData(clamped, width, height);
     ctx.putImageData(imgData, 0, 0);
 

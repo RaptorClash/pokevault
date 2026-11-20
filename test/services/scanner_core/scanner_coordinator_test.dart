@@ -365,7 +365,44 @@ void main() {
       expect(emitted.last.type, ScannerEventType.caught);
       expect(emitted.last.pokemonId, 554);
     });
+
+    test('serializes concurrent processFrameText calls to prevent duplicate emissions', () async {
+      final slowFeedback = _SlowTestFeedback();
+      final concurrentCoord = ScannerCoordinator(
+        engine: OcrDetectionEngine(),
+        matcher: PokemonFuzzyMatcher.withEntries(const [
+          PokemonMatcherEntry(id: 25, name: 'Pikachu', language: 'en'),
+        ]),
+        feedback: slowFeedback,
+      );
+      final emitted = <ScannerEvent>[];
+      concurrentCoord.events.listen(emitted.add);
+
+      final f1 = concurrentCoord.processFrameText('Wild Pikachu appeared!');
+      final f2 = concurrentCoord.processFrameText('Wild Pikachu appeared!');
+      await Future.wait([f1, f2]);
+      await Future.delayed(const Duration(milliseconds: 20));
+
+      expect(emitted, hasLength(1));
+      await concurrentCoord.dispose();
+    });
   });
+}
+
+class _SlowTestFeedback implements ScannerFeedback {
+  @override
+  Future<void> onCaught(ScannerEvent event) async =>
+      Future.delayed(const Duration(milliseconds: 25));
+
+  @override
+  Future<void> onEncounter(ScannerEvent event) async =>
+      Future.delayed(const Duration(milliseconds: 25));
+
+  @override
+  Future<void> onEvolved(ScannerEvent event) async {}
+
+  @override
+  Future<void> onShiny(ScannerEvent event) async {}
 }
 
 class _FakeCoupledMultiSource implements MultiInstanceScannerSource {

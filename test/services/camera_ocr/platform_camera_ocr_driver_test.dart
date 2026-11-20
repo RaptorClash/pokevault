@@ -295,6 +295,24 @@ void main() {
         isA<LinuxTesseractOcrDriver>(),
       );
     });
+
+    test('MacosVisionOcrDriver propagates native errorHint when ocrSucceeded is false', () async {
+      const ch = MethodChannel('pokevault/macos_vision_ocr_test');
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(ch, (call) async {
+        return {
+          'lines': <String>[],
+          'ocrSucceeded': false,
+          'errorHint': 'Vision language pack unavailable',
+        };
+      });
+      final driver = MacosVisionOcrDriver(channel: ch);
+      final lines = await driver.recognizeText(_sampleBgraFrame(width: 2, height: 2));
+      expect(lines, isEmpty);
+      expect(driver.lastDiagnosticHint, 'Vision language pack unavailable');
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(ch, null);
+    });
   });
 }
 

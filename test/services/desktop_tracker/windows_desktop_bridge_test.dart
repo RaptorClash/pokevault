@@ -460,5 +460,52 @@ void main() {
       expect(map['hasMissingEvolutions'], isTrue);
       expect(map['instanceLabel'], '#1');
     });
+
+    test('NativeHudState and startDesktopSnipping forward localized labels and capture tolerates List<dynamic> bytes', () async {
+      final calls = <MethodCall>[];
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, (call) async {
+        calls.add(call);
+        if (call.method == 'captureRegion') {
+          return <String, dynamic>{
+            'width': 1,
+            'height': 1,
+            'bytes': <dynamic>[10, 20, 30, 255],
+          };
+        }
+        return true;
+      });
+
+      const hud = NativeHudState(
+        pokemonName: 'Pikachu',
+        waitingLabel: 'Waiting for event...',
+        caughtLabel: 'Caught',
+        missingLabel: 'Missing in Dex',
+        footerLabel: 'Opacity: 92% · Drag to move',
+      );
+      await bridge.showFloatingHud(hud);
+      await bridge.startDesktopSnipping(
+        hintLabel: 'Drag region · ESC = Cancel',
+        confirmLabel: 'Start Live OCR (Enter)',
+        cancelLabel: 'Cancel',
+      );
+      final frame = await bridge.captureRegion(
+        ScreenRegion(x: 0, y: 0, width: 1, height: 1, isAbsoluteScreen: true),
+      );
+
+      final hudArgs = Map<String, dynamic>.from(calls[0].arguments as Map);
+      expect(hudArgs['waitingLabel'], 'Waiting for event...');
+      expect(hudArgs['caughtLabel'], 'Caught');
+      expect(hudArgs['missingLabel'], 'Missing in Dex');
+      expect(hudArgs['footerLabel'], 'Opacity: 92% · Drag to move');
+
+      final snipArgs = Map<String, dynamic>.from(calls[1].arguments as Map);
+      expect(snipArgs['hintLabel'], 'Drag region · ESC = Cancel');
+      expect(snipArgs['confirmLabel'], 'Start Live OCR (Enter)');
+      expect(snipArgs['cancelLabel'], 'Cancel');
+
+      expect(frame, isNotNull);
+      expect(frame!.bytes, [10, 20, 30, 255]);
+    });
   });
 }

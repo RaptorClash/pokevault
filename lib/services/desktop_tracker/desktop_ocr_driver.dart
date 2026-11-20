@@ -18,6 +18,11 @@ abstract class PreprocessAwareOcrDriver implements DesktopOcrDriver {
   OcrPreprocessProfile get preprocessProfile;
 }
 
+/// Optional interface for OCR drivers exposing a human-readable diagnostic hint on failure.
+abstract class DiagnosticOcrDriver implements DesktopOcrDriver {
+  String? get lastDiagnosticHint;
+}
+
 /// Default desktop OCR driver delegating to Windows Media OCR (WinRT) or custom handler.
 class DefaultDesktopOcrDriver implements LanguageAwareOcrDriver {
   final Future<List<String>> Function(CapturedFrame frame)? nativeOcrHandler;

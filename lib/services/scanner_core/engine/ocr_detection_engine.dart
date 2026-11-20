@@ -92,6 +92,10 @@ class OcrDetectionEngine {
     r'[A-Za-zÀ-ÿ\u3040-\u30FF\u4E00-\u9FFF\uAC00-\uD7AF]',
   );
 
+  static final RegExp _cjkPattern = RegExp(
+    r'[\u3040-\u30FF\u4E00-\u9FFF\uAC00-\uD7AF]',
+  );
+
   static final RegExp _genderMalePattern = RegExp(
     r'(?:♂|\b(?:männlich|male)\b)',
     caseSensitive: false,
@@ -476,7 +480,7 @@ class OcrDetectionEngine {
           .map((t) => t.replaceAll(RegExp(r'''[!?,.:;"'`’•·_«»‹›\[\]\(\)]+'''), ''))
           .where(
             (t) =>
-                t.length >= 3 &&
+                t.length >= (_cjkPattern.hasMatch(t) ? 2 : 3) &&
                 _letterPattern.hasMatch(t) &&
                 !_stopWordCandidatePattern.hasMatch(t) &&
                 !_pureExclamationTriggerPattern.hasMatch(t),
@@ -643,7 +647,7 @@ class OcrDetectionEngine {
           .map((t) => t.replaceAll(RegExp(r'''[!?,.:;"'`’•·_«»‹›\[\]\(\)]+'''), ''))
           .where(
             (t) =>
-                t.length >= 3 &&
+                t.length >= (_cjkPattern.hasMatch(t) ? 2 : 3) &&
                 _letterPattern.hasMatch(t) &&
                 !_stopWordCandidatePattern.hasMatch(t) &&
                 !_pureExclamationTriggerPattern.hasMatch(t) &&

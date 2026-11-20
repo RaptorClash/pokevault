@@ -24,11 +24,13 @@ class ScannerCoordinator {
       StreamController<List<ScannerEvent>>.broadcast();
 
   // Debouncing / Duplicate suppression cache per (role/type/pokemonId/shiny) key
-  final Map<String, DateTime> _recentEmittedKeys = {};
+  final Map<String, Duration> _recentEmittedAt = {};
   final Duration _duplicateCooldown;
   // Single-screen battle-state tracker: suppresses duplicate encounter feed spam inside the same battle
-  final Map<int, ({String speciesKey, DateTime lastSeenAt})> _activeBattlesBySlot = {};
+  final Map<int, ({String speciesKey, Duration lastSeenAt})> _activeBattlesBySlot = {};
   static const Duration _battleTimeout = Duration(minutes: 3);
+  final Stopwatch _monotonicClock = Stopwatch()..start();
+  Future<void>? _activeProcessing;
 
   ScannerCoordinator({
     required this.engine,
@@ -127,7 +129,34 @@ class ScannerCoordinator {
     int? instanceIndex,
     int? instanceColorHex,
   }) async {
+    while (_activeProcessing != null) {
+      await _activeProcessing;
+    }
+    final completer = Completer<void>();
+    _activeProcessing = completer.future;
+    try {
+      return await _processFrameTextSerialized(
+        rawText,
+        encounterOnly: encounterOnly,
+        allowMultiEncounter: allowMultiEncounter,
+        instanceIndex: instanceIndex,
+        instanceColorHex: instanceColorHex,
+      );
+    } finally {
+      _activeProcessing = null;
+      completer.complete();
+    }
+  }
+
+  Future<List<ScannerEvent>> _processFrameTextSerialized(
+    String rawText, {
+    bool encounterOnly = false,
+    bool allowMultiEncounter = true,
+    int? instanceIndex,
+    int? instanceColorHex,
+  }) async {
     final now = DateTime.now();
+    final elapsed = _monotonicClock.elapsed;
     final battleSlotKey = instanceIndex ?? 0;
     final battleCue = engine.detectBattleCue(rawText);
     if (battleCue == BattleCue.battleEnded) {
@@ -139,7 +168,7 @@ class ScannerCoordinator {
       final active = _activeBattlesBySlot[battleSlotKey]!;
       _activeBattlesBySlot[battleSlotKey] = (
         speciesKey: active.speciesKey,
-        lastSeenAt: now,
+        lastSeenAt: elapsed,
       );
       return const [];
     }
@@ -206,7 +235,7 @@ class ScannerCoordinator {
       final activeBattle = _activeBattlesBySlot[battleSlotKey];
       final sameActiveBattle = activeBattle != null &&
           activeBattle.speciesKey == speciesKey &&
-          now.difference(activeBattle.lastSeenAt) < _battleTimeout;
+          elapsed - activeBattle.lastSeenAt < _battleTimeout;
 
       for (final match in filtered) {
         final isSmartMatch =
@@ -235,10 +264,10 @@ class ScannerCoordinator {
 
         final duplicateKey =
             '${zoneTag}_${effectiveType.name}_${match.pokemonId}_$isShiny';
-        final prevTime = _recentEmittedKeys[duplicateKey];
+        final prevTime = _recentEmittedAt[duplicateKey];
         if (prevTime == null ||
-            now.difference(prevTime) >= _duplicateCooldown) {
-          _recentEmittedKeys[duplicateKey] = now;
+            elapsed - prevTime >= _duplicateCooldown) {
+          _recentEmittedAt[duplicateKey] = elapsed;
           newlyEmitted.add(event);
         }
       }
@@ -246,7 +275,7 @@ class ScannerCoordinator {
       if (effectiveType == ScannerEventType.encounter) {
         _activeBattlesBySlot[battleSlotKey] = (
           speciesKey: speciesKey,
-          lastSeenAt: now,
+          lastSeenAt: elapsed,
         );
       } else if (effectiveType == ScannerEventType.caught) {
         _activeBattlesBySlot.remove(battleSlotKey);
@@ -334,16 +363,16 @@ class ScannerCoordinator {
     if (effectiveType == ScannerEventType.encounter) {
       if (activeSingleBattle != null &&
           activeSingleBattle.speciesKey == singleSpeciesKey &&
-          now.difference(activeSingleBattle.lastSeenAt) < _battleTimeout) {
+          elapsed - activeSingleBattle.lastSeenAt < _battleTimeout) {
         _activeBattlesBySlot[battleSlotKey] = (
           speciesKey: singleSpeciesKey,
-          lastSeenAt: now,
+          lastSeenAt: elapsed,
         );
         return const [];
       }
       _activeBattlesBySlot[battleSlotKey] = (
         speciesKey: singleSpeciesKey,
-        lastSeenAt: now,
+        lastSeenAt: elapsed,
       );
     } else if (effectiveType == ScannerEventType.caught) {
       _activeBattlesBySlot.remove(battleSlotKey);
@@ -351,11 +380,11 @@ class ScannerCoordinator {
 
     final duplicateKey =
         '${instanceIndex ?? 'dlg'}_${effectiveType.name}_${pokemonId ?? matchedName}_$isShiny';
-    final prevTime = _recentEmittedKeys[duplicateKey];
-    if (prevTime != null && now.difference(prevTime) < _duplicateCooldown) {
+    final prevTime = _recentEmittedAt[duplicateKey];
+    if (prevTime != null && elapsed - prevTime < _duplicateCooldown) {
       return const [];
     }
-    _recentEmittedKeys[duplicateKey] = now;
+    _recentEmittedAt[duplicateKey] = elapsed;
 
     final event = ScannerEvent(
       type: effectiveType,

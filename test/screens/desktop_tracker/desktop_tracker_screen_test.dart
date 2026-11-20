@@ -156,6 +156,9 @@ class FakeWindowsDesktopBridge implements DesktopPlatformBridge {
   @override
   Future<ScreenRegionCaptureResult?> startDesktopSnipping({
     bool hideAppWindow = false,
+    String? hintLabel,
+    String? confirmLabel,
+    String? cancelLabel,
   }) async =>
       null;
 

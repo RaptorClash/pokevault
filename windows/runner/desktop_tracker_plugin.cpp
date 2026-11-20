@@ -768,6 +768,9 @@ DesktopTrackerPlugin::DesktopTrackerPlugin(HWND main_window_hwnd,
 }
 
 DesktopTrackerPlugin::~DesktopTrackerPlugin() {
+  if (alive_flag_) {
+    alive_flag_->store(false);
+  }
   CleanupSnippingOverlay();
   HideScanRegionBorder();
   ClearOverlayBorders();
@@ -844,7 +847,9 @@ void DesktopTrackerPlugin::HandleMethodCall(
   }
 
   if (method == "startDesktopSnipping") {
-    StartDesktopSnipping(std::move(result));
+    const auto* args =
+        std::get_if<flutter::EncodableMap>(call.arguments());
+    StartDesktopSnipping(args, std::move(result));
     return;
   }
 
@@ -984,10 +989,24 @@ flutter::EncodableValue DesktopTrackerPlugin::EnumerateWindowsAndMonitors() {
 }
 
 void DesktopTrackerPlugin::StartDesktopSnipping(
+    const flutter::EncodableMap* args,
     std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
   if (pending_snip_result_ || snip_hwnd_) {
     result->Success(flutter::EncodableValue());
     return;
+  }
+
+  snip_hint_label_ =
+      L"Live-OCR-Bereich aufziehen: Bereich wird laufend gescannt  \u00B7  ESC = Abbrechen";
+  snip_confirm_label_ = L"\u2713 Live-OCR starten (Enter)";
+  snip_cancel_label_ = L"Abbrechen";
+  if (args) {
+    const std::string hint_utf8 = GetStringArg(*args, "hintLabel", "");
+    const std::string confirm_utf8 = GetStringArg(*args, "confirmLabel", "");
+    const std::string cancel_utf8 = GetStringArg(*args, "cancelLabel", "");
+    if (!hint_utf8.empty()) snip_hint_label_ = Utf8ToWide(hint_utf8);
+    if (!confirm_utf8.empty()) snip_confirm_label_ = Utf8ToWide(confirm_utf8);
+    if (!cancel_utf8.empty()) snip_cancel_label_ = Utf8ToWide(cancel_utf8);
   }
 
   virtual_x_ = GetSystemMetrics(SM_XVIRTUALSCREEN);
@@ -1284,7 +1303,7 @@ void DesktopTrackerPlugin::PaintSnippingOverlay(HWND hwnd) {
     sf.SetAlignment(Gdiplus::StringAlignmentCenter);
     sf.SetLineAlignment(Gdiplus::StringAlignmentCenter);
     g.DrawString(
-        L"Live-OCR-Bereich aufziehen: Bereich wird laufend gescannt  \u00B7  ESC = Abbrechen",
+        snip_hint_label_.c_str(),
         -1, &font_bold,
         Gdiplus::RectF(static_cast<float>(banner_x),
                        static_cast<float>(banner_y),
@@ -1338,7 +1357,7 @@ void DesktopTrackerPlugin::PaintSnippingOverlay(HWND hwnd) {
         Gdiplus::SolidBrush confirm_bg(Gdiplus::Color(255, 37, 99, 235));
         g.FillRectangle(&confirm_bg, confirm_x, btn_y, confirm_w, btn_h);
         g.DrawString(
-            L"\u2713 Live-OCR starten (Enter)", -1, &font_bold,
+            snip_confirm_label_.c_str(), -1, &font_bold,
             Gdiplus::RectF(static_cast<float>(confirm_x),
                            static_cast<float>(btn_y),
                            static_cast<float>(confirm_w),
@@ -1348,7 +1367,7 @@ void DesktopTrackerPlugin::PaintSnippingOverlay(HWND hwnd) {
         g.FillRectangle(&pill_bg, cancel_x, btn_y, cancel_w, btn_h);
         g.DrawRectangle(&pill_border, cancel_x, btn_y, cancel_w, btn_h);
         g.DrawString(
-            L"Abbrechen", -1, &font_bold,
+            snip_cancel_label_.c_str(), -1, &font_bold,
             Gdiplus::RectF(static_cast<float>(cancel_x),
                            static_cast<float>(btn_y),
                            static_cast<float>(cancel_w),
@@ -1585,13 +1604,14 @@ void DesktopTrackerPlugin::RecognizeTextAsync(
   std::vector<uint8_t> bytes =
       std::get<std::vector<uint8_t>>(bytes_it->second);
   HWND notify_hwnd = dispatcher_hwnd_;
+  auto alive = alive_flag_;
   auto* payload = new OcrAsyncPayload();
   payload->result = std::move(result);
   payload->resolved_language_tag = language_tag;
   payload->requested_language_tag = language_tag;
 
-  std::thread([notify_hwnd, payload, bytes = std::move(bytes), width, height,
-               language_tag, preprocess_profile]() mutable {
+  std::thread([notify_hwnd, alive, payload, bytes = std::move(bytes), width,
+               height, language_tag, preprocess_profile]() mutable {
     const auto t0 = std::chrono::steady_clock::now();
     payload->success = RunWindowsMediaOcr(
         bytes, width, height, language_tag, preprocess_profile, &payload->lines,
@@ -1600,8 +1620,13 @@ void DesktopTrackerPlugin::RecognizeTextAsync(
     const auto t1 = std::chrono::steady_clock::now();
     payload->ocr_duration_ms =
         std::chrono::duration_cast<std::chrono::milliseconds>(t1 - t0).count();
-    if (!PostMessageW(notify_hwnd, kMsgOcrComplete, 0,
+    if (!alive || !alive->load() ||
+        !PostMessageW(notify_hwnd, kMsgOcrComplete, 0,
                       reinterpret_cast<LPARAM>(payload))) {
+      if (!alive || !alive->load()) {
+        // Avoid invoking Flutter reply handler after engine shutdown.
+        payload->result.release();
+      }
       delete payload;
     }
   }).detach();
@@ -1624,6 +1649,20 @@ void DesktopTrackerPlugin::ParseHudArgs(const flutter::EncodableMap& args) {
       GetBoolArg(args, "hasMissingEvolutions", false);
   hud_state_.instance_label =
       Utf8ToWide(GetStringArg(args, "instanceLabel", ""));
+  const std::string waiting_utf8 = GetStringArg(args, "waitingLabel", "");
+  if (!waiting_utf8.empty()) {
+    hud_state_.waiting_label = Utf8ToWide(waiting_utf8);
+  }
+  const std::string caught_utf8 = GetStringArg(args, "caughtLabel", "");
+  if (!caught_utf8.empty()) {
+    hud_state_.caught_label = Utf8ToWide(caught_utf8);
+  }
+  const std::string missing_utf8 = GetStringArg(args, "missingLabel", "");
+  if (!missing_utf8.empty()) {
+    hud_state_.missing_label = Utf8ToWide(missing_utf8);
+  }
+  const std::string footer_utf8 = GetStringArg(args, "footerLabel", "");
+  hud_state_.footer_label = Utf8ToWide(footer_utf8);
 
   auto anchor_it = args.find(flutter::EncodableValue("anchorRect"));
   if (anchor_it != args.end() &&
@@ -1843,7 +1882,7 @@ void DesktopTrackerPlugin::RenderFloatingHud() {
     hud_buttons_.has_catch_btn = false;
 
     if (!hud_state_.has_event) {
-      g.DrawString(L"Warte auf Spiel-Ereignis...", -1, &font_name,
+      g.DrawString(hud_state_.waiting_label.c_str(), -1, &font_name,
                    Gdiplus::RectF(14.0f, 34.0f, static_cast<float>(w - 28),
                                   36.0f),
                    &sf_left, &muted_brush);
@@ -1863,15 +1902,14 @@ void DesktopTrackerPlugin::RenderFloatingHud() {
                    hud_state_.is_shiny ? &shiny_brush : &white_brush);
 
       wchar_t status_line[128]{};
+      const wchar_t* status_text = hud_state_.is_caught
+                                       ? hud_state_.caught_label.c_str()
+                                       : hud_state_.missing_label.c_str();
       if (hud_state_.pokemon_id > 0) {
-        swprintf_s(status_line, L"%s  \u00B7  #%03d",
-                   hud_state_.is_caught ? L"\u2714 Gefangen"
-                                        : L"\u26A0 Fehlt im Ziel-Dex",
+        swprintf_s(status_line, L"%s  \u00B7  #%03d", status_text,
                    hud_state_.pokemon_id);
       } else {
-        swprintf_s(status_line, L"%s",
-                   hud_state_.is_caught ? L"\u2714 Gefangen"
-                                        : L"\u26A0 Fehlt im Ziel-Dex");
+        swprintf_s(status_line, L"%s", status_text);
       }
 
       Gdiplus::SolidBrush status_brush(
@@ -1907,9 +1945,13 @@ void DesktopTrackerPlugin::RenderFloatingHud() {
               &sf_left, &evo_brush);
         }
 
-        wchar_t footer[64]{};
-        swprintf_s(footer, L"Deckkraft: %d%%  \u00B7  Ziehen zum Verschieben",
-                   static_cast<int>(std::lround(hud_state_.opacity * 100.0)));
+        wchar_t footer[128]{};
+        if (!hud_state_.footer_label.empty()) {
+          wcsncpy_s(footer, hud_state_.footer_label.c_str(), _TRUNCATE);
+        } else {
+          swprintf_s(footer, L"Deckkraft: %d%%  \u00B7  Ziehen zum Verschieben",
+                     static_cast<int>(std::lround(hud_state_.opacity * 100.0)));
+        }
         g.DrawString(
             footer, -1, &font_hdr,
             Gdiplus::RectF(14.0f, 99.0f, static_cast<float>(w - 28), 18.0f),
@@ -2345,8 +2387,11 @@ void DesktopTrackerPlugin::SetOverlayBorders(
     if (prev_lbl) {
       *prev_lbl = label;
     } else if (!label.empty()) {
-      SetPropW(entry.hwnd, L"PV_BORDER_LABEL",
-               reinterpret_cast<HANDLE>(new std::wstring(label)));
+      auto* lbl_ptr = new std::wstring(label);
+      if (!SetPropW(entry.hwnd, L"PV_BORDER_LABEL",
+                    reinterpret_cast<HANDLE>(lbl_ptr))) {
+        delete lbl_ptr;
+      }
     }
     SetPropW(entry.hwnd, L"PV_BORDER_TABH",
              reinterpret_cast<HANDLE>(static_cast<ULONG_PTR>(tab_h)));

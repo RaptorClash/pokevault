@@ -10,7 +10,11 @@ import 'camera_frame_processor.dart';
 
 /// On-device ML Kit OCR driver for Android & iOS supporting all 9 Pokémon game
 /// language scripts (Latin, Japanese, Korean, Chinese) and camera display preprocessing.
-class MobileOcrDriver implements LanguageAwareOcrDriver, PreprocessAwareOcrDriver {
+class MobileOcrDriver
+    implements
+        LanguageAwareOcrDriver,
+        PreprocessAwareOcrDriver,
+        DiagnosticOcrDriver {
   final Future<List<String>> Function(
     CapturedFrame frame,
     TextRecognitionScript script,
@@ -19,6 +23,7 @@ class MobileOcrDriver implements LanguageAwareOcrDriver, PreprocessAwareOcrDrive
   String? _languageTag;
   OcrPreprocessProfile _preprocessProfile;
   final Map<TextRecognitionScript, TextRecognizer> _recognizers = {};
+  @override
   String? lastDiagnosticHint;
 
   MobileOcrDriver({

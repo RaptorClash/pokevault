@@ -21,6 +21,15 @@ class ScannerPersistenceService {
       }
       final persisted = ScannerSettings.fromMap(Map<String, dynamic>.from(decoded));
       return fallback.copyWith(
+        autoMarkCaught: persisted.autoMarkCaught,
+        trackEvolutions: persisted.trackEvolutions,
+        livingDexEvolutionAction: persisted.livingDexEvolutionAction,
+        detectShinies: persisted.detectShinies,
+        detectAlphas: persisted.detectAlphas,
+        playAudioFeedback: persisted.playAudioFeedback,
+        playHapticFeedback: persisted.playHapticFeedback,
+        desktopOverlayMode: persisted.desktopOverlayMode,
+        ocrLanguage: persisted.ocrLanguage,
         scanIntervalMs: persisted.scanIntervalMs,
         preprocessProfile: persisted.preprocessProfile,
         customPatterns: persisted.customPatterns,

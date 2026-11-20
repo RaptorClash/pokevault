@@ -58,7 +58,13 @@ class _FakeBridge implements DesktopPlatformBridge {
     return true;
   }
   @override
-  Future<ScreenRegionCaptureResult?> startDesktopSnipping({bool hideAppWindow = false}) async => null;
+  Future<ScreenRegionCaptureResult?> startDesktopSnipping({
+    bool hideAppWindow = false,
+    String? hintLabel,
+    String? confirmLabel,
+    String? cancelLabel,
+  }) async =>
+      null;
   @override
   Future<bool> updateFloatingHud(NativeHudState state) async => true;
 }

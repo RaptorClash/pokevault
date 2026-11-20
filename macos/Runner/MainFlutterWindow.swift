@@ -38,7 +38,7 @@ class MainFlutterWindow: NSWindow {
 
       DispatchQueue.global(qos: .userInitiated).async {
         let start = CFAbsoluteTimeGetCurrent()
-        let lines = Self.performVisionOcr(
+        let outcome = Self.performVisionOcr(
           bgraData: data,
           width: width,
           height: height,
@@ -46,11 +46,15 @@ class MainFlutterWindow: NSWindow {
         )
         let elapsedMs = Int((CFAbsoluteTimeGetCurrent() - start) * 1000)
         DispatchQueue.main.async {
-          result([
-            "lines": lines,
-            "ocrSucceeded": true,
+          var payload: [String: Any] = [
+            "lines": outcome.lines,
+            "ocrSucceeded": outcome.errorMessage == nil,
             "ocrDurationMs": elapsedMs,
-          ])
+          ]
+          if let errorMsg = outcome.errorMessage {
+            payload["errorHint"] = errorMsg
+          }
+          result(payload)
         }
       }
     }
@@ -62,12 +66,12 @@ class MainFlutterWindow: NSWindow {
     width: Int,
     height: Int,
     languageTag: String?
-  ) -> [String] {
+  ) -> (lines: [String], errorMessage: String?) {
     guard width > 0, height > 0, bgraData.count >= width * height * 4 else {
-      return []
+      return ([], "Invalid frame dimensions or buffer length")
     }
     guard let provider = CGDataProvider(data: bgraData as CFData) else {
-      return []
+      return ([], "Failed to create CGDataProvider")
     }
     let bitmapInfo = CGBitmapInfo(rawValue:
       CGImageAlphaInfo.premultipliedFirst.rawValue | CGBitmapInfo.byteOrder32Little.rawValue
@@ -85,11 +89,16 @@ class MainFlutterWindow: NSWindow {
       shouldInterpolate: false,
       intent: .defaultIntent
     ) else {
-      return []
+      return ([], "Failed to construct CGImage")
     }
 
     var recognizedLines: [String] = []
-    let request = VNRecognizeTextRequest { req, _ in
+    var requestError: Error?
+    let request = VNRecognizeTextRequest { req, err in
+      if let err = err {
+        requestError = err
+        return
+      }
       guard let observations = req.results as? [VNRecognizedTextObservation] else { return }
       for observation in observations {
         if let top = observation.topCandidates(1).first {
@@ -110,8 +119,11 @@ class MainFlutterWindow: NSWindow {
     do {
       try handler.perform([request])
     } catch {
-      return []
+      return ([], error.localizedDescription)
     }
-    return recognizedLines
+    if let requestError = requestError {
+      return ([], requestError.localizedDescription)
+    }
+    return (recognizedLines, nil)
   }
 }
