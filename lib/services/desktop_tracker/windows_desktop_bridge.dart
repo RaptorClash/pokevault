@@ -51,12 +51,39 @@ class NativeHudAction {
   final NativeHudActionType type;
   final bool? boolValue;
   final Offset? position;
+  final int? pokemonId;
 
   const NativeHudAction({
     required this.type,
     this.boolValue,
     this.position,
+    this.pokemonId,
   });
+}
+
+/// Single enemy row inside [NativeHudState.focusEntries] for multi-encounter HUDs.
+class NativeHudFocusEntry {
+  final int? pokemonId;
+  final String pokemonName;
+  final bool isShiny;
+  final bool isCaught;
+  final int encounterCount;
+
+  const NativeHudFocusEntry({
+    this.pokemonId,
+    required this.pokemonName,
+    this.isShiny = false,
+    this.isCaught = false,
+    this.encounterCount = 1,
+  });
+
+  Map<String, dynamic> toMap() => {
+        'pokemonId': pokemonId ?? 0,
+        'pokemonName': pokemonName,
+        'isShiny': isShiny,
+        'isCaught': isCaught,
+        'encounterCount': encounterCount,
+      };
 }
 
 /// Descriptor for one colored hollow desktop overlay rectangle (`Zone A`, `Zone B` cyan, or Multi-Instance slots).
@@ -105,6 +132,7 @@ class NativeHudState {
   final String? caughtLabel;
   final String? missingLabel;
   final String? footerLabel;
+  final List<NativeHudFocusEntry> focusEntries;
 
   const NativeHudState({
     this.pokemonName = 'Warte auf Spiel...',
@@ -123,6 +151,7 @@ class NativeHudState {
     this.caughtLabel,
     this.missingLabel,
     this.footerLabel,
+    this.focusEntries = const [],
   });
 
   Map<String, dynamic> toMap() {
@@ -137,6 +166,8 @@ class NativeHudState {
       'hasEvent': hasEvent,
       'evolutionSummary': evolutionSummary,
       'hasMissingEvolutions': hasMissingEvolutions,
+      if (focusEntries.isNotEmpty)
+        'focusEntries': focusEntries.map((e) => e.toMap()).toList(),
       if (instanceLabel != null) 'instanceLabel': instanceLabel,
       if (waitingLabel != null) 'waitingLabel': waitingLabel,
       if (caughtLabel != null) 'caughtLabel': caughtLabel,
@@ -248,7 +279,12 @@ class WindowsDesktopBridge implements DesktopPlatformBridge {
 
     switch (call.method) {
       case 'onHudMarkCaught':
-        cb(const NativeHudAction(type: NativeHudActionType.markCaught));
+        final args = call.arguments as Map?;
+        final pid = (args?['pokemonId'] as num?)?.toInt();
+        cb(NativeHudAction(
+          type: NativeHudActionType.markCaught,
+          pokemonId: pid != null && pid > 0 ? pid : null,
+        ));
         break;
       case 'onHudClose':
         cb(const NativeHudAction(type: NativeHudActionType.close));

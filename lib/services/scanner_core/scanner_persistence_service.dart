@@ -37,6 +37,7 @@ class ScannerPersistenceService {
         ignoredPokemonIds: persisted.ignoredPokemonIds,
         showScreenBorders: persisted.showScreenBorders,
         multiInstanceSlots: persisted.multiInstanceSlots,
+        extraFocusRegions: persisted.extraFocusRegions,
       );
     } catch (_) {
       return fallback;

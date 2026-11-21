@@ -26,8 +26,10 @@ class ScannerCoordinator {
   // Debouncing / Duplicate suppression cache per (role/type/pokemonId/shiny) key
   final Map<String, Duration> _recentEmittedAt = {};
   final Duration _duplicateCooldown;
-  // Single-screen battle-state tracker: suppresses duplicate encounter feed spam inside the same battle
-  final Map<int, ({String speciesKey, Duration lastSeenAt})> _activeBattlesBySlot = {};
+  // Single-screen battle-state tracker: tracks already-logged species per slot so
+  // fainting/delayed enemy detection inside the same battle never spams duplicate feed entries.
+  final Map<int, ({Set<int> speciesIds, String fallbackKey, Duration lastSeenAt})>
+      _activeBattlesBySlot = {};
   static const Duration _battleTimeout = Duration(minutes: 3);
   final Stopwatch _monotonicClock = Stopwatch()..start();
   Future<void>? _activeProcessing;
@@ -167,7 +169,8 @@ class ScannerCoordinator {
         _activeBattlesBySlot.containsKey(battleSlotKey)) {
       final active = _activeBattlesBySlot[battleSlotKey]!;
       _activeBattlesBySlot[battleSlotKey] = (
-        speciesKey: active.speciesKey,
+        speciesIds: active.speciesIds,
+        fallbackKey: active.fallbackKey,
         lastSeenAt: elapsed,
       );
       return const [];
@@ -194,36 +197,60 @@ class ScannerCoordinator {
     // Multi-encounter / Zone B resolution
     if (allowMultiEncounter &&
         (encounterOnly || parseResult.isMultiEncounter)) {
-      final multiCandidates = <FuzzyMatchResult>[];
-      final seenIds = <int>{};
+      final orderedIds = <int>[];
+      final bestById = <int, FuzzyMatchResult>{};
+      final countsById = <int, int>{};
+
+      void recordCandidate(FuzzyMatchResult hit, int addCount) {
+        final existing = bestById[hit.pokemonId];
+        if (existing == null) {
+          orderedIds.add(hit.pokemonId);
+          bestById[hit.pokemonId] = hit;
+          countsById[hit.pokemonId] = addCount;
+        } else {
+          if (hit.confidence > existing.confidence) {
+            bestById[hit.pokemonId] = hit;
+          }
+          countsById[hit.pokemonId] =
+              (countsById[hit.pokemonId] ?? 1) + addCount;
+        }
+      }
 
       if (parseResult.extractedPokemonNames.isNotEmpty) {
         for (final rawName in parseResult.extractedPokemonNames) {
-          final hit = matcher.matchTopK(rawName, limit: 1, threshold: 0.72).firstOrNull;
-          if (hit != null && seenIds.add(hit.pokemonId)) {
-            multiCandidates.add(hit);
+          final direct =
+              matcher.matchTopK(rawName, limit: 1, threshold: 0.72).firstOrNull;
+          if (direct != null) {
+            recordCandidate(direct, 1);
+          } else {
+            final lineHits = matcher.matchAllWithCounts(
+              rawName,
+              maxPokemon: 5,
+              threshold: encounterOnly ? 0.72 : 0.76,
+            );
+            for (final entry in lineHits) {
+              recordCandidate(entry.match, entry.count);
+            }
           }
         }
       }
 
-      if (multiCandidates.isEmpty) {
-        final tokenMatches = matcher.matchAllFromText(
+      if (orderedIds.isEmpty) {
+        final tokenMatches = matcher.matchAllWithCounts(
           parseResult.extractedPokemonName,
           maxPokemon: 5,
-          threshold: encounterOnly ? 0.74 : 0.78,
+          threshold: encounterOnly ? 0.72 : 0.76,
         );
-        for (final hit in tokenMatches) {
-          if (seenIds.add(hit.pokemonId)) {
-            multiCandidates.add(hit);
-          }
+        for (final entry in tokenMatches) {
+          recordCandidate(entry.match, entry.count);
         }
       }
 
       // Filter ignored starter/team Pokémon
-      final filtered = multiCandidates
-          .where((m) => !_settings.ignoredPokemonIds.contains(m.pokemonId))
+      final filteredIds = orderedIds
+          .where((id) => !_settings.ignoredPokemonIds.contains(id))
           .toList();
-      if (filtered.isEmpty) return const [];
+      if (filteredIds.isEmpty) return const [];
 
       final focusGroup = <ScannerEvent>[];
       final newlyEmitted = <ScannerEvent>[];
@@ -231,13 +258,18 @@ class ScannerCoordinator {
           ? 'inst_$instanceIndex'
           : (encounterOnly ? 'hud' : 'dlg');
 
-      final speciesKey = filtered.map((m) => m.pokemonId.toString()).join(',');
+      final filteredIdSet = filteredIds.toSet();
       final activeBattle = _activeBattlesBySlot[battleSlotKey];
-      final sameActiveBattle = activeBattle != null &&
-          activeBattle.speciesKey == speciesKey &&
+      final battleValid = activeBattle != null &&
           elapsed - activeBattle.lastSeenAt < _battleTimeout;
+      final sharesAnySpecies = battleValid &&
+          activeBattle.speciesIds.intersection(filteredIdSet).isNotEmpty;
+      final alreadySeenInBattle =
+          sharesAnySpecies ? activeBattle.speciesIds : <int>{};
 
-      for (final match in filtered) {
+      for (final pid in filteredIds) {
+        final match = bestById[pid]!;
+        final count = countsById[pid] ?? 1;
         final isSmartMatch =
             parseResult.isSmartSearchFallback || match.confidence < 1.0;
         final event = ScannerEvent(
@@ -255,10 +287,12 @@ class ScannerCoordinator {
           isSmartMatch: isSmartMatch,
           instanceIndex: instanceIndex,
           instanceColorHex: instanceColorHex,
+          encounterCount: count,
         );
         focusGroup.add(event);
 
-        if (sameActiveBattle && effectiveType == ScannerEventType.encounter) {
+        if (effectiveType == ScannerEventType.encounter &&
+            alreadySeenInBattle.contains(match.pokemonId)) {
           continue;
         }
 
@@ -273,8 +307,10 @@ class ScannerCoordinator {
       }
 
       if (effectiveType == ScannerEventType.encounter) {
+        final updatedSet = <int>{...alreadySeenInBattle, ...filteredIdSet};
         _activeBattlesBySlot[battleSlotKey] = (
-          speciesKey: speciesKey,
+          speciesIds: updatedSet,
+          fallbackKey: updatedSet.join(','),
           lastSeenAt: elapsed,
         );
       } else if (effectiveType == ScannerEventType.caught) {
@@ -361,17 +397,24 @@ class ScannerCoordinator {
     final singleSpeciesKey = (pokemonId ?? matchedName).toString();
     final activeSingleBattle = _activeBattlesBySlot[battleSlotKey];
     if (effectiveType == ScannerEventType.encounter) {
+      final sameId = pokemonId != null &&
+          activeSingleBattle != null &&
+          activeSingleBattle.speciesIds.contains(pokemonId);
+      final sameFallback = activeSingleBattle != null &&
+          activeSingleBattle.fallbackKey == singleSpeciesKey;
       if (activeSingleBattle != null &&
-          activeSingleBattle.speciesKey == singleSpeciesKey &&
+          (sameId || sameFallback) &&
           elapsed - activeSingleBattle.lastSeenAt < _battleTimeout) {
         _activeBattlesBySlot[battleSlotKey] = (
-          speciesKey: singleSpeciesKey,
+          speciesIds: activeSingleBattle.speciesIds,
+          fallbackKey: activeSingleBattle.fallbackKey,
           lastSeenAt: elapsed,
         );
         return const [];
       }
       _activeBattlesBySlot[battleSlotKey] = (
-        speciesKey: singleSpeciesKey,
+        speciesIds: pokemonId != null ? {pokemonId} : <int>{},
+        fallbackKey: singleSpeciesKey,
         lastSeenAt: elapsed,
       );
     } else if (effectiveType == ScannerEventType.caught) {

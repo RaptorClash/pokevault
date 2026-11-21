@@ -412,6 +412,86 @@ void main() {
         isTrue,
       );
     });
+
+    test('Zone B triggers multi-band OCR fallback when full frame yields fewer than 2 lines and merges extraFocusRegions', () async {
+      const w = 160;
+      const h = 100;
+      final zoneBBytes = List<int>.filled(w * h * 4, 255);
+      // Distinct top (y<40 -> 30), middle (40..59 -> 100), bottom (y>=60 -> 200)
+      for (int y = 0; y < h; y++) {
+        for (int x = 0; x < w; x++) {
+          final off = (y * w + x) * 4;
+          zoneBBytes[off] = y < 40 ? 30 : (y >= 60 ? 200 : 100);
+        }
+      }
+      final fullZoneBFrame = CapturedFrame(
+        width: w,
+        height: h,
+        bytes: zoneBBytes,
+        pixelFormat: 'bgra8888',
+      );
+      final extraBoxFrame = CapturedFrame(
+        width: 120,
+        height: 40,
+        bytes: List<int>.filled(120 * 40 * 4, 88),
+        pixelFormat: 'bgra8888',
+      );
+
+      final region1 = ScreenRegion(
+        x: 50,
+        y: 50,
+        width: 160,
+        height: 100,
+        isAbsoluteScreen: true,
+        label: 'Fokus B1',
+      );
+      final region2 = ScreenRegion(
+        x: 300,
+        y: 50,
+        width: 120,
+        height: 40,
+        isAbsoluteScreen: true,
+        label: 'Fokus B2',
+      );
+
+      final cap = _RegionAwareCaptureDriver({
+        50: fullZoneBFrame,
+        300: extraBoxFrame,
+      });
+      final bandOcr = _BandSensitiveOcrDriver(
+        extraBoxWidth: 120,
+        fullFrameLines: const ['Sleima ♀ Lv.17'],
+        topBandLines: const ['Sleima ♀ Lv.17'],
+        bottomBandLines: const ['Zubat ♂ Lv.15'],
+        extraBoxLines: const ['Flampion ♂ Lv.18'],
+      );
+      final multiBandSource = DesktopWindowSource(
+        captureDriver: cap,
+        ocrDriver: bandOcr,
+        pollInterval: const Duration(milliseconds: 50),
+      );
+      addTearDown(() async => await multiBandSource.dispose());
+
+      multiBandSource.setSelectedWindow(
+        const DesktopWindowInfo(id: 77, hwnd: 1234, title: 'melonDS 1.1', width: 960, height: 1040),
+      );
+      multiBandSource.setLiveFocusScreenRegion(region1);
+      multiBandSource.setExtraFocusRegions([region2]);
+
+      final focusTexts = <String>[];
+      final sub = multiBandSource.focusTextStream.listen(focusTexts.add);
+      addTearDown(() async => await sub.cancel());
+
+      await multiBandSource.triggerSingleScan();
+      await Future.delayed(Duration.zero);
+
+      expect(focusTexts, isNotEmpty);
+      expect(focusTexts.last, contains('Sleima ♀ Lv.17'));
+      expect(focusTexts.last, contains('Zubat ♂ Lv.15'));
+      expect(focusTexts.last, contains('Flampion ♂ Lv.18'));
+      expect(multiBandSource.focusBoxPreviewLines['B1'], contains('Zubat'));
+      expect(multiBandSource.focusBoxPreviewLines['B2'], contains('Flampion'));
+    });
   });
 }
 
@@ -489,5 +569,38 @@ class _AlternatingOcrDriver implements DesktopOcrDriver {
     final text = responses[_idx % responses.length];
     _idx++;
     return text.isEmpty ? [] : [text];
+  }
+}
+
+class _BandSensitiveOcrDriver implements DesktopOcrDriver {
+  final int extraBoxWidth;
+  final List<String> fullFrameLines;
+  final List<String> topBandLines;
+  final List<String> bottomBandLines;
+  final List<String> extraBoxLines;
+
+  _BandSensitiveOcrDriver({
+    required this.extraBoxWidth,
+    required this.fullFrameLines,
+    required this.topBandLines,
+    required this.bottomBandLines,
+    required this.extraBoxLines,
+  });
+
+  @override
+  Future<List<String>> recognizeText(CapturedFrame frame) async {
+    if (frame.width == extraBoxWidth && frame.height == 40) {
+      return extraBoxLines;
+    }
+    if (frame.width == 160 && frame.height == 100) {
+      return fullFrameLines;
+    }
+    if (frame.bytes.isNotEmpty && frame.bytes.first == 30) {
+      return topBandLines;
+    }
+    if (frame.bytes.length >= 4 && frame.bytes[frame.bytes.length - 4] == 200) {
+      return bottomBandLines;
+    }
+    return const [];
   }
 }

@@ -91,6 +91,7 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
   bool _showFloatingHud = false;
   bool _isSnippingMode = false;
   bool _isSnippingForFocusZone = false;
+  bool _isSnippingForExtraFocusBox = false;
   bool _isLaunchingSnipping = false;
   ScreenRegion? _customScreenRegion;
   Uint8List? _snippetPreviewBytes;
@@ -190,6 +191,9 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
     );
     _activeWindowSource.setLiveFocusPreset(
       widget.coordinator.settings.liveFocusPreset,
+    );
+    _activeWindowSource.setExtraFocusRegions(
+      widget.coordinator.settings.extraFocusRegions,
     );
     _activeWindowSource.setMultiInstanceSlots(
       widget.coordinator.settings.multiInstanceSlots,
@@ -412,6 +416,7 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
         ignoredPokemonIds: saved.ignoredPokemonIds,
         showScreenBorders: saved.showScreenBorders,
         multiInstanceSlots: saved.multiInstanceSlots,
+        extraFocusRegions: saved.extraFocusRegions,
       );
       if (merged.scanIntervalMs == current.scanIntervalMs &&
           merged.preprocessProfile == current.preprocessProfile &&
@@ -420,7 +425,8 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
           merged.liveFocusPreset == current.liveFocusPreset &&
           merged.ignoredPokemonIds.isEmpty &&
           merged.showScreenBorders == current.showScreenBorders &&
-          merged.multiInstanceSlots.isEmpty) {
+          merged.multiInstanceSlots.isEmpty &&
+          merged.extraFocusRegions.isEmpty) {
         return;
       }
       widget.coordinator.updateSettings(merged);
@@ -429,6 +435,7 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
       );
       _activeWindowSource.setPreprocessProfile(merged.preprocessProfile);
       _activeWindowSource.setLiveFocusPreset(merged.liveFocusPreset);
+      _activeWindowSource.setExtraFocusRegions(merged.extraFocusRegions);
       _activeWindowSource.setMultiInstanceSlots(merged.multiInstanceSlots);
       didChangeDependencies();
       _syncOverlayBorders();
@@ -445,6 +452,7 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
     );
     _activeWindowSource.setPreprocessProfile(next.preprocessProfile);
     _activeWindowSource.setLiveFocusPreset(next.liveFocusPreset);
+    _activeWindowSource.setExtraFocusRegions(next.extraFocusRegions);
     _activeWindowSource.setMultiInstanceSlots(next.multiInstanceSlots);
     _webcamController.setOcrLanguageTag(_ocrLanguageTag);
     didChangeDependencies();
@@ -462,6 +470,7 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
       isScanningActive: _isScanningActive,
       liveFocusPreset: widget.coordinator.settings.liveFocusPreset,
       liveFocusScreenRegion: _activeWindowSource.liveFocusScreenRegion,
+      extraFocusRegions: widget.coordinator.settings.extraFocusRegions,
       multiInstanceSlots: widget.coordinator.settings.multiInstanceSlots,
       windows: _windows,
     );
@@ -932,7 +941,12 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
       _activeWindowSource.setLiveFocusPreset(preset);
     });
     _updateSettingsAndPersist(
-      widget.coordinator.settings.copyWith(liveFocusPreset: preset),
+      widget.coordinator.settings.copyWith(
+        liveFocusPreset: preset,
+        extraFocusRegions: preset == LiveFocusPreset.disabled
+            ? const []
+            : widget.coordinator.settings.extraFocusRegions,
+      ),
     );
     if (preset != LiveFocusPreset.disabled &&
         (_selectedWindow != null || _customScreenRegion != null)) {
@@ -945,6 +959,72 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
       }
       unawaited(_activeWindowSource.triggerSingleScan());
     }
+  }
+
+  Future<void> _handleStartExtraFocusBoxSnipping() async {
+    if (_isLaunchingSnipping) return;
+
+    final bridge = _effectiveNativeBridge;
+    final launcher = widget.desktopSnippingLauncher ??
+        (bridge != null
+            ? () => bridge.startDesktopSnipping(hideAppWindow: false)
+            : null);
+
+    if (launcher == null) {
+      setState(() {
+        _isSnippingForFocusZone = false;
+        _isSnippingForExtraFocusBox = true;
+        _isSnippingMode = true;
+      });
+      return;
+    }
+
+    _isLaunchingSnipping = true;
+    try {
+      final result = await launcher();
+      if (!mounted || result == null) return;
+      _appendExtraFocusRegion(result.region);
+    } finally {
+      _isLaunchingSnipping = false;
+    }
+  }
+
+  void _appendExtraFocusRegion(ScreenRegion region) {
+    final nextRegions = <ScreenRegion>[
+      ...widget.coordinator.settings.extraFocusRegions,
+      ScreenRegion(
+        x: region.x,
+        y: region.y,
+        width: region.width,
+        height: region.height,
+        isAbsoluteScreen: region.isAbsoluteScreen,
+        label: 'Fokus B${widget.coordinator.settings.extraFocusRegions.length + 2}',
+      ),
+    ];
+    setState(() {
+      _isSnippingForExtraFocusBox = false;
+      _isSnippingMode = false;
+      _isScanningActive = true;
+      _hasUserToggledScan = false;
+    });
+    _updateSettingsAndPersist(
+      widget.coordinator.settings.copyWith(extraFocusRegions: nextRegions),
+    );
+    widget.coordinator.start();
+    unawaited(_activeWindowSource.triggerSingleScan());
+  }
+
+  void _removeExtraFocusRegion(int index) {
+    final current = widget.coordinator.settings.extraFocusRegions;
+    if (index < 0 || index >= current.length) return;
+    final nextRegions = [
+      for (int i = 0; i < current.length; i++)
+        if (i != index) current[i],
+    ];
+    setState(() {});
+    _updateSettingsAndPersist(
+      widget.coordinator.settings.copyWith(extraFocusRegions: nextRegions),
+    );
   }
 
   Future<void> _handleStartLiveFocusSnipping() async {
@@ -1507,7 +1587,7 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
       isScanningActive: _isScanningActive,
       showZoneAInfo: _showZoneAInfo,
       windowSource: _activeWindowSource,
-      liveFocusZoneBar: DesktopLiveFocusZoneBar(
+        liveFocusZoneBar: DesktopLiveFocusZoneBar(
         settings: widget.coordinator.settings,
         windowSource: _activeWindowSource,
         focusSnippetPreviewBytes: _focusSnippetPreviewBytes,
@@ -1516,6 +1596,8 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
         onToggleInfo: () => setState(() => _showZoneBInfo = !_showZoneBInfo),
         onSelectPreset: _selectLiveFocusPreset,
         onStartSnipping: _handleStartLiveFocusSnipping,
+        onAddExtraFocusBox: _handleStartExtraFocusBoxSnipping,
+        onRemoveExtraFocusBox: _removeExtraFocusRegion,
         onUnignorePokemon: _unignoreTeamPokemon,
       ),
       multiInstanceCard: DesktopMultiInstanceCard(
@@ -1898,6 +1980,7 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
                 },
                 child: FloatingOverlayHud(
                   latestEvent: latestEvent,
+                  focusEvents: _activeFocusEvents,
                   activeDex: activeDex,
                   isCompact: _hudCompact,
                   initialOpacity: _hudOpacity,
@@ -1917,6 +2000,15 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
                         latestEvent!.pokemonId!,
                         isShiny: latestEvent.isShiny,
                         isAlpha: latestEvent.isAlpha,
+                      );
+                    }
+                  },
+                  onMarkEventCaught: (ev) {
+                    if (ev.pokemonId != null) {
+                      _markPokemonCaughtInDex(
+                        ev.pokemonId!,
+                        isShiny: ev.isShiny,
+                        isAlpha: ev.isAlpha,
                       );
                     }
                   },
@@ -1942,6 +2034,10 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
                       region,
                       isFocus: _snippingMultiIsFocus,
                     );
+                    return;
+                  }
+                  if (_isSnippingForExtraFocusBox) {
+                    _appendExtraFocusRegion(region);
                     return;
                   }
                   if (_isSnippingForFocusZone) {
@@ -1982,6 +2078,7 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
                     _snippingMultiSlotId = null;
                     _snippingMultiIsFocus = false;
                     _isSnippingForFocusZone = false;
+                    _isSnippingForExtraFocusBox = false;
                     _isSnippingMode = false;
                   });
                 },

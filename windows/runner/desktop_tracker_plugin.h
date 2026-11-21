@@ -29,12 +29,21 @@ class DesktopTrackerPlugin {
   DesktopTrackerPlugin& operator=(const DesktopTrackerPlugin&) = delete;
 
  private:
+  struct HudFocusEntry {
+    int pokemon_id = 0;
+    std::wstring pokemon_name;
+    bool is_shiny = false;
+    bool is_caught = false;
+    int encounter_count = 1;
+  };
+
   struct HudButtonRects {
     RECT compact_btn{};
     RECT pin_btn{};
     RECT close_btn{};
     RECT catch_btn{};
     bool has_catch_btn = false;
+    std::vector<std::pair<RECT, int>> multi_catch_btns;
   };
 
   struct HudStateData {
@@ -58,6 +67,7 @@ class DesktopTrackerPlugin {
     std::wstring caught_label = L"\u2714 Gefangen";
     std::wstring missing_label = L"\u26A0 Fehlt im Ziel-Dex";
     std::wstring footer_label;
+    std::vector<HudFocusEntry> focus_entries;
   };
 
   struct OverlayBorderEntry {
@@ -115,6 +125,7 @@ class DesktopTrackerPlugin {
 
   // Floating HUD helpers
   void ParseHudArgs(const flutter::EncodableMap& args);
+  int ComputeHudHeight() const;
   void PositionHudFromAnchor();
   void RenderFloatingHud();
   void InvokeDartHudEvent(const std::string& method,

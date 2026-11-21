@@ -96,6 +96,7 @@ class FakeWindowsDesktopBridge implements DesktopPlatformBridge {
   final Future<bool> Function(NativeHudState state)? onShowHud;
   final Future<void> Function()? onHideHud;
   final List<({ScreenRegion? region, bool active})> borderCalls = [];
+  final List<List<OverlayBorderSpec>> overlayBorderCalls = [];
 
   FakeWindowsDesktopBridge({this.onShowHud, this.onHideHud});
 
@@ -112,6 +113,7 @@ class FakeWindowsDesktopBridge implements DesktopPlatformBridge {
 
   @override
   Future<void> setOverlayBorders(List<OverlayBorderSpec> borders) async {
+    overlayBorderCalls.add(borders);
     if (borders.isEmpty) {
       borderCalls.add((region: null, active: false));
     } else {
@@ -1959,6 +1961,105 @@ void main() {
       expect(find.byKey(const Key('custom_region_source_banner')), findsNothing);
       expect(find.byKey(const Key('emulator_dropdown')), findsOneWidget);
       expect(find.byKey(const Key('btn_scan_mode_full')), findsOneWidget);
+    });
+
+    testWidgets('Zone B supports adding/removing extra focus boxes (B2) and renders encounterCount badge in Live Focus', (tester) async {
+      tester.view.physicalSize = const Size(1280, 900);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      int snipCount = 0;
+      final activeSource = DesktopWindowSource(
+        captureDriver: MockCaptureDriver(),
+        ocrDriver: MockOcrDriver(),
+      );
+      addTearDown(() async => await activeSource.dispose());
+
+      final fakeBridge = FakeWindowsDesktopBridge();
+
+      await tester.pumpWidget(
+        ChangeNotifierProvider<DexProvider>.value(
+          value: mockDexProvider,
+          child: MaterialApp(
+            home: DesktopTrackerScreen(
+              coordinator: coordinator,
+              windowSource: activeSource,
+              nativeBridge: fakeBridge,
+              detectedWindows: const [
+                DesktopWindowInfo(
+                  id: 77,
+                  hwnd: 777,
+                  title: 'melonDS 1.1',
+                  processName: 'melonDS.exe',
+                  emulatorType: EmulatorType.melonds,
+                  bounds: Rect.fromLTWH(0, 0, 960, 1040),
+                  width: 960,
+                  height: 1040,
+                ),
+              ],
+              desktopSnippingLauncher: () async {
+                snipCount++;
+                return ScreenRegionCaptureResult(
+                  region: ScreenRegion(
+                    x: snipCount == 1 ? 100 : 400,
+                    y: 60,
+                    width: 220,
+                    height: 80,
+                    isAbsoluteScreen: true,
+                    label: 'Box $snipCount',
+                  ),
+                );
+              },
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Draw primary Zone B
+      await tester.ensureVisible(find.byKey(const Key('btn_live_focus_snipping')));
+      await tester.tap(find.byKey(const Key('btn_live_focus_snipping')));
+      await tester.pumpAndSettle();
+
+      // Add extra focus box B2
+      await tester.ensureVisible(find.byKey(const Key('btn_add_extra_focus_box')));
+      await tester.tap(find.byKey(const Key('btn_add_extra_focus_box')));
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(const Key('extra_focus_chip_B2')), findsOneWidget);
+      expect(coordinator.settings.extraFocusRegions, hasLength(1));
+      expect(activeSource.extraFocusRegions, hasLength(1));
+      expect(
+        fakeBridge.overlayBorderCalls.last
+            .where((b) => b.id.startsWith('zone_b'))
+            .length,
+        2,
+      );
+
+      // Emit a multi-encounter with count x3 in Live Focus
+      await coordinator.processFrameText(
+        'Pikachu Lv.7\nPikachu Lv.7\nPikachu Lv.7\nGlumanda Lv.17',
+        encounterOnly: true,
+        allowMultiEncounter: true,
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('×3'), findsOneWidget);
+
+      // Remove B2 via chip delete icon
+      await tester.ensureVisible(find.byKey(const Key('extra_focus_chip_B2')));
+      await tester.tap(
+        find.descendant(
+          of: find.byKey(const Key('extra_focus_chip_B2')),
+          matching: find.byIcon(Icons.close),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('extra_focus_chip_B2')), findsNothing);
+      expect(coordinator.settings.extraFocusRegions, isEmpty);
+      expect(tester.takeException(), isNull);
     });
   });
 }

@@ -110,6 +110,8 @@ class DesktopLiveFocusZoneBar extends StatelessWidget {
   final VoidCallback onToggleInfo;
   final ValueChanged<LiveFocusPreset> onSelectPreset;
   final VoidCallback onStartSnipping;
+  final VoidCallback? onAddExtraFocusBox;
+  final ValueChanged<int>? onRemoveExtraFocusBox;
   final ValueChanged<int> onUnignorePokemon;
 
   const DesktopLiveFocusZoneBar({
@@ -122,6 +124,8 @@ class DesktopLiveFocusZoneBar extends StatelessWidget {
     required this.onToggleInfo,
     required this.onSelectPreset,
     required this.onStartSnipping,
+    this.onAddExtraFocusBox,
+    this.onRemoveExtraFocusBox,
     required this.onUnignorePokemon,
   });
 
@@ -280,6 +284,44 @@ class DesktopLiveFocusZoneBar extends StatelessWidget {
               ),
             ),
             if (activeFocusPreset != LiveFocusPreset.disabled) ...[
+              if (onAddExtraFocusBox != null &&
+                  settings.extraFocusRegions.length < 4) ...[
+                const SizedBox(height: 6),
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
+                    key: const Key('btn_add_extra_focus_box'),
+                    onPressed: onAddExtraFocusBox,
+                    icon: const Icon(
+                      Icons.add_box_outlined,
+                      size: 14,
+                      color: Colors.cyanAccent,
+                    ),
+                    label: Text(
+                      '+ Weitere Fokus-Box (B${settings.extraFocusRegions.length + 2})',
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.cyanAccent,
+                      ),
+                    ),
+                    style: OutlinedButton.styleFrom(
+                      visualDensity: VisualDensity.compact,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 6,
+                      ),
+                      side: BorderSide(
+                        color: Colors.cyanAccent.withValues(alpha: 0.45),
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
               const SizedBox(height: 6),
               ValueListenableBuilder<LiveOcrScanStatus>(
                 valueListenable: windowSource.liveFocusStatusNotifier,
@@ -329,6 +371,45 @@ class DesktopLiveFocusZoneBar extends StatelessWidget {
                   );
                 },
               ),
+              if (settings.extraFocusRegions.isNotEmpty) ...[
+                const SizedBox(height: 4),
+                ValueListenableBuilder<Map<String, String>>(
+                  valueListenable: windowSource.focusBoxPreviewsNotifier,
+                  builder: (context, boxPreviews, _) {
+                    return Wrap(
+                      spacing: 6,
+                      runSpacing: 4,
+                      children: [
+                        for (int i = 0;
+                            i < settings.extraFocusRegions.length;
+                            i++)
+                          InputChip(
+                            key: Key('extra_focus_chip_B${i + 2}'),
+                            avatar: const Icon(
+                              Icons.crop_free,
+                              size: 12,
+                              color: Colors.cyanAccent,
+                            ),
+                            label: Text(
+                              (boxPreviews['B${i + 2}'] ?? '').isNotEmpty
+                                  ? 'B${i + 2}: ${boxPreviews['B${i + 2}']}'
+                                  : 'Fokus B${i + 2}',
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(fontSize: 10),
+                            ),
+                            visualDensity: VisualDensity.compact,
+                            materialTapTargetSize:
+                                MaterialTapTargetSize.shrinkWrap,
+                            deleteIcon: const Icon(Icons.close, size: 13),
+                            onDeleted: onRemoveExtraFocusBox != null
+                                ? () => onRemoveExtraFocusBox!(i)
+                                : null,
+                          ),
+                      ],
+                    );
+                  },
+                ),
+              ],
             ],
             if (ignoredIds.isNotEmpty) ...[
               const Divider(height: 14),

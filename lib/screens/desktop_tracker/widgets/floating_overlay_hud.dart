@@ -6,8 +6,10 @@ import '../../../services/scanner_core/models/scanner_event.dart';
 /// an emulator or game window to display real-time encounter and dex status.
 class FloatingOverlayHud extends StatefulWidget {
   final ScannerEvent? latestEvent;
+  final List<ScannerEvent> focusEvents;
   final UserDex? activeDex;
   final VoidCallback? onMarkCaught;
+  final ValueChanged<ScannerEvent>? onMarkEventCaught;
   final VoidCallback? onClose;
   final double initialOpacity;
   final bool isPinned;
@@ -21,8 +23,10 @@ class FloatingOverlayHud extends StatefulWidget {
   const FloatingOverlayHud({
     super.key,
     this.latestEvent,
+    this.focusEvents = const [],
     this.activeDex,
     this.onMarkCaught,
+    this.onMarkEventCaught,
     this.onClose,
     this.initialOpacity = 0.90,
     this.isPinned = true,
@@ -83,8 +87,7 @@ class _FloatingOverlayHudState extends State<FloatingOverlayHud> {
     widget.onOpacityChanged?.call(_opacity);
   }
 
-  bool _isPokemonCaught() {
-    final event = widget.latestEvent;
+  bool _isEventCaught(ScannerEvent? event) {
     final dex = widget.activeDex;
     if (event == null || dex == null || event.pokemonId == null) return false;
     return dex.caughtIds.contains(event.pokemonId.toString());
@@ -93,9 +96,13 @@ class _FloatingOverlayHudState extends State<FloatingOverlayHud> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final isCaught = _isPokemonCaught();
-    final event = widget.latestEvent;
-    final isShiny = event?.isShiny ?? false;
+    final activeFocus = widget.focusEvents;
+    final isMulti = activeFocus.length > 1;
+    final event = activeFocus.length == 1 ? activeFocus.first : widget.latestEvent;
+    final isCaught = _isEventCaught(event);
+    final isShiny = isMulti
+        ? activeFocus.any((e) => e.isShiny)
+        : (event?.isShiny ?? false);
 
     return Opacity(
       opacity: _opacity,
@@ -134,27 +141,53 @@ class _FloatingOverlayHudState extends State<FloatingOverlayHud> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Row(
-                    children: [
-                      Container(
-                        width: 7,
-                        height: 7,
-                        decoration: const BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: Colors.greenAccent,
+                  Expanded(
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 7,
+                          height: 7,
+                          decoration: const BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Colors.greenAccent,
+                          ),
                         ),
-                      ),
-                      const SizedBox(width: 6),
-                      const Text(
-                        'PokéVault HUD',
-                        style: TextStyle(
-                          color: Colors.white70,
-                          fontSize: 10,
-                          letterSpacing: 0.6,
-                          fontWeight: FontWeight.bold,
+                        const SizedBox(width: 6),
+                        const Flexible(
+                          child: Text(
+                            'PokéVault HUD',
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              color: Colors.white70,
+                              fontSize: 10,
+                              letterSpacing: 0.6,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                         ),
-                      ),
-                    ],
+                        if (isMulti) ...[
+                          const SizedBox(width: 6),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 5,
+                              vertical: 1,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.cyanAccent.withValues(alpha: 0.16),
+                              borderRadius: BorderRadius.circular(5),
+                            ),
+                            child: Text(
+                              '${activeFocus.length} Gegner',
+                              style: const TextStyle(
+                                color: Colors.cyanAccent,
+                                fontSize: 9,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
                   ),
                   Row(
                     children: [
@@ -207,7 +240,135 @@ class _FloatingOverlayHudState extends State<FloatingOverlayHud> {
               const SizedBox(height: 6),
 
               // Content Body
-              if (event == null)
+              if (isMulti)
+                Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: activeFocus.take(5).map((ev) {
+                    final enemyCaught = _isEventCaught(ev);
+                    final canCatch = !enemyCaught &&
+                        ev.pokemonId != null &&
+                        (widget.onMarkEventCaught != null ||
+                            widget.onMarkCaught != null);
+                    return Container(
+                      margin: const EdgeInsets.only(bottom: 5),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 5,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.05),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(
+                          color: ev.isShiny
+                              ? const Color(0xFFFBC02D).withValues(alpha: 0.7)
+                              : Colors.white12,
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    Flexible(
+                                      child: Text(
+                                        '${ev.isShiny ? '✨ ' : ''}${ev.matchedName}',
+                                        overflow: TextOverflow.ellipsis,
+                                        style: TextStyle(
+                                          color: ev.isShiny
+                                              ? const Color(0xFFFFF176)
+                                              : Colors.white,
+                                          fontSize: _compact ? 11.5 : 12.5,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+                                    if (ev.encounterCount > 1) ...[
+                                      const SizedBox(width: 4),
+                                      Text(
+                                        '×${ev.encounterCount}',
+                                        style: const TextStyle(
+                                          color: Colors.cyanAccent,
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ],
+                                    if (ev.pokemonId != null) ...[
+                                      const SizedBox(width: 5),
+                                      Text(
+                                        '#${ev.pokemonId!.toString().padLeft(3, '0')}',
+                                        style: const TextStyle(
+                                          color: Colors.white54,
+                                          fontSize: 9.5,
+                                          fontFamily: 'monospace',
+                                        ),
+                                      ),
+                                    ],
+                                  ],
+                                ),
+                                Text(
+                                  enemyCaught ? '✔ Im Dex' : '⚠ Fehlt im Ziel-Dex',
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                    color: enemyCaught
+                                        ? Colors.greenAccent
+                                        : Colors.amberAccent,
+                                    fontSize: 9.5,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          if (canCatch)
+                            FilledButton(
+                              key: Key('btn_hud_mark_caught_${ev.pokemonId}'),
+                              onPressed: () {
+                                if (widget.onMarkEventCaught != null) {
+                                  widget.onMarkEventCaught!(ev);
+                                } else {
+                                  widget.onMarkCaught?.call();
+                                }
+                              },
+                              style: FilledButton.styleFrom(
+                                backgroundColor: Colors.green.shade700,
+                                foregroundColor: Colors.white,
+                                visualDensity: VisualDensity.compact,
+                                minimumSize: const Size(0, 26),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 2,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                              ),
+                              child: const Text(
+                                '+ Dex',
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            )
+                          else if (enemyCaught)
+                            const Padding(
+                              padding: EdgeInsets.symmetric(horizontal: 6),
+                              child: Icon(
+                                Icons.check_circle,
+                                color: Colors.greenAccent,
+                                size: 16,
+                              ),
+                            ),
+                        ],
+                      ),
+                    );
+                  }).toList(),
+                )
+              else if (event == null)
                 const Padding(
                   padding: EdgeInsets.symmetric(vertical: 8.0),
                   child: Row(

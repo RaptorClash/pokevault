@@ -309,6 +309,44 @@ Ein wildes Glumanda ♂ erscheint!
         expect(hudFocus!.type, ScannerEventType.encounter);
         expect(hudFocus.isMultiEncounter, isTrue);
       });
+
+      test('enemyHudFocusOnly preserves multi-line stacked HUD entries and Zone A supports all mainline multi-encounter phrases', () {
+        final stackedHud = engine.parse(
+          'Sleima ♀ Lv.17\nKP\nZubat ♂ Lv.15\nKP',
+          role: OcrScanRole.enemyHudFocusOnly,
+        );
+        expect(stackedHud, isNotNull);
+        expect(stackedHud!.isMultiEncounter, isTrue);
+        expect(stackedHud.extractedPokemonNames, ['Sleima', 'Zubat']);
+
+        final gen5Double = engine.parse(
+          'Ein wildes Sleima und ein wildes Zubat greifen an!',
+        );
+        expect(gen5Double, isNotNull);
+        expect(gen5Double!.isMultiEncounter, isTrue);
+        expect(gen5Double.extractedPokemonNames, ['Sleima', 'Zubat']);
+
+        final shortDeDouble = engine.parse(
+          'Ein wildes Sleima und ein Zubat erscheinen!',
+        );
+        expect(shortDeDouble, isNotNull);
+        expect(shortDeDouble!.isMultiEncounter, isTrue);
+        expect(shortDeDouble.extractedPokemonNames, ['Sleima', 'Zubat']);
+
+        final enShortDouble = engine.parse(
+          'A wild Grimer and Zubat appeared!',
+        );
+        expect(enShortDouble, isNotNull);
+        expect(enShortDouble!.isMultiEncounter, isTrue);
+        expect(enShortDouble.extractedPokemonNames, ['Grimer', 'Zubat']);
+
+        final garbledMulti = engine.parse(
+          'Wildes Slleima und 2ubat grfien an!',
+        );
+        expect(garbledMulti, isNotNull);
+        expect(garbledMulti!.type, ScannerEventType.encounter);
+        expect(garbledMulti.isMultiEncounter, isTrue);
+      });
     });
 
     group('Custom user OCR patterns', () {

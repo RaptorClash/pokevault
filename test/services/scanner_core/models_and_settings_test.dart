@@ -294,5 +294,39 @@ void main() {
       expect(reloaded.multiInstanceSlots[2].scanPreset, ScanRegionPreset.bottomDialogue);
       expect(reloaded.multiInstanceSlots[2].focusPreset, LiveFocusPreset.topLeft);
     });
+
+    test('ScannerEvent encounterCount defaults to 1 and ScannerSettings extraFocusRegions roundtrip safely', () async {
+      SharedPreferences.setMockInitialValues({});
+      final service = ScannerPersistenceService();
+
+      final ev = ScannerEvent(
+        type: ScannerEventType.encounter,
+        pokemonId: 41,
+        rawText: 'Zubat',
+        matchedName: 'Zubat',
+        timestamp: DateTime.now(),
+      );
+      expect(ev.encounterCount, 1);
+      final hordeEv = ev.copyWith(encounterCount: 4);
+      expect(hordeEv.encounterCount, 4);
+
+      final extra1 = ScreenRegion(
+        x: 600,
+        y: 80,
+        width: 240,
+        height: 70,
+        isAbsoluteScreen: true,
+        label: 'Fokus B2',
+      );
+      final settings = ScannerSettings.defaults().copyWith(
+        liveFocusPreset: LiveFocusPreset.customRegion,
+        extraFocusRegions: [extra1],
+      );
+      await service.saveScannerSettings(settings);
+      final reloaded = await service.loadScannerSettings();
+      expect(reloaded.extraFocusRegions, hasLength(1));
+      expect(reloaded.extraFocusRegions.first.x, 600);
+      expect(reloaded.extraFocusRegions.first.label, 'Fokus B2');
+    });
   });
 }

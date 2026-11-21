@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:ui';
 import 'package:flutter/foundation.dart';
+import '../scanner_core/media/frame_band_cropper.dart';
 import '../scanner_core/models/scanner_settings.dart';
 import '../scanner_core/source/scanner_source.dart';
 import 'desktop_capture_driver.dart';
@@ -177,6 +178,7 @@ class DesktopWindowSource
   ScreenRegion? _screenRegion;
   LiveFocusPreset _liveFocusPreset = LiveFocusPreset.disabled;
   ScreenRegion? _liveFocusScreenRegion;
+  List<ScreenRegion> _extraFocusRegions = const [];
   CapturedFrame? _latestSnippetFrame;
   String? _ocrLanguageTag;
   OcrPreprocessProfile _preprocessProfile = OcrPreprocessProfile.standard;
@@ -197,6 +199,8 @@ class DesktopWindowSource
       ValueNotifier(const LiveOcrScanStatus());
   final ValueNotifier<LiveOcrScanStatus> liveFocusStatusNotifier =
       ValueNotifier(const LiveOcrScanStatus());
+  final ValueNotifier<Map<String, String>> focusBoxPreviewsNotifier =
+      ValueNotifier(const {});
   final ValueNotifier<List<OcrScanLogEntry>> scanLogsNotifier =
       ValueNotifier(const []);
   static const int _maxScanLogs = 40;
@@ -206,6 +210,8 @@ class DesktopWindowSource
   // Frame fingerprint caches (Zero-Lag static frame OCR deduplication)
   int? _lastZoneAFingerprint;
   int? _lastZoneBFingerprint;
+  final Map<int, int> _lastExtraZoneBFingerprints = {};
+  final Map<String, List<String>> _cachedFocusLinesByBox = {};
   final Map<int, int> _lastSlotScanFingerprints = {};
   final Map<int, int> _lastSlotFocusFingerprints = {};
   List<MultiInstanceSlot> _multiInstanceSlots = const [];
@@ -255,6 +261,11 @@ class DesktopWindowSource
 
   ScreenRegion? get liveFocusScreenRegion => _liveFocusScreenRegion;
 
+  List<ScreenRegion> get extraFocusRegions => _extraFocusRegions;
+
+  Map<String, String> get focusBoxPreviewLines =>
+      focusBoxPreviewsNotifier.value;
+
   CapturedFrame? get latestSnippetFrame => _latestSnippetFrame;
 
   String? get ocrLanguageTag => _ocrLanguageTag;
@@ -265,6 +276,7 @@ class DesktopWindowSource
     _ocrLanguageTag = languageTag;
     _lastZoneAFingerprint = null;
     _lastZoneBFingerprint = null;
+    _lastExtraZoneBFingerprints.clear();
     _lastSlotScanFingerprints.clear();
     _lastSlotFocusFingerprints.clear();
     if (ocrDriver is LanguageAwareOcrDriver) {
@@ -276,6 +288,7 @@ class DesktopWindowSource
     _preprocessProfile = profile;
     _lastZoneAFingerprint = null;
     _lastZoneBFingerprint = null;
+    _lastExtraZoneBFingerprints.clear();
     _lastSlotScanFingerprints.clear();
     _lastSlotFocusFingerprints.clear();
     if (ocrDriver is PreprocessAwareOcrDriver) {
@@ -311,6 +324,8 @@ class DesktopWindowSource
   void setLiveFocusPreset(LiveFocusPreset preset) {
     _liveFocusPreset = preset;
     _lastZoneBFingerprint = null;
+    _lastExtraZoneBFingerprints.clear();
+    _cachedFocusLinesByBox.clear();
     if (preset != LiveFocusPreset.customRegion) {
       _liveFocusScreenRegion = null;
     }
@@ -320,11 +335,19 @@ class DesktopWindowSource
   void setLiveFocusScreenRegion(ScreenRegion? region) {
     _liveFocusScreenRegion = region;
     _lastZoneBFingerprint = null;
+    _cachedFocusLinesByBox.remove('B1');
     if (region != null) {
       _liveFocusPreset = LiveFocusPreset.customRegion;
     } else if (_liveFocusPreset == LiveFocusPreset.customRegion) {
       _liveFocusPreset = LiveFocusPreset.disabled;
     }
+  }
+
+  /// Configures optional additional Zone B focus boxes (`B2`, `B3`, ...).
+  void setExtraFocusRegions(List<ScreenRegion> regions) {
+    _extraFocusRegions = List.unmodifiable(regions);
+    _lastExtraZoneBFingerprints.clear();
+    _cachedFocusLinesByBox.removeWhere((k, _) => k != 'B1');
   }
 
   /// Updates known desktop windows so window-bound multi-instance slots can resolve targets.
@@ -583,60 +606,162 @@ class DesktopWindowSource
     }
   }
 
+  Future<List<String>> _recognizeFocusFrameWithMultiBand(
+    CapturedFrame focusFrame,
+  ) async {
+    Future<List<String>> runOcr(CapturedFrame f) async {
+      final raw = ocrDriver is WindowsDesktopOcrDriver
+          ? (await (ocrDriver as WindowsDesktopOcrDriver)
+                  .recognizeTextDetailed(f))
+              .lines
+          : await ocrDriver.recognizeText(f);
+      return raw.map((l) => l.trim()).where((l) => l.isNotEmpty).toList();
+    }
+
+    final merged = <String>[];
+    final seenLower = <String>{};
+    void addLines(List<String> lines) {
+      for (final l in lines) {
+        final key = l.toLowerCase();
+        if (seenLower.add(key)) {
+          merged.add(l);
+        }
+      }
+    }
+
+    bool isCandidateLine(String line) {
+      final cleaned = line
+          .replaceAll(RegExp(r'\b(?:KP|HP)\b\s*\d*(?:/\d+)?', caseSensitive: false), '')
+          .replaceAll(RegExp(r'(?:Lv|Lvl|Level)\.?\s*\d*', caseSensitive: false), '')
+          .replaceAll(RegExp(r'[^A-Za-zÀ-ÿ\u3040-\u30FF\u4E00-\u9FFF\uAC00-\uD7AF]+'), '')
+          .trim();
+      return cleaned.length >= 2;
+    }
+
+    addLines(await runOcr(focusFrame));
+
+    final candidateCount = merged.where(isCandidateLine).length;
+    if (candidateCount < 2 && focusFrame.pixelFormat == 'bgra8888') {
+      final bands = FrameBandCropper.splitZoneBBands(focusFrame);
+      for (final band in bands) {
+        addLines(await runOcr(band));
+      }
+    }
+
+    if (merged.where(isCandidateLine).isEmpty &&
+        focusFrame.pixelFormat == 'bgra8888') {
+      final inverted = FrameBandCropper.invertLuminanceBgra(focusFrame);
+      if (inverted != null) {
+        addLines(await runOcr(inverted));
+        if (merged.where(isCandidateLine).length < 2) {
+          for (final band in FrameBandCropper.splitZoneBBands(inverted)) {
+            addLines(await runOcr(band));
+          }
+        }
+      }
+    }
+
+    return merged;
+  }
+
   Future<void> _pollZoneBFocus(DesktopWindowInfo primaryWindow) async {
-    if (_liveFocusPreset == LiveFocusPreset.disabled) return;
+    if (_liveFocusPreset == LiveFocusPreset.disabled &&
+        _extraFocusRegions.isEmpty) {
+      return;
+    }
 
     try {
-      CapturedFrame? focusFrame;
-      if (_liveFocusPreset == LiveFocusPreset.customRegion) {
-        final focusRegion = _liveFocusScreenRegion;
-        if (focusRegion == null) return;
-        focusFrame = await captureDriver.captureWindow(
-          window: DesktopWindowInfo.primaryScreen(),
-          cropRegion: null,
-          screenRegion: focusRegion,
-        );
-      } else {
-        final focusCrop = WindowDetector().calculateEnemyHudCropRegion(
-          _liveFocusPreset,
-          windowWidth: primaryWindow.width,
-          windowHeight: primaryWindow.height,
-        );
-        if (focusCrop == null) return;
-        focusFrame = await captureDriver.captureWindow(
-          window: primaryWindow,
-          cropRegion: focusCrop,
-          screenRegion: null,
-        );
+      bool anyBoxChanged = false;
+      CapturedFrame? primaryLatestFrame;
+
+      if (_liveFocusPreset != LiveFocusPreset.disabled) {
+        CapturedFrame? focusFrame;
+        if (_liveFocusPreset == LiveFocusPreset.customRegion) {
+          final focusRegion = _liveFocusScreenRegion;
+          if (focusRegion != null) {
+            focusFrame = await captureDriver.captureWindow(
+              window: DesktopWindowInfo.primaryScreen(),
+              cropRegion: null,
+              screenRegion: focusRegion,
+            );
+          }
+        } else {
+          final focusCrop = WindowDetector().calculateEnemyHudCropRegion(
+            _liveFocusPreset,
+            windowWidth: primaryWindow.width,
+            windowHeight: primaryWindow.height,
+          );
+          if (focusCrop != null) {
+            focusFrame = await captureDriver.captureWindow(
+              window: primaryWindow,
+              cropRegion: focusCrop,
+              screenRegion: null,
+            );
+          }
+        }
+
+        if (focusFrame != null) {
+          primaryLatestFrame = focusFrame;
+          final fp = computeFrameFingerprint(focusFrame);
+          if (_lastZoneBFingerprint != fp) {
+            _lastZoneBFingerprint = fp;
+            anyBoxChanged = true;
+            final valid = await _recognizeFocusFrameWithMultiBand(focusFrame);
+            _cachedFocusLinesByBox['B1'] = valid;
+          }
+        }
       }
 
-      if (focusFrame == null) return;
+      for (int i = 0; i < _extraFocusRegions.length; i++) {
+        final extraRegion = _extraFocusRegions[i];
+        final boxKey = 'B${i + 2}';
+        final extraFrame = await captureDriver.captureWindow(
+          window: DesktopWindowInfo.primaryScreen(),
+          cropRegion: null,
+          screenRegion: extraRegion,
+        );
+        if (extraFrame == null) continue;
+        final fp = computeFrameFingerprint(extraFrame);
+        if (_lastExtraZoneBFingerprints[i] != fp) {
+          _lastExtraZoneBFingerprints[i] = fp;
+          anyBoxChanged = true;
+          final valid = await _recognizeFocusFrameWithMultiBand(extraFrame);
+          _cachedFocusLinesByBox[boxKey] = valid;
+        }
+      }
 
-      final fp = computeFrameFingerprint(focusFrame);
-      if (_lastZoneBFingerprint == fp) return;
-      _lastZoneBFingerprint = fp;
+      if (!anyBoxChanged) return;
 
-      final List<String> lines = ocrDriver is WindowsDesktopOcrDriver
-          ? (await (ocrDriver as WindowsDesktopOcrDriver)
-                  .recognizeTextDetailed(focusFrame))
-              .lines
-          : await ocrDriver.recognizeText(focusFrame);
+      final combinedLines = <String>[];
+      final seenCombined = <String>{};
+      final previewsMap = <String, String>{};
 
-      final valid = lines
-          .map((l) => l.trim())
-          .where((l) => l.isNotEmpty)
-          .toList();
+      final orderedKeys = [
+        if (_liveFocusPreset != LiveFocusPreset.disabled) 'B1',
+        for (int i = 0; i < _extraFocusRegions.length; i++) 'B${i + 2}',
+      ];
+      for (final key in orderedKeys) {
+        final boxLines = _cachedFocusLinesByBox[key] ?? const [];
+        previewsMap[key] = boxLines.join(' · ');
+        for (final l in boxLines) {
+          if (seenCombined.add(l.toLowerCase())) {
+            combinedLines.add(l);
+          }
+        }
+      }
 
+      focusBoxPreviewsNotifier.value = Map.unmodifiable(previewsMap);
       _focusScanCounter++;
       liveFocusStatusNotifier.value = LiveOcrScanStatus(
         scanCount: _focusScanCounter,
         lastScanAt: DateTime.now(),
-        recognizedLines: valid,
-        latestFrame: focusFrame,
+        recognizedLines: combinedLines,
+        latestFrame: primaryLatestFrame ??
+            liveFocusStatusNotifier.value.latestFrame,
       );
 
-      if (valid.isNotEmpty) {
-        _focusTextController.add(valid.join('\n'));
+      if (combinedLines.isNotEmpty) {
+        _focusTextController.add(combinedLines.join('\n'));
       }
     } catch (_) {
       // Non-fatal: Zone B HUD polling must not interrupt Zone A catch detection
@@ -786,6 +911,7 @@ class DesktopWindowSource
     await stop();
     liveScanStatusNotifier.dispose();
     liveFocusStatusNotifier.dispose();
+    focusBoxPreviewsNotifier.dispose();
     scanLogsNotifier.dispose();
     await _textController.close();
     await _focusTextController.close();

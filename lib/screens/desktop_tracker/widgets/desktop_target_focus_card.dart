@@ -194,6 +194,29 @@ class DesktopTargetFocusCard extends StatelessWidget {
                                                 ),
                                               ),
                                             ),
+                                            if (ev.encounterCount > 1) ...[
+                                              const SizedBox(width: 4),
+                                              Container(
+                                                padding: const EdgeInsets.symmetric(
+                                                  horizontal: 4,
+                                                  vertical: 1,
+                                                ),
+                                                decoration: BoxDecoration(
+                                                  color: Colors.cyanAccent
+                                                      .withValues(alpha: 0.16),
+                                                  borderRadius:
+                                                      BorderRadius.circular(4),
+                                                ),
+                                                child: Text(
+                                                  '×${ev.encounterCount}',
+                                                  style: const TextStyle(
+                                                    fontSize: 9,
+                                                    fontWeight: FontWeight.bold,
+                                                    color: Colors.cyanAccent,
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
                                             if (ev.isShiny) ...[
                                               const SizedBox(width: 3),
                                               const Text(

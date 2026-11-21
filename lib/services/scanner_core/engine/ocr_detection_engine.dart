@@ -348,33 +348,80 @@ class OcrDetectionEngine {
   ];
 
   static final List<({RegExp regex, String lang})> _multiEncounterPatterns = [
+    // German: Double grass / Double battle / Horde / Outbreak across Gen 3-9
     (
       regex: RegExp(
-        r'Ein\s+wildes?\s+([^\n\r!]+?)\s+und\s+(?:ein\s+)?wildes?\s+([^\n\r!]+?)\s+(?:erscheint|erscheinen)!?',
+        r'Ein\s+wildes?\s+([^\n\r!！]+?)\s+und\s+(?:ein\s+)?(?:wildes?\s+)?([^\n\r!！]+?)\s+(?:erscheint|erscheinen|greifen\s+an|tauchen\s+auf|sind\s+aufgetaucht)[!！]?',
         caseSensitive: false,
       ),
       lang: 'de',
     ),
     (
       regex: RegExp(
-        r'(?:Eine\s+Gruppe\s+wilder|Wilde)\s+([^\n\r!]+?)\s+(?:erscheint|erscheinen)!?',
+        r'(?:Eine\s+(?:Gruppe|Horde)\s+wilder|Wilde)\s+([^\n\r!！]+?)\s+(?:erscheint|erscheinen|greift\s+an|greifen\s+an|taucht\s+auf|tauchen\s+auf)[!！]?',
         caseSensitive: false,
       ),
       lang: 'de',
     ),
+    // English: Double / Horde / SOS across Gen 3-9
     (
       regex: RegExp(
-        r'(?:A\s+)?wild\s+([^\n\r!]+?)\s+and\s+(?:a\s+)?wild\s+([^\n\r!]+?)\s+appeared!?',
+        r'(?:A\s+)?wild\s+([^\n\r!！]+?)\s+and\s+(?:a\s+)?(?:wild\s+)?([^\n\r!！]+?)\s+(?:appeared|attacked)[!！]?',
         caseSensitive: false,
       ),
       lang: 'en',
     ),
     (
       regex: RegExp(
-        r'A\s+(?:horde|pack)\s+of\s+wild\s+([^\n\r!]+?)\s+appeared!?',
+        r'A\s+(?:horde|pack)\s+of\s+wild\s+([^\n\r!！]+?)\s+appeared[!！]?',
         caseSensitive: false,
       ),
       lang: 'en',
+    ),
+    // French
+    (
+      regex: RegExp(
+        r'(?:Un|Une)\s+([^\n\r!！]+?)\s+et\s+(?:un|une)\s+([^\n\r!！]+?)\s+sauvages?\s+apparaissent\s*[!！]?|Une\s+horde\s+de\s+([^\n\r!！]+?)\s+sauvages\s+apparaît\s*[!！]?',
+        caseSensitive: false,
+      ),
+      lang: 'fr',
+    ),
+    // Spanish
+    (
+      regex: RegExp(
+        r'¡?(?:Un|Una)\s+([^\n\r!！]+?)\s+y\s+(?:un|una)\s+([^\n\r!！]+?)\s+salvajes\s+aparecieron[!！]?|¡?Una\s+horda\s+de\s+([^\n\r!！]+?)\s+salvajes\s+apareció[!！]?',
+        caseSensitive: false,
+      ),
+      lang: 'es',
+    ),
+    // Italian
+    (
+      regex: RegExp(
+        r'(?:Un|Una)\s+([^\n\r!！]+?)\s+e\s+(?:un|una)\s+([^\n\r!！]+?)\s+selvatici\s+appaiono[!！]?|Un\s+gruppo\s+di\s+([^\n\r!！]+?)\s+selvatici\s+è\s+apparso[!！]?',
+        caseSensitive: false,
+      ),
+      lang: 'it',
+    ),
+    // Japanese
+    (
+      regex: RegExp(
+        r'やせいの\s*([^\n\r!！]+?)と\s*([^\n\r!！]+?)が\s*とびだしてきた[!！]?',
+      ),
+      lang: 'ja',
+    ),
+    // Korean
+    (
+      regex: RegExp(
+        r'야생의\s*([^\n\r!！]+?)(?:와|과)\s*([^\n\r!！]+?)(?:이|가)\s*나타났다[!！]?',
+      ),
+      lang: 'ko',
+    ),
+    // Chinese (Simplified & Traditional)
+    (
+      regex: RegExp(
+        r'野生的\s*([^\n\r!！]+?)[和与與]\s*([^\n\r!！]+?)\s*(?:出现了|出現了)[!！]?',
+      ),
+      lang: 'zh-Hans',
     ),
   ];
 
@@ -474,6 +521,20 @@ class OcrDetectionEngine {
 
     // Dedicated enemy HUD focus role (Zone B): never emit caught/evolved, allow multi-enemy names.
     if (role == OcrScanRole.enemyHudFocusOnly) {
+      final hudNames = <String>[];
+      for (final rawLine in filteredLines) {
+        final stripped = _stripHudLineMetadata(rawLine);
+        if (stripped.isEmpty || _isInvalidCandidate(stripped)) continue;
+        final subParts = stripped
+            .split(RegExp(r'\s{2,}|[·|,/]+'))
+            .map(_cleanName)
+            .where((s) => s.isNotEmpty && !_isInvalidCandidate(s));
+        for (final part in subParts) {
+          if (part.length >= (_cjkPattern.hasMatch(part) ? 2 : 3)) {
+            hudNames.add(part);
+          }
+        }
+      }
       final joinedHud = filteredLines.join(' ').trim();
       final meaningfulTokens = joinedHud
           .split(RegExp(r'\s+'))
@@ -485,10 +546,13 @@ class OcrDetectionEngine {
                 !_stopWordCandidatePattern.hasMatch(t) &&
                 !_pureExclamationTriggerPattern.hasMatch(t),
           );
-      if (joinedHud.isEmpty || meaningfulTokens.isEmpty) return null;
+      if (joinedHud.isEmpty || (meaningfulTokens.isEmpty && hudNames.isEmpty)) {
+        return null;
+      }
       return OcrParseResult(
         type: ScannerEventType.encounter,
         extractedPokemonName: joinedHud,
+        extractedPokemonNames: List.unmodifiable(hudNames),
         detectedLanguage: null,
         isShiny: isShiny,
         gender: gender,
@@ -657,6 +721,11 @@ class OcrDetectionEngine {
                 ).hasMatch(t),
           );
       if (candidateText.isNotEmpty && meaningfulTokens.isNotEmpty) {
+        final hasMultiCue = isEncounterContext &&
+            RegExp(
+              r'(?:\b(?:und|and|et|y|e|horde|gruppe|pack)\b|[&,と과和与與])',
+              caseSensitive: false,
+            ).hasMatch(candidateText);
         return OcrParseResult(
           type: isCatchContext
               ? ScannerEventType.caught
@@ -668,6 +737,7 @@ class OcrDetectionEngine {
           isAlpha: isAlpha,
           confidence: 0.78,
           isSmartSearchFallback: true,
+          isMultiEncounter: hasMultiCue,
         );
       }
     }
@@ -762,5 +832,20 @@ class OcrDetectionEngine {
       }
     }
     return List.unmodifiable(out);
+  }
+
+  String _stripHudLineMetadata(String rawLine) {
+    var line = rawLine.trim();
+    line = line.replaceAll(RegExp(r'[♂♀✨*]'), ' ');
+    line = line.replaceAll(
+      RegExp(r'(?:Lv|Lvl|Level)\.?\s*\d*', caseSensitive: false),
+      ' ',
+    );
+    line = line.replaceAll(
+      RegExp(r'\b(?:KP|HP)\b\s*\d*(?:/\d+)?', caseSensitive: false),
+      ' ',
+    );
+    line = line.replaceAll(RegExp(r'\b\d+(?:/\d+)?\b'), ' ');
+    return _cleanName(line.replaceAll(RegExp(r'\s+'), ' ').trim());
   }
 }

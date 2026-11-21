@@ -251,5 +251,53 @@ void main() {
       expect(source.isDisposed, isTrue);
       await coordinator.dispose();
     });
+
+    test('Tracks activeFocusStream into activeFocusEventsNotifier, builds multi-enemy NativeHudState, and supports per-event catch action', () async {
+      final fakeBridge = _FakeBridge();
+      final markedIds = <int>[];
+      final coordinator = ScannerCoordinator(
+        engine: OcrDetectionEngine(),
+        matcher: PokemonFuzzyMatcher.withEntries(const [
+          PokemonMatcherEntry(id: 88, name: 'Sleima', language: 'de'),
+          PokemonMatcherEntry(id: 41, name: 'Zubat', language: 'de'),
+        ]),
+        settings: ScannerSettings.defaults(),
+      );
+      addTearDown(() async => await coordinator.dispose());
+
+      service.configureNativeHudBridge(
+        bridge: fakeBridge,
+        isCaughtChecker: (id) => id == 88,
+        onMarkCaught: (ev) async {
+          if (ev.pokemonId != null) markedIds.add(ev.pokemonId!);
+        },
+      );
+      service.startTracking(coordinator: coordinator);
+
+      await coordinator.processFrameText(
+        'Sleima ♀ Lv.17\nZubat ♂ Lv.15',
+        encounterOnly: true,
+        allowMultiEncounter: true,
+      );
+      await Future.delayed(const Duration(milliseconds: 10));
+
+      expect(service.activeFocusEventsNotifier.value, hasLength(2));
+      final hudState = service.buildNativeHudState();
+      expect(hudState.focusEntries, hasLength(2));
+      expect(hudState.focusEntries[0].pokemonId, 88);
+      expect(hudState.focusEntries[0].isCaught, isTrue);
+      expect(hudState.focusEntries[1].pokemonId, 41);
+      expect(hudState.focusEntries[1].isCaught, isFalse);
+
+      // Native HUD click on Zubat's + Dex button passes pokemonId: 41
+      fakeBridge.onHudAction?.call(
+        const NativeHudAction(
+          type: NativeHudActionType.markCaught,
+          pokemonId: 41,
+        ),
+      );
+      await Future.delayed(Duration.zero);
+      expect(markedIds, [41]);
+    });
   });
 }

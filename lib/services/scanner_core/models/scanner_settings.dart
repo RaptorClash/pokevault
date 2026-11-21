@@ -358,6 +358,7 @@ class ScannerSettings {
   final List<int> ignoredPokemonIds;
   final bool showScreenBorders;
   final List<MultiInstanceSlot> multiInstanceSlots;
+  final List<ScreenRegion> extraFocusRegions;
 
   static const int minScanIntervalMs = 150;
   static const int maxScanIntervalMs = 5000;
@@ -380,6 +381,7 @@ class ScannerSettings {
     this.ignoredPokemonIds = const [],
     this.showScreenBorders = true,
     this.multiInstanceSlots = const [],
+    this.extraFocusRegions = const [],
   });
 
   factory ScannerSettings.defaults() => const ScannerSettings();
@@ -407,6 +409,7 @@ class ScannerSettings {
     List<int>? ignoredPokemonIds,
     bool? showScreenBorders,
     List<MultiInstanceSlot>? multiInstanceSlots,
+    List<ScreenRegion>? extraFocusRegions,
   }) {
     return ScannerSettings(
       autoMarkCaught: autoMarkCaught ?? this.autoMarkCaught,
@@ -428,6 +431,7 @@ class ScannerSettings {
       ignoredPokemonIds: ignoredPokemonIds ?? this.ignoredPokemonIds,
       showScreenBorders: showScreenBorders ?? this.showScreenBorders,
       multiInstanceSlots: multiInstanceSlots ?? this.multiInstanceSlots,
+      extraFocusRegions: extraFocusRegions ?? this.extraFocusRegions,
     );
   }
 
@@ -449,6 +453,7 @@ class ScannerSettings {
       'ignoredPokemonIds': ignoredPokemonIds,
       'showScreenBorders': showScreenBorders,
       'multiInstanceSlots': multiInstanceSlots.map((s) => s.toMap()).toList(),
+      'extraFocusRegions': extraFocusRegions.map((r) => r.toMap()).toList(),
     };
   }
 
@@ -536,6 +541,16 @@ class ScannerSettings {
       }
     }
 
+    final extraFocus = <ScreenRegion>[];
+    final rawExtraFocus = map['extraFocusRegions'];
+    if (rawExtraFocus is List) {
+      for (final item in rawExtraFocus) {
+        if (item is Map) {
+          extraFocus.add(ScreenRegion.fromMap(Map<String, dynamic>.from(item)));
+        }
+      }
+    }
+
     return ScannerSettings(
       autoMarkCaught: map['autoMarkCaught'] as bool? ?? true,
       trackEvolutions: map['trackEvolutions'] as bool? ?? true,
@@ -553,6 +568,7 @@ class ScannerSettings {
       ignoredPokemonIds: List.unmodifiable(ignoredIds),
       showScreenBorders: map['showScreenBorders'] as bool? ?? true,
       multiInstanceSlots: List.unmodifiable(slots),
+      extraFocusRegions: List.unmodifiable(extraFocus),
     );
   }
 }

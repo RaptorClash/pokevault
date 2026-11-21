@@ -386,6 +386,69 @@ void main() {
       expect(emitted, hasLength(1));
       await concurrentCoord.dispose();
     });
+
+    test('Smart battle set prevents re-emitting already seen species when one enemy faints or second enemy appears on next frame', () async {
+      final battleCoord = ScannerCoordinator(
+        engine: OcrDetectionEngine(),
+        matcher: PokemonFuzzyMatcher.withEntries(const [
+          PokemonMatcherEntry(id: 88, name: 'Sleima', language: 'de'),
+          PokemonMatcherEntry(id: 41, name: 'Zubat', language: 'de'),
+          PokemonMatcherEntry(id: 83, name: 'Porenta', language: 'de'),
+        ]),
+        settings: ScannerSettings.defaults(),
+        encounterCooldown: const Duration(milliseconds: 5),
+      );
+      addTearDown(() async => await battleCoord.dispose());
+
+      final feedEvents = <ScannerEvent>[];
+      final focusBatches = <List<ScannerEvent>>[];
+      battleCoord.events.listen(feedEvents.add);
+      battleCoord.activeFocusStream.listen(focusBatches.add);
+
+      // Frame 1: only Sleima recognized initially -> emits Sleima
+      await battleCoord.processFrameText(
+        'Sleima ♀ Lv.17',
+        encounterOnly: true,
+        allowMultiEncounter: true,
+      );
+      await Future.delayed(const Duration(milliseconds: 10));
+      expect(feedEvents.map((e) => e.pokemonId).toList(), [88]);
+      expect(focusBatches.last.map((e) => e.pokemonId).toList(), [88]);
+
+      // Frame 2: Sleima + Zubat both recognized -> only Zubat added to feed, focus has both
+      await battleCoord.processFrameText(
+        'Sleima ♀ Lv.17\nZubat ♂ Lv.15',
+        encounterOnly: true,
+        allowMultiEncounter: true,
+      );
+      await Future.delayed(const Duration(milliseconds: 10));
+      expect(feedEvents.map((e) => e.pokemonId).toList(), [88, 41]);
+      expect(focusBatches.last.map((e) => e.pokemonId).toList(), [88, 41]);
+
+      // Frame 3: Sleima faints -> only Zubat remains in HUD -> focus updates to [Zubat], ZERO duplicate feed spam!
+      await battleCoord.processFrameText(
+        'Zubat ♂ Lv.15',
+        encounterOnly: true,
+        allowMultiEncounter: true,
+      );
+      await Future.delayed(const Duration(milliseconds: 10));
+      expect(feedEvents.map((e) => e.pokemonId).toList(), [88, 41]);
+      expect(focusBatches.last.map((e) => e.pokemonId).toList(), [41]);
+
+      // Battle ends -> new horde battle aggregates Zubat x3 + Porenta x1
+      await battleCoord.processFrameText('Du bist erfolgreich geflohen!');
+      await battleCoord.processFrameText(
+        'Zubat Lv.7\nZubat Lv.7\nZubat Lv.7\nPorenta Lv.8',
+        encounterOnly: true,
+        allowMultiEncounter: true,
+      );
+      await Future.delayed(const Duration(milliseconds: 10));
+      expect(focusBatches.last, hasLength(2));
+      expect(focusBatches.last[0].pokemonId, 41);
+      expect(focusBatches.last[0].encounterCount, 3);
+      expect(focusBatches.last[1].pokemonId, 83);
+      expect(focusBatches.last[1].encounterCount, 1);
+    });
   });
 }
 

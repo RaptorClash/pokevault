@@ -244,5 +244,35 @@ void main() {
       expect(zhSentence, isNotEmpty);
       expect(zhSentence.first.pokemonId, 25);
     });
+
+    test('extracts stacked/glued multi-encounter HUD tokens and aggregates species counts', () {
+      final hudMatcher = PokemonFuzzyMatcher.withEntries(const [
+        PokemonMatcherEntry(id: 88, name: 'Sleima', language: 'de'),
+        PokemonMatcherEntry(id: 41, name: 'Zubat', language: 'de'),
+        PokemonMatcherEntry(id: 83, name: 'Porenta', language: 'de'),
+      ]);
+
+      final doubleHud = hudMatcher.matchAllFromText(
+        'Sleima♀Lv17\nKP 45/45\nZubat♂Lv.15',
+        threshold: 0.72,
+      );
+      expect(doubleHud.map((m) => m.pokemonId).toList(), [88, 41]);
+
+      final ocrGlitchedZubat = hudMatcher.matchAllFromText(
+        'Sleima ♀ Lv.17\n2ubat ♂ Lv.15',
+        threshold: 0.72,
+      );
+      expect(ocrGlitchedZubat.map((m) => m.pokemonId).toList(), [88, 41]);
+
+      final hordeCounts = hudMatcher.matchAllWithCounts(
+        'Zubat Lv.7\nZubat Lv.7\nZubat Lv.7\nZubat Lv.7\nPorenta Lv.8',
+        threshold: 0.72,
+      );
+      expect(hordeCounts, hasLength(2));
+      expect(hordeCounts[0].match.pokemonId, 41);
+      expect(hordeCounts[0].count, 4);
+      expect(hordeCounts[1].match.pokemonId, 83);
+      expect(hordeCounts[1].count, 1);
+    });
   });
 }

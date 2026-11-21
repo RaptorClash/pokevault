@@ -12,6 +12,7 @@ import '../../../utils/tracker_platform_helper.dart';
 /// without interrupting OCR tracking or encounter recording.
 class PersistentTrackerDock extends StatelessWidget {
   final ScannerEvent? latestEvent;
+  final List<ScannerEvent> focusEvents;
   final UserDex? activeDex;
   final bool isScanningActive;
   final bool isHudVisible;
@@ -20,11 +21,13 @@ class PersistentTrackerDock extends StatelessWidget {
   final VoidCallback onOpenSetup;
   final VoidCallback onTogglePause;
   final VoidCallback? onMarkCaught;
+  final ValueChanged<ScannerEvent>? onMarkEventCaught;
   final VoidCallback? onClose;
 
   const PersistentTrackerDock({
     super.key,
     this.latestEvent,
+    this.focusEvents = const [],
     this.activeDex,
     required this.isScanningActive,
     this.isHudVisible = false,
@@ -33,11 +36,11 @@ class PersistentTrackerDock extends StatelessWidget {
     required this.onOpenSetup,
     required this.onTogglePause,
     this.onMarkCaught,
+    this.onMarkEventCaught,
     this.onClose,
   });
 
-  bool _isPokemonCaught() {
-    final event = latestEvent;
+  bool _isEventCaught(ScannerEvent? event) {
     final dex = activeDex;
     if (event == null || dex == null || event.pokemonId == null) return false;
     return dex.caughtIds.contains(event.pokemonId.toString());
@@ -48,9 +51,12 @@ class PersistentTrackerDock extends StatelessWidget {
     final theme = Theme.of(context);
     final colors = theme.colorScheme;
     final isDark = theme.brightness == Brightness.dark;
-    final isCaught = _isPokemonCaught();
-    final event = latestEvent;
-    final isShiny = event?.isShiny ?? false;
+    final isMulti = focusEvents.length > 1;
+    final event = focusEvents.length == 1 ? focusEvents.first : latestEvent;
+    final isCaught = _isEventCaught(event);
+    final isShiny = isMulti
+        ? focusEvents.any((e) => e.isShiny)
+        : (event?.isShiny ?? false);
     final statusColor =
         isScanningActive ? const Color(0xFF10B981) : const Color(0xFFF59E0B);
 
@@ -137,61 +143,163 @@ class PersistentTrackerDock extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Row(
-                        children: [
-                          Flexible(
-                            child: Text(
-                              event != null
-                                  ? '${isShiny ? '✨ ' : ''}${event.matchedName}${event.pokemonId != null && !isVeryCompact ? ' (#${event.pokemonId})' : ''}'
-                                  : (isScanningActive
-                                      ? 'Live-Tracker aktiv'
-                                      : 'Tracker pausiert'),
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                color: (event != null && isShiny)
-                                    ? const Color(0xFFFDD835)
-                                    : colors.onSurface,
-                                fontSize: isVeryCompact ? 11.5 : 13,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                          if (event != null) ...[
-                            const SizedBox(width: 6),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 6,
-                                vertical: 1.5,
-                              ),
-                              decoration: BoxDecoration(
-                                color: (isCaught
-                                        ? const Color(0xFF10B981)
-                                        : const Color(0xFFF59E0B))
-                                    .withValues(alpha: 0.16),
-                                borderRadius: BorderRadius.circular(8),
-                                border: Border.all(
-                                  color: (isCaught
+                      if (isMulti)
+                        SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: focusEvents.take(5).map((ev) {
+                              final enemyCaught = _isEventCaught(ev);
+                              final canQuickCatch = !enemyCaught &&
+                                  ev.pokemonId != null &&
+                                  (onMarkEventCaught != null ||
+                                      onMarkCaught != null);
+                              return Container(
+                                margin: const EdgeInsets.only(right: 6),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 7,
+                                  vertical: 2,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: (enemyCaught
                                           ? const Color(0xFF10B981)
                                           : const Color(0xFFF59E0B))
-                                      .withValues(alpha: 0.45),
+                                      .withValues(alpha: 0.14),
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(
+                                    color: (enemyCaught
+                                            ? const Color(0xFF10B981)
+                                            : const Color(0xFFF59E0B))
+                                        .withValues(alpha: 0.45),
+                                  ),
                                 ),
-                              ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Text(
+                                      '${ev.isShiny ? '✨ ' : ''}${ev.matchedName}${ev.encounterCount > 1 ? ' ×${ev.encounterCount}' : ''}',
+                                      style: TextStyle(
+                                        color: ev.isShiny
+                                            ? const Color(0xFFFDD835)
+                                            : colors.onSurface,
+                                        fontSize: isVeryCompact ? 10 : 11.5,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 4),
+                                    if (enemyCaught)
+                                      const Text(
+                                        '✔',
+                                        style: TextStyle(
+                                          color: Color(0xFF34D399),
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      )
+                                    else if (canQuickCatch)
+                                      InkWell(
+                                        key: Key(
+                                          'btn_dock_mark_caught_${ev.pokemonId}',
+                                        ),
+                                        onTap: () {
+                                          if (onMarkEventCaught != null) {
+                                            onMarkEventCaught!(ev);
+                                          } else {
+                                            onMarkCaught?.call();
+                                          }
+                                        },
+                                        child: Container(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 5,
+                                            vertical: 1,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: const Color(0xFF10B981)
+                                                .withValues(alpha: 0.25),
+                                            borderRadius:
+                                                BorderRadius.circular(5),
+                                          ),
+                                          child: const Text(
+                                            '+',
+                                            style: TextStyle(
+                                              color: Color(0xFF34D399),
+                                              fontSize: 10.5,
+                                              fontWeight: FontWeight.w900,
+                                            ),
+                                          ),
+                                        ),
+                                      )
+                                    else
+                                      const Text(
+                                        '!',
+                                        style: TextStyle(
+                                          color: Color(0xFFFBBF24),
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                  ],
+                                ),
+                              );
+                            }).toList(),
+                          ),
+                        )
+                      else
+                        Row(
+                          children: [
+                            Flexible(
                               child: Text(
-                                isVeryCompact
-                                    ? (isCaught ? '✔' : '!')
-                                    : (isCaught ? '✔ Gefangen' : 'Fehlt im Ziel-Dex'),
+                                event != null
+                                    ? '${isShiny ? '✨ ' : ''}${event.matchedName}${event.pokemonId != null && !isVeryCompact ? ' (#${event.pokemonId})' : ''}'
+                                    : (isScanningActive
+                                        ? 'Live-Tracker aktiv'
+                                        : 'Tracker pausiert'),
+                                overflow: TextOverflow.ellipsis,
                                 style: TextStyle(
-                                  color: isCaught
-                                      ? const Color(0xFF34D399)
-                                      : const Color(0xFFFBBF24),
-                                  fontSize: 9.5,
+                                  color: (event != null && isShiny)
+                                      ? const Color(0xFFFDD835)
+                                      : colors.onSurface,
+                                  fontSize: isVeryCompact ? 11.5 : 13,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
                             ),
+                            if (event != null) ...[
+                              const SizedBox(width: 6),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 6,
+                                  vertical: 1.5,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: (isCaught
+                                          ? const Color(0xFF10B981)
+                                          : const Color(0xFFF59E0B))
+                                      .withValues(alpha: 0.16),
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(
+                                    color: (isCaught
+                                            ? const Color(0xFF10B981)
+                                            : const Color(0xFFF59E0B))
+                                        .withValues(alpha: 0.45),
+                                  ),
+                                ),
+                                child: Text(
+                                  isVeryCompact
+                                      ? (isCaught ? '✔' : '!')
+                                      : (isCaught ? '✔ Gefangen' : 'Fehlt im Ziel-Dex'),
+                                  style: TextStyle(
+                                    color: isCaught
+                                        ? const Color(0xFF34D399)
+                                        : const Color(0xFFFBBF24),
+                                    fontSize: 9.5,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            ],
                           ],
-                        ],
-                      ),
+                        ),
                       const SizedBox(height: 1),
                       Text(
                         [
@@ -218,14 +326,16 @@ class PersistentTrackerDock extends StatelessWidget {
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    if (event != null &&
+                    if (!isMulti &&
+                        event != null &&
                         !isCaught &&
                         event.pokemonId != null &&
-                        onMarkCaught != null &&
+                        (onMarkCaught != null || onMarkEventCaught != null) &&
                         !isVeryCompact) ...[
                       FilledButton.tonalIcon(
                         key: const Key('btn_dock_mark_caught'),
-                        onPressed: onMarkCaught,
+                        onPressed: onMarkCaught ??
+                            () => onMarkEventCaught?.call(event),
                         icon: const Icon(Icons.catching_pokemon, size: 14),
                         label: const Text(
                           '+ Eintragen',
@@ -386,7 +496,7 @@ class PersistentTrackerDockHost extends StatelessWidget {
   ) async {
     final service = DesktopTrackerService.instance;
     if (service.hasMarkCaughtHandler) {
-      await service.markLatestEventCaught();
+      await service.markEventCaught(event);
       return;
     }
     final pid = event.pokemonId;
@@ -422,6 +532,7 @@ class PersistentTrackerDockHost extends StatelessWidget {
       listenable: Listenable.merge([
         service.isTrackingNotifier,
         service.latestEventNotifier,
+        service.activeFocusEventsNotifier,
         service.isPausedNotifier,
         service.showFloatingHudNotifier,
       ]),
@@ -436,15 +547,20 @@ class PersistentTrackerDockHost extends StatelessWidget {
                 .firstOrNull ??
             fallbackDex;
         final latestEvent = service.latestEvent;
+        final focusEvents = service.activeFocusEventsNotifier.value;
 
         return PersistentTrackerDock(
           latestEvent: latestEvent,
+          focusEvents: focusEvents,
           activeDex: activeDex,
           isScanningActive: !service.isPaused,
           isHudVisible: service.showFloatingHud,
           activeSourceTitle: service.activeWindow?.title,
           onMarkCaught: (latestEvent?.pokemonId != null && activeDex != null)
               ? () => _handleMarkCaught(context, activeDex, latestEvent!)
+              : null,
+          onMarkEventCaught: activeDex != null
+              ? (ev) => _handleMarkCaught(context, activeDex, ev)
               : null,
           onOpenHud: () => service.toggleFloatingHud(),
           onOpenSetup: onOpenSetup,

@@ -358,13 +358,13 @@ std::vector<uint8_t> PreprocessFrameBytes(const std::vector<uint8_t>& bgra_bytes
       const int r = out[off + 2];
       const int y = (r * 299 + g * 587 + b * 114) / 1000;
       int mapped = 255;
-      if (y <= 85) {
+      if (y <= 92) {
         mapped = 0;
-      } else if (y <= 115) {
-        mapped = (y - 85) * 4;
+      } else if (y <= 125) {
+        mapped = (y - 92) * 4;
       } else if (y <= 195) {
         // Compress DS pixel-font grey drop shadows toward crisp background white.
-        mapped = 185 + ((y - 115) * 70) / 80;
+        mapped = 185 + ((y - 125) * 70) / 70;
       }
       const uint8_t v =
           static_cast<uint8_t>((std::min)(255, (std::max)(0, mapped)));
@@ -574,17 +574,21 @@ bool RunWindowsMediaOcr(const std::vector<uint8_t>& bgra_bytes,
     scale_factor = 2;
   }
 
-  if (scale_factor > 1) {
-    const int scaled_w = width * scale_factor;
-    const int scaled_h = height * scale_factor;
+  constexpr int kOcrPad = 16;
+  const int scaled_w = width * scale_factor;
+  const int scaled_h = height * scale_factor;
+  const int padded_w = scaled_w + kOcrPad * 2;
+  const int padded_h = scaled_h + kOcrPad * 2;
+  if (scaled_w > 0 && scaled_h > 0) {
     Gdiplus::Bitmap src_bmp(
         width, height, width * 4, PixelFormat32bppRGB,
         const_cast<BYTE*>(
             reinterpret_cast<const BYTE*>(preprocessed_bytes.data())));
     if (src_bmp.GetLastStatus() == Gdiplus::Ok) {
-      Gdiplus::Bitmap dst_bmp(scaled_w, scaled_h, PixelFormat32bppRGB);
+      Gdiplus::Bitmap dst_bmp(padded_w, padded_h, PixelFormat32bppRGB);
       if (dst_bmp.GetLastStatus() == Gdiplus::Ok) {
         Gdiplus::Graphics graphics(&dst_bmp);
+        graphics.Clear(Gdiplus::Color(255, 255, 255));
         graphics.SetInterpolationMode(
             use_nearest_neighbor
                 ? Gdiplus::InterpolationModeNearestNeighbor
@@ -595,31 +599,32 @@ bool RunWindowsMediaOcr(const std::vector<uint8_t>& bgra_bytes,
                 : Gdiplus::PixelOffsetModeHighQuality);
         graphics.SetCompositingQuality(
             Gdiplus::CompositingQualityHighQuality);
-        if (graphics.DrawImage(&src_bmp, Gdiplus::Rect(0, 0, scaled_w, scaled_h),
+        if (graphics.DrawImage(&src_bmp,
+                               Gdiplus::Rect(kOcrPad, kOcrPad, scaled_w, scaled_h),
                                0, 0, width, height, Gdiplus::UnitPixel) ==
             Gdiplus::Ok) {
           Gdiplus::BitmapData locked{};
-          Gdiplus::Rect lock_rect(0, 0, scaled_w, scaled_h);
+          Gdiplus::Rect lock_rect(0, 0, padded_w, padded_h);
           if (dst_bmp.LockBits(&lock_rect, Gdiplus::ImageLockModeRead,
                                PixelFormat32bppRGB, &locked) == Gdiplus::Ok) {
             std::vector<uint8_t> scaled_bytes(
-                static_cast<size_t>(scaled_w) * scaled_h * 4);
+                static_cast<size_t>(padded_w) * padded_h * 4);
             const auto* base_ptr =
                 static_cast<const uint8_t*>(locked.Scan0);
-            const int row_bytes = scaled_w * 4;
-            for (int row = 0; row < scaled_h; ++row) {
+            const int row_bytes = padded_w * 4;
+            for (int row = 0; row < padded_h; ++row) {
               const uint8_t* src_row = base_ptr + row * locked.Stride;
               uint8_t* dst_row =
                   scaled_bytes.data() + static_cast<size_t>(row) * row_bytes;
               std::memcpy(dst_row, src_row, static_cast<size_t>(row_bytes));
-              for (int col = 0; col < scaled_w; ++col) {
+              for (int col = 0; col < padded_w; ++col) {
                 dst_row[col * 4 + 3] = 255;
               }
             }
             dst_bmp.UnlockBits(&locked);
             winrt_buf = Make<BgraWinRtBuffer>(std::move(scaled_bytes));
-            ocr_width = scaled_w;
-            ocr_height = scaled_h;
+            ocr_width = padded_w;
+            ocr_height = padded_h;
           }
         }
       }
@@ -1664,6 +1669,29 @@ void DesktopTrackerPlugin::ParseHudArgs(const flutter::EncodableMap& args) {
   const std::string footer_utf8 = GetStringArg(args, "footerLabel", "");
   hud_state_.footer_label = Utf8ToWide(footer_utf8);
 
+  hud_state_.focus_entries.clear();
+  auto focus_it = args.find(flutter::EncodableValue("focusEntries"));
+  if (focus_it != args.end() &&
+      std::holds_alternative<flutter::EncodableList>(focus_it->second)) {
+    const auto& flist = std::get<flutter::EncodableList>(focus_it->second);
+    for (const auto& item : flist) {
+      if (!std::holds_alternative<flutter::EncodableMap>(item)) continue;
+      const auto& fmap = std::get<flutter::EncodableMap>(item);
+      HudFocusEntry entry;
+      entry.pokemon_id = static_cast<int>(GetInt64Arg(fmap, "pokemonId", 0));
+      entry.pokemon_name =
+          Utf8ToWide(GetStringArg(fmap, "pokemonName", ""));
+      entry.is_shiny = GetBoolArg(fmap, "isShiny", false);
+      entry.is_caught = GetBoolArg(fmap, "isCaught", false);
+      entry.encounter_count =
+          static_cast<int>(GetInt64Arg(fmap, "encounterCount", 1));
+      if (!entry.pokemon_name.empty()) {
+        hud_state_.focus_entries.push_back(std::move(entry));
+        if (hud_state_.focus_entries.size() >= 5) break;
+      }
+    }
+  }
+
   auto anchor_it = args.find(flutter::EncodableValue("anchorRect"));
   if (anchor_it != args.end() &&
       std::holds_alternative<flutter::EncodableMap>(anchor_it->second)) {
@@ -1681,10 +1709,18 @@ void DesktopTrackerPlugin::ParseHudArgs(const flutter::EncodableMap& args) {
   }
 }
 
+int DesktopTrackerPlugin::ComputeHudHeight() const {
+  if (hud_state_.focus_entries.size() > 1) {
+    const int count = static_cast<int>(hud_state_.focus_entries.size());
+    const int footer_h = hud_state_.is_compact ? 10 : 28;
+    return 36 + count * 36 + footer_h;
+  }
+  return hud_state_.is_compact ? kHudHeightCompact : kHudHeightNormal;
+}
+
 void DesktopTrackerPlugin::PositionHudFromAnchor() {
   const int hud_w = hud_state_.is_compact ? kHudWidthCompact : kHudWidthNormal;
-  const int hud_h =
-      hud_state_.is_compact ? kHudHeightCompact : kHudHeightNormal;
+  const int hud_h = ComputeHudHeight();
 
   int target_x = hud_state_.pos_x;
   int target_y = hud_state_.pos_y;
@@ -1731,8 +1767,7 @@ bool DesktopTrackerPlugin::ShowOrUpdateFloatingHud(
     PositionHudFromAnchor();
     const int hud_w =
         hud_state_.is_compact ? kHudWidthCompact : kHudWidthNormal;
-    const int hud_h =
-        hud_state_.is_compact ? kHudHeightCompact : kHudHeightNormal;
+    const int hud_h = ComputeHudHeight();
 
     hud_hwnd_ = CreateWindowExW(
         WS_EX_TOPMOST | WS_EX_TOOLWINDOW | WS_EX_LAYERED | WS_EX_NOACTIVATE,
@@ -1747,8 +1782,7 @@ bool DesktopTrackerPlugin::ShowOrUpdateFloatingHud(
 
   HWND z_order = hud_state_.is_pinned ? HWND_TOPMOST : HWND_NOTOPMOST;
   const int hud_w = hud_state_.is_compact ? kHudWidthCompact : kHudWidthNormal;
-  const int hud_h =
-      hud_state_.is_compact ? kHudHeightCompact : kHudHeightNormal;
+  const int hud_h = ComputeHudHeight();
   SetWindowPos(hud_hwnd_, z_order, hud_state_.pos_x, hud_state_.pos_y, hud_w,
                hud_h, SWP_NOACTIVATE | SWP_SHOWWINDOW);
 
@@ -1769,7 +1803,7 @@ void DesktopTrackerPlugin::RenderFloatingHud() {
   if (!hud_hwnd_) return;
 
   const int w = hud_state_.is_compact ? kHudWidthCompact : kHudWidthNormal;
-  const int h = hud_state_.is_compact ? kHudHeightCompact : kHudHeightNormal;
+  const int h = ComputeHudHeight();
 
   HDC screen_dc = GetDC(nullptr);
   HDC mem_dc = CreateCompatibleDC(screen_dc);
@@ -1880,12 +1914,85 @@ void DesktopTrackerPlugin::RenderFloatingHud() {
         &sf_center, &muted_brush);
 
     hud_buttons_.has_catch_btn = false;
+    hud_buttons_.multi_catch_btns.clear();
 
     if (!hud_state_.has_event) {
       g.DrawString(hud_state_.waiting_label.c_str(), -1, &font_name,
                    Gdiplus::RectF(14.0f, 34.0f, static_cast<float>(w - 28),
                                   36.0f),
                    &sf_left, &muted_brush);
+    } else if (hud_state_.focus_entries.size() > 1) {
+      wchar_t multi_hdr[64]{};
+      swprintf_s(multi_hdr, L"Pok\u00E9Vault HUD  \u00B7  %d Gegner",
+                 static_cast<int>(hud_state_.focus_entries.size()));
+      Gdiplus::SolidBrush hdr_bg(Gdiplus::Color(242, 26, 27, 40));
+      g.FillRectangle(&hdr_bg, 24.0f, 7.0f, 165.0f, 18.0f);
+      Gdiplus::SolidBrush cyan_brush(Gdiplus::Color(255, 103, 232, 249));
+      g.DrawString(multi_hdr, -1, &font_hdr,
+                   Gdiplus::RectF(26.0f, 7.0f, 175.0f, 18.0f), &sf_left,
+                   &cyan_brush);
+
+      int row_y = 32;
+      for (const auto& entry : hud_state_.focus_entries) {
+        std::wstring line = entry.pokemon_name;
+        if (entry.is_shiny) line = L"\u2728 " + line;
+        if (entry.encounter_count > 1) {
+          wchar_t cnt_buf[16]{};
+          swprintf_s(cnt_buf, L" \u00D7%d", entry.encounter_count);
+          line += cnt_buf;
+        }
+        if (entry.pokemon_id > 0) {
+          wchar_t id_buf[16]{};
+          swprintf_s(id_buf, L" #%03d", entry.pokemon_id);
+          line += id_buf;
+        }
+
+        const bool can_catch = !entry.is_caught && entry.pokemon_id > 0;
+        const float text_w = static_cast<float>(w - (can_catch ? 84 : 28));
+        g.DrawString(line.c_str(), -1, &font_sub,
+                     Gdiplus::RectF(14.0f, static_cast<float>(row_y), text_w, 16.0f),
+                     &sf_left,
+                     entry.is_shiny ? &shiny_brush : &white_brush);
+
+        const wchar_t* st_text = entry.is_caught
+                                     ? hud_state_.caught_label.c_str()
+                                     : hud_state_.missing_label.c_str();
+        Gdiplus::SolidBrush st_brush(
+            entry.is_caught ? Gdiplus::Color(255, 110, 231, 183)
+                            : Gdiplus::Color(255, 252, 211, 77));
+        g.DrawString(st_text, -1, &font_hdr,
+                     Gdiplus::RectF(14.0f, static_cast<float>(row_y + 15),
+                                    text_w, 14.0f),
+                     &sf_left, &st_brush);
+
+        if (can_catch) {
+          RECT btn_rc{w - 64, row_y + 2, w - 12, row_y + 28};
+          hud_buttons_.multi_catch_btns.push_back({btn_rc, entry.pokemon_id});
+          Gdiplus::SolidBrush catch_bg(Gdiplus::Color(255, 22, 163, 74));
+          g.FillRectangle(&catch_bg, btn_rc.left, btn_rc.top, 52, 26);
+          g.DrawString(
+              L"+ Dex", -1, &font_sub,
+              Gdiplus::RectF(static_cast<float>(btn_rc.left),
+                             static_cast<float>(btn_rc.top), 52.0f, 26.0f),
+              &sf_center, &white_brush);
+        }
+        row_y += 36;
+      }
+
+      if (!hud_state_.is_compact) {
+        wchar_t footer[128]{};
+        if (!hud_state_.footer_label.empty()) {
+          wcsncpy_s(footer, hud_state_.footer_label.c_str(), _TRUNCATE);
+        } else {
+          swprintf_s(footer, L"Deckkraft: %d%%  \u00B7  Ziehen zum Verschieben",
+                     static_cast<int>(std::lround(hud_state_.opacity * 100.0)));
+        }
+        g.DrawString(
+            footer, -1, &font_hdr,
+            Gdiplus::RectF(14.0f, static_cast<float>(h - 24),
+                           static_cast<float>(w - 28), 18.0f),
+            &sf_left, &muted_brush);
+      }
     } else {
       std::wstring display_name = hud_state_.pokemon_name;
       if (!hud_state_.instance_label.empty()) {
@@ -2173,8 +2280,7 @@ LRESULT CALLBACK DesktopTrackerPlugin::HudWndProc(HWND hwnd,
         self->RenderFloatingHud();
         const int hud_w = self->hud_state_.is_compact ? kHudWidthCompact
                                                       : kHudWidthNormal;
-        const int hud_h = self->hud_state_.is_compact ? kHudHeightCompact
-                                                      : kHudHeightNormal;
+        const int hud_h = self->ComputeHudHeight();
         SetWindowPos(hwnd, nullptr, 0, 0, hud_w, hud_h,
                      SWP_NOMOVE | SWP_NOZORDER | SWP_NOACTIVATE);
         self->RenderFloatingHud();
@@ -2199,6 +2305,17 @@ LRESULT CALLBACK DesktopTrackerPlugin::HudWndProc(HWND hwnd,
         self->InvokeDartHudEvent("onHudPinnedChanged",
                                  flutter::EncodableValue(std::move(args)));
         return 0;
+      }
+
+      for (const auto& pair : self->hud_buttons_.multi_catch_btns) {
+        if (PtInRect(&pair.first, pt)) {
+          flutter::EncodableMap args;
+          args[flutter::EncodableValue("pokemonId")] =
+              flutter::EncodableValue(pair.second);
+          self->InvokeDartHudEvent("onHudMarkCaught",
+                                   flutter::EncodableValue(std::move(args)));
+          return 0;
+        }
       }
 
       if (self->hud_buttons_.has_catch_btn &&

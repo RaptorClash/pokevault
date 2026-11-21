@@ -133,5 +133,61 @@ void main() {
       expect(find.textContaining('Flampivian fehlt'), findsOneWidget);
       expect(tester.takeException(), isNull);
     });
+
+    testWidgets('Renders multi-encounter enemies with encounterCount and per-enemy + Dex actions', (tester) async {
+      final markedIds = <int>[];
+      final userDex = UserDex(
+        id: 'dex_test',
+        title: 'Nationaldex',
+        region: 'national',
+        isShinyDex: false,
+        includeGenders: false,
+        includeRegional: true,
+        includeMega: false,
+        includeGMax: false,
+        includeOther: false,
+        caughtIds: const ['88'],
+      );
+      final sleima = ScannerEvent(
+        type: ScannerEventType.encounter,
+        matchedName: 'Sleima',
+        pokemonId: 88,
+        rawText: 'Sleima\nZubat',
+        timestamp: DateTime.now(),
+      );
+      final zubat = ScannerEvent(
+        type: ScannerEventType.encounter,
+        matchedName: 'Zubat',
+        pokemonId: 41,
+        encounterCount: 3,
+        rawText: 'Sleima\nZubat',
+        timestamp: DateTime.now(),
+      );
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: FloatingOverlayHud(
+              latestEvent: zubat,
+              focusEvents: [sleima, zubat],
+              activeDex: userDex,
+              onMarkEventCaught: (ev) {
+                if (ev.pokemonId != null) markedIds.add(ev.pokemonId!);
+              },
+            ),
+          ),
+        ),
+      );
+
+      expect(find.textContaining('2 Gegner'), findsOneWidget);
+      expect(find.textContaining('Sleima'), findsOneWidget);
+      expect(find.textContaining('Zubat'), findsOneWidget);
+      expect(find.textContaining('×3'), findsOneWidget);
+
+      await tester.tap(find.byKey(const Key('btn_hud_mark_caught_41')));
+      await tester.pump();
+      expect(markedIds, [41]);
+      expect(tester.takeException(), isNull);
+    });
   });
 }

@@ -31,6 +31,7 @@ class ScannerEvent {
   final bool autoAddedAlpha;
   final int? instanceIndex;
   final int? instanceColorHex;
+  final int encounterCount;
 
   const ScannerEvent({
     required this.type,
@@ -52,6 +53,7 @@ class ScannerEvent {
     this.autoAddedAlpha = false,
     this.instanceIndex,
     this.instanceColorHex,
+    this.encounterCount = 1,
   });
 
   ScannerEvent copyWith({
@@ -74,6 +76,7 @@ class ScannerEvent {
     bool? autoAddedAlpha,
     int? instanceIndex,
     int? instanceColorHex,
+    int? encounterCount,
   }) {
     return ScannerEvent(
       type: type ?? this.type,
@@ -95,6 +98,7 @@ class ScannerEvent {
       autoAddedAlpha: autoAddedAlpha ?? this.autoAddedAlpha,
       instanceIndex: instanceIndex ?? this.instanceIndex,
       instanceColorHex: instanceColorHex ?? this.instanceColorHex,
+      encounterCount: encounterCount ?? this.encounterCount,
     );
   }
 

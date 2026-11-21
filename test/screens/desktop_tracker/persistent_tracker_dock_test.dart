@@ -474,5 +474,57 @@ void main() {
         expect(fakeBridge.overlayBorderCalls.last, isEmpty);
       },
     );
+
+    testWidgets('PersistentTrackerDock renders multi-encounter focus chips and per-enemy quick catch across narrow/wide widths', (tester) async {
+      final markedIds = <int>[];
+      final sleima = ScannerEvent(
+        type: ScannerEventType.encounter,
+        matchedName: 'Sleima',
+        pokemonId: 88,
+        rawText: 'Sleima\nZubat',
+        timestamp: DateTime.now(),
+      );
+      final zubat = ScannerEvent(
+        type: ScannerEventType.encounter,
+        matchedName: 'Zubat',
+        pokemonId: 41,
+        encounterCount: 2,
+        rawText: 'Sleima\nZubat',
+        timestamp: DateTime.now(),
+      );
+
+      for (final width in [320.0, 540.0, 1024.0]) {
+        tester.view.physicalSize = Size(width, 640);
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(tester.view.resetPhysicalSize);
+
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              bottomNavigationBar: PersistentTrackerDock(
+                latestEvent: zubat,
+                focusEvents: [sleima, zubat],
+                activeDex: mockDex,
+                isScanningActive: true,
+                onOpenHud: () {},
+                onOpenSetup: () {},
+                onTogglePause: () {},
+                onMarkEventCaught: (ev) {
+                  if (ev.pokemonId != null) markedIds.add(ev.pokemonId!);
+                },
+              ),
+            ),
+          ),
+        );
+        await tester.pump();
+        expect(find.textContaining('Sleima'), findsOneWidget);
+        expect(find.textContaining('Zubat'), findsOneWidget);
+        expect(tester.takeException(), isNull);
+      }
+
+      await tester.tap(find.byKey(const Key('btn_dock_mark_caught_41')));
+      await tester.pump();
+      expect(markedIds, [41]);
+    });
   });
 }

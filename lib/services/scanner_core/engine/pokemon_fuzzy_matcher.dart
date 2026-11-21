@@ -496,12 +496,38 @@ class PokemonFuzzyMatcher {
     int maxPokemon = 5,
     double threshold = 0.78,
   }) {
+    return matchAllWithCounts(
+      text,
+      maxPokemon: maxPokemon,
+      threshold: threshold,
+    ).map((e) => e.match).toList(growable: false);
+  }
+
+  /// Extracts up to [maxPokemon] unique Pokémon species in appearance order along
+  /// with how many times each species appeared in [text] (e.g. Horde/Double Grass).
+  List<({FuzzyMatchResult match, int count})> matchAllWithCounts(
+    String text, {
+    int maxPokemon = 5,
+    double threshold = 0.78,
+  }) {
     if (text.trim().isEmpty || maxPokemon <= 0) return const [];
 
-    final rawTokens = text.trim().split(RegExp(r'\s+'));
+    // Separate glued gender/level/HP markers before whitespace tokenization
+    // so e.g. "Sleima♀Lv17" or "Zubat♂Lv.15" cleanly isolates "Sleima" / "Zubat".
+    final normalizedInput = text
+        .replaceAll(RegExp(r'[♂♀]'), ' ')
+        .replaceAll(
+          RegExp(r'(?<=[A-Za-zÀ-ÿ])(?:Lv|Lvl|Level)\.?\s*\d*', caseSensitive: false),
+          ' ',
+        )
+        .replaceAll(
+          RegExp(r'\b(?:KP|HP)\s*\d*(?:/\d+)?\b', caseSensitive: false),
+          ' ',
+        );
+
+    final rawTokens = normalizedInput.trim().split(RegExp(r'\s+'));
     final cleanTokens = <String>[];
     for (final raw in rawTokens) {
-      // Strip trailing level markers attached without space like "ZurrokexLv16" -> "Zurrokex"
       var token = raw.replaceAll(RegExp(r'Lv\.?\d*$', caseSensitive: false), '');
       final cleaned = _cleanQuery(token);
       if (cleaned.isEmpty) continue;
@@ -516,18 +542,31 @@ class PokemonFuzzyMatcher {
     final cjkCandidates = _extractCjkExactCandidates(text);
     if (cleanTokens.isEmpty && cjkCandidates.isEmpty) return const [];
 
-    final seenIds = <int>{};
-    final orderedResults = <FuzzyMatchResult>[];
+    final orderedIds = <int>[];
+    final bestById = <int, FuzzyMatchResult>{};
+    final countsById = <int, int>{};
 
-    for (final cjkHit in cjkCandidates) {
-      if (orderedResults.length >= maxPokemon) break;
-      if (seenIds.add(cjkHit.pokemonId)) {
-        orderedResults.add(cjkHit);
+    void recordHit(FuzzyMatchResult hit) {
+      final existing = bestById[hit.pokemonId];
+      if (existing == null) {
+        if (orderedIds.length >= maxPokemon) return;
+        orderedIds.add(hit.pokemonId);
+        bestById[hit.pokemonId] = hit;
+        countsById[hit.pokemonId] = 1;
+      } else {
+        if (hit.confidence > existing.confidence) {
+          bestById[hit.pokemonId] = hit;
+        }
+        countsById[hit.pokemonId] = (countsById[hit.pokemonId] ?? 1) + 1;
       }
     }
 
+    for (final cjkHit in cjkCandidates) {
+      recordHit(cjkHit);
+    }
+
     int i = 0;
-    while (i < cleanTokens.length && orderedResults.length < maxPokemon) {
+    while (i < cleanTokens.length) {
       final singleMatch = matchTopK(
         cleanTokens[i],
         limit: 1,
@@ -546,21 +585,20 @@ class PokemonFuzzyMatcher {
       if (bigramMatch != null &&
           (singleMatch == null ||
               bigramMatch.confidence > singleMatch.confidence + 0.03)) {
-        if (seenIds.add(bigramMatch.pokemonId)) {
-          orderedResults.add(bigramMatch);
-        }
+        recordHit(bigramMatch);
         i += 2;
       } else if (singleMatch != null) {
-        if (seenIds.add(singleMatch.pokemonId)) {
-          orderedResults.add(singleMatch);
-        }
+        recordHit(singleMatch);
         i += 1;
       } else {
         i += 1;
       }
     }
 
-    return List.unmodifiable(orderedResults);
+    return List.unmodifiable([
+      for (final id in orderedIds)
+        (match: bestById[id]!, count: countsById[id] ?? 1),
+    ]);
   }
 
   /// Extracts non-overlapping CJK Pokémon names in appearance order from unspaced runs
@@ -620,13 +658,14 @@ class PokemonFuzzyMatcher {
   static List<String> _ocrVariants(String s) {
     final base = _substituteOcrGlitches(s, oneAsL: false);
     final oneAsL = _substituteOcrGlitches(s, oneAsL: true);
+    final twoAsZ = oneAsL.startsWith('2') ? 'z${oneAsL.substring(1)}' : oneAsL;
     final digraphFixed = oneAsL
         .replaceAll('rn', 'm')
         .replaceAll('rl', 'n')
         .replaceAll('ri', 'n')
         .replaceAll('np', 'mp')
         .replaceAll('cl', 'd');
-    return {base, oneAsL, digraphFixed}.toList(growable: false);
+    return {base, oneAsL, twoAsZ, digraphFixed}.toList(growable: false);
   }
 
   static String _substituteOcrGlitches(String s, {bool oneAsL = false}) {
@@ -635,6 +674,7 @@ class PokemonFuzzyMatcher {
         .replaceAll('@', 'a')
         .replaceAll('0', 'o')
         .replaceAll('1', oneAsL ? 'l' : 'i')
+        .replaceAll('|', oneAsL ? 'l' : 'i')
         .replaceAll('vv', 'w')
         .replaceAll(r'$', 's');
   }

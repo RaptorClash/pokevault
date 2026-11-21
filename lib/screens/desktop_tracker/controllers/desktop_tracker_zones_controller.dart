@@ -109,6 +109,7 @@ class DesktopTrackerZonesController {
     required bool isScanningActive,
     required LiveFocusPreset liveFocusPreset,
     required ScreenRegion? liveFocusScreenRegion,
+    List<ScreenRegion> extraFocusRegions = const [],
     required List<MultiInstanceSlot> multiInstanceSlots,
     required List<DesktopWindowInfo> windows,
     String scanLabel = 'Scan',
@@ -139,13 +140,28 @@ class DesktopTrackerZonesController {
       liveFocusPreset: liveFocusPreset,
       liveFocusScreenRegion: liveFocusScreenRegion,
     );
+    final hasExtraFocus = extraFocusRegions.isNotEmpty;
     if (zoneBRegion != null) {
+      final baseLabel =
+          multiInstanceSlots.isNotEmpty ? '$focusLabel #1' : focusLabel;
       specs.add(
         OverlayBorderSpec(
           id: 'zone_b',
           region: zoneBRegion,
           colorArgb: 0xFF06B6D4,
-          label: multiInstanceSlots.isNotEmpty ? '$focusLabel #1' : focusLabel,
+          label: hasExtraFocus ? '$baseLabel B1' : baseLabel,
+        ),
+      );
+    }
+    for (int i = 0; i < extraFocusRegions.length; i++) {
+      final extra = extraFocusRegions[i];
+      if (!extra.isAbsoluteScreen) continue;
+      specs.add(
+        OverlayBorderSpec(
+          id: 'zone_b_${i + 2}',
+          region: extra,
+          colorArgb: 0xFF06B6D4,
+          label: '$focusLabel B${i + 2}',
         ),
       );
     }
@@ -244,6 +260,7 @@ class DesktopTrackerZonesController {
     required bool isScanningActive,
     required LiveFocusPreset liveFocusPreset,
     required ScreenRegion? liveFocusScreenRegion,
+    List<ScreenRegion> extraFocusRegions = const [],
     required List<MultiInstanceSlot> multiInstanceSlots,
     required List<DesktopWindowInfo> windows,
     String scanLabel = 'Scan',
@@ -265,6 +282,7 @@ class DesktopTrackerZonesController {
       isScanningActive: isScanningActive,
       liveFocusPreset: liveFocusPreset,
       liveFocusScreenRegion: liveFocusScreenRegion,
+      extraFocusRegions: extraFocusRegions,
       multiInstanceSlots: multiInstanceSlots,
       windows: windows,
       scanLabel: scanLabel,

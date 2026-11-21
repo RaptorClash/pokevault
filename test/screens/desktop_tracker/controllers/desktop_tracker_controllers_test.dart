@@ -333,4 +333,35 @@ void main() {
       expect(dexA.caughtIds, contains('25'));
     });
   });
+
+  group('DesktopTrackerZonesController Extra Focus Boxes (TDD)', () {
+    test('computeOverlayBorderSpecs emits cyan Focus B1, B2, B3 borders when extraFocusRegions are configured', () {
+      const win = DesktopWindowInfo(
+        id: 77,
+        title: 'melonDS',
+        bounds: Rect.fromLTWH(0, 0, 800, 600),
+      );
+      final b1 = ScreenRegion(x: 40, y: 40, width: 180, height: 60, isAbsoluteScreen: true);
+      final b2 = ScreenRegion(x: 340, y: 40, width: 180, height: 60, isAbsoluteScreen: true);
+
+      final specs = DesktopTrackerZonesController.computeOverlayBorderSpecs(
+        showScreenBorders: true,
+        selectedWindow: win,
+        customScreenRegion: null,
+        cropRegion: null,
+        isScanningActive: true,
+        liveFocusPreset: LiveFocusPreset.customRegion,
+        liveFocusScreenRegion: b1,
+        extraFocusRegions: [b2],
+        multiInstanceSlots: const [],
+        windows: const [win],
+      );
+
+      final focusBorders = specs.where((s) => s.id.startsWith('zone_b')).toList();
+      expect(focusBorders, hasLength(2));
+      expect(focusBorders[0].label, 'Fokus B1');
+      expect(focusBorders[1].label, 'Fokus B2');
+      expect(focusBorders[1].colorArgb, 0xFF06B6D4);
+    });
+  });
 }

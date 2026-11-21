@@ -24,6 +24,7 @@ class DesktopTrackerService {
   DesktopWindowSource? _windowSource;
   String? _activeDexId;
   StreamSubscription<ScannerEvent>? _eventSubscription;
+  StreamSubscription<List<ScannerEvent>>? _focusSubscription;
   DesktopPlatformBridge? _nativeBridge;
   ScreenRegion? _activeScreenRegion;
   Uint8List? _activeSnippetPreview;
@@ -43,6 +44,8 @@ class DesktopTrackerService {
   List<ScannerEvent> get recentEvents => List.unmodifiable(_recentEvents);
 
   final ValueNotifier<ScannerEvent?> latestEventNotifier = ValueNotifier(null);
+  final ValueNotifier<List<ScannerEvent>> activeFocusEventsNotifier =
+      ValueNotifier(const []);
   final ValueNotifier<bool> isTrackingNotifier = ValueNotifier(false);
   final ValueNotifier<bool> showFloatingHudNotifier = ValueNotifier(false);
   final ValueNotifier<bool> isPausedNotifier = ValueNotifier(false);
@@ -112,8 +115,14 @@ class DesktopTrackerService {
 
   Future<void> markLatestEventCaught() async {
     final ev = latestEventNotifier.value;
-    if (ev != null && _onHudMarkCaughtCallback != null) {
-      await _onHudMarkCaughtCallback!(ev);
+    if (ev != null) {
+      await markEventCaught(ev);
+    }
+  }
+
+  Future<void> markEventCaught(ScannerEvent event) async {
+    if (_onHudMarkCaughtCallback != null) {
+      await _onHudMarkCaughtCallback!(event);
       _syncNativeHudIfVisible();
     }
   }
@@ -165,24 +174,42 @@ class DesktopTrackerService {
 
   NativeHudState buildNativeHudState() {
     final ev = latestEventNotifier.value;
-    final pid = ev?.pokemonId;
+    final focusList = activeFocusEventsNotifier.value;
+    final primaryEv = focusList.isNotEmpty ? focusList.first : ev;
+    final pid = primaryEv?.pokemonId;
     final isCaught =
         pid != null && _isCaughtChecker != null ? _isCaughtChecker!(pid) : false;
 
+    final entries = focusList
+        .map(
+          (f) => NativeHudFocusEntry(
+            pokemonId: f.pokemonId,
+            pokemonName: f.matchedName,
+            isShiny: f.isShiny,
+            isCaught: f.pokemonId != null && _isCaughtChecker != null
+                ? _isCaughtChecker!(f.pokemonId!)
+                : false,
+            encounterCount: f.encounterCount,
+          ),
+        )
+        .toList(growable: false);
+
     return NativeHudState(
-      pokemonName: ev?.matchedName ?? 'Warte auf Spiel...',
+      pokemonName: primaryEv?.matchedName ?? 'Warte auf Spiel...',
       pokemonId: pid,
-      isShiny: ev?.isShiny ?? false,
+      isShiny: primaryEv?.isShiny ?? false,
       isCaught: isCaught,
       isCompact: _hudCompact,
       isPinned: _hudPinned,
       opacity: _hudOpacity,
-      hasEvent: ev != null,
+      hasEvent: primaryEv != null,
       anchorRect: resolveHudAnchorRect(),
       evolutionSummary: _evolutionSummary,
       hasMissingEvolutions: _hasMissingEvolutions,
-      instanceLabel:
-          ev?.instanceIndex != null ? '#${ev!.instanceIndex}' : null,
+      instanceLabel: primaryEv?.instanceIndex != null
+          ? '#${primaryEv!.instanceIndex}'
+          : null,
+      focusEntries: entries,
     );
   }
 
@@ -207,6 +234,14 @@ class DesktopTrackerService {
 
     _eventSubscription?.cancel();
     _eventSubscription = coordinator.events.listen(handleScannerEvent);
+    _focusSubscription?.cancel();
+    _focusSubscription = coordinator.activeFocusStream.listen((focusGroup) {
+      activeFocusEventsNotifier.value = List.unmodifiable(focusGroup);
+      if (focusGroup.isNotEmpty) {
+        latestEventNotifier.value = focusGroup.first;
+      }
+      _syncNativeHudIfVisible();
+    });
 
     isTrackingNotifier.value = true;
     isPausedNotifier.value = false;
@@ -260,9 +295,16 @@ class DesktopTrackerService {
         }
         break;
       case NativeHudActionType.markCaught:
-        final ev = latestEventNotifier.value;
-        if (ev != null && _onHudMarkCaughtCallback != null) {
-          _onHudMarkCaughtCallback!(ev).then((_) => _syncNativeHudIfVisible());
+        ScannerEvent? targetEv;
+        if (action.pokemonId != null) {
+          targetEv = activeFocusEventsNotifier.value
+              .where((e) => e.pokemonId == action.pokemonId)
+              .firstOrNull;
+        }
+        targetEv ??= latestEventNotifier.value;
+        if (targetEv != null && _onHudMarkCaughtCallback != null) {
+          _onHudMarkCaughtCallback!(targetEv)
+              .then((_) => _syncNativeHudIfVisible());
         }
         break;
       case NativeHudActionType.moved:
@@ -309,6 +351,7 @@ class DesktopTrackerService {
   Future<void> stopTracking() async {
     final bridge = _nativeBridge;
     final eventSub = _eventSubscription;
+    final focusSub = _focusSubscription;
     final coordinator = _coordinator;
     final windowSource = _windowSource;
     final shouldDisposeSource = _ownsWindowSource;
@@ -318,6 +361,7 @@ class DesktopTrackerService {
     _onHudMarkCaughtCallback = null;
     _onBackgroundAutoCatchCallback = null;
     _eventSubscription = null;
+    _focusSubscription = null;
     _coordinator = null;
     _windowSource = null;
     _ownsWindowSource = false;
@@ -332,6 +376,7 @@ class DesktopTrackerService {
     isPausedNotifier.value = false;
     showFloatingHudNotifier.value = false;
     latestEventNotifier.value = null;
+    activeFocusEventsNotifier.value = const [];
 
     try {
       await bridge?.hideFloatingHud();
@@ -340,6 +385,7 @@ class DesktopTrackerService {
     } catch (_) {}
 
     await eventSub?.cancel();
+    await focusSub?.cancel();
     await coordinator?.stop();
     if (shouldDisposeSource) {
       await windowSource?.dispose();
