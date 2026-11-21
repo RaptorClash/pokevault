@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:ui';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/scheduler.dart';
+import 'package:universal_io/io.dart' as io;
 import '../scanner_core/models/scanner_event.dart';
 import '../scanner_core/scanner_coordinator.dart';
 import 'desktop_window_source.dart';
@@ -41,6 +43,9 @@ class DesktopTrackerService {
   Future<void> Function(ScannerEvent event)? _onBackgroundAutoCatchCallback;
   final List<ScannerEvent> _recentEvents = [];
 
+  bool _isTracking = false;
+  bool _isPaused = false;
+
   List<ScannerEvent> get recentEvents => List.unmodifiable(_recentEvents);
 
   final ValueNotifier<ScannerEvent?> latestEventNotifier = ValueNotifier(null);
@@ -49,20 +54,42 @@ class DesktopTrackerService {
   final ValueNotifier<bool> isTrackingNotifier = ValueNotifier(false);
   final ValueNotifier<bool> showFloatingHudNotifier = ValueNotifier(false);
   final ValueNotifier<bool> isPausedNotifier = ValueNotifier(false);
+  final ValueNotifier<DesktopWindowInfo?> activeWindowNotifier =
+      ValueNotifier(null);
 
   ScannerCoordinator? get coordinator => _coordinator;
   DesktopWindowSource? get windowSource => _windowSource;
   String? get activeDexId => _activeDexId;
   ScannerEvent? get latestEvent => latestEventNotifier.value;
-  bool get isTrackingActive => isTrackingNotifier.value;
+  bool get isTrackingActive => _isTracking;
   bool get showFloatingHud => showFloatingHudNotifier.value;
-  bool get isPaused => isPausedNotifier.value;
+  bool get isPaused => _isPaused;
   ScreenRegion? get activeScreenRegion => _activeScreenRegion;
   Uint8List? get activeSnippetPreview => _activeSnippetPreview;
   DesktopWindowInfo? get activeWindow => _activeWindow;
 
+  void _notifySafely(VoidCallback mutation) {
+    SchedulerBinding? scheduler;
+    try {
+      scheduler = SchedulerBinding.instance;
+    } catch (_) {
+      scheduler = null;
+    }
+    if (scheduler != null &&
+        scheduler.schedulerPhase == SchedulerPhase.persistentCallbacks) {
+      scheduler.addPostFrameCallback((_) {
+        mutation();
+      });
+    } else {
+      mutation();
+    }
+  }
+
   set isPaused(bool value) {
-    isPausedNotifier.value = value;
+    _isPaused = value;
+    _notifySafely(() {
+      isPausedNotifier.value = _isPaused;
+    });
   }
 
   void setActiveDexId(String? dexId) {
@@ -139,6 +166,9 @@ class DesktopTrackerService {
     } else if (snippetPreview != null) {
       _activeSnippetPreview = snippetPreview;
     }
+    _notifySafely(() {
+      activeWindowNotifier.value = _activeWindow;
+    });
     _syncNativeHudIfVisible();
   }
 
@@ -218,6 +248,7 @@ class DesktopTrackerService {
     DesktopWindowSource? windowSource,
     String? dexId,
     bool ownsWindowSource = false,
+    bool initiallyPaused = false,
   }) {
     final previousSource = _windowSource;
     final previouslyOwned = _ownsWindowSource;
@@ -243,8 +274,12 @@ class DesktopTrackerService {
       _syncNativeHudIfVisible();
     });
 
-    isTrackingNotifier.value = true;
-    isPausedNotifier.value = false;
+    _isTracking = true;
+    _isPaused = initiallyPaused;
+    _notifySafely(() {
+      isTrackingNotifier.value = _isTracking;
+      isPausedNotifier.value = _isPaused;
+    });
   }
 
   void handleScannerEvent(ScannerEvent event) {
@@ -259,8 +294,18 @@ class DesktopTrackerService {
   }
 
   Future<void> setFloatingHudVisible(bool visible) async {
-    showFloatingHudNotifier.value = visible;
-    final bridge = _nativeBridge;
+    _notifySafely(() {
+      showFloatingHudNotifier.value = visible;
+    });
+    final isLiveWindows = !kIsWeb &&
+        io.Platform.isWindows &&
+        !io.Platform.environment.containsKey('FLUTTER_TEST');
+    final bridge =
+        _nativeBridge ?? (isLiveWindows ? WindowsDesktopBridge.instance : null);
+    if (bridge != null && _nativeBridge == null) {
+      _nativeBridge = bridge;
+      bridge.onHudAction ??= _handleNativeHudAction;
+    }
     if (bridge == null) return;
     if (visible) {
       await bridge.showFloatingHud(buildNativeHudState());
@@ -317,8 +362,11 @@ class DesktopTrackerService {
   }
 
   void togglePause() {
-    isPausedNotifier.value = !isPausedNotifier.value;
-    final paused = isPausedNotifier.value;
+    _isPaused = !_isPaused;
+    final paused = _isPaused;
+    _notifySafely(() {
+      isPausedNotifier.value = paused;
+    });
     if (paused) {
       _coordinator?.stop();
     } else {
@@ -372,11 +420,16 @@ class DesktopTrackerService {
     _activeSnippetPreview = null;
     _activeWindow = null;
 
-    isTrackingNotifier.value = false;
-    isPausedNotifier.value = false;
-    showFloatingHudNotifier.value = false;
-    latestEventNotifier.value = null;
-    activeFocusEventsNotifier.value = const [];
+    _isTracking = false;
+    _isPaused = false;
+    _notifySafely(() {
+      isTrackingNotifier.value = _isTracking;
+      isPausedNotifier.value = _isPaused;
+      showFloatingHudNotifier.value = false;
+      latestEventNotifier.value = null;
+      activeFocusEventsNotifier.value = const [];
+      activeWindowNotifier.value = null;
+    });
 
     try {
       await bridge?.hideFloatingHud();

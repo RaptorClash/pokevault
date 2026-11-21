@@ -267,6 +267,12 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
           dexId: _selectedDexId,
           ownsWindowSource:
               widget.keepTrackingInBackground && widget.windowSource == null,
+          initiallyPaused: !_isScanningActive,
+        );
+        service.updateHudTarget(
+          window: _selectedWindow,
+          screenRegion: _customScreenRegion,
+          snippetPreview: _snippetPreviewBytes,
         );
       }
       _tutorialController.showIfNeeded(
@@ -655,6 +661,9 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
     if (_hasUserToggledScan && !force) return;
     final shouldScan = _shouldAutoScan(_selectedWindow, _customScreenRegion);
     _isScanningActive = shouldScan;
+    if (DesktopTrackerService.instance.isTrackingActive) {
+      DesktopTrackerService.instance.isPaused = !_isScanningActive;
+    }
     if (shouldScan) {
       widget.coordinator.start();
     } else {
@@ -745,11 +754,11 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
 
     final keepAlive = widget.keepTrackingInBackground &&
         !_isCameraSourceSelected &&
-        (_isScanningActive ||
+        (service.isTrackingActive ||
+            _isScanningActive ||
             _hasUserToggledScan ||
             _customScreenRegion != null ||
-            _showFloatingHud ||
-            (widget.windowSource != null && service.isTrackingActive));
+            _showFloatingHud);
 
     if (keepAlive) {
       service.isPaused = !_isScanningActive;
@@ -1280,6 +1289,7 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
           _hasUserToggledScan = false;
         });
         widget.coordinator.start();
+        DesktopTrackerService.instance.isPaused = false;
         DesktopTrackerService.instance.updateHudTarget(
           window: _selectedWindow,
           screenRegion: result.region,
@@ -2055,6 +2065,7 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
                       ),
                     );
                     widget.coordinator.start();
+                    DesktopTrackerService.instance.isPaused = false;
                     unawaited(_activeWindowSource.triggerSingleScan());
                     return;
                   }
@@ -2066,6 +2077,7 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
                     _hasUserToggledScan = false;
                   });
                   widget.coordinator.start();
+                  DesktopTrackerService.instance.isPaused = false;
                   DesktopTrackerService.instance.updateHudTarget(
                     window: _selectedWindow,
                     screenRegion: region,

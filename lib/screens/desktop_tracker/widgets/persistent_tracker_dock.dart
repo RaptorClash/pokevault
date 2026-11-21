@@ -535,6 +535,7 @@ class PersistentTrackerDockHost extends StatelessWidget {
         service.activeFocusEventsNotifier,
         service.isPausedNotifier,
         service.showFloatingHudNotifier,
+        service.activeWindowNotifier,
       ]),
       builder: (context, _) {
         if (!TrackerPlatformHelper.isDesktop || !service.isTrackingActive) {
