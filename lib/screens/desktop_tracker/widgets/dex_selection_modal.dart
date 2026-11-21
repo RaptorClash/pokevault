@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../i18n/strings.g.dart';
 import '../../../models/user_dex.dart';
 import '../../../utils/dex_logic_helper.dart';
 
@@ -95,7 +96,7 @@ class _DexSelectionModalState extends State<DexSelectionModal> {
                       const Icon(Icons.menu_book, color: Color(0xFFEF5350), size: 20),
                       const SizedBox(width: 10),
                       Text(
-                        'Ziel-Pokédex auswählen',
+                        t.scanner_dex_modal_title,
                         style: TextStyle(
                           color: isDark ? Colors.white : Colors.black87,
                           fontSize: 16,
@@ -121,7 +122,7 @@ class _DexSelectionModalState extends State<DexSelectionModal> {
                 key: const Key('input_search_dex'),
                 controller: _searchController,
                 decoration: InputDecoration(
-                  hintText: 'Pokédex durchsuchen...',
+                  hintText: t.scanner_dex_modal_search,
                   prefixIcon: const Icon(Icons.search, size: 20),
                   suffixIcon: _searchQuery.isNotEmpty
                       ? IconButton(
@@ -144,7 +145,7 @@ class _DexSelectionModalState extends State<DexSelectionModal> {
                       padding: const EdgeInsets.all(32.0),
                       child: Center(
                         child: Text(
-                          'Kein passender Pokédex gefunden.',
+                          t.scanner_dex_modal_empty,
                           style: TextStyle(
                             color: isDark ? Colors.white54 : Colors.black45,
                             fontSize: 13,
@@ -235,9 +236,9 @@ class _DexSelectionModalState extends State<DexSelectionModal> {
                                               ),
                                             ),
                                             if (isSelected)
-                                              const Text(
-                                                'Aktiv ✔',
-                                                style: TextStyle(
+                                              Text(
+                                                t.scanner_dex_modal_active,
+                                                style: const TextStyle(
                                                   color: Color(0xFFEF5350),
                                                   fontSize: 12,
                                                   fontWeight: FontWeight.bold,
@@ -247,7 +248,10 @@ class _DexSelectionModalState extends State<DexSelectionModal> {
                                         ),
                                         const SizedBox(height: 4),
                                         Text(
-                                          '$caughtCount von $totalCount gefangen • ${dex.region.toUpperCase()}',
+                                          t.scanner_dex_modal_progress
+                                              .replaceAll('{caught}', '$caughtCount')
+                                              .replaceAll('{total}', '$totalCount')
+                                              .replaceAll('{region}', dex.region.toUpperCase()),
                                           style: TextStyle(
                                             color: isDark ? Colors.white54 : Colors.black54,
                                             fontSize: 11,

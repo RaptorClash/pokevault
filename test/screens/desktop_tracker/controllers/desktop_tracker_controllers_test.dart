@@ -332,6 +332,94 @@ void main() {
       expect(events.length, 1);
       expect(dexA.caughtIds, contains('25'));
     });
+
+    test('prepareIncomingEvent computes autoAdded flags consistently for desktop and mobile', () {
+      final newCatch = ScannerEvent(
+        type: ScannerEventType.caught,
+        matchedName: 'Pikachu',
+        pokemonId: 25,
+        isShiny: true,
+        isAlpha: true,
+        rawText: 'Pikachu wurde gefangen!',
+        timestamp: DateTime.now(),
+      );
+      final preparedNew = DesktopTrackerDexController.prepareIncomingEvent(
+        newCatch,
+        targetDex: dexA,
+        autoMarkCaught: true,
+      );
+      expect(preparedNew.autoAddedCaught, isTrue);
+      expect(preparedNew.autoAddedShiny, isTrue);
+      expect(preparedNew.autoAddedAlpha, isTrue);
+
+      // Already caught in dexA ('1'), shiny/alpha not yet present
+      final existingCatch = ScannerEvent(
+        type: ScannerEventType.caught,
+        matchedName: 'Bisasam',
+        pokemonId: 1,
+        isShiny: true,
+        isAlpha: false,
+        rawText: 'Bisasam wurde gefangen!',
+        timestamp: DateTime.now(),
+      );
+      final preparedExisting = DesktopTrackerDexController.prepareIncomingEvent(
+        existingCatch,
+        targetDex: dexA,
+        autoMarkCaught: true,
+      );
+      expect(preparedExisting.autoAddedCaught, isFalse);
+      expect(preparedExisting.autoAddedShiny, isTrue);
+      expect(preparedExisting.autoAddedAlpha, isFalse);
+
+      // Disabled autoMark or encounter event leaves flags untouched
+      final preparedDisabled = DesktopTrackerDexController.prepareIncomingEvent(
+        newCatch,
+        targetDex: dexA,
+        autoMarkCaught: false,
+      );
+      expect(preparedDisabled.autoAddedCaught, isFalse);
+      expect(preparedDisabled.autoAddedShiny, isFalse);
+    });
+
+    test('refreshEvolutionStatusFor routes updates through custom onSyncServiceStatus callback', () {
+      final controller = DesktopTrackerDexController();
+      final synced = <Object?>[];
+      final statusChanges = <Object?>[];
+
+      final bulba = Pokemon(
+        id: 1,
+        nameDe: 'Bisasam',
+        nameEn: 'Bulbasaur',
+        hasGenderDifferences: false,
+        genderRate: 1,
+        captureRate: 45,
+        evolutionChainId: -1,
+        eggGroups: const ['Monster'],
+        weight: 6.9,
+        speed: 45,
+        forms: const [],
+      );
+      when(() => mockDexProvider.allPokemon).thenReturn([bulba]);
+
+      controller.refreshEvolutionStatusFor(
+        event: ScannerEvent(
+          type: ScannerEventType.encounter,
+          matchedName: 'Bisasam',
+          pokemonId: 1,
+          rawText: 'Bisasam',
+          timestamp: DateTime.now(),
+        ),
+        activeDex: dexA,
+        dexProvider: mockDexProvider,
+        languageCode: 'de',
+        isMounted: () => true,
+        onStatusChanged: statusChanges.add,
+        onSyncServiceStatus: synced.add,
+      );
+
+      expect(statusChanges, [null]);
+      expect(synced, [null]);
+    });
   });
 
   group('DesktopTrackerZonesController Extra Focus Boxes (TDD)', () {

@@ -8,10 +8,15 @@
 #include <windows.h>
 
 #include <atomic>
+#include <chrono>
+#include <condition_variable>
 #include <cstdint>
 #include <map>
 #include <memory>
+#include <mutex>
+#include <queue>
 #include <string>
+#include <thread>
 #include <vector>
 
 /// Native Windows Win32/WinRT plugin handling:
@@ -87,6 +92,26 @@ class DesktopTrackerPlugin {
     int64_t ocr_duration_ms = 0;
     bool success = false;
   };
+
+  struct OcrWorkItem {
+    std::vector<uint8_t> bytes;
+    int width = 0;
+    int height = 0;
+    std::string language_tag;
+    std::string preprocess_profile;
+    OcrAsyncPayload* payload = nullptr;
+  };
+
+  struct WindowCaptureCache {
+    HWND hwnd = nullptr;
+    int width = 0;
+    int height = 0;
+    std::string capture_method;
+    std::chrono::steady_clock::time_point captured_at{};
+    std::vector<uint8_t> bgra_bytes;
+  };
+
+  void OcrWorkerLoop();
 
   void HandleMethodCall(
       const flutter::MethodCall<flutter::EncodableValue>& call,
@@ -177,6 +202,15 @@ class DesktopTrackerPlugin {
   std::wstring snip_cancel_label_ = L"Abbrechen";
   std::shared_ptr<std::atomic<bool>> alive_flag_ =
       std::make_shared<std::atomic<bool>>(true);
+
+  // Dedicated OCR worker thread + short-lived full-window capture cache
+  std::mutex ocr_queue_mutex_;
+  std::condition_variable ocr_queue_cv_;
+  std::queue<OcrWorkItem> ocr_queue_;
+  bool ocr_worker_stopping_ = false;
+  HANDLE ocr_stop_event_ = nullptr;
+  std::thread ocr_worker_thread_;
+  WindowCaptureCache window_capture_cache_{};
 
   // HUD state
   HWND hud_hwnd_ = nullptr;

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../i18n/strings.g.dart';
 import '../../../services/mobile_scanner/camera_scan_region.dart';
 import '../../../services/mobile_scanner/mobile_camera_tracker_service.dart';
 import '../../../services/scanner_core/models/scanner_event.dart';
@@ -228,7 +229,9 @@ class MobileCameraPipOverlay extends StatelessWidget {
                     ),
                     const SizedBox(width: 4),
                     Text(
-                      isPaused ? 'PAUSE' : 'LIVE',
+                      isPaused
+                          ? t.scanner_pause_suffix.toUpperCase()
+                          : t.scanner_dock_live,
                       style: TextStyle(
                         color: isPaused ? Colors.amber : Colors.greenAccent,
                         fontSize: 8,
@@ -246,7 +249,7 @@ class MobileCameraPipOverlay extends StatelessWidget {
               _miniIconButton(
                 key: const Key('btn_pip_expand'),
                 icon: Icons.open_in_full,
-                tooltip: 'Kamera vergrößern',
+                tooltip: t.scanner_mob_pip_enlarge,
                 onTap: () {
                   if (onExpand != null) {
                     onExpand!();
@@ -260,7 +263,7 @@ class MobileCameraPipOverlay extends StatelessWidget {
                 key: const Key('btn_pip_close'),
                 icon: Icons.close,
                 iconColor: Colors.redAccent,
-                tooltip: 'Scanner beenden',
+                tooltip: t.scanner_dock_close_tooltip,
                 onTap: () {
                   if (onClose != null) {
                     onClose!();
@@ -279,7 +282,7 @@ class MobileCameraPipOverlay extends StatelessWidget {
   Widget _buildBottomEventBadge(ScannerEvent? latestEvent) {
     final text = latestEvent != null
         ? '${latestEvent.isShiny ? '✨ ' : ''}${latestEvent.matchedName}'
-        : 'Scanne...';
+        : t.scanner_mob_pip_scanning;
     return Positioned(
       left: 4,
       right: 4,

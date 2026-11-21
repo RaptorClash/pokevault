@@ -1,5 +1,6 @@
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
+import '../../../i18n/strings.g.dart';
 import '../../../models/pokemon.dart';
 import '../../../models/user_dex.dart';
 import '../../../services/desktop_tracker/desktop_window_source.dart';
@@ -129,7 +130,7 @@ class MobileFocusDexTab extends StatelessWidget {
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      dex?.title ?? 'Kein Ziel-Dex ausgewählt',
+                      dex?.title ?? t.scanner_mob_no_target_dex,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
                         fontSize: 13,
@@ -143,7 +144,10 @@ class MobileFocusDexTab extends StatelessWidget {
                       visualDensity: VisualDensity.compact,
                       padding: const EdgeInsets.symmetric(horizontal: 8),
                     ),
-                    child: const Text('Wechseln', style: TextStyle(fontSize: 11)),
+                    child: Text(
+                      t.scanner_mob_switch,
+                      style: const TextStyle(fontSize: 11),
+                    ),
                   ),
                 ],
               ),
@@ -156,7 +160,13 @@ class MobileFocusDexTab extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  '${stats.caughtCount} / ${stats.totalCount} gefangen (${(stats.percent * 100).toStringAsFixed(1)}%)',
+                  t.scanner_mob_dex_progress
+                      .replaceAll('{caught}', '${stats.caughtCount}')
+                      .replaceAll('{total}', '${stats.totalCount}')
+                      .replaceAll(
+                        '{pct}',
+                        (stats.percent * 100).toStringAsFixed(1),
+                      ),
                   style: TextStyle(
                     fontSize: 11,
                     color: colors.onSurfaceVariant,
@@ -194,7 +204,7 @@ class MobileFocusDexTab extends StatelessWidget {
               const SizedBox(width: 10),
               Expanded(
                 child: Text(
-                  'Noch kein Pokémon im Fokus. Richte die Kamera auf den Bildschirm oder importiere ein Foto.',
+                  t.scanner_mob_no_focus_pokemon,
                   style: TextStyle(fontSize: 12, color: colors.onSurfaceVariant),
                 ),
               ),
@@ -285,7 +295,9 @@ class MobileFocusDexTab extends StatelessWidget {
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text(
-                    caught ? 'Im Dex ✓' : 'Fehlt noch',
+                    caught
+                        ? t.scanner_caught_badge_short
+                        : t.scanner_mob_missing,
                     style: TextStyle(
                       fontSize: 10,
                       fontWeight: FontWeight.bold,
@@ -336,7 +348,9 @@ class MobileFocusDexTab extends StatelessWidget {
                       size: 16,
                     ),
                     label: Text(
-                      caught ? 'Erneut markieren' : 'Im Dex eintragen',
+                      caught
+                          ? t.scanner_mob_mark_again
+                          : t.scanner_mob_mark_in_dex,
                       style: const TextStyle(fontSize: 12),
                     ),
                     style: ElevatedButton.styleFrom(
@@ -348,7 +362,10 @@ class MobileFocusDexTab extends StatelessWidget {
                     onPressed: () =>
                         onIgnorePokemon(pid, displayName: ev.matchedName),
                     icon: const Icon(Icons.visibility_off_outlined, size: 15),
-                    label: const Text('Starter ignorieren', style: TextStyle(fontSize: 11)),
+                    label: Text(
+                      t.scanner_mob_ignore_starter,
+                      style: const TextStyle(fontSize: 11),
+                    ),
                     style: OutlinedButton.styleFrom(
                       visualDensity: VisualDensity.compact,
                     ),
@@ -377,10 +394,13 @@ class MobileFocusDexTab extends StatelessWidget {
             children: [
               const Icon(Icons.shield_outlined, size: 14, color: Colors.amber),
               const SizedBox(width: 6),
-              const Expanded(
+              Expanded(
                 child: Text(
-                  'Ignorierte Team-/Starter-Pokémon',
-                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
+                  t.scanner_mob_ignored_starters,
+                  style: const TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
               IconButton(
@@ -502,9 +522,9 @@ class MobileZonesCameraTab extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                'Scan-Modus & Haupt-Zonen (Instanz #1)',
-                style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+              Text(
+                t.scanner_mob_scan_mode_header,
+                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 8),
               Wrap(
@@ -512,13 +532,13 @@ class MobileZonesCameraTab extends StatelessWidget {
                 runSpacing: 6,
                 children: [
                   ChoiceChip(
-                    label: const Text('Auto (Vollbild)'),
+                    label: Text(t.scanner_mob_auto_fullscreen),
                     selected: scanMode == MobileCameraScanMode.autoFull,
                     onSelected: (_) =>
                         onScanModeChanged(MobileCameraScanMode.autoFull),
                   ),
                   ChoiceChip(
-                    label: const Text('Vierecke zeichnen'),
+                    label: Text(t.scanner_mob_draw_rects),
                     selected: scanMode == MobileCameraScanMode.customRegions,
                     onSelected: (_) =>
                         onScanModeChanged(MobileCameraScanMode.customRegions),
@@ -546,7 +566,9 @@ class MobileZonesCameraTab extends StatelessWidget {
                   children: [
                     FilterChip(
                       label: Text(
-                        isEditingRegions ? 'Zeichnen aktiv' : 'Rechtecke gesperrt',
+                        isEditingRegions
+                            ? t.scanner_mob_drawing_active
+                            : t.scanner_mob_rects_locked,
                         style: const TextStyle(fontSize: 11),
                       ),
                       selected: isEditingRegions,
@@ -556,7 +578,10 @@ class MobileZonesCameraTab extends StatelessWidget {
                       TextButton.icon(
                         onPressed: onClearRegions,
                         icon: const Icon(Icons.delete_sweep, size: 15),
-                        label: const Text('Alle löschen', style: TextStyle(fontSize: 11)),
+                        label: Text(
+                          t.scanner_clear_all,
+                          style: const TextStyle(fontSize: 11),
+                        ),
                       ),
                   ],
                 ),
@@ -565,14 +590,18 @@ class MobileZonesCameraTab extends StatelessWidget {
                   context: context,
                   target: CameraBrushTarget.zoneA(),
                   region: mainZoneA,
-                  drawLabel: mainZoneA == null ? 'Zone A zeichnen' : 'Zone A neu',
+                  drawLabel: mainZoneA == null
+                      ? t.scanner_mob_draw_zone_a
+                      : t.scanner_mob_redraw_zone_a,
                 ),
                 const SizedBox(height: 6),
                 _buildZoneRow(
                   context: context,
                   target: CameraBrushTarget.zoneB(),
                   region: mainZoneB,
-                  drawLabel: mainZoneB == null ? 'Zone B zeichnen' : 'Zone B neu',
+                  drawLabel: mainZoneB == null
+                      ? t.scanner_mob_draw_zone_b
+                      : t.scanner_mob_redraw_zone_b,
                 ),
               ],
             ],
@@ -591,9 +620,9 @@ class MobileZonesCameraTab extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                'Kamera & Foto-Import',
-                style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+              Text(
+                t.scanner_mob_camera_photo_header,
+                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 8),
               DropdownButtonFormField<int>(
@@ -602,17 +631,17 @@ class MobileZonesCameraTab extends StatelessWidget {
                     ? -1
                     : selectedCameraIndex.clamp(0, cameras.length - 1),
                 isExpanded: true,
-                decoration: const InputDecoration(
-                  labelText: 'Aktive Kamera',
+                decoration: InputDecoration(
+                  labelText: t.scanner_mob_active_camera,
                   isDense: true,
-                  border: OutlineInputBorder(),
+                  border: const OutlineInputBorder(),
                 ),
                 items: cameras.isEmpty
-                    ? const [
+                    ? [
                         DropdownMenuItem<int>(
                           value: -1,
                           child: Text(
-                            'Keine Hardware-Kamera gefunden',
+                            t.scanner_mob_no_hw_camera,
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
@@ -647,7 +676,9 @@ class MobileZonesCameraTab extends StatelessWidget {
                       size: 16,
                     ),
                     label: Text(
-                      torchEnabled ? 'Licht an' : 'Taschenlampe',
+                      torchEnabled
+                          ? t.scanner_mob_light_on
+                          : t.scanner_mob_torch,
                       style: const TextStyle(fontSize: 11),
                     ),
                   ),
@@ -655,12 +686,18 @@ class MobileZonesCameraTab extends StatelessWidget {
                     OutlinedButton.icon(
                       onPressed: onSwitchCamera,
                       icon: const Icon(Icons.cameraswitch_outlined, size: 16),
-                      label: const Text('Kamera drehen', style: TextStyle(fontSize: 11)),
+                      label: Text(
+                        t.scanner_mob_flip_camera,
+                        style: const TextStyle(fontSize: 11),
+                      ),
                     ),
                   OutlinedButton.icon(
                     onPressed: onImportPhoto,
                     icon: const Icon(Icons.photo_library_outlined, size: 16),
-                    label: const Text('Foto scannen', style: TextStyle(fontSize: 11)),
+                    label: Text(
+                      t.scanner_webcam_scan_photo,
+                      style: const TextStyle(fontSize: 11),
+                    ),
                   ),
                 ],
               ),
@@ -695,9 +732,9 @@ class MobileZonesCameraTab extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                'OCR, Sprache & Automation',
-                style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+              Text(
+                t.scanner_mob_ocr_automation_header,
+                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 8),
               DropdownButtonFormField<String>(
@@ -706,10 +743,10 @@ class MobileZonesCameraTab extends StatelessWidget {
                         .any((o) => o.code == ocrLanguageCode)
                     ? ocrLanguageCode
                     : 'auto',
-                decoration: const InputDecoration(
-                  labelText: 'Spiel- & OCR-Sprache',
+                decoration: InputDecoration(
+                  labelText: t.scanner_mob_ocr_lang_label,
                   isDense: true,
-                  border: OutlineInputBorder(),
+                  border: const OutlineInputBorder(),
                 ),
                 items: kSupportedScannerOcrLanguages
                     .map(
@@ -743,7 +780,10 @@ class MobileZonesCameraTab extends StatelessWidget {
               const SizedBox(height: 6),
               Row(
                 children: [
-                  const Text('Scan-Intervall:', style: TextStyle(fontSize: 11)),
+                  Text(
+                    t.scanner_mob_scan_interval,
+                    style: const TextStyle(fontSize: 11),
+                  ),
                   Expanded(
                     child: Slider(
                       value: settings.scanIntervalMs.toDouble().clamp(200, 3000),
@@ -765,9 +805,9 @@ class MobileZonesCameraTab extends StatelessWidget {
               SwitchListTile(
                 dense: true,
                 contentPadding: EdgeInsets.zero,
-                title: const Text(
-                  'Fänge automatisch im Dex speichern',
-                  style: TextStyle(fontSize: 12),
+                title: Text(
+                  t.scanner_mob_auto_save,
+                  style: const TextStyle(fontSize: 12),
                 ),
                 value: settings.autoMarkCaught,
                 onChanged: (val) => onSettingsChanged(
@@ -777,9 +817,9 @@ class MobileZonesCameraTab extends StatelessWidget {
               SwitchListTile(
                 dense: true,
                 contentPadding: EdgeInsets.zero,
-                title: const Text(
-                  'Haptik & Shiny/Alpha-Alarme',
-                  style: TextStyle(fontSize: 12),
+                title: Text(
+                  t.scanner_mob_haptics_alerts,
+                  style: const TextStyle(fontSize: 12),
                 ),
                 value: alertSettings.soundEnabled,
                 onChanged: (val) => onAlertSettingsChanged(
@@ -792,7 +832,10 @@ class MobileZonesCameraTab extends StatelessWidget {
                 onPressed: onOpenCustomPatterns,
                 icon: const Icon(Icons.auto_fix_high, size: 16),
                 label: Text(
-                  'Eigene Textmuster (${settings.customPatterns.length})',
+                  t.scanner_mob_custom_patterns.replaceAll(
+                    '{count}',
+                    '${settings.customPatterns.length}',
+                  ),
                   style: const TextStyle(fontSize: 12),
                 ),
               ),
@@ -812,9 +855,9 @@ class MobileZonesCameraTab extends StatelessWidget {
 
   String _formatCameraLabel(CameraDescription cam, int index) {
     final lens = switch (cam.lensDirection) {
-      CameraLensDirection.back => 'Rückkamera',
-      CameraLensDirection.front => 'Frontkamera',
-      CameraLensDirection.external => 'Externe Kamera',
+      CameraLensDirection.back => t.scanner_mob_rear_camera,
+      CameraLensDirection.front => t.scanner_mob_front_camera,
+      CameraLensDirection.external => t.scanner_mob_external_camera,
     };
     final cleanName = cam.name.trim();
     if (cleanName.length > 2) {
@@ -839,7 +882,8 @@ class MobileZonesCameraTab extends StatelessWidget {
             children: [
               Expanded(
                 child: Text(
-                  'MULTI-INSTANZEN (${multiSlotIds.length})',
+                  t.scanner_mob_multi_header
+                      .replaceAll('{count}', '${multiSlotIds.length}'),
                   style: const TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.bold,
@@ -850,7 +894,10 @@ class MobileZonesCameraTab extends StatelessWidget {
                 key: const Key('btn_mobile_multi_add_instance'),
                 onPressed: onAddMultiSlot,
                 icon: const Icon(Icons.add, size: 16),
-                label: const Text('Instanz', style: TextStyle(fontSize: 11)),
+                label: Text(
+                  t.scanner_mob_instance_btn,
+                  style: const TextStyle(fontSize: 11),
+                ),
                 style: FilledButton.styleFrom(
                   visualDensity: VisualDensity.compact,
                 ),
@@ -860,7 +907,7 @@ class MobileZonesCameraTab extends StatelessWidget {
           const SizedBox(height: 6),
           if (multiSlotIds.isEmpty)
             Text(
-              'Lege zusätzliche Instanzen (#2, #3, …) an — jede mit eigener Zone A (Scan) und Zone B (Fokus), genau wie auf dem Desktop.',
+              t.scanner_mob_multi_hint,
               style: TextStyle(fontSize: 11, color: colors.onSurfaceVariant),
             )
           else
@@ -929,7 +976,7 @@ class MobileZonesCameraTab extends StatelessWidget {
               ),
               IconButton(
                 key: Key('btn_mobile_multi_remove_$slotId'),
-                tooltip: 'Instanz entfernen',
+                tooltip: t.scanner_multi_remove_tooltip,
                 icon: const Icon(Icons.delete_outline, size: 18),
                 visualDensity: VisualDensity.compact,
                 onPressed: () => onRemoveMultiSlot(slotId),
@@ -941,7 +988,9 @@ class MobileZonesCameraTab extends StatelessWidget {
             context: context,
             target: CameraBrushTarget.multiScan(slotId),
             region: scanRect,
-            drawLabel: scanRect == null ? 'Scan zeichnen' : 'Scan neu',
+            drawLabel: scanRect == null
+                ? t.scanner_multi_draw_scan
+                : t.scanner_multi_redraw_scan,
             drawButtonKey: Key('btn_mobile_multi_draw_scan_$slotId'),
           ),
           const SizedBox(height: 6),
@@ -949,7 +998,9 @@ class MobileZonesCameraTab extends StatelessWidget {
             context: context,
             target: CameraBrushTarget.multiFocus(slotId),
             region: focusRect,
-            drawLabel: focusRect == null ? 'Fokus zeichnen' : 'Fokus neu',
+            drawLabel: focusRect == null
+                ? t.scanner_multi_draw_focus
+                : t.scanner_multi_redraw_focus,
             drawButtonKey: Key('btn_mobile_multi_draw_focus_$slotId'),
           ),
         ],
@@ -968,7 +1019,7 @@ class MobileZonesCameraTab extends StatelessWidget {
     final zoneColor = Color(target.colorHex);
     final isSelectedBrush = activeBrushTarget == target;
     final sizeText = region == null
-        ? 'Nicht gezeichnet'
+        ? t.scanner_mob_not_drawn
         : '${(region.width * 100).round()}% × ${(region.height * 100).round()}%';
 
     return Container(
@@ -992,7 +1043,9 @@ class MobileZonesCameraTab extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  target.encounterOnly ? 'Zone B · Fokus' : 'Zone A · Scan',
+                  target.encounterOnly
+                      ? t.scanner_mob_zone_b_focus
+                      : t.scanner_mob_zone_a_scan,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
                     fontSize: 11,
@@ -1015,7 +1068,7 @@ class MobileZonesCameraTab extends StatelessWidget {
             IconButton(
               icon: const Icon(Icons.close, size: 15),
               visualDensity: VisualDensity.compact,
-              tooltip: 'Rechteck löschen',
+              tooltip: t.scanner_mob_delete_rect,
               onPressed: () => onDeleteRegion(region.id),
             ),
           ],
@@ -1079,9 +1132,9 @@ class MobileFeedDiagnoseTab extends StatelessWidget {
     return ListView(
       padding: const EdgeInsets.all(12),
       children: [
-        const Text(
-          'Erkannte Ereignisse',
-          style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+        Text(
+          t.scanner_mob_events_header,
+          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 6),
         if (events.isEmpty)
@@ -1095,7 +1148,7 @@ class MobileFeedDiagnoseTab extends StatelessWidget {
             child: Padding(
               padding: const EdgeInsets.all(12),
               child: Text(
-                'Noch keine Fänge oder Begegnungen erkannt.',
+                t.scanner_mob_no_events,
                 style: TextStyle(fontSize: 12, color: colors.onSurfaceVariant),
               ),
             ),
@@ -1146,7 +1199,7 @@ class MobileFeedDiagnoseTab extends StatelessWidget {
                   children: [
                     if (pid != null)
                       IconButton(
-                        tooltip: 'Im Dex eintragen',
+                        tooltip: t.scanner_mob_mark_in_dex,
                         icon: const Icon(Icons.add_task, size: 17),
                         onPressed: () => onMarkCaught(
                           pid,
@@ -1155,12 +1208,12 @@ class MobileFeedDiagnoseTab extends StatelessWidget {
                         ),
                       ),
                     IconButton(
-                      tooltip: 'Korrigieren',
+                      tooltip: t.scanner_mob_correct_tooltip,
                       icon: const Icon(Icons.edit_outlined, size: 16),
                       onPressed: () => onCorrectEvent(i),
                     ),
                     IconButton(
-                      tooltip: 'Entfernen',
+                      tooltip: t.scanner_remove_btn,
                       icon: const Icon(Icons.delete_outline, size: 16),
                       onPressed: () => onDeleteEvent(i),
                     ),
@@ -1176,7 +1229,8 @@ class MobileFeedDiagnoseTab extends StatelessWidget {
             return ExpansionTile(
               tilePadding: EdgeInsets.zero,
               title: Text(
-                'Live-OCR Diagnose (${logs.length})',
+                t.scanner_mob_live_ocr_diagnose
+                    .replaceAll('{count}', '${logs.length}'),
                 style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
               ),
               children: logs.take(12).map((log) {

@@ -341,21 +341,13 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
       if (!mounted) return;
       _alertService.handleEvent(event);
 
-      var storedEvent = event;
-      if (widget.coordinator.settings.autoMarkCaught &&
-          event.type == ScannerEventType.caught &&
-          event.pokemonId != null) {
-        final dexProvider = Provider.of<DexProvider>(context, listen: false);
-        final targetDex = _getActiveDex(dexProvider);
-        if (targetDex != null) {
-          final idStr = event.pokemonId.toString();
-          storedEvent = event.copyWith(
-            autoAddedCaught: !targetDex.caughtIds.contains(idStr),
-            autoAddedShiny: event.isShiny && !targetDex.shinyIds.contains(idStr),
-            autoAddedAlpha: event.isAlpha && !targetDex.alphaIds.contains(idStr),
-          );
-        }
-      }
+      final dexProvider = Provider.of<DexProvider>(context, listen: false);
+      final targetDex = _getActiveDex(dexProvider);
+      final storedEvent = DesktopTrackerDexController.prepareIncomingEvent(
+        event,
+        targetDex: targetDex,
+        autoMarkCaught: widget.coordinator.settings.autoMarkCaught,
+      );
 
       setState(() {
         _events.insert(0, storedEvent);
@@ -364,8 +356,7 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
         }
       });
 
-      final dexProv = Provider.of<DexProvider>(context, listen: false);
-      _refreshEvolutionStatusFor(storedEvent, _getActiveDex(dexProv), dexProv);
+      _refreshEvolutionStatusFor(storedEvent, targetDex, dexProvider);
 
       if (widget.coordinator.settings.autoMarkCaught &&
           storedEvent.type == ScannerEventType.caught &&

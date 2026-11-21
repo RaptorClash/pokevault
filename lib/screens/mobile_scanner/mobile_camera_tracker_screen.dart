@@ -13,9 +13,7 @@ import '../../models/user_dex.dart';
 import '../../providers/dex_provider.dart';
 import '../../providers/settings_provider.dart';
 import '../../services/camera_ocr/platform_camera_ocr_driver.dart';
-import '../../services/database_service.dart';
 import '../../services/desktop_tracker/desktop_capture_driver.dart';
-import '../../services/desktop_tracker/evolution_chain_helper.dart';
 import '../../services/desktop_tracker/tracker_alert_service.dart';
 import '../../services/desktop_tracker/windows_desktop_bridge.dart';
 import '../../services/mobile_scanner/camera_image_converter.dart';
@@ -28,6 +26,7 @@ import '../../services/scanner_core/scanner_coordinator.dart';
 import '../../services/scanner_core/scanner_persistence_service.dart';
 import '../../utils/dex_logic_helper.dart';
 import '../../widgets/tutorial/tutorial_overlay.dart';
+import '../desktop_tracker/controllers/desktop_tracker_dex_controller.dart';
 import '../desktop_tracker/widgets/custom_pattern_studio_dialog.dart';
 import '../desktop_tracker/widgets/dex_selection_modal.dart';
 import 'controllers/mobile_camera_hardware_controller.dart';
@@ -110,10 +109,8 @@ class _MobileCameraTrackerScreenState extends State<MobileCameraTrackerScreen>
   final List<ScannerEvent> _events = [];
   List<ScannerEvent> _activeFocusEvents = const [];
   final Map<int, ScannerEvent> _focusByInstance = {};
-  EvolutionCheckStatus? _activeEvolutionStatus;
-  final Map<int, Map<String, dynamic>?> _evoChainCache = {};
-  int? _lastEvoPokemonId;
-  String _lastEvoDexKey = '';
+  final DesktopTrackerDexController _dexController =
+      DesktopTrackerDexController();
 
   List<int> get _effectiveMultiSlotIds {
     final merged = {..._multiSlotIds, ..._regions.multiSlotIds}.toList()
@@ -376,21 +373,12 @@ class _MobileCameraTrackerScreenState extends State<MobileCameraTrackerScreen>
     if (!mounted) return;
     _alertService.handleEvent(event);
 
-    var stored = event;
-    if (widget.coordinator.settings.autoMarkCaught &&
-        event.type == ScannerEventType.caught &&
-        event.pokemonId != null) {
-      final dexProv = Provider.of<DexProvider>(context, listen: false);
-      final dex = _getActiveDex(dexProv);
-      if (dex != null) {
-        final idStr = event.pokemonId.toString();
-        stored = event.copyWith(
-          autoAddedCaught: !dex.caughtIds.contains(idStr),
-          autoAddedShiny: event.isShiny && !dex.shinyIds.contains(idStr),
-          autoAddedAlpha: event.isAlpha && !dex.alphaIds.contains(idStr),
-        );
-      }
-    }
+    final dexProv = Provider.of<DexProvider>(context, listen: false);
+    final stored = DesktopTrackerDexController.prepareIncomingEvent(
+      event,
+      targetDex: _getActiveDex(dexProv),
+      autoMarkCaught: widget.coordinator.settings.autoMarkCaught,
+    );
 
     setState(() {
       _events.insert(0, stored);
@@ -417,74 +405,32 @@ class _MobileCameraTrackerScreenState extends State<MobileCameraTrackerScreen>
     if (!mounted) return;
     final dexProv = Provider.of<DexProvider>(context, listen: false);
     final activeDex = _getActiveDex(dexProv);
-    final pid = event?.pokemonId;
-    if (pid == null || activeDex == null) {
-      if (_activeEvolutionStatus != null) {
-        setState(() => _activeEvolutionStatus = null);
-        _trackerService.updateEvolutionStatus(null);
-      }
-      return;
-    }
-
-    final dexSig = '${activeDex.id}_${activeDex.caughtIds.length}';
-    if (_lastEvoPokemonId == pid && _lastEvoDexKey == dexSig) return;
-    _lastEvoPokemonId = pid;
-    _lastEvoDexKey = dexSig;
-
-    final byId = {for (final p in dexProv.allPokemon) p.id: p};
-    final target = byId[pid];
-    if (target == null || target.evolutionChainId == -1) {
-      setState(() => _activeEvolutionStatus = null);
-      _trackerService.updateEvolutionStatus(null);
-      return;
-    }
-
-    final chainId = target.evolutionChainId;
     String lang = 'de';
     try {
       lang = Provider.of<SettingsProvider>(context, listen: false)
           .effectivePokemonLanguage;
     } catch (_) {}
 
-    if (_evoChainCache.containsKey(chainId)) {
-      final status = EvolutionChainHelper.evaluate(
-        pokemonId: pid,
-        chainData: _evoChainCache[chainId],
-        activeDex: activeDex,
-        pokemonById: byId,
-        languageCode: lang,
-      );
-      setState(() => _activeEvolutionStatus = status);
-      _trackerService.updateEvolutionStatus(status);
-      return;
-    }
-
-    unawaited(() async {
-      try {
-        final chain = await DatabaseService.instance.getEvolutionChain(chainId);
-        _evoChainCache[chainId] = chain;
-        if (!mounted) return;
-        final status = EvolutionChainHelper.evaluate(
-          pokemonId: pid,
-          chainData: chain,
-          activeDex: activeDex,
-          pokemonById: byId,
-          languageCode: lang,
-        );
-        setState(() => _activeEvolutionStatus = status);
-        _trackerService.updateEvolutionStatus(status);
-      } catch (_) {}
-    }());
+    _dexController.refreshEvolutionStatusFor(
+      event: event,
+      activeDex: activeDex,
+      dexProvider: dexProv,
+      languageCode: lang,
+      isMounted: () => mounted,
+      onStatusChanged: (_) {
+        if (mounted) setState(() {});
+      },
+      onSyncServiceStatus: _trackerService.updateEvolutionStatus,
+    );
   }
 
   UserDex? _getActiveDex(DexProvider dexProvider) {
-    final dexes = dexProvider.userDexes;
-    if (dexes.isEmpty) return null;
-    _selectedDexId ??= dexes.first.id;
-    return dexes.cast<UserDex?>().firstWhere(
-          (d) => d?.id == _selectedDexId,
-          orElse: () => dexes.first,
-        );
+    final resolved =
+        DesktopTrackerDexController.resolveTargetDex(dexProvider, _selectedDexId);
+    if (resolved != null) {
+      _selectedDexId ??= resolved.id;
+    }
+    return resolved;
   }
 
   bool _isPokemonCaughtInActiveDex(int pokemonId) {
@@ -509,26 +455,14 @@ class _MobileCameraTrackerScreenState extends State<MobileCameraTrackerScreen>
     final targetDex = _getActiveDex(dexProv);
     if (targetDex == null) return;
 
-    final idStr = pokemonId.toString();
-    if (!targetDex.caughtIds.contains(idStr)) targetDex.caughtIds.add(idStr);
-    if (isShiny && !targetDex.shinyIds.contains(idStr)) {
-      targetDex.shinyIds.add(idStr);
-    }
-    if (isAlpha && !targetDex.alphaIds.contains(idStr)) {
-      targetDex.alphaIds.add(idStr);
-    }
+    await DesktopTrackerDexController.persistCaughtStatus(
+      dexProv,
+      targetDex,
+      pokemonId,
+      isShiny: isShiny,
+      isAlpha: isAlpha,
+    );
 
-    try {
-      await DatabaseService.instance.savePokemonStatus(
-        targetDex.id,
-        idStr,
-        isCaught: true,
-        isShiny: isShiny ? true : null,
-        isAlpha: isAlpha ? true : null,
-      );
-    } catch (_) {}
-
-    await dexProv.saveUserDexAndSync(targetDex);
     if (!mounted) return;
     setState(() {});
     _refreshEvolutionFor(_events.isNotEmpty ? _events.first : null);
@@ -1053,7 +987,7 @@ class _MobileCameraTrackerScreenState extends State<MobileCameraTrackerScreen>
                     event: focusEvent,
                     isCaught: focusEvent.pokemonId != null &&
                         _isPokemonCaughtInActiveDex(focusEvent.pokemonId!),
-                    evolutionStatus: _activeEvolutionStatus,
+                    evolutionStatus: _dexController.activeEvolutionStatus,
                     onMarkCaught: focusEvent.pokemonId != null
                         ? () => unawaited(
                               _markPokemonCaughtInDex(
@@ -1159,7 +1093,7 @@ class _MobileCameraTrackerScreenState extends State<MobileCameraTrackerScreen>
                   activeDex: activeDex,
                   activeFocusEvents: _combinedFocusEvents,
                   latestEvent: _events.isNotEmpty ? _events.first : null,
-                  evolutionStatus: _activeEvolutionStatus,
+                  evolutionStatus: _dexController.activeEvolutionStatus,
                   pokemonById: byId,
                   ignoredPokemonIds:
                       widget.coordinator.settings.ignoredPokemonIds,

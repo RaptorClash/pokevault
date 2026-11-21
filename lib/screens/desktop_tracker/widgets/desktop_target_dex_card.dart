@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../i18n/strings.g.dart';
 import '../../../models/user_dex.dart';
 import '../../../providers/dex_provider.dart';
 import '../../../utils/dex_logic_helper.dart';
@@ -51,11 +52,11 @@ class DesktopTargetDexCard extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Flexible(
+            Flexible(
               child: Text(
-                'ZIEL-POKÉDEX',
+                t.scanner_target_dex_header,
                 overflow: TextOverflow.ellipsis,
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 11,
                   fontWeight: FontWeight.bold,
                   letterSpacing: 0.6,
@@ -71,10 +72,10 @@ class DesktopTargetDexCard extends StatelessWidget {
                   padding:
                       const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
                 ),
-                child: const Text(
-                  'Dex wechseln →',
+                child: Text(
+                  t.scanner_change_dex_btn,
                   overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.bold,
                     color: Color(0xFFEF5350),
@@ -135,7 +136,7 @@ class DesktopTargetDexCard extends StatelessWidget {
                           children: [
                             Flexible(
                               child: Text(
-                                activeDex?.title ?? 'Kein Dex ausgewählt',
+                                activeDex?.title ?? t.scanner_no_dex_selected,
                                 overflow: TextOverflow.ellipsis,
                                 style: const TextStyle(
                                   fontSize: 13,
@@ -169,7 +170,9 @@ class DesktopTargetDexCard extends StatelessWidget {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          '${stats.caughtCount} von ${stats.totalCount} gefangen',
+                          t.scanner_caught_of_total
+                              .replaceAll('{caught}', '${stats.caughtCount}')
+                              .replaceAll('{total}', '${stats.totalCount}'),
                           style: TextStyle(
                             fontSize: 10,
                             color: isDark ? Colors.white54 : Colors.black45,

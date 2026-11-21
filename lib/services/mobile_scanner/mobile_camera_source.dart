@@ -8,7 +8,6 @@ import '../scanner_core/models/scanner_settings.dart';
 import '../scanner_core/source/scanner_source.dart';
 import 'camera_frame_processor.dart';
 import 'camera_scan_region.dart';
-import 'mobile_ocr_driver.dart';
 
 /// Camera-backed [ScannerSource] supporting Auto full-frame mode as well as
 /// strict per-rectangle ROI cropping for Zone A, Zone B (Live-Fokus), and Multi-Instance slots.

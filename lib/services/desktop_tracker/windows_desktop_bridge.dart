@@ -404,9 +404,9 @@ class WindowsDesktopBridge implements DesktopPlatformBridge {
         'startDesktopSnipping',
         {
           'hideAppWindow': hideAppWindow,
-          if (hintLabel != null) 'hintLabel': hintLabel,
-          if (confirmLabel != null) 'confirmLabel': confirmLabel,
-          if (cancelLabel != null) 'cancelLabel': cancelLabel,
+          'hintLabel': ?hintLabel,
+          'confirmLabel': ?confirmLabel,
+          'cancelLabel': ?cancelLabel,
         },
       );
       if (raw == null) return null;

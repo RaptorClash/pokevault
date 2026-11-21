@@ -19,7 +19,7 @@ import '../../../services/scanner_core/models/scanner_settings.dart';
 /// photo import, and platform camera OCR driver lifecycle for
 /// [DesktopTrackerScreen].
 class DesktopTrackerWebcamController extends ChangeNotifier {
-  final DesktopPlatformBridge? Function() _bridgeResolver;
+  final DesktopPlatformBridge? Function() bridgeResolver;
   final DesktopOcrDriver? cameraOcrDriverOverride;
   final bool disableHardwareCamera;
   final Future<CapturedFrame?> Function()? sandboxImagePicker;
@@ -39,13 +39,12 @@ class DesktopTrackerWebcamController extends ChangeNotifier {
   List<NormalizedScanRect> cameraRegions = const [];
 
   DesktopTrackerWebcamController({
-    required DesktopPlatformBridge? Function() bridgeResolver,
+    required this.bridgeResolver,
     this.cameraOcrDriverOverride,
     this.disableHardwareCamera = false,
     this.sandboxImagePicker,
     List<CameraDescription>? initialCameras,
-  })  : _bridgeResolver = bridgeResolver,
-        cameras = initialCameras ?? const [];
+  }) : cameras = initialCameras ?? const [];
 
   ValueListenable<WebOcrEngineStatus>? get webOcrStatusListenable {
     if (!kIsWeb) return null;
@@ -59,7 +58,7 @@ class DesktopTrackerWebcamController extends ChangeNotifier {
   DesktopOcrDriver ensureCameraOcrDriver({required String ocrLanguageTag}) {
     return cameraOcrDriver ??= cameraOcrDriverOverride ??
         createPlatformCameraOcrDriver(
-          windowsBridge: _bridgeResolver(),
+          windowsBridge: bridgeResolver(),
           initialLanguageTag: ocrLanguageTag,
         );
   }

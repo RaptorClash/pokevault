@@ -14,7 +14,7 @@ void main() {
 
     test('roundtrips all ScannerSettings fields including ocrLanguage and toggles', () async {
       final service = ScannerPersistenceService();
-      final saved = ScannerSettings(
+      const saved = ScannerSettings(
         autoMarkCaught: false,
         trackEvolutions: false,
         livingDexEvolutionAction: LivingDexEvolutionAction.autoRemovePreEvolution,
@@ -26,7 +26,7 @@ void main() {
         ocrLanguage: 'ja',
         preprocessProfile: OcrPreprocessProfile.cameraDisplay,
         scanIntervalMs: 650,
-        customPatterns: const [
+        customPatterns: [
           CustomOcrPattern(
             id: 'p1',
             template: 'Wild {pokemon}!',
@@ -34,9 +34,9 @@ void main() {
           ),
         ],
         liveFocusPreset: LiveFocusPreset.topLeft,
-        ignoredPokemonIds: const [25, 133],
+        ignoredPokemonIds: [25, 133],
         showScreenBorders: false,
-        multiInstanceSlots: const [],
+        multiInstanceSlots: [],
       );
 
       await service.saveScannerSettings(saved);

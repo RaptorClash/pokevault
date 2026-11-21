@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:provider/provider.dart';
+import 'package:pokevault/i18n/strings.g.dart';
 import 'package:pokevault/models/pokemon.dart';
 import 'package:pokevault/models/user_dex.dart';
 import 'package:pokevault/providers/dex_provider.dart';
@@ -731,6 +732,45 @@ void main() {
         expect(tester.takeException(), isNull);
         expect(DesktopTrackerService.instance.isTrackingActive, isFalse);
         expect(find.byType(PersistentTrackerDock), findsNothing);
+      },
+    );
+
+    testWidgets(
+      'Switching LocaleSettings updates PersistentTrackerDock active and paused labels',
+      (tester) async {
+        addTearDown(() => LocaleSettings.setLocale(AppLocale.de));
+        LocaleSettings.setLocale(AppLocale.en);
+
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              bottomNavigationBar: PersistentTrackerDock(
+                latestEvent: null,
+                isScanningActive: true,
+                onOpenHud: () {},
+                onOpenSetup: () {},
+                onTogglePause: () {},
+              ),
+            ),
+          ),
+        );
+        expect(find.text('Live tracker active'), findsOneWidget);
+
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              bottomNavigationBar: PersistentTrackerDock(
+                latestEvent: null,
+                isScanningActive: false,
+                onOpenHud: () {},
+                onOpenSetup: () {},
+                onTogglePause: () {},
+              ),
+            ),
+          ),
+        );
+        expect(find.text('PAUSED'), findsOneWidget);
+        expect(find.text('Tracker paused'), findsOneWidget);
       },
     );
   });

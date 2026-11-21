@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../i18n/strings.g.dart';
 import '../../../services/scanner_core/models/scanner_settings.dart';
 
 /// Modal configuration dialog for preset scan region, auto-mark caught,
@@ -41,11 +42,14 @@ class _TrackerSettingsDialogState extends State<TrackerSettingsDialog> {
       title: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          const Row(
+          Row(
             children: [
-              Icon(Icons.settings, size: 20),
-              SizedBox(width: 8),
-              Text('Tracker-Einstellungen', style: TextStyle(fontSize: 16)),
+              const Icon(Icons.settings, size: 20),
+              const SizedBox(width: 8),
+              Text(
+                t.scanner_settings_dialog_title,
+                style: const TextStyle(fontSize: 16),
+              ),
             ],
           ),
           IconButton(
@@ -62,14 +66,14 @@ class _TrackerSettingsDialogState extends State<TrackerSettingsDialog> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                'Scanbereich (Fensterbereich)',
-                style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+              Text(
+                t.scanner_settings_region_title,
+                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 6),
-              const Text(
-                'Wähle welcher Teil des Emulatorfensters per OCR abgetastet werden soll:',
-                style: TextStyle(fontSize: 11, color: Colors.grey),
+              Text(
+                t.scanner_settings_region_desc,
+                style: const TextStyle(fontSize: 11, color: Colors.grey),
               ),
               const SizedBox(height: 10),
               RadioGroup<ScanRegionPreset>(
@@ -85,27 +89,26 @@ class _TrackerSettingsDialogState extends State<TrackerSettingsDialog> {
                     _buildPresetOption(
                       key: 'preset_full_window',
                       preset: ScanRegionPreset.fullWindow,
-                      title: 'Ganzes Fenster (Empfohlen für DS & Multi-Screen)',
-                      subtitle: 'Scannt das gesamte Spielfenster (100%)',
+                      title: t.scanner_settings_full_title,
+                      subtitle: t.scanner_settings_full_sub,
                     ),
                     _buildPresetOption(
                       key: 'preset_ds_top_screen',
                       preset: ScanRegionPreset.dsTopScreen,
-                      title: 'Oberer DS-Bildschirm (DS-Kämpfe & Dialoge)',
-                      subtitle: 'Scannt oberen Bildschirm (0-52%)',
+                      title: t.scanner_settings_ds_top_title,
+                      subtitle: t.scanner_settings_ds_top_sub,
                     ),
                     _buildPresetOption(
                       key: 'preset_ds_bottom_screen',
                       preset: ScanRegionPreset.dsBottomScreen,
-                      title: 'Unterer DS-Bildschirm (Touchscreen)',
-                      subtitle: 'Scannt unteren Bildschirm (48-100%)',
+                      title: t.scanner_settings_ds_bottom_title,
+                      subtitle: t.scanner_settings_ds_bottom_sub,
                     ),
                     _buildPresetOption(
                       key: 'preset_bottom_dialogue',
                       preset: ScanRegionPreset.bottomDialogue,
-                      title: 'Klassische Textbox (GBA / 3DS unten)',
-                      subtitle:
-                          'Scannt Textbox am unteren Fensterrand (70-100%)',
+                      title: t.scanner_settings_dialogue_title,
+                      subtitle: t.scanner_settings_dialogue_sub,
                     ),
                   ],
                 ),
@@ -114,13 +117,13 @@ class _TrackerSettingsDialogState extends State<TrackerSettingsDialog> {
               SwitchListTile(
                 key: const Key('switch_auto_mark_caught'),
                 contentPadding: EdgeInsets.zero,
-                title: const Text(
-                  'Automatisch eintragen',
-                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+                title: Text(
+                  t.scanner_settings_auto_mark_title,
+                  style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
                 ),
-                subtitle: const Text(
-                  'Erkannte Fänge direkt ohne Klick im Ziel-Dex speichern',
-                  style: TextStyle(fontSize: 11, color: Colors.grey),
+                subtitle: Text(
+                  t.scanner_settings_auto_mark_sub,
+                  style: const TextStyle(fontSize: 11, color: Colors.grey),
                 ),
                 value: _autoMark,
                 onChanged: (val) {
@@ -131,9 +134,9 @@ class _TrackerSettingsDialogState extends State<TrackerSettingsDialog> {
                 },
               ),
               const Divider(height: 24),
-              const Text(
-                'OCR-Sprache (Spieltext-Erkennung)',
-                style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+              Text(
+                t.scanner_settings_ocr_lang_title,
+                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 6),
               DropdownButtonFormField<String>(

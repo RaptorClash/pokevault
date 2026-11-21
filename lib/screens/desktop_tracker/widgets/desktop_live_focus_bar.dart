@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../../i18n/strings.g.dart';
 import '../../../providers/dex_provider.dart';
 import '../../../services/desktop_tracker/desktop_window_source.dart';
 import '../../../services/scanner_core/models/scanner_settings.dart';
@@ -136,11 +137,11 @@ class DesktopLiveFocusZoneBar extends StatelessWidget {
     final ignoredIds = settings.ignoredPokemonIds;
     final dexProvider = Provider.of<DexProvider>(context, listen: false);
 
-    const presetOptions = <({LiveFocusPreset preset, String label})>[
-      (preset: LiveFocusPreset.disabled, label: 'Aus'),
-      (preset: LiveFocusPreset.topLeft, label: '↖ Oben Links'),
-      (preset: LiveFocusPreset.topRight, label: '↗ Oben Rechts'),
-      (preset: LiveFocusPreset.topBanner, label: '▭ Oberer Streifen'),
+    final presetOptions = <({LiveFocusPreset preset, String label})>[
+      (preset: LiveFocusPreset.disabled, label: t.scanner_focus_disabled),
+      (preset: LiveFocusPreset.topLeft, label: '↖ ${t.scanner_focus_top_left}'),
+      (preset: LiveFocusPreset.topRight, label: '↗ ${t.scanner_focus_top_right}'),
+      (preset: LiveFocusPreset.topBanner, label: '▭ ${t.scanner_focus_top_banner}'),
     ];
 
     return Container(
@@ -170,9 +171,9 @@ class DesktopLiveFocusZoneBar extends StatelessWidget {
                   size: 14,
                   color: Colors.cyanAccent,
                 ),
-                const Text(
-                  'LIVE-FOKUS-ZONE (ZONE B)',
-                  style: TextStyle(
+                Text(
+                  t.scanner_zone_b_header,
+                  style: const TextStyle(
                     fontSize: 10,
                     fontWeight: FontWeight.bold,
                     letterSpacing: 0.5,
@@ -187,9 +188,9 @@ class DesktopLiveFocusZoneBar extends StatelessWidget {
                     color: Colors.cyanAccent.withValues(alpha: 0.14),
                     borderRadius: BorderRadius.circular(6),
                   ),
-                  child: const Text(
-                    'TÜRKIS · NUR ENCOUNTER',
-                    style: TextStyle(
+                  child: Text(
+                    t.scanner_zone_b_badge,
+                    style: const TextStyle(
                       fontSize: 9,
                       fontWeight: FontWeight.bold,
                       color: Colors.cyanAccent,
@@ -200,7 +201,7 @@ class DesktopLiveFocusZoneBar extends StatelessWidget {
                   buttonKey: const Key('btn_info_zone_b'),
                   isOpen: showZoneBInfo,
                   accentColor: Colors.cyanAccent,
-                  tooltip: 'Info zu Live-Fokus-Zone (Zone B)',
+                  tooltip: t.scanner_zone_b_info_tooltip,
                   onPressed: onToggleInfo,
                 ),
               ],
@@ -210,12 +211,8 @@ class DesktopLiveFocusZoneBar extends StatelessWidget {
                 boxKey: const Key('info_box_zone_b'),
                 accentColor: Colors.cyanAccent,
                 isDark: isDark,
-                title: 'Wofür ist Live-Fokus-Zone (Zone B)?',
-                body:
-                    'Liest nur den Gegnernamen oben im Kampf-HUD (z. B. oben '
-                    'links/rechts oder frei markiert) als Begegnung — perfekt '
-                    'für Live-Fokus und Mehrfachbegegnungen, ohne eigene Pokémon '
-                    'oder Teammitglieder als gefangen zu werten.',
+                title: t.scanner_zone_b_info_title,
+                body: t.scanner_zone_b_info_body,
               ),
             const SizedBox(height: 8),
             Wrap(
@@ -258,8 +255,8 @@ class DesktopLiveFocusZoneBar extends StatelessWidget {
                 label: Text(
                   activeFocusPreset == LiveFocusPreset.customRegion &&
                           focusRegion != null
-                      ? 'Fokus-Bereich neu zeichnen'
-                      : 'Live-Fokus-Bereich frei zeichnen',
+                      ? t.scanner_redraw_focus_region
+                      : t.scanner_draw_focus_region,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
                     fontSize: 10,
@@ -345,7 +342,10 @@ class DesktopLiveFocusZoneBar extends StatelessWidget {
                         child: Text(
                           text.isNotEmpty
                               ? 'Zone B: $text'
-                              : 'Zone B aktiv (${activeFocusPreset.labelDe})',
+                              : t.scanner_zone_b_active.replaceAll(
+                                  '{preset}',
+                                  activeFocusPreset.labelDe,
+                                ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
@@ -356,7 +356,7 @@ class DesktopLiveFocusZoneBar extends StatelessWidget {
                       ),
                       if (activeFocusPreset == LiveFocusPreset.customRegion)
                         IconButton(
-                          tooltip: 'Fokus-Bereich deaktivieren',
+                          tooltip: t.scanner_disable_focus_tooltip,
                           icon: const Icon(Icons.close, size: 14),
                           visualDensity: VisualDensity.compact,
                           padding: EdgeInsets.zero,
@@ -413,9 +413,9 @@ class DesktopLiveFocusZoneBar extends StatelessWidget {
             ],
             if (ignoredIds.isNotEmpty) ...[
               const Divider(height: 14),
-              const Text(
-                'IGNORIERTE TEAM-POKÉMON (STARTER-SCHUTZ)',
-                style: TextStyle(
+              Text(
+                t.scanner_ignored_team_header,
+                style: const TextStyle(
                   fontSize: 9,
                   fontWeight: FontWeight.bold,
                   letterSpacing: 0.5,
@@ -507,11 +507,11 @@ class DesktopRefreshRateAndPatternsBar extends StatelessWidget {
             children: [
               const Icon(Icons.tune, size: 14, color: Colors.deepPurpleAccent),
               const SizedBox(width: 6),
-              const Expanded(
+              Expanded(
                 child: Text(
-                  'SCAN-PROFIL',
+                  t.scanner_profile_header,
                   overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 10,
                     fontWeight: FontWeight.bold,
                     letterSpacing: 0.5,
@@ -522,7 +522,7 @@ class DesktopRefreshRateAndPatternsBar extends StatelessWidget {
                 buttonKey: const Key('btn_info_scan_profile'),
                 isOpen: showScanProfileInfo,
                 accentColor: Colors.deepPurpleAccent,
-                tooltip: 'Info zu den Scan-Profilen',
+                tooltip: t.scanner_profile_info_tooltip,
                 onPressed: onToggleInfo,
               ),
             ],
@@ -532,10 +532,8 @@ class DesktopRefreshRateAndPatternsBar extends StatelessWidget {
               boxKey: const Key('info_box_scan_profile'),
               accentColor: Colors.deepPurpleAccent,
               isDark: isDark,
-              title: 'Bild-Optimierung pro Quelle',
-              body: '• Standard: Für scharfe PC- oder HD-Fenster.\n'
-                  '• Pixel-Art (DS): Schärft & skaliert pixelige DS-/GBA-Texte (z. B. melonDS, Gen 4/5).\n'
-                  '• Kamera / Display: Erhöht Kontrast für blasse oder abgefilmte Bildschirme.',
+              title: t.scanner_profile_info_title,
+              body: t.scanner_profile_info_body,
             ),
           const SizedBox(height: 6),
           Wrap(
@@ -568,11 +566,11 @@ class DesktopRefreshRateAndPatternsBar extends StatelessWidget {
             children: [
               const Icon(Icons.speed, size: 14, color: Colors.blueAccent),
               const SizedBox(width: 6),
-              const Expanded(
+              Expanded(
                 child: Text(
-                  'OCR-SCAN-RATE',
+                  t.scanner_rate_header,
                   overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 10,
                     fontWeight: FontWeight.bold,
                     letterSpacing: 0.5,
@@ -629,7 +627,8 @@ class DesktopRefreshRateAndPatternsBar extends StatelessWidget {
                 color: Colors.amber,
               ),
               label: Text(
-                'Eigene OCR-Muster ($activePatternsCount)',
+                t.scanner_custom_patterns_btn
+                    .replaceAll('{count}', '$activePatternsCount'),
                 overflow: TextOverflow.ellipsis,
                 style: const TextStyle(
                   fontSize: 11,

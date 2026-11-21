@@ -4,6 +4,7 @@ import 'package:pokevault/services/desktop_tracker/desktop_capture_driver.dart';
 import 'package:pokevault/services/desktop_tracker/screen_region.dart';
 import 'package:pokevault/services/desktop_tracker/window_detector.dart';
 import 'package:pokevault/services/desktop_tracker/windows_desktop_bridge.dart';
+import 'package:pokevault/services/scanner_core/media/frame_band_cropper.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -506,6 +507,75 @@ void main() {
 
       expect(frame, isNotNull);
       expect(frame!.bytes, [10, 20, 30, 255]);
+    });
+
+    test('WindowsDesktopCaptureDriver handles sequential multi-zone crops on the same window deterministically', () async {
+      final calls = <MethodCall>[];
+      final fullBytes = Uint8List(8 * 8 * 4);
+      for (int y = 0; y < 8; y++) {
+        for (int x = 0; x < 8; x++) {
+          final off = (y * 8 + x) * 4;
+          fullBytes[off] = x;
+          fullBytes[off + 1] = y;
+          fullBytes[off + 2] = x + y;
+          fullBytes[off + 3] = 255;
+        }
+      }
+      final fullFrame = CapturedFrame(
+        width: 8,
+        height: 8,
+        bytes: fullBytes,
+        pixelFormat: 'bgra8888',
+        captureMethod: 'printwindow_pw2',
+      );
+
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, (call) async {
+        calls.add(call);
+        if (call.method == 'captureWindow') {
+          final args = Map<String, dynamic>.from(call.arguments as Map);
+          final crop = args['cropRegion'] as Map?;
+          if (crop != null) {
+            final sub = FrameBandCropper.cropRectBgra(
+              fullFrame,
+              x: (crop['x'] as num).round(),
+              y: (crop['y'] as num).round(),
+              width: (crop['width'] as num).round(),
+              height: (crop['height'] as num).round(),
+            )!;
+            return {
+              'width': sub.width,
+              'height': sub.height,
+              'pixelFormat': sub.pixelFormat,
+              'captureMethod': sub.captureMethod,
+              'bytes': sub.bytes,
+            };
+          }
+        }
+        return null;
+      });
+
+      final driver = WindowsDesktopCaptureDriver(bridge: bridge);
+      const win = DesktopWindowInfo(id: 99, hwnd: 12345, title: 'melonDS', width: 8, height: 8);
+      final zoneA = await driver.captureWindow(
+        window: win,
+        cropRegion: const Rect.fromLTWH(0, 4, 8, 4),
+      );
+      final zoneB = await driver.captureWindow(
+        window: win,
+        cropRegion: const Rect.fromLTWH(4, 0, 4, 2),
+      );
+
+      expect(calls, hasLength(2));
+      expect(zoneA, isNotNull);
+      expect(zoneA!.width, 8);
+      expect(zoneA.height, 4);
+      expect(zoneA.bytes[1], 4); // y == 4
+      expect(zoneB, isNotNull);
+      expect(zoneB!.width, 4);
+      expect(zoneB.height, 2);
+      expect(zoneB.bytes[0], 4); // x == 4
+      expect(zoneB.bytes[1], 0); // y == 0
     });
   });
 }

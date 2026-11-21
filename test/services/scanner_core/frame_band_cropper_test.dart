@@ -78,5 +78,71 @@ void main() {
       expect(FrameBandCropper.splitZoneBBands(tiny), isEmpty);
       expect(FrameBandCropper.invertLuminanceBgra(tiny), isNull);
     });
+
+    test('cropRectBgra extracts exact sub-rectangle and clamps out-of-bounds cleanly', () {
+      const w = 6;
+      const h = 4;
+      final bytes = Uint8List(w * h * 4);
+      for (int y = 0; y < h; y++) {
+        for (int x = 0; x < w; x++) {
+          final off = (y * w + x) * 4;
+          bytes[off] = x * 10 + y; // B encodes (x, y)
+          bytes[off + 1] = y * 20;
+          bytes[off + 2] = x * 30;
+          bytes[off + 3] = 255;
+        }
+      }
+      final frame = CapturedFrame(
+        width: w,
+        height: h,
+        bytes: bytes,
+        pixelFormat: 'bgra8888',
+        captureMethod: 'printwindow_pw2',
+      );
+
+      final cropped = FrameBandCropper.cropRectBgra(
+        frame,
+        x: 2,
+        y: 1,
+        width: 3,
+        height: 2,
+      );
+      expect(cropped, isNotNull);
+      expect(cropped!.width, 3);
+      expect(cropped.height, 2);
+      expect(cropped.captureMethod, 'printwindow_pw2');
+      // Top-left pixel (2, 1) -> B = 21
+      expect(cropped.bytes[0], 21);
+      // Bottom-right pixel (4, 2) -> B = 42
+      const lastOff = ((2 - 1) * 3 + (3 - 1)) * 4;
+      expect(cropped.bytes[lastOff], 42);
+
+      // Boundary clamping: negative/oversized rect clamps safely inside source frame
+      final clamped = FrameBandCropper.cropRectBgra(
+        frame,
+        x: 4,
+        y: 2,
+        width: 10,
+        height: 10,
+      );
+      expect(clamped, isNotNull);
+      expect(clamped!.width, 2);
+      expect(clamped.height, 2);
+      expect(clamped.bytes[0], 42);
+
+      // Invalid / empty dimensions or non-bgra format return null
+      expect(FrameBandCropper.cropRectBgra(frame, x: 0, y: 0, width: 0, height: 2), isNull);
+      expect(FrameBandCropper.cropRectBgra(frame, x: 0, y: 0, width: 2, height: 0), isNull);
+      expect(
+        FrameBandCropper.cropRectBgra(
+          const CapturedFrame(width: 4, height: 4, bytes: [1, 2], pixelFormat: 'bgra8888'),
+          x: 0,
+          y: 0,
+          width: 2,
+          height: 2,
+        ),
+        isNull,
+      );
+    });
   });
 }

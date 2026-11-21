@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../../i18n/strings.g.dart';
 import '../../../models/user_dex.dart';
 import '../../../providers/dex_provider.dart';
 import '../../../services/database_service.dart';
@@ -123,7 +124,9 @@ class PersistentTrackerDock extends StatelessWidget {
                       if (!isVeryCompact) ...[
                         const SizedBox(width: 5),
                         Text(
-                          isScanningActive ? 'LIVE' : 'PAUSIERT',
+                          isScanningActive
+                              ? t.scanner_dock_live
+                              : t.scanner_dock_paused,
                           style: TextStyle(
                             color: statusColor,
                             fontSize: 10,
@@ -252,8 +255,8 @@ class PersistentTrackerDock extends StatelessWidget {
                                 event != null
                                     ? '${isShiny ? '✨ ' : ''}${event.matchedName}${event.pokemonId != null && !isVeryCompact ? ' (#${event.pokemonId})' : ''}'
                                     : (isScanningActive
-                                        ? 'Live-Tracker aktiv'
-                                        : 'Tracker pausiert'),
+                                        ? t.scanner_dock_active
+                                        : t.scanner_dock_inactive),
                                 overflow: TextOverflow.ellipsis,
                                 style: TextStyle(
                                   color: (event != null && isShiny)
@@ -287,7 +290,9 @@ class PersistentTrackerDock extends StatelessWidget {
                                 child: Text(
                                   isVeryCompact
                                       ? (isCaught ? '✔' : '!')
-                                      : (isCaught ? '✔ Gefangen' : 'Fehlt im Ziel-Dex'),
+                                      : (isCaught
+                                          ? t.scanner_dock_caught
+                                          : t.scanner_dock_missing),
                                   style: TextStyle(
                                     color: isCaught
                                         ? const Color(0xFF34D399)
@@ -304,7 +309,12 @@ class PersistentTrackerDock extends StatelessWidget {
                       Text(
                         [
                           if (activeDex != null)
-                            'Ziel-Dex: ${activeDex!.title} (${activeDex!.caughtIds.length} gefangen)',
+                            t.scanner_dock_target_dex
+                                .replaceAll('{title}', activeDex!.title)
+                                .replaceAll(
+                                  '{count}',
+                                  '${activeDex!.caughtIds.length}',
+                                ),
                           if (!isCompact &&
                               activeSourceTitle != null &&
                               activeSourceTitle!.trim().isNotEmpty)
@@ -337,9 +347,12 @@ class PersistentTrackerDock extends StatelessWidget {
                         onPressed: onMarkCaught ??
                             () => onMarkEventCaught?.call(event),
                         icon: const Icon(Icons.catching_pokemon, size: 14),
-                        label: const Text(
-                          '+ Eintragen',
-                          style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
+                        label: Text(
+                          t.scanner_dock_add_caught,
+                          style: const TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                         style: FilledButton.styleFrom(
                           backgroundColor: const Color(0xFF10B981).withValues(alpha: 0.18),
@@ -353,7 +366,9 @@ class PersistentTrackerDock extends StatelessWidget {
                     IconButton.filledTonal(
                       key: const Key('btn_dock_toggle_pause'),
                       onPressed: onTogglePause,
-                      tooltip: isScanningActive ? 'Pausieren' : 'Fortsetzen',
+                      tooltip: isScanningActive
+                          ? t.scanner_dock_pause_tooltip
+                          : t.scanner_dock_resume_tooltip,
                       visualDensity: VisualDensity.compact,
                       icon: Icon(
                         isScanningActive
@@ -370,7 +385,9 @@ class PersistentTrackerDock extends StatelessWidget {
                       IconButton.filledTonal(
                         key: const Key('btn_dock_open_hud'),
                         onPressed: onOpenHud,
-                        tooltip: isHudVisible ? 'HUD ausblenden' : 'HUD öffnen',
+                        tooltip: isHudVisible
+                            ? t.scanner_dock_hud_hide_tooltip
+                            : t.scanner_dock_hud_open_tooltip,
                         visualDensity: VisualDensity.compact,
                         style: isHudVisible
                             ? IconButton.styleFrom(
@@ -384,7 +401,7 @@ class PersistentTrackerDock extends StatelessWidget {
                       IconButton.filled(
                         key: const Key('btn_dock_open_setup'),
                         onPressed: onOpenSetup,
-                        tooltip: 'Scanner-Setup öffnen',
+                        tooltip: t.scanner_dock_setup_tooltip,
                         visualDensity: VisualDensity.compact,
                         style: IconButton.styleFrom(
                           backgroundColor: colors.primary,
@@ -399,9 +416,12 @@ class PersistentTrackerDock extends StatelessWidget {
                           key: const Key('btn_dock_open_hud'),
                           onPressed: onOpenHud,
                           icon: const Icon(Icons.picture_in_picture_alt, size: 14),
-                          label: const Text(
-                            'HUD aktiv',
-                            style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
+                          label: Text(
+                            t.scanner_dock_hud_active,
+                            style: const TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                           style: FilledButton.styleFrom(
                             backgroundColor: const Color(0xFF06B6D4).withValues(alpha: 0.2),
@@ -418,9 +438,12 @@ class PersistentTrackerDock extends StatelessWidget {
                           key: const Key('btn_dock_open_hud'),
                           onPressed: onOpenHud,
                           icon: const Icon(Icons.picture_in_picture_alt, size: 14),
-                          label: const Text(
-                            'HUD',
-                            style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
+                          label: Text(
+                            t.scanner_dock_hud,
+                            style: const TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                           style: OutlinedButton.styleFrom(
                             foregroundColor: colors.onSurface,
@@ -434,9 +457,12 @@ class PersistentTrackerDock extends StatelessWidget {
                         key: const Key('btn_dock_open_setup'),
                         onPressed: onOpenSetup,
                         icon: const Icon(Icons.tune, size: 14),
-                        label: const Text(
-                          'Setup',
-                          style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
+                        label: Text(
+                          t.scanner_dock_setup,
+                          style: const TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                         style: FilledButton.styleFrom(
                           backgroundColor: colors.primary,
@@ -455,7 +481,7 @@ class PersistentTrackerDock extends StatelessWidget {
                           size: 18,
                           color: colors.onSurfaceVariant,
                         ),
-                        tooltip: 'Tracker beenden',
+                        tooltip: t.scanner_dock_close_tooltip,
                         visualDensity: VisualDensity.compact,
                         constraints: const BoxConstraints(
                           minWidth: 36,

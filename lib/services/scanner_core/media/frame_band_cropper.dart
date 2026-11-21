@@ -81,6 +81,31 @@ class FrameBandCropper {
     );
   }
 
+  /// Extracts a sub-rectangle `[x, y, width, height]` from a BGRA8888 [frame],
+  /// clamping coordinates safely within bounds and returning `null` if invalid.
+  static CapturedFrame? cropRectBgra(
+    CapturedFrame frame, {
+    required int x,
+    required int y,
+    required int width,
+    required int height,
+  }) {
+    final srcW = frame.width;
+    final srcH = frame.height;
+    if (srcW <= 0 ||
+        srcH <= 0 ||
+        width <= 0 ||
+        height <= 0 ||
+        frame.pixelFormat != 'bgra8888') {
+      return null;
+    }
+    final expectedBytes = srcW * srcH * 4;
+    if (frame.bytes.length < expectedBytes) {
+      return null;
+    }
+    return _cropBgra(frame, x: x, y: y, width: width, height: height);
+  }
+
   static CapturedFrame? _cropBgra(
     CapturedFrame frame, {
     required int x,

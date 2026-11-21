@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:universal_io/io.dart' as io;
+import '../../i18n/strings.g.dart';
 import '../scanner_core/models/scanner_event.dart';
 import '../scanner_core/scanner_coordinator.dart';
 import 'desktop_window_source.dart';
@@ -225,7 +226,7 @@ class DesktopTrackerService {
         .toList(growable: false);
 
     return NativeHudState(
-      pokemonName: primaryEv?.matchedName ?? 'Warte auf Spiel...',
+      pokemonName: primaryEv?.matchedName ?? t.scanner_waiting_for_game,
       pokemonId: pid,
       isShiny: primaryEv?.isShiny ?? false,
       isCaught: isCaught,
@@ -239,6 +240,10 @@ class DesktopTrackerService {
       instanceLabel: primaryEv?.instanceIndex != null
           ? '#${primaryEv!.instanceIndex}'
           : null,
+      waitingLabel: t.scanner_waiting_for_game,
+      caughtLabel: t.scanner_dock_caught,
+      missingLabel: t.scanner_hud_missing,
+      footerLabel: t.scanner_hud_footer,
       focusEntries: entries,
     );
   }
@@ -380,7 +385,9 @@ class DesktopTrackerService {
                   id: b.id,
                   region: b.region,
                   colorArgb: 0xFFF59E0B,
-                  label: b.label.isEmpty ? 'Pause' : '${b.label} (Pause)',
+                  label: b.label.isEmpty
+                      ? t.scanner_pause_suffix
+                      : '${b.label} (${t.scanner_pause_suffix})',
                   visible: b.visible,
                 ),
               )

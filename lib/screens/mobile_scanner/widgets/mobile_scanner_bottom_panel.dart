@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../i18n/strings.g.dart';
 import '../../../models/user_dex.dart';
 import '../../../services/desktop_tracker/evolution_chain_helper.dart';
 import '../../../services/mobile_scanner/camera_scan_region.dart';
@@ -73,14 +74,19 @@ class MobileDrawBrushBar extends StatelessWidget {
             const SizedBox(width: 4),
             ActionChip(
               avatar: const Icon(Icons.add, size: 14),
-              label: const Text('Instanz', style: TextStyle(fontSize: 10)),
+              label: Text(
+                t.scanner_mob_instance_btn,
+                style: const TextStyle(fontSize: 10),
+              ),
               visualDensity: VisualDensity.compact,
               onPressed: onAddMultiSlot,
             ),
             const SizedBox(width: 6),
             FilterChip(
               label: Text(
-                isEditingRegions ? 'Bearbeiten' : 'Gesperrt',
+                isEditingRegions
+                    ? t.scanner_mob_editing
+                    : t.scanner_mob_locked,
                 style: const TextStyle(fontSize: 10),
               ),
               selected: isEditingRegions,
@@ -154,7 +160,9 @@ class MobileCompactFocusPill extends StatelessWidget {
                       isCaught ? Colors.greenAccent : Colors.cyanAccent,
                 ),
                 child: Text(
-                  isCaught ? 'Im Dex ✓' : '+ Eintragen',
+                  isCaught
+                      ? t.scanner_caught_badge_short
+                      : t.scanner_dock_add_caught,
                   style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
                 ),
               ),
@@ -207,7 +215,8 @@ class MobileFullscreenBottomPanel extends StatelessWidget {
                 const SizedBox(width: 6),
                 Expanded(
                   child: Text(
-                    'Fokus, Zonen & Feed ($eventCount)',
+                    t.scanner_mob_drawer_header
+                        .replaceAll('{count}', '$eventCount'),
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(color: colors.onSurface, fontSize: 12),
                   ),

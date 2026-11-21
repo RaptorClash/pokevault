@@ -36,6 +36,27 @@ class DesktopTrackerDexController {
     return '#$pokemonId';
   }
 
+  /// Annotates an incoming caught [event] with `autoAddedCaught`, `autoAddedShiny`,
+  /// and `autoAddedAlpha` flags relative to [targetDex] when [autoMarkCaught] is enabled.
+  static ScannerEvent prepareIncomingEvent(
+    ScannerEvent event, {
+    required UserDex? targetDex,
+    required bool autoMarkCaught,
+  }) {
+    if (!autoMarkCaught ||
+        event.type != ScannerEventType.caught ||
+        event.pokemonId == null ||
+        targetDex == null) {
+      return event;
+    }
+    final idStr = event.pokemonId.toString();
+    return event.copyWith(
+      autoAddedCaught: !targetDex.caughtIds.contains(idStr),
+      autoAddedShiny: event.isShiny && !targetDex.shinyIds.contains(idStr),
+      autoAddedAlpha: event.isAlpha && !targetDex.alphaIds.contains(idStr),
+    );
+  }
+
   /// Persists caught/shiny/alpha flags for [pokemonId] in [targetDex].
   /// Returns `true` if [targetDex] was mutated.
   static Future<bool> persistCaughtStatus(
@@ -329,14 +350,17 @@ class DesktopTrackerDexController {
     required String languageCode,
     required bool Function() isMounted,
     required void Function(EvolutionCheckStatus? status) onStatusChanged,
+    void Function(EvolutionCheckStatus? status)? onSyncServiceStatus,
   }) {
+    final syncService = onSyncServiceStatus ??
+        DesktopTrackerService.instance.updateEvolutionStatus;
     final pid = event?.pokemonId;
     if (pid == null || pid <= 0 || activeDex == null) {
       if (activeEvolutionStatus != null) {
         activeEvolutionStatus = null;
         onStatusChanged(null);
       }
-      DesktopTrackerService.instance.updateEvolutionStatus(null);
+      syncService(null);
       return;
     }
 
@@ -357,7 +381,7 @@ class DesktopTrackerDexController {
     if (target == null || target.evolutionChainId == -1) {
       activeEvolutionStatus = null;
       onStatusChanged(null);
-      DesktopTrackerService.instance.updateEvolutionStatus(null);
+      syncService(null);
       return;
     }
 
@@ -372,7 +396,7 @@ class DesktopTrackerDexController {
       );
       activeEvolutionStatus = status;
       if (isMounted()) onStatusChanged(status);
-      DesktopTrackerService.instance.updateEvolutionStatus(status);
+      syncService(status);
       return;
     }
 
@@ -390,7 +414,7 @@ class DesktopTrackerDexController {
         );
         activeEvolutionStatus = status;
         onStatusChanged(status);
-        DesktopTrackerService.instance.updateEvolutionStatus(status);
+        syncService(status);
       } catch (_) {
         // Ignore in isolated widget tests without sqlite
       }

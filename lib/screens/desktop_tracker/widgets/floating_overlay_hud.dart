@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../i18n/strings.g.dart';
 import '../../../models/user_dex.dart';
 import '../../../services/scanner_core/models/scanner_event.dart';
 
@@ -202,7 +203,9 @@ class _FloatingOverlayHudState extends State<FloatingOverlayHud> {
                         visualDensity: VisualDensity.compact,
                         padding: EdgeInsets.zero,
                         constraints: const BoxConstraints(minWidth: 24, minHeight: 24),
-                        tooltip: _compact ? 'Erweitern' : 'Kompakt',
+                        tooltip: _compact
+                            ? t.scanner_hud_expand_tooltip
+                            : t.scanner_hud_compact_tooltip,
                         onPressed: _toggleCompact,
                       ),
                       const SizedBox(width: 4),
@@ -217,7 +220,7 @@ class _FloatingOverlayHudState extends State<FloatingOverlayHud> {
                         visualDensity: VisualDensity.compact,
                         padding: EdgeInsets.zero,
                         constraints: const BoxConstraints(minWidth: 24, minHeight: 24),
-                        tooltip: 'Immer im Vordergrund',
+                        tooltip: t.scanner_hud_pin_on_tooltip,
                         onPressed: _togglePinned,
                       ),
                       const SizedBox(width: 4),
@@ -229,7 +232,7 @@ class _FloatingOverlayHudState extends State<FloatingOverlayHud> {
                           visualDensity: VisualDensity.compact,
                           padding: EdgeInsets.zero,
                           constraints: const BoxConstraints(minWidth: 24, minHeight: 24),
-                          tooltip: 'Schließen',
+                          tooltip: t.scanner_hud_close_tooltip,
                           onPressed: widget.onClose,
                         ),
                     ],
@@ -369,17 +372,17 @@ class _FloatingOverlayHudState extends State<FloatingOverlayHud> {
                   }).toList(),
                 )
               else if (event == null)
-                const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 8.0),
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8.0),
                   child: Row(
                     children: [
-                      Icon(Icons.hourglass_empty, size: 16, color: Colors.white54),
-                      SizedBox(width: 8),
+                      const Icon(Icons.hourglass_empty, size: 16, color: Colors.white54),
+                      const SizedBox(width: 8),
                       Expanded(
                         child: Text(
-                          'Warte auf Spiel-Ereignis...',
+                          t.scanner_waiting_for_game,
                           overflow: TextOverflow.ellipsis,
-                          style: TextStyle(color: Colors.white70, fontSize: 12),
+                          style: const TextStyle(color: Colors.white70, fontSize: 12),
                         ),
                       ),
                     ],
@@ -465,9 +468,9 @@ class _FloatingOverlayHudState extends State<FloatingOverlayHud> {
                                       color: const Color(0xFFFBC02D).withValues(alpha: 0.5),
                                     ),
                                   ),
-                                  child: const Text(
-                                    'SHINY',
-                                    style: TextStyle(
+                                  child: Text(
+                                    t.scanner_hud_shiny_badge,
+                                    style: const TextStyle(
                                       color: Color(0xFFFDD835),
                                       fontSize: 9,
                                       fontWeight: FontWeight.bold,
@@ -495,7 +498,9 @@ class _FloatingOverlayHudState extends State<FloatingOverlayHud> {
                                     ),
                                   ),
                                   child: Text(
-                                    isCaught ? '✔ Gefangen' : '⚠️ Fehlt im Ziel-Dex',
+                                    isCaught
+                                        ? t.scanner_dock_caught
+                                        : t.scanner_hud_missing,
                                     overflow: TextOverflow.ellipsis,
                                     style: TextStyle(
                                       color: isCaught ? Colors.greenAccent : Colors.amberAccent,
@@ -543,7 +548,7 @@ class _FloatingOverlayHudState extends State<FloatingOverlayHud> {
                         key: const Key('btn_hud_mark_caught'),
                         onPressed: widget.onMarkCaught,
                         icon: const Icon(Icons.check_circle, color: Colors.greenAccent, size: 26),
-                        tooltip: 'In Ziel-Dex eintragen',
+                        tooltip: t.scanner_hud_add_tooltip,
                         visualDensity: VisualDensity.compact,
                       ),
                   ],

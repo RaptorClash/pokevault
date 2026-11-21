@@ -20,6 +20,7 @@
 #include <cmath>
 #include <cstring>
 #include <thread>
+#include <unordered_map>
 
 // gdiplus.h expects min/max in global scope when NOMINMAX is defined.
 using std::max;
@@ -432,49 +433,72 @@ std::vector<uint8_t> PreprocessFrameBytes(const std::vector<uint8_t>& bgra_bytes
   return out;
 }
 
-bool RunWindowsMediaOcr(const std::vector<uint8_t>& bgra_bytes,
-                        int width,
-                        int height,
-                        const std::string& language_tag,
-                        const std::string& preprocess_profile,
-                        std::vector<std::string>* out_lines,
-                        bool* out_used_fallback,
-                        std::string* out_resolved_tag,
-                        std::vector<std::string>* out_available_languages,
-                        std::string* out_error_hint) {
-  if (!out_lines || width <= 0 || height <= 0 ||
+struct CachedOcrEngineEntry {
+  Microsoft::WRL::ComPtr<ABI::Windows::Media::Ocr::IOcrEngine> engine;
+  std::string resolved_tag;
+  bool used_fallback = false;
+};
+
+struct OcrRuntimeCache {
+  Microsoft::WRL::ComPtr<ABI::Windows::Media::Ocr::IOcrEngineStatics>
+      ocr_statics;
+  Microsoft::WRL::ComPtr<ABI::Windows::Graphics::Imaging::ISoftwareBitmapStatics>
+      bmp_statics;
+  bool available_languages_loaded = false;
+  std::vector<std::string> available_languages;
+  std::unordered_map<std::string, CachedOcrEngineEntry> engines_by_tag;
+
+  void Reset() {
+    engines_by_tag.clear();
+    available_languages.clear();
+    available_languages_loaded = false;
+    bmp_statics.Reset();
+    ocr_statics.Reset();
+  }
+};
+
+struct DoneEventGuard {
+  std::mutex mtx;
+  HANDLE handle = nullptr;
+};
+
+bool RunWindowsMediaOcrCached(OcrRuntimeCache* cache,
+                              HANDLE stop_event,
+                              const std::vector<uint8_t>& bgra_bytes,
+                              int width,
+                              int height,
+                              const std::string& language_tag,
+                              const std::string& preprocess_profile,
+                              std::vector<std::string>* out_lines,
+                              bool* out_used_fallback,
+                              std::string* out_resolved_tag,
+                              std::vector<std::string>* out_available_languages,
+                              std::string* out_error_hint) {
+  if (!cache || !out_lines || width <= 0 || height <= 0 ||
       bgra_bytes.size() < static_cast<size_t>(width) * height * 4) {
     if (out_error_hint) *out_error_hint = "Invalid frame buffer or dimensions";
     return false;
   }
 
-  HRESULT ro_hr = RoInitialize(RO_INIT_MULTITHREADED);
-  const bool ro_inited = SUCCEEDED(ro_hr);
-
-  auto cleanup_ro = [&]() {
-    if (ro_inited) {
-      RoUninitialize();
-    }
-  };
-
   using namespace Microsoft::WRL;
   using namespace Microsoft::WRL::Wrappers;
 
-  ComPtr<ABI::Windows::Media::Ocr::IOcrEngineStatics> ocr_statics;
-  HRESULT hr = RoGetActivationFactory(
-      HStringReference(RuntimeClass_Windows_Media_Ocr_OcrEngine).Get(),
-      IID_PPV_ARGS(&ocr_statics));
-  if (FAILED(hr) || !ocr_statics) {
-    if (out_error_hint) *out_error_hint = "OcrEngine factory init failed";
-    cleanup_ro();
-    return false;
+  if (!cache->ocr_statics) {
+    HRESULT hr = RoGetActivationFactory(
+        HStringReference(RuntimeClass_Windows_Media_Ocr_OcrEngine).Get(),
+        IID_PPV_ARGS(&cache->ocr_statics));
+    if (FAILED(hr) || !cache->ocr_statics) {
+      if (out_error_hint) *out_error_hint = "OcrEngine factory init failed";
+      return false;
+    }
   }
 
-  if (out_available_languages) {
+  if (!cache->available_languages_loaded) {
     ComPtr<ABI::Windows::Foundation::Collections::IVectorView<
         ABI::Windows::Globalization::Language*>>
         avail_langs;
-    if (SUCCEEDED(ocr_statics->get_AvailableRecognizerLanguages(&avail_langs)) &&
+    if (SUCCEEDED(
+            cache->ocr_statics->get_AvailableRecognizerLanguages(&avail_langs)) &&
         avail_langs) {
       UINT32 lang_count = 0;
       avail_langs->get_Size(&lang_count);
@@ -486,72 +510,93 @@ bool RunWindowsMediaOcr(const std::vector<uint8_t>& bgra_bytes,
             UINT32 len = 0;
             const wchar_t* raw = WindowsGetStringRawBuffer(h_tag, &len);
             if (raw && len > 0) {
-              out_available_languages->push_back(
+              cache->available_languages.push_back(
                   WideToUtf8(std::wstring(raw, len)));
             }
             WindowsDeleteString(h_tag);
           }
         }
       }
+      cache->available_languages_loaded = true;
     }
+  }
+  if (out_available_languages) {
+    *out_available_languages = cache->available_languages;
   }
 
   ComPtr<ABI::Windows::Media::Ocr::IOcrEngine> ocr_engine;
   bool used_fallback = false;
   std::string resolved_tag = language_tag;
 
-  if (!language_tag.empty()) {
-    ComPtr<ABI::Windows::Globalization::ILanguageFactory> lang_factory;
-    if (SUCCEEDED(RoGetActivationFactory(
-            HStringReference(RuntimeClass_Windows_Globalization_Language).Get(),
-            IID_PPV_ARGS(&lang_factory))) &&
-        lang_factory) {
-      std::wstring wtag = Utf8ToWide(language_tag);
-      HString htag;
-      if (SUCCEEDED(htag.Set(wtag.c_str()))) {
-        ComPtr<ABI::Windows::Globalization::ILanguage> lang;
-        if (SUCCEEDED(lang_factory->CreateLanguage(htag.Get(), &lang)) &&
-            lang) {
-          ocr_statics->TryCreateFromLanguage(lang.Get(), &ocr_engine);
+  auto cache_it = cache->engines_by_tag.find(language_tag);
+  if (cache_it != cache->engines_by_tag.end() && cache_it->second.engine) {
+    ocr_engine = cache_it->second.engine;
+    used_fallback = cache_it->second.used_fallback;
+    resolved_tag = cache_it->second.resolved_tag;
+  } else {
+    if (!language_tag.empty()) {
+      ComPtr<ABI::Windows::Globalization::ILanguageFactory> lang_factory;
+      if (SUCCEEDED(RoGetActivationFactory(
+              HStringReference(RuntimeClass_Windows_Globalization_Language)
+                  .Get(),
+              IID_PPV_ARGS(&lang_factory))) &&
+          lang_factory) {
+        std::wstring wtag = Utf8ToWide(language_tag);
+        HString htag;
+        if (SUCCEEDED(htag.Set(wtag.c_str()))) {
+          ComPtr<ABI::Windows::Globalization::ILanguage> lang;
+          if (SUCCEEDED(lang_factory->CreateLanguage(htag.Get(), &lang)) &&
+              lang) {
+            cache->ocr_statics->TryCreateFromLanguage(lang.Get(), &ocr_engine);
+          }
         }
       }
     }
+
+    if (!ocr_engine) {
+      used_fallback = !language_tag.empty();
+      HRESULT hr = cache->ocr_statics->TryCreateFromUserProfileLanguages(
+          &ocr_engine);
+      if (FAILED(hr) || !ocr_engine) {
+        if (out_error_hint) {
+          *out_error_hint = "No Windows OCR language pack available";
+        }
+        return false;
+      }
+      ComPtr<ABI::Windows::Globalization::ILanguage> prof_lang;
+      if (SUCCEEDED(ocr_engine->get_RecognizerLanguage(&prof_lang)) &&
+          prof_lang) {
+        HSTRING h_resolved = nullptr;
+        if (SUCCEEDED(prof_lang->get_LanguageTag(&h_resolved)) && h_resolved) {
+          UINT32 len = 0;
+          const wchar_t* raw = WindowsGetStringRawBuffer(h_resolved, &len);
+          if (raw && len > 0) {
+            resolved_tag = WideToUtf8(std::wstring(raw, len));
+          }
+          WindowsDeleteString(h_resolved);
+        }
+      }
+    }
+
+    if (cache->engines_by_tag.size() >= 16) {
+      cache->engines_by_tag.clear();
+    }
+    cache->engines_by_tag[language_tag] = CachedOcrEngineEntry{
+        ocr_engine,
+        resolved_tag,
+        used_fallback,
+    };
   }
 
-  if (!ocr_engine) {
-    used_fallback = !language_tag.empty();
-    hr = ocr_statics->TryCreateFromUserProfileLanguages(&ocr_engine);
-    if (FAILED(hr) || !ocr_engine) {
-      if (out_error_hint) {
-        *out_error_hint = "No Windows OCR language pack available";
-      }
-      cleanup_ro();
+  if (!cache->bmp_statics) {
+    HRESULT hr = RoGetActivationFactory(
+        HStringReference(RuntimeClass_Windows_Graphics_Imaging_SoftwareBitmap)
+            .Get(),
+        IID_PPV_ARGS(&cache->bmp_statics));
+    if (FAILED(hr) || !cache->bmp_statics) {
+      if (out_error_hint) *out_error_hint = "SoftwareBitmap factory init failed";
       return false;
     }
-    ComPtr<ABI::Windows::Globalization::ILanguage> prof_lang;
-    if (SUCCEEDED(ocr_engine->get_RecognizerLanguage(&prof_lang)) &&
-        prof_lang) {
-      HSTRING h_resolved = nullptr;
-      if (SUCCEEDED(prof_lang->get_LanguageTag(&h_resolved)) && h_resolved) {
-        UINT32 len = 0;
-        const wchar_t* raw = WindowsGetStringRawBuffer(h_resolved, &len);
-        if (raw && len > 0) {
-          resolved_tag = WideToUtf8(std::wstring(raw, len));
-        }
-        WindowsDeleteString(h_resolved);
-      }
-    }
-  }
-
-  ComPtr<ABI::Windows::Graphics::Imaging::ISoftwareBitmapStatics> bmp_statics;
-  hr = RoGetActivationFactory(
-      HStringReference(RuntimeClass_Windows_Graphics_Imaging_SoftwareBitmap)
-          .Get(),
-      IID_PPV_ARGS(&bmp_statics));
-  if (FAILED(hr) || !bmp_statics) {
-    if (out_error_hint) *out_error_hint = "SoftwareBitmap factory init failed";
-    cleanup_ro();
-    return false;
   }
 
   const std::vector<uint8_t> preprocessed_bytes =
@@ -635,19 +680,17 @@ bool RunWindowsMediaOcr(const std::vector<uint8_t>& bgra_bytes,
   }
   if (!winrt_buf) {
     if (out_error_hint) *out_error_hint = "BgraWinRtBuffer allocation failed";
-    cleanup_ro();
     return false;
   }
 
   ComPtr<ABI::Windows::Storage::Streams::IBuffer> ibuf;
   if (FAILED(winrt_buf.As(&ibuf)) || !ibuf) {
     if (out_error_hint) *out_error_hint = "IBuffer cast failed";
-    cleanup_ro();
     return false;
   }
 
   ComPtr<ABI::Windows::Graphics::Imaging::ISoftwareBitmap> software_bmp;
-  hr = bmp_statics->CreateCopyFromBuffer(
+  HRESULT hr = cache->bmp_statics->CreateCopyFromBuffer(
       ibuf.Get(),
       ABI::Windows::Graphics::Imaging::BitmapPixelFormat_Bgra8,
       static_cast<INT32>(ocr_width),
@@ -655,7 +698,6 @@ bool RunWindowsMediaOcr(const std::vector<uint8_t>& bgra_bytes,
       &software_bmp);
   if (FAILED(hr) || !software_bmp) {
     if (out_error_hint) *out_error_hint = "CreateCopyFromBuffer failed";
-    cleanup_ro();
     return false;
   }
 
@@ -665,40 +707,62 @@ bool RunWindowsMediaOcr(const std::vector<uint8_t>& bgra_bytes,
   hr = ocr_engine->RecognizeAsync(software_bmp.Get(), &async_op);
   if (FAILED(hr) || !async_op) {
     if (out_error_hint) *out_error_hint = "RecognizeAsync call failed";
-    cleanup_ro();
     return false;
   }
 
-  HANDLE done_event = CreateEventW(nullptr, TRUE, FALSE, nullptr);
-  if (!done_event) {
+  auto guard = std::make_shared<DoneEventGuard>();
+  guard->handle = CreateEventW(nullptr, TRUE, FALSE, nullptr);
+  if (!guard->handle) {
     if (out_error_hint) *out_error_hint = "CreateEventW failed";
-    cleanup_ro();
     return false;
   }
 
   auto completed_cb = Callback<ABI::Windows::Foundation::IAsyncOperationCompletedHandler<
       ABI::Windows::Media::Ocr::OcrResult*>>(
-      [done_event](
+      [guard](
           ABI::Windows::Foundation::IAsyncOperation<
               ABI::Windows::Media::Ocr::OcrResult*>* /*op*/,
           ABI::Windows::Foundation::AsyncStatus /*status*/) -> HRESULT {
-        SetEvent(done_event);
+        std::lock_guard<std::mutex> lock(guard->mtx);
+        if (guard->handle) {
+          SetEvent(guard->handle);
+        }
         return S_OK;
       });
 
   hr = async_op->put_Completed(completed_cb.Get());
   if (FAILED(hr)) {
     if (out_error_hint) *out_error_hint = "put_Completed failed";
-    CloseHandle(done_event);
-    cleanup_ro();
+    HANDLE h_to_close = nullptr;
+    {
+      std::lock_guard<std::mutex> lock(guard->mtx);
+      h_to_close = guard->handle;
+      guard->handle = nullptr;
+    }
+    if (h_to_close) CloseHandle(h_to_close);
     return false;
   }
 
-  DWORD wait_res = WaitForSingleObject(done_event, 4000);
-  CloseHandle(done_event);
+  HANDLE wait_handles[2] = {guard->handle, stop_event};
+  const DWORD wait_count = stop_event ? 2 : 1;
+  DWORD wait_res = WaitForMultipleObjects(wait_count, wait_handles, FALSE, 4000);
+  {
+    HANDLE h_to_close = nullptr;
+    std::lock_guard<std::mutex> lock(guard->mtx);
+    h_to_close = guard->handle;
+    guard->handle = nullptr;
+    if (h_to_close) CloseHandle(h_to_close);
+  }
+  if (wait_res == WAIT_OBJECT_0 + 1) {
+    if (out_error_hint) *out_error_hint = "Windows OCR cancelled on shutdown";
+    return false;
+  }
   if (wait_res == WAIT_TIMEOUT) {
     if (out_error_hint) *out_error_hint = "Windows OCR timeout (>4s)";
-    cleanup_ro();
+    return false;
+  }
+  if (wait_res != WAIT_OBJECT_0) {
+    if (out_error_hint) *out_error_hint = "Windows OCR wait failed";
     return false;
   }
 
@@ -706,7 +770,6 @@ bool RunWindowsMediaOcr(const std::vector<uint8_t>& bgra_bytes,
   hr = async_op->GetResults(&ocr_result);
   if (FAILED(hr) || !ocr_result) {
     if (out_error_hint) *out_error_hint = "GetResults failed";
-    cleanup_ro();
     return false;
   }
 
@@ -715,7 +778,6 @@ bool RunWindowsMediaOcr(const std::vector<uint8_t>& bgra_bytes,
       lines_view;
   hr = ocr_result->get_Lines(&lines_view);
   if (FAILED(hr) || !lines_view) {
-    cleanup_ro();
     return false;
   }
 
@@ -742,7 +804,6 @@ bool RunWindowsMediaOcr(const std::vector<uint8_t>& bgra_bytes,
   if (out_used_fallback) *out_used_fallback = used_fallback;
   if (out_resolved_tag) *out_resolved_tag = resolved_tag;
 
-  cleanup_ro();
   return true;
 }
 
@@ -760,6 +821,9 @@ DesktopTrackerPlugin::DesktopTrackerPlugin(HWND main_window_hwnd,
       0, kDispatcherClassName, L"", 0, 0, 0, 0, 0, HWND_MESSAGE, nullptr,
       GetModuleHandleW(nullptr), this);
 
+  ocr_stop_event_ = CreateEventW(nullptr, TRUE, FALSE, nullptr);
+  ocr_worker_thread_ = std::thread(&DesktopTrackerPlugin::OcrWorkerLoop, this);
+
   channel_ = std::make_unique<flutter::MethodChannel<flutter::EncodableValue>>(
       messenger, "pokevault/desktop_tracker",
       &flutter::StandardMethodCodec::GetInstance());
@@ -776,6 +840,32 @@ DesktopTrackerPlugin::~DesktopTrackerPlugin() {
   if (alive_flag_) {
     alive_flag_->store(false);
   }
+  if (ocr_stop_event_) {
+    SetEvent(ocr_stop_event_);
+  }
+  {
+    std::lock_guard<std::mutex> lock(ocr_queue_mutex_);
+    ocr_worker_stopping_ = true;
+    while (!ocr_queue_.empty()) {
+      auto item = std::move(ocr_queue_.front());
+      ocr_queue_.pop();
+      if (item.payload) {
+        item.payload->result.release();
+        delete item.payload;
+      }
+    }
+  }
+  ocr_queue_cv_.notify_all();
+  if (ocr_worker_thread_.joinable()) {
+    ocr_worker_thread_.join();
+  }
+  if (ocr_stop_event_) {
+    CloseHandle(ocr_stop_event_);
+    ocr_stop_event_ = nullptr;
+  }
+  window_capture_cache_.bgra_bytes.clear();
+  window_capture_cache_.hwnd = nullptr;
+
   CleanupSnippingOverlay();
   HideScanRegionBorder();
   ClearOverlayBorders();
@@ -1457,21 +1547,29 @@ flutter::EncodableValue DesktopTrackerPlugin::CaptureWindow(
     const flutter::EncodableMap& args) {
   const int64_t hwnd_val = GetInt64Arg(args, "hwnd", 0);
   if (hwnd_val == 0) {
+    window_capture_cache_.bgra_bytes.clear();
+    window_capture_cache_.hwnd = nullptr;
     return flutter::EncodableValue();
   }
   HWND target = reinterpret_cast<HWND>(hwnd_val);
   if (!IsWindow(target) || IsIconic(target)) {
+    window_capture_cache_.bgra_bytes.clear();
+    window_capture_cache_.hwnd = nullptr;
     return flutter::EncodableValue();
   }
 
   RECT win_rect{};
   if (!GetWindowRect(target, &win_rect)) {
+    window_capture_cache_.bgra_bytes.clear();
+    window_capture_cache_.hwnd = nullptr;
     return flutter::EncodableValue();
   }
 
   const int full_w = win_rect.right - win_rect.left;
   const int full_h = win_rect.bottom - win_rect.top;
   if (full_w <= 0 || full_h <= 0) {
+    window_capture_cache_.bgra_bytes.clear();
+    window_capture_cache_.hwnd = nullptr;
     return flutter::EncodableValue();
   }
 
@@ -1498,51 +1596,89 @@ flutter::EncodableValue DesktopTrackerPlugin::CaptureWindow(
     return flutter::EncodableValue();
   }
 
-  HDC screen_dc = GetDC(nullptr);
-  if (!screen_dc) return flutter::EncodableValue();
+  const size_t full_bytes_len =
+      static_cast<size_t>(full_w) * static_cast<size_t>(full_h) * 4;
+  const auto now = std::chrono::steady_clock::now();
+  const bool cache_hit =
+      window_capture_cache_.hwnd == target &&
+      window_capture_cache_.width == full_w &&
+      window_capture_cache_.height == full_h &&
+      window_capture_cache_.bgra_bytes.size() == full_bytes_len &&
+      (now - window_capture_cache_.captured_at) <=
+          std::chrono::milliseconds(60);
 
-  BITMAPINFO full_bmi{};
-  full_bmi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
-  full_bmi.bmiHeader.biWidth = full_w;
-  full_bmi.bmiHeader.biHeight = -full_h;
-  full_bmi.bmiHeader.biPlanes = 1;
-  full_bmi.bmiHeader.biBitCount = 32;
-  full_bmi.bmiHeader.biCompression = BI_RGB;
+  std::string capture_method;
+  const uint8_t* src_bytes = nullptr;
 
-  void* full_bits = nullptr;
-  HBITMAP full_dib = CreateDIBSection(screen_dc, &full_bmi, DIB_RGB_COLORS,
-                                      &full_bits, nullptr, 0);
-  if (!full_dib || !full_bits) {
-    if (full_dib) DeleteObject(full_dib);
-    ReleaseDC(nullptr, screen_dc);
-    return flutter::EncodableValue();
-  }
+  if (cache_hit) {
+    capture_method = window_capture_cache_.capture_method;
+    src_bytes = window_capture_cache_.bgra_bytes.data();
+  } else {
+    HDC screen_dc = GetDC(nullptr);
+    if (!screen_dc) return flutter::EncodableValue();
 
-  HDC full_dc = CreateCompatibleDC(screen_dc);
-  HGDIOBJ old_full = SelectObject(full_dc, full_dib);
+    BITMAPINFO full_bmi{};
+    full_bmi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
+    full_bmi.bmiHeader.biWidth = full_w;
+    full_bmi.bmiHeader.biHeight = -full_h;
+    full_bmi.bmiHeader.biPlanes = 1;
+    full_bmi.bmiHeader.biBitCount = 32;
+    full_bmi.bmiHeader.biCompression = BI_RGB;
 
-  // PW_RENDERFULLCONTENT = 2 (Windows 8.1+) captures DWM/hardware surfaces cleanly
-  std::string capture_method = "printwindow_pw2";
-  BOOL printed = PrintWindow(target, full_dc, 2);
-  if (!printed) {
-    capture_method = "bitblt_fallback";
-    printed = BitBlt(full_dc, 0, 0, full_w, full_h, screen_dc, win_rect.left,
-                     win_rect.top, SRCCOPY | CAPTUREBLT);
-  }
+    void* full_bits = nullptr;
+    HBITMAP full_dib = CreateDIBSection(screen_dc, &full_bmi, DIB_RGB_COLORS,
+                                        &full_bits, nullptr, 0);
+    if (!full_dib || !full_bits) {
+      if (full_dib) DeleteObject(full_dib);
+      ReleaseDC(nullptr, screen_dc);
+      window_capture_cache_.bgra_bytes.clear();
+      window_capture_cache_.hwnd = nullptr;
+      return flutter::EncodableValue();
+    }
 
-  if (!printed) {
+    HDC full_dc = CreateCompatibleDC(screen_dc);
+    HGDIOBJ old_full = SelectObject(full_dc, full_dib);
+
+    // PW_RENDERFULLCONTENT = 2 (Windows 8.1+) captures DWM/hardware surfaces cleanly
+    capture_method = "printwindow_pw2";
+    BOOL printed = PrintWindow(target, full_dc, 2);
+    if (!printed) {
+      capture_method = "bitblt_fallback";
+      printed = BitBlt(full_dc, 0, 0, full_w, full_h, screen_dc, win_rect.left,
+                       win_rect.top, SRCCOPY | CAPTUREBLT);
+    }
+
+    if (!printed) {
+      SelectObject(full_dc, old_full);
+      DeleteDC(full_dc);
+      DeleteObject(full_dib);
+      ReleaseDC(nullptr, screen_dc);
+      window_capture_cache_.bgra_bytes.clear();
+      window_capture_cache_.hwnd = nullptr;
+      return flutter::EncodableValue();
+    }
+
+    window_capture_cache_.hwnd = target;
+    window_capture_cache_.width = full_w;
+    window_capture_cache_.height = full_h;
+    window_capture_cache_.capture_method = capture_method;
+    window_capture_cache_.captured_at = now;
+    window_capture_cache_.bgra_bytes.resize(full_bytes_len);
+    std::memcpy(window_capture_cache_.bgra_bytes.data(), full_bits,
+                full_bytes_len);
+
     SelectObject(full_dc, old_full);
     DeleteDC(full_dc);
     DeleteObject(full_dib);
     ReleaseDC(nullptr, screen_dc);
-    return flutter::EncodableValue();
+
+    src_bytes = window_capture_cache_.bgra_bytes.data();
   }
 
   const size_t out_bytes_len =
       static_cast<size_t>(crop_w) * static_cast<size_t>(crop_h) * 4;
   std::vector<uint8_t> out_bytes(out_bytes_len);
 
-  const auto* src_bytes = static_cast<const uint8_t*>(full_bits);
   const size_t src_stride = static_cast<size_t>(full_w) * 4;
   const size_t dst_stride = static_cast<size_t>(crop_w) * 4;
   for (int row = 0; row < crop_h; ++row) {
@@ -1552,11 +1688,6 @@ flutter::EncodableValue DesktopTrackerPlugin::CaptureWindow(
     std::memcpy(out_bytes.data() + static_cast<size_t>(row) * dst_stride,
                 src_bytes + src_off, dst_stride);
   }
-
-  SelectObject(full_dc, old_full);
-  DeleteDC(full_dc);
-  DeleteObject(full_dib);
-  ReleaseDC(nullptr, screen_dc);
 
   flutter::EncodableMap out;
   out[flutter::EncodableValue("width")] = flutter::EncodableValue(crop_w);
@@ -1568,6 +1699,58 @@ flutter::EncodableValue DesktopTrackerPlugin::CaptureWindow(
   out[flutter::EncodableValue("bytes")] =
       flutter::EncodableValue(std::move(out_bytes));
   return flutter::EncodableValue(std::move(out));
+}
+
+void DesktopTrackerPlugin::OcrWorkerLoop() {
+  HRESULT ro_hr = RoInitialize(RO_INIT_MULTITHREADED);
+  OcrRuntimeCache runtime_cache;
+  HWND notify_hwnd = dispatcher_hwnd_;
+  auto alive = alive_flag_;
+
+  while (true) {
+    OcrWorkItem item;
+    {
+      std::unique_lock<std::mutex> lock(ocr_queue_mutex_);
+      ocr_queue_cv_.wait(lock, [this]() {
+        return ocr_worker_stopping_ || !ocr_queue_.empty();
+      });
+      if (ocr_worker_stopping_ && ocr_queue_.empty()) {
+        break;
+      }
+      if (ocr_worker_stopping_) {
+        break;
+      }
+      item = std::move(ocr_queue_.front());
+      ocr_queue_.pop();
+    }
+
+    if (!item.payload) continue;
+
+    const auto t0 = std::chrono::steady_clock::now();
+    item.payload->success = RunWindowsMediaOcrCached(
+        &runtime_cache, ocr_stop_event_, item.bytes, item.width, item.height,
+        item.language_tag, item.preprocess_profile, &item.payload->lines,
+        &item.payload->used_fallback_language,
+        &item.payload->resolved_language_tag,
+        &item.payload->available_languages, &item.payload->error_hint);
+    const auto t1 = std::chrono::steady_clock::now();
+    item.payload->ocr_duration_ms =
+        std::chrono::duration_cast<std::chrono::milliseconds>(t1 - t0).count();
+
+    if (!alive || !alive->load() ||
+        !PostMessageW(notify_hwnd, kMsgOcrComplete, 0,
+                      reinterpret_cast<LPARAM>(item.payload))) {
+      if (!alive || !alive->load()) {
+        item.payload->result.release();
+      }
+      delete item.payload;
+    }
+  }
+
+  runtime_cache.Reset();
+  if (SUCCEEDED(ro_hr)) {
+    RoUninitialize();
+  }
 }
 
 void DesktopTrackerPlugin::RecognizeTextAsync(
@@ -1608,33 +1791,28 @@ void DesktopTrackerPlugin::RecognizeTextAsync(
 
   std::vector<uint8_t> bytes =
       std::get<std::vector<uint8_t>>(bytes_it->second);
-  HWND notify_hwnd = dispatcher_hwnd_;
-  auto alive = alive_flag_;
   auto* payload = new OcrAsyncPayload();
   payload->result = std::move(result);
   payload->resolved_language_tag = language_tag;
   payload->requested_language_tag = language_tag;
 
-  std::thread([notify_hwnd, alive, payload, bytes = std::move(bytes), width,
-               height, language_tag, preprocess_profile]() mutable {
-    const auto t0 = std::chrono::steady_clock::now();
-    payload->success = RunWindowsMediaOcr(
-        bytes, width, height, language_tag, preprocess_profile, &payload->lines,
-        &payload->used_fallback_language, &payload->resolved_language_tag,
-        &payload->available_languages, &payload->error_hint);
-    const auto t1 = std::chrono::steady_clock::now();
-    payload->ocr_duration_ms =
-        std::chrono::duration_cast<std::chrono::milliseconds>(t1 - t0).count();
-    if (!alive || !alive->load() ||
-        !PostMessageW(notify_hwnd, kMsgOcrComplete, 0,
-                      reinterpret_cast<LPARAM>(payload))) {
-      if (!alive || !alive->load()) {
-        // Avoid invoking Flutter reply handler after engine shutdown.
-        payload->result.release();
-      }
+  {
+    std::lock_guard<std::mutex> lock(ocr_queue_mutex_);
+    if (ocr_worker_stopping_) {
+      payload->result.release();
       delete payload;
+      return;
     }
-  }).detach();
+    OcrWorkItem item;
+    item.bytes = std::move(bytes);
+    item.width = width;
+    item.height = height;
+    item.language_tag = language_tag;
+    item.preprocess_profile = preprocess_profile;
+    item.payload = payload;
+    ocr_queue_.push(std::move(item));
+  }
+  ocr_queue_cv_.notify_one();
 }
 
 void DesktopTrackerPlugin::ParseHudArgs(const flutter::EncodableMap& args) {
