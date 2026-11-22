@@ -45,6 +45,30 @@ DEFAULT_DOCS = [
 
 MULTI_LANG_STEMS = {"README", "ARCHITECTURE", "GIT_WORKFLOW_AND_RELEASES"}
 
+PROTECTED_EXACT_TERMS = {
+    "Hisui",
+    "Kanto",
+    "Johto",
+    "Hoenn",
+    "Sinnoh",
+    "Kalos",
+    "Alola",
+    "Galar",
+    "Paldea",
+    "Bisafans",
+    "PokéVault",
+}
+
+
+def _should_keep_source_verbatim(source_text: str, target_node, current_key: str) -> bool:
+    """Preserves canonical proper nouns and short edition badge codes when identical to source."""
+    stripped = source_text.strip()
+    if current_key.startswith("badge_") and (target_node is None or target_node == source_text):
+        return True
+    if stripped in PROTECTED_EXACT_TERMS and target_node == source_text:
+        return True
+    return False
+
 # Language code mapping
 LANG_MAP = {
     "de": "de",
@@ -438,20 +462,22 @@ def translate_single_string(text: str, target_lang: str, cache, source_lang: str
 
     return text
 
-def collect_uncached_strings(source_node, target_node, target_lang, cache, uncached_set):
+def collect_uncached_strings(source_node, target_node, target_lang, cache, uncached_set, current_key=""):
     """Collects unique strings that need translation, while populating cache from genuine target strings."""
     if isinstance(source_node, dict):
         tgt_dict = target_node if isinstance(target_node, dict) else {}
         for k, v in source_node.items():
-            collect_uncached_strings(v, tgt_dict.get(k), target_lang, cache, uncached_set)
+            collect_uncached_strings(v, tgt_dict.get(k), target_lang, cache, uncached_set, k)
     elif isinstance(source_node, list):
         tgt_list = target_node if isinstance(target_node, list) else []
         for i, item in enumerate(source_node):
             tgt_item = tgt_list[i] if i < len(tgt_list) else None
-            collect_uncached_strings(item, tgt_item, target_lang, cache, uncached_set)
+            collect_uncached_strings(item, tgt_item, target_lang, cache, uncached_set, current_key)
     elif isinstance(source_node, str):
         text = source_node.strip()
         if not text:
+            return
+        if _should_keep_source_verbatim(source_node, target_node, current_key):
             return
         h = compute_text_hash(source_node)
         lang_cache = cache.setdefault(target_lang, {})
@@ -508,21 +534,25 @@ def batch_translate_strings(texts, target_lang, cache, batch_size=8, source_lang
             save_cache(cache)
             print(f"    Batch {batch_idx + 1}/{total_batches} done.")
 
-def translate_json_node(source_node, target_node, target_lang, cache, stats, dry_run=False):
+def translate_json_node(source_node, target_node, target_lang, cache, stats, dry_run=False, current_key=""):
     if isinstance(source_node, dict):
         result = {}
         tgt_dict = target_node if isinstance(target_node, dict) else {}
         for k, v in source_node.items():
-            result[k] = translate_json_node(v, tgt_dict.get(k), target_lang, cache, stats, dry_run)
+            result[k] = translate_json_node(v, tgt_dict.get(k), target_lang, cache, stats, dry_run, k)
         return result
     elif isinstance(source_node, list):
         result = []
         tgt_list = target_node if isinstance(target_node, list) else []
         for i, item in enumerate(source_node):
             tgt_item = tgt_list[i] if i < len(tgt_list) else None
-            result.append(translate_json_node(item, tgt_item, target_lang, cache, stats, dry_run))
+            result.append(translate_json_node(item, tgt_item, target_lang, cache, stats, dry_run, current_key))
         return result
     elif isinstance(source_node, str):
+        if _should_keep_source_verbatim(source_node, target_node, current_key):
+            stats["cache_hits"] += 1
+            return target_node if (isinstance(target_node, str) and target_node.strip()) else source_node
+
         h = compute_text_hash(source_node)
         lang_cache = cache.setdefault(target_lang, {})
 

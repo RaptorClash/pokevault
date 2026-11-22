@@ -6,7 +6,7 @@
 /// Locales: 13
 /// Strings: 29640 (2280 per locale)
 ///
-/// Built on 2026-11-21 at 11:55 UTC
+/// Built on 2026-11-22 at 10:20 UTC
 
 // coverage:ignore-file
 // ignore_for_file: type=lint
@@ -2491,8 +2491,8 @@ class _StringsEn extends Translations {
 	@override String get badge_red => 'R';
 	@override String get badge_blue => 'B';
 	@override String get badge_yellow => 'Y';
-	@override String get badge_gold => 'Y';
-	@override String get badge_silver => 'B';
+	@override String get badge_gold => 'G';
+	@override String get badge_silver => 'S';
 	@override String get badge_crystal => 'C';
 	@override String get badge_ruby => 'RU';
 	@override String get badge_sapphire => 'SA';
@@ -2512,10 +2512,10 @@ class _StringsEn extends Translations {
 	@override String get badge_y => 'Y';
 	@override String get badge_omega_ruby => 'Î©R';
 	@override String get badge_alpha_sapphire => 'Î±S';
-	@override String get badge_sun => 'B';
+	@override String get badge_sun => 'S';
 	@override String get badge_moon => 'M';
 	@override String get badge_ultra_sun => 'US';
-	@override String get badge_ultra_moon => 'ABOUT';
+	@override String get badge_ultra_moon => 'UM';
 	@override String get badge_lets_go_pikachu => 'LGP';
 	@override String get badge_lets_go_eevee => 'LGE';
 	@override String get badge_sword => 'SW';
@@ -2594,11 +2594,11 @@ class _StringsEn extends Translations {
 	@override String get group_kalos => 'Kalos & Z-A';
 	@override String get group_alola => 'Alola';
 	@override String get group_galar => 'Galar';
-	@override String get group_hisui => 'Jade';
+	@override String get group_hisui => 'Hisui';
 	@override String get group_paldea => 'Paldea';
 	@override String get form_name_alola => 'Alola';
 	@override String get form_name_galar => 'Galar';
-	@override String get form_name_hisui => 'Jade';
+	@override String get form_name_hisui => 'Hisui';
 	@override String get form_name_paldea => 'Paldea';
 	@override String get form_name_mega => 'Mega';
 	@override String get form_name_mega_x => 'Mega X';
@@ -2645,7 +2645,7 @@ class _StringsEn extends Translations {
 	@override String get form_name_small => 'Small';
 	@override String get form_name_average => 'Average';
 	@override String get form_name_large => 'Large';
-	@override String get form_name_super => 'Great';
+	@override String get form_name_super => 'Super';
 	@override String get form_name_baile => 'Baile';
 	@override String get form_name_pom_pom => 'Pom-Pom';
 	@override String get form_name_pau => 'Pa"u';
@@ -2836,7 +2836,7 @@ class _StringsEn extends Translations {
 	@override String get credit_ai_sub => 'AI assistance in coding & refactoring';
 	@override String get credit_pokewiki_title => 'PokéWiki';
 	@override String get credit_pokewiki_sub => 'Comprehensive knowledge base';
-	@override String get credit_bisafans_title => 'Bulbasaur';
+	@override String get credit_bisafans_title => 'Bisafans';
 	@override String get credit_bisafans_sub => 'Guides and tutorials';
 	@override String get view_list => 'Switch to List View';
 	@override String get view_box => 'Switch to PC Box View';
@@ -2862,7 +2862,7 @@ class _StringsEn extends Translations {
 	@override String get region_name_kalos => 'Kalos';
 	@override String get region_name_alola => 'Alola';
 	@override String get region_name_galar => 'Galar';
-	@override String get region_name_hisui => 'Jade';
+	@override String get region_name_hisui => 'Hisui';
 	@override String get region_name_paldea => 'Paldea';
 	@override String get region_name_lumiose => 'Lumiose';
 	@override String get region_name_unknown => 'Unknown';
@@ -3119,7 +3119,7 @@ class _StringsEn extends Translations {
 	@override String get search_help_wildcard => 'Wildcard search (* replaces any characters).';
 	@override String get search_help_and => 'Use \'&amp;\' to require all terms (AND).';
 	@override String get search_help_or => 'Use \',\' to require only one term (OR).';
-	@override String get type_normal => 'Average';
+	@override String get type_normal => 'Normal';
 	@override String get type_fire => 'Fire';
 	@override String get type_water => 'Water';
 	@override String get type_electric => 'Electric';
@@ -3397,7 +3397,7 @@ class _StringsEn extends Translations {
 	@override String get loc_kalos_route_13 => 'Kalos Route 13';
 	@override String get loc_kalos_route_20 => 'Kalos Route 20';
 	@override String get loc_lush_jungle => 'Lush Jungle';
-	@override String get loc_mount_lanakila => 'Mount Victory';
+	@override String get loc_mount_lanakila => 'Mount Lanakila';
 	@override String get loc_mt_coronet => 'Mt. Coronet';
 	@override String get loc_new_mauville => 'New Mauville';
 	@override String get loc_petalburg_woods => 'Petalburg Woods';
@@ -3895,7 +3895,7 @@ class _StringsEn extends Translations {
 	@override String get shiny_gen9_locked_desc => 'Many legendaries (Koraidon, Miraidon, Ruin Treasures, Paradox Legends, Terapagos etc.) as well as Gimmighoul (except event raids) and Bloodmoon Ursaluna are shiny locked!';
 	@override String get shiny_gen9_link_sandwich => 'Polygon - Sandwich Recipes & Guide';
 	@override String get shiny_gen9_link_outbreak => 'YouTube - SV Shiny Hunting Guide';
-	@override String get shiny_gen9_link_bisa => 'Bisasam - Shiny Hunting in SV (DE)';
+	@override String get shiny_gen9_link_bisa => 'Bisafans - Shiny Hunting in SV (DE)';
 	@override String get shiny_gen95_plza_title => 'Legends: Z-A (Lumiose City)';
 	@override String get shiny_gen95_plza_desc => 'The shiny sound is back! Up to 10 shinies can exist simultaneously on the map and are permanently saved before the oldest one despawns.';
 	@override String get shiny_gen95_donut_title => 'Donuts & Spawns (50m/70m Trick)';
@@ -3942,7 +3942,7 @@ class _StringsEn extends Translations {
 	@override String get category_special => 'Special';
 	@override String get category_status => 'Status';
 	@override String get hidden_ability_short => 'Hidden';
-	@override String get normal_ability_short => 'Average';
+	@override String get normal_ability_short => 'Normal';
 	@override String get sort_by => 'Sort by';
 	@override String get sort_type => 'Sort by type';
 	@override String get ribbons => 'Ribbons';
@@ -4027,7 +4027,7 @@ class _StringsEn extends Translations {
 	@override String get search_pokemon_hint => 'Search name or dex number...';
 	@override String get all_regions => 'All Regions';
 	@override String get all_forms => 'All Forms';
-	@override String get form_normal => 'Average';
+	@override String get form_normal => 'Normal';
 	@override String get filter_regions => 'Regions';
 	@override String get filter_forms => 'Forms';
 	@override String get filter_gender => 'Gender';
@@ -4073,7 +4073,7 @@ class _StringsEn extends Translations {
 	@override String get shiny_hunt_lock_mode_title => 'Tap-Only Mode (Lock)';
 	@override String get shiny_hunt_lock_mode_desc => 'Locks secondary buttons against accidental taps.';
 	@override String get shiny_hunt_sprite_toggle_shiny => '✨ Shiny';
-	@override String get shiny_hunt_sprite_toggle_normal => 'Average';
+	@override String get shiny_hunt_sprite_toggle_normal => 'Normal';
 	@override String get shiny_hunt_record_phase_btn => 'Phase Shiny';
 	@override String get shiny_hunt_caught_btn => '🎉 Shiny caught!';
 	@override String get shiny_hunt_settings_title => 'Counter Settings';
@@ -4902,11 +4902,11 @@ class _StringsEs extends Translations {
 	@override String get group_kalos => 'Kalos y Z-A';
 	@override String get group_alola => 'Álola';
 	@override String get group_galar => 'Galar';
-	@override String get group_hisui => 'Jade';
+	@override String get group_hisui => 'Hisui';
 	@override String get group_paldea => 'paldea';
 	@override String get form_name_alola => 'Álola';
 	@override String get form_name_galar => 'Galar';
-	@override String get form_name_hisui => 'Jade';
+	@override String get form_name_hisui => 'Hisui';
 	@override String get form_name_paldea => 'paldea';
 	@override String get form_name_mega => 'mega';
 	@override String get form_name_mega_x => 'Mega X';
@@ -5170,7 +5170,7 @@ class _StringsEs extends Translations {
 	@override String get region_name_kalos => 'Kalos';
 	@override String get region_name_alola => 'Álola';
 	@override String get region_name_galar => 'Galar';
-	@override String get region_name_hisui => 'Jade';
+	@override String get region_name_hisui => 'Hisui';
 	@override String get region_name_paldea => 'paldea';
 	@override String get region_name_lumiose => 'iluminar';
 	@override String get region_name_unknown => 'Desconocido';
@@ -7210,11 +7210,11 @@ class _StringsFr extends Translations {
 	@override String get group_kalos => 'Kalos & Z-A';
 	@override String get group_alola => 'Alola';
 	@override String get group_galar => 'Galar';
-	@override String get group_hisui => 'Jade';
+	@override String get group_hisui => 'Hisui';
 	@override String get group_paldea => 'Paldéa';
 	@override String get form_name_alola => 'Alola';
 	@override String get form_name_galar => 'Galar';
-	@override String get form_name_hisui => 'Jade';
+	@override String get form_name_hisui => 'Hisui';
 	@override String get form_name_paldea => 'Paldéa';
 	@override String get form_name_mega => 'Méga';
 	@override String get form_name_mega_x => 'Méga X';
@@ -7478,7 +7478,7 @@ class _StringsFr extends Translations {
 	@override String get region_name_kalos => 'Kalos';
 	@override String get region_name_alola => 'Alola';
 	@override String get region_name_galar => 'Galar';
-	@override String get region_name_hisui => 'Jade';
+	@override String get region_name_hisui => 'Hisui';
 	@override String get region_name_paldea => 'Paldéa';
 	@override String get region_name_lumiose => 'Illumine';
 	@override String get region_name_unknown => 'Inconnu';
@@ -9518,11 +9518,11 @@ class _StringsIt extends Translations {
 	@override String get group_kalos => 'Kalos & Z-A';
 	@override String get group_alola => 'Alola';
 	@override String get group_galar => 'Galar';
-	@override String get group_hisui => 'Giada';
+	@override String get group_hisui => 'Hisui';
 	@override String get group_paldea => 'Paldea';
 	@override String get form_name_alola => 'Alola';
 	@override String get form_name_galar => 'Galar';
-	@override String get form_name_hisui => 'Giada';
+	@override String get form_name_hisui => 'Hisui';
 	@override String get form_name_paldea => 'Paldea';
 	@override String get form_name_mega => 'Mega';
 	@override String get form_name_mega_x => 'Mega X';
@@ -9786,7 +9786,7 @@ class _StringsIt extends Translations {
 	@override String get region_name_kalos => 'Kalos';
 	@override String get region_name_alola => 'Alola';
 	@override String get region_name_galar => 'Galar';
-	@override String get region_name_hisui => 'Giada';
+	@override String get region_name_hisui => 'Hisui';
 	@override String get region_name_paldea => 'Paldea';
 	@override String get region_name_lumiose => 'Illumina';
 	@override String get region_name_unknown => 'Sconosciuto';
@@ -16710,7 +16710,7 @@ class _StringsNl extends Translations {
 	@override String get region_name_kalos => 'Kalos';
 	@override String get region_name_alola => 'Alola';
 	@override String get region_name_galar => 'Galar';
-	@override String get region_name_hisui => 'Jade';
+	@override String get region_name_hisui => 'Hisui';
 	@override String get region_name_paldea => 'Paldea';
 	@override String get region_name_lumiose => 'Illumina';
 	@override String get region_name_unknown => 'Onbekend';
@@ -32455,8 +32455,8 @@ extension on _StringsEn {
 			case 'badge_red': return 'R';
 			case 'badge_blue': return 'B';
 			case 'badge_yellow': return 'Y';
-			case 'badge_gold': return 'Y';
-			case 'badge_silver': return 'B';
+			case 'badge_gold': return 'G';
+			case 'badge_silver': return 'S';
 			case 'badge_crystal': return 'C';
 			case 'badge_ruby': return 'RU';
 			case 'badge_sapphire': return 'SA';
@@ -32476,10 +32476,10 @@ extension on _StringsEn {
 			case 'badge_y': return 'Y';
 			case 'badge_omega_ruby': return 'Î©R';
 			case 'badge_alpha_sapphire': return 'Î±S';
-			case 'badge_sun': return 'B';
+			case 'badge_sun': return 'S';
 			case 'badge_moon': return 'M';
 			case 'badge_ultra_sun': return 'US';
-			case 'badge_ultra_moon': return 'ABOUT';
+			case 'badge_ultra_moon': return 'UM';
 			case 'badge_lets_go_pikachu': return 'LGP';
 			case 'badge_lets_go_eevee': return 'LGE';
 			case 'badge_sword': return 'SW';
@@ -32558,11 +32558,11 @@ extension on _StringsEn {
 			case 'group_kalos': return 'Kalos & Z-A';
 			case 'group_alola': return 'Alola';
 			case 'group_galar': return 'Galar';
-			case 'group_hisui': return 'Jade';
+			case 'group_hisui': return 'Hisui';
 			case 'group_paldea': return 'Paldea';
 			case 'form_name_alola': return 'Alola';
 			case 'form_name_galar': return 'Galar';
-			case 'form_name_hisui': return 'Jade';
+			case 'form_name_hisui': return 'Hisui';
 			case 'form_name_paldea': return 'Paldea';
 			case 'form_name_mega': return 'Mega';
 			case 'form_name_mega_x': return 'Mega X';
@@ -32609,7 +32609,7 @@ extension on _StringsEn {
 			case 'form_name_small': return 'Small';
 			case 'form_name_average': return 'Average';
 			case 'form_name_large': return 'Large';
-			case 'form_name_super': return 'Great';
+			case 'form_name_super': return 'Super';
 			case 'form_name_baile': return 'Baile';
 			case 'form_name_pom_pom': return 'Pom-Pom';
 			case 'form_name_pau': return 'Pa"u';
@@ -32800,7 +32800,7 @@ extension on _StringsEn {
 			case 'credit_ai_sub': return 'AI assistance in coding & refactoring';
 			case 'credit_pokewiki_title': return 'PokéWiki';
 			case 'credit_pokewiki_sub': return 'Comprehensive knowledge base';
-			case 'credit_bisafans_title': return 'Bulbasaur';
+			case 'credit_bisafans_title': return 'Bisafans';
 			case 'credit_bisafans_sub': return 'Guides and tutorials';
 			case 'view_list': return 'Switch to List View';
 			case 'view_box': return 'Switch to PC Box View';
@@ -32826,7 +32826,7 @@ extension on _StringsEn {
 			case 'region_name_kalos': return 'Kalos';
 			case 'region_name_alola': return 'Alola';
 			case 'region_name_galar': return 'Galar';
-			case 'region_name_hisui': return 'Jade';
+			case 'region_name_hisui': return 'Hisui';
 			case 'region_name_paldea': return 'Paldea';
 			case 'region_name_lumiose': return 'Lumiose';
 			case 'region_name_unknown': return 'Unknown';
@@ -33083,7 +33083,7 @@ extension on _StringsEn {
 			case 'search_help_wildcard': return 'Wildcard search (* replaces any characters).';
 			case 'search_help_and': return 'Use \'&amp;\' to require all terms (AND).';
 			case 'search_help_or': return 'Use \',\' to require only one term (OR).';
-			case 'type_normal': return 'Average';
+			case 'type_normal': return 'Normal';
 			case 'type_fire': return 'Fire';
 			case 'type_water': return 'Water';
 			case 'type_electric': return 'Electric';
@@ -33361,7 +33361,7 @@ extension on _StringsEn {
 			case 'loc_kalos_route_13': return 'Kalos Route 13';
 			case 'loc_kalos_route_20': return 'Kalos Route 20';
 			case 'loc_lush_jungle': return 'Lush Jungle';
-			case 'loc_mount_lanakila': return 'Mount Victory';
+			case 'loc_mount_lanakila': return 'Mount Lanakila';
 			case 'loc_mt_coronet': return 'Mt. Coronet';
 			case 'loc_new_mauville': return 'New Mauville';
 			case 'loc_petalburg_woods': return 'Petalburg Woods';
@@ -33859,7 +33859,7 @@ extension on _StringsEn {
 			case 'shiny_gen9_locked_desc': return 'Many legendaries (Koraidon, Miraidon, Ruin Treasures, Paradox Legends, Terapagos etc.) as well as Gimmighoul (except event raids) and Bloodmoon Ursaluna are shiny locked!';
 			case 'shiny_gen9_link_sandwich': return 'Polygon - Sandwich Recipes & Guide';
 			case 'shiny_gen9_link_outbreak': return 'YouTube - SV Shiny Hunting Guide';
-			case 'shiny_gen9_link_bisa': return 'Bisasam - Shiny Hunting in SV (DE)';
+			case 'shiny_gen9_link_bisa': return 'Bisafans - Shiny Hunting in SV (DE)';
 			case 'shiny_gen95_plza_title': return 'Legends: Z-A (Lumiose City)';
 			case 'shiny_gen95_plza_desc': return 'The shiny sound is back! Up to 10 shinies can exist simultaneously on the map and are permanently saved before the oldest one despawns.';
 			case 'shiny_gen95_donut_title': return 'Donuts & Spawns (50m/70m Trick)';
@@ -33906,7 +33906,7 @@ extension on _StringsEn {
 			case 'category_special': return 'Special';
 			case 'category_status': return 'Status';
 			case 'hidden_ability_short': return 'Hidden';
-			case 'normal_ability_short': return 'Average';
+			case 'normal_ability_short': return 'Normal';
 			case 'sort_by': return 'Sort by';
 			case 'sort_type': return 'Sort by type';
 			case 'ribbons': return 'Ribbons';
@@ -33991,7 +33991,7 @@ extension on _StringsEn {
 			case 'search_pokemon_hint': return 'Search name or dex number...';
 			case 'all_regions': return 'All Regions';
 			case 'all_forms': return 'All Forms';
-			case 'form_normal': return 'Average';
+			case 'form_normal': return 'Normal';
 			case 'filter_regions': return 'Regions';
 			case 'filter_forms': return 'Forms';
 			case 'filter_gender': return 'Gender';
@@ -34037,7 +34037,7 @@ extension on _StringsEn {
 			case 'shiny_hunt_lock_mode_title': return 'Tap-Only Mode (Lock)';
 			case 'shiny_hunt_lock_mode_desc': return 'Locks secondary buttons against accidental taps.';
 			case 'shiny_hunt_sprite_toggle_shiny': return '✨ Shiny';
-			case 'shiny_hunt_sprite_toggle_normal': return 'Average';
+			case 'shiny_hunt_sprite_toggle_normal': return 'Normal';
 			case 'shiny_hunt_record_phase_btn': return 'Phase Shiny';
 			case 'shiny_hunt_caught_btn': return '🎉 Shiny caught!';
 			case 'shiny_hunt_settings_title': return 'Counter Settings';
@@ -34846,11 +34846,11 @@ extension on _StringsEs {
 			case 'group_kalos': return 'Kalos y Z-A';
 			case 'group_alola': return 'Álola';
 			case 'group_galar': return 'Galar';
-			case 'group_hisui': return 'Jade';
+			case 'group_hisui': return 'Hisui';
 			case 'group_paldea': return 'paldea';
 			case 'form_name_alola': return 'Álola';
 			case 'form_name_galar': return 'Galar';
-			case 'form_name_hisui': return 'Jade';
+			case 'form_name_hisui': return 'Hisui';
 			case 'form_name_paldea': return 'paldea';
 			case 'form_name_mega': return 'mega';
 			case 'form_name_mega_x': return 'Mega X';
@@ -35114,7 +35114,7 @@ extension on _StringsEs {
 			case 'region_name_kalos': return 'Kalos';
 			case 'region_name_alola': return 'Álola';
 			case 'region_name_galar': return 'Galar';
-			case 'region_name_hisui': return 'Jade';
+			case 'region_name_hisui': return 'Hisui';
 			case 'region_name_paldea': return 'paldea';
 			case 'region_name_lumiose': return 'iluminar';
 			case 'region_name_unknown': return 'Desconocido';
@@ -37134,11 +37134,11 @@ extension on _StringsFr {
 			case 'group_kalos': return 'Kalos & Z-A';
 			case 'group_alola': return 'Alola';
 			case 'group_galar': return 'Galar';
-			case 'group_hisui': return 'Jade';
+			case 'group_hisui': return 'Hisui';
 			case 'group_paldea': return 'Paldéa';
 			case 'form_name_alola': return 'Alola';
 			case 'form_name_galar': return 'Galar';
-			case 'form_name_hisui': return 'Jade';
+			case 'form_name_hisui': return 'Hisui';
 			case 'form_name_paldea': return 'Paldéa';
 			case 'form_name_mega': return 'Méga';
 			case 'form_name_mega_x': return 'Méga X';
@@ -37402,7 +37402,7 @@ extension on _StringsFr {
 			case 'region_name_kalos': return 'Kalos';
 			case 'region_name_alola': return 'Alola';
 			case 'region_name_galar': return 'Galar';
-			case 'region_name_hisui': return 'Jade';
+			case 'region_name_hisui': return 'Hisui';
 			case 'region_name_paldea': return 'Paldéa';
 			case 'region_name_lumiose': return 'Illumine';
 			case 'region_name_unknown': return 'Inconnu';
@@ -39422,11 +39422,11 @@ extension on _StringsIt {
 			case 'group_kalos': return 'Kalos & Z-A';
 			case 'group_alola': return 'Alola';
 			case 'group_galar': return 'Galar';
-			case 'group_hisui': return 'Giada';
+			case 'group_hisui': return 'Hisui';
 			case 'group_paldea': return 'Paldea';
 			case 'form_name_alola': return 'Alola';
 			case 'form_name_galar': return 'Galar';
-			case 'form_name_hisui': return 'Giada';
+			case 'form_name_hisui': return 'Hisui';
 			case 'form_name_paldea': return 'Paldea';
 			case 'form_name_mega': return 'Mega';
 			case 'form_name_mega_x': return 'Mega X';
@@ -39690,7 +39690,7 @@ extension on _StringsIt {
 			case 'region_name_kalos': return 'Kalos';
 			case 'region_name_alola': return 'Alola';
 			case 'region_name_galar': return 'Galar';
-			case 'region_name_hisui': return 'Giada';
+			case 'region_name_hisui': return 'Hisui';
 			case 'region_name_paldea': return 'Paldea';
 			case 'region_name_lumiose': return 'Illumina';
 			case 'region_name_unknown': return 'Sconosciuto';
@@ -46554,7 +46554,7 @@ extension on _StringsNl {
 			case 'region_name_kalos': return 'Kalos';
 			case 'region_name_alola': return 'Alola';
 			case 'region_name_galar': return 'Galar';
-			case 'region_name_hisui': return 'Jade';
+			case 'region_name_hisui': return 'Hisui';
 			case 'region_name_paldea': return 'Paldea';
 			case 'region_name_lumiose': return 'Illumina';
 			case 'region_name_unknown': return 'Onbekend';
