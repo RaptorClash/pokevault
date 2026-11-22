@@ -1,5 +1,6 @@
 import '../models/scanner_event.dart';
 import '../models/scanner_settings.dart';
+import 'ocr_noise_stop_words.dart';
 
 /// Specifies which UI region / semantic role an OCR scan came from.
 enum OcrScanRole {
@@ -715,10 +716,7 @@ class OcrDetectionEngine {
                 _letterPattern.hasMatch(t) &&
                 !_stopWordCandidatePattern.hasMatch(t) &&
                 !_pureExclamationTriggerPattern.hasMatch(t) &&
-                !RegExp(
-                  r'^(?:gefangen|caught|appeared|erscheint|wildes|wilde|wild)$',
-                  caseSensitive: false,
-                ).hasMatch(t),
+                !OcrNoiseStopWords.all.contains(t.toLowerCase()),
           );
       if (candidateText.isNotEmpty && meaningfulTokens.isNotEmpty) {
         final hasMultiCue = isEncounterContext &&
@@ -758,7 +756,11 @@ class OcrDetectionEngine {
   bool _isInvalidCandidate(String candidate) {
     final trimmed = candidate.trim();
     if (_isNoise(trimmed)) return true;
-    if (_stopWordCandidatePattern.hasMatch(trimmed)) return true;
+    final lower = trimmed.toLowerCase();
+    if (_stopWordCandidatePattern.hasMatch(trimmed) ||
+        OcrNoiseStopWords.all.contains(lower)) {
+      return true;
+    }
     // Reject purely numeric / symbol garbage like "1487"
     if (!_letterPattern.hasMatch(trimmed)) return true;
     return false;
@@ -844,6 +846,11 @@ class OcrDetectionEngine {
     line = line.replaceAll(
       RegExp(r'\b(?:KP|HP)\b\s*\d*(?:/\d+)?', caseSensitive: false),
       ' ',
+    );
+    line = line.replaceAll(RegExp(r'\b\d+\s*[/\-–:]\s*\d+\b'), ' ');
+    line = line.replaceAllMapped(
+      RegExp(r'([A-Za-zÀ-ÿ])\s+([01|]+)\s+([A-Za-zÀ-ÿ])'),
+      (m) => '${m[1]}${m[2]}${m[3]}',
     );
     line = line.replaceAll(RegExp(r'\b\d+(?:/\d+)?\b'), ' ');
     return _cleanName(line.replaceAll(RegExp(r'\s+'), ' ').trim());

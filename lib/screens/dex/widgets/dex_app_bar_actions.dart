@@ -165,13 +165,13 @@ class DexAppBarActions extends StatelessWidget {
         if (isWideEnoughForTracker && onOpenDesktopTracker != null)
           IconButton(
             icon: const Icon(Icons.track_changes),
-            tooltip: 'Desktop Tracker & Overlay',
+            tooltip: t.scanner_home_desktop_only,
             onPressed: onOpenDesktopTracker,
           ),
         if (isWideEnoughForTracker && onOpenMobileScanner != null)
           IconButton(
             icon: const Icon(Icons.photo_camera_outlined),
-            tooltip: 'Kamera-Tracker',
+            tooltip: t.scanner_home_mobile_camera,
             onPressed: onOpenMobileScanner,
           ),
         PopupMenuButton<String>(
@@ -286,14 +286,14 @@ class DexAppBarActions extends StatelessWidget {
             ],
             if (!isWideEnoughForTracker && onOpenDesktopTracker != null) ...[
               const PopupMenuDivider(),
-              const PopupMenuItem(
+              PopupMenuItem(
                 value: 'desktop_tracker',
                 child: Row(
                   children: [
-                    Icon(Icons.track_changes, size: 20),
-                    SizedBox(width: 8),
+                    const Icon(Icons.track_changes, size: 20),
+                    const SizedBox(width: 8),
                     Expanded(
-                      child: Text('Desktop Tracker & Overlay'),
+                      child: Text(t.scanner_home_desktop_only),
                     ),
                   ],
                 ),
@@ -301,14 +301,14 @@ class DexAppBarActions extends StatelessWidget {
             ],
             if (!isWideEnoughForTracker && onOpenMobileScanner != null) ...[
               const PopupMenuDivider(),
-              const PopupMenuItem(
+              PopupMenuItem(
                 value: 'mobile_scanner',
                 child: Row(
                   children: [
-                    Icon(Icons.photo_camera_outlined, size: 20),
-                    SizedBox(width: 8),
+                    const Icon(Icons.photo_camera_outlined, size: 20),
+                    const SizedBox(width: 8),
                     Expanded(
-                      child: Text('Kamera-Tracker'),
+                      child: Text(t.scanner_home_mobile_camera),
                     ),
                   ],
                 ),

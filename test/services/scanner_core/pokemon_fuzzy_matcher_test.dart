@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:pokevault/services/scanner_core/engine/ocr_noise_stop_words.dart';
 import 'package:pokevault/services/scanner_core/engine/pokemon_fuzzy_matcher.dart';
 
 void main() {
@@ -273,6 +274,97 @@ void main() {
       expect(hordeCounts[0].count, 4);
       expect(hordeCounts[1].match.pokemonId, 83);
       expect(hordeCounts[1].count, 1);
+    });
+
+    test('exposes centralized OcrNoiseStopWords and rejects UI/dialogue noise', () {
+      expect(
+        OcrNoiseStopWords.all,
+        containsAll(<String>[
+          'melonds',
+          'retroarch',
+          'desmume',
+          'beutel',
+          'flucht',
+          'spitzname',
+          'nickname',
+          'gespeichert',
+          'potion',
+          'ball',
+        ]),
+      );
+
+      for (final stopWord in ['melonds', 'retroarch', 'beutel', 'flucht', 'potion']) {
+        expect(matcher.matchTopK(stopWord), isEmpty);
+      }
+    });
+
+    test('caches repeated matchTopK and matchAllWithCounts queries via LRU and supports clearCache', () {
+      matcher.clearCache();
+      expect(matcher.debugCacheSize, 0);
+
+      final firstTopK = matcher.matchTopK('Glumanda', limit: 2, threshold: 0.72);
+      expect(firstTopK, isNotEmpty);
+      expect(firstTopK.first.pokemonId, 4);
+      final sizeAfterFirst = matcher.debugCacheSize;
+      expect(sizeAfterFirst, greaterThan(0));
+
+      final cachedTopK = matcher.matchTopK('Glumanda', limit: 2, threshold: 0.72);
+      expect(cachedTopK.first.pokemonId, 4);
+      expect(matcher.debugCacheSize, sizeAfterFirst);
+
+      final multiFirst = matcher.matchAllWithCounts('Glumanda Lv.5\nPikachu Lv.4', threshold: 0.72);
+      expect(multiFirst, hasLength(2));
+      final sizeAfterMulti = matcher.debugCacheSize;
+      expect(sizeAfterMulti, greaterThan(sizeAfterFirst));
+
+      final multiCached = matcher.matchAllWithCounts('Glumanda Lv.5\nPikachu Lv.4', threshold: 0.72);
+      expect(identical(multiFirst, multiCached), isTrue);
+
+      matcher.clearCache();
+      expect(matcher.debugCacheSize, 0);
+    });
+
+    test('restricts fuzzy and exact matching to activeLanguage when set (prevents French Ixon false-positive on German Folikon OCR fragment "ikon")', () {
+      final multiLangMatcher = PokemonFuzzyMatcher.withEntries(const [
+        PokemonMatcherEntry(id: 541, name: 'Folikon', language: 'de'),
+        PokemonMatcherEntry(id: 862, name: 'Barrikadax', language: 'de'),
+        PokemonMatcherEntry(id: 862, name: 'Ixon', language: 'fr'),
+        PokemonMatcherEntry(id: 95, name: 'Onix', language: 'de'),
+      ]);
+
+      multiLangMatcher.setActiveLanguage('de-DE');
+      expect(multiLangMatcher.activeLanguage, 'de');
+
+      // French "Ixon" and garbled "ikon" must NOT match when activeLanguage is German ('de')
+      expect(multiLangMatcher.matchTopK('Ixon', threshold: 0.72), isEmpty);
+      expect(multiLangMatcher.matchTopK('ikon', threshold: 0.72), isEmpty);
+
+      // Reproduces screenshot OCR garbage: "Folik.on · 2-2 · mtmm · F 011 ikon"
+      final hudMatches = multiLangMatcher.matchAllWithCounts(
+        'Folik.on · 2-2 · mtmm · F 011 ikon',
+        threshold: 0.72,
+      );
+      expect(hudMatches.map((m) => m.match.pokemonId).toList(), [541]);
+      expect(hudMatches.first.match.canonicalName, 'Folikon');
+
+      expect(
+        multiLangMatcher.matchTopK('Barrikadax', threshold: 0.72).first.canonicalName,
+        'Barrikadax',
+      );
+
+      // Switching activeLanguage to French enables 'Ixon' cleanly
+      multiLangMatcher.setActiveLanguage('fr');
+      expect(multiLangMatcher.activeLanguage, 'fr');
+      final frHit = multiLangMatcher.matchTopK('Ixon', threshold: 0.72);
+      expect(frHit, isNotEmpty);
+      expect(frHit.first.pokemonId, 862);
+      expect(frHit.first.canonicalName, 'Ixon');
+
+      // Resetting to 'auto' / null re-enables all languages
+      multiLangMatcher.setActiveLanguage('auto');
+      expect(multiLangMatcher.activeLanguage, isNull);
+      expect(multiLangMatcher.matchTopK('Ixon', threshold: 0.72), isNotEmpty);
+      expect(multiLangMatcher.matchTopK('Barrikadax', threshold: 0.72), isNotEmpty);
     });
   });
 }

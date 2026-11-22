@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:typed_data';
 import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
+import '../../../i18n/strings.g.dart';
 import '../../../services/desktop_tracker/desktop_capture_driver.dart';
 import '../../../services/desktop_tracker/windows_desktop_bridge.dart';
 import '../../../services/scanner_core/engine/ocr_detection_engine.dart';
@@ -49,6 +50,7 @@ class _CustomPatternStudioDialogState extends State<CustomPatternStudioDialog> {
   CapturedFrame? _sandboxFrame;
   OcrPreprocessProfile _sandboxProfile = OcrPreprocessProfile.pixelArtDs;
   bool _runningPhotoOcr = false;
+  int _photoOcrRunId = 0;
   String? _photoError;
   Map<OcrPreprocessProfile, OcrRecognitionResult> _photoResults = const {};
 
@@ -65,6 +67,7 @@ class _CustomPatternStudioDialogState extends State<CustomPatternStudioDialog> {
 
   @override
   void dispose() {
+    _photoOcrRunId++;
     _templateController.dispose();
     _sandboxController.dispose();
     super.dispose();
@@ -78,8 +81,7 @@ class _CustomPatternStudioDialogState extends State<CustomPatternStudioDialog> {
     final trimmed = rawTemplate.trim();
     if (trimmed.isEmpty || !trimmed.contains('{pokemon}')) {
       setState(() {
-        _duplicateHint =
-            'Vorlage muss {pokemon} als Platzhalter enthalten.';
+        _duplicateHint = t.scanner_pattern_missing_placeholder;
       });
       return;
     }
@@ -90,7 +92,8 @@ class _CustomPatternStudioDialogState extends State<CustomPatternStudioDialog> {
     );
     if (exists) {
       setState(() {
-        _duplicateHint = 'Muster "$trimmed" ist bereits aktiv.';
+        _duplicateHint =
+            t.scanner_pattern_duplicate.replaceAll('{template}', trimmed);
       });
       return;
     }
@@ -175,9 +178,9 @@ class _CustomPatternStudioDialogState extends State<CustomPatternStudioDialog> {
       if (widget.sandboxImagePicker != null) {
         frame = await widget.sandboxImagePicker!();
       } else {
-        const typeGroup = XTypeGroup(
-          label: 'Bilder',
-          extensions: ['png', 'jpg', 'jpeg', 'webp', 'bmp'],
+        final typeGroup = XTypeGroup(
+          label: t.scanner_pattern_images_label,
+          extensions: const ['png', 'jpg', 'jpeg', 'webp', 'bmp'],
         );
         final file = await openFile(acceptedTypeGroups: [typeGroup]);
         if (file == null) return;
@@ -188,7 +191,7 @@ class _CustomPatternStudioDialogState extends State<CustomPatternStudioDialog> {
       if (!mounted) return;
       if (frame == null) {
         setState(() {
-          _photoError = 'Bild konnte nicht dekodiert werden.';
+          _photoError = t.scanner_pattern_decode_failed;
         });
         return;
       }
@@ -199,7 +202,7 @@ class _CustomPatternStudioDialogState extends State<CustomPatternStudioDialog> {
     } catch (e) {
       if (!mounted) return;
       setState(() {
-        _photoError = 'Fehler beim Laden: $e';
+        _photoError = t.scanner_pattern_load_error.replaceAll('{error}', '$e');
       });
     }
   }
@@ -207,6 +210,7 @@ class _CustomPatternStudioDialogState extends State<CustomPatternStudioDialog> {
   Future<void> _runPhotoOcr({bool compareAll = false}) async {
     final frame = _sandboxFrame;
     if (frame == null || widget.onRunPhotoOcr == null) return;
+    final runId = ++_photoOcrRunId;
     setState(() {
       _runningPhotoOcr = true;
       _photoError = null;
@@ -218,9 +222,12 @@ class _CustomPatternStudioDialogState extends State<CustomPatternStudioDialog> {
           : <OcrPreprocessProfile>[_sandboxProfile];
       final results = <OcrPreprocessProfile, OcrRecognitionResult>{};
       for (final p in profilesToRun) {
-        results[p] = await widget.onRunPhotoOcr!(frame, p);
+        if (!mounted || runId != _photoOcrRunId) return;
+        final res = await widget.onRunPhotoOcr!(frame, p);
+        if (!mounted || runId != _photoOcrRunId) return;
+        results[p] = res;
       }
-      if (!mounted) return;
+      if (!mounted || runId != _photoOcrRunId) return;
       setState(() {
         _photoResults = results;
         final activeText = (results[_sandboxProfile]?.lines ??
@@ -233,12 +240,12 @@ class _CustomPatternStudioDialogState extends State<CustomPatternStudioDialog> {
         }
       });
     } catch (e) {
-      if (!mounted) return;
+      if (!mounted || runId != _photoOcrRunId) return;
       setState(() {
-        _photoError = 'OCR-Ausführung fehlgeschlagen: $e';
+        _photoError = t.scanner_pattern_ocr_error.replaceAll('{error}', '$e');
       });
     } finally {
-      if (mounted) {
+      if (mounted && runId == _photoOcrRunId) {
         setState(() {
           _runningPhotoOcr = false;
         });

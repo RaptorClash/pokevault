@@ -215,6 +215,7 @@ class DesktopTrackerPlugin {
   // HUD state
   HWND hud_hwnd_ = nullptr;
   HWND scan_border_hwnd_ = nullptr;
+  HFONT scan_border_font_ = nullptr;
   bool scan_border_active_ = true;
   std::map<std::string, OverlayBorderEntry> overlay_borders_;
   HudStateData hud_state_{};

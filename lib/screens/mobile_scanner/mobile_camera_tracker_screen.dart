@@ -354,15 +354,18 @@ class _MobileCameraTrackerScreenState extends State<MobileCameraTrackerScreen>
   }
 
   void _syncOcrLanguageTag() {
-    String effectiveLang = widget.coordinator.settings.ocrLanguage;
-    if (effectiveLang == 'auto') {
-      try {
-        effectiveLang = Provider.of<SettingsProvider>(context, listen: false)
-            .effectivePokemonLanguage;
-      } catch (_) {
-        effectiveLang = 'de';
-      }
+    String appLang = 'de';
+    try {
+      appLang = Provider.of<SettingsProvider>(context, listen: false)
+          .effectivePokemonLanguage;
+    } catch (_) {
+      appLang = 'de';
     }
+    widget.coordinator.setEffectiveOcrLanguage(appLang);
+
+    final configured = widget.coordinator.settings.ocrLanguage;
+    final effectiveLang =
+        (configured != 'auto' && configured.isNotEmpty) ? configured : appLang;
     final mapped = WindowsDesktopBridge.mapPokemonLanguageToBcp47(effectiveLang);
     if (_cameraSource.ocrLanguageTag != mapped) {
       _cameraSource.setOcrLanguageTag(mapped);
@@ -1113,21 +1116,25 @@ class _MobileCameraTrackerScreenState extends State<MobileCameraTrackerScreen>
                   ),
                 ),
                 MobileZonesCameraTab(
-                  scanMode: _scanMode,
-                  autoPreset: _autoPreset,
-                  regions: _regions,
-                  activeBrushTarget: _activeBrushTarget,
-                  multiSlotIds: _effectiveMultiSlotIds,
-                  isEditingRegions: _isEditingRegions,
+                  zonesConfig: MobileZonesEditConfig(
+                    scanMode: _scanMode,
+                    autoPreset: _autoPreset,
+                    regions: _regions,
+                    activeBrushTarget: _activeBrushTarget,
+                    multiSlotIds: _effectiveMultiSlotIds,
+                    isEditingRegions: _isEditingRegions,
+                  ),
+                  hardwareConfig: MobileCameraHardwareConfig(
+                    torchEnabled: _hardwareController.torchEnabled,
+                    zoomLevel: _hardwareController.zoomLevel,
+                    minZoom: _hardwareController.minZoom,
+                    maxZoom: _hardwareController.maxZoom,
+                    cameras: _hardwareController.cameras,
+                    selectedCameraIndex: _hardwareController.selectedCameraIndex,
+                  ),
                   settings: widget.coordinator.settings,
                   ocrLanguageCode: widget.coordinator.settings.ocrLanguage,
                   alertSettings: _alertService.settings,
-                  torchEnabled: _hardwareController.torchEnabled,
-                  zoomLevel: _hardwareController.zoomLevel,
-                  minZoom: _hardwareController.minZoom,
-                  maxZoom: _hardwareController.maxZoom,
-                  cameras: _hardwareController.cameras,
-                  selectedCameraIndex: _hardwareController.selectedCameraIndex,
                   onScanModeChanged: _setScanMode,
                   onAutoPresetChanged: (p) {
                     setState(() => _autoPreset = p);

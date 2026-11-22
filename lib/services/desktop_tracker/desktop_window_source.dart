@@ -145,7 +145,8 @@ String computeFrameBrightnessSummary(CapturedFrame frame) {
 }
 
 /// Computes a fast, deterministic pixel-content fingerprint over evenly sampled pixels
-/// so identical static frames skip expensive OCR and UI thumbnail decoding.
+/// using an odd pixel stride so small localized text changes never fall between
+/// stride intervals and identical static frames skip expensive OCR.
 int computeFrameFingerprint(CapturedFrame frame) {
   final bytes = frame.bytes;
   int hash = 2166136261;
@@ -154,8 +155,21 @@ int computeFrameFingerprint(CapturedFrame frame) {
   hash = ((hash ^ bytes.length) * 16777619) & 0x7FFFFFFF;
   if (bytes.isEmpty) return hash;
 
-  final step = bytes.length <= 256 ? 1 : (bytes.length ~/ 192);
-  for (int i = 0; i < bytes.length; i += step) {
+  if (bytes.length < 4) {
+    for (int i = 0; i < bytes.length; i++) {
+      hash = ((hash ^ bytes[i]) * 16777619) & 0x7FFFFFFF;
+    }
+    return hash;
+  }
+
+  final totalPixels = bytes.length ~/ 4;
+  final pixelStep = totalPixels <= 2048 ? 1 : ((totalPixels ~/ 2048) | 1);
+  for (int px = 0; px < totalPixels; px += pixelStep) {
+    final off = px * 4;
+    final rgb = bytes[off] | (bytes[off + 1] << 8) | (bytes[off + 2] << 16);
+    hash = ((hash ^ rgb) * 16777619) & 0x7FFFFFFF;
+  }
+  for (int i = totalPixels * 4; i < bytes.length; i++) {
     hash = ((hash ^ bytes[i]) * 16777619) & 0x7FFFFFFF;
   }
   // Always mix first & last byte so small single-line bottom/top shifts are caught
@@ -201,9 +215,17 @@ class DesktopWindowSource
       ValueNotifier(const LiveOcrScanStatus());
   final ValueNotifier<Map<String, String>> focusBoxPreviewsNotifier =
       ValueNotifier(const {});
+  final ValueNotifier<Map<String, CapturedFrame>> focusBoxFramesNotifier =
+      ValueNotifier(const {});
   final ValueNotifier<List<OcrScanLogEntry>> scanLogsNotifier =
       ValueNotifier(const []);
   static const int _maxScanLogs = 40;
+  static final RegExp _focusCandidateWordRegex = RegExp(
+    r'(?:^|[\s♂♀✨])[A-Za-zÀ-ÿ]{5,}(?=$|[\s♂♀✨])',
+  );
+  static final RegExp _focusCandidateCjkRegex = RegExp(
+    r'[\u3040-\u30FF\u4E00-\u9FFF\uAC00-\uD7AF]{2,}',
+  );
   int _scanCounter = 0;
   int _focusScanCounter = 0;
 
@@ -212,6 +234,7 @@ class DesktopWindowSource
   int? _lastZoneBFingerprint;
   final Map<int, int> _lastExtraZoneBFingerprints = {};
   final Map<String, List<String>> _cachedFocusLinesByBox = {};
+  final Map<String, CapturedFrame> _latestFocusFramesByBox = {};
   final Map<int, int> _lastSlotScanFingerprints = {};
   final Map<int, int> _lastSlotFocusFingerprints = {};
   List<MultiInstanceSlot> _multiInstanceSlots = const [];
@@ -329,6 +352,12 @@ class DesktopWindowSource
     if (preset != LiveFocusPreset.customRegion) {
       _liveFocusScreenRegion = null;
     }
+    if (preset == LiveFocusPreset.disabled) {
+      _latestFocusFramesByBox.remove('B1');
+      focusBoxFramesNotifier.value = Map.unmodifiable(_latestFocusFramesByBox);
+      focusBoxPreviewsNotifier.value = const {};
+      liveFocusStatusNotifier.value = const LiveOcrScanStatus();
+    }
   }
 
   /// Configures Zone B with an explicit desktop snipping region (`customRegion`).
@@ -338,8 +367,15 @@ class DesktopWindowSource
     _cachedFocusLinesByBox.remove('B1');
     if (region != null) {
       _liveFocusPreset = LiveFocusPreset.customRegion;
-    } else if (_liveFocusPreset == LiveFocusPreset.customRegion) {
-      _liveFocusPreset = LiveFocusPreset.disabled;
+    } else {
+      _latestFocusFramesByBox.remove('B1');
+      focusBoxFramesNotifier.value = Map.unmodifiable(_latestFocusFramesByBox);
+      if (_liveFocusPreset == LiveFocusPreset.customRegion) {
+        _liveFocusPreset = LiveFocusPreset.disabled;
+      }
+      if (_liveFocusPreset == LiveFocusPreset.disabled) {
+        liveFocusStatusNotifier.value = const LiveOcrScanStatus();
+      }
     }
   }
 
@@ -348,6 +384,8 @@ class DesktopWindowSource
     _extraFocusRegions = List.unmodifiable(regions);
     _lastExtraZoneBFingerprints.clear();
     _cachedFocusLinesByBox.removeWhere((k, _) => k != 'B1');
+    _latestFocusFramesByBox.removeWhere((k, _) => k != 'B1');
+    focusBoxFramesNotifier.value = Map.unmodifiable(_latestFocusFramesByBox);
   }
 
   /// Updates known desktop windows so window-bound multi-instance slots can resolve targets.
@@ -458,7 +496,10 @@ class DesktopWindowSource
   Future<CapturedFrame?> triggerSingleScan() async {
     if (_disposed || _scanInFlight) return null;
     final window = _selectedWindow ??
-        ((_screenRegion != null || _multiInstanceSlots.any((s) => s.enabled))
+        ((_screenRegion != null ||
+                _liveFocusScreenRegion != null ||
+                _extraFocusRegions.isNotEmpty ||
+                _multiInstanceSlots.any((s) => s.enabled))
             ? DesktopWindowInfo.primaryScreen()
             : null);
     if (window == null) return null;
@@ -630,19 +671,17 @@ class DesktopWindowSource
     }
 
     bool isCandidateLine(String line) {
-      final cleaned = line
-          .replaceAll(RegExp(r'\b(?:KP|HP)\b\s*\d*(?:/\d+)?', caseSensitive: false), '')
-          .replaceAll(RegExp(r'(?:Lv|Lvl|Level)\.?\s*\d*', caseSensitive: false), '')
-          .replaceAll(RegExp(r'[^A-Za-zÀ-ÿ\u3040-\u30FF\u4E00-\u9FFF\uAC00-\uD7AF]+'), '')
-          .trim();
-      return cleaned.length >= 2;
+      final trimmed = line.trim();
+      if (trimmed.isEmpty) return false;
+      return _focusCandidateCjkRegex.hasMatch(trimmed) ||
+          _focusCandidateWordRegex.hasMatch(trimmed);
     }
 
     addLines(await runOcr(focusFrame));
 
     final candidateCount = merged.where(isCandidateLine).length;
     if (candidateCount < 2 && focusFrame.pixelFormat == 'bgra8888') {
-      final bands = FrameBandCropper.splitZoneBBands(focusFrame);
+      final bands = await FrameBandCropper.splitZoneBBandsAsync(focusFrame);
       for (final band in bands) {
         addLines(await runOcr(band));
       }
@@ -650,11 +689,13 @@ class DesktopWindowSource
 
     if (merged.where(isCandidateLine).isEmpty &&
         focusFrame.pixelFormat == 'bgra8888') {
-      final inverted = FrameBandCropper.invertLuminanceBgra(focusFrame);
+      final inverted = await FrameBandCropper.invertLuminanceBgraAsync(focusFrame);
       if (inverted != null) {
         addLines(await runOcr(inverted));
         if (merged.where(isCandidateLine).length < 2) {
-          for (final band in FrameBandCropper.splitZoneBBands(inverted)) {
+          final invertedBands =
+              await FrameBandCropper.splitZoneBBandsAsync(inverted);
+          for (final band in invertedBands) {
             addLines(await runOcr(band));
           }
         }
@@ -702,6 +743,7 @@ class DesktopWindowSource
 
         if (focusFrame != null) {
           primaryLatestFrame = focusFrame;
+          _latestFocusFramesByBox['B1'] = focusFrame;
           final fp = computeFrameFingerprint(focusFrame);
           if (_lastZoneBFingerprint != fp) {
             _lastZoneBFingerprint = fp;
@@ -721,6 +763,7 @@ class DesktopWindowSource
           screenRegion: extraRegion,
         );
         if (extraFrame == null) continue;
+        _latestFocusFramesByBox[boxKey] = extraFrame;
         final fp = computeFrameFingerprint(extraFrame);
         if (_lastExtraZoneBFingerprints[i] != fp) {
           _lastExtraZoneBFingerprints[i] = fp;
@@ -730,7 +773,7 @@ class DesktopWindowSource
         }
       }
 
-      if (!anyBoxChanged) return;
+      if (!anyBoxChanged || _disposed) return;
 
       final combinedLines = <String>[];
       final seenCombined = <String>{};
@@ -751,6 +794,7 @@ class DesktopWindowSource
       }
 
       focusBoxPreviewsNotifier.value = Map.unmodifiable(previewsMap);
+      focusBoxFramesNotifier.value = Map.unmodifiable(_latestFocusFramesByBox);
       _focusScanCounter++;
       liveFocusStatusNotifier.value = LiveOcrScanStatus(
         scanCount: _focusScanCounter,
@@ -792,19 +836,12 @@ class DesktopWindowSource
     return null;
   }
 
-  Future<void> _captureAndEmitSlotZone({
+  Future<void> _emitSlotZoneOcr({
     required MultiInstanceSlot slot,
-    required DesktopWindowInfo targetWindow,
-    Rect? cropRegion,
-    ScreenRegion? screenRegion,
+    required CapturedFrame? frame,
     required Map<int, int> fingerprintCache,
     required bool encounterOnly,
   }) async {
-    final frame = await captureDriver.captureWindow(
-      window: targetWindow,
-      cropRegion: cropRegion,
-      screenRegion: screenRegion,
-    );
     if (frame == null) return;
 
     final fp = computeFrameFingerprint(frame);
@@ -834,65 +871,102 @@ class DesktopWindowSource
   Future<void> _pollMultiInstanceSlots() async {
     if (_multiInstanceSlots.isEmpty) return;
     final detector = WindowDetector();
-    final activeSlots = _multiInstanceSlots.where((s) => s.enabled);
-    for (final slot in activeSlots) {
-      try {
-        final boundWindow = _resolveBoundWindow(slot);
+    final activeSlots = _multiInstanceSlots.where((s) => s.enabled).toList();
+    if (activeSlots.isEmpty) return;
 
-        if (slot.hasScan) {
-          if (slot.scanRegion != null) {
-            await _captureAndEmitSlotZone(
-              slot: slot,
-              targetWindow: DesktopWindowInfo.primaryScreen(),
-              screenRegion: slot.scanRegion,
-              fingerprintCache: _lastSlotScanFingerprints,
-              encounterOnly: false,
-            );
-          } else if (boundWindow != null) {
-            final crop = detector.calculateScanRegion(
+    final zoneSpecs = <({
+      MultiInstanceSlot slot,
+      DesktopWindowInfo targetWindow,
+      Rect? cropRegion,
+      ScreenRegion? screenRegion,
+      Map<int, int> fingerprintCache,
+      bool encounterOnly,
+    })>[];
+
+    for (final slot in activeSlots) {
+      final boundWindow = _resolveBoundWindow(slot);
+
+      if (slot.hasScan) {
+        if (slot.scanRegion != null) {
+          zoneSpecs.add((
+            slot: slot,
+            targetWindow: DesktopWindowInfo.primaryScreen(),
+            cropRegion: null,
+            screenRegion: slot.scanRegion,
+            fingerprintCache: _lastSlotScanFingerprints,
+            encounterOnly: false,
+          ));
+        } else if (boundWindow != null) {
+          zoneSpecs.add((
+            slot: slot,
+            targetWindow: boundWindow,
+            cropRegion: detector.calculateScanRegion(
               slot.scanPreset,
               windowWidth: boundWindow.width,
               windowHeight: boundWindow.height,
-            );
-            await _captureAndEmitSlotZone(
+            ),
+            screenRegion: null,
+            fingerprintCache: _lastSlotScanFingerprints,
+            encounterOnly: false,
+          ));
+        }
+      }
+
+      if (slot.hasFocus) {
+        if (slot.focusPreset == LiveFocusPreset.customRegion &&
+            slot.focusRegion != null) {
+          zoneSpecs.add((
+            slot: slot,
+            targetWindow: DesktopWindowInfo.primaryScreen(),
+            cropRegion: null,
+            screenRegion: slot.focusRegion,
+            fingerprintCache: _lastSlotFocusFingerprints,
+            encounterOnly: true,
+          ));
+        } else if (slot.focusPreset != LiveFocusPreset.disabled &&
+            slot.focusPreset != LiveFocusPreset.customRegion &&
+            boundWindow != null) {
+          final focusCrop = detector.calculateEnemyHudCropRegion(
+            slot.focusPreset,
+            windowWidth: boundWindow.width,
+            windowHeight: boundWindow.height,
+          );
+          if (focusCrop != null) {
+            zoneSpecs.add((
               slot: slot,
               targetWindow: boundWindow,
-              cropRegion: crop,
-              fingerprintCache: _lastSlotScanFingerprints,
-              encounterOnly: false,
-            );
-          }
-        }
-
-        if (slot.hasFocus) {
-          if (slot.focusPreset == LiveFocusPreset.customRegion &&
-              slot.focusRegion != null) {
-            await _captureAndEmitSlotZone(
-              slot: slot,
-              targetWindow: DesktopWindowInfo.primaryScreen(),
-              screenRegion: slot.focusRegion,
+              cropRegion: focusCrop,
+              screenRegion: null,
               fingerprintCache: _lastSlotFocusFingerprints,
               encounterOnly: true,
-            );
-          } else if (slot.focusPreset != LiveFocusPreset.disabled &&
-              slot.focusPreset != LiveFocusPreset.customRegion &&
-              boundWindow != null) {
-            final focusCrop = detector.calculateEnemyHudCropRegion(
-              slot.focusPreset,
-              windowWidth: boundWindow.width,
-              windowHeight: boundWindow.height,
-            );
-            if (focusCrop != null) {
-              await _captureAndEmitSlotZone(
-                slot: slot,
-                targetWindow: boundWindow,
-                cropRegion: focusCrop,
-                fingerprintCache: _lastSlotFocusFingerprints,
-                encounterOnly: true,
-              );
-            }
+            ));
           }
         }
+      }
+    }
+
+    if (zoneSpecs.isEmpty) return;
+
+    final capturedFrames = await Future.wait([
+      for (final spec in zoneSpecs)
+        captureDriver
+            .captureWindow(
+              window: spec.targetWindow,
+              cropRegion: spec.cropRegion,
+              screenRegion: spec.screenRegion,
+            )
+            .catchError((_) => null),
+    ]);
+
+    for (int i = 0; i < zoneSpecs.length; i++) {
+      final spec = zoneSpecs[i];
+      try {
+        await _emitSlotZoneOcr(
+          slot: spec.slot,
+          frame: capturedFrames[i],
+          fingerprintCache: spec.fingerprintCache,
+          encounterOnly: spec.encounterOnly,
+        );
       } catch (_) {
         // Isolate per-slot errors so other Shiny-Hunting instances keep scanning
       }
@@ -912,6 +986,7 @@ class DesktopWindowSource
     liveScanStatusNotifier.dispose();
     liveFocusStatusNotifier.dispose();
     focusBoxPreviewsNotifier.dispose();
+    focusBoxFramesNotifier.dispose();
     scanLogsNotifier.dispose();
     await _textController.close();
     await _focusTextController.close();

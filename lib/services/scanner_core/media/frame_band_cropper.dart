@@ -1,10 +1,118 @@
-import 'dart:typed_data';
+import 'dart:isolate';
+
+import 'package:flutter/foundation.dart';
 
 import '../../desktop_tracker/desktop_capture_driver.dart';
 
 /// Pure-Dart BGRA8888 sub-frame cropper and contrast helper for multi-enemy Zone B HUDs.
 class FrameBandCropper {
   FrameBandCropper._();
+
+  static const int _isolateByteThreshold = 65536;
+
+  /// Offloads [splitZoneBBands] to a background isolate via [TransferableTypedData]
+  /// for large native frames (> 64 KB), keeping small frames and Web fast and synchronous.
+  static Future<List<CapturedFrame>> splitZoneBBandsAsync(
+    CapturedFrame frame,
+  ) async {
+    if (kIsWeb || frame.bytes.length <= _isolateByteThreshold) {
+      return splitZoneBBands(frame);
+    }
+    final width = frame.width;
+    final height = frame.height;
+    final pixelFormat = frame.pixelFormat;
+    final captureMethod = frame.captureMethod;
+    final rawTransfer = TransferableTypedData.fromList([
+      Uint8List.fromList(frame.bytes),
+    ]);
+
+    final packed = await Isolate.run(() {
+      final src = CapturedFrame(
+        width: width,
+        height: height,
+        bytes: rawTransfer.materialize().asUint8List(),
+        pixelFormat: pixelFormat,
+        captureMethod: captureMethod,
+      );
+      final bands = splitZoneBBands(src);
+      return [
+        for (final b in bands)
+          (
+            width: b.width,
+            height: b.height,
+            bytes: TransferableTypedData.fromList([
+              b.bytes is Uint8List
+                  ? b.bytes as Uint8List
+                  : Uint8List.fromList(b.bytes),
+            ]),
+            pixelFormat: b.pixelFormat,
+            captureMethod: b.captureMethod,
+          ),
+      ];
+    });
+
+    return List.unmodifiable([
+      for (final item in packed)
+        CapturedFrame(
+          width: item.width,
+          height: item.height,
+          bytes: item.bytes.materialize().asUint8List(),
+          pixelFormat: item.pixelFormat,
+          captureMethod: item.captureMethod,
+        ),
+    ]);
+  }
+
+  /// Offloads [invertLuminanceBgra] to a background isolate via [TransferableTypedData]
+  /// for large native frames (> 64 KB).
+  static Future<CapturedFrame?> invertLuminanceBgraAsync(
+    CapturedFrame frame,
+  ) async {
+    if (kIsWeb || frame.bytes.length <= _isolateByteThreshold) {
+      return invertLuminanceBgra(frame);
+    }
+    final width = frame.width;
+    final height = frame.height;
+    final pixelFormat = frame.pixelFormat;
+    final captureMethod = frame.captureMethod;
+    final rawTransfer = TransferableTypedData.fromList([
+      frame.bytes is Uint8List
+          ? frame.bytes as Uint8List
+          : Uint8List.fromList(frame.bytes),
+    ]);
+
+    final packed = await Isolate.run(() {
+      final src = CapturedFrame(
+        width: width,
+        height: height,
+        bytes: rawTransfer.materialize().asUint8List(),
+        pixelFormat: pixelFormat,
+        captureMethod: captureMethod,
+      );
+      final inverted = invertLuminanceBgra(src);
+      if (inverted == null) return null;
+      return (
+        width: inverted.width,
+        height: inverted.height,
+        bytes: TransferableTypedData.fromList([
+          inverted.bytes is Uint8List
+              ? inverted.bytes as Uint8List
+              : Uint8List.fromList(inverted.bytes),
+        ]),
+        pixelFormat: inverted.pixelFormat,
+        captureMethod: inverted.captureMethod,
+      );
+    });
+
+    if (packed == null) return null;
+    return CapturedFrame(
+      width: packed.width,
+      height: packed.height,
+      bytes: packed.bytes.materialize().asUint8List(),
+      pixelFormat: packed.pixelFormat,
+      captureMethod: packed.captureMethod,
+    );
+  }
 
   /// Splits [frame] into overlapping vertical (top/bottom) and, when wide,
   /// horizontal (left/right) sub-bands so stacked or side-by-side nameplates

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../models/pokemon.dart';
+import '../../providers/settings_provider.dart';
 import '../../screens/desktop_tracker/desktop_tracker_screen.dart';
 import '../../screens/mobile_scanner/mobile_camera_tracker_screen.dart';
 import '../../utils/tracker_platform_helper.dart';
@@ -16,9 +18,19 @@ import 'scanner_coordinator.dart';
 class ScannerLauncherHelper {
   const ScannerLauncherHelper._();
 
+  static String _resolvePokemonLanguage(BuildContext context) {
+    try {
+      return Provider.of<SettingsProvider>(context, listen: false)
+          .effectivePokemonLanguage;
+    } catch (_) {
+      return 'de';
+    }
+  }
+
   static ScannerCoordinator buildCoordinator(
     List<Pokemon> allPokemon, {
     ScannerSettings? settings,
+    String? effectivePokemonLanguage,
   }) {
     final entries = <PokemonMatcherEntry>[];
     for (final p in allPokemon) {
@@ -33,11 +45,15 @@ class ScannerLauncherHelper {
       }
     }
 
-    return ScannerCoordinator(
+    final coordinator = ScannerCoordinator(
       engine: OcrDetectionEngine(),
       matcher: PokemonFuzzyMatcher.withEntries(entries),
       settings: settings ?? ScannerSettings.defaults(),
     );
+    if (effectivePokemonLanguage != null) {
+      coordinator.setEffectiveOcrLanguage(effectivePokemonLanguage);
+    }
+    return coordinator;
   }
 
   /// Opens the unified Desktop & Webcam Tracker whenever running on Desktop/Web.
@@ -55,8 +71,16 @@ class ScannerLauncherHelper {
         existingService.isTrackingActive &&
         (existingService.windowSource == null ||
             !existingService.windowSource!.isDisposed);
-    final coordinator =
-        canReuseService ? existingService.coordinator! : buildCoordinator(allPokemon);
+    final effectiveLang = _resolvePokemonLanguage(context);
+    final coordinator = canReuseService
+        ? existingService.coordinator!
+        : buildCoordinator(
+            allPokemon,
+            effectivePokemonLanguage: effectiveLang,
+          );
+    if (canReuseService) {
+      coordinator.setEffectiveOcrLanguage(effectiveLang);
+    }
     final reusableWindowSource =
         canReuseService ? existingService.windowSource : null;
 
@@ -81,15 +105,21 @@ class ScannerLauncherHelper {
   }) {
     if (!TrackerPlatformHelper.isCameraTrackerSupported) return;
     final mobileService = MobileCameraTrackerService.instance;
-    final coordinator =
-        (mobileService.coordinator != null && mobileService.isTrackingActive)
-            ? mobileService.coordinator!
-            : buildCoordinator(
-                allPokemon,
-                settings: ScannerSettings.defaults().copyWith(
-                  preprocessProfile: OcrPreprocessProfile.cameraDisplay,
-                ),
-              );
+    final effectiveLang = _resolvePokemonLanguage(context);
+    final canReuseMobile =
+        mobileService.coordinator != null && mobileService.isTrackingActive;
+    final coordinator = canReuseMobile
+        ? mobileService.coordinator!
+        : buildCoordinator(
+            allPokemon,
+            effectivePokemonLanguage: effectiveLang,
+            settings: ScannerSettings.defaults().copyWith(
+              preprocessProfile: OcrPreprocessProfile.cameraDisplay,
+            ),
+          );
+    if (canReuseMobile) {
+      coordinator.setEffectiveOcrLanguage(effectiveLang);
+    }
 
     Navigator.push(
       context,

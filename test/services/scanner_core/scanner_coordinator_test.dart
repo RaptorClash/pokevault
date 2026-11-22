@@ -449,6 +449,152 @@ void main() {
       expect(focusBatches.last[1].pokemonId, 83);
       expect(focusBatches.last[1].encounterCount, 1);
     });
+
+    test('20-minute smart battle-refresh suppresses duplicates across >3 min battles without re-triggering', () async {
+      expect(ScannerCoordinator.battleTimeout, const Duration(minutes: 20));
+
+      var fakeElapsed = Duration.zero;
+      final timedCoord = ScannerCoordinator(
+        engine: engine,
+        matcher: matcher,
+        settings: ScannerSettings.defaults(),
+        feedback: feedback,
+        encounterCooldown: Duration.zero,
+        elapsedClock: () => fakeElapsed,
+      );
+      addTearDown(timedCoord.dispose);
+
+      final emitted = <ScannerEvent>[];
+      timedCoord.events.listen(emitted.add);
+
+      // t = 0: encounter starts
+      await timedCoord.processFrameText('Pikachu Lv.12', encounterOnly: true);
+      await Future<void>.delayed(Duration.zero);
+      expect(emitted, hasLength(1));
+
+      // t = 2m: opponent still visible -> refreshes lastSeenAt
+      fakeElapsed = const Duration(minutes: 2);
+      await timedCoord.processFrameText('Pikachu Lv.12', encounterOnly: true);
+      await Future<void>.delayed(Duration.zero);
+      expect(emitted, hasLength(1));
+
+      // t = 4m (past legacy 3-minute timeout!) -> STILL suppressed because t=2m refreshed lastSeenAt
+      fakeElapsed = const Duration(minutes: 4);
+      await timedCoord.processFrameText('Pikachu Lv.12', encounterOnly: true);
+      await Future<void>.delayed(Duration.zero);
+      expect(emitted, hasLength(1));
+
+      // t = 18m (< 20m since t=4m) -> still active battle
+      fakeElapsed = const Duration(minutes: 18);
+      await timedCoord.processFrameText('Pikachu Lv.12', encounterOnly: true);
+      await Future<void>.delayed(Duration.zero);
+      expect(emitted, hasLength(1));
+
+      // t = 40m (> 20m since t=18m) -> timeout expired -> fresh encounter emitted
+      fakeElapsed = const Duration(minutes: 40);
+      await timedCoord.processFrameText('Pikachu Lv.12', encounterOnly: true);
+      await Future<void>.delayed(Duration.zero);
+      expect(emitted, hasLength(2));
+    });
+
+    test('drop-oldest per-slot backpressure drops stale queued bursts while preserving latest frame', () async {
+      final slowCoord = ScannerCoordinator(
+        engine: engine,
+        matcher: matcher,
+        settings: ScannerSettings.defaults().copyWith(
+          playAudioFeedback: true,
+        ),
+        feedback: _SlowTestFeedback(),
+        encounterCooldown: Duration.zero,
+      );
+      addTearDown(slowCoord.dispose);
+
+      final emitted = <ScannerEvent>[];
+      slowCoord.events.listen(emitted.add);
+
+      // Burst 12 encounter frames into the same slot while the first frame is blocked in slow feedback
+      final futures = <Future<List<ScannerEvent>>>[];
+      futures.add(slowCoord.processFrameText('Ein wildes Glumanda erscheint!', instanceIndex: 1));
+      for (int i = 0; i < 10; i++) {
+        futures.add(slowCoord.processFrameText('Ein wildes Glutexo erscheint!', instanceIndex: 1));
+      }
+      futures.add(slowCoord.processFrameText('Ein wildes Pikachu erscheint!', instanceIndex: 1));
+
+      final results = await Future.wait(futures);
+      await Future<void>.delayed(const Duration(milliseconds: 10));
+
+      // First frame and final frame must complete cleanly; excess middle frames were dropped
+      expect(results.first.map((e) => e.pokemonId), contains(4));
+      expect(emitted.last.pokemonId, 25);
+      expect(slowCoord.debugDroppedFramesCount, greaterThan(0));
+    });
+
+    test('setEffectiveOcrLanguage and settings.ocrLanguage scope matcher to active game language', () async {
+      final langMatcher = PokemonFuzzyMatcher.withEntries(const [
+        PokemonMatcherEntry(id: 541, name: 'Folikon', language: 'de'),
+        PokemonMatcherEntry(id: 862, name: 'Barrikadax', language: 'de'),
+        PokemonMatcherEntry(id: 862, name: 'Ixon', language: 'fr'),
+      ]);
+      final langCoord = ScannerCoordinator(
+        engine: OcrDetectionEngine(),
+        matcher: langMatcher,
+        settings: ScannerSettings.defaults(),
+        encounterCooldown: Duration.zero,
+      );
+      addTearDown(langCoord.dispose);
+
+      langCoord.setEffectiveOcrLanguage('de');
+      expect(langCoord.effectiveOcrLanguage, 'de');
+      expect(langMatcher.activeLanguage, 'de');
+
+      final emitted = <ScannerEvent>[];
+      langCoord.events.listen(emitted.add);
+
+      // Frame 1: clean Folikon encounter
+      await langCoord.processFrameText('Folikon Lv.22', encounterOnly: true);
+      // Frame 2: garbled Zone B text with 'ikon' (would previously false-match FR 'Ixon' at 75%)
+      await langCoord.processFrameText(
+        'Folik.on\n2-2\nmtmm\nF 011 ikon',
+        encounterOnly: true,
+      );
+      await Future<void>.delayed(Duration.zero);
+
+      expect(emitted, hasLength(1));
+      expect(emitted.single.pokemonId, 541);
+      expect(emitted.single.matchedName, 'Folikon');
+
+      // Explicit settings override changes matcher language even if effectiveOcrLanguage stays 'de'
+      langCoord.updateSettings(langCoord.settings.copyWith(ocrLanguage: 'fr'));
+      expect(langMatcher.activeLanguage, 'fr');
+    });
+
+    test('Zone B resolves leetspeak split token "F 011 ikon" even without clean name line', () async {
+      final hudMatcher = PokemonFuzzyMatcher.withEntries(const [
+        PokemonMatcherEntry(id: 541, name: 'Folikon', language: 'de'),
+        PokemonMatcherEntry(id: 862, name: 'Barrikadax', language: 'de'),
+      ])
+        ..setActiveLanguage('de');
+      final hudCoord = ScannerCoordinator(
+        engine: OcrDetectionEngine(),
+        matcher: hudMatcher,
+        settings: ScannerSettings.defaults(),
+        encounterCooldown: Duration.zero,
+      );
+      addTearDown(hudCoord.dispose);
+
+      final emitted = <ScannerEvent>[];
+      hudCoord.events.listen(emitted.add);
+
+      await hudCoord.processFrameText(
+        '2-2\nmtmm\nF 011 ikon',
+        encounterOnly: true,
+      );
+      await Future<void>.delayed(Duration.zero);
+
+      expect(emitted, hasLength(1));
+      expect(emitted.single.pokemonId, 541);
+      expect(emitted.single.matchedName, 'Folikon');
+    });
   });
 }
 

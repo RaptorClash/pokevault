@@ -1,11 +1,11 @@
-import 'dart:typed_data';
-
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../../models/pokemon.dart';
 import '../../../providers/dex_provider.dart';
 import '../../../services/desktop_tracker/desktop_capture_driver.dart';
+import '../../../services/desktop_tracker/desktop_window_source.dart';
 import '../../../services/desktop_tracker/tracker_alert_service.dart';
 import '../../../services/scanner_core/engine/pokemon_fuzzy_matcher.dart';
 import '../../../services/scanner_core/models/scanner_event.dart';
@@ -156,31 +156,155 @@ class DesktopTrackerDialogs {
     );
   }
 
+  static Widget _buildEnlargedCanvas({
+    required CapturedFrame? liveFrame,
+    required Uint8List? fallbackPng,
+  }) {
+    return Container(
+      color: Colors.black,
+      child: LiveFrameThumbnail(
+        liveFrame: liveFrame,
+        fallbackPngBytes: fallbackPng,
+        fallbackIcon: Icons.crop_free,
+      ),
+    );
+  }
+
+  static Widget _buildEnlargedLiveStatusBar({
+    required String ocrText,
+    int? scanCount,
+  }) {
+    final hasText = ocrText.trim().isNotEmpty;
+    return Padding(
+      padding: const EdgeInsets.only(top: 10),
+      child: Row(
+        children: [
+          Container(
+            width: 7,
+            height: 7,
+            decoration: const BoxDecoration(
+              shape: BoxShape.circle,
+              color: Colors.cyanAccent,
+            ),
+          ),
+          if (scanCount != null && scanCount > 0) ...[
+            const SizedBox(width: 6),
+            Text(
+              '#$scanCount',
+              style: const TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.bold,
+                color: Colors.cyanAccent,
+              ),
+            ),
+          ],
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              key: const Key('enlarged_preview_ocr_text'),
+              hasText ? 'OCR: $ocrText' : 'Warte auf Text...',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: 11,
+                fontStyle: hasText ? FontStyle.normal : FontStyle.italic,
+                color: hasText ? null : Colors.grey,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   static void showEnlargedPreview(
     BuildContext context, {
     required CapturedFrame? liveFrame,
     required Uint8List? fallbackPng,
     required String title,
+    ValueListenable<LiveOcrScanStatus>? statusListenable,
+    ValueListenable<CapturedFrame?>? frameListenable,
+    ValueListenable<Map<String, CapturedFrame>>? boxFramesListenable,
+    ValueListenable<Map<String, String>>? boxPreviewsListenable,
+    String? boxKey,
   }) {
-    if (liveFrame == null && fallbackPng == null) return;
+    if (liveFrame == null &&
+        fallbackPng == null &&
+        statusListenable == null &&
+        frameListenable == null &&
+        boxFramesListenable == null) {
+      return;
+    }
+    final hasStatusBar = statusListenable != null ||
+        (boxPreviewsListenable != null && boxKey != null);
     showDialog<void>(
       context: context,
       builder: (ctx) => AlertDialog(
+        key: const Key('enlarged_preview_dialog'),
         title: Text(
           title,
           style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
         ),
         content: SizedBox(
           width: 640,
-          height: 360,
-          child: Container(
-            color: Colors.black,
-            child: LiveFrameThumbnail(
-              liveFrame: liveFrame,
-              fallbackPngBytes: fallbackPng,
-              fallbackIcon: Icons.crop_free,
-            ),
-          ),
+          height: hasStatusBar ? 404 : 360,
+          child: statusListenable != null
+              ? ValueListenableBuilder<LiveOcrScanStatus>(
+                  valueListenable: statusListenable,
+                  builder: (_, status, _) => Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Expanded(
+                        child: _buildEnlargedCanvas(
+                          liveFrame: status.latestFrame ?? liveFrame,
+                          fallbackPng: fallbackPng,
+                        ),
+                      ),
+                      _buildEnlargedLiveStatusBar(
+                        ocrText: status.previewText,
+                        scanCount: status.scanCount,
+                      ),
+                    ],
+                  ),
+                )
+              : (boxFramesListenable != null || boxPreviewsListenable != null) &&
+                      boxKey != null
+                  ? ListenableBuilder(
+                      listenable: Listenable.merge([
+                        ?boxFramesListenable,
+                        ?boxPreviewsListenable,
+                      ]),
+                      builder: (_, _) {
+                        final boxFrame =
+                            boxFramesListenable?.value[boxKey] ?? liveFrame;
+                        final boxOcr = boxPreviewsListenable?.value[boxKey] ?? '';
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Expanded(
+                              child: _buildEnlargedCanvas(
+                                liveFrame: boxFrame,
+                                fallbackPng: fallbackPng,
+                              ),
+                            ),
+                            if (boxPreviewsListenable != null)
+                              _buildEnlargedLiveStatusBar(ocrText: boxOcr),
+                          ],
+                        );
+                      },
+                    )
+                  : frameListenable != null
+                      ? ValueListenableBuilder<CapturedFrame?>(
+                          valueListenable: frameListenable,
+                          builder: (_, frame, _) => _buildEnlargedCanvas(
+                            liveFrame: frame ?? liveFrame,
+                            fallbackPng: fallbackPng,
+                          ),
+                        )
+                      : _buildEnlargedCanvas(
+                          liveFrame: liveFrame,
+                          fallbackPng: fallbackPng,
+                        ),
         ),
         actions: [
           TextButton(

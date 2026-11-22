@@ -492,6 +492,127 @@ void main() {
       expect(multiBandSource.focusBoxPreviewLines['B1'], contains('Zubat'));
       expect(multiBandSource.focusBoxPreviewLines['B2'], contains('Flampion'));
     });
+
+    test('computeFrameFingerprint detects small localized pixel changes inside BGRA8888 Zone B frames', () {
+      const w = 240;
+      const h = 60;
+      final baseBytes = List<int>.filled(w * h * 4, 24);
+      final mutatedBytes = List<int>.from(baseBytes);
+      // Modify a small 10x4 HUD text patch inside the frame
+      for (int y = 24; y < 28; y++) {
+        for (int x = 100; x < 110; x++) {
+          final off = (y * w + x) * 4;
+          mutatedBytes[off] = 240;
+          mutatedBytes[off + 1] = 240;
+          mutatedBytes[off + 2] = 240;
+          mutatedBytes[off + 3] = 255;
+        }
+      }
+
+      final f1 = CapturedFrame(
+        width: w,
+        height: h,
+        bytes: baseBytes,
+        pixelFormat: 'bgra8888',
+      );
+      final f2 = CapturedFrame(
+        width: w,
+        height: h,
+        bytes: mutatedBytes,
+        pixelFormat: 'bgra8888',
+      );
+
+      expect(computeFrameFingerprint(f1), isNot(equals(computeFrameFingerprint(f2))));
+    });
+
+    test('Zone B triggers luminance inversion when raw OCR returns only fragmented shadow-noise lines', () async {
+      const w = 160;
+      const h = 48;
+      // Dark background (18) so inverted pixels become bright (237)
+      final rawBytes = List<int>.filled(w * h * 4, 18);
+      for (int off = 3; off < rawBytes.length; off += 4) {
+        rawBytes[off] = 255;
+      }
+      final rawFrame = CapturedFrame(
+        width: w,
+        height: h,
+        bytes: rawBytes,
+        pixelFormat: 'bgra8888',
+      );
+
+      final noiseCap = _RegionAwareCaptureDriver({50: rawFrame});
+      final invOcr = _InversionAwareOcrDriver();
+      final src = DesktopWindowSource(
+        captureDriver: noiseCap,
+        ocrDriver: invOcr,
+        pollInterval: const Duration(milliseconds: 50),
+      );
+      addTearDown(src.dispose);
+
+      src.setLiveFocusScreenRegion(
+        ScreenRegion(
+          x: 50,
+          y: 50,
+          width: 160,
+          height: 48,
+          isAbsoluteScreen: true,
+          label: 'Fokus B1',
+        ),
+      );
+
+      final focusTexts = <String>[];
+      final sub = src.focusTextStream.listen(focusTexts.add);
+      addTearDown(sub.cancel);
+
+      // Should even work via fallback DesktopWindowInfo.primaryScreen() when _selectedWindow is null
+      await src.triggerSingleScan();
+      await Future<void>.delayed(Duration.zero);
+
+      expect(invOcr.sawInvertedFrame, isTrue);
+      expect(focusTexts, isNotEmpty);
+      expect(focusTexts.last, contains('Folikon Lv.22'));
+      expect(src.liveFocusStatusNotifier.value.recognizedLines, contains('Folikon Lv.22'));
+    });
+
+    test('focusBoxFramesNotifier tracks latest CapturedFrame for B1 and B2 and resets cleanly', () async {
+      final frameB1 = CapturedFrame(
+        width: 80,
+        height: 40,
+        bytes: List<int>.filled(80 * 40 * 4, 42),
+        pixelFormat: 'bgra8888',
+      );
+      final frameB2 = CapturedFrame(
+        width: 90,
+        height: 40,
+        bytes: List<int>.filled(90 * 40 * 4, 84),
+        pixelFormat: 'bgra8888',
+      );
+
+      final boxCap = _RegionAwareCaptureDriver({50: frameB1, 300: frameB2});
+      final src = DesktopWindowSource(
+        captureDriver: boxCap,
+        ocrDriver: _CountingOcrDriver(const ['Pikachu Lv.7', 'Flampion Lv.15']),
+        pollInterval: const Duration(milliseconds: 50),
+      );
+      addTearDown(src.dispose);
+
+      src.setLiveFocusScreenRegion(
+        ScreenRegion(x: 50, y: 50, width: 80, height: 40, isAbsoluteScreen: true),
+      );
+      src.setExtraFocusRegions([
+        ScreenRegion(x: 300, y: 50, width: 90, height: 40, isAbsoluteScreen: true),
+      ]);
+
+      await src.triggerSingleScan();
+
+      expect(src.focusBoxFramesNotifier.value['B1'], equals(frameB1));
+      expect(src.focusBoxFramesNotifier.value['B2'], equals(frameB2));
+
+      src.setLiveFocusPreset(LiveFocusPreset.disabled);
+      expect(src.focusBoxFramesNotifier.value.containsKey('B1'), isFalse);
+      expect(src.liveFocusStatusNotifier.value.scanCount, 0);
+      expect(src.liveFocusStatusNotifier.value.latestFrame, isNull);
+    });
   });
 }
 
@@ -602,5 +723,18 @@ class _BandSensitiveOcrDriver implements DesktopOcrDriver {
       return bottomBandLines;
     }
     return const [];
+  }
+}
+
+class _InversionAwareOcrDriver implements DesktopOcrDriver {
+  bool sawInvertedFrame = false;
+
+  @override
+  Future<List<String>> recognizeText(CapturedFrame frame) async {
+    if (frame.bytes.isNotEmpty && frame.bytes.first >= 200) {
+      sawInvertedFrame = true;
+      return const ['Folikon Lv.22'];
+    }
+    return const ['2-2', 'alb,.m', 'F ikon', '& b:.2-2'];
   }
 }

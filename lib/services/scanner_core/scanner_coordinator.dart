@@ -30,9 +30,26 @@ class ScannerCoordinator {
   // fainting/delayed enemy detection inside the same battle never spams duplicate feed entries.
   final Map<int, ({Set<int> speciesIds, String fallbackKey, Duration lastSeenAt})>
       _activeBattlesBySlot = {};
-  static const Duration _battleTimeout = Duration(minutes: 3);
+
+  /// Maximum idle duration before an active battle suppression entry expires.
+  static const Duration battleTimeout = Duration(minutes: 20);
+  static const Duration _battleTimeout = battleTimeout;
+  static const int _maxPendingPerSlot = 6;
+
   final Stopwatch _monotonicClock = Stopwatch()..start();
-  Future<void>? _activeProcessing;
+  final Duration Function()? elapsedClock;
+  final List<_PendingScanRequest> _pendingQueue = [];
+  bool _isProcessingQueue = false;
+  int _droppedFramesCount = 0;
+  String? _effectiveOcrLanguage;
+
+  /// Resolved effective game/OCR language code (e.g. `'de'`, `'en'`), or `null` for all.
+  String? get effectiveOcrLanguage => _effectiveOcrLanguage;
+
+  /// Number of stale intermediate frames dropped by per-slot backpressure.
+  int get debugDroppedFramesCount => _droppedFramesCount;
+
+  Duration get _currentElapsed => elapsedClock?.call() ?? _monotonicClock.elapsed;
 
   ScannerCoordinator({
     required this.engine,
@@ -40,10 +57,12 @@ class ScannerCoordinator {
     ScannerSettings? settings,
     ScannerFeedback? feedback,
     Duration encounterCooldown = const Duration(milliseconds: 1500),
+    this.elapsedClock,
   })  : _settings = settings ?? ScannerSettings.defaults(),
         _feedback = feedback ?? const SilentScannerFeedback(),
         _duplicateCooldown = encounterCooldown {
     engine.updateCustomPatterns(_settings.customPatterns);
+    setEffectiveOcrLanguage(_effectiveOcrLanguage);
   }
 
   /// Currently active settings.
@@ -56,10 +75,21 @@ class ScannerCoordinator {
   Stream<List<ScannerEvent>> get activeFocusStream =>
       _activeFocusController.stream;
 
+  /// Sets the app/Dex fallback game language and updates [matcher]'s active language filter.
+  /// If `settings.ocrLanguage` is an explicit override (not `'auto'`), that override wins.
+  void setEffectiveOcrLanguage(String? languageCode) {
+    _effectiveOcrLanguage = languageCode;
+    final configured = _settings.ocrLanguage;
+    final targetLang =
+        (configured != 'auto' && configured.isNotEmpty) ? configured : languageCode;
+    matcher.setActiveLanguage(targetLang);
+  }
+
   /// Updates current settings dynamically.
   void updateSettings(ScannerSettings newSettings) {
     _settings = newSettings;
     engine.updateCustomPatterns(newSettings.customPatterns);
+    setEffectiveOcrLanguage(_effectiveOcrLanguage);
   }
 
   /// Attaches a [ScannerSource] to receive continuous OCR text frames.
@@ -130,23 +160,70 @@ class ScannerCoordinator {
     bool allowMultiEncounter = true,
     int? instanceIndex,
     int? instanceColorHex,
-  }) async {
-    while (_activeProcessing != null) {
-      await _activeProcessing;
+  }) {
+    if (_eventsController.isClosed) {
+      return Future.value(const []);
     }
-    final completer = Completer<void>();
-    _activeProcessing = completer.future;
+
+    final slotKey = instanceIndex ?? 0;
+    final req = _PendingScanRequest(
+      rawText: rawText,
+      encounterOnly: encounterOnly,
+      allowMultiEncounter: allowMultiEncounter,
+      instanceIndex: instanceIndex,
+      instanceColorHex: instanceColorHex,
+      slotKey: slotKey,
+    );
+
+    if (_isProcessingQueue) {
+      int slotPendingCount = 0;
+      for (final item in _pendingQueue) {
+        if (item.slotKey == slotKey) slotPendingCount++;
+      }
+      while (slotPendingCount >= _maxPendingPerSlot) {
+        final oldestIdx =
+            _pendingQueue.indexWhere((item) => item.slotKey == slotKey);
+        if (oldestIdx < 0) break;
+        final dropped = _pendingQueue.removeAt(oldestIdx);
+        slotPendingCount--;
+        _droppedFramesCount++;
+        if (!dropped.completer.isCompleted) {
+          dropped.completer.complete(const []);
+        }
+      }
+      _pendingQueue.add(req);
+      return req.completer.future;
+    }
+
+    _isProcessingQueue = true;
+    _drainQueueWithInitial(req);
+    return req.completer.future;
+  }
+
+  Future<void> _drainQueueWithInitial(_PendingScanRequest initial) async {
+    _PendingScanRequest? current = initial;
     try {
-      return await _processFrameTextSerialized(
-        rawText,
-        encounterOnly: encounterOnly,
-        allowMultiEncounter: allowMultiEncounter,
-        instanceIndex: instanceIndex,
-        instanceColorHex: instanceColorHex,
-      );
+      while (current != null) {
+        try {
+          final result = await _processFrameTextSerialized(
+            current.rawText,
+            encounterOnly: current.encounterOnly,
+            allowMultiEncounter: current.allowMultiEncounter,
+            instanceIndex: current.instanceIndex,
+            instanceColorHex: current.instanceColorHex,
+          );
+          if (!current.completer.isCompleted) {
+            current.completer.complete(result);
+          }
+        } catch (e, st) {
+          if (!current.completer.isCompleted) {
+            current.completer.completeError(e, st);
+          }
+        }
+        current = _pendingQueue.isNotEmpty ? _pendingQueue.removeAt(0) : null;
+      }
     } finally {
-      _activeProcessing = null;
-      completer.complete();
+      _isProcessingQueue = false;
     }
   }
 
@@ -158,7 +235,7 @@ class ScannerCoordinator {
     int? instanceColorHex,
   }) async {
     final now = DateTime.now();
-    final elapsed = _monotonicClock.elapsed;
+    final elapsed = _currentElapsed;
     final battleSlotKey = instanceIndex ?? 0;
     final battleCue = engine.detectBattleCue(rawText);
     if (battleCue == BattleCue.battleEnded) {
@@ -485,6 +562,12 @@ class ScannerCoordinator {
 
   /// Disposes subscriptions and controllers.
   Future<void> dispose() async {
+    for (final pending in _pendingQueue) {
+      if (!pending.completer.isCompleted) {
+        pending.completer.complete(const []);
+      }
+    }
+    _pendingQueue.clear();
     await _sourceSub?.cancel();
     await _focusSourceSub?.cancel();
     await _multiSourceSub?.cancel();
@@ -494,4 +577,23 @@ class ScannerCoordinator {
     await _eventsController.close();
     await _activeFocusController.close();
   }
+}
+
+class _PendingScanRequest {
+  final String rawText;
+  final bool encounterOnly;
+  final bool allowMultiEncounter;
+  final int? instanceIndex;
+  final int? instanceColorHex;
+  final int slotKey;
+  final Completer<List<ScannerEvent>> completer = Completer<List<ScannerEvent>>();
+
+  _PendingScanRequest({
+    required this.rawText,
+    required this.encounterOnly,
+    required this.allowMultiEncounter,
+    required this.instanceIndex,
+    required this.instanceColorHex,
+    required this.slotKey,
+  });
 }

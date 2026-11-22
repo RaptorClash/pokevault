@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:universal_io/io.dart' as io;
 
+import '../../i18n/strings.g.dart';
 import '../../models/user_dex.dart';
 import '../../providers/dex_provider.dart';
 import '../../providers/settings_provider.dart';
@@ -103,7 +104,8 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
   double _hudOpacity = 0.90;
   bool _hudCompact = false;
   bool _hudPinned = true;
-  Offset _hudPosition = const Offset(20, 20);
+  final ValueNotifier<Offset> _hudPositionNotifier =
+      ValueNotifier<Offset>(const Offset(20, 20));
   bool _isScanningActive = true;
   bool _hasUserToggledScan = false;
   bool _isRefreshingWindows = false;
@@ -442,8 +444,18 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
     }
   }
 
+  String _resolveAppPokemonLanguage({bool listen = false}) {
+    try {
+      return Provider.of<SettingsProvider>(context, listen: listen)
+          .effectivePokemonLanguage;
+    } catch (_) {
+      return 'de';
+    }
+  }
+
   void _updateSettingsAndPersist(ScannerSettings next) {
     widget.coordinator.updateSettings(next);
+    widget.coordinator.setEffectiveOcrLanguage(_resolveAppPokemonLanguage());
     _activeWindowSource.setPollInterval(
       Duration(milliseconds: next.scanIntervalMs),
     );
@@ -503,16 +515,14 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
     try {
       _dexProvider = Provider.of<DexProvider>(context, listen: false);
     } catch (_) {}
+    final appPokemonLang = _resolveAppPokemonLanguage(listen: true);
+    widget.coordinator.setEffectiveOcrLanguage(appPokemonLang);
+
     final configured = widget.coordinator.settings.ocrLanguage;
-    String effectiveLang = configured;
-    if (effectiveLang == 'auto') {
-      try {
-        final settingsProvider = Provider.of<SettingsProvider>(context);
-        effectiveLang = settingsProvider.effectivePokemonLanguage;
-      } catch (_) {
-        effectiveLang = 'de';
-      }
-    }
+    final effectiveLang =
+        (configured != 'auto' && configured.isNotEmpty)
+            ? configured
+            : appPokemonLang;
 
     final mappedTag =
         WindowsDesktopBridge.mapPokemonLanguageToBcp47(effectiveLang);
@@ -629,7 +639,11 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
   }
 
   bool _shouldAutoScan(DesktopWindowInfo? win, ScreenRegion? region) {
-    if (region != null) return true;
+    if (region != null ||
+        _activeWindowSource.liveFocusScreenRegion != null ||
+        widget.coordinator.settings.extraFocusRegions.isNotEmpty) {
+      return true;
+    }
     return win != null && !win.isDesktopScreen;
   }
 
@@ -742,6 +756,7 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
     _webcamController.removeListener(_onWebcamControllerChanged);
     unawaited(_webcamController.stopAndDisposeSource());
     _webcamController.dispose();
+    _hudPositionNotifier.dispose();
 
     final keepAlive = widget.keepTrackingInBackground &&
         !_isCameraSourceSelected &&
@@ -998,7 +1013,8 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
         width: region.width,
         height: region.height,
         isAbsoluteScreen: region.isAbsoluteScreen,
-        label: 'Fokus B${widget.coordinator.settings.extraFocusRegions.length + 2}',
+        label:
+            '${t.scanner_zone_focus_label} B${widget.coordinator.settings.extraFocusRegions.length + 2}',
       ),
     ];
     setState(() {
@@ -1572,6 +1588,29 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
     );
   }
 
+  void _openEnlargedPreview({
+    required CapturedFrame? liveFrame,
+    required Uint8List? fallbackPng,
+    required String title,
+    ValueListenable<LiveOcrScanStatus>? statusListenable,
+    ValueListenable<CapturedFrame?>? frameListenable,
+    ValueListenable<Map<String, CapturedFrame>>? boxFramesListenable,
+    ValueListenable<Map<String, String>>? boxPreviewsListenable,
+    String? boxKey,
+  }) {
+    DesktopTrackerDialogs.showEnlargedPreview(
+      context,
+      liveFrame: liveFrame,
+      fallbackPng: fallbackPng,
+      title: title,
+      statusListenable: statusListenable,
+      frameListenable: frameListenable,
+      boxFramesListenable: boxFramesListenable,
+      boxPreviewsListenable: boxPreviewsListenable,
+      boxKey: boxKey,
+    );
+  }
+
   Widget _buildScanRegionSection(bool isDark) {
     return DesktopScanRegionSection(
       bordersToggleKey: _tutorialController.bordersToggleKey,
@@ -1588,12 +1627,15 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
       isScanningActive: _isScanningActive,
       showZoneAInfo: _showZoneAInfo,
       windowSource: _activeWindowSource,
-        liveFocusZoneBar: DesktopLiveFocusZoneBar(
+      liveFocusZoneBar: DesktopLiveFocusZoneBar(
         settings: widget.coordinator.settings,
         windowSource: _activeWindowSource,
         focusSnippetPreviewBytes: _focusSnippetPreviewBytes,
         showZoneBInfo: _showZoneBInfo,
         isDark: isDark,
+        isScanningActive: _isScanningActive,
+        selectedWindow: _selectedWindow,
+        onShowEnlargedPreview: _openEnlargedPreview,
         onToggleInfo: () => setState(() => _showZoneBInfo = !_showZoneBInfo),
         onSelectPreset: _selectLiveFocusPreset,
         onStartSnipping: _handleStartLiveFocusSnipping,
@@ -1620,23 +1662,20 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
         onUpdatePreprocessProfile: _updatePreprocessProfile,
         onUpdateScanInterval: _updateScanInterval,
         onOpenCustomPatterns: _openCustomPatternsDialog,
+        onUpdateOcrLanguage: (lang) {
+          _updateSettingsAndPersist(
+            widget.coordinator.settings.copyWith(ocrLanguage: lang),
+          );
+          if (mounted) setState(() {});
+        },
+        effectiveLanguageTag: _ocrLanguageTag,
       ),
       onToggleScreenBorders: _toggleScreenBorders,
       onToggleZoneAInfo: () =>
           setState(() => _showZoneAInfo = !_showZoneAInfo),
       onSelectPresetMode: _selectPresetMode,
       onStartSnipping: _handleStartSnipping,
-      onShowEnlargedPreview: ({
-        required liveFrame,
-        required fallbackPng,
-        required title,
-      }) =>
-          DesktopTrackerDialogs.showEnlargedPreview(
-        context,
-        liveFrame: liveFrame,
-        fallbackPng: fallbackPng,
-        title: title,
-      ),
+      onShowEnlargedPreview: _openEnlargedPreview,
     );
   }
 
@@ -1831,27 +1870,36 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
                 ],
                 if (constraints.maxWidth > 360) ...[
                   const SizedBox(width: 6),
-                  Container(
-                    key: const Key('badge_ocr_language'),
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
-                    decoration: BoxDecoration(
-                      color: Colors.blueAccent.withValues(alpha: 0.12),
+                  Tooltip(
+                    message: t.scanner_settings_ocr_lang_title,
+                    child: InkWell(
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: Colors.blueAccent.withValues(alpha: 0.35),
-                      ),
-                    ),
-                    child: Text(
-                      _ocrUsedFallbackLanguage &&
-                              _ocrFallbackResolvedTag != null
-                          ? 'OCR: $_ocrLanguageTag (Fallback: $_ocrFallbackResolvedTag)'
-                          : 'OCR: $_ocrLanguageTag',
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        fontSize: 10,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.blueAccent,
+                      onTap: _openSettingsModal,
+                      child: Container(
+                        key: const Key('badge_ocr_language'),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 7,
+                          vertical: 3,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.blueAccent.withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: Colors.blueAccent.withValues(alpha: 0.35),
+                          ),
+                        ),
+                        child: Text(
+                          _ocrUsedFallbackLanguage &&
+                                  _ocrFallbackResolvedTag != null
+                              ? 'OCR: $_ocrLanguageTag (Fallback: $_ocrFallbackResolvedTag)'
+                              : 'OCR: $_ocrLanguageTag',
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.blueAccent,
+                          ),
+                        ),
                       ),
                     ),
                   ),
@@ -1970,14 +2018,17 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
             },
           ),
           if (_showFloatingHud && _effectiveNativeBridge == null)
-            Positioned(
-              left: _hudPosition.dx,
-              top: _hudPosition.dy,
+            ValueListenableBuilder<Offset>(
+              key: const Key('hud_position_listener'),
+              valueListenable: _hudPositionNotifier,
+              builder: (context, hudPos, child) => Positioned(
+                left: hudPos.dx,
+                top: hudPos.dy,
+                child: child!,
+              ),
               child: GestureDetector(
                 onPanUpdate: (details) {
-                  setState(() {
-                    _hudPosition += details.delta;
-                  });
+                  _hudPositionNotifier.value += details.delta;
                 },
                 child: FloatingOverlayHud(
                   latestEvent: latestEvent,
@@ -2020,12 +2071,12 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
             Positioned.fill(
               child: ScreenSnippingOverlay(
                 targetWindow: _selectedWindow,
-                desktopBackgroundBytes:
-                    _activeWindowSource.latestSnippetFrame != null
-                        ? Uint8List.fromList(
-                            _activeWindowSource.latestSnippetFrame!.bytes,
-                          )
-                        : null,
+                desktopBackgroundBytes: switch (
+                    _activeWindowSource.latestSnippetFrame?.bytes) {
+                  final Uint8List bytes => bytes,
+                  final List<int> list => Uint8List.fromList(list),
+                  null => null,
+                },
                 onTriggerWindowsSnipping: _handleSystemDesktopSnipping,
                 onPasteFromClipboard: _handlePasteFromClipboard,
                 onRegionSelected: (region) {

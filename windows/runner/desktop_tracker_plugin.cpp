@@ -39,6 +39,20 @@ constexpr int kHudHeightNormal = 128;
 constexpr int kHudWidthCompact = 270;
 constexpr int kHudHeightCompact = 86;
 
+/// Queries virtual-screen bounds under an explicit Per-Monitor-V2 DPI context
+/// so mixed-DPI multi-monitor setups always yield consistent physical pixels.
+void QueryVirtualScreenBounds(int* out_x, int* out_y, int* out_w, int* out_h) {
+  const DPI_AWARENESS_CONTEXT prev_dpi_ctx =
+      SetThreadDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
+  if (out_x) *out_x = GetSystemMetrics(SM_XVIRTUALSCREEN);
+  if (out_y) *out_y = GetSystemMetrics(SM_YVIRTUALSCREEN);
+  if (out_w) *out_w = GetSystemMetrics(SM_CXVIRTUALSCREEN);
+  if (out_h) *out_h = GetSystemMetrics(SM_CYVIRTUALSCREEN);
+  if (prev_dpi_ctx) {
+    SetThreadDpiAwarenessContext(prev_dpi_ctx);
+  }
+}
+
 std::string WideToUtf8(const std::wstring& wide) {
   if (wide.empty()) return {};
   int size_needed = WideCharToMultiByte(
@@ -870,6 +884,10 @@ DesktopTrackerPlugin::~DesktopTrackerPlugin() {
   HideScanRegionBorder();
   ClearOverlayBorders();
   HideFloatingHud();
+  if (scan_border_font_) {
+    DeleteObject(scan_border_font_);
+    scan_border_font_ = nullptr;
+  }
   if (pending_snip_result_) {
     pending_snip_result_->Success(flutter::EncodableValue());
     pending_snip_result_.reset();
@@ -1042,10 +1060,8 @@ flutter::EncodableValue DesktopTrackerPlugin::EnumerateWindowsAndMonitors() {
 
   // If multiple monitors exist, append a combined Virtual Desktop entry
   if (monitors.size() > 1) {
-    const int vx = GetSystemMetrics(SM_XVIRTUALSCREEN);
-    const int vy = GetSystemMetrics(SM_YVIRTUALSCREEN);
-    const int vw = GetSystemMetrics(SM_CXVIRTUALSCREEN);
-    const int vh = GetSystemMetrics(SM_CYVIRTUALSCREEN);
+    int vx = 0, vy = 0, vw = 0, vh = 0;
+    QueryVirtualScreenBounds(&vx, &vy, &vw, &vh);
     wchar_t vlabel[128]{};
     swprintf_s(
         vlabel,
@@ -1104,10 +1120,7 @@ void DesktopTrackerPlugin::StartDesktopSnipping(
     if (!cancel_utf8.empty()) snip_cancel_label_ = Utf8ToWide(cancel_utf8);
   }
 
-  virtual_x_ = GetSystemMetrics(SM_XVIRTUALSCREEN);
-  virtual_y_ = GetSystemMetrics(SM_YVIRTUALSCREEN);
-  virtual_w_ = GetSystemMetrics(SM_CXVIRTUALSCREEN);
-  virtual_h_ = GetSystemMetrics(SM_CYVIRTUALSCREEN);
+  QueryVirtualScreenBounds(&virtual_x_, &virtual_y_, &virtual_w_, &virtual_h_);
   if (virtual_w_ <= 0 || virtual_h_ <= 0) {
     result->Success(flutter::EncodableValue());
     return;
@@ -2788,15 +2801,18 @@ LRESULT CALLBACK DesktopTrackerPlugin::ScanBorderWndProc(HWND hwnd,
           RECT text_rc{4, 0, min(static_cast<int>(rc.right), 64), tab_h};
           SetBkMode(hdc, TRANSPARENT);
           SetTextColor(hdc, RGB(255, 255, 255));
-          HFONT font = CreateFontW(
-              11, 0, 0, 0, FW_BOLD, FALSE, FALSE, FALSE, DEFAULT_CHARSET,
-              OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, CLEARTYPE_QUALITY,
-              DEFAULT_PITCH | FF_SWISS, L"Segoe UI");
-          HGDIOBJ old_font = font ? SelectObject(hdc, font) : nullptr;
+          if (!self->scan_border_font_) {
+            self->scan_border_font_ = CreateFontW(
+                11, 0, 0, 0, FW_BOLD, FALSE, FALSE, FALSE, DEFAULT_CHARSET,
+                OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, CLEARTYPE_QUALITY,
+                DEFAULT_PITCH | FF_SWISS, L"Segoe UI");
+          }
+          HGDIOBJ old_font = self->scan_border_font_
+                                 ? SelectObject(hdc, self->scan_border_font_)
+                                 : nullptr;
           DrawTextW(hdc, lbl->c_str(), -1, &text_rc,
                     DT_LEFT | DT_VCENTER | DT_SINGLELINE | DT_END_ELLIPSIS);
           if (old_font) SelectObject(hdc, old_font);
-          if (font) DeleteObject(font);
         }
         EndPaint(hwnd, &ps);
       }

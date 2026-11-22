@@ -518,7 +518,16 @@ class WindowsDesktopBridge implements DesktopPlatformBridge {
     } else if (bytesRaw is List<int>) {
       bytes = Uint8List.fromList(bytesRaw);
     } else {
-      bytes = Uint8List.fromList(bytesRaw.whereType<num>().map((n) => n.toInt()).toList(growable: false));
+      final len = bytesRaw.length;
+      final out = Uint8List(len);
+      int outLen = 0;
+      for (int i = 0; i < len; i++) {
+        final v = bytesRaw[i];
+        if (v is num) {
+          out[outLen++] = v.toInt();
+        }
+      }
+      bytes = outLen == len ? out : Uint8List.sublistView(out, 0, outLen);
     }
     return CapturedFrame(
       width: width,

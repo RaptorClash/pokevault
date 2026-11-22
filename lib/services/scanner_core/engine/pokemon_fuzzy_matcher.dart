@@ -1,5 +1,8 @@
+import 'dart:collection';
 import 'dart:math' as math;
 import 'dart:typed_data';
+
+import 'ocr_noise_stop_words.dart';
 
 /// Single Pokémon name entry in the fuzzy matcher dictionary.
 class PokemonMatcherEntry {
@@ -31,116 +34,7 @@ class FuzzyMatchResult {
 
 /// Robust, fault-tolerant Pokémon name resolver with OCR typo tolerance and Smart-Search.
 class PokemonFuzzyMatcher {
-  static const Set<String> _noiseStopWords = {
-    // Emulator chrome & window titles
-    'melonds',
-    'desmume',
-    'mgba',
-    'vbam',
-    'retroarch',
-    'dolphin',
-    'citra',
-    'azahar',
-    'ryujinx',
-    'yuzu',
-    'file',
-    'system',
-    'view',
-    'config',
-    'help',
-    'tools',
-    'emulation',
-    'options',
-    'option',
-    'debug',
-    'fps',
-    // Common dialogue words & OCR garblings of German/English catch phrases
-    'klasse',
-    'super',
-    'prima',
-    'gotcha',
-    'hurra',
-    'wurde',
-    'wrde',
-    'worden',
-    'gefangen',
-    'aefart',
-    'aefar',
-    'gefan',
-    'erscheint',
-    'erscheinen',
-    'erschin',
-    'gruppe',
-    'wildes',
-    'wilde',
-    'wild',
-    'ein',
-    'eine',
-    'einer',
-    'und',
-    'der',
-    'die',
-    'das',
-    'so',
-    'soll',
-    'tun',
-    'gib',
-    'einen',
-    'spitzname',
-    'spitznamen',
-    'nickname',
-    'will',
-    'hat',
-    'sich',
-    'zu',
-    'entwickelt',
-    'was',
-    'were',
-    'been',
-    'caught',
-    'appeared',
-    'evolved',
-    'into',
-    'sauvage',
-    'apparaît',
-    'apparait',
-    'capture',
-    'capturé',
-    'attrapé',
-    'salvaje',
-    'apareció',
-    'atrapado',
-    'selvatico',
-    'apparso',
-    'catturato',
-    'chromatique',
-    'variocolor',
-    'cromatico',
-    'やせいの',
-    'とびだしてきた',
-    'つかまえた',
-    '야생의',
-    '나타났다',
-    '잡았다',
-    '野生的',
-    '出现了',
-    '出現了',
-    '收服了',
-    'beutel',
-    'flucht',
-    'tasche',
-    'speichern',
-    'gespeichert',
-    'bericht',
-    'pokemon',
-    'pokémon',
-    'pokmon',
-    'kp',
-    'hp',
-    'lv',
-    'lvl',
-    'level',
-  };
+  static const int _maxCacheEntries = 256;
 
   static final RegExp _letterRegExp = RegExp(
     r'[A-Za-zÀ-ÿ\u3040-\u30FF\u4E00-\u9FFF\uAC00-\uD7AF]',
@@ -157,10 +51,77 @@ class PokemonFuzzyMatcher {
   final List<PokemonMatcherEntry> _entries;
   final Map<String, List<PokemonMatcherEntry>> _exactMap = {};
   final List<_PreparedEntry> _prepared = [];
+  final Set<String> _availableLanguages = {};
+  String? _activeLanguage;
+  final LinkedHashMap<String, List<FuzzyMatchResult>> _topKCache =
+      LinkedHashMap<String, List<FuzzyMatchResult>>();
+  final LinkedHashMap<String, List<({FuzzyMatchResult match, int count})>>
+      _matchAllCache =
+      LinkedHashMap<String, List<({FuzzyMatchResult match, int count})>>();
+
+  /// Active Pokémon dictionary language filter (`null` = search all languages).
+  String? get activeLanguage => _activeLanguage;
+
+  static String? _normalizeLangCode(String? raw) {
+    if (raw == null) return null;
+    final lower = raw.trim().toLowerCase();
+    if (lower.isEmpty || lower == 'auto' || lower == 'all') return null;
+    if (lower.startsWith('zh')) {
+      return (lower.contains('hant') ||
+              lower.contains('tw') ||
+              lower.contains('hk'))
+          ? 'zh-hant'
+          : 'zh-hans';
+    }
+    return lower.split(RegExp(r'[-_]')).first;
+  }
+
+  /// Restricts dictionary matching to [languageCode] (or `null` / `'auto'` for all languages).
+  void setActiveLanguage(String? languageCode) {
+    final next = _normalizeLangCode(languageCode);
+    if (next == _activeLanguage) return;
+    _activeLanguage = next;
+    clearCache();
+  }
+
+  bool _isLanguageAllowed(String entryLanguage) {
+    final active = _activeLanguage;
+    if (active == null || !_availableLanguages.contains(active)) return true;
+    return _normalizeLangCode(entryLanguage) == active;
+  }
+
+  /// Number of entries currently held across the LRU query caches.
+  int get debugCacheSize => _topKCache.length + _matchAllCache.length;
+
+  /// Clears all cached query results.
+  void clearCache() {
+    _topKCache.clear();
+    _matchAllCache.clear();
+  }
+
+  static V? _lruGet<V>(LinkedHashMap<String, V> cache, String key) {
+    final hit = cache.remove(key);
+    if (hit != null) {
+      cache[key] = hit;
+    }
+    return hit;
+  }
+
+  static void _lruPut<V>(LinkedHashMap<String, V> cache, String key, V value) {
+    cache.remove(key);
+    if (cache.length >= _maxCacheEntries) {
+      cache.remove(cache.keys.first);
+    }
+    cache[key] = value;
+  }
 
   PokemonFuzzyMatcher.withEntries(List<PokemonMatcherEntry> entries)
       : _entries = entries {
     for (final e in _entries) {
+      final normLang = _normalizeLangCode(e.language);
+      if (normLang != null) {
+        _availableLanguages.add(normLang);
+      }
       final key = _normalizeKey(e.name);
       if (key.isEmpty) continue;
       _exactMap.putIfAbsent(key, () => []).add(e);
@@ -226,14 +187,20 @@ class PokemonFuzzyMatcher {
     if (cleaned.isEmpty) return const [];
 
     final normKey = _normalizeKey(cleaned);
-    if (normKey.isEmpty || _noiseStopWords.contains(normKey)) {
+    if (normKey.isEmpty || OcrNoiseStopWords.all.contains(normKey)) {
       return const [];
     }
     if (!_letterRegExp.hasMatch(normKey)) return const [];
 
+    final cacheKey =
+        '${_activeLanguage ?? 'all'}|$normKey|$limit|${threshold.toStringAsFixed(2)}';
+    final cached = _lruGet(_topKCache, cacheKey);
+    if (cached != null) return cached;
+
     final byPokemonId = <int, FuzzyMatchResult>{};
 
     void recordCandidate(PokemonMatcherEntry entry, double score) {
+      if (!_isLanguageAllowed(entry.language)) return;
       final rounded = (score.clamp(0.0, 1.0) * 100).round() / 100.0;
       if (rounded < threshold) return;
       final existing = byPokemonId[entry.id];
@@ -269,7 +236,9 @@ class PokemonFuzzyMatcher {
     if (limit == 1 && byPokemonId.isNotEmpty) {
       final sorted = byPokemonId.values.toList()
         ..sort((a, b) => b.confidence.compareTo(a.confidence));
-      return [sorted.first];
+      final exactOut = List<FuzzyMatchResult>.unmodifiable([sorted.first]);
+      _lruPut(_topKCache, cacheKey, exactOut);
+      return exactOut;
     }
 
     // Avoid matching tiny 1-2 char fragments fuzzily unless exact
@@ -297,8 +266,13 @@ class PokemonFuzzyMatcher {
       int qId = 0;
       int entryId = 0;
 
+      // Short 2-4 char OCR garbage (e.g. "ikon") requires stricter fuzzy confidence in live scan
+      final shortTokenMinFloor = (threshold >= 0.55 && normKey.length <= 4)
+          ? (normKey.length <= 3 ? 0.92 : 0.84)
+          : threshold;
+
       // Dynamic Top-K floor tightening once `limit` candidates have been seen
-      double currentKthFloor = threshold;
+      double currentKthFloor = math.max(threshold, shortTokenMinFloor);
       void refreshKthFloor() {
         if (byPokemonId.length < limit) return;
         final scores = byPokemonId.values.map((r) => r.confidence).toList()
@@ -309,6 +283,10 @@ class PokemonFuzzyMatcher {
         }
       }
       refreshKthFloor();
+
+      final activeLang = _activeLanguage;
+      final filterByLang =
+          activeLang != null && _availableLanguages.contains(activeLang);
 
       for (final pq in preparedQueries) {
         final qUnits = pq.codeUnits;
@@ -330,6 +308,10 @@ class PokemonFuzzyMatcher {
         }
 
         for (final pEntry in _prepared) {
+          if (filterByLang &&
+              _normalizeLangCode(pEntry.entry.language) != activeLang) {
+            continue;
+          }
           final entryLen = pEntry.normKey.length;
           final existingBest = byPokemonId[pEntry.entry.id]?.confidence ?? 0.0;
           if (existingBest >= 1.0) continue;
@@ -423,7 +405,9 @@ class PokemonFuzzyMatcher {
         if (cmp != 0) return cmp;
         return a.pokemonId.compareTo(b.pokemonId);
       });
-    return ranked.take(limit).toList(growable: false);
+    final result = List<FuzzyMatchResult>.unmodifiable(ranked.take(limit));
+    _lruPut(_topKCache, cacheKey, result);
+    return result;
   }
 
   /// Extracts individual tokens (and adjacent token bigrams) from an OCR [line],
@@ -446,7 +430,9 @@ class PokemonFuzzyMatcher {
 
       final norm = _normalizeKey(cleaned);
       final minTokenLen = _cjkRegExp.hasMatch(cleaned) ? 2 : 3;
-      if (norm.length < minTokenLen || _noiseStopWords.contains(norm)) continue;
+      if (norm.length < minTokenLen || OcrNoiseStopWords.all.contains(norm)) {
+        continue;
+      }
 
       // Require at least 3 alphabetic characters (or 2 for CJK) per token
       final letterCount = _letterRegExp.allMatches(cleaned).length;
@@ -510,7 +496,13 @@ class PokemonFuzzyMatcher {
     int maxPokemon = 5,
     double threshold = 0.78,
   }) {
-    if (text.trim().isEmpty || maxPokemon <= 0) return const [];
+    final trimmedText = text.trim();
+    if (trimmedText.isEmpty || maxPokemon <= 0) return const [];
+
+    final cacheKey =
+        '${_activeLanguage ?? 'all'}|$trimmedText|$maxPokemon|${threshold.toStringAsFixed(2)}';
+    final cached = _lruGet(_matchAllCache, cacheKey);
+    if (cached != null) return cached;
 
     // Separate glued gender/level/HP markers before whitespace tokenization
     // so e.g. "Sleima♀Lv17" or "Zubat♂Lv.15" cleanly isolates "Sleima" / "Zubat".
@@ -534,7 +526,9 @@ class PokemonFuzzyMatcher {
       if (RegExp(r'^[\d/.,:\-\[\]()]+$').hasMatch(cleaned)) continue;
       final norm = _normalizeKey(cleaned);
       final minTokenLen = _cjkRegExp.hasMatch(cleaned) ? 2 : 3;
-      if (norm.length < minTokenLen || _noiseStopWords.contains(norm)) continue;
+      if (norm.length < minTokenLen || OcrNoiseStopWords.all.contains(norm)) {
+        continue;
+      }
       if (_letterRegExp.allMatches(cleaned).length < minTokenLen) continue;
       cleanTokens.add(cleaned);
     }
@@ -595,10 +589,12 @@ class PokemonFuzzyMatcher {
       }
     }
 
-    return List.unmodifiable([
+    final result = List<({FuzzyMatchResult match, int count})>.unmodifiable([
       for (final id in orderedIds)
         (match: bestById[id]!, count: countsById[id] ?? 1),
     ]);
+    _lruPut(_matchAllCache, cacheKey, result);
+    return result;
   }
 
   /// Extracts non-overlapping CJK Pokémon names in appearance order from unspaced runs
@@ -617,12 +613,17 @@ class PokemonFuzzyMatcher {
         int hitLen = 0;
         for (int len = maxSpan; len >= 2; len--) {
           final sub = run.substring(pos, pos + len);
-          if (_noiseStopWords.contains(sub)) continue;
+          if (OcrNoiseStopWords.all.contains(sub)) continue;
           final entries = _exactMap[sub];
           if (entries != null && entries.isNotEmpty) {
-            hit = entries.first;
-            hitLen = len;
-            break;
+            for (final e in entries) {
+              if (_isLanguageAllowed(e.language)) {
+                hit = e;
+                hitLen = len;
+                break;
+              }
+            }
+            if (hit != null) break;
           }
         }
         if (hit != null) {

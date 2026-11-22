@@ -3,13 +3,11 @@ import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 
-import '../../../services/desktop_tracker/desktop_capture_driver.dart';
 import '../../../services/desktop_tracker/desktop_window_source.dart';
 import '../../../services/desktop_tracker/screen_region.dart';
 import '../../../services/desktop_tracker/window_detector.dart';
 import '../../../services/scanner_core/models/scanner_settings.dart';
 import 'desktop_live_focus_bar.dart';
-import 'live_frame_thumbnail.dart';
 
 /// Complete scan region configuration section (border toggle, Zone A card,
 /// live Zone B card, multi-instance card, and scan profile / rate bar).
@@ -35,11 +33,7 @@ class DesktopScanRegionSection extends StatelessWidget {
   final VoidCallback onToggleZoneAInfo;
   final ValueChanged<ScanRegionPreset> onSelectPresetMode;
   final VoidCallback onStartSnipping;
-  final void Function({
-    required CapturedFrame? liveFrame,
-    required Uint8List? fallbackPng,
-    required String title,
-  }) onShowEnlargedPreview;
+  final EnlargedPreviewCallback onShowEnlargedPreview;
 
   const DesktopScanRegionSection({
     super.key,
@@ -383,140 +377,60 @@ class DesktopScanRegionSection extends StatelessWidget {
                       final intervalLabel = intervalMs >= 1000
                           ? '${(intervalMs / 1000).toStringAsFixed(1)}s'
                           : '${intervalMs}ms';
-                      return Container(
-                        key: Key(
+                      final Widget? trailingAction = isMonitor
+                          ? IconButton(
+                              key: const Key('btn_refresh_monitor_preview'),
+                              tooltip: 'Monitor-Vorschau aktualisieren',
+                              icon: const Icon(Icons.refresh, size: 16),
+                              visualDensity: VisualDensity.compact,
+                              onPressed: () => unawaited(
+                                windowSource.capturePreviewOnly(),
+                              ),
+                            )
+                          : (hasCustomRegion
+                              ? IconButton(
+                                  key: const Key('btn_reset_snippet'),
+                                  tooltip: 'Bereich zurücksetzen',
+                                  icon: const Icon(Icons.close, size: 16),
+                                  visualDensity: VisualDensity.compact,
+                                  onPressed: () =>
+                                      onSelectPresetMode(scanRegion),
+                                )
+                              : null);
+
+                      return DesktopLivePreviewCard(
+                        cardKey: Key(
                           hasCustomRegion
                               ? 'desktop_snippet_preview_card'
                               : 'active_scan_preview_card',
                         ),
-                        padding: const EdgeInsets.all(10),
-                        decoration: BoxDecoration(
-                          color: accentColor.withValues(alpha: 0.08),
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: accentColor.withValues(alpha: 0.45),
-                          ),
+                        enlargeButtonKey:
+                            const Key('btn_enlarge_zone_a_preview'),
+                        accentColor: accentColor,
+                        liveFrame: scanStatus.latestFrame,
+                        fallbackPngBytes:
+                            hasCustomRegion ? snippetPreviewBytes : null,
+                        fallbackIcon: hasCustomRegion
+                            ? Icons.crop
+                            : (isMonitor
+                                ? Icons.monitor
+                                : Icons.desktop_windows),
+                        statusText: statusText,
+                        scanCount: scanStatus.scanCount,
+                        metaText: metaText,
+                        recognizedText: recognized,
+                        idleHintText: isMonitor && !isScanningActive
+                            ? 'Vorschau ohne Auto-OCR (↻ aktualisieren)'
+                            : 'Warte auf Text (alle $intervalLabel)...',
+                        isDark: isDark,
+                        onTapPreview: () => onShowEnlargedPreview(
+                          liveFrame: scanStatus.latestFrame,
+                          fallbackPng:
+                              hasCustomRegion ? snippetPreviewBytes : null,
+                          title: metaText,
+                          statusListenable: windowSource.liveScanStatusNotifier,
                         ),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            GestureDetector(
-                              onTap: () => onShowEnlargedPreview(
-                                liveFrame: scanStatus.latestFrame,
-                                fallbackPng: hasCustomRegion
-                                    ? snippetPreviewBytes
-                                    : null,
-                                title: metaText,
-                              ),
-                              child: Tooltip(
-                                message: 'Live-Bild vergrößern',
-                                child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(8),
-                                  child: Container(
-                                    width: 68,
-                                    height: 44,
-                                    color: Colors.black38,
-                                    child: LiveFrameThumbnail(
-                                      liveFrame: scanStatus.latestFrame,
-                                      fallbackPngBytes: hasCustomRegion
-                                          ? snippetPreviewBytes
-                                          : null,
-                                      fallbackIcon: hasCustomRegion
-                                          ? Icons.crop
-                                          : (isMonitor
-                                              ? Icons.monitor
-                                              : Icons.desktop_windows),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Row(
-                                    children: [
-                                      Container(
-                                        width: 6,
-                                        height: 6,
-                                        decoration: BoxDecoration(
-                                          shape: BoxShape.circle,
-                                          color: accentColor,
-                                        ),
-                                      ),
-                                      const SizedBox(width: 5),
-                                      Expanded(
-                                        child: Text(
-                                          scanStatus.scanCount > 0
-                                              ? '$statusText · #${scanStatus.scanCount}'
-                                              : statusText,
-                                          overflow: TextOverflow.ellipsis,
-                                          style: TextStyle(
-                                            fontSize: 10,
-                                            fontWeight: FontWeight.bold,
-                                            color: accentColor,
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 2),
-                                  Text(
-                                    metaText,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: TextStyle(
-                                      fontSize: 10,
-                                      fontFamily: 'monospace',
-                                      color: isDark
-                                          ? Colors.white70
-                                          : Colors.black54,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 2),
-                                  Text(
-                                    recognized.isNotEmpty
-                                        ? 'OCR: $recognized'
-                                        : (isMonitor && !isScanningActive
-                                            ? 'Vorschau ohne Auto-OCR (↻ aktualisieren)'
-                                            : 'Warte auf Text (alle $intervalLabel)...'),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: TextStyle(
-                                      fontSize: 10,
-                                      fontStyle: recognized.isEmpty
-                                          ? FontStyle.italic
-                                          : FontStyle.normal,
-                                      color: isDark
-                                          ? Colors.white60
-                                          : Colors.black54,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            if (isMonitor)
-                              IconButton(
-                                key: const Key('btn_refresh_monitor_preview'),
-                                tooltip: 'Monitor-Vorschau aktualisieren',
-                                icon: const Icon(Icons.refresh, size: 16),
-                                visualDensity: VisualDensity.compact,
-                                onPressed: () => unawaited(
-                                  windowSource.capturePreviewOnly(),
-                                ),
-                              ),
-                            if (hasCustomRegion)
-                              IconButton(
-                                key: const Key('btn_reset_snippet'),
-                                tooltip: 'Bereich zurücksetzen',
-                                icon: const Icon(Icons.close, size: 16),
-                                visualDensity: VisualDensity.compact,
-                                onPressed: () =>
-                                    onSelectPresetMode(scanRegion),
-                              ),
-                          ],
-                        ),
+                        trailing: trailingAction,
                       );
                     },
                   ),

@@ -313,11 +313,18 @@ class WindowDetector {
       // Detect localized CSV header dynamically (EN: "Image Name","PID",...,"Window Title"; DE: "Abbildname","PID",...,"Fenstertitel")
       if (maybePidCol == 'pid' ||
           values.any((v) => v.toLowerCase() == 'fenstertitel' || v.toLowerCase() == 'window title')) {
+        bool foundTitle = false;
         for (int i = 0; i < values.length; i++) {
           final lower = values[i].toLowerCase();
           if (lower == 'pid') pidIdx = i;
           if (lower == 'image name' || lower == 'abbildname') procIdx = i;
-          if (lower == 'window title' || lower == 'fenstertitel') titleIdx = i;
+          if (lower == 'window title' || lower == 'fenstertitel') {
+            titleIdx = i;
+            foundTitle = true;
+          }
+        }
+        if (!foundTitle && values.length >= 4) {
+          titleIdx = values.length - 1;
         }
         continue;
       }
@@ -447,30 +454,9 @@ class WindowDetector {
     ]);
   }
 
-  /// Discovers all currently open desktop windows on the system.
+  /// Discovers fallback desktop windows synchronously without blocking on OS subprocesses.
+  /// Prefer [getOpenWindowsAsync] for live native OS window enumeration.
   List<DesktopWindowInfo> getOpenWindows() {
-    if (!kIsWeb &&
-        io.Platform.isWindows &&
-        !io.Platform.environment.containsKey('FLUTTER_TEST')) {
-      try {
-        final result = io.Process.runSync(
-          'tasklist',
-          ['/FI', 'SESSION ne 0', '/V', '/FO', 'CSV'],
-        );
-        if (result.exitCode == 0) {
-          final parsed = parseTasklistCsv(result.stdout.toString());
-          if (parsed.isNotEmpty) {
-            return filterAndRankWindows([
-              DesktopWindowInfo.primaryScreen(),
-              ...parsed,
-            ]);
-          }
-        }
-      } catch (_) {
-        // Fall back gracefully if tasklist cannot be executed
-      }
-    }
-
     return getFallbackWindows();
   }
 

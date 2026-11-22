@@ -117,8 +117,8 @@ class CameraImageConverter {
     return null;
   }
 
-  /// Snapshots [CameraImage] planes synchronously and executes YUV/BGRA conversion +
-  /// rotation on a background isolate (falling back to synchronous on Web).
+  /// Snapshots [CameraImage] planes synchronously using zero-copy [TransferableTypedData]
+  /// and executes YUV/BGRA conversion + rotation on a background isolate (falling back to synchronous on Web).
   static Future<CapturedFrame?> convertCameraImageInIsolate(
     CameraImage image,
     int sensorOrientation, {
@@ -134,9 +134,6 @@ class CameraImageConverter {
     final width = image.width;
     final height = image.height;
     final formatGroup = image.format.group;
-    final planeBytes = image.planes
-        .map((p) => Uint8List.fromList(p.bytes))
-        .toList(growable: false);
     final rowStrides = image.planes
         .map((p) => p.bytesPerRow)
         .toList(growable: false);
@@ -144,20 +141,60 @@ class CameraImageConverter {
         .map((p) => p.bytesPerPixel ?? 1)
         .toList(growable: false);
 
-    CapturedFrame? runConversion() => _convertRawPlanes(
-          width: width,
-          height: height,
-          formatGroup: formatGroup,
-          planeBytes: planeBytes,
-          rowStrides: rowStrides,
-          pixelStrides: pixelStrides,
-          effectiveRotation: effectiveRotation,
-        );
-
     if (kIsWeb) {
-      return runConversion();
+      final planeBytes = image.planes
+          .map((p) => Uint8List.fromList(p.bytes))
+          .toList(growable: false);
+      return _convertRawPlanes(
+        width: width,
+        height: height,
+        formatGroup: formatGroup,
+        planeBytes: planeBytes,
+        rowStrides: rowStrides,
+        pixelStrides: pixelStrides,
+        effectiveRotation: effectiveRotation,
+      );
     }
-    return Isolate.run(runConversion);
+
+    final transferablePlanes = image.planes
+        .map((p) => TransferableTypedData.fromList([p.bytes]))
+        .toList(growable: false);
+
+    final packedResult = await Isolate.run(() {
+      final planeBytes = transferablePlanes
+          .map((t) => t.materialize().asUint8List())
+          .toList(growable: false);
+      final converted = _convertRawPlanes(
+        width: width,
+        height: height,
+        formatGroup: formatGroup,
+        planeBytes: planeBytes,
+        rowStrides: rowStrides,
+        pixelStrides: pixelStrides,
+        effectiveRotation: effectiveRotation,
+      );
+      if (converted == null) return null;
+      return (
+        width: converted.width,
+        height: converted.height,
+        bytes: TransferableTypedData.fromList([
+          converted.bytes is Uint8List
+              ? converted.bytes as Uint8List
+              : Uint8List.fromList(converted.bytes),
+        ]),
+        pixelFormat: converted.pixelFormat,
+        captureMethod: converted.captureMethod,
+      );
+    });
+
+    if (packedResult == null) return null;
+    return CapturedFrame(
+      width: packedResult.width,
+      height: packedResult.height,
+      bytes: packedResult.bytes.materialize().asUint8List(),
+      pixelFormat: packedResult.pixelFormat,
+      captureMethod: packedResult.captureMethod,
+    );
   }
 
   static CapturedFrame? _convertRawPlanes({

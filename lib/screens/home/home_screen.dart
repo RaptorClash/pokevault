@@ -902,8 +902,8 @@ class _HomeScreenState extends State<HomeScreen> {
                           key: _scannerActionKey,
                           icon: const Icon(Icons.track_changes),
                           tooltip: TrackerPlatformHelper.isCameraTrackerSupported
-                              ? 'Tracker & Webcam wählen'
-                              : 'Desktop Tracker & Overlay',
+                              ? t.scanner_home_desktop_webcam
+                              : t.scanner_home_desktop_only,
                           onPressed: _openPlatformTrackerSelector,
                         )
                       else if (TrackerPlatformHelper.isCameraTrackerSupported)
@@ -911,8 +911,8 @@ class _HomeScreenState extends State<HomeScreen> {
                           key: _scannerActionKey,
                           icon: const Icon(Icons.photo_camera_outlined),
                           tooltip: TrackerPlatformHelper.isMobile
-                              ? 'Kamera-Tracker'
-                              : 'Webcam- & Foto-Tracker',
+                              ? t.scanner_home_mobile_camera
+                              : t.scanner_home_webcam_photo,
                           onPressed: _openPlatformTrackerSelector,
                         ),
                       IconButton(

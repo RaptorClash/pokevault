@@ -414,5 +414,24 @@ void main() {
       expect(parsed.first.emulatorType, EmulatorType.melonds);
       expect(parsed.first.title, 'melonDS 1.0 - Pokemon Schwarz');
     });
+
+    test('parseTasklistCsv falls back to last column for non-DE/EN Windows locales (e.g. Spanish/French)', () {
+      const spanishCsv =
+          '"Nombre de imagen","PID","Nombre de sesión","Núm. de sesión","Uso de memoria","Estado","Nombre de usuario","Tiempo de CPU","Título de ventana"\n'
+          '"mGBA.exe","7788","Console","1","120.000 K","Running","PC\\User","0:00:12","mGBA - 0.10.3 - Pokemon Esmeralda"\n';
+      final parsedEs = detector.parseTasklistCsv(spanishCsv);
+      expect(parsedEs, hasLength(1));
+      expect(parsedEs.first.emulatorType, EmulatorType.mgba);
+      expect(parsedEs.first.id, 7788);
+      expect(parsedEs.first.title, 'mGBA - 0.10.3 - Pokemon Esmeralda');
+
+      const frenchCsv =
+          '"Nom de l\'image","PID","Nom de la session","Numéro de session","Utilisation mémoire","État","Nom d\'utilisateur","Temps processeur","Titre de la fenêtre"\n'
+          '"melonDS.exe","9900","Console","1","250.000 Ko","Running","PC\\User","0:00:30","melonDS 1.0 - Pokémon Platine"\n';
+      final parsedFr = detector.parseTasklistCsv(frenchCsv);
+      expect(parsedFr, hasLength(1));
+      expect(parsedFr.first.emulatorType, EmulatorType.melonds);
+      expect(parsedFr.first.title, 'melonDS 1.0 - Pokémon Platine');
+    });
   });
 }

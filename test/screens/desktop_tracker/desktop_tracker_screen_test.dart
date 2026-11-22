@@ -2061,5 +2061,210 @@ void main() {
       expect(coordinator.settings.extraFocusRegions, isEmpty);
       expect(tester.takeException(), isNull);
     });
+
+    testWidgets('Dragging FloatingOverlayHud isolates position updates via ValueListenableBuilder without full screen rebuild', (tester) async {
+      tester.view.physicalSize = const Size(1280, 800);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      await tester.pumpWidget(createWidgetUnderTest());
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byKey(const Key('btn_open_floating_hud')));
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(const Key('hud_position_listener')), findsOneWidget);
+      final initialTopLeft = tester.getTopLeft(find.byType(FloatingOverlayHud));
+
+      await tester.drag(find.byType(FloatingOverlayHud), const Offset(80, 60));
+      await tester.pump();
+
+      final movedTopLeft = tester.getTopLeft(find.byType(FloatingOverlayHud));
+      expect(movedTopLeft.dx, greaterThan(initialTopLeft.dx));
+      expect(movedTopLeft.dy, greaterThan(initialTopLeft.dy));
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('Syncs default game language from SettingsProvider and allows inline game language switch', (tester) async {
+      tester.view.physicalSize = const Size(1280, 900);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      final settingsProv = MockSettingsProvider()..pokemonLanguage = 'de';
+      final multiLangCoord = ScannerCoordinator(
+        engine: OcrDetectionEngine(),
+        matcher: PokemonFuzzyMatcher.withEntries(const [
+          PokemonMatcherEntry(id: 862, name: 'Barrikadax', language: 'de'),
+          PokemonMatcherEntry(id: 862, name: 'Obstagoon', language: 'en'),
+          PokemonMatcherEntry(id: 862, name: 'Ixon', language: 'fr'),
+        ]),
+        settings: ScannerSettings.defaults(),
+      );
+      addTearDown(multiLangCoord.dispose);
+
+      await tester.pumpWidget(
+        MultiProvider(
+          providers: [
+            ChangeNotifierProvider<DexProvider>.value(value: mockDexProvider),
+            ChangeNotifierProvider<SettingsProvider>.value(value: settingsProv),
+          ],
+          child: MaterialApp(
+            home: DesktopTrackerScreen(
+              coordinator: multiLangCoord,
+              detectedWindows: WindowDetector().getFallbackWindows(),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Default 'auto' syncs from SettingsProvider.effectivePokemonLanguage ('de')
+      expect(multiLangCoord.effectiveOcrLanguage, 'de');
+      expect(multiLangCoord.matcher.activeLanguage, 'de');
+      expect(find.byKey(const Key('badge_ocr_language')), findsOneWidget);
+
+      final inlineDropdown = find.byKey(const Key('dropdown_inline_ocr_language'));
+      expect(inlineDropdown, findsOneWidget);
+
+      await tester.ensureVisible(inlineDropdown);
+      await tester.tap(inlineDropdown);
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('English (EN)').last);
+      await tester.pumpAndSettle();
+
+      expect(multiLangCoord.settings.ocrLanguage, 'en');
+      expect(multiLangCoord.matcher.activeLanguage, 'en');
+      expect(find.textContaining('OCR: en-US'), findsOneWidget);
+    });
+
+    testWidgets('Zone B renders rich Zone-A-style live preview card and enlarged modal updates live', (tester) async {
+      tester.view.physicalSize = const Size(1280, 960);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      final activeSource = DesktopWindowSource(
+        captureDriver: MockCaptureDriver(),
+        ocrDriver: MockOcrDriver()..textToReturn = '',
+      );
+      addTearDown(activeSource.dispose);
+
+      final fakeBridge = FakeWindowsDesktopBridge();
+      final focusCoord = ScannerCoordinator(
+        engine: OcrDetectionEngine(),
+        matcher: PokemonFuzzyMatcher.withEntries(const [
+          PokemonMatcherEntry(id: 541, name: 'Folikon', language: 'de'),
+        ]),
+        settings: ScannerSettings.defaults(),
+      );
+      addTearDown(focusCoord.dispose);
+
+      await tester.pumpWidget(
+        ChangeNotifierProvider<DexProvider>.value(
+          value: mockDexProvider,
+          child: MaterialApp(
+            home: DesktopTrackerScreen(
+              coordinator: focusCoord,
+              windowSource: activeSource,
+              nativeBridge: fakeBridge,
+              detectedWindows: const [
+                DesktopWindowInfo(
+                  id: 77,
+                  hwnd: 777,
+                  title: 'melonDS 1.1',
+                  processName: 'melonDS.exe',
+                  emulatorType: EmulatorType.melonds,
+                  bounds: Rect.fromLTWH(0, 0, 960, 1040),
+                  width: 960,
+                  height: 1040,
+                ),
+              ],
+              desktopSnippingLauncher: () async => ScreenRegionCaptureResult(
+                region: ScreenRegion(
+                  x: 1120,
+                  y: 90,
+                  width: 340,
+                  height: 95,
+                  isAbsoluteScreen: true,
+                  label: 'Gegner-HUD',
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Draw Zone B region
+      await tester.ensureVisible(find.byKey(const Key('btn_live_focus_snipping')));
+      await tester.tap(find.byKey(const Key('btn_live_focus_snipping')));
+      await tester.pumpAndSettle();
+
+      // Header displays dimensions like Zone A
+      expect(find.byKey(const Key('label_active_focus_mode')), findsOneWidget);
+      final modeLabel = tester.widget<Text>(find.byKey(const Key('label_active_focus_mode'))).data;
+      expect(modeLabel, '340×95 px');
+
+      // Rich Zone B live preview card exists with status, coordinates, OCR preview, and clickable thumbnail
+      expect(find.byKey(const Key('desktop_focus_preview_card')), findsOneWidget);
+      expect(find.textContaining('LIVE-FOKUS AKTIV'), findsOneWidget);
+      expect(find.textContaining('(1120, 90) · 340×95 px'), findsOneWidget);
+
+      // Push first live Zone B status frame & OCR line
+      activeSource.liveFocusStatusNotifier.value = LiveOcrScanStatus(
+        scanCount: 5,
+        lastScanAt: DateTime.now(),
+        recognizedLines: const ['Folikon Lv.22'],
+        latestFrame: CapturedFrame(
+          width: 4,
+          height: 4,
+          bytes: List<int>.filled(4 * 4 * 4, 128),
+          pixelFormat: 'bgra8888',
+        ),
+      );
+      await tester.pump();
+      expect(find.textContaining('LIVE-FOKUS AKTIV · #5'), findsOneWidget);
+      expect(find.textContaining('OCR: Folikon Lv.22'), findsOneWidget);
+
+      // Tap preview thumbnail to open enlarged live view
+      final enlargeBtn = find.byKey(const Key('btn_enlarge_zone_b_preview'));
+      expect(enlargeBtn, findsOneWidget);
+      await tester.ensureVisible(enlargeBtn);
+      await tester.tap(enlargeBtn);
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(const Key('enlarged_preview_dialog')), findsOneWidget);
+      expect(find.byKey(const Key('enlarged_preview_ocr_text')), findsOneWidget);
+      expect(find.textContaining('Folikon Lv.22'), findsWidgets);
+
+      // Update Zone B live status while modal is open -> enlarged dialog must update live!
+      activeSource.liveFocusStatusNotifier.value = LiveOcrScanStatus(
+        scanCount: 6,
+        lastScanAt: DateTime.now(),
+        recognizedLines: const ['Lithomith Lv.24'],
+        latestFrame: CapturedFrame(
+          width: 4,
+          height: 4,
+          bytes: List<int>.filled(4 * 4 * 4, 210),
+          pixelFormat: 'bgra8888',
+        ),
+      );
+      await tester.pump();
+
+      expect(
+        tester.widget<Text>(find.byKey(const Key('enlarged_preview_ocr_text'))).data,
+        contains('Lithomith Lv.24'),
+      );
+      expect(find.textContaining('#6'), findsWidgets);
+    });
   });
 }

@@ -256,7 +256,10 @@ class MobileFocusDexTab extends StatelessWidget {
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
-                  'Instanz #${ev.instanceIndex ?? 1}',
+                  t.scanner_multi_instance_title.replaceAll(
+                    '{label}',
+                    '#${ev.instanceIndex ?? 1}',
+                  ),
                   style: TextStyle(
                     fontSize: 10,
                     fontWeight: FontWeight.bold,
@@ -428,24 +431,64 @@ class MobileFocusDexTab extends StatelessWidget {
   }
 }
 
-/// Tab 2: Auto vs. Draw rectangle management, paired Multi-Instance Zone A/B cards,
-/// camera selection dropdown & hardware controls, and OCR language & preprocessing.
-class MobileZonesCameraTab extends StatelessWidget {
-  final MobileCameraScanMode scanMode;
-  final ScanRegionPreset autoPreset;
-  final List<NormalizedScanRect> regions;
-  final CameraBrushTarget activeBrushTarget;
-  final List<int> multiSlotIds;
-  final bool isEditingRegions;
-  final ScannerSettings settings;
-  final String ocrLanguageCode;
-  final TrackerAlertSettings alertSettings;
+/// Grouped camera hardware state for [MobileZonesCameraTab].
+class MobileCameraHardwareConfig {
   final bool torchEnabled;
   final double zoomLevel;
   final double minZoom;
   final double maxZoom;
   final List<CameraDescription> cameras;
   final int selectedCameraIndex;
+
+  const MobileCameraHardwareConfig({
+    this.torchEnabled = false,
+    this.zoomLevel = 1.0,
+    this.minZoom = 1.0,
+    this.maxZoom = 1.0,
+    this.cameras = const [],
+    this.selectedCameraIndex = 0,
+  });
+}
+
+/// Grouped scan zone and multi-instance editor state for [MobileZonesCameraTab].
+class MobileZonesEditConfig {
+  final MobileCameraScanMode scanMode;
+  final ScanRegionPreset autoPreset;
+  final List<NormalizedScanRect> regions;
+  final CameraBrushTarget activeBrushTarget;
+  final List<int> multiSlotIds;
+  final bool isEditingRegions;
+
+  const MobileZonesEditConfig({
+    required this.scanMode,
+    required this.autoPreset,
+    required this.regions,
+    required this.activeBrushTarget,
+    required this.multiSlotIds,
+    required this.isEditingRegions,
+  });
+}
+
+/// Tab 2: Auto vs. Draw rectangle management, paired Multi-Instance Zone A/B cards,
+/// camera selection dropdown & hardware controls, and OCR language & preprocessing.
+class MobileZonesCameraTab extends StatelessWidget {
+  final MobileCameraHardwareConfig? hardwareConfig;
+  final MobileZonesEditConfig? zonesConfig;
+  final MobileCameraScanMode? scanMode;
+  final ScanRegionPreset? autoPreset;
+  final List<NormalizedScanRect>? regions;
+  final CameraBrushTarget? activeBrushTarget;
+  final List<int>? multiSlotIds;
+  final bool? isEditingRegions;
+  final ScannerSettings settings;
+  final String ocrLanguageCode;
+  final TrackerAlertSettings alertSettings;
+  final bool? torchEnabled;
+  final double? zoomLevel;
+  final double? minZoom;
+  final double? maxZoom;
+  final List<CameraDescription>? cameras;
+  final int? selectedCameraIndex;
   final ValueChanged<MobileCameraScanMode> onScanModeChanged;
   final ValueChanged<ScanRegionPreset> onAutoPresetChanged;
   final ValueChanged<CameraBrushTarget> onSelectBrushTarget;
@@ -468,21 +511,23 @@ class MobileZonesCameraTab extends StatelessWidget {
 
   const MobileZonesCameraTab({
     super.key,
-    required this.scanMode,
-    required this.autoPreset,
-    required this.regions,
-    required this.activeBrushTarget,
-    required this.multiSlotIds,
-    required this.isEditingRegions,
+    this.hardwareConfig,
+    this.zonesConfig,
+    this.scanMode,
+    this.autoPreset,
+    this.regions,
+    this.activeBrushTarget,
+    this.multiSlotIds,
+    this.isEditingRegions,
     required this.settings,
     required this.ocrLanguageCode,
     required this.alertSettings,
-    required this.torchEnabled,
-    required this.zoomLevel,
-    required this.minZoom,
-    required this.maxZoom,
-    required this.cameras,
-    required this.selectedCameraIndex,
+    this.torchEnabled,
+    this.zoomLevel,
+    this.minZoom,
+    this.maxZoom,
+    this.cameras,
+    this.selectedCameraIndex,
     required this.onScanModeChanged,
     required this.onAutoPresetChanged,
     required this.onSelectBrushTarget,
@@ -502,7 +547,31 @@ class MobileZonesCameraTab extends StatelessWidget {
     required this.onOcrLanguageChanged,
     required this.onAlertSettingsChanged,
     required this.onOpenCustomPatterns,
-  });
+  }) : assert(zonesConfig != null || scanMode != null),
+       assert(zonesConfig != null || autoPreset != null),
+       assert(zonesConfig != null || regions != null),
+       assert(zonesConfig != null || activeBrushTarget != null),
+       assert(zonesConfig != null || multiSlotIds != null),
+       assert(zonesConfig != null || isEditingRegions != null);
+
+  MobileCameraScanMode get _scanMode => zonesConfig?.scanMode ?? scanMode!;
+  ScanRegionPreset get _autoPreset => zonesConfig?.autoPreset ?? autoPreset!;
+  List<NormalizedScanRect> get _regions => zonesConfig?.regions ?? regions!;
+  CameraBrushTarget get _activeBrushTarget =>
+      zonesConfig?.activeBrushTarget ?? activeBrushTarget!;
+  List<int> get _multiSlotIds => zonesConfig?.multiSlotIds ?? multiSlotIds!;
+  bool get _isEditingRegions =>
+      zonesConfig?.isEditingRegions ?? isEditingRegions!;
+
+  bool get _torchEnabled =>
+      hardwareConfig?.torchEnabled ?? torchEnabled ?? false;
+  double get _zoomLevel => hardwareConfig?.zoomLevel ?? zoomLevel ?? 1.0;
+  double get _minZoom => hardwareConfig?.minZoom ?? minZoom ?? 1.0;
+  double get _maxZoom => hardwareConfig?.maxZoom ?? maxZoom ?? 1.0;
+  List<CameraDescription> get _cameras =>
+      hardwareConfig?.cameras ?? cameras ?? const [];
+  int get _selectedCameraIndex =>
+      hardwareConfig?.selectedCameraIndex ?? selectedCameraIndex ?? 0;
 
   @override
   Widget build(BuildContext context) {
@@ -533,19 +602,19 @@ class MobileZonesCameraTab extends StatelessWidget {
                 children: [
                   ChoiceChip(
                     label: Text(t.scanner_mob_auto_fullscreen),
-                    selected: scanMode == MobileCameraScanMode.autoFull,
+                    selected: _scanMode == MobileCameraScanMode.autoFull,
                     onSelected: (_) =>
                         onScanModeChanged(MobileCameraScanMode.autoFull),
                   ),
                   ChoiceChip(
                     label: Text(t.scanner_mob_draw_rects),
-                    selected: scanMode == MobileCameraScanMode.customRegions,
+                    selected: _scanMode == MobileCameraScanMode.customRegions,
                     onSelected: (_) =>
                         onScanModeChanged(MobileCameraScanMode.customRegions),
                   ),
                 ],
               ),
-              if (scanMode == MobileCameraScanMode.autoFull) ...[
+              if (_scanMode == MobileCameraScanMode.autoFull) ...[
                 const SizedBox(height: 8),
                 Wrap(
                   spacing: 6,
@@ -553,7 +622,7 @@ class MobileZonesCameraTab extends StatelessWidget {
                   children: ScanRegionPreset.values.map((p) {
                     return ChoiceChip(
                       label: Text(p.labelDe, style: const TextStyle(fontSize: 11)),
-                      selected: autoPreset == p,
+                      selected: _autoPreset == p,
                       onSelected: (_) => onAutoPresetChanged(p),
                     );
                   }).toList(),
@@ -566,15 +635,15 @@ class MobileZonesCameraTab extends StatelessWidget {
                   children: [
                     FilterChip(
                       label: Text(
-                        isEditingRegions
+                        _isEditingRegions
                             ? t.scanner_mob_drawing_active
                             : t.scanner_mob_rects_locked,
                         style: const TextStyle(fontSize: 11),
                       ),
-                      selected: isEditingRegions,
+                      selected: _isEditingRegions,
                       onSelected: onEditingChanged,
                     ),
-                    if (regions.isNotEmpty)
+                    if (_regions.isNotEmpty)
                       TextButton.icon(
                         onPressed: onClearRegions,
                         icon: const Icon(Icons.delete_sweep, size: 15),
@@ -627,16 +696,16 @@ class MobileZonesCameraTab extends StatelessWidget {
               const SizedBox(height: 8),
               DropdownButtonFormField<int>(
                 key: const Key('dropdown_mobile_camera_selector'),
-                initialValue: cameras.isEmpty
+                initialValue: _cameras.isEmpty
                     ? -1
-                    : selectedCameraIndex.clamp(0, cameras.length - 1),
+                    : _selectedCameraIndex.clamp(0, _cameras.length - 1),
                 isExpanded: true,
                 decoration: InputDecoration(
                   labelText: t.scanner_mob_active_camera,
                   isDense: true,
                   border: const OutlineInputBorder(),
                 ),
-                items: cameras.isEmpty
+                items: _cameras.isEmpty
                     ? [
                         DropdownMenuItem<int>(
                           value: -1,
@@ -646,8 +715,8 @@ class MobileZonesCameraTab extends StatelessWidget {
                           ),
                         ),
                       ]
-                    : List.generate(cameras.length, (i) {
-                        final cam = cameras[i];
+                    : List.generate(_cameras.length, (i) {
+                        final cam = _cameras[i];
                         return DropdownMenuItem<int>(
                           value: i,
                           child: Text(
@@ -656,7 +725,7 @@ class MobileZonesCameraTab extends StatelessWidget {
                           ),
                         );
                       }),
-                onChanged: cameras.isEmpty
+                onChanged: _cameras.isEmpty
                     ? null
                     : (idx) {
                         if (idx != null && idx >= 0) {
@@ -672,17 +741,17 @@ class MobileZonesCameraTab extends StatelessWidget {
                   OutlinedButton.icon(
                     onPressed: onToggleTorch,
                     icon: Icon(
-                      torchEnabled ? Icons.flash_on : Icons.flash_off,
+                      _torchEnabled ? Icons.flash_on : Icons.flash_off,
                       size: 16,
                     ),
                     label: Text(
-                      torchEnabled
+                      _torchEnabled
                           ? t.scanner_mob_light_on
                           : t.scanner_mob_torch,
                       style: const TextStyle(fontSize: 11),
                     ),
                   ),
-                  if (cameras.length > 1)
+                  if (_cameras.length > 1)
                     OutlinedButton.icon(
                       onPressed: onSwitchCamera,
                       icon: const Icon(Icons.cameraswitch_outlined, size: 16),
@@ -701,22 +770,22 @@ class MobileZonesCameraTab extends StatelessWidget {
                   ),
                 ],
               ),
-              if (maxZoom > minZoom) ...[
+              if (_maxZoom > _minZoom) ...[
                 const SizedBox(height: 6),
                 Row(
                   children: [
                     const Icon(Icons.zoom_in, size: 16),
                     Expanded(
                       child: Slider(
-                        value: zoomLevel.clamp(minZoom, maxZoom),
-                        min: minZoom,
-                        max: maxZoom,
-                        label: '${zoomLevel.toStringAsFixed(1)}×',
+                        value: _zoomLevel.clamp(_minZoom, _maxZoom),
+                        min: _minZoom,
+                        max: _maxZoom,
+                        label: '${_zoomLevel.toStringAsFixed(1)}×',
                         onChanged: onZoomChanged,
                       ),
                     ),
                     Text(
-                      '${zoomLevel.toStringAsFixed(1)}×',
+                      '${_zoomLevel.toStringAsFixed(1)}×',
                       style: const TextStyle(fontSize: 11),
                     ),
                   ],
@@ -847,7 +916,7 @@ class MobileZonesCameraTab extends StatelessWidget {
   }
 
   NormalizedScanRect? _findById(String id) {
-    for (final r in regions) {
+    for (final r in _regions) {
       if (r.id == id) return r;
     }
     return null;
@@ -883,7 +952,7 @@ class MobileZonesCameraTab extends StatelessWidget {
               Expanded(
                 child: Text(
                   t.scanner_mob_multi_header
-                      .replaceAll('{count}', '${multiSlotIds.length}'),
+                      .replaceAll('{count}', '${_multiSlotIds.length}'),
                   style: const TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.bold,
@@ -905,13 +974,13 @@ class MobileZonesCameraTab extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 6),
-          if (multiSlotIds.isEmpty)
+          if (_multiSlotIds.isEmpty)
             Text(
               t.scanner_mob_multi_hint,
               style: TextStyle(fontSize: 11, color: colors.onSurfaceVariant),
             )
           else
-            ...multiSlotIds.map(
+            ..._multiSlotIds.map(
               (slotId) => _buildMultiInstanceCard(context, slotId),
             ),
         ],
@@ -925,8 +994,8 @@ class MobileZonesCameraTab extends StatelessWidget {
     final slotColor = Color(
       MultiInstanceGridHelper.colorForIndex(slotId > 0 ? slotId - 1 : 0),
     );
-    final scanRect = regions.scanRectForSlot(slotId);
-    final focusRect = regions.focusRectForSlot(slotId);
+    final scanRect = _regions.scanRectForSlot(slotId);
+    final focusRect = _regions.focusRectForSlot(slotId);
     final slotEnabled =
         (scanRect?.enabled ?? true) || (focusRect?.enabled ?? true);
 
@@ -962,7 +1031,10 @@ class MobileZonesCameraTab extends StatelessWidget {
               const SizedBox(width: 6),
               Expanded(
                 child: Text(
-                  'Instanz #$slotId',
+                  t.scanner_multi_instance_title.replaceAll(
+                    '{label}',
+                    '#$slotId',
+                  ),
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
                     fontSize: 12,
@@ -1017,7 +1089,7 @@ class MobileZonesCameraTab extends StatelessWidget {
   }) {
     final colors = Theme.of(context).colorScheme;
     final zoneColor = Color(target.colorHex);
-    final isSelectedBrush = activeBrushTarget == target;
+    final isSelectedBrush = _activeBrushTarget == target;
     final sizeText = region == null
         ? t.scanner_mob_not_drawn
         : '${(region.width * 100).round()}% × ${(region.height * 100).round()}%';
