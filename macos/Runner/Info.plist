@@ -28,5 +28,7 @@
 	<string>MainMenu</string>
 	<key>NSPrincipalClass</key>
 	<string>NSApplication</string>
+	<key>NSCameraUsageDescription</key>
+	<string>PokéVault benötigt Kamerazugriff für den Live-Webcam- &amp; Pokédex-Scanner.</string>
 </dict>
 </plist>

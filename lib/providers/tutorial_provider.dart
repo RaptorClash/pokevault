@@ -8,13 +8,17 @@ import '../models/tutorial_step.dart';
 class TutorialProvider extends ChangeNotifier {
   final SharedPreferences _prefs;
 
-  /// Current major tutorial version (v1.6 is version 2).
-  static const int currentTutorialVersion = 2;
+  /// Current major tutorial version (v1.6 = 2, Scanner Update = 3).
+  static const int currentTutorialVersion = 3;
 
   bool _isDeltaTourActive = false;
+  bool _isScannerDeltaTourActive = false;
 
   /// Whether the v1.6 delta walkthrough is currently in progress.
   bool get isDeltaTourActive => _isDeltaTourActive;
+
+  /// Whether the Scanner delta walkthrough is currently in progress.
+  bool get isScannerDeltaTourActive => _isScannerDeltaTourActive;
 
   /// Creates a [TutorialProvider] with the given [SharedPreferences] instance.
   TutorialProvider(this._prefs) {
@@ -28,6 +32,7 @@ class TutorialProvider extends ChangeNotifier {
       } else {
         _prefs.setInt('completed_tutorial_version', 0);
         _prefs.setBool('v1_6_update_announced', true);
+        _prefs.setBool('scanner_update_announced', true);
       }
     }
   }
@@ -62,17 +67,48 @@ class TutorialProvider extends ChangeNotifier {
     return completedTutorialVersion >= 1;
   }
 
+  /// Whether the Scanner update announcement has already been shown or dismissed.
+  bool get isScannerUpdateAnnounced =>
+      _prefs.getBool('scanner_update_announced') ?? false;
+
+  /// Whether the Scanner update announcement dialog should be displayed.
+  bool get shouldShowScannerUpdatePrompt {
+    if (_prefs.getBool('skip_all_tutorials') == true) {
+      return false;
+    }
+    if (isScannerUpdateAnnounced || shouldShowV16UpdatePrompt) {
+      return false;
+    }
+    return completedTutorialVersion >= 1 &&
+        completedTutorialVersion < currentTutorialVersion;
+  }
+
   /// Dismisses the v1.6 update prompt without starting the tour.
   Future<void> dismissV16UpdatePrompt() async {
     await _prefs.setBool('v1_6_update_announced', true);
     notifyListeners();
   }
 
+  /// Dismisses the Scanner update prompt without starting the tour.
+  Future<void> dismissScannerUpdatePrompt() async {
+    await _prefs.setBool('scanner_update_announced', true);
+    notifyListeners();
+  }
+
   /// Marks the v1.6 tutorial as completely finished.
   Future<void> completeV16Tutorial() async {
-    await _prefs.setInt('completed_tutorial_version', currentTutorialVersion);
+    await _prefs.setInt('completed_tutorial_version', 2);
     await _prefs.setBool('v1_6_update_announced', true);
     _isDeltaTourActive = false;
+    notifyListeners();
+  }
+
+  /// Marks the Scanner tutorial (v3) as completely finished.
+  Future<void> completeScannerTutorial() async {
+    await _prefs.setInt('completed_tutorial_version', currentTutorialVersion);
+    await _prefs.setBool('v1_6_update_announced', true);
+    await _prefs.setBool('scanner_update_announced', true);
+    _isScannerDeltaTourActive = false;
     notifyListeners();
   }
 
@@ -103,9 +139,24 @@ class TutorialProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Starts the Scanner Delta Walkthrough by resetting scanner tour keys.
+  Future<void> startScannerDeltaTour() async {
+    await dismissScannerUpdatePrompt();
+    await _prefs.remove('mobile_scanner_tour');
+    await _prefs.remove('desktop_scanner_tour');
+    _isScannerDeltaTourActive = true;
+    notifyListeners();
+  }
+
   /// Ends the delta tour mode.
   void endDeltaTour() {
     _isDeltaTourActive = false;
+    notifyListeners();
+  }
+
+  /// Ends the Scanner delta tour mode.
+  void endScannerDeltaTour() {
+    _isScannerDeltaTourActive = false;
     notifyListeners();
   }
 
@@ -206,16 +257,19 @@ class TutorialProvider extends ChangeNotifier {
     ];
 
     for (String key in allKeys) {
-      if (!systemKeys.contains(key)) {
+      final isProtected = systemKeys.contains(key) || key.startsWith('pokevault_');
+      if (!isProtected) {
         await _prefs.remove(key);
       }
     }
 
     await _prefs.setBool('migrated_to_sqlite_v2', true);
     await _prefs.setBool('v1_6_update_announced', true);
+    await _prefs.setBool('scanner_update_announced', true);
     await _prefs.setInt('completed_tutorial_version', 0);
 
     _isDeltaTourActive = false;
+    _isScannerDeltaTourActive = false;
     notifyListeners();
   }
 
@@ -229,6 +283,7 @@ class TutorialProvider extends ChangeNotifier {
   Future<void> skipAllTutorials() async {
     await _prefs.setBool('skip_all_tutorials', true);
     _isDeltaTourActive = false;
+    _isScannerDeltaTourActive = false;
     notifyListeners();
   }
 }

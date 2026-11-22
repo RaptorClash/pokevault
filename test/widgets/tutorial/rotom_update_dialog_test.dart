@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:pokevault/i18n/strings.g.dart';
 import 'package:pokevault/providers/tutorial_provider.dart';
+import 'package:pokevault/utils/tracker_platform_helper.dart';
 import 'package:pokevault/widgets/tutorial/rotom_update_welcome_dialog.dart';
 
 void main() {
@@ -85,6 +87,48 @@ void main() {
       expect(find.byType(RotomUpdateWelcomeDialog), findsNothing);
       expect(tutorialProvider.isDeltaTourActive, isFalse);
       expect(tutorialProvider.isV16UpdateAnnounced, isTrue);
+    });
+
+    testWidgets('RotomUpdateWelcomeDialog scanner mode renders platform-specific Mobile vs Desktop highlights', (
+      WidgetTester tester,
+    ) async {
+      LocaleSettings.setLocale(AppLocale.de);
+      TrackerPlatformHelper.debugIsMobileOverride = () => true;
+      TrackerPlatformHelper.debugIsDesktopOverride = () => false;
+      addTearDown(TrackerPlatformHelper.resetDebugOverrides);
+
+      await tester.pumpWidget(
+        ChangeNotifierProvider<TutorialProvider>.value(
+          value: tutorialProvider,
+          child: MaterialApp(
+            home: Builder(
+              builder: (context) => Scaffold(
+                body: ElevatedButton(
+                  onPressed: () => RotomUpdateWelcomeDialog.show(
+                    context,
+                    updateType: RotomUpdateType.scanner,
+                  ),
+                  child: const Text('Show Scanner Dialog'),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      await tester.tap(find.text('Show Scanner Dialog'));
+      await tester.pumpAndSettle();
+
+      // Mobile variant highlights Camera/PiP, not Windows HUD
+      expect(find.textContaining('Kamera'), findsWidgets);
+      expect(find.textContaining('PiP'), findsWidgets);
+      expect(find.textContaining('Floating HUD'), findsNothing);
+
+      final startBtn = find.text('Neuheiten-Tour starten');
+      await tester.ensureVisible(startBtn);
+      await tester.tap(startBtn);
+      await tester.pumpAndSettle();
+      expect(tutorialProvider.isScannerDeltaTourActive, isTrue);
     });
   });
 }

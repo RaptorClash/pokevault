@@ -17,6 +17,7 @@ import '../settings/settings_screen.dart';
 import '../../utils/update_helper.dart';
 import '../../widgets/dialogs/update_dialog.dart';
 import '../../utils/notification_helper.dart';
+import '../../utils/tracker_platform_helper.dart';
 import 'create_dex_bottom_sheet.dart';
 import 'widgets/home_dialogs.dart';
 import 'widgets/home_ui_components.dart';
@@ -30,6 +31,8 @@ import '../moves/moves_dex_screen.dart';
 import '../abilities/abilities_dex_screen.dart';
 import '../../providers/shiny_hunt_provider.dart';
 import '../shiny_hunt/shiny_hunts_hub_screen.dart';
+import '../desktop_tracker/widgets/persistent_tracker_dock.dart';
+import '../../services/scanner_core/scanner_launcher_helper.dart';
 
 class HomeScreen extends StatefulWidget {
   final String currentFolderId;
@@ -47,6 +50,7 @@ class _HomeScreenState extends State<HomeScreen> {
   final GlobalKey _sortDropdownKey = GlobalKey();
   final GlobalKey _settingsActionKey = GlobalKey();
   final GlobalKey _shinyHuntActionKey = GlobalKey();
+  final GlobalKey _scannerActionKey = GlobalKey();
   final Map<String, GlobalKey> _dexKeys = {};
   final Set<String> _selectedItemIds = {};
   String _searchQuery = '';
@@ -161,6 +165,14 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  bool _safeTutFlag(bool Function() read) {
+    try {
+      return read();
+    } catch (_) {
+      return false;
+    }
+  }
+
   void _showTutorialIfNeeded() {
     final tutProvider = Provider.of<TutorialProvider>(context, listen: false);
     final dexProvider = Provider.of<DexProvider>(context, listen: false);
@@ -173,6 +185,48 @@ class _HomeScreenState extends State<HomeScreen> {
         },
       );
       return;
+    }
+
+    if (_safeTutFlag(() => tutProvider.shouldShowScannerUpdatePrompt)) {
+      RotomUpdateWelcomeDialog.show(
+        context,
+        updateType: RotomUpdateType.scanner,
+        onStartTour: () {
+          _showTutorialIfNeeded();
+        },
+      );
+      return;
+    }
+
+    if (_safeTutFlag(() => tutProvider.isScannerDeltaTourActive)) {
+      final hasScannerBtn =
+          TrackerPlatformHelper.isDesktopOverlaySupported ||
+              TrackerPlatformHelper.isCameraTrackerSupported;
+      if (hasScannerBtn && _currentFolderId == 'root') {
+        TutorialOverlay.show(
+          context,
+          TutorialFeature(
+            id: 'scanner_delta_home',
+            nameKey: 'tutorial_scanner_tour_btn',
+            steps: [
+              TutorialStep(
+                targetKey: _scannerActionKey,
+                titleKey: 'tutorial_scanner_home_delta_title',
+                textKey: 'tutorial_scanner_home_delta_text',
+                rotomMood: RotomMood.happy,
+                requireTargetTap: true,
+                onTargetTap: () {
+                  tutProvider.endScannerDeltaTour();
+                  _openPlatformTrackerSelector();
+                },
+              ),
+            ],
+          ),
+          () => tutProvider.endScannerDeltaTour(),
+        );
+        return;
+      }
+      tutProvider.endScannerDeltaTour();
     }
 
     if (tutProvider.isDeltaTourActive) {
@@ -497,6 +551,24 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
+  void _openDesktopTracker() {
+    final dexProvider = Provider.of<DexProvider>(context, listen: false);
+    ScannerLauncherHelper.openDesktopOverlayTracker(
+      context,
+      allPokemon: dexProvider.allPokemon,
+    );
+  }
+
+  void _openPlatformTrackerSelector() {
+    final dexProvider = Provider.of<DexProvider>(context, listen: false);
+    ScannerLauncherHelper.openPlatformTracker(
+      context,
+      allPokemon: dexProvider.allPokemon,
+    );
+  }
+
+  void _openPlatformTracker() => _openPlatformTrackerSelector();
+
   void _openCreateBottomSheet() {
     final provider = Provider.of<DexProvider>(context, listen: false);
     showModalBottomSheet(
@@ -647,6 +719,12 @@ class _HomeScreenState extends State<HomeScreen> {
           },
           const SingleActivator(LogicalKeyboardKey.keyF, meta: true): () {
             _searchFocusNode.requestFocus();
+          },
+          const SingleActivator(LogicalKeyboardKey.keyO, control: true, shift: true): () {
+            _openPlatformTracker();
+          },
+          const SingleActivator(LogicalKeyboardKey.keyO, meta: true, shift: true): () {
+            _openPlatformTracker();
           },
         },
         child: Focus(
@@ -818,7 +896,25 @@ class _HomeScreenState extends State<HomeScreen> {
                         );
                       },
                     ),
-                    if (_currentFolderId == 'root')
+                    if (_currentFolderId == 'root') ...[
+                      if (TrackerPlatformHelper.isDesktopOverlaySupported)
+                        IconButton(
+                          key: _scannerActionKey,
+                          icon: const Icon(Icons.track_changes),
+                          tooltip: TrackerPlatformHelper.isCameraTrackerSupported
+                              ? t.scanner_home_desktop_webcam
+                              : t.scanner_home_desktop_only,
+                          onPressed: _openPlatformTrackerSelector,
+                        )
+                      else if (TrackerPlatformHelper.isCameraTrackerSupported)
+                        IconButton(
+                          key: _scannerActionKey,
+                          icon: const Icon(Icons.photo_camera_outlined),
+                          tooltip: TrackerPlatformHelper.isMobile
+                              ? t.scanner_home_mobile_camera
+                              : t.scanner_home_webcam_photo,
+                          onPressed: _openPlatformTrackerSelector,
+                        ),
                       IconButton(
                         key: _settingsActionKey,
                         icon: const Icon(Icons.settings),
@@ -833,6 +929,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           });
                         },
                       ),
+                    ],
                   ],
           ),
           body: Column(
@@ -955,6 +1052,9 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
             ],
+          ),
+          bottomNavigationBar: PersistentTrackerDockHost(
+            onOpenSetup: _openDesktopTracker,
           ),
           floatingActionButton: !_isSelectionMode
               ? FloatingActionButton(

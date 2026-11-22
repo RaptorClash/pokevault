@@ -131,5 +131,51 @@ void main() {
 
       expect(tester.takeException(), isNull);
     });
+
+    testWidgets('Renders Desktop Tracker icon button when onOpenDesktopTracker is provided', (tester) async {
+      bool trackerClicked = false;
+      await tester.pumpWidget(MaterialApp(
+        home: Scaffold(
+          appBar: AppBar(
+            actions: [
+              DexAppBarActions(
+                isEditMode: false,
+                onOpenDesktopTracker: () => trackerClicked = true,
+              ),
+            ],
+          ),
+        ),
+      ));
+
+      final trackerFinder = find.byTooltip('Desktop Tracker & Overlay');
+      expect(trackerFinder, findsOneWidget);
+
+      await tester.tap(trackerFinder);
+      expect(trackerClicked, isTrue);
+    });
+
+    testWidgets('Localizes Mobile Scanner tooltip according to active AppLocale', (tester) async {
+      LocaleSettings.setLocale(AppLocale.en);
+      addTearDown(() => LocaleSettings.setLocale(AppLocale.de));
+
+      bool mobileClicked = false;
+      await tester.pumpWidget(MaterialApp(
+        home: Scaffold(
+          appBar: AppBar(
+            actions: [
+              DexAppBarActions(
+                isEditMode: false,
+                onOpenMobileScanner: () => mobileClicked = true,
+              ),
+            ],
+          ),
+        ),
+      ));
+
+      final enFinder = find.byTooltip('Camera tracker');
+      expect(enFinder, findsOneWidget);
+      await tester.tap(enFinder);
+      expect(mobileClicked, isTrue);
+    });
   });
 }

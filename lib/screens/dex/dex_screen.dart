@@ -30,6 +30,9 @@ import 'widgets/dex_progress_dialog.dart';
 import 'widgets/dex_completion_card_dialog.dart';
 import 'widgets/dex_app_bar_actions.dart';
 import 'widgets/dex_filter_bar.dart';
+import '../../utils/tracker_platform_helper.dart';
+import '../desktop_tracker/widgets/persistent_tracker_dock.dart';
+import '../../services/scanner_core/scanner_launcher_helper.dart';
 
 class DexScreen extends StatefulWidget {
   final UserDex initialDex;
@@ -915,6 +918,26 @@ class _DexScreenState extends State<DexScreen> {
     });
   }
 
+  void _openDesktopTracker(UserDex liveDex) {
+    final dexProvider = Provider.of<DexProvider>(context, listen: false);
+    ScannerLauncherHelper.openDesktopOverlayTracker(
+      context,
+      allPokemon: dexProvider.allPokemon,
+      dexId: liveDex.id,
+    );
+  }
+
+  void _openTrackerSelector(UserDex liveDex) {
+    final dexProvider = Provider.of<DexProvider>(context, listen: false);
+    ScannerLauncherHelper.openPlatformTracker(
+      context,
+      allPokemon: dexProvider.allPokemon,
+      dexId: liveDex.id,
+    );
+  }
+
+  void _openPlatformTracker(UserDex liveDex) => _openTrackerSelector(liveDex);
+
   Future<void> _toggleBoxView() async {
     setState(() {
       _isBoxView = !_isBoxView;
@@ -1690,6 +1713,12 @@ class _DexScreenState extends State<DexScreen> {
         const SingleActivator(LogicalKeyboardKey.keyF, meta: true): () {
           _searchFocusNode.requestFocus();
         },
+        const SingleActivator(LogicalKeyboardKey.keyO, control: true, shift: true): () {
+          _openPlatformTracker(liveDex);
+        },
+        const SingleActivator(LogicalKeyboardKey.keyO, meta: true, shift: true): () {
+          _openPlatformTracker(liveDex);
+        },
       },
       child: PopScope(
       canPop: !_isEditMode,
@@ -1839,6 +1868,15 @@ class _DexScreenState extends State<DexScreen> {
                   ),
                 );
               },
+              onOpenDesktopTracker:
+                  TrackerPlatformHelper.isDesktopOverlaySupported
+                      ? () => _openTrackerSelector(liveDex)
+                      : null,
+              onOpenMobileScanner:
+                  (!TrackerPlatformHelper.isDesktopOverlaySupported &&
+                          TrackerPlatformHelper.isCameraTrackerSupported)
+                      ? () => _openTrackerSelector(liveDex)
+                      : null,
               onToggleView: _toggleBoxView,
               onToggleSeparateForms: _toggleSeparateForms,
               onOpenSortSettings: () {
@@ -1997,6 +2035,10 @@ class _DexScreenState extends State<DexScreen> {
               ),
             ),
         ],
+      ),
+      bottomNavigationBar: PersistentTrackerDockHost(
+        fallbackDex: liveDex,
+        onOpenSetup: () => _openDesktopTracker(liveDex),
       ),
     ),
   ),

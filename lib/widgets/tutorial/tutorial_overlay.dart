@@ -560,6 +560,7 @@ class _TutorialOverlayState extends State<TutorialOverlay>
 
   void _skipTutorial() {
     if (mounted) {
+      TutorialOverlay._isShowing = false;
       try {
         final tutProvider = Provider.of<TutorialProvider>(
           context,
@@ -576,6 +577,7 @@ class _TutorialOverlayState extends State<TutorialOverlay>
 
   void _closeTutorial() {
     if (mounted) {
+      TutorialOverlay._isShowing = false;
       Navigator.of(context).pop();
     }
   }

@@ -1,0 +1,740 @@
+import 'dart:ui';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:pokevault/services/desktop_tracker/desktop_capture_driver.dart';
+import 'package:pokevault/services/desktop_tracker/desktop_ocr_driver.dart';
+import 'package:pokevault/services/desktop_tracker/desktop_window_source.dart';
+import 'package:pokevault/services/desktop_tracker/screen_region.dart';
+import 'package:pokevault/services/desktop_tracker/window_detector.dart';
+import 'package:pokevault/services/scanner_core/models/scanner_settings.dart';
+import 'package:pokevault/services/scanner_core/source/scanner_source.dart';
+
+class MockCaptureDriver implements DesktopCaptureDriver {
+  int captureCount = 0;
+  Rect? lastCrop;
+  ScreenRegion? lastScreenRegion;
+  DesktopWindowInfo? lastWindow;
+
+  @override
+  Future<CapturedFrame?> captureWindow({
+    required DesktopWindowInfo window,
+    Rect? cropRegion,
+    ScreenRegion? screenRegion,
+  }) async {
+    captureCount++;
+    lastWindow = window;
+    lastCrop = cropRegion;
+    lastScreenRegion = screenRegion;
+    return CapturedFrame(
+      width: 800,
+      height: 600,
+      bytes: [1, captureCount & 0xFF, 3],
+    );
+  }
+}
+
+class MockOcrDriver implements DesktopOcrDriver {
+  String textToReturn = 'Glumanda wurde gefangen!';
+  List<String>? linesToReturn;
+  int ocrCount = 0;
+
+  @override
+  Future<List<String>> recognizeText(CapturedFrame frame) async {
+    ocrCount++;
+    if (linesToReturn != null) return List<String>.from(linesToReturn!);
+    if (textToReturn.isEmpty) return [];
+    return [textToReturn];
+  }
+}
+
+void main() {
+  group('DesktopWindowSource Tests (TDD)', () {
+    late MockCaptureDriver captureDriver;
+    late MockOcrDriver ocrDriver;
+    late DesktopWindowSource source;
+
+    setUp(() {
+      captureDriver = MockCaptureDriver();
+      ocrDriver = MockOcrDriver();
+      source = DesktopWindowSource(
+        captureDriver: captureDriver,
+        ocrDriver: ocrDriver,
+        pollInterval: const Duration(milliseconds: 50),
+      );
+    });
+
+    tearDown(() async {
+      await source.dispose();
+    });
+
+    test('Initial state is stopped with no text emitted', () {
+      expect(source.isRunning, isFalse);
+    });
+
+    test('Periodically captures selected window and streams OCR text', () async {
+      const window = DesktopWindowInfo(id: 123, title: 'mGBA - Pokemon');
+      source.setSelectedWindow(window);
+      source.setCropRegion(const Rect.fromLTWH(0, 400, 800, 200));
+
+      final emitted = <String>[];
+      final sub = source.textStream.listen(emitted.add);
+
+      await source.start();
+      expect(source.isRunning, isTrue);
+
+      // Wait for at least 2 ticks
+      await Future.delayed(const Duration(milliseconds: 140));
+
+      expect(emitted, contains('Glumanda wurde gefangen!'));
+      expect(captureDriver.captureCount, greaterThanOrEqualTo(2));
+      expect(captureDriver.lastWindow?.id, 123);
+      expect(captureDriver.lastCrop?.top, 400);
+      expect(ocrDriver.ocrCount, greaterThanOrEqualTo(2));
+
+      await source.stop();
+      expect(source.isRunning, isFalse);
+      await sub.cancel();
+    });
+
+    test('Does not capture if no window is selected', () async {
+      source.setSelectedWindow(null);
+      await source.start();
+
+      await Future.delayed(const Duration(milliseconds: 80));
+      expect(captureDriver.captureCount, 0);
+
+      await source.stop();
+    });
+
+    test('triggerSingleScan executes immediate poll and emits recognized text on demand', () async {
+      final desktop = DesktopWindowInfo.primaryScreen();
+      source.setSelectedWindow(desktop);
+
+      final emitted = <String>[];
+      final sub = source.textStream.listen(emitted.add);
+
+      final frame = await source.triggerSingleScan();
+      await Future.delayed(Duration.zero);
+
+      expect(frame, isNotNull);
+      expect(captureDriver.captureCount, 1);
+      expect(captureDriver.lastWindow?.isDesktopScreen, isTrue);
+      expect(ocrDriver.ocrCount, 1);
+      expect(emitted, contains('Glumanda wurde gefangen!'));
+
+      await sub.cancel();
+    });
+
+    test('processSnippet feeds snippet frame directly into OCR and emits text stream', () async {
+      const snippet = CapturedFrame(width: 400, height: 200, bytes: [9, 8, 7]);
+      ocrDriver.textToReturn = 'Ein wildes Pikachu erscheint!';
+
+      final emitted = <String>[];
+      final sub = source.textStream.listen(emitted.add);
+
+      final lines = await source.processSnippet(snippet);
+      await Future.delayed(Duration.zero);
+
+      expect(lines, contains('Ein wildes Pikachu erscheint!'));
+      expect(emitted, contains('Ein wildes Pikachu erscheint!'));
+      expect(source.latestSnippetFrame, equals(snippet));
+
+      await sub.cancel();
+    });
+
+    test('Updates liveScanStatusNotifier on every scan cycle with scan count, latestFrame, and recognized OCR preview', () async {
+      source.setScreenRegion(
+        ScreenRegion(
+          x: 100,
+          y: 200,
+          width: 400,
+          height: 150,
+          isAbsoluteScreen: true,
+        ),
+      );
+      ocrDriver.textToReturn = 'Route 1 · Kampfbereit';
+
+      await source.triggerSingleScan();
+      expect(source.liveScanStatusNotifier.value.scanCount, 1);
+      expect(source.liveScanStatusNotifier.value.lastScanAt, isNotNull);
+      expect(source.liveScanStatusNotifier.value.recognizedLines, ['Route 1 · Kampfbereit']);
+      expect(source.liveScanStatusNotifier.value.latestFrame, isNotNull);
+
+      ocrDriver.textToReturn = '';
+      await source.triggerSingleScan();
+      expect(source.liveScanStatusNotifier.value.scanCount, 2);
+      expect(source.liveScanStatusNotifier.value.recognizedLines, isEmpty);
+    });
+
+    test('Records temporary diagnostic OCR logs on scanLogsNotifier and formats copyable output', () async {
+      const window = DesktopWindowInfo(id: 77, hwnd: 1234, title: 'melonDS 1.1', width: 960, height: 1040);
+      source.setSelectedWindow(window);
+      source.setOcrLanguageTag('de-DE');
+      ocrDriver.textToReturn = 'Ein wildes Glumanda!';
+
+      await source.triggerSingleScan();
+
+      final logs = source.scanLogsNotifier.value;
+      expect(logs, hasLength(1));
+      expect(logs.first.scanNumber, 1);
+      expect(logs.first.sourceMode, 'window');
+      expect(logs.first.targetDescription, contains('melonDS 1.1'));
+      expect(logs.first.frameWidth, 800);
+      expect(logs.first.frameHeight, 600);
+      expect(logs.first.requestedLanguage, 'de-DE');
+      expect(logs.first.rawLines, ['Ein wildes Glumanda!']);
+
+      final formatted = logs.first.toFormattedText();
+      expect(formatted, contains('#1'));
+      expect(formatted, contains('melonDS 1.1'));
+      expect(formatted, contains('800x600'));
+      expect(formatted, contains('Ein wildes Glumanda!'));
+
+      source.clearScanLogs();
+      expect(source.scanLogsNotifier.value, isEmpty);
+    });
+
+    test('setPollInterval updates interval dynamically and clamps unsafe low values', () {
+      expect(source.pollInterval, const Duration(milliseconds: 50));
+      source.setPollInterval(const Duration(milliseconds: 250));
+      expect(source.pollInterval, const Duration(milliseconds: 250));
+
+      source.setPollInterval(const Duration(milliseconds: 20));
+      expect(source.pollInterval, const Duration(milliseconds: 150));
+
+      source.setPollInterval(const Duration(seconds: 9));
+      expect(source.pollInterval, const Duration(milliseconds: 5000));
+    });
+
+    test('Emits combined multi-line OCR text stream when multiple valid lines exist', () async {
+      const window = DesktopWindowInfo(id: 77, hwnd: 1234, title: 'melonDS 1.1', width: 960, height: 1040);
+      source.setSelectedWindow(window);
+      ocrDriver.linesToReturn = ['Klase!', 'Flampion wurde gefangen!'];
+
+      final emitted = <String>[];
+      final sub = source.textStream.listen(emitted.add);
+
+      await source.triggerSingleScan();
+      await Future.delayed(Duration.zero);
+
+      expect(emitted, contains('Klase!'));
+      expect(emitted, contains('Flampion wurde gefangen!'));
+      expect(emitted, contains('Klase!\nFlampion wurde gefangen!'));
+
+      await sub.cancel();
+    });
+
+    test('capturePreviewOnly captures monitor preview frame without incrementing scanCount or calling OCR', () async {
+      final monitor = DesktopWindowInfo.primaryScreen();
+      source.setSelectedWindow(monitor);
+
+      final frame = await source.capturePreviewOnly();
+      expect(frame, isNotNull);
+      expect(captureDriver.captureCount, 1);
+      expect(ocrDriver.ocrCount, 0);
+      expect(source.liveScanStatusNotifier.value.scanCount, 0);
+      expect(source.liveScanStatusNotifier.value.latestFrame, equals(frame));
+      expect(source.scanLogsNotifier.value, isEmpty);
+    });
+
+    test('Dual-Zone captures Zone B enemy HUD on focusTextStream when LiveFocusPreset is active', () async {
+      const window = DesktopWindowInfo(id: 77, hwnd: 1234, title: 'melonDS 1.1', width: 1000, height: 1000);
+      source.setSelectedWindow(window);
+      source.setLiveFocusPreset(LiveFocusPreset.topRight);
+
+      final capturedCrops = <Rect?>[];
+      final multiCapture = _SequenceCaptureDriver(onCapture: (crop, region) {
+        capturedCrops.add(crop);
+      });
+      final multiOcr = _AlternatingOcrDriver(['', 'Zurrokex Lv.16   Ganovil Lv.17']);
+      final dualSource = DesktopWindowSource(
+        captureDriver: multiCapture,
+        ocrDriver: multiOcr,
+        pollInterval: const Duration(milliseconds: 50),
+      );
+      addTearDown(() async => await dualSource.dispose());
+
+      dualSource.setSelectedWindow(window);
+      dualSource.setLiveFocusPreset(LiveFocusPreset.topRight);
+
+      final zoneBTexts = <String>[];
+      final sub = dualSource.focusTextStream.listen(zoneBTexts.add);
+      addTearDown(() async => await sub.cancel());
+
+      await dualSource.triggerSingleScan();
+      await Future.delayed(Duration.zero);
+
+      expect(capturedCrops.length, 2);
+      expect(capturedCrops[1], isNotNull);
+      expect(capturedCrops[1]!.left, closeTo(580.0, 0.01));
+      expect(zoneBTexts, contains('Zurrokex Lv.16   Ganovil Lv.17'));
+    });
+
+    test('Frame pixel-diff fingerprint skips OCR on unchanged static frames and resumes on pixel change', () async {
+      const window = DesktopWindowInfo(id: 77, hwnd: 1234, title: 'melonDS 1.1', width: 800, height: 600);
+      final countingCapture = _SequenceFrameCaptureDriver([
+        CapturedFrame(width: 40, height: 40, bytes: List<int>.filled(40 * 40 * 4, 120)),
+        CapturedFrame(width: 40, height: 40, bytes: List<int>.filled(40 * 40 * 4, 120)),
+        CapturedFrame(width: 40, height: 40, bytes: List<int>.filled(40 * 40 * 4, 120)),
+        CapturedFrame(width: 40, height: 40, bytes: List<int>.filled(40 * 40 * 4, 240)),
+      ]);
+      final countingOcr = _CountingOcrDriver(['Ein wildes Flampion erscheint!']);
+      final fastSource = DesktopWindowSource(
+        captureDriver: countingCapture,
+        ocrDriver: countingOcr,
+        pollInterval: const Duration(milliseconds: 50),
+      );
+      addTearDown(() async => await fastSource.dispose());
+
+      fastSource.setSelectedWindow(window);
+      await fastSource.triggerSingleScan();
+      await fastSource.triggerSingleScan();
+      await fastSource.triggerSingleScan();
+      // Only 1 OCR run for 3 identical frames
+      expect(countingCapture.captureCount, 3);
+      expect(countingOcr.ocrCount, 1);
+
+      // 4th frame has different pixel content -> triggers OCR again
+      await fastSource.triggerSingleScan();
+      expect(countingCapture.captureCount, 4);
+      expect(countingOcr.ocrCount, 2);
+    });
+
+    test('Multi-instance slots scan independently and emit tagged slot batches on multiInstanceFocusStream', () async {
+      const window = DesktopWindowInfo(id: 88, hwnd: 5555, title: 'Desktop', width: 1920, height: 1080);
+      final slotCapture = _RegionAwareCaptureDriver({
+        10.0: CapturedFrame(width: 20, height: 20, bytes: List<int>.filled(20 * 20 * 4, 50)),
+        510.0: CapturedFrame(width: 20, height: 20, bytes: List<int>.filled(20 * 20 * 4, 90)),
+      });
+      final slotOcr = _AlternatingOcrDriver(['', 'Flampion Lv.15', 'Ganovil Lv.17']);
+      final multiSource = DesktopWindowSource(
+        captureDriver: slotCapture,
+        ocrDriver: slotOcr,
+        pollInterval: const Duration(milliseconds: 50),
+      );
+      addTearDown(() async => await multiSource.dispose());
+
+      multiSource.setSelectedWindow(window);
+      multiSource.setMultiInstanceSlots([
+        MultiInstanceSlot(
+          id: 1,
+          label: '#1',
+          region: ScreenRegion(x: 10, y: 10, width: 200, height: 100, isAbsoluteScreen: true),
+          colorHex: 0xFFA855F7,
+        ),
+        MultiInstanceSlot(
+          id: 2,
+          label: '#2',
+          region: ScreenRegion(x: 510, y: 10, width: 200, height: 100, isAbsoluteScreen: true),
+          colorHex: 0xFFEC4899,
+        ),
+      ]);
+
+      final emitted = <MultiInstanceTextEmission>[];
+      final sub = multiSource.multiInstanceTextStream.listen(emitted.add);
+      addTearDown(() async => await sub.cancel());
+
+      await multiSource.triggerSingleScan();
+      await Future.delayed(Duration.zero);
+
+      expect(emitted.where((e) => e.slotId == 1).map((e) => e.rawText), contains('Flampion Lv.15'));
+      expect(emitted.where((e) => e.slotId == 2).map((e) => e.rawText), contains('Ganovil Lv.17'));
+    });
+
+    test('Coupled MultiInstanceSlot scans both scanRegion (encounterOnly=false) and focusRegion (encounterOnly=true) + resolves window presets', () async {
+      const win2 = DesktopWindowInfo(
+        id: 202,
+        hwnd: 2002,
+        title: 'melonDS #2',
+        width: 800,
+        height: 600,
+        bounds: Rect.fromLTWH(500, 0, 800, 600),
+      );
+      final captureDriver = _RegionAwareCaptureDriver({
+        10.0: CapturedFrame(width: 20, height: 20, bytes: List<int>.filled(20 * 20 * 4, 41)),
+        20.0: CapturedFrame(width: 20, height: 20, bytes: List<int>.filled(20 * 20 * 4, 82)),
+        500.0: CapturedFrame(width: 20, height: 20, bytes: List<int>.filled(20 * 20 * 4, 99)),
+      });
+      final ocrDriver = _AlternatingOcrDriver([
+        '',
+        'Flampion wurde gefangen!',
+        'Zurrokex Lv.16',
+        'Ganovil erscheint!',
+      ]);
+      final src = DesktopWindowSource(
+        captureDriver: captureDriver,
+        ocrDriver: ocrDriver,
+        pollInterval: const Duration(milliseconds: 50),
+      );
+      addTearDown(() async => await src.dispose());
+
+      src.setSelectedWindow(const DesktopWindowInfo(id: 1, title: 'Desktop', isDesktopScreen: true));
+      src.updateKnownWindows([win2]);
+      src.setMultiInstanceSlots([
+        MultiInstanceSlot(
+          id: 2,
+          label: '#2',
+          colorHex: 0xFFA855F7,
+          scanEnabled: true,
+          scanRegion: ScreenRegion(x: 10, y: 10, width: 300, height: 100, isAbsoluteScreen: true),
+          focusPreset: LiveFocusPreset.customRegion,
+          focusRegion: ScreenRegion(x: 20, y: 20, width: 200, height: 60, isAbsoluteScreen: true),
+        ),
+        const MultiInstanceSlot(
+          id: 3,
+          label: '#3',
+          colorHex: 0xFFEC4899,
+          windowHwnd: 2002,
+          windowId: 202,
+          windowTitle: 'melonDS #2',
+          scanPreset: ScanRegionPreset.fullWindow,
+          focusPreset: LiveFocusPreset.disabled,
+          scanEnabled: true,
+        ),
+      ]);
+
+      final emissions = <MultiInstanceTextEmission>[];
+      final sub = src.multiInstanceTextStream.listen(emissions.add);
+      addTearDown(() async => await sub.cancel());
+
+      await src.triggerSingleScan();
+      await Future.delayed(Duration.zero);
+
+      expect(
+        emissions.any((e) => e.slotId == 2 && !e.encounterOnly && e.rawText.contains('Flampion')),
+        isTrue,
+      );
+      expect(
+        emissions.any((e) => e.slotId == 2 && e.encounterOnly && e.rawText.contains('Zurrokex')),
+        isTrue,
+      );
+      expect(
+        emissions.any((e) => e.slotId == 3 && !e.encounterOnly && e.rawText.contains('Ganovil')),
+        isTrue,
+      );
+    });
+
+    test('Zone B triggers multi-band OCR fallback when full frame yields fewer than 2 lines and merges extraFocusRegions', () async {
+      const w = 160;
+      const h = 100;
+      final zoneBBytes = List<int>.filled(w * h * 4, 255);
+      // Distinct top (y<40 -> 30), middle (40..59 -> 100), bottom (y>=60 -> 200)
+      for (int y = 0; y < h; y++) {
+        for (int x = 0; x < w; x++) {
+          final off = (y * w + x) * 4;
+          zoneBBytes[off] = y < 40 ? 30 : (y >= 60 ? 200 : 100);
+        }
+      }
+      final fullZoneBFrame = CapturedFrame(
+        width: w,
+        height: h,
+        bytes: zoneBBytes,
+        pixelFormat: 'bgra8888',
+      );
+      final extraBoxFrame = CapturedFrame(
+        width: 120,
+        height: 40,
+        bytes: List<int>.filled(120 * 40 * 4, 88),
+        pixelFormat: 'bgra8888',
+      );
+
+      final region1 = ScreenRegion(
+        x: 50,
+        y: 50,
+        width: 160,
+        height: 100,
+        isAbsoluteScreen: true,
+        label: 'Fokus B1',
+      );
+      final region2 = ScreenRegion(
+        x: 300,
+        y: 50,
+        width: 120,
+        height: 40,
+        isAbsoluteScreen: true,
+        label: 'Fokus B2',
+      );
+
+      final cap = _RegionAwareCaptureDriver({
+        50: fullZoneBFrame,
+        300: extraBoxFrame,
+      });
+      final bandOcr = _BandSensitiveOcrDriver(
+        extraBoxWidth: 120,
+        fullFrameLines: const ['Sleima ♀ Lv.17'],
+        topBandLines: const ['Sleima ♀ Lv.17'],
+        bottomBandLines: const ['Zubat ♂ Lv.15'],
+        extraBoxLines: const ['Flampion ♂ Lv.18'],
+      );
+      final multiBandSource = DesktopWindowSource(
+        captureDriver: cap,
+        ocrDriver: bandOcr,
+        pollInterval: const Duration(milliseconds: 50),
+      );
+      addTearDown(() async => await multiBandSource.dispose());
+
+      multiBandSource.setSelectedWindow(
+        const DesktopWindowInfo(id: 77, hwnd: 1234, title: 'melonDS 1.1', width: 960, height: 1040),
+      );
+      multiBandSource.setLiveFocusScreenRegion(region1);
+      multiBandSource.setExtraFocusRegions([region2]);
+
+      final focusTexts = <String>[];
+      final sub = multiBandSource.focusTextStream.listen(focusTexts.add);
+      addTearDown(() async => await sub.cancel());
+
+      await multiBandSource.triggerSingleScan();
+      await Future.delayed(Duration.zero);
+
+      expect(focusTexts, isNotEmpty);
+      expect(focusTexts.last, contains('Sleima ♀ Lv.17'));
+      expect(focusTexts.last, contains('Zubat ♂ Lv.15'));
+      expect(focusTexts.last, contains('Flampion ♂ Lv.18'));
+      expect(multiBandSource.focusBoxPreviewLines['B1'], contains('Zubat'));
+      expect(multiBandSource.focusBoxPreviewLines['B2'], contains('Flampion'));
+    });
+
+    test('computeFrameFingerprint detects small localized pixel changes inside BGRA8888 Zone B frames', () {
+      const w = 240;
+      const h = 60;
+      final baseBytes = List<int>.filled(w * h * 4, 24);
+      final mutatedBytes = List<int>.from(baseBytes);
+      // Modify a small 10x4 HUD text patch inside the frame
+      for (int y = 24; y < 28; y++) {
+        for (int x = 100; x < 110; x++) {
+          final off = (y * w + x) * 4;
+          mutatedBytes[off] = 240;
+          mutatedBytes[off + 1] = 240;
+          mutatedBytes[off + 2] = 240;
+          mutatedBytes[off + 3] = 255;
+        }
+      }
+
+      final f1 = CapturedFrame(
+        width: w,
+        height: h,
+        bytes: baseBytes,
+        pixelFormat: 'bgra8888',
+      );
+      final f2 = CapturedFrame(
+        width: w,
+        height: h,
+        bytes: mutatedBytes,
+        pixelFormat: 'bgra8888',
+      );
+
+      expect(computeFrameFingerprint(f1), isNot(equals(computeFrameFingerprint(f2))));
+    });
+
+    test('Zone B triggers luminance inversion when raw OCR returns only fragmented shadow-noise lines', () async {
+      const w = 160;
+      const h = 48;
+      // Dark background (18) so inverted pixels become bright (237)
+      final rawBytes = List<int>.filled(w * h * 4, 18);
+      for (int off = 3; off < rawBytes.length; off += 4) {
+        rawBytes[off] = 255;
+      }
+      final rawFrame = CapturedFrame(
+        width: w,
+        height: h,
+        bytes: rawBytes,
+        pixelFormat: 'bgra8888',
+      );
+
+      final noiseCap = _RegionAwareCaptureDriver({50: rawFrame});
+      final invOcr = _InversionAwareOcrDriver();
+      final src = DesktopWindowSource(
+        captureDriver: noiseCap,
+        ocrDriver: invOcr,
+        pollInterval: const Duration(milliseconds: 50),
+      );
+      addTearDown(src.dispose);
+
+      src.setLiveFocusScreenRegion(
+        ScreenRegion(
+          x: 50,
+          y: 50,
+          width: 160,
+          height: 48,
+          isAbsoluteScreen: true,
+          label: 'Fokus B1',
+        ),
+      );
+
+      final focusTexts = <String>[];
+      final sub = src.focusTextStream.listen(focusTexts.add);
+      addTearDown(sub.cancel);
+
+      // Should even work via fallback DesktopWindowInfo.primaryScreen() when _selectedWindow is null
+      await src.triggerSingleScan();
+      await Future<void>.delayed(Duration.zero);
+
+      expect(invOcr.sawInvertedFrame, isTrue);
+      expect(focusTexts, isNotEmpty);
+      expect(focusTexts.last, contains('Folikon Lv.22'));
+      expect(src.liveFocusStatusNotifier.value.recognizedLines, contains('Folikon Lv.22'));
+    });
+
+    test('focusBoxFramesNotifier tracks latest CapturedFrame for B1 and B2 and resets cleanly', () async {
+      final frameB1 = CapturedFrame(
+        width: 80,
+        height: 40,
+        bytes: List<int>.filled(80 * 40 * 4, 42),
+        pixelFormat: 'bgra8888',
+      );
+      final frameB2 = CapturedFrame(
+        width: 90,
+        height: 40,
+        bytes: List<int>.filled(90 * 40 * 4, 84),
+        pixelFormat: 'bgra8888',
+      );
+
+      final boxCap = _RegionAwareCaptureDriver({50: frameB1, 300: frameB2});
+      final src = DesktopWindowSource(
+        captureDriver: boxCap,
+        ocrDriver: _CountingOcrDriver(const ['Pikachu Lv.7', 'Flampion Lv.15']),
+        pollInterval: const Duration(milliseconds: 50),
+      );
+      addTearDown(src.dispose);
+
+      src.setLiveFocusScreenRegion(
+        ScreenRegion(x: 50, y: 50, width: 80, height: 40, isAbsoluteScreen: true),
+      );
+      src.setExtraFocusRegions([
+        ScreenRegion(x: 300, y: 50, width: 90, height: 40, isAbsoluteScreen: true),
+      ]);
+
+      await src.triggerSingleScan();
+
+      expect(src.focusBoxFramesNotifier.value['B1'], equals(frameB1));
+      expect(src.focusBoxFramesNotifier.value['B2'], equals(frameB2));
+
+      src.setLiveFocusPreset(LiveFocusPreset.disabled);
+      expect(src.focusBoxFramesNotifier.value.containsKey('B1'), isFalse);
+      expect(src.liveFocusStatusNotifier.value.scanCount, 0);
+      expect(src.liveFocusStatusNotifier.value.latestFrame, isNull);
+    });
+  });
+}
+
+class _SequenceFrameCaptureDriver implements DesktopCaptureDriver {
+  final List<CapturedFrame> frames;
+  int captureCount = 0;
+  _SequenceFrameCaptureDriver(this.frames);
+
+  @override
+  Future<CapturedFrame?> captureWindow({
+    required DesktopWindowInfo window,
+    Rect? cropRegion,
+    ScreenRegion? screenRegion,
+  }) async {
+    final f = frames[captureCount % frames.length];
+    captureCount++;
+    return f;
+  }
+}
+
+class _RegionAwareCaptureDriver implements DesktopCaptureDriver {
+  final Map<double, CapturedFrame> framesByX;
+  _RegionAwareCaptureDriver(this.framesByX);
+
+  @override
+  Future<CapturedFrame?> captureWindow({
+    required DesktopWindowInfo window,
+    Rect? cropRegion,
+    ScreenRegion? screenRegion,
+  }) async {
+    if (screenRegion != null && framesByX.containsKey(screenRegion.x)) {
+      return framesByX[screenRegion.x];
+    }
+    if (window.bounds != null && framesByX.containsKey(window.bounds!.left)) {
+      return framesByX[window.bounds!.left];
+    }
+    return CapturedFrame(width: 20, height: 20, bytes: List<int>.filled(20 * 20 * 4, 1));
+  }
+}
+
+class _CountingOcrDriver implements DesktopOcrDriver {
+  final List<String> lines;
+  int ocrCount = 0;
+  _CountingOcrDriver(this.lines);
+
+  @override
+  Future<List<String>> recognizeText(CapturedFrame frame) async {
+    ocrCount++;
+    return lines;
+  }
+}
+
+class _SequenceCaptureDriver implements DesktopCaptureDriver {
+  final void Function(Rect? crop, ScreenRegion? region) onCapture;
+  _SequenceCaptureDriver({required this.onCapture});
+
+  @override
+  Future<CapturedFrame?> captureWindow({
+    required DesktopWindowInfo window,
+    Rect? cropRegion,
+    ScreenRegion? screenRegion,
+  }) async {
+    onCapture(cropRegion, screenRegion);
+    return const CapturedFrame(width: 420, height: 220, bytes: [1, 2, 3]);
+  }
+}
+
+class _AlternatingOcrDriver implements DesktopOcrDriver {
+  final List<String> responses;
+  int _idx = 0;
+  _AlternatingOcrDriver(this.responses);
+
+  @override
+  Future<List<String>> recognizeText(CapturedFrame frame) async {
+    final text = responses[_idx % responses.length];
+    _idx++;
+    return text.isEmpty ? [] : [text];
+  }
+}
+
+class _BandSensitiveOcrDriver implements DesktopOcrDriver {
+  final int extraBoxWidth;
+  final List<String> fullFrameLines;
+  final List<String> topBandLines;
+  final List<String> bottomBandLines;
+  final List<String> extraBoxLines;
+
+  _BandSensitiveOcrDriver({
+    required this.extraBoxWidth,
+    required this.fullFrameLines,
+    required this.topBandLines,
+    required this.bottomBandLines,
+    required this.extraBoxLines,
+  });
+
+  @override
+  Future<List<String>> recognizeText(CapturedFrame frame) async {
+    if (frame.width == extraBoxWidth && frame.height == 40) {
+      return extraBoxLines;
+    }
+    if (frame.width == 160 && frame.height == 100) {
+      return fullFrameLines;
+    }
+    if (frame.bytes.isNotEmpty && frame.bytes.first == 30) {
+      return topBandLines;
+    }
+    if (frame.bytes.length >= 4 && frame.bytes[frame.bytes.length - 4] == 200) {
+      return bottomBandLines;
+    }
+    return const [];
+  }
+}
+
+class _InversionAwareOcrDriver implements DesktopOcrDriver {
+  bool sawInvertedFrame = false;
+
+  @override
+  Future<List<String>> recognizeText(CapturedFrame frame) async {
+    if (frame.bytes.isNotEmpty && frame.bytes.first >= 200) {
+      sawInvertedFrame = true;
+      return const ['Folikon Lv.22'];
+    }
+    return const ['2-2', 'alb,.m', 'F ikon', '& b:.2-2'];
+  }
+}

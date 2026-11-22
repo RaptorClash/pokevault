@@ -6,6 +6,7 @@ import '../../providers/dex_provider.dart';
 import '../../providers/tutorial_provider.dart';
 import '../../i18n/strings.g.dart';
 import '../../widgets/tutorial/chapter_demo_dialog.dart';
+import '../../services/scanner_core/scanner_launcher_helper.dart';
 import '../../utils/notification_helper.dart';
 import '../dex/dex_screen.dart';
 import '../shiny_hunt/shiny_hunts_hub_screen.dart';
@@ -55,7 +56,9 @@ class TutorialSettingsScreen extends StatelessWidget {
     final theme = Theme.of(context);
 
     Color accentColor;
-    if (chapter.isNewInV16) {
+    if (chapter.isNewInV17) {
+      accentColor = Colors.cyan;
+    } else if (chapter.isNewInV16) {
       accentColor = Colors.amber;
     } else {
       accentColor = theme.colorScheme.primary;
@@ -66,8 +69,8 @@ class TutorialSettingsScreen extends StatelessWidget {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
         side: BorderSide(
-          color: chapter.isNewInV16
-              ? Colors.amber.withValues(alpha: 0.3)
+          color: (chapter.isNewInV17 || chapter.isNewInV16)
+              ? accentColor.withValues(alpha: 0.3)
               : theme.colorScheme.outlineVariant.withValues(alpha: 0.4),
           width: 1,
         ),
@@ -109,7 +112,7 @@ class TutorialSettingsScreen extends StatelessWidget {
                               ),
                             ),
                           ),
-                          if (chapter.isNewInV16) ...[
+                          if (chapter.isNewInV16 || chapter.isNewInV17) ...[
                             const SizedBox(width: 6),
                             Container(
                               padding: const EdgeInsets.symmetric(
@@ -117,19 +120,19 @@ class TutorialSettingsScreen extends StatelessWidget {
                                 vertical: 2,
                               ),
                               decoration: BoxDecoration(
-                                color: Colors.amber.withValues(alpha: 0.2),
+                                color: accentColor.withValues(alpha: 0.2),
                                 borderRadius: BorderRadius.circular(6),
                                 border: Border.all(
-                                  color: Colors.amber.withValues(alpha: 0.4),
+                                  color: accentColor.withValues(alpha: 0.4),
                                   width: 1,
                                 ),
                               ),
-                              child: const Text(
-                                'NEU (v1.6)',
+                              child: Text(
+                                chapter.isNewInV17 ? t.tutorial_new_badge : 'NEU (v1.6)',
                                 style: TextStyle(
                                   fontSize: 9.5,
                                   fontWeight: FontWeight.w900,
-                                  color: Colors.amber,
+                                  color: accentColor,
                                 ),
                               ),
                             ),
@@ -230,6 +233,17 @@ class TutorialSettingsScreen extends StatelessWidget {
       case 'module_home_screen':
       case 'module_first_steps':
         return () => Navigator.of(context).popUntil((route) => route.isFirst);
+      case 'module_scanner_mobile':
+      case 'module_scanner_desktop':
+        return () {
+          try {
+            final dexProvider = Provider.of<DexProvider>(context, listen: false);
+            ScannerLauncherHelper.openPlatformTracker(
+              context,
+              allPokemon: dexProvider.allPokemon,
+            );
+          } catch (_) {}
+        };
       default:
         return null;
     }
@@ -414,7 +428,7 @@ class TutorialSettingsScreen extends StatelessWidget {
                   ),
                 ),
                 Text(
-                  '${TutorialChapters.all.length} Kapitel',
+                  '${TutorialChapters.visibleForPlatform().length} Kapitel',
                   style: TextStyle(
                     fontSize: 12,
                     color: theme.colorScheme.onSurfaceVariant,
@@ -426,8 +440,8 @@ class TutorialSettingsScreen extends StatelessWidget {
 
           const SizedBox(height: 6),
 
-          // Render all 9 chapters
-          for (final chapter in TutorialChapters.all)
+          // Render platform-relevant chapters
+          for (final chapter in TutorialChapters.visibleForPlatform())
             _buildChapterCard(
               context,
               chapter,

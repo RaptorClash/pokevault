@@ -892,12 +892,12 @@ void main() {
       final johtoChip = find.widgetWithText(ActionChip, t.region_name_johto);
       if (johtoChip.evaluate().isNotEmpty) {
         await tester.tap(johtoChip);
-        await pumpDexFrames(tester);
+        await tester.pumpAndSettle();
         expect(harnessState.pageController.page?.round(), equals(20));
       } else {
         // Fallback pop dialog
         Navigator.of(tester.element(find.byType(AlertDialog))).pop();
-        await pumpDexFrames(tester);
+        await tester.pumpAndSettle();
       }
 
       // 4.3.2: BoxEditScreen with 50 empty boxes

@@ -13,7 +13,19 @@ import 'dex_entry_builder.dart';
 export 'dex_box_packer.dart';
 export 'dex_entry_builder.dart';
 
-/// Arguments bundle passed to background isolate for computing display entries.
+/// Progress metrics calculated specifically for tracker progress display.
+class TrackerDexProgress {
+  final int caughtCount;
+  final int totalCount;
+  final double percent;
+
+  const TrackerDexProgress({
+    required this.caughtCount,
+    required this.totalCount,
+    required this.percent,
+  });
+}
+
 class BuildEntriesArgs {
   /// The user's Pokédex configuration and status tracking.
   final UserDex liveDex;
@@ -1131,6 +1143,88 @@ class DexLogicHelper {
             !dex.ignoredIds.contains(id))
         .toSet()
         .length;
+  }
+
+  /// Calculates accurate progress stats (total entries, caught count, percent)
+  /// respecting custom boxes, ignored IDs, and whether forms, trades, or gifts are enabled.
+  /// Guarantees that caughtCount will NEVER exceed totalCount.
+  static TrackerDexProgress computeDexProgress(
+    UserDex dex, {
+    List<Pokemon>? allPokemon,
+    List<Map<String, dynamic>>? specialObtainables,
+  }) {
+    if (dex.customBoxes.isNotEmpty) {
+      final occupied = dex.customBoxes
+          .expand((b) => b.pokemonIds)
+          .where((id) {
+            if (id.isEmpty || isPlaceholder(id)) return false;
+            final rawNum = id.split('_').first;
+            if (dex.ignoredIds.contains(id) ||
+                dex.ignoredIds.contains(rawNum) ||
+                dex.ignoredIds.contains(getBaseId(id))) {
+              return false;
+            }
+            return true;
+          })
+          .toList();
+      final total = occupied.length;
+      final caught = occupied.where((id) => isPokemonCaught(dex, id)).length;
+      final percent = total > 0 ? (caught / total).clamp(0.0, 1.0) : 0.0;
+      return TrackerDexProgress(
+        caughtCount: caught,
+        totalCount: total,
+        percent: percent,
+      );
+    }
+
+    if (allPokemon != null && allPokemon.isNotEmpty) {
+      final entries = buildDisplayEntries(
+        dex,
+        allPokemon,
+        specialObtainables ?? const [],
+      );
+      final validEntries = entries.where((e) {
+        if (e.uniqueId.isEmpty) return false;
+        final rawNum = e.uniqueId.split('_').first;
+        if (dex.ignoredIds.contains(e.uniqueId) ||
+            dex.ignoredIds.contains(rawNum) ||
+            dex.ignoredIds.contains('${e.pokemon.id}')) {
+          return false;
+        }
+        return true;
+      }).toList();
+      final total = validEntries.length;
+      final caught = validEntries.where((e) => isPokemonCaught(dex, e.uniqueId)).length;
+      final percent = total > 0 ? (caught / total).clamp(0.0, 1.0) : 0.0;
+      return TrackerDexProgress(
+        caughtCount: caught,
+        totalCount: total,
+        percent: percent,
+      );
+    }
+
+    int fallbackTotal = (dex.region == 'national' || dex.region == 'national_overall')
+        ? 1025
+        : (dex.caughtIds.length > 151 ? dex.caughtIds.length : 151);
+
+    int caught = dex.caughtIds
+        .map((id) => getBaseId(id))
+        .where((id) =>
+            id.isNotEmpty &&
+            !isPlaceholder(id) &&
+            !dex.ignoredIds.contains(id))
+        .toSet()
+        .length;
+
+    if (caught > fallbackTotal) {
+      caught = fallbackTotal;
+    }
+    final percent = fallbackTotal > 0 ? (caught / fallbackTotal).clamp(0.0, 1.0) : 0.0;
+    return TrackerDexProgress(
+      caughtCount: caught,
+      totalCount: fallbackTotal,
+      percent: percent,
+    );
   }
 
   /// Groups [entries] into a list of [BoxData] representations,

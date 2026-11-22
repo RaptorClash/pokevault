@@ -39,9 +39,9 @@ void main() {
       expect(chapter.isNewInV16, isFalse);
     });
 
-    test('TutorialChapters registry provides all 10 core chapters', () {
+    test('TutorialChapters registry provides all core + platform scanner chapters', () {
       final chapters = TutorialChapters.all;
-      expect(chapters.length, equals(10));
+      expect(chapters.length, equals(12));
 
       final ids = chapters.map((c) => c.id).toList();
       expect(ids, containsAll([
@@ -55,6 +55,8 @@ void main() {
         'module_route_tracker',
         'module_controls',
         'module_backup_sync',
+        'module_scanner_mobile',
+        'module_scanner_desktop',
       ]));
 
       // Verify v1.6 new chapters count (6 chapters: boxes, shiny, stats, info, route, controls)
@@ -90,6 +92,24 @@ void main() {
         rotomMood: RotomMood.alert,
       );
       expect(step.rotomMood, equals(RotomMood.alert));
+    });
+
+    test('visibleForPlatform filters scanner chapters between mobile and desktop', () {
+      final mobileChapters = TutorialChapters.visibleForPlatform(isMobile: true);
+      final desktopChapters = TutorialChapters.visibleForPlatform(isMobile: false);
+
+      expect(mobileChapters.any((c) => c.id == 'module_scanner_mobile'), isTrue);
+      expect(mobileChapters.any((c) => c.id == 'module_scanner_desktop'), isFalse);
+
+      expect(desktopChapters.any((c) => c.id == 'module_scanner_desktop'), isTrue);
+      expect(desktopChapters.any((c) => c.id == 'module_scanner_mobile'), isFalse);
+
+      final mobScanner = mobileChapters.firstWhere((c) => c.id == 'module_scanner_mobile');
+      final deskScanner = desktopChapters.firstWhere((c) => c.id == 'module_scanner_desktop');
+      expect(mobScanner.version, equals(3));
+      expect(deskScanner.version, equals(3));
+      expect(mobScanner.demoSteps.length, equals(mobScanner.stepCount));
+      expect(deskScanner.demoSteps.length, equals(deskScanner.stepCount));
     });
   });
 }
