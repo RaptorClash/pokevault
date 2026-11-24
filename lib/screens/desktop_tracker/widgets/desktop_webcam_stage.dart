@@ -245,29 +245,46 @@ class DesktopWebcamStage extends StatelessWidget {
     );
   }
 
+  Widget _buildCenteredScrollable(Widget child) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final minH = constraints.maxHeight.isFinite ? constraints.maxHeight : 0.0;
+        return SingleChildScrollView(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minHeight: minH),
+            child: Center(child: child),
+          ),
+        );
+      },
+    );
+  }
+
   Widget _buildPreviewSurface(BuildContext context, bool isLiveReady) {
     final colors = Theme.of(context).colorScheme;
     if (isLiveReady && cameraController != null) {
       return CameraPreview(cameraController!);
     }
     if (isInitializing) {
-      return const Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            CircularProgressIndicator(strokeWidth: 2.5),
-            SizedBox(height: 10),
-            Text(
-              'Webcam wird initialisiert...',
-              style: TextStyle(color: Colors.white70, fontSize: 12),
-            ),
-          ],
+      return _buildCenteredScrollable(
+        const Padding(
+          padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              CircularProgressIndicator(strokeWidth: 2.5),
+              SizedBox(height: 10),
+              Text(
+                'Webcam wird initialisiert...',
+                style: TextStyle(color: Colors.white70, fontSize: 12),
+              ),
+            ],
+          ),
         ),
       );
     }
 
-    return Center(
-      child: Padding(
+    return _buildCenteredScrollable(
+      Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
         child: Column(
           mainAxisSize: MainAxisSize.min,

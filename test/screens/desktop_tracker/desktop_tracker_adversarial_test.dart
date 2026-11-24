@@ -7,17 +7,20 @@ import 'package:pokevault/models/pokemon.dart';
 import 'package:pokevault/models/user_dex.dart';
 import 'package:pokevault/providers/dex_provider.dart';
 import 'package:pokevault/screens/desktop_tracker/desktop_tracker_screen.dart';
+import 'package:pokevault/screens/desktop_tracker/widgets/desktop_webcam_stage.dart';
 import 'package:pokevault/screens/desktop_tracker/widgets/dex_selection_modal.dart';
 import 'package:pokevault/screens/desktop_tracker/widgets/floating_overlay_hud.dart';
 import 'package:pokevault/screens/desktop_tracker/widgets/persistent_tracker_dock.dart';
 import 'package:pokevault/services/desktop_tracker/screen_region.dart';
 import 'package:pokevault/services/desktop_tracker/windows_desktop_bridge.dart';
+import 'package:pokevault/services/mobile_scanner/camera_scan_region.dart';
 import 'package:pokevault/services/scanner_core/engine/ocr_detection_engine.dart';
 import 'package:pokevault/services/scanner_core/engine/pokemon_fuzzy_matcher.dart';
 import 'package:pokevault/services/scanner_core/models/scanner_event.dart';
 import 'package:pokevault/services/scanner_core/models/scanner_settings.dart';
 import 'package:pokevault/services/scanner_core/scanner_coordinator.dart';
 import 'package:pokevault/services/scanner_core/source/scanner_source.dart';
+import 'package:pokevault/utils/tracker_platform_helper.dart';
 
 class MockDexProvider extends Mock implements DexProvider {}
 
@@ -28,6 +31,7 @@ void main() {
     late MockDexProvider mockDexProvider;
 
     setUp(() {
+      TrackerPlatformHelper.debugOverlaySupportedOverride = () => true;
       mockSource = MockScannerSource();
       mockDexProvider = MockDexProvider();
 
@@ -43,6 +47,7 @@ void main() {
     });
 
     tearDown(() async {
+      TrackerPlatformHelper.resetDebugOverrides();
       await coordinator.dispose();
       await mockSource.dispose();
     });
@@ -418,6 +423,81 @@ void main() {
       expect(find.byKey(const Key('info_box_zone_b')), findsOneWidget);
       expect(find.byKey(const Key('info_box_scan_profile')), findsOneWidget);
       expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('320x480 narrow viewport: DesktopWebcamStage idle and error states render with NO RenderFlex overflow', (tester) async {
+      tester.view.physicalSize = const Size(320, 480);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      for (final err in <String?>[
+        null,
+        'Kamera-Berechtigung wurde verweigert — bitte Zugriff in den Systemeinstellungen erlauben.',
+      ]) {
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: SingleChildScrollView(
+                padding: const EdgeInsets.all(16),
+                child: DesktopWebcamStage(
+                  cameraTitle: '📷 Webcam / Foto-Scan',
+                  cameraController: null,
+                  isInitializing: false,
+                  errorText: err,
+                  isPermissionDenied: err != null,
+                  isTrackingActive: true,
+                  hasMultipleCameras: false,
+                  isEditingRegions: false,
+                  scanMode: MobileCameraScanMode.autoFull,
+                  autoPreset: ScanRegionPreset.fullWindow,
+                  regions: const [],
+                  activeBrushRole: CameraZoneRole.scan,
+                  onRegionsChanged: (_) {},
+                  onToggleEditRegions: () {},
+                  onImportPhoto: () {},
+                  onRetryCamera: () {},
+                ),
+              ),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+        expect(tester.takeException(), isNull);
+      }
+    });
+
+    testWidgets('320x480 extreme narrow viewport in non-Windows Webcam mode renders with NO RenderFlex overflow', (tester) async {
+      TrackerPlatformHelper.debugOverlaySupportedOverride = () => false;
+      TrackerPlatformHelper.debugCameraSupportedOverride = () => true;
+
+      tester.view.physicalSize = const Size(320, 480);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      await tester.pumpWidget(
+        ChangeNotifierProvider<DexProvider>.value(
+          value: mockDexProvider,
+          child: MaterialApp(
+            home: DesktopTrackerScreen(
+              coordinator: coordinator,
+              detectedWindows: const [],
+              availableCamerasOverride: const [],
+              disableHardwareCamera: true,
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
+      expect(find.text('Webcam Tracker'), findsOneWidget);
+      expect(find.byKey(const Key('desktop_webcam_stage')), findsOneWidget);
     });
   });
 }

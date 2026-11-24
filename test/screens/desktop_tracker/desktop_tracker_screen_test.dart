@@ -25,6 +25,7 @@ import 'package:pokevault/services/scanner_core/models/scanner_event.dart';
 import 'package:pokevault/services/scanner_core/models/scanner_settings.dart';
 import 'package:pokevault/services/scanner_core/scanner_coordinator.dart';
 import 'package:pokevault/services/scanner_core/source/scanner_source.dart';
+import 'package:pokevault/utils/tracker_platform_helper.dart';
 
 class MockCaptureDriver implements DesktopCaptureDriver {
   int captureCount = 0;
@@ -205,6 +206,7 @@ void main() {
     );
 
     setUp(() {
+      TrackerPlatformHelper.debugOverlaySupportedOverride = () => true;
       mockSource = MockScannerSource();
       mockDexProvider = MockDexProvider();
 
@@ -225,6 +227,7 @@ void main() {
     });
 
     tearDown(() async {
+      TrackerPlatformHelper.resetDebugOverrides();
       await DesktopTrackerService.instance.stopTracking();
       await coordinator.dispose();
       await mockSource.dispose();
