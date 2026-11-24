@@ -40,6 +40,10 @@ abstract interface class MultiInstanceScannerSource implements ScannerSource {
 abstract interface class FrameTransitionScannerSource implements ScannerSource {
   Stream<FrameTransitionEvent> get transitionStream;
   void updateTransitionMinDuration(Duration duration);
+  void updateTransitionThresholds({
+    required int blackThreshold,
+    required int whiteThreshold,
+  });
 }
 
 /// In-memory mock scanner source for unit tests and simulations.

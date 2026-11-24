@@ -11,9 +11,12 @@ import 'package:pokevault/services/scanner_core/engine/ocr_detection_engine.dart
 import 'package:pokevault/services/scanner_core/engine/pokemon_fuzzy_matcher.dart';
 import 'package:pokevault/services/scanner_core/feedback/scanner_feedback.dart';
 import 'package:pokevault/services/scanner_core/media/frame_transition_detector.dart';
+import 'package:pokevault/services/scanner_core/models/scanner_event.dart';
+import 'package:pokevault/services/scanner_core/models/scanner_settings.dart';
 import 'package:pokevault/services/scanner_core/scanner_coordinator.dart';
 import 'package:pokevault/services/shiny_auto_counter/shiny_auto_counter_config.dart';
 import 'package:pokevault/services/shiny_auto_counter/shiny_auto_counter_service.dart';
+import 'package:pokevault/services/shiny_auto_counter/shiny_slot_state_machine.dart';
 
 class _MockPathProvider extends Fake
     with MockPlatformInterfaceMixin
@@ -453,6 +456,228 @@ void main() {
       await provider.deleteHunt('hunt-del');
       await Future<void>.delayed(Duration.zero);
       expect(service.settings.slotToHuntOverrides.containsKey(3), isFalse);
+
+      await service.stopSession();
+      await coordinator.dispose();
+    });
+
+    test('Single-screen (instanceIndex: null) clears battle lock & dlg_ cooldown on rearm, undo, and blackScreen', () async {
+      var clock = Duration.zero;
+      final provider = ShinyHuntProvider(
+        databaseService: DatabaseService.instance,
+        enableTimer: false,
+      );
+      await provider.initialized;
+      await provider.createHunt(_makeHunt(id: 'hunt-ss', pokemonId: 150, pokemonName: 'Mewtu'));
+
+      final coordinator = buildTestCoordinator(() => clock);
+      final service = ShinyAutoCounterService.forTesting(elapsedClock: () => clock);
+
+      service.startSession(
+        huntProvider: provider,
+        coordinator: coordinator,
+        defaultHuntId: 'hunt-ss',
+        slotIds: const [1],
+        settings: const ShinyAutoCounterSettings(
+          detectionMode: ShinyHuntDetectionMode.softReset,
+          matchFilter: ShinyMatchFilter.targetPokemonOnly,
+          minResetCooldownMs: 300,
+        ),
+      );
+
+      // 1. Encounter on single-screen (instanceIndex: null) -> counts 1
+      await coordinator.processFrameText('Ein wildes Mewtu erscheint!');
+      await service.waitForIdle();
+      expect(provider.getHuntById('hunt-ss')!.currentEncounters, equals(1));
+
+      // 2. Manual rearmSlot(1) -> same Mewtu within 500ms (< 1500ms duplicateCooldown & < 20m battleTimeout) MUST count!
+      service.rearmSlot(1);
+      clock += const Duration(milliseconds: 500);
+      await coordinator.processFrameText('Ein wildes Mewtu erscheint!');
+      await service.waitForIdle();
+      expect(provider.getHuntById('hunt-ss')!.currentEncounters, equals(2));
+
+      // 3. Undo -> immediate same Mewtu within 200ms MUST count back to 2!
+      expect(service.undoLastCount(), isTrue);
+      expect(provider.getHuntById('hunt-ss')!.currentEncounters, equals(1));
+      clock += const Duration(milliseconds: 200);
+      await coordinator.processFrameText('Ein wildes Mewtu erscheint!');
+      await service.waitForIdle();
+      expect(provider.getHuntById('hunt-ss')!.currentEncounters, equals(2));
+
+      // 4. Black screen transition (slotId: 0) -> after 400ms (>= minResetCooldownMs, < 1500ms duplicateCooldown) MUST count!
+      await service.handleFrameTransition(
+        FrameTransitionEvent(
+          slotId: 0,
+          type: FrameTransitionType.blackScreenEnded,
+          durationMs: 400,
+          averageLuma: 3,
+          timestamp: DateTime.now(),
+        ),
+      );
+      clock += const Duration(milliseconds: 400);
+      await coordinator.processFrameText('Ein wildes Mewtu erscheint!');
+      await service.waitForIdle();
+      expect(provider.getHuntById('hunt-ss')!.currentEncounters, equals(3));
+
+      await service.stopSession();
+      await coordinator.dispose();
+    });
+
+    test('rearmPending automatically promotes to armed via timer without requiring another event', () async {
+      final provider = ShinyHuntProvider(
+        databaseService: DatabaseService.instance,
+        enableTimer: false,
+      );
+      await provider.initialized;
+      await provider.createHunt(_makeHunt(id: 'hunt-tm', pokemonId: 25, pokemonName: 'Pikachu', method: 'Wild'));
+
+      final coordinator = buildTestCoordinator(() => const Duration(seconds: 1));
+      final service = ShinyAutoCounterService.forTesting();
+
+      service.startSession(
+        huntProvider: provider,
+        coordinator: coordinator,
+        defaultHuntId: 'hunt-tm',
+        slotIds: const [1],
+        settings: const ShinyAutoCounterSettings(
+          detectionMode: ShinyHuntDetectionMode.wildEncounter,
+          minResetCooldownMs: 200,
+        ),
+      );
+
+      await coordinator.processFrameText('Ein wildes Pikachu erscheint!', instanceIndex: 1);
+      await service.waitForIdle();
+      expect(service.slotStatesNotifier.value.first.phase, equals(ShinySlotPhase.counted));
+
+      await coordinator.processFrameText('Du bist entkommen!', instanceIndex: 1);
+      await service.waitForIdle();
+      expect(service.slotStatesNotifier.value.first.phase, equals(ShinySlotPhase.rearmPending));
+
+      // Wait past minResetCooldownMs (200ms) with NO additional event
+      await Future<void>.delayed(const Duration(milliseconds: 280));
+      expect(service.slotStatesNotifier.value.first.phase, equals(ShinySlotPhase.armed));
+
+      await service.stopSession();
+      await coordinator.dispose();
+    });
+
+    test('coordinator.updateSettings preserves auto-counter custom triggers and reset events do not pollute activeFocusStream', () async {
+      var clock = Duration.zero;
+      final provider = ShinyHuntProvider(
+        databaseService: DatabaseService.instance,
+        enableTimer: false,
+      );
+      await provider.initialized;
+      await provider.createHunt(_makeHunt(id: 'hunt-pat', pokemonId: 150, pokemonName: 'Mewtu'));
+
+      final coordinator = buildTestCoordinator(() => clock);
+      final focusEvents = <List<ScannerEvent>>[];
+      final focusSub = coordinator.activeFocusStream.listen(focusEvents.add);
+      final service = ShinyAutoCounterService.forTesting(elapsedClock: () => clock);
+
+      service.startSession(
+        huntProvider: provider,
+        coordinator: coordinator,
+        defaultHuntId: 'hunt-pat',
+        slotIds: const [1],
+        settings: const ShinyAutoCounterSettings(
+          detectionMode: ShinyHuntDetectionMode.softReset,
+          customTriggerPatterns: [
+            CustomOcrPattern(
+              id: 'trig_custom_1',
+              template: 'ROM INTRO STARTER',
+              eventType: ScannerEventType.encounter,
+            ),
+          ],
+          customResetPatterns: ['TITLE SCREEN RESET'],
+        ),
+      );
+
+      // Update scanner settings independently -> must NOT wipe auto-counter patterns
+      coordinator.updateSettings(ScannerSettings.defaults().copyWith(detectShinies: false));
+
+      await coordinator.processFrameText('ROM INTRO STARTER', instanceIndex: 1);
+      await service.waitForIdle();
+      expect(provider.getHuntById('hunt-pat')!.currentEncounters, equals(1));
+
+      // Reset event must NOT pollute activeFocusStream
+      final focusCountBefore = focusEvents.length;
+      await coordinator.processFrameText('TITLE SCREEN RESET', instanceIndex: 1);
+      await service.waitForIdle();
+      expect(focusEvents.length, equals(focusCountBefore));
+
+      await focusSub.cancel();
+      await service.stopSession();
+      await coordinator.dispose();
+    });
+
+    test('ensureSettingsLoaded prevents updateHuntSettings after restart from overwriting saved prefs, and assignSlotToHunt persists', () async {
+      SharedPreferences.setMockInitialValues({});
+      const initialSaved = ShinyAutoCounterSettings(
+        playSoundOnCount: true,
+        minResetCooldownMs: 2400,
+        huntSettingsOverrides: {
+          'hunt-a': ShinyAutoCounterSettings(
+            detectionMode: ShinyHuntDetectionMode.eggHatch,
+            matchFilter: ShinyMatchFilter.allPokemon,
+          ),
+        },
+      );
+      await ShinyAutoCounterSettings.saveToPrefs(initialSaved);
+
+      // Fresh service simulating app restart
+      final freshService = ShinyAutoCounterService.forTesting();
+      await freshService.ensureSettingsLoaded();
+      freshService.updateHuntSettings(
+        'hunt-b',
+        const ShinyAutoCounterSettings(
+          detectionMode: ShinyHuntDetectionMode.screenTransitionOnly,
+        ),
+      );
+      freshService.assignSlotToHunt(2, 'hunt-b');
+      await Future<void>.delayed(Duration.zero);
+
+      final reloaded = await ShinyAutoCounterSettings.loadFromPrefs();
+      expect(reloaded, isNotNull);
+      expect(reloaded!.playSoundOnCount, isTrue);
+      expect(reloaded.minResetCooldownMs, equals(2400));
+      expect(reloaded.huntSettingsOverrides.containsKey('hunt-a'), isTrue);
+      expect(reloaded.huntSettingsOverrides.containsKey('hunt-b'), isTrue);
+      expect(reloaded.slotToHuntOverrides[2], equals('hunt-b'));
+    });
+
+    test('armPendingSession + attachIfPending automatically binds when coordinator starts', () async {
+      var clock = Duration.zero;
+      final provider = ShinyHuntProvider(
+        databaseService: DatabaseService.instance,
+        enableTimer: false,
+      );
+      await provider.initialized;
+      await provider.createHunt(_makeHunt(id: 'hunt-pend', pokemonId: 150, pokemonName: 'Mewtu'));
+
+      final service = ShinyAutoCounterService.forTesting(elapsedClock: () => clock);
+      expect(service.hasPendingSessionNotifier.value, isFalse);
+
+      service.armPendingSession(
+        huntProvider: provider,
+        defaultHuntId: 'hunt-pend',
+        settings: const ShinyAutoCounterSettings(
+          detectionMode: ShinyHuntDetectionMode.softReset,
+        ),
+      );
+      expect(service.hasPendingSessionNotifier.value, isTrue);
+      expect(service.isRunning, isFalse);
+
+      final coordinator = buildTestCoordinator(() => clock);
+      final attached = service.attachIfPending(coordinator: coordinator);
+      expect(attached, isTrue);
+      expect(service.hasPendingSessionNotifier.value, isFalse);
+      expect(service.isRunning, isTrue);
+
+      await coordinator.processFrameText('Ein wildes Mewtu erscheint!', instanceIndex: 1);
+      await service.waitForIdle();
+      expect(provider.getHuntById('hunt-pend')!.currentEncounters, equals(1));
 
       await service.stopSession();
       await coordinator.dispose();

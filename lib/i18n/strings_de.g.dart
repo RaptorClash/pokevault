@@ -7100,6 +7100,90 @@ class Translations with BaseTranslations<AppLocale, Translations> {
 
 	/// de: 'EI-SCHLUPF'
 	String get scanner_event_egg_hatched_badge => 'EI-SCHLUPF';
+
+	/// de: 'Zählt bei erkannten wilden Begegnungen (+1 oder Horden-Anzahl). Macht sich nach Kampfende (Flucht/Sieg), Fang oder Schwarzbild-Übergang automatisch wieder scharf.'
+	String get shiny_auto_mode_desc_wild => 'Zählt bei erkannten wilden Begegnungen (+1 oder Horden-Anzahl). Macht sich nach Kampfende (Flucht/Sieg), Fang oder Schwarzbild-Übergang automatisch wieder scharf.';
+
+	/// de: 'Ideal für Starter, Legendäre & Geschenke. Zählt bei Erkennung des Pokémon und macht sich nach Titelbildschirm („Weiter“/„Continue“), Schwarzbild oder eigenem Reset-Text wieder scharf.'
+	String get shiny_auto_mode_desc_soft_reset => 'Ideal für Starter, Legendäre & Geschenke. Zählt bei Erkennung des Pokémon und macht sich nach Titelbildschirm („Weiter“/„Continue“), Schwarzbild oder eigenem Reset-Text wieder scharf.';
+
+	/// de: 'Zählt Masuda-/Zucht-Eier über den Schlupftext („… ist aus dem Ei geschlüpft!“) — bei „Alle Pokémon“ auch schon direkt bei „Oh?“. Macht sich pro Ei automatisch wieder scharf.'
+	String get shiny_auto_mode_desc_egg => 'Zählt Masuda-/Zucht-Eier über den Schlupftext („… ist aus dem Ei geschlüpft!“) — bei „Alle Pokémon“ auch schon direkt bei „Oh?“. Macht sich pro Ei automatisch wieder scharf.';
+
+	/// de: 'Zählt ohne Texterkennung anhand gleichmäßiger Schwarz-/Weißbild-Ladeübergänge (z. B. Overworld-Resets in Legenden: Arceus). Respektiert den Reset-Cooldown.'
+	String get shiny_auto_mode_desc_transition => 'Zählt ohne Texterkennung anhand gleichmäßiger Schwarz-/Weißbild-Ladeübergänge (z. B. Overworld-Resets in Legenden: Arceus). Respektiert den Reset-Cooldown.';
+
+	/// de: 'Jedes erkannte Pokémon löst +1 aus — ideal für Random Encounters und Shiny-Phasen.'
+	String get shiny_auto_filter_desc_all => 'Jedes erkannte Pokémon löst +1 aus — ideal für Random Encounters und Shiny-Phasen.';
+
+	/// de: 'Zählt nur, wenn das Ziel-Pokémon dieses Hunts erkannt wird — verhindert Fehlzählungen bei Starter-Intros oder fremden Pokémon.'
+	String get shiny_auto_filter_desc_target => 'Zählt nur, wenn das Ziel-Pokémon dieses Hunts erkannt wird — verhindert Fehlzählungen bei Starter-Intros oder fremden Pokémon.';
+
+	/// de: 'Erhöht bei Massen- oder Doppelbegegnungen um die gesamte erkannte Gegneranzahl statt +1.'
+	String get shiny_auto_horde_desc => 'Erhöht bei Massen- oder Doppelbegegnungen um die gesamte erkannte Gegneranzahl statt +1.';
+
+	/// de: 'Empfohlen für Soft-Resets & Ladebildschirme: Ein gleichmäßig schwarzer Übergang macht den Slot nach Ablauf des Cooldowns wieder scharf.'
+	String get shiny_auto_black_reset_desc => 'Empfohlen für Soft-Resets & Ladebildschirme: Ein gleichmäßig schwarzer Übergang macht den Slot nach Ablauf des Cooldowns wieder scharf.';
+
+	/// de: 'Nur aktivieren, wenn dein Spiel komplett weiß überblendet. Bei Spielen mit weißen Dialogboxen ausgeschaltet lassen.'
+	String get shiny_auto_white_reset_desc => 'Nur aktivieren, wenn dein Spiel komplett weiß überblendet. Bei Spielen mit weißen Dialogboxen ausgeschaltet lassen.';
+
+	/// de: 'Hält den betroffenen Scan-Slot sofort an, sobald ein Shiny-Signal erkannt wird, damit du den Treffer nicht versehentlich übergehst.'
+	String get shiny_auto_pause_on_shiny_desc => 'Hält den betroffenen Scan-Slot sofort an, sobald ein Shiny-Signal erkannt wird, damit du den Treffer nicht versehentlich übergehst.';
+
+	/// de: 'Optional für ROM-Hacks oder Fangames: Eigene Texte, die zählen sollen. Nutze {pokemon} als Platzhalter für den Pokémon-Namen.'
+	String get shiny_auto_custom_triggers_desc => 'Optional für ROM-Hacks oder Fangames: Eigene Texte, die zählen sollen. Nutze {pokemon} als Platzhalter für den Pokémon-Namen.';
+
+	/// de: 'Optional: Eigene Menü- oder Titelbildschirm-Wörter, die einen bereits gezählten Slot wieder scharf machen.'
+	String get shiny_auto_custom_resets_desc => 'Optional: Eigene Menü- oder Titelbildschirm-Wörter, die einen bereits gezählten Slot wieder scharf machen.';
+
+	/// de: 'Mindestwartezeit nach einem Reset/Übergang, bevor derselbe Slot wieder zählen darf (verhindert Doppelzählungen).'
+	String get shiny_auto_cooldown_desc => 'Mindestwartezeit nach einem Reset/Übergang, bevor derselbe Slot wieder zählen darf (verhindert Doppelzählungen).';
+
+	/// de: 'Wie lange der Bildschirm mindestens schwarz/weiß bleiben muss, um als echter Übergang statt Flackern zu gelten.'
+	String get shiny_auto_transition_duration_desc => 'Wie lange der Bildschirm mindestens schwarz/weiß bleiben muss, um als echter Übergang statt Flackern zu gelten.';
+
+	/// de: 'Schwarzbild-Schwelle (Luma {value})'
+	String get shiny_auto_black_threshold_label => 'Schwarzbild-Schwelle (Luma {value})';
+
+	/// de: 'Weißbild-Schwelle (Luma {value})'
+	String get shiny_auto_white_threshold_label => 'Weißbild-Schwelle (Luma {value})';
+
+	/// de: 'Tipp für Handykameras: Bei Restlicht im Raum die Schwarzbild-Schwelle höher (z. B. 35–50) und die Weißbild-Schwelle etwas niedriger stellen.'
+	String get shiny_auto_thresholds_desc => 'Tipp für Handykameras: Bei Restlicht im Raum die Schwarzbild-Schwelle höher (z. B. 35–50) und die Weißbild-Schwelle etwas niedriger stellen.';
+
+	/// de: 'Zählt für: {name}'
+	String get shiny_auto_counting_for => 'Zählt für: {name}';
+
+	/// de: 'Hierher wechseln'
+	String get shiny_auto_switch_hunt_btn => 'Hierher wechseln';
+
+	/// de: 'Auto-Counter vorgemerkt – startet automatisch, sobald der Scanner läuft.'
+	String get shiny_auto_pending_banner => 'Auto-Counter vorgemerkt – startet automatisch, sobald der Scanner läuft.';
+
+	/// de: 'Abbrechen'
+	String get shiny_auto_pending_cancel => 'Abbrechen';
+
+	/// de: 'Erklärung & Gesten anzeigen'
+	String get shiny_auto_help_tooltip => 'Erklärung & Gesten anzeigen';
+
+	/// de: 'Auto-Counter Legende & Gesten'
+	String get shiny_auto_help_title => 'Auto-Counter Legende & Gesten';
+
+	/// de: '• Bereit: Slot wartet auf die nächste Begegnung. • Gezählt: Treffer gezählt, wartet auf Kampfende/Reset. • Reset…: Cooldown läuft vor dem erneuten Scharfschalten. • Shiny!: Shiny erkannt – Slot pausiert bis zur Freigabe. • Pausiert: Slot manuell angehalten.'
+	String get shiny_auto_help_phases_desc => '• Bereit: Slot wartet auf die nächste Begegnung.\n• Gezählt: Treffer gezählt, wartet auf Kampfende/Reset.\n• Reset…: Cooldown läuft vor dem erneuten Scharfschalten.\n• Shiny!: Shiny erkannt – Slot pausiert bis zur Freigabe.\n• Pausiert: Slot manuell angehalten.';
+
+	/// de: 'Slot-Chips unten antippen = Slot pausieren/fortsetzen. Slot-Chip gedrückt halten = Slot sofort manuell wieder scharf machen (Re-Arm).'
+	String get shiny_auto_help_gestures_desc => 'Slot-Chips unten antippen = Slot pausieren/fortsetzen.\nSlot-Chip gedrückt halten = Slot sofort manuell wieder scharf machen (Re-Arm).';
+
+	/// de: 'Multi-Hunt-Anleitung'
+	String get multi_hunt_help_tooltip => 'Multi-Hunt-Anleitung';
+
+	/// de: 'Multi-Hunt Dashboard – So funktioniert's'
+	String get multi_hunt_help_title => 'Multi-Hunt Dashboard – So funktioniert\'s';
+
+	/// de: '• Parallele Hunts: Verwalte mehrere Spiele gleichzeitig nebeneinander (+1 / -1 / Pause / Phase). • Eigene Auto-Regeln (🎛️): Jede Karte kann eigene Erkennungsregeln (z. B. Wild, Soft Reset, Ei-Schlupf) erhalten. • Scan-Slots (+ Scan-Slots): Weise erkannte Multi-Instance-Slots (#1, #2, …) gezielt bestimmten Hunts zu. • Pausierte Hunts: Über den Button oben bei Bedarf ein- und wieder ausblenden.'
+	String get multi_hunt_help_body => '• Parallele Hunts: Verwalte mehrere Spiele gleichzeitig nebeneinander (+1 / -1 / Pause / Phase).\n• Eigene Auto-Regeln (🎛️): Jede Karte kann eigene Erkennungsregeln (z. B. Wild, Soft Reset, Ei-Schlupf) erhalten.\n• Scan-Slots (+ Scan-Slots): Weise erkannte Multi-Instance-Slots (#1, #2, …) gezielt bestimmten Hunts zu.\n• Pausierte Hunts: Über den Button oben bei Bedarf ein- und wieder ausblenden.';
 }
 
 /// The flat map containing all translations for locale <de>.
@@ -9471,6 +9555,34 @@ extension on Translations {
 			'multi_hunt_phase_status' => 'Phase {phase} · {status}',
 			'multi_hunt_slot_number' => 'Slot #{slot}',
 			'scanner_event_egg_hatched_badge' => 'EI-SCHLUPF',
+			'shiny_auto_mode_desc_wild' => 'Zählt bei erkannten wilden Begegnungen (+1 oder Horden-Anzahl). Macht sich nach Kampfende (Flucht/Sieg), Fang oder Schwarzbild-Übergang automatisch wieder scharf.',
+			'shiny_auto_mode_desc_soft_reset' => 'Ideal für Starter, Legendäre & Geschenke. Zählt bei Erkennung des Pokémon und macht sich nach Titelbildschirm („Weiter“/„Continue“), Schwarzbild oder eigenem Reset-Text wieder scharf.',
+			'shiny_auto_mode_desc_egg' => 'Zählt Masuda-/Zucht-Eier über den Schlupftext („… ist aus dem Ei geschlüpft!“) — bei „Alle Pokémon“ auch schon direkt bei „Oh?“. Macht sich pro Ei automatisch wieder scharf.',
+			'shiny_auto_mode_desc_transition' => 'Zählt ohne Texterkennung anhand gleichmäßiger Schwarz-/Weißbild-Ladeübergänge (z. B. Overworld-Resets in Legenden: Arceus). Respektiert den Reset-Cooldown.',
+			'shiny_auto_filter_desc_all' => 'Jedes erkannte Pokémon löst +1 aus — ideal für Random Encounters und Shiny-Phasen.',
+			'shiny_auto_filter_desc_target' => 'Zählt nur, wenn das Ziel-Pokémon dieses Hunts erkannt wird — verhindert Fehlzählungen bei Starter-Intros oder fremden Pokémon.',
+			'shiny_auto_horde_desc' => 'Erhöht bei Massen- oder Doppelbegegnungen um die gesamte erkannte Gegneranzahl statt +1.',
+			'shiny_auto_black_reset_desc' => 'Empfohlen für Soft-Resets & Ladebildschirme: Ein gleichmäßig schwarzer Übergang macht den Slot nach Ablauf des Cooldowns wieder scharf.',
+			'shiny_auto_white_reset_desc' => 'Nur aktivieren, wenn dein Spiel komplett weiß überblendet. Bei Spielen mit weißen Dialogboxen ausgeschaltet lassen.',
+			'shiny_auto_pause_on_shiny_desc' => 'Hält den betroffenen Scan-Slot sofort an, sobald ein Shiny-Signal erkannt wird, damit du den Treffer nicht versehentlich übergehst.',
+			'shiny_auto_custom_triggers_desc' => 'Optional für ROM-Hacks oder Fangames: Eigene Texte, die zählen sollen. Nutze {pokemon} als Platzhalter für den Pokémon-Namen.',
+			'shiny_auto_custom_resets_desc' => 'Optional: Eigene Menü- oder Titelbildschirm-Wörter, die einen bereits gezählten Slot wieder scharf machen.',
+			'shiny_auto_cooldown_desc' => 'Mindestwartezeit nach einem Reset/Übergang, bevor derselbe Slot wieder zählen darf (verhindert Doppelzählungen).',
+			'shiny_auto_transition_duration_desc' => 'Wie lange der Bildschirm mindestens schwarz/weiß bleiben muss, um als echter Übergang statt Flackern zu gelten.',
+			'shiny_auto_black_threshold_label' => 'Schwarzbild-Schwelle (Luma {value})',
+			'shiny_auto_white_threshold_label' => 'Weißbild-Schwelle (Luma {value})',
+			'shiny_auto_thresholds_desc' => 'Tipp für Handykameras: Bei Restlicht im Raum die Schwarzbild-Schwelle höher (z. B. 35–50) und die Weißbild-Schwelle etwas niedriger stellen.',
+			'shiny_auto_counting_for' => 'Zählt für: {name}',
+			'shiny_auto_switch_hunt_btn' => 'Hierher wechseln',
+			'shiny_auto_pending_banner' => 'Auto-Counter vorgemerkt – startet automatisch, sobald der Scanner läuft.',
+			'shiny_auto_pending_cancel' => 'Abbrechen',
+			'shiny_auto_help_tooltip' => 'Erklärung & Gesten anzeigen',
+			'shiny_auto_help_title' => 'Auto-Counter Legende & Gesten',
+			'shiny_auto_help_phases_desc' => '• Bereit: Slot wartet auf die nächste Begegnung.\n• Gezählt: Treffer gezählt, wartet auf Kampfende/Reset.\n• Reset…: Cooldown läuft vor dem erneuten Scharfschalten.\n• Shiny!: Shiny erkannt – Slot pausiert bis zur Freigabe.\n• Pausiert: Slot manuell angehalten.',
+			'shiny_auto_help_gestures_desc' => 'Slot-Chips unten antippen = Slot pausieren/fortsetzen.\nSlot-Chip gedrückt halten = Slot sofort manuell wieder scharf machen (Re-Arm).',
+			'multi_hunt_help_tooltip' => 'Multi-Hunt-Anleitung',
+			'multi_hunt_help_title' => 'Multi-Hunt Dashboard – So funktioniert\'s',
+			'multi_hunt_help_body' => '• Parallele Hunts: Verwalte mehrere Spiele gleichzeitig nebeneinander (+1 / -1 / Pause / Phase).\n• Eigene Auto-Regeln (🎛️): Jede Karte kann eigene Erkennungsregeln (z. B. Wild, Soft Reset, Ei-Schlupf) erhalten.\n• Scan-Slots (+ Scan-Slots): Weise erkannte Multi-Instance-Slots (#1, #2, …) gezielt bestimmten Hunts zu.\n• Pausierte Hunts: Über den Button oben bei Bedarf ein- und wieder ausblenden.',
 			_ => null,
 		};
 	}

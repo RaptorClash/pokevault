@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:material_ui/material_ui.dart';
 import 'package:provider/provider.dart';
 import '../../../i18n/strings.g.dart';
@@ -24,6 +25,7 @@ class ShinyAutoCounterSetupSheet extends StatefulWidget {
   final bool showSourceLauncher;
   final bool perHuntOverride;
   final bool scrollable;
+  final BuildContext? parentContext;
 
   const ShinyAutoCounterSetupSheet({
     super.key,
@@ -33,6 +35,7 @@ class ShinyAutoCounterSetupSheet extends StatefulWidget {
     this.showSourceLauncher = true,
     this.perHuntOverride = false,
     this.scrollable = true,
+    this.parentContext,
   });
 
   static Future<void> show(
@@ -42,6 +45,7 @@ class ShinyAutoCounterSetupSheet extends StatefulWidget {
     VoidCallback? onStarted,
     bool perHuntOverride = false,
   }) {
+    final parentContext = context;
     return showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
@@ -59,6 +63,7 @@ class ShinyAutoCounterSetupSheet extends StatefulWidget {
             onStarted: onStarted,
             perHuntOverride: perHuntOverride,
             scrollable: false,
+            parentContext: parentContext,
           ),
         ),
       ),
@@ -99,25 +104,29 @@ class _ShinyAutoCounterSetupSheetState
       text: _settings.transitionMinDurationMs.toString(),
     );
 
-    ShinyAutoCounterSettings.loadFromPrefs().then((saved) {
-      if (!mounted || saved == null || _service.isRunning || _userEdited) {
-        return;
-      }
-      if (widget.perHuntOverride) {
-        final savedOverride = saved.huntSettingsOverrides[widget.hunt.id];
-        if (savedOverride != null) {
-          setState(() {
-            _settings = savedOverride;
-            _syncTimingControllers();
-          });
-        }
-        return;
-      }
+    unawaited(_loadPersistedSettings());
+  }
+
+  Future<void> _loadPersistedSettings() async {
+    await _service.ensureSettingsLoaded();
+    final saved = await ShinyAutoCounterSettings.loadFromPrefs();
+    if (!mounted || _service.isRunning || _userEdited) {
+      return;
+    }
+    if (widget.perHuntOverride) {
+      final resolved = _service.settingsForHunt(widget.hunt);
+      setState(() {
+        _settings = resolved;
+        _syncTimingControllers();
+      });
+      return;
+    }
+    if (saved != null) {
       setState(() {
         _settings = saved;
         _syncTimingControllers();
       });
-    });
+    }
   }
 
   void _syncTimingControllers() {
@@ -259,25 +268,14 @@ class _ShinyAutoCounterSetupSheetState
   }
 
   Future<void> _applyOrStart() async {
+    _commitCooldownText(_cooldownController.text);
+    _commitTransitionText(_transitionDurationController.text);
+
     if (widget.perHuntOverride) {
-      _service.updateHuntSettings(widget.hunt.id, _settings);
+      await _service.ensureSettingsLoaded();
       if (!mounted) return;
-      final active = _resolveActiveSource();
-      if (!_service.isRunning && active.coordinator != null) {
-        final huntProvider =
-            Provider.of<ShinyHuntProvider>(context, listen: false);
-        _service.startSession(
-          huntProvider: huntProvider,
-          coordinator: active.coordinator!,
-          source: active.source,
-          defaultHuntId: widget.hunt.id,
-          slotIds: active.slotIds,
-          slotColorOverrides: active.slotColors,
-          settings: _service.settings.copyWith(usePerHuntMethodDefaults: true),
-        );
-        widget.onStarted?.call();
-      }
-      if (mounted && Navigator.of(context).canPop()) {
+      _service.updateHuntSettings(widget.hunt.id, _settings);
+      if (Navigator.of(context).canPop()) {
         Navigator.of(context).pop();
       }
       return;
@@ -287,9 +285,23 @@ class _ShinyAutoCounterSetupSheetState
     if (!mounted) return;
 
     final active = _resolveActiveSource();
+    final huntProvider =
+        Provider.of<ShinyHuntProvider>(context, listen: false);
+
+    if (_service.isRunning &&
+        (active.coordinator == null ||
+            identical(_service.coordinator, active.coordinator))) {
+      _service.updateSettings(_settings);
+      if (_service.defaultHuntId != widget.hunt.id) {
+        _service.setDefaultHuntId(widget.hunt.id);
+      }
+      if (mounted && Navigator.of(context).canPop()) {
+        Navigator.of(context).pop();
+      }
+      return;
+    }
+
     if (active.coordinator != null) {
-      final huntProvider =
-          Provider.of<ShinyHuntProvider>(context, listen: false);
       _service.startSession(
         huntProvider: huntProvider,
         coordinator: active.coordinator!,
@@ -306,25 +318,25 @@ class _ShinyAutoCounterSetupSheetState
       return;
     }
 
-    if (_service.isRunning) {
-      _service.updateSettings(_settings);
-      if (mounted && Navigator.of(context).canPop()) {
-        Navigator.of(context).pop();
-      }
-      return;
-    }
-
-    // No active source yet -> open platform scanner setup
+    // No active source yet -> arm pending auto-connect and open platform scanner setup
     if (widget.showSourceLauncher) {
       final dexProvider = Provider.of<DexProvider>(context, listen: false);
+      final launchContext = widget.parentContext ?? context;
+      _service.armPendingSession(
+        huntProvider: huntProvider,
+        defaultHuntId: widget.hunt.id,
+        settings: _settings,
+      );
       if (mounted && Navigator.of(context).canPop()) {
         Navigator.of(context).pop();
       }
-      ScannerLauncherHelper.openPlatformTracker(
-        context,
-        allPokemon: dexProvider.allPokemon,
-        dexId: widget.hunt.targetDexId,
-      );
+      if (launchContext.mounted) {
+        ScannerLauncherHelper.openPlatformTracker(
+          launchContext,
+          allPokemon: dexProvider.allPokemon,
+          dexId: widget.hunt.targetDexId,
+        );
+      }
     }
   }
 
@@ -335,6 +347,16 @@ class _ShinyAutoCounterSetupSheetState
       ShinyHuntDetectionMode.eggHatch => t.shiny_auto_mode_egg,
       ShinyHuntDetectionMode.screenTransitionOnly =>
         t.shiny_auto_mode_transition,
+    };
+  }
+
+  String _modeDescription(ShinyHuntDetectionMode mode) {
+    return switch (mode) {
+      ShinyHuntDetectionMode.wildEncounter => t.shiny_auto_mode_desc_wild,
+      ShinyHuntDetectionMode.softReset => t.shiny_auto_mode_desc_soft_reset,
+      ShinyHuntDetectionMode.eggHatch => t.shiny_auto_mode_desc_egg,
+      ShinyHuntDetectionMode.screenTransitionOnly =>
+        t.shiny_auto_mode_desc_transition,
     };
   }
 
@@ -469,15 +491,58 @@ class _ShinyAutoCounterSetupSheetState
                       Text(_modeLabel(mode), style: const TextStyle(fontSize: 12)),
                   selected: selected,
                   onSelected: (_) {
+                    final targetEventType = mode == ShinyHuntDetectionMode.eggHatch
+                        ? ScannerEventType.eggHatched
+                        : ScannerEventType.encounter;
+                    final updatedTriggers = _settings.customTriggerPatterns
+                        .map(
+                          (p) => CustomOcrPattern(
+                            id: p.id,
+                            template: p.template,
+                            eventType: targetEventType,
+                            enabled: p.enabled,
+                          ),
+                        )
+                        .toList();
                     _updateSettings(
                       _settings.copyWith(
                         detectionMode: mode,
                         matchFilter: mode.defaultMatchFilter,
+                        customTriggerPatterns: updatedTriggers,
                       ),
                     );
                   },
                 );
               }).toList(),
+            ),
+            const SizedBox(height: 8),
+            Container(
+              key: const Key('setup_mode_info_box'),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.primaryContainer.withValues(alpha: 0.35),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(
+                  color: theme.colorScheme.primary.withValues(alpha: 0.3),
+                ),
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(
+                    Icons.info_outline_rounded,
+                    size: 16,
+                    color: theme.colorScheme.primary,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      _modeDescription(_settings.detectionMode),
+                      style: theme.textTheme.bodySmall?.copyWith(fontSize: 11.5),
+                    ),
+                  ),
+                ],
+              ),
             ),
             const SizedBox(height: 12),
 
@@ -523,12 +588,26 @@ class _ShinyAutoCounterSetupSheetState
                   ),
                 ],
               ),
+              const SizedBox(height: 4),
+              Text(
+                _settings.matchFilter == ShinyMatchFilter.allPokemon
+                    ? t.shiny_auto_filter_desc_all
+                    : t.shiny_auto_filter_desc_target,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  fontSize: 11,
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
               if (isWildMode)
                 SwitchListTile(
                   dense: true,
                   contentPadding: EdgeInsets.zero,
                   title: Text(t.shiny_auto_horde_toggle,
                       style: const TextStyle(fontSize: 13)),
+                  subtitle: Text(
+                    t.shiny_auto_horde_desc,
+                    style: const TextStyle(fontSize: 11),
+                  ),
                   value: _settings.useEventEncounterCount,
                   onChanged: (v) => _updateSettings(
                     _settings.copyWith(useEventEncounterCount: v),
@@ -540,6 +619,10 @@ class _ShinyAutoCounterSetupSheetState
               contentPadding: EdgeInsets.zero,
               title: Text(t.shiny_auto_black_reset_toggle,
                   style: const TextStyle(fontSize: 13)),
+              subtitle: Text(
+                t.shiny_auto_black_reset_desc,
+                style: const TextStyle(fontSize: 11),
+              ),
               value: _settings.enableBlackScreenReset,
               onChanged: (v) => _updateSettings(
                 _settings.copyWith(enableBlackScreenReset: v),
@@ -550,6 +633,10 @@ class _ShinyAutoCounterSetupSheetState
               contentPadding: EdgeInsets.zero,
               title: Text(t.shiny_auto_white_reset_toggle,
                   style: const TextStyle(fontSize: 13)),
+              subtitle: Text(
+                t.shiny_auto_white_reset_desc,
+                style: const TextStyle(fontSize: 11),
+              ),
               value: _settings.enableWhiteScreenReset,
               onChanged: (v) => _updateSettings(
                 _settings.copyWith(enableWhiteScreenReset: v),
@@ -563,6 +650,14 @@ class _ShinyAutoCounterSetupSheetState
                 t.shiny_auto_custom_triggers,
                 style: theme.textTheme.labelLarge
                     ?.copyWith(fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                t.shiny_auto_custom_triggers_desc,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  fontSize: 11,
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
               ),
               const SizedBox(height: 4),
               Row(
@@ -619,6 +714,14 @@ class _ShinyAutoCounterSetupSheetState
               style: theme.textTheme.labelLarge
                   ?.copyWith(fontWeight: FontWeight.bold),
             ),
+            const SizedBox(height: 2),
+            Text(
+              t.shiny_auto_custom_resets_desc,
+              style: theme.textTheme.bodySmall?.copyWith(
+                fontSize: 11,
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
             const SizedBox(height: 4),
             Row(
               children: [
@@ -667,7 +770,7 @@ class _ShinyAutoCounterSetupSheetState
               ),
             const SizedBox(height: 12),
 
-            // 5. Advanced / Timing Tuning (Slider + Custom ms input)
+            // 5. Advanced / Timing Tuning (Slider + Custom ms input + Luma Thresholds)
             ExpansionTile(
               key: const Key('setup_timing_expansion'),
               tilePadding: EdgeInsets.zero,
@@ -678,12 +781,13 @@ class _ShinyAutoCounterSetupSheetState
                     ?.copyWith(fontWeight: FontWeight.bold),
               ),
               subtitle: Text(
-                '${_settings.minResetCooldownMs} ms · ${_settings.transitionMinDurationMs} ms',
+                '${_settings.minResetCooldownMs} ms · ${_settings.transitionMinDurationMs} ms · Luma ${_settings.blackLumaThreshold}/${_settings.whiteLumaThreshold}',
                 style: const TextStyle(fontSize: 11),
               ),
               children: [
                 _TimingSliderRow(
                   label: t.shiny_auto_cooldown_label,
+                  helperText: t.shiny_auto_cooldown_desc,
                   valueMs: _settings.minResetCooldownMs,
                   sliderMin: 200,
                   sliderMax: 5000,
@@ -702,9 +806,10 @@ class _ShinyAutoCounterSetupSheetState
                   onTextCommitted: (raw) =>
                       _commitCooldownText(raw, clampAndSync: true),
                 ),
-                const SizedBox(height: 6),
+                const SizedBox(height: 8),
                 _TimingSliderRow(
                   label: t.shiny_auto_transition_duration_label,
+                  helperText: t.shiny_auto_transition_duration_desc,
                   valueMs: _settings.transitionMinDurationMs,
                   sliderMin: 150,
                   sliderMax: 2000,
@@ -722,6 +827,48 @@ class _ShinyAutoCounterSetupSheetState
                       _commitTransitionText(raw, clampAndSync: false),
                   onTextCommitted: (raw) =>
                       _commitTransitionText(raw, clampAndSync: true),
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  t.shiny_auto_black_threshold_label.replaceAll(
+                    '{value}',
+                    _settings.blackLumaThreshold.toString(),
+                  ),
+                  style: const TextStyle(fontSize: 12),
+                ),
+                Slider(
+                  key: const Key('setup_black_threshold_slider'),
+                  value: _settings.blackLumaThreshold.toDouble().clamp(5, 80),
+                  min: 5,
+                  max: 80,
+                  divisions: 15,
+                  onChanged: (v) => _updateSettings(
+                    _settings.copyWith(blackLumaThreshold: v.round()),
+                  ),
+                ),
+                Text(
+                  t.shiny_auto_white_threshold_label.replaceAll(
+                    '{value}',
+                    _settings.whiteLumaThreshold.toString(),
+                  ),
+                  style: const TextStyle(fontSize: 12),
+                ),
+                Slider(
+                  key: const Key('setup_white_threshold_slider'),
+                  value: _settings.whiteLumaThreshold.toDouble().clamp(175, 252),
+                  min: 175,
+                  max: 252,
+                  divisions: 77,
+                  onChanged: (v) => _updateSettings(
+                    _settings.copyWith(whiteLumaThreshold: v.round()),
+                  ),
+                ),
+                Text(
+                  t.shiny_auto_thresholds_desc,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    fontSize: 11,
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
                 ),
               ],
             ),
@@ -780,6 +927,10 @@ class _ShinyAutoCounterSetupSheetState
               contentPadding: EdgeInsets.zero,
               title: Text(t.shiny_auto_pause_on_shiny,
                   style: const TextStyle(fontSize: 13)),
+              subtitle: Text(
+                t.shiny_auto_pause_on_shiny_desc,
+                style: const TextStyle(fontSize: 11),
+              ),
               value: _settings.autoPauseSlotOnShiny,
               onChanged: (v) => _updateSettings(
                 _settings.copyWith(autoPauseSlotOnShiny: v),
@@ -790,18 +941,18 @@ class _ShinyAutoCounterSetupSheetState
             FilledButton.icon(
               key: const Key('setup_start_btn'),
               icon: Icon(
-                hasActiveSource
-                    ? Icons.play_arrow_rounded
-                    : Icons.sensors_rounded,
+                _service.isRunning
+                    ? Icons.check_rounded
+                    : (hasActiveSource
+                        ? Icons.play_arrow_rounded
+                        : Icons.sensors_rounded),
               ),
               label: Text(
-                widget.perHuntOverride
+                widget.perHuntOverride || _service.isRunning
                     ? t.shiny_auto_save_btn
                     : (hasActiveSource
                         ? t.shiny_auto_connect_active_source
-                        : (_service.isRunning
-                            ? t.shiny_auto_save_btn
-                            : t.shiny_auto_start_btn)),
+                        : t.shiny_auto_start_btn),
               ),
               onPressed: _applyOrStart,
             ),
@@ -828,6 +979,7 @@ class _ShinyAutoCounterSetupSheetState
 
 class _TimingSliderRow extends StatelessWidget {
   final String label;
+  final String? helperText;
   final int valueMs;
   final double sliderMin;
   final double sliderMax;
@@ -840,6 +992,7 @@ class _TimingSliderRow extends StatelessWidget {
 
   const _TimingSliderRow({
     required this.label,
+    this.helperText,
     required this.valueMs,
     required this.sliderMin,
     required this.sliderMax,
@@ -854,10 +1007,21 @@ class _TimingSliderRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final sliderValue = valueMs.toDouble().clamp(sliderMin, sliderMax);
+    final theme = Theme.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Text(label, style: const TextStyle(fontSize: 12)),
+        if (helperText != null) ...[
+          const SizedBox(height: 2),
+          Text(
+            helperText!,
+            style: theme.textTheme.bodySmall?.copyWith(
+              fontSize: 11,
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ],
         Row(
           children: [
             Expanded(

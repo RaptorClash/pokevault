@@ -9,12 +9,16 @@ class ShinyAutoCounterBar extends StatelessWidget {
   final ShinyAutoCounterService service;
   final VoidCallback? onOpenSetup;
   final bool compact;
+  final String? currentHuntId;
+  final String? Function(String huntId)? resolveHuntName;
 
   const ShinyAutoCounterBar({
     super.key = const Key('shiny_auto_bar'),
     required this.service,
     this.onOpenSetup,
     this.compact = false,
+    this.currentHuntId,
+    this.resolveHuntName,
   });
 
   String _phaseLabel(ShinySlotPhase phase) {
@@ -46,6 +50,44 @@ class ShinyAutoCounterBar extends StatelessWidget {
     final m = dt.minute.toString().padLeft(2, '0');
     final s = dt.second.toString().padLeft(2, '0');
     return '$h:$m:$s';
+  }
+
+  void _showHelpDialog(BuildContext context) {
+    showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        key: const Key('shiny_auto_help_dialog'),
+        title: Text(t.shiny_auto_help_title),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                t.shiny_auto_help_phases_desc,
+                style: const TextStyle(fontSize: 13, height: 1.45),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                t.shiny_auto_help_gestures_desc,
+                style: TextStyle(
+                  fontSize: 12.5,
+                  height: 1.4,
+                  color: Theme.of(ctx).colorScheme.primary,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
   }
 
   void _showLogsSheet(BuildContext context) {
@@ -224,298 +266,425 @@ class ShinyAutoCounterBar extends StatelessWidget {
     return ValueListenableBuilder<bool>(
       valueListenable: service.isRunningNotifier,
       builder: (context, isRunning, _) {
-        if (!isRunning) return const SizedBox.shrink();
+        return ValueListenableBuilder<bool>(
+          valueListenable: service.hasPendingSessionNotifier,
+          builder: (context, hasPending, _) {
+            if (!isRunning) {
+              if (!hasPending) return const SizedBox.shrink();
+              return Container(
+                key: const Key('shiny_auto_pending_banner'),
+                margin: const EdgeInsets.fromLTRB(12, 4, 12, 4),
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                decoration: BoxDecoration(
+                  color: Colors.amber.withValues(alpha: isDark ? 0.18 : 0.14),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.amber.withValues(alpha: 0.7)),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(
+                      Icons.hourglass_top_rounded,
+                      size: 18,
+                      color: Colors.amber,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        t.shiny_auto_pending_banner,
+                        style: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                    TextButton(
+                      key: const Key('shiny_auto_pending_cancel_btn'),
+                      onPressed: service.cancelPendingSession,
+                      child: Text(
+                        t.shiny_auto_pending_cancel,
+                        style: const TextStyle(fontSize: 12),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }
 
-        return Container(
-          margin: const EdgeInsets.fromLTRB(12, 4, 12, 4),
-          padding: EdgeInsets.symmetric(
-            horizontal: 10,
-            vertical: compact ? 6 : 8,
-          ),
-          decoration: BoxDecoration(
-            color: isDark
-                ? Colors.blueGrey.shade900.withValues(alpha: 0.92)
-                : Colors.indigo.shade50.withValues(alpha: 0.9),
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(
-              color: theme.colorScheme.primary.withValues(alpha: 0.35),
-            ),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // Top row: Active status + Pause + Undo + Setup + Stop
-              ValueListenableBuilder<bool>(
-                valueListenable: service.isPausedNotifier,
-                builder: (context, isPaused, _) {
-                  return ValueListenableBuilder<List<AutoCountLogEntry>>(
-                    valueListenable: service.recentLogsNotifier,
-                    builder: (context, logs, _) {
-                      final hasUndoable = logs.any((e) => !e.undone);
-                      return Row(
-                        children: [
-                          Container(
-                            width: 8,
-                            height: 8,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: isPaused
-                                  ? Colors.amber
-                                  : Colors.greenAccent.shade400,
-                            ),
-                          ),
-                          const SizedBox(width: 6),
-                          Expanded(
-                            child: Text(
-                              isPaused
-                                  ? t.shiny_auto_bar_paused
-                                  : t.shiny_auto_bar_active,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                          ),
-                          IconButton(
-                            key: const Key('shiny_auto_logs_btn'),
-                            visualDensity: VisualDensity.compact,
-                            padding: EdgeInsets.zero,
-                            constraints: const BoxConstraints(
-                              minWidth: 32,
-                              minHeight: 32,
-                            ),
-                            tooltip: t.shiny_auto_logs_tooltip,
-                            icon: const Icon(
-                              Icons.history_rounded,
-                              size: 18,
-                            ),
-                            onPressed: () => _showLogsSheet(context),
-                          ),
-                          IconButton(
-                            key: const Key('shiny_auto_undo_btn'),
-                            visualDensity: VisualDensity.compact,
-                            padding: EdgeInsets.zero,
-                            constraints: const BoxConstraints(
-                              minWidth: 32,
-                              minHeight: 32,
-                            ),
-                            tooltip: t.shiny_auto_undo,
-                            icon: Icon(
-                              Icons.undo_rounded,
-                              size: 18,
-                              color: hasUndoable
-                                  ? Colors.orangeAccent
-                                  : Colors.grey,
-                            ),
-                            onPressed: hasUndoable
-                                ? () => service.undoLastCount()
-                                : null,
-                          ),
-                          IconButton(
-                            key: const Key('shiny_auto_pause_btn'),
-                            visualDensity: VisualDensity.compact,
-                            padding: EdgeInsets.zero,
-                            constraints: const BoxConstraints(
-                              minWidth: 32,
-                              minHeight: 32,
-                            ),
-                            tooltip: isPaused
-                                ? t.shiny_hunt_resume
-                                : t.shiny_hunt_pause,
-                            icon: Icon(
-                              isPaused
-                                  ? Icons.play_arrow_rounded
-                                  : Icons.pause_rounded,
-                              size: 18,
-                            ),
-                            onPressed: service.toggleGlobalPause,
-                          ),
-                          if (onOpenSetup != null)
-                            IconButton(
-                              key: const Key('shiny_auto_setup_btn'),
-                              visualDensity: VisualDensity.compact,
-                              padding: EdgeInsets.zero,
-                              constraints: const BoxConstraints(
-                                minWidth: 32,
-                                minHeight: 32,
-                              ),
-                              tooltip: t.shiny_auto_setup_title,
-                              icon: const Icon(Icons.tune_rounded, size: 18),
-                              onPressed: onOpenSetup,
-                            ),
-                          IconButton(
-                            key: const Key('shiny_auto_stop_btn'),
-                            visualDensity: VisualDensity.compact,
-                            padding: EdgeInsets.zero,
-                            constraints: const BoxConstraints(
-                              minWidth: 32,
-                              minHeight: 32,
-                            ),
-                            tooltip: t.shiny_auto_stop_tooltip,
-                            icon: const Icon(
-                              Icons.stop_circle_outlined,
-                              size: 18,
-                              color: Colors.redAccent,
-                            ),
-                            onPressed: () => service.stopSession(),
-                          ),
-                        ],
-                      );
-                    },
-                  );
-                },
+            return Container(
+              margin: const EdgeInsets.fromLTRB(12, 4, 12, 4),
+              padding: EdgeInsets.symmetric(
+                horizontal: 10,
+                vertical: compact ? 6 : 8,
               ),
-
-              // Slot status chips
-              ValueListenableBuilder<List<ShinySlotSnapshot>>(
-                valueListenable: service.slotStatesNotifier,
-                builder: (context, slots, _) {
-                  if (slots.isEmpty) return const SizedBox.shrink();
-                  return Padding(
-                    padding: const EdgeInsets.only(top: 4),
-                    child: Wrap(
-                      spacing: 6,
-                      runSpacing: 4,
-                      children: slots.map((slot) {
-                        final color = Color(slot.colorHex);
-                        final isShiny =
-                            slot.phase == ShinySlotPhase.pausedByShiny;
-                        final isPausedSlot =
-                            slot.phase == ShinySlotPhase.pausedManual;
-                        return Tooltip(
-                          message: t.shiny_auto_slot_chip_tooltip,
-                          child: InkWell(
-                            key: Key('shiny_auto_slot_chip_${slot.slotId}'),
-                            borderRadius: BorderRadius.circular(12),
-                            onTap: () => service.togglePauseSlot(slot.slotId),
-                            onLongPress: () => service.rearmSlot(slot.slotId),
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 8,
-                                vertical: 3,
-                              ),
-                              decoration: BoxDecoration(
-                                color: isShiny
-                                    ? Colors.amber.withValues(alpha: 0.25)
-                                    : color.withValues(
-                                        alpha: isPausedSlot ? 0.08 : 0.16,
-                                      ),
-                                borderRadius: BorderRadius.circular(12),
-                                border: Border.all(
-                                  color: isShiny ? Colors.amber : color,
-                                  width: isShiny ? 1.5 : 1.0,
+              decoration: BoxDecoration(
+                color: isDark
+                    ? Colors.blueGrey.shade900.withValues(alpha: 0.92)
+                    : Colors.indigo.shade50.withValues(alpha: 0.9),
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(
+                  color: theme.colorScheme.primary.withValues(alpha: 0.35),
+                ),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  // Top row: Active status + Help + Logs + Undo + Pause + Setup + Stop
+                  ValueListenableBuilder<bool>(
+                    valueListenable: service.isPausedNotifier,
+                    builder: (context, isPaused, _) {
+                      return ValueListenableBuilder<List<AutoCountLogEntry>>(
+                        valueListenable: service.recentLogsNotifier,
+                        builder: (context, logs, _) {
+                          final hasUndoable =
+                              logs.any((e) => !e.undone && e.delta > 0);
+                          return Row(
+                            children: [
+                              Container(
+                                width: 8,
+                                height: 8,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: isPaused
+                                      ? Colors.amber
+                                      : Colors.greenAccent.shade400,
                                 ),
                               ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
+                              const SizedBox(width: 6),
+                              Expanded(
+                                child: Text(
+                                  isPaused
+                                      ? t.shiny_auto_bar_paused
+                                      : t.shiny_auto_bar_active,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                              ),
+                              IconButton(
+                                key: const Key('shiny_auto_help_btn'),
+                                visualDensity: VisualDensity.compact,
+                                padding: EdgeInsets.zero,
+                                constraints: const BoxConstraints(
+                                  minWidth: 28,
+                                  minHeight: 28,
+                                ),
+                                tooltip: t.shiny_auto_help_tooltip,
+                                icon: const Icon(
+                                  Icons.help_outline_rounded,
+                                  size: 17,
+                                ),
+                                onPressed: () => _showHelpDialog(context),
+                              ),
+                              IconButton(
+                                key: const Key('shiny_auto_logs_btn'),
+                                visualDensity: VisualDensity.compact,
+                                padding: EdgeInsets.zero,
+                                constraints: const BoxConstraints(
+                                  minWidth: 28,
+                                  minHeight: 28,
+                                ),
+                                tooltip: t.shiny_auto_logs_tooltip,
+                                icon: const Icon(
+                                  Icons.history_rounded,
+                                  size: 17,
+                                ),
+                                onPressed: () => _showLogsSheet(context),
+                              ),
+                              IconButton(
+                                key: const Key('shiny_auto_undo_btn'),
+                                visualDensity: VisualDensity.compact,
+                                padding: EdgeInsets.zero,
+                                constraints: const BoxConstraints(
+                                  minWidth: 28,
+                                  minHeight: 28,
+                                ),
+                                tooltip: t.shiny_auto_undo,
+                                icon: Icon(
+                                  Icons.undo_rounded,
+                                  size: 17,
+                                  color: hasUndoable
+                                      ? Colors.orangeAccent
+                                      : Colors.grey,
+                                ),
+                                onPressed: hasUndoable
+                                    ? () => service.undoLastCount()
+                                    : null,
+                              ),
+                              IconButton(
+                                key: const Key('shiny_auto_pause_btn'),
+                                visualDensity: VisualDensity.compact,
+                                padding: EdgeInsets.zero,
+                                constraints: const BoxConstraints(
+                                  minWidth: 28,
+                                  minHeight: 28,
+                                ),
+                                tooltip: isPaused
+                                    ? t.shiny_hunt_resume
+                                    : t.shiny_hunt_pause,
+                                icon: Icon(
+                                  isPaused
+                                      ? Icons.play_arrow_rounded
+                                      : Icons.pause_rounded,
+                                  size: 17,
+                                ),
+                                onPressed: service.toggleGlobalPause,
+                              ),
+                              if (onOpenSetup != null)
+                                IconButton(
+                                  key: const Key('shiny_auto_setup_btn'),
+                                  visualDensity: VisualDensity.compact,
+                                  padding: EdgeInsets.zero,
+                                  constraints: const BoxConstraints(
+                                    minWidth: 28,
+                                    minHeight: 28,
+                                  ),
+                                  tooltip: t.shiny_auto_setup_title,
+                                  icon:
+                                      const Icon(Icons.tune_rounded, size: 17),
+                                  onPressed: onOpenSetup,
+                                ),
+                              IconButton(
+                                key: const Key('shiny_auto_stop_btn'),
+                                visualDensity: VisualDensity.compact,
+                                padding: EdgeInsets.zero,
+                                constraints: const BoxConstraints(
+                                  minWidth: 28,
+                                  minHeight: 28,
+                                ),
+                                tooltip: t.shiny_auto_stop_tooltip,
+                                icon: const Icon(
+                                  Icons.stop_circle_outlined,
+                                  size: 17,
+                                  color: Colors.redAccent,
+                                ),
+                                onPressed: () => service.stopSession(),
+                              ),
+                            ],
+                          );
+                        },
+                      );
+                    },
+                  ),
+
+                  // Target hunt indicator + quick switch + slot status chips
+                  ValueListenableBuilder<List<ShinySlotSnapshot>>(
+                    valueListenable: service.slotStatesNotifier,
+                    builder: (context, slots, _) {
+                      final activeHuntId = service.defaultHuntId;
+                      final targetHuntName = activeHuntId != null
+                          ? resolveHuntName?.call(activeHuntId)
+                          : null;
+                      final isDifferentHunt = currentHuntId != null &&
+                          activeHuntId != null &&
+                          currentHuntId != activeHuntId;
+                      if (slots.isEmpty &&
+                          targetHuntName == null &&
+                          !isDifferentHunt) {
+                        return const SizedBox.shrink();
+                      }
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          if (targetHuntName != null || isDifferentHunt)
+                            Padding(
+                              padding: const EdgeInsets.only(top: 3),
+                              child: Wrap(
+                                spacing: 6,
+                                runSpacing: 4,
+                                crossAxisAlignment: WrapCrossAlignment.center,
                                 children: [
-                                  Container(
-                                    width: 7,
-                                    height: 7,
-                                    decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      color: isShiny ? Colors.amber : color,
+                                  if (targetHuntName != null)
+                                    Text(
+                                      t.shiny_auto_counting_for.replaceAll(
+                                        '{name}',
+                                        targetHuntName,
+                                      ),
+                                      style: TextStyle(
+                                        fontSize: 11,
+                                        color: isDifferentHunt
+                                            ? Colors.amber.shade600
+                                            : theme.colorScheme.onSurfaceVariant,
+                                        fontWeight: isDifferentHunt
+                                            ? FontWeight.w600
+                                            : FontWeight.normal,
+                                      ),
                                     ),
-                                  ),
-                                  const SizedBox(width: 5),
-                                  Text(
-                                    '#${slot.slotId} · ${_phaseLabel(slot.phase)}',
-                                    style: TextStyle(
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.w600,
-                                      color: isShiny
-                                          ? Colors.amber.shade700
-                                          : null,
+                                  if (isDifferentHunt)
+                                    ActionChip(
+                                      key: const Key(
+                                        'shiny_auto_switch_hunt_btn',
+                                      ),
+                                      visualDensity: VisualDensity.compact,
+                                      padding: EdgeInsets.zero,
+                                      labelStyle: const TextStyle(fontSize: 11),
+                                      label: Text(t.shiny_auto_switch_hunt_btn),
+                                      onPressed: () => service
+                                          .setDefaultHuntId(currentHuntId!),
                                     ),
-                                  ),
                                 ],
                               ),
                             ),
-                          ),
-                        );
-                      }).toList(),
-                    ),
-                  );
-                },
-              ),
-
-              // Prominent Shiny Alert Banner when a Shiny signal occurred
-              ValueListenableBuilder<AutoCountLogEntry?>(
-                valueListenable: service.latestShinyAlertNotifier,
-                builder: (context, shinyAlert, _) {
-                  if (shinyAlert == null) return const SizedBox.shrink();
-                  return Container(
-                    key: const Key('shiny_auto_shiny_banner'),
-                    margin: const EdgeInsets.only(top: 6),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 6,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.amber.withValues(alpha: 0.22),
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: Colors.amber, width: 1.5),
-                    ),
-                    child: Wrap(
-                      spacing: 8,
-                      runSpacing: 4,
-                      crossAxisAlignment: WrapCrossAlignment.center,
-                      alignment: WrapAlignment.spaceBetween,
-                      children: [
-                        Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(
-                              Icons.auto_awesome,
-                              color: Colors.amber,
-                              size: 16,
+                          if (slots.isNotEmpty)
+                            Padding(
+                              padding: const EdgeInsets.only(top: 4),
+                              child: Wrap(
+                                spacing: 6,
+                                runSpacing: 4,
+                                children: slots.map((slot) {
+                                  final color = Color(slot.colorHex);
+                                  final isShiny =
+                                      slot.phase == ShinySlotPhase.pausedByShiny;
+                                  final isPausedSlot =
+                                      slot.phase == ShinySlotPhase.pausedManual;
+                                  return Tooltip(
+                                    message: t.shiny_auto_slot_chip_tooltip,
+                                    child: InkWell(
+                                      key: Key(
+                                        'shiny_auto_slot_chip_${slot.slotId}',
+                                      ),
+                                      borderRadius: BorderRadius.circular(12),
+                                      onTap: () =>
+                                          service.togglePauseSlot(slot.slotId),
+                                      onLongPress: () =>
+                                          service.rearmSlot(slot.slotId),
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 8,
+                                          vertical: 3,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: isShiny
+                                              ? Colors.amber
+                                                  .withValues(alpha: 0.25)
+                                              : color.withValues(
+                                                  alpha:
+                                                      isPausedSlot ? 0.08 : 0.16,
+                                                ),
+                                          borderRadius:
+                                              BorderRadius.circular(12),
+                                          border: Border.all(
+                                            color:
+                                                isShiny ? Colors.amber : color,
+                                            width: isShiny ? 1.5 : 1.0,
+                                          ),
+                                        ),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Container(
+                                              width: 7,
+                                              height: 7,
+                                              decoration: BoxDecoration(
+                                                shape: BoxShape.circle,
+                                                color: isShiny
+                                                    ? Colors.amber
+                                                    : color,
+                                              ),
+                                            ),
+                                            const SizedBox(width: 5),
+                                            Text(
+                                              '#${slot.slotId} · ${_phaseLabel(slot.phase)}',
+                                              style: TextStyle(
+                                                fontSize: 11,
+                                                fontWeight: FontWeight.w600,
+                                                color: isShiny
+                                                    ? Colors.amber.shade700
+                                                    : null,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  );
+                                }).toList(),
+                              ),
                             ),
-                            const SizedBox(width: 6),
-                            Flexible(
-                              child: Text(
-                                t.shiny_auto_shiny_alert_title.replaceAll(
-                                  '{slot}',
-                                  shinyAlert.slotId.toString(),
+                        ],
+                      );
+                    },
+                  ),
+
+                  // Prominent Shiny Alert Banner when a Shiny signal occurred
+                  ValueListenableBuilder<AutoCountLogEntry?>(
+                    valueListenable: service.latestShinyAlertNotifier,
+                    builder: (context, shinyAlert, _) {
+                      if (shinyAlert == null) return const SizedBox.shrink();
+                      return Container(
+                        key: const Key('shiny_auto_shiny_banner'),
+                        margin: const EdgeInsets.only(top: 6),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 6,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.amber.withValues(alpha: 0.22),
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: Colors.amber, width: 1.5),
+                        ),
+                        child: Wrap(
+                          spacing: 8,
+                          runSpacing: 4,
+                          crossAxisAlignment: WrapCrossAlignment.center,
+                          alignment: WrapAlignment.spaceBetween,
+                          children: [
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(
+                                  Icons.auto_awesome,
+                                  color: Colors.amber,
+                                  size: 16,
                                 ),
+                                const SizedBox(width: 6),
+                                Flexible(
+                                  child: Text(
+                                    t.shiny_auto_shiny_alert_title.replaceAll(
+                                      '{slot}',
+                                      shinyAlert.slotId.toString(),
+                                    ),
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            FilledButton.tonal(
+                              key: const Key('shiny_auto_resume_shiny_btn'),
+                              style: FilledButton.styleFrom(
+                                visualDensity: VisualDensity.compact,
+                                backgroundColor: Colors.amber,
+                                foregroundColor: Colors.black,
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 10,
+                                  vertical: 4,
+                                ),
+                              ),
+                              onPressed: () => service
+                                  .resumeShinyPausedSlot(shinyAlert.slotId),
+                              child: Text(
+                                t.shiny_auto_shiny_alert_resume,
                                 style: const TextStyle(
+                                  fontSize: 11,
                                   fontWeight: FontWeight.bold,
-                                  fontSize: 12,
                                 ),
                               ),
                             ),
                           ],
                         ),
-                        FilledButton.tonal(
-                          key: const Key('shiny_auto_resume_shiny_btn'),
-                          style: FilledButton.styleFrom(
-                            visualDensity: VisualDensity.compact,
-                            backgroundColor: Colors.amber,
-                            foregroundColor: Colors.black,
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 10,
-                              vertical: 4,
-                            ),
-                          ),
-                          onPressed: () => service
-                              .resumeShinyPausedSlot(shinyAlert.slotId),
-                          child: Text(
-                            t.shiny_auto_shiny_alert_resume,
-                            style: const TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
-                },
+                      );
+                    },
+                  ),
+                ],
               ),
-            ],
-          ),
+            );
+          },
         );
       },
     );

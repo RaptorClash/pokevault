@@ -23,6 +23,7 @@ import 'package:pokevault/services/database_service.dart';
 import 'package:pokevault/services/scanner_core/engine/ocr_detection_engine.dart';
 import 'package:pokevault/services/scanner_core/engine/pokemon_fuzzy_matcher.dart';
 import 'package:pokevault/services/scanner_core/scanner_coordinator.dart';
+import 'package:pokevault/services/desktop_tracker/desktop_tracker_service.dart';
 import 'package:pokevault/services/shiny_auto_counter/shiny_auto_counter_config.dart';
 import 'package:pokevault/services/shiny_auto_counter/shiny_auto_counter_service.dart';
 
@@ -422,6 +423,195 @@ void main() {
       expect(saved!.minResetCooldownMs, equals(12000));
       expect(saved.detectionMode, equals(ShinyHuntDetectionMode.screenTransitionOnly));
       expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('SetupSheet preserves running session counts on save, and perHuntOverride does not auto-start inactive session', (tester) async {
+      final hunt = makeHunt();
+      await huntProvider.createHunt(hunt);
+      final coordinator = makeCoordinator();
+      final service = ShinyAutoCounterService.forTesting();
+
+      DesktopTrackerService.instance.startTracking(coordinator: coordinator);
+      addTearDown(() => DesktopTrackerService.instance.stopTracking());
+
+      service.startSession(
+        huntProvider: huntProvider,
+        coordinator: coordinator,
+        defaultHuntId: hunt.id,
+        slotIds: const [1],
+        settings: const ShinyAutoCounterSettings(
+          detectionMode: ShinyHuntDetectionMode.softReset,
+        ),
+      );
+      await coordinator.processFrameText('Ein wildes Mewtu erscheint!', instanceIndex: 1);
+      await service.waitForIdle();
+      expect(service.slotStatesNotifier.value.first.sessionCount, equals(1));
+
+      // Open SetupSheet while running and toggle sound -> must preserve sessionCount == 1!
+      await tester.pumpWidget(
+        MultiProvider(
+          providers: [
+            ChangeNotifierProvider<ShinyHuntProvider>.value(value: huntProvider),
+            ChangeNotifierProvider<DexProvider>.value(value: dexProvider),
+          ],
+          child: MaterialApp(
+            home: Scaffold(
+              body: ShinyAutoCounterSetupSheet(
+                hunt: hunt,
+                service: service,
+                showSourceLauncher: false,
+              ),
+            ),
+          ),
+        ),
+      );
+
+      await tester.ensureVisible(find.byKey(const Key('setup_toggle_sound_count')));
+      await tester.tap(find.byKey(const Key('setup_toggle_sound_count')));
+      await tester.pump();
+      await tester.ensureVisible(find.byKey(const Key('setup_start_btn')));
+      await tester.tap(find.byKey(const Key('setup_start_btn')));
+      await tester.pumpAndSettle();
+
+      expect(service.settings.playSoundOnCount, isTrue);
+      expect(service.slotStatesNotifier.value.first.sessionCount, equals(1));
+
+      // Now stop session and open perHuntOverride: true while DesktopTrackerService is active -> Save must NOT start session!
+      await service.stopSession();
+      await tester.pumpWidget(
+        MultiProvider(
+          providers: [
+            ChangeNotifierProvider<ShinyHuntProvider>.value(value: huntProvider),
+            ChangeNotifierProvider<DexProvider>.value(value: dexProvider),
+          ],
+          child: MaterialApp(
+            home: Scaffold(
+              body: ShinyAutoCounterSetupSheet(
+                hunt: hunt,
+                service: service,
+                perHuntOverride: true,
+              ),
+            ),
+          ),
+        ),
+      );
+
+      await tester.ensureVisible(find.byKey(const Key('setup_start_btn')));
+      await tester.tap(find.byKey(const Key('setup_start_btn')));
+      await tester.pumpAndSettle();
+      expect(service.isRunning, isFalse);
+
+      await coordinator.dispose();
+    });
+
+    testWidgets('SetupSheet shows dynamic inline explanation box and Luma threshold sliders', (tester) async {
+      final hunt = makeHunt();
+      await huntProvider.createHunt(hunt);
+      final service = ShinyAutoCounterService.forTesting();
+
+      await tester.pumpWidget(
+        MultiProvider(
+          providers: [
+            ChangeNotifierProvider<ShinyHuntProvider>.value(value: huntProvider),
+            ChangeNotifierProvider<DexProvider>.value(value: dexProvider),
+          ],
+          child: MaterialApp(
+            home: Scaffold(
+              body: ShinyAutoCounterSetupSheet(
+                hunt: hunt,
+                service: service,
+                showSourceLauncher: false,
+              ),
+            ),
+          ),
+        ),
+      );
+
+      expect(find.byKey(const Key('setup_mode_info_box')), findsOneWidget);
+      final initialText = tester.widget<Text>(
+        find.descendant(
+          of: find.byKey(const Key('setup_mode_info_box')),
+          matching: find.byType(Text),
+        ),
+      ).data;
+
+      await tester.tap(find.byKey(const Key('setup_mode_eggHatch')));
+      await tester.pump();
+      final eggText = tester.widget<Text>(
+        find.descendant(
+          of: find.byKey(const Key('setup_mode_info_box')),
+          matching: find.byType(Text),
+        ),
+      ).data;
+      expect(eggText, isNot(equals(initialText)));
+
+      await tester.ensureVisible(find.byKey(const Key('setup_timing_expansion')));
+      await tester.tap(find.byKey(const Key('setup_timing_expansion')));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('setup_black_threshold_slider')), findsOneWidget);
+      expect(find.byKey(const Key('setup_white_threshold_slider')), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('ShinyAutoCounterBar displays help legend, target hunt switch chip, and pending banner', (tester) async {
+      await tester.binding.setSurfaceSize(const Size(320, 480));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      final huntA = makeHunt();
+      final huntB = ShinyHunt(
+        id: 'hunt-charmander',
+        title: 'Glumanda',
+        pokemonId: 4,
+        pokemonName: 'Glumanda',
+        game: 'SoulSilver',
+        generation: 4.0,
+        method: 'Masuda',
+        baseOdds: 1365.0,
+        createdAt: huntA.createdAt,
+        updatedAt: huntA.updatedAt,
+      );
+      await huntProvider.createHunt(huntA);
+      await huntProvider.createHunt(huntB);
+
+      final service = ShinyAutoCounterService.forTesting();
+      service.armPendingSession(
+        huntProvider: huntProvider,
+        defaultHuntId: huntA.id,
+        settings: const ShinyAutoCounterSettings(),
+      );
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: ShinyAutoCounterBar(
+              service: service,
+              currentHuntId: huntB.id,
+              resolveHuntName: (id) => huntProvider.getHuntById(id)?.title,
+            ),
+          ),
+        ),
+      );
+      expect(find.byKey(const Key('shiny_auto_pending_banner')), findsOneWidget);
+
+      final coordinator = makeCoordinator();
+      service.attachIfPending(coordinator: coordinator);
+      await tester.pump();
+
+      expect(find.byKey(const Key('shiny_auto_pending_banner')), findsNothing);
+      expect(find.byKey(const Key('shiny_auto_switch_hunt_btn')), findsOneWidget);
+      await tester.tap(find.byKey(const Key('shiny_auto_switch_hunt_btn')));
+      await tester.pump();
+      expect(service.defaultHuntId, equals(huntB.id));
+      expect(find.byKey(const Key('shiny_auto_switch_hunt_btn')), findsNothing);
+
+      // Help button opens phase & gesture legend dialog
+      await tester.tap(find.byKey(const Key('shiny_auto_help_btn')));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('shiny_auto_help_dialog')), findsOneWidget);
+      expect(tester.takeException(), isNull);
+
+      await service.stopSession();
+      await coordinator.dispose();
     });
   });
 }

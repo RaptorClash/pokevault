@@ -131,7 +131,53 @@ void main() {
       expect(nextCount.delta, equals(1));
     });
 
-    test('Egg Hatch cycle: Oh? + hatched message counts strictly once per egg', () {
+    test('Default settings disable white screen reset to prevent false triggers on dialogue boxes', () {
+      const defaults = ShinyAutoCounterSettings();
+      expect(defaults.enableBlackScreenReset, isTrue);
+      expect(defaults.enableWhiteScreenReset, isFalse);
+      expect(defaults.blackLumaThreshold, equals(18));
+      expect(defaults.whiteLumaThreshold, equals(240));
+    });
+
+    test('Egg Hatch cycle (allPokemon): Oh? + hatched message counts strictly once per egg and always re-arms', () {
+      var clock = Duration.zero;
+      final machine = ShinySlotStateMachine(
+        slotId: 1,
+        colorHex: 0xFFA855F7,
+        targetPokemonId: 4,
+        targetPokemonName: 'Glumanda',
+        settings: const ShinyAutoCounterSettings(
+          detectionMode: ShinyHuntDetectionMode.eggHatch,
+          matchFilter: ShinyMatchFilter.allPokemon,
+          minResetCooldownMs: 1200,
+        ),
+        elapsedClock: () => clock,
+      );
+
+      // "Oh?" starts hatch cycle and counts once in allPokemon filter
+      final ohDecision = machine.onEggHatchCue(EggHatchCue.ohPrompt);
+      expect(ohDecision.shouldIncrement, isTrue);
+      expect(ohDecision.delta, equals(1));
+      expect(machine.phase, equals(ShinySlotPhase.counted));
+
+      // Resulting eggHatched text for the same egg must NOT double-count (even if a different species hatches)
+      clock += const Duration(milliseconds: 1500);
+      final hatchedEvent = ScannerEvent(
+        type: ScannerEventType.eggHatched,
+        pokemonId: 19,
+        rawText: 'Rattfratz ist aus dem Ei geschlüpft!',
+        matchedName: 'Rattfratz',
+        timestamp: DateTime(2026, 1, 1),
+      );
+      expect(machine.onScannerEvent(hatchedEvent).shouldIncrement, isFalse);
+      expect(machine.phase, equals(ShinySlotPhase.rearmPending));
+
+      // After cooldown, slot re-arms cleanly and can count the next egg
+      clock += const Duration(milliseconds: 1300);
+      expect(machine.onEggHatchCue(EggHatchCue.ohPrompt).shouldIncrement, isTrue);
+    });
+
+    test('Egg Hatch (targetPokemonOnly): Oh? does NOT count early; only matching eggHatched increments', () {
       var clock = Duration.zero;
       final machine = ShinySlotStateMachine(
         slotId: 1,
@@ -146,35 +192,35 @@ void main() {
         elapsedClock: () => clock,
       );
 
-      // "Oh?" starts hatch cycle and counts once
+      // Oh? waits for target species instead of incrementing early
       final ohDecision = machine.onEggHatchCue(EggHatchCue.ohPrompt);
-      expect(ohDecision.shouldIncrement, isTrue);
-      expect(ohDecision.delta, equals(1));
-      expect(machine.phase, equals(ShinySlotPhase.counted));
+      expect(ohDecision.shouldIncrement, isFalse);
+      expect(machine.phase, equals(ShinySlotPhase.armed));
 
-      // Resulting eggHatched text for the same egg must NOT double-count
-      clock += const Duration(milliseconds: 1500);
-      final hatchedEvent = ScannerEvent(
+      // Wrong species hatches -> ignored, remains armed
+      final wrongHatched = ScannerEvent(
+        type: ScannerEventType.eggHatched,
+        pokemonId: 19,
+        rawText: 'Rattfratz ist aus dem Ei geschlüpft!',
+        matchedName: 'Rattfratz',
+        timestamp: DateTime(2026, 1, 1),
+      );
+      expect(machine.onScannerEvent(wrongHatched).shouldIncrement, isFalse);
+      expect(machine.phase, equals(ShinySlotPhase.armed));
+      expect(machine.sessionCount, equals(0));
+
+      // Target species hatches -> counts +1 and enters rearmPending
+      final targetHatched = ScannerEvent(
         type: ScannerEventType.eggHatched,
         pokemonId: 4,
         rawText: 'Glumanda ist aus dem Ei geschlüpft!',
         matchedName: 'Glumanda',
         timestamp: DateTime(2026, 1, 1),
       );
-      expect(machine.onScannerEvent(hatchedEvent).shouldIncrement, isFalse);
-
-      // Black screen / transition after hatch re-arms for next egg
-      machine.onFrameTransition(
-        FrameTransitionEvent(
-          slotId: 1,
-          type: FrameTransitionType.blackScreenEnded,
-          durationMs: 450,
-          averageLuma: 4,
-          timestamp: DateTime(2026, 1, 1),
-        ),
-      );
-      clock += const Duration(milliseconds: 1300);
-      expect(machine.onScannerEvent(hatchedEvent).shouldIncrement, isTrue);
+      final targetDecision = machine.onScannerEvent(targetHatched);
+      expect(targetDecision.shouldIncrement, isTrue);
+      expect(targetDecision.delta, equals(1));
+      expect(machine.phase, equals(ShinySlotPhase.rearmPending));
     });
 
     test('Overworld screenTransitionOnly mode counts valid black screen transitions', () {
@@ -303,7 +349,7 @@ void main() {
       expect(machine.onScannerEvent(_encounter(pokemonId: 150, name: 'Mewtu')).shouldIncrement, isTrue);
     });
 
-    test('Egg Hatch: Oh? counts +1 and subsequent shiny eggHatched triggers shiny alert + pause without double counting', () {
+    test('Egg Hatch (allPokemon): Oh? counts +1 and subsequent shiny eggHatched triggers shiny alert + pause without double counting', () {
       var clock = Duration.zero;
       final machine = ShinySlotStateMachine(
         slotId: 1,
@@ -312,7 +358,7 @@ void main() {
         targetPokemonName: 'Glumanda',
         settings: const ShinyAutoCounterSettings(
           detectionMode: ShinyHuntDetectionMode.eggHatch,
-          matchFilter: ShinyMatchFilter.targetPokemonOnly,
+          matchFilter: ShinyMatchFilter.allPokemon,
           autoPauseSlotOnShiny: true,
           minResetCooldownMs: 1200,
         ),
@@ -342,7 +388,7 @@ void main() {
       expect(machine.sessionCount, equals(1));
     });
 
-    test('Egg Hatch: non-shiny eggHatched (with or without Oh?) auto-rearms after minResetCooldownMs without black screen', () {
+    test('Egg Hatch (allPokemon): non-shiny eggHatched (with or without Oh?) auto-rearms after minResetCooldownMs without black screen', () {
       var clock = Duration.zero;
       final machine = ShinySlotStateMachine(
         slotId: 1,
@@ -351,7 +397,7 @@ void main() {
         targetPokemonName: 'Glumanda',
         settings: const ShinyAutoCounterSettings(
           detectionMode: ShinyHuntDetectionMode.eggHatch,
-          matchFilter: ShinyMatchFilter.targetPokemonOnly,
+          matchFilter: ShinyMatchFilter.allPokemon,
           minResetCooldownMs: 1200,
         ),
         elapsedClock: () => clock,
@@ -380,6 +426,39 @@ void main() {
 
       clock += const Duration(milliseconds: 1300);
       expect(machine.onEggHatchCue(EggHatchCue.ohPrompt).shouldIncrement, isTrue);
+    });
+
+    test('checkRearmReady and remainingRearmDuration track cooldown progress accurately', () {
+      var clock = Duration.zero;
+      final machine = ShinySlotStateMachine(
+        slotId: 1,
+        colorHex: 0xFFA855F7,
+        targetPokemonId: 150,
+        targetPokemonName: 'Mewtu',
+        settings: const ShinyAutoCounterSettings(
+          detectionMode: ShinyHuntDetectionMode.softReset,
+          minResetCooldownMs: 1000,
+        ),
+        elapsedClock: () => clock,
+      );
+
+      expect(machine.remainingRearmDuration, isNull);
+      expect(machine.checkRearmReady(), isFalse);
+
+      machine.onScannerEvent(_encounter(pokemonId: 150, name: 'Mewtu'));
+      machine.onResetCue(ResetCue.titleOrContinue);
+      expect(machine.phase, equals(ShinySlotPhase.rearmPending));
+      expect(machine.remainingRearmDuration, equals(const Duration(milliseconds: 1000)));
+
+      clock += const Duration(milliseconds: 400);
+      expect(machine.remainingRearmDuration, equals(const Duration(milliseconds: 600)));
+      expect(machine.checkRearmReady(), isFalse);
+      expect(machine.phase, equals(ShinySlotPhase.rearmPending));
+
+      clock += const Duration(milliseconds: 600);
+      expect(machine.remainingRearmDuration, equals(Duration.zero));
+      expect(machine.checkRearmReady(), isTrue);
+      expect(machine.phase, equals(ShinySlotPhase.armed));
     });
 
     test('Literal custom trigger without {pokemon} works in targetPokemonOnly and respects per-hunt scope', () {

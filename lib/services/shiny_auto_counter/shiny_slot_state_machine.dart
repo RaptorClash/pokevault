@@ -164,6 +164,23 @@ class ShinySlotStateMachine {
     forceRearm();
   }
 
+  Duration? get remainingRearmDuration {
+    if (_phase != ShinySlotPhase.rearmPending) return null;
+    final started = _rearmStartedAt;
+    if (started == null) return Duration.zero;
+    final cooldown = Duration(milliseconds: settings.minResetCooldownMs);
+    final elapsed = _now - started;
+    if (elapsed >= cooldown) return Duration.zero;
+    return cooldown - elapsed;
+  }
+
+  /// Promotes `rearmPending` -> `armed` when cooldown has elapsed; returns true if promoted.
+  bool checkRearmReady() {
+    if (_phase != ShinySlotPhase.rearmPending) return false;
+    _promoteRearmIfReady();
+    return _phase == ShinySlotPhase.armed;
+  }
+
   void _promoteRearmIfReady() {
     if (_phase != ShinySlotPhase.rearmPending) return;
     final started = _rearmStartedAt;
@@ -254,18 +271,17 @@ class ShinySlotStateMachine {
 
     _promoteRearmIfReady();
 
-    // Egg-hatch follow-up after "Oh?": allow shiny alert / pause and auto-rearm without double-counting.
+    // Egg-hatch follow-up after "Oh?": allow shiny alert / pause and guaranteed auto-rearm without double-counting.
     if (settings.detectionMode == ShinyHuntDetectionMode.eggHatch &&
         event.type == ScannerEventType.eggHatched &&
         _eggOhPromptCounted &&
-        _phase == ShinySlotPhase.counted &&
-        _matchesTarget(event)) {
+        _phase == ShinySlotPhase.counted) {
       _eggOhPromptCounted = false;
       _lastEventAt = DateTime.now();
       if (event.matchedName.isNotEmpty) {
         _lastTriggerLabel = event.matchedName;
       }
-      if (event.isShiny) {
+      if (event.isShiny && _matchesTarget(event)) {
         if (settings.autoPauseSlotOnShiny) {
           _phase = ShinySlotPhase.pausedByShiny;
         } else {
@@ -333,6 +349,9 @@ class ShinySlotStateMachine {
     }
     _promoteRearmIfReady();
     if (cue == EggHatchCue.ohPrompt) {
+      if (settings.matchFilter == ShinyMatchFilter.targetPokemonOnly) {
+        return const ShinyCountDecision.none('egg_oh_waiting_for_target');
+      }
       if (_phase != ShinySlotPhase.armed) {
         return const ShinyCountDecision.none('slot_not_armed');
       }

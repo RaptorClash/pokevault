@@ -43,6 +43,28 @@ class _MultiHuntDashboardScreenState extends State<MultiHuntDashboardScreen> {
     );
   }
 
+  void _showHelpDialog(BuildContext context) {
+    showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        key: const Key('multi_hunt_help_dialog'),
+        title: Text(t.multi_hunt_help_title),
+        content: SingleChildScrollView(
+          child: Text(
+            t.multi_hunt_help_body,
+            style: const TextStyle(fontSize: 13, height: 1.45),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final huntProvider = Provider.of<ShinyHuntProvider>(context);
@@ -50,6 +72,12 @@ class _MultiHuntDashboardScreenState extends State<MultiHuntDashboardScreen> {
     final pausedHunts = huntProvider.pausedHunts;
     final hasAnyVisible =
         activeHunts.isNotEmpty || (_showPaused && pausedHunts.isNotEmpty);
+
+    String? resolveHuntName(String id) {
+      final h = huntProvider.getHuntById(id);
+      if (h == null) return null;
+      return h.title.isNotEmpty ? h.title : h.pokemonName;
+    }
 
     return Scaffold(
       appBar: AppBar(
@@ -72,6 +100,12 @@ class _MultiHuntDashboardScreenState extends State<MultiHuntDashboardScreen> {
               onPressed: () => setState(() => _showPaused = !_showPaused),
             ),
           IconButton(
+            key: const Key('multi_hunt_help_btn'),
+            icon: const Icon(Icons.help_outline_rounded),
+            tooltip: t.multi_hunt_help_tooltip,
+            onPressed: () => _showHelpDialog(context),
+          ),
+          IconButton(
             key: const Key('multi_hunt_add_hunt_btn'),
             icon: const Icon(Icons.add_circle_outline),
             tooltip: t.multi_hunt_add_hunt,
@@ -91,80 +125,82 @@ class _MultiHuntDashboardScreenState extends State<MultiHuntDashboardScreen> {
         ],
       ),
       body: SafeArea(
-        child: !hasAnyVisible
-            ? Center(
-                key: const Key('multi_hunt_empty_state'),
-                child: Padding(
-                  padding: const EdgeInsets.all(24),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(
-                        Icons.grid_view_rounded,
-                        size: 52,
-                        color: Colors.grey,
-                      ),
-                      const SizedBox(height: 12),
-                      Text(
-                        t.multi_hunt_empty_title,
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      Text(
-                        t.multi_hunt_empty_desc,
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(
-                          fontSize: 13,
-                          color: Colors.grey,
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      Wrap(
-                        spacing: 10,
-                        runSpacing: 8,
-                        alignment: WrapAlignment.center,
-                        children: [
-                          FilledButton.icon(
-                            icon: const Icon(Icons.add),
-                            label: Text(t.multi_hunt_add_hunt),
-                            onPressed: _openCreateHuntDialog,
-                          ),
-                          if (pausedHunts.isNotEmpty)
-                            OutlinedButton.icon(
-                              icon: const Icon(Icons.pause_circle_outline),
-                              label: Text(
-                                t.multi_hunt_show_paused.replaceAll(
-                                  '{count}',
-                                  pausedHunts.length.toString(),
-                                ),
-                              ),
-                              onPressed: () =>
-                                  setState(() => _showPaused = true),
-                            ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              )
-            : Column(
-                children: [
-                  if (activeHunts.isNotEmpty)
-                    ShinyAutoCounterBar(
-                      service: _service,
-                      compact: true,
-                      onOpenSetup: () => ShinyAutoCounterSetupSheet.show(
+        child: Column(
+          children: [
+            ShinyAutoCounterBar(
+              service: _service,
+              compact: true,
+              resolveHuntName: resolveHuntName,
+              onOpenSetup: activeHunts.isNotEmpty
+                  ? () => ShinyAutoCounterSetupSheet.show(
                         context,
                         hunt: activeHunts.first,
                         service: _service,
+                      )
+                  : null,
+            ),
+            Expanded(
+              child: !hasAnyVisible
+                  ? Center(
+                      key: const Key('multi_hunt_empty_state'),
+                      child: Padding(
+                        padding: const EdgeInsets.all(24),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(
+                              Icons.grid_view_rounded,
+                              size: 52,
+                              color: Colors.grey,
+                            ),
+                            const SizedBox(height: 12),
+                            Text(
+                              t.multi_hunt_empty_title,
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(height: 6),
+                            Text(
+                              t.multi_hunt_empty_desc,
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(
+                                fontSize: 13,
+                                color: Colors.grey,
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            Wrap(
+                              spacing: 10,
+                              runSpacing: 8,
+                              alignment: WrapAlignment.center,
+                              children: [
+                                FilledButton.icon(
+                                  icon: const Icon(Icons.add),
+                                  label: Text(t.multi_hunt_add_hunt),
+                                  onPressed: _openCreateHuntDialog,
+                                ),
+                                if (pausedHunts.isNotEmpty)
+                                  OutlinedButton.icon(
+                                    icon: const Icon(Icons.pause_circle_outline),
+                                    label: Text(
+                                      t.multi_hunt_show_paused.replaceAll(
+                                        '{count}',
+                                        pausedHunts.length.toString(),
+                                      ),
+                                    ),
+                                    onPressed: () =>
+                                        setState(() => _showPaused = true),
+                                  ),
+                              ],
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                  Expanded(
-                    child: LayoutBuilder(
+                    )
+                  : LayoutBuilder(
                       builder: (context, constraints) {
                         final w = constraints.maxWidth;
                         final cols = w >= 1100 ? 3 : (w >= 650 ? 2 : 1);
@@ -238,9 +274,9 @@ class _MultiHuntDashboardScreenState extends State<MultiHuntDashboardScreen> {
                         );
                       },
                     ),
-                  ),
-                ],
-              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -256,6 +292,16 @@ class _MultiHuntCard extends StatelessWidget {
     required this.huntProvider,
     required this.service,
   });
+
+  String _slotPhaseLabel(ShinySlotPhase phase) {
+    return switch (phase) {
+      ShinySlotPhase.armed => t.shiny_auto_slot_armed,
+      ShinySlotPhase.counted => t.shiny_auto_slot_counted,
+      ShinySlotPhase.rearmPending => t.shiny_auto_slot_rearm,
+      ShinySlotPhase.pausedByShiny => t.shiny_auto_slot_shiny,
+      ShinySlotPhase.pausedManual => t.shiny_auto_slot_paused,
+    };
+  }
 
   String _shortRuleSummary(ShinyAutoCounterSettings rule) {
     final modeText = switch (rule.detectionMode) {
@@ -423,21 +469,33 @@ class _MultiHuntCard extends StatelessWidget {
                           ),
                           ...assigned.map((s) {
                             final color = Color(s.colorHex);
-                            return Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 7,
-                                vertical: 2,
-                              ),
-                              decoration: BoxDecoration(
-                                color: color.withValues(alpha: 0.16),
-                                borderRadius: BorderRadius.circular(10),
-                                border: Border.all(color: color),
-                              ),
-                              child: Text(
-                                '#${s.slotId}',
-                                style: const TextStyle(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.bold,
+                            final isShiny =
+                                s.phase == ShinySlotPhase.pausedByShiny;
+                            return InkWell(
+                              borderRadius: BorderRadius.circular(10),
+                              onTap: () => service.togglePauseSlot(s.slotId),
+                              onLongPress: () => service.rearmSlot(s.slotId),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 7,
+                                  vertical: 2,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: isShiny
+                                      ? Colors.amber.withValues(alpha: 0.25)
+                                      : color.withValues(alpha: 0.16),
+                                  borderRadius: BorderRadius.circular(10),
+                                  border: Border.all(
+                                    color: isShiny ? Colors.amber : color,
+                                  ),
+                                ),
+                                child: Text(
+                                  '#${s.slotId} · ${_slotPhaseLabel(s.phase)}',
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.bold,
+                                    color: isShiny ? Colors.amber.shade700 : null,
+                                  ),
                                 ),
                               ),
                             );

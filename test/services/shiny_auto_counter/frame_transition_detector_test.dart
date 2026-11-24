@@ -197,5 +197,71 @@ void main() {
       expect(ev, isNotNull);
       expect(ev!.type, equals(FrameTransitionType.blackScreenEnded));
     });
+
+    test('rejects white dialogue box with dark text (high luminance stdDev) while accepting uniform white frame', () {
+      var clock = Duration.zero;
+      final detector = FrameTransitionDetector(
+        minTransitionDuration: const Duration(milliseconds: 300),
+        elapsedClock: () => clock,
+      );
+
+      final normal = _solidBgraFrame(width: 20, height: 20, b: 120, g: 120, r: 120);
+      // 85% white (255) + 15% black text pixels (0) -> avgLuma ~217..242 depending on ratio, high stdDev
+      // Use 92% white + 8% black -> avgLuma ~234.6 (>= whiteThreshold - hysteresis / or let's use 95% white + 5% black -> avgLuma = 242.25 >= 240, stdDev ~55.6 > 22)
+      const w = 20;
+      const h = 20;
+      final dialogBytes = Uint8List(w * h * 4);
+      for (int i = 0; i < w * h; i++) {
+        final isText = (i % 20) == 0; // 5% black text pixels -> avgLuma ~242.25, stdDev ~55.6
+        final v = isText ? 0 : 255;
+        final idx = i * 4;
+        dialogBytes[idx] = v;
+        dialogBytes[idx + 1] = v;
+        dialogBytes[idx + 2] = v;
+        dialogBytes[idx + 3] = 255;
+      }
+      final whiteDialogueBox = CapturedFrame(
+        width: w,
+        height: h,
+        bytes: dialogBytes,
+        pixelFormat: 'bgra8888',
+      );
+      final uniformWhite = _solidBgraFrame(width: 20, height: 20, b: 250, g: 250, r: 250);
+
+      expect(detector.analyzeFrame(normal, slotId: 1), isNull);
+      clock += const Duration(milliseconds: 100);
+      expect(detector.analyzeFrame(whiteDialogueBox, slotId: 1), isNull);
+      clock += const Duration(milliseconds: 400);
+      // Returning to normal after a non-uniform white dialogue box must NOT emit whiteScreenEnded
+      expect(detector.analyzeFrame(normal, slotId: 1), isNull);
+
+      // Uniform white frame DOES emit whiteScreenEnded
+      clock += const Duration(milliseconds: 100);
+      expect(detector.analyzeFrame(uniformWhite, slotId: 1), isNull);
+      clock += const Duration(milliseconds: 400);
+      final ev = detector.analyzeFrame(normal, slotId: 1);
+      expect(ev, isNotNull);
+      expect(ev!.type, equals(FrameTransitionType.whiteScreenEnded));
+    });
+
+    test('updateThresholds allows configuring camera-friendly black/white thresholds dynamically', () {
+      var clock = Duration.zero;
+      final detector = FrameTransitionDetector(
+        minTransitionDuration: const Duration(milliseconds: 300),
+        elapsedClock: () => clock,
+      );
+      detector.updateThresholds(blackThreshold: 45, whiteThreshold: 210);
+
+      final normal = _solidBgraFrame(width: 20, height: 20, b: 120, g: 120, r: 120);
+      final dimDark = _solidBgraFrame(width: 20, height: 20, b: 35, g: 35, r: 35);
+
+      expect(detector.analyzeFrame(normal, slotId: 1), isNull);
+      clock += const Duration(milliseconds: 50);
+      expect(detector.analyzeFrame(dimDark, slotId: 1), isNull);
+      clock += const Duration(milliseconds: 350);
+      final ev = detector.analyzeFrame(normal, slotId: 1);
+      expect(ev, isNotNull);
+      expect(ev!.type, equals(FrameTransitionType.blackScreenEnded));
+    });
   });
 }

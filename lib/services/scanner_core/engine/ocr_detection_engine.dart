@@ -81,12 +81,12 @@ class OcrDetectionEngine {
   );
 
   static final RegExp _eggPromptCuePattern = RegExp(
-    r'(?:^\s*(?:oh\?|nanu\?!|huh\?|¿eh\?|eh\?|おや？|어라\?|咦？)\s*$|\b(?:oh\?|nanu\?!|huh\?)\b|おや？|어라\?|咦？)',
+    r'(?:^|[\s"„“])(?:oh\?|nanu\?!|huh\?|¿eh\?|eh\?|おや？|어라\?|咦？)(?:$|[\s.!?"„“])',
     caseSensitive: false,
   );
 
   static final RegExp _softResetCuePattern = RegExp(
-    r'(?:\b(?:weiter|continue|press\s+start|neues\s+spiel|new\s+game|spielstand|continuer|continuar|continua)\b|つづきから|さいしょから|이어하기|继续游戏|繼續遊戲)',
+    r'^\s*(?:weiter|continue|continuer|continuar|continua|press\s+start|neues\s+spiel|new\s+game|spielstand|つづきから|さいしょから|이어하기|继续游戏|繼續遊戲)\s*[!:.▶►]*\s*$',
     caseSensitive: false,
   );
 
@@ -608,8 +608,11 @@ class OcrDetectionEngine {
         return EggHatchCue.hatched;
       }
     }
-    if (_eggPromptCuePattern.hasMatch(trimmed)) {
-      return EggHatchCue.ohPrompt;
+    for (final line in trimmed.split(RegExp(r'[\r\n]+'))) {
+      final lineTrimmed = line.trim();
+      if (lineTrimmed.isNotEmpty && _eggPromptCuePattern.hasMatch(lineTrimmed)) {
+        return EggHatchCue.ohPrompt;
+      }
     }
     return EggHatchCue.none;
   }
@@ -626,8 +629,11 @@ class OcrDetectionEngine {
         return ResetCue.customReset;
       }
     }
-    if (_softResetCuePattern.hasMatch(trimmed)) {
-      return ResetCue.titleOrContinue;
+    for (final line in trimmed.split(RegExp(r'[\r\n]+'))) {
+      final lineTrimmed = line.trim();
+      if (lineTrimmed.isNotEmpty && _softResetCuePattern.hasMatch(lineTrimmed)) {
+        return ResetCue.titleOrContinue;
+      }
     }
     return ResetCue.none;
   }

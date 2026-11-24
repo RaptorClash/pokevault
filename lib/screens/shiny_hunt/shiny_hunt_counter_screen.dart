@@ -957,10 +957,16 @@ class _ShinyHuntCounterScreenState extends State<ShinyHuntCounterScreen> {
               // Phasen-Historie
               _buildPhaseHistory(hunt, isDark),
 
-              // Live Auto-Counter Status Bar (when active)
+              // Live Auto-Counter Status Bar (when active or pending)
               if (!hunt.isCompleted)
                 ShinyAutoCounterBar(
                   service: ShinyAutoCounterService.instance,
+                  currentHuntId: hunt.id,
+                  resolveHuntName: (id) {
+                    final h = huntProvider.getHuntById(id);
+                    if (h == null) return null;
+                    return h.title.isNotEmpty ? h.title : h.pokemonName;
+                  },
                   onOpenSetup: () => ShinyAutoCounterSetupSheet.show(
                     context,
                     hunt: hunt,

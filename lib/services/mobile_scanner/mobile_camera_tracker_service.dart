@@ -99,6 +99,28 @@ class MobileCameraTrackerService {
 
     isTrackingNotifier.value = true;
     isPausedNotifier.value = false;
+
+    final multiRegions = cameraSource.regions
+        .where((r) => r.enabled && r.slotId != null)
+        .toList();
+    final hasPrimaryScan = cameraSource.scanMode == MobileCameraScanMode.autoFull ||
+        cameraSource.regions.any(
+          (r) => r.enabled && r.role == CameraZoneRole.scan && r.slotId == null,
+        );
+    final slotIdSet = <int>{
+      if (hasPrimaryScan || multiRegions.isEmpty) 1,
+      ...multiRegions.map((r) => r.slotId!),
+    };
+    final slotIds = slotIdSet.toList()..sort();
+    final slotColors = {
+      for (final r in multiRegions) r.slotId!: r.colorHex,
+    };
+    ShinyAutoCounterService.instance.attachIfPending(
+      coordinator: coordinator,
+      source: cameraSource,
+      slotIds: slotIds,
+      slotColorOverrides: slotColors,
+    );
   }
 
   void attachPipCallbacks({

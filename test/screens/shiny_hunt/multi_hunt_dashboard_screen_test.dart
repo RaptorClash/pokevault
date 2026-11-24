@@ -359,5 +359,48 @@ void main() {
 
       expect(find.byType(MultiHuntDashboardScreen), findsOneWidget);
     });
+
+    testWidgets('keeps ShinyAutoCounterBar visible when all hunts are paused, shows slot phase badges, and opens help dialog', (tester) async {
+      final h1 = await createHunt('h1', 150, 'Mewtu');
+      final coordinator = ScannerCoordinator(
+        engine: OcrDetectionEngine(),
+        matcher: PokemonFuzzyMatcher.withEntries(const [
+          PokemonMatcherEntry(id: 150, name: 'Mewtu', language: 'de'),
+        ]),
+      );
+      final service = ShinyAutoCounterService.forTesting();
+      service.startSession(
+        huntProvider: huntProvider,
+        coordinator: coordinator,
+        defaultHuntId: h1.id,
+        slotIds: const [1],
+      );
+
+      await tester.pumpWidget(
+        wrap(MultiHuntDashboardScreen(autoCounterService: service)),
+      );
+      await tester.pump();
+
+      // Slot chip on card includes phase label (#1 · ...)
+      expect(find.textContaining('#1 · '), findsWidgets);
+
+      // Help dialog opens from AppBar ? button
+      expect(find.byKey(const Key('multi_hunt_help_btn')), findsOneWidget);
+      await tester.tap(find.byKey(const Key('multi_hunt_help_btn')));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+      expect(find.byKey(const Key('multi_hunt_help_dialog')), findsOneWidget);
+      Navigator.of(tester.element(find.byKey(const Key('multi_hunt_help_dialog')))).pop();
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+
+      // Pause the only active hunt -> bar MUST stay visible so session isn't orphaned!
+      await huntProvider.pauseHunt(h1.id);
+      await tester.pump();
+      expect(find.byKey(const Key('shiny_auto_bar')), findsOneWidget);
+
+      await service.stopSession();
+      await coordinator.dispose();
+    });
   });
 }

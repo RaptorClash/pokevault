@@ -33,16 +33,21 @@ void main() {
       }
     });
 
-    test('detects Oh? egg hatch prompt cue without filtering it out', () {
+    test('detects Oh? egg hatch prompt cue without filtering it out, including multiline frames', () {
       expect(engine.detectEggHatchCue('Oh?'), equals(EggHatchCue.ohPrompt));
+      expect(engine.detectEggHatchCue('Oh?\nBox 1'), equals(EggHatchCue.ohPrompt));
+      expect(engine.detectEggHatchCue('Nanu?!\nTeam'), equals(EggHatchCue.ohPrompt));
       expect(engine.detectEggHatchCue('Nanu?!'), equals(EggHatchCue.ohPrompt));
       expect(engine.detectEggHatchCue('Huh?'), equals(EggHatchCue.ohPrompt));
       expect(engine.detectEggHatchCue('Glumanda ist aus dem Ei geschlüpft!'), equals(EggHatchCue.hatched));
       expect(engine.detectEggHatchCue('Wildes Pikachu erscheint!'), equals(EggHatchCue.none));
     });
 
-    test('detects soft reset / title menu cues in multiple languages', () {
+    test('detects soft reset / title menu cues in multiple languages without false-matching normal dialogue', () {
       expect(engine.detectResetCue('Weiter\nNeues Spiel'), equals(ResetCue.titleOrContinue));
+      expect(engine.detectResetCue('  Weiter  \nNeues Spiel'), equals(ResetCue.titleOrContinue));
+      expect(engine.detectResetCue('Weiter'), equals(ResetCue.titleOrContinue));
+      expect(engine.detectResetCue('Continue'), equals(ResetCue.titleOrContinue));
       expect(engine.detectResetCue('CONTINUE\nNEW GAME'), equals(ResetCue.titleOrContinue));
       expect(engine.detectResetCue('PRESS START'), equals(ResetCue.titleOrContinue));
       expect(engine.detectResetCue('つづきから\nさいしょから'), equals(ResetCue.titleOrContinue));
@@ -50,6 +55,9 @@ void main() {
       expect(engine.detectResetCue('继续游戏'), equals(ResetCue.titleOrContinue));
       expect(engine.detectResetCue('繼續遊戲'), equals(ResetCue.titleOrContinue));
       expect(engine.detectResetCue('Wildes Mewtu erscheint!'), equals(ResetCue.none));
+      // Normal dialogue sentences containing "weiter" or "continue" must NOT trigger reset!
+      expect(engine.detectResetCue('Der Kampf geht weiter!'), equals(ResetCue.none));
+      expect(engine.detectResetCue("Let's continue the journey!"), equals(ResetCue.none));
     });
 
     test('supports custom reset/trigger templates without {pokemon} placeholder', () {

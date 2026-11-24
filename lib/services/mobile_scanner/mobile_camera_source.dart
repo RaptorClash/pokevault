@@ -79,6 +79,17 @@ class MobileCameraSource
   }
 
   @override
+  void updateTransitionThresholds({
+    required int blackThreshold,
+    required int whiteThreshold,
+  }) {
+    _transitionDetector.updateThresholds(
+      blackThreshold: blackThreshold,
+      whiteThreshold: whiteThreshold,
+    );
+  }
+
+  @override
   bool get isRunning => _running;
 
   Duration get pollInterval => _pollInterval;
@@ -243,6 +254,14 @@ class MobileCameraSource
     final enabledRegions = _regions.where((r) => r.enabled).toList();
     if (enabledRegions.isEmpty) return;
 
+    String? primaryScanZoneId;
+    for (final r in enabledRegions) {
+      if (r.role == CameraZoneRole.scan && !r.encounterOnly) {
+        primaryScanZoneId = r.id;
+        break;
+      }
+    }
+
     for (final region in enabledRegions) {
       final cropped = CameraFrameProcessor.cropFrameToNormalizedRect(
         uprightFrame,
@@ -259,6 +278,8 @@ class MobileCameraSource
         colorHex: region.colorHex,
         encounterOnly: region.encounterOnly,
         bypassHash: bypassHash,
+        trackTransition: region.role == CameraZoneRole.multiInstance ||
+            region.id == primaryScanZoneId,
       );
     }
   }
@@ -272,8 +293,9 @@ class MobileCameraSource
     int? colorHex,
     bool encounterOnly = false,
     required bool bypassHash,
+    bool trackTransition = true,
   }) async {
-    if (role != CameraZoneRole.focus && !encounterOnly) {
+    if (trackTransition && role != CameraZoneRole.focus && !encounterOnly) {
       final transition = _transitionDetector.analyzeFrame(
         croppedFrame,
         slotId: role == CameraZoneRole.multiInstance ? (slotId ?? 2) : 0,

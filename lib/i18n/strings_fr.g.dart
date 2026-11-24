@@ -2392,6 +2392,34 @@ class TranslationsFr extends Translations with BaseTranslations<AppLocale, Trans
 	@override String get multi_hunt_phase_status => 'Phase {phase} · {status}';
 	@override String get multi_hunt_slot_number => 'Emplacement #{slot}';
 	@override String get scanner_event_egg_hatched_badge => 'Éclosion';
+	@override String get shiny_auto_mode_desc_wild => 'Compte lors des rencontres sauvages détectées (+1 ou nombre de hordes). Se réactive automatiquement après la fin du combat (fuite/victoire), la capture ou le passage à l\'écran noir.';
+	@override String get shiny_auto_mode_desc_soft_reset => 'Idéal pour les débutants, légendaires et cadeaux. Compte lors de la détection du Pokémon et se réactive après l’écran titre (« Continuer »/« Continue »), l’écran noir ou votre propre texte de réinitialisation.';
+	@override String get shiny_auto_mode_desc_egg => 'Compte les œufs Masuda/élevage via le texte de l\'éclosion («… est sorti de l\'œuf !») — pour «Tous les Pokémon», également directement à «Oh ?». Se réactive automatiquement par œuf.';
+	@override String get shiny_auto_mode_desc_transition => 'Compte sans reconnaissance de texte en fonction des transitions de chargement d\'image noir/blanc uniformes (par exemple, les réinitialisations de l\'Overworld dans Légendes : Arceus). Respecte le temps de recharge du reset.';
+	@override String get shiny_auto_filter_desc_all => 'Chaque Pokémon reconnu déclenche +1 — idéal pour les rencontres aléatoires et les phases Shiny.';
+	@override String get shiny_auto_filter_desc_target => 'Compte uniquement si le Pokémon cible de ce Hunt est reconnu — évite les comptages incorrects lors des intros des starters ou pour des Pokémon étrangers.';
+	@override String get shiny_auto_horde_desc => 'Augmente lors des rencontres de masse ou doubles de l\'ensemble du nombre d\'ennemis détectés au lieu de +1.';
+	@override String get shiny_auto_black_reset_desc => 'Recommandé pour les réinitialisations douces et les écrans de chargement : une transition uniformément noire rend le slot net après l\'expiration du temps de recharge.';
+	@override String get shiny_auto_white_reset_desc => 'N’activez que si votre jeu est complètement blanc. Pour les jeux avec des boîtes de dialogue blanches, laissez désactivé.';
+	@override String get shiny_auto_pause_on_shiny_desc => 'Arrête immédiatement le slot de scan concerné dès qu\'un signal Shiny est détecté, afin que vous ne manquiez pas le coup par accident.';
+	@override String get shiny_auto_custom_triggers_desc => 'Optionnel pour les ROM hacks ou les fangames : textes personnels qui doivent compter. Utilise {pokemon} comme espace réservé pour le nom du Pokémon.';
+	@override String get shiny_auto_custom_resets_desc => 'Optionnel : mots personnalisés dans le menu ou à l\'écran titre qui réactivent un slot déjà compté.';
+	@override String get shiny_auto_cooldown_desc => 'Temps d\'attente minimum après une réinitialisation/transition avant que le même créneau puisse de nouveau compter (empêche les doubles comptages).';
+	@override String get shiny_auto_transition_duration_desc => 'Combien de temps l\'écran doit rester noir/blanc au minimum pour être considéré comme une véritable transition plutôt qu\'un scintillement.';
+	@override String get shiny_auto_black_threshold_label => 'Seuil d\'image noire (Luma {value})';
+	@override String get shiny_auto_white_threshold_label => 'Seuil de blanc (Luma {value})';
+	@override String get shiny_auto_thresholds_desc => 'Astuce pour les caméras de téléphone portable : en cas de lumière résiduelle dans la pièce, régler le seuil de l\'image noire plus haut (par exemple 35–50) et le seuil de l\'image blanche un peu plus bas.';
+	@override String get shiny_auto_counting_for => 'Compte pour : {name}';
+	@override String get shiny_auto_switch_hunt_btn => 'Se déplacer ici';
+	@override String get shiny_auto_pending_banner => 'Compteur automatique noté – démarre automatiquement dès que le scanner fonctionne.';
+	@override String get shiny_auto_pending_cancel => 'Annuler';
+	@override String get shiny_auto_help_tooltip => 'Afficher l\'explication et les gestes';
+	@override String get shiny_auto_help_title => 'Légende et gestes du compteur automatique';
+	@override String get shiny_auto_help_phases_desc => '• Prêt : L\'emplacement attend la prochaine rencontre.\n• Compté : Coup compté, en attente de la fin du combat/réinitialisation.\n• Réinitialisation… : Temps de recharge avant la réactivation.\n• Brillant ! : Brillant détecté – l\'emplacement est en pause jusqu\'à libération.\n• En pause : Emplacement arrêté manuellement.';
+	@override String get shiny_auto_help_gestures_desc => 'Appuyer sur les jetons de slot en bas = mettre le slot en pause/reprendre.\nMaintenir le jeton de slot enfoncé = réactiver immédiatement le slot manuellement (Re-Arm).';
+	@override String get multi_hunt_help_tooltip => 'Guide de chasse multiple';
+	@override String get multi_hunt_help_title => 'Tableau de bord Multi-Chasse – Voici comment ça fonctionne';
+	@override String get multi_hunt_help_body => '• Chasses parallèles : Gérez plusieurs jeux simultanément côte à côte (+1 / -1 / Pause / Phase).\n• Règles automatiques propres (🎛️) : Chaque carte peut recevoir ses propres règles de détection (par ex. Sauvage, Soft Reset, Éclosion d\'œuf).\n• Emplacements de scan (+ Emplacements de scan) : Assignez les emplacements Multi-Instance détectés (#1, #2, …) aux chasses spécifiques.\n• Chasses en pause : Masquez et affichez à nouveau au besoin via le bouton en haut.';
 }
 
 /// The flat map containing all translations for locale <fr>.
@@ -4763,6 +4791,34 @@ extension on TranslationsFr {
 			'multi_hunt_phase_status' => 'Phase {phase} · {status}',
 			'multi_hunt_slot_number' => 'Emplacement #{slot}',
 			'scanner_event_egg_hatched_badge' => 'Éclosion',
+			'shiny_auto_mode_desc_wild' => 'Compte lors des rencontres sauvages détectées (+1 ou nombre de hordes). Se réactive automatiquement après la fin du combat (fuite/victoire), la capture ou le passage à l\'écran noir.',
+			'shiny_auto_mode_desc_soft_reset' => 'Idéal pour les débutants, légendaires et cadeaux. Compte lors de la détection du Pokémon et se réactive après l’écran titre (« Continuer »/« Continue »), l’écran noir ou votre propre texte de réinitialisation.',
+			'shiny_auto_mode_desc_egg' => 'Compte les œufs Masuda/élevage via le texte de l\'éclosion («… est sorti de l\'œuf !») — pour «Tous les Pokémon», également directement à «Oh ?». Se réactive automatiquement par œuf.',
+			'shiny_auto_mode_desc_transition' => 'Compte sans reconnaissance de texte en fonction des transitions de chargement d\'image noir/blanc uniformes (par exemple, les réinitialisations de l\'Overworld dans Légendes : Arceus). Respecte le temps de recharge du reset.',
+			'shiny_auto_filter_desc_all' => 'Chaque Pokémon reconnu déclenche +1 — idéal pour les rencontres aléatoires et les phases Shiny.',
+			'shiny_auto_filter_desc_target' => 'Compte uniquement si le Pokémon cible de ce Hunt est reconnu — évite les comptages incorrects lors des intros des starters ou pour des Pokémon étrangers.',
+			'shiny_auto_horde_desc' => 'Augmente lors des rencontres de masse ou doubles de l\'ensemble du nombre d\'ennemis détectés au lieu de +1.',
+			'shiny_auto_black_reset_desc' => 'Recommandé pour les réinitialisations douces et les écrans de chargement : une transition uniformément noire rend le slot net après l\'expiration du temps de recharge.',
+			'shiny_auto_white_reset_desc' => 'N’activez que si votre jeu est complètement blanc. Pour les jeux avec des boîtes de dialogue blanches, laissez désactivé.',
+			'shiny_auto_pause_on_shiny_desc' => 'Arrête immédiatement le slot de scan concerné dès qu\'un signal Shiny est détecté, afin que vous ne manquiez pas le coup par accident.',
+			'shiny_auto_custom_triggers_desc' => 'Optionnel pour les ROM hacks ou les fangames : textes personnels qui doivent compter. Utilise {pokemon} comme espace réservé pour le nom du Pokémon.',
+			'shiny_auto_custom_resets_desc' => 'Optionnel : mots personnalisés dans le menu ou à l\'écran titre qui réactivent un slot déjà compté.',
+			'shiny_auto_cooldown_desc' => 'Temps d\'attente minimum après une réinitialisation/transition avant que le même créneau puisse de nouveau compter (empêche les doubles comptages).',
+			'shiny_auto_transition_duration_desc' => 'Combien de temps l\'écran doit rester noir/blanc au minimum pour être considéré comme une véritable transition plutôt qu\'un scintillement.',
+			'shiny_auto_black_threshold_label' => 'Seuil d\'image noire (Luma {value})',
+			'shiny_auto_white_threshold_label' => 'Seuil de blanc (Luma {value})',
+			'shiny_auto_thresholds_desc' => 'Astuce pour les caméras de téléphone portable : en cas de lumière résiduelle dans la pièce, régler le seuil de l\'image noire plus haut (par exemple 35–50) et le seuil de l\'image blanche un peu plus bas.',
+			'shiny_auto_counting_for' => 'Compte pour : {name}',
+			'shiny_auto_switch_hunt_btn' => 'Se déplacer ici',
+			'shiny_auto_pending_banner' => 'Compteur automatique noté – démarre automatiquement dès que le scanner fonctionne.',
+			'shiny_auto_pending_cancel' => 'Annuler',
+			'shiny_auto_help_tooltip' => 'Afficher l\'explication et les gestes',
+			'shiny_auto_help_title' => 'Légende et gestes du compteur automatique',
+			'shiny_auto_help_phases_desc' => '• Prêt : L\'emplacement attend la prochaine rencontre.\n• Compté : Coup compté, en attente de la fin du combat/réinitialisation.\n• Réinitialisation… : Temps de recharge avant la réactivation.\n• Brillant ! : Brillant détecté – l\'emplacement est en pause jusqu\'à libération.\n• En pause : Emplacement arrêté manuellement.',
+			'shiny_auto_help_gestures_desc' => 'Appuyer sur les jetons de slot en bas = mettre le slot en pause/reprendre.\nMaintenir le jeton de slot enfoncé = réactiver immédiatement le slot manuellement (Re-Arm).',
+			'multi_hunt_help_tooltip' => 'Guide de chasse multiple',
+			'multi_hunt_help_title' => 'Tableau de bord Multi-Chasse – Voici comment ça fonctionne',
+			'multi_hunt_help_body' => '• Chasses parallèles : Gérez plusieurs jeux simultanément côte à côte (+1 / -1 / Pause / Phase).\n• Règles automatiques propres (🎛️) : Chaque carte peut recevoir ses propres règles de détection (par ex. Sauvage, Soft Reset, Éclosion d\'œuf).\n• Emplacements de scan (+ Emplacements de scan) : Assignez les emplacements Multi-Instance détectés (#1, #2, …) aux chasses spécifiques.\n• Chasses en pause : Masquez et affichez à nouveau au besoin via le bouton en haut.',
 			_ => null,
 		};
 	}

@@ -286,6 +286,22 @@ class DesktopTrackerService {
       isTrackingNotifier.value = _isTracking;
       isPausedNotifier.value = _isPaused;
     });
+
+    final enabledSlots = windowSource?.multiInstanceSlots
+            .where((s) => s.enabled)
+            .toList() ??
+        const [];
+    final slotIds =
+        enabledSlots.isNotEmpty ? enabledSlots.map((s) => s.id).toList() : [1];
+    final slotColors = {
+      for (final s in enabledSlots) s.id: s.colorHex,
+    };
+    ShinyAutoCounterService.instance.attachIfPending(
+      coordinator: coordinator,
+      source: windowSource,
+      slotIds: slotIds,
+      slotColorOverrides: slotColors,
+    );
   }
 
   void handleScannerEvent(ScannerEvent event) {

@@ -61,6 +61,8 @@ class ShinyAutoCounterSettings {
   final bool enableWhiteScreenReset;
   final int minResetCooldownMs;
   final int transitionMinDurationMs;
+  final int blackLumaThreshold;
+  final int whiteLumaThreshold;
   final List<CustomOcrPattern> customTriggerPatterns;
   final List<String> customResetPatterns;
   final bool playSoundOnCount;
@@ -77,9 +79,11 @@ class ShinyAutoCounterSettings {
     this.matchFilter = ShinyMatchFilter.allPokemon,
     this.useEventEncounterCount = true,
     this.enableBlackScreenReset = true,
-    this.enableWhiteScreenReset = true,
+    this.enableWhiteScreenReset = false,
     this.minResetCooldownMs = 1200,
     this.transitionMinDurationMs = 350,
+    this.blackLumaThreshold = 18,
+    this.whiteLumaThreshold = 240,
     this.customTriggerPatterns = const [],
     this.customResetPatterns = const [],
     this.playSoundOnCount = false,
@@ -137,6 +141,8 @@ class ShinyAutoCounterSettings {
     bool? enableWhiteScreenReset,
     int? minResetCooldownMs,
     int? transitionMinDurationMs,
+    int? blackLumaThreshold,
+    int? whiteLumaThreshold,
     List<CustomOcrPattern>? customTriggerPatterns,
     List<String>? customResetPatterns,
     bool? playSoundOnCount,
@@ -162,6 +168,10 @@ class ShinyAutoCounterSettings {
       transitionMinDurationMs:
           (transitionMinDurationMs ?? this.transitionMinDurationMs)
               .clamp(150, 5000),
+      blackLumaThreshold:
+          (blackLumaThreshold ?? this.blackLumaThreshold).clamp(5, 80),
+      whiteLumaThreshold:
+          (whiteLumaThreshold ?? this.whiteLumaThreshold).clamp(175, 252),
       customTriggerPatterns:
           customTriggerPatterns ?? this.customTriggerPatterns,
       customResetPatterns: customResetPatterns ?? this.customResetPatterns,
@@ -187,6 +197,28 @@ class ShinyAutoCounterSettings {
       }
     }
     return minMs;
+  }
+
+  /// Returns the most sensitive (highest) black luminance threshold across base and per-hunt overrides.
+  int effectiveBlackLumaThreshold() {
+    int maxBlack = blackLumaThreshold;
+    for (final override in huntSettingsOverrides.values) {
+      if (override.blackLumaThreshold > maxBlack) {
+        maxBlack = override.blackLumaThreshold;
+      }
+    }
+    return maxBlack;
+  }
+
+  /// Returns the most sensitive (lowest) white luminance threshold across base and per-hunt overrides.
+  int effectiveWhiteLumaThreshold() {
+    int minWhite = whiteLumaThreshold;
+    for (final override in huntSettingsOverrides.values) {
+      if (override.whiteLumaThreshold < minWhite) {
+        minWhite = override.whiteLumaThreshold;
+      }
+    }
+    return minWhite;
   }
 
   /// Builds combined custom patterns for `OcrDetectionEngine.updateCustomPatterns`,
@@ -245,6 +277,8 @@ class ShinyAutoCounterSettings {
       'enableWhiteScreenReset': enableWhiteScreenReset,
       'minResetCooldownMs': minResetCooldownMs,
       'transitionMinDurationMs': transitionMinDurationMs,
+      'blackLumaThreshold': blackLumaThreshold,
+      'whiteLumaThreshold': whiteLumaThreshold,
       'customTriggerPatterns':
           customTriggerPatterns.map((p) => p.toMap()).toList(),
       'customResetPatterns': customResetPatterns,
@@ -337,13 +371,17 @@ class ShinyAutoCounterSettings {
       matchFilter: filter,
       useEventEncounterCount: map['useEventEncounterCount'] as bool? ?? true,
       enableBlackScreenReset: map['enableBlackScreenReset'] as bool? ?? true,
-      enableWhiteScreenReset: map['enableWhiteScreenReset'] as bool? ?? true,
+      enableWhiteScreenReset: map['enableWhiteScreenReset'] as bool? ?? false,
       minResetCooldownMs:
           ((map['minResetCooldownMs'] as num?)?.toInt() ?? 1200)
               .clamp(200, 30000),
       transitionMinDurationMs:
           ((map['transitionMinDurationMs'] as num?)?.toInt() ?? 350)
               .clamp(150, 5000),
+      blackLumaThreshold:
+          ((map['blackLumaThreshold'] as num?)?.toInt() ?? 18).clamp(5, 80),
+      whiteLumaThreshold:
+          ((map['whiteLumaThreshold'] as num?)?.toInt() ?? 240).clamp(175, 252),
       customTriggerPatterns: List.unmodifiable(triggers),
       customResetPatterns: List.unmodifiable(resets),
       playSoundOnCount: map['playSoundOnCount'] as bool? ?? false,

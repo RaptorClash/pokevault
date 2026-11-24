@@ -62,6 +62,8 @@ class ScannerCoordinator {
   bool _isProcessingQueue = false;
   int _droppedFramesCount = 0;
   String? _effectiveOcrLanguage;
+  List<CustomOcrPattern> _overlayCustomPatterns = const [];
+  bool _suppressEncounterFeedback = false;
 
   /// Resolved effective game/OCR language code (e.g. `'de'`, `'en'`), or `null` for all.
   String? get effectiveOcrLanguage => _effectiveOcrLanguage;
@@ -81,7 +83,7 @@ class ScannerCoordinator {
   })  : _settings = settings ?? ScannerSettings.defaults(),
         _feedback = feedback ?? const SilentScannerFeedback(),
         _duplicateCooldown = encounterCooldown {
-    engine.updateCustomPatterns(_settings.customPatterns);
+    _syncEngineCustomPatterns();
     setEffectiveOcrLanguage(_effectiveOcrLanguage);
   }
 
@@ -98,6 +100,26 @@ class ScannerCoordinator {
   /// Broadcast stream of semantic cues (battle end, egg hatch prompt, reset cue, raw text).
   Stream<ScannerCueSignal> get cueStream => _cueController.stream;
 
+  void _syncEngineCustomPatterns() {
+    engine.updateCustomPatterns([
+      ..._settings.customPatterns,
+      ..._overlayCustomPatterns,
+    ]);
+  }
+
+  /// Attaches or clears an external custom-pattern overlay (e.g. from ShinyAutoCounterService)
+  /// so `updateSettings()` never erases active auto-counter rules.
+  void setOverlayCustomPatterns(List<CustomOcrPattern> patterns) {
+    _overlayCustomPatterns = List.unmodifiable(patterns);
+    _syncEngineCustomPatterns();
+  }
+
+  /// Suppresses coordinator encounter/shiny audio feedback while an external auto-counter
+  /// owns encounter notifications.
+  void setSuppressEncounterFeedback(bool suppress) {
+    _suppressEncounterFeedback = suppress;
+  }
+
   /// Clears active single-screen battle deduplication and cooldown caches for [slotId] (or all slots).
   void clearBattleState([int? slotId]) {
     if (slotId == null) {
@@ -109,7 +131,10 @@ class ScannerCoordinator {
     final instPrefix = 'inst_${slotId}_';
     final rawPrefix = '${slotId}_';
     _recentEmittedAt.removeWhere(
-      (k, _) => k.startsWith(instPrefix) || k.startsWith(rawPrefix),
+      (k, _) =>
+          k.startsWith(instPrefix) ||
+          k.startsWith(rawPrefix) ||
+          (slotId == 0 && (k.startsWith('dlg_') || k.startsWith('hud_'))),
     );
   }
 
@@ -126,7 +151,7 @@ class ScannerCoordinator {
   /// Updates current settings dynamically.
   void updateSettings(ScannerSettings newSettings) {
     _settings = newSettings;
-    engine.updateCustomPatterns(newSettings.customPatterns);
+    _syncEngineCustomPatterns();
     setEffectiveOcrLanguage(_effectiveOcrLanguage);
   }
 
@@ -584,11 +609,16 @@ class ScannerCoordinator {
       matchedCustomPatternId: parseResult.matchedCustomPatternId,
     );
 
-    if (!_activeFocusController.isClosed) {
-      _activeFocusController.add([event]);
-    }
+    final isResetEvent = effectiveType == ScannerEventType.softReset ||
+        effectiveType == ScannerEventType.customReset;
 
-    await _dispatchFeedback(event, isShiny);
+    if (!isResetEvent) {
+      if (!_activeFocusController.isClosed) {
+        _activeFocusController.add([event]);
+      }
+
+      await _dispatchFeedback(event, isShiny);
+    }
 
     if (!_eventsController.isClosed) {
       _eventsController.add(event);
@@ -599,6 +629,12 @@ class ScannerCoordinator {
 
   Future<void> _dispatchFeedback(ScannerEvent event, bool isShiny) async {
     if (!(_settings.playAudioFeedback || _settings.playHapticFeedback)) {
+      return;
+    }
+    if (_suppressEncounterFeedback &&
+        (event.type == ScannerEventType.encounter ||
+            event.type == ScannerEventType.shinyDetected ||
+            (isShiny && event.type != ScannerEventType.caught))) {
       return;
     }
     if (isShiny) {

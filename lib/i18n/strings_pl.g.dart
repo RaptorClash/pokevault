@@ -542,7 +542,7 @@ class TranslationsPl extends Translations with BaseTranslations<AppLocale, Trans
 	@override String get ball_lure_ball => 'Kulka przynęty';
 	@override String get ball_moon_ball => 'Moon Ball';
 	@override String get ball_friend_ball => 'Bal Przyjaciela';
-	@override String get ball_love_ball => 'Sympaball';
+	@override String get ball_love_ball => 'Bal Solidarności';
 	@override String get ball_heavy_ball => 'Ciężka kula';
 	@override String get ball_fast_ball => 'Turbokula';
 	@override String get ball_sport_ball => 'Piłka turniejowa';
@@ -2392,6 +2392,34 @@ class TranslationsPl extends Translations with BaseTranslations<AppLocale, Trans
 	@override String get multi_hunt_phase_status => 'Faza {phase} · {status}';
 	@override String get multi_hunt_slot_number => 'Gniazdo #{slot}';
 	@override String get scanner_event_egg_hatched_badge => 'WYKLUCIE JAJ';
+	@override String get shiny_auto_mode_desc_wild => 'Liczy się za wykryte dzikie spotkania (+1 lub liczba hord). Automatycznie odzyskuje się po zakończeniu walki (ucieczka/zwycięstwo), schwytaniu lub przejściu na ekran.';
+	@override String get shiny_auto_mode_desc_soft_reset => 'Idealne dla Starterów, Legend i Giftów. Liczy, gdy Pokémon zostanie wykryty i odzyskuje się po ekranie tytułowym ("Dalej"/"Kontynuuj"), czarnym ekranie lub własnym tekstzie resetu.';
+	@override String get shiny_auto_mode_desc_egg => 'Liczy jaja Masudy-/hodowlane według tekstu wyklucia („… właśnie wykluło się z jaja!”) — w przypadku „Wszystkie Pokémony” również od razu przy „Och?”. Automatycznie włącza się ponownie dla każdego jaja.';
+	@override String get shiny_auto_mode_desc_transition => 'Liczy bez rozpoznawania tekstu na podstawie równomiernych przejść ładowania czarno-białego obrazu (np. resetów Overworld w Legendach: Arceus). Uwzględnia czas odnowienia resetu.';
+	@override String get shiny_auto_filter_desc_all => 'Każde rozpoznane Pokémon wywołuje +1 — idealne do losowych spotkań i faz shiny.';
+	@override String get shiny_auto_filter_desc_target => 'Liczy się tylko, jeśli docelowy Pokémon tego polowania zostanie wykryty — zapobiega błędnemu liczeniu podczas wprowadzeń starterów lub obcych Pokémonów.';
+	@override String get shiny_auto_horde_desc => 'Zwiększa przy spotkaniach masowych lub podwójnych o całkowitą wykrytą liczbę przeciwników zamiast +1.';
+	@override String get shiny_auto_black_reset_desc => 'Zalecane dla miękkich resetów i ekranów ładowania: Jednolite przejście na czerń sprawia, że slot znów staje się ostry po upływie czasu odnowienia.';
+	@override String get shiny_auto_white_reset_desc => 'Aktywuj tylko, gdy Twoja gra jest całkowicie przejrzana na biało. W grach z białymi okienkami dialogowymi pozostaw wyłączone.';
+	@override String get shiny_auto_pause_on_shiny_desc => 'Natychmiast zatrzymuje odpowiedni slot skanowania, gdy tylko zostanie wykryty sygnał Shiny, abyś przypadkowo nie przegapił trafienia.';
+	@override String get shiny_auto_custom_triggers_desc => 'Opcjonalnie dla ROM-hacków lub gier fanowskich: Własne teksty, które mają się liczyć. Użyj {pokemon} jako symbol zastępczy dla nazwy Pokémona.';
+	@override String get shiny_auto_custom_resets_desc => 'Opcjonalnie: Własne słowa w menu lub na ekranie tytułowym, które ponownie aktywują już zajęty slot.';
+	@override String get shiny_auto_cooldown_desc => 'Minimalny czas oczekiwania po resecie/przejściu, zanim ten sam slot będzie mógł ponownie liczyć (zapobiega podwójnemu liczeniu).';
+	@override String get shiny_auto_transition_duration_desc => 'Jak długo ekran musi pozostać czarno-biały, aby był uznany za prawdziwe przejście, a nie migotanie.';
+	@override String get shiny_auto_black_threshold_label => 'Próg czerni (Luma {value})';
+	@override String get shiny_auto_white_threshold_label => 'Próg obrazów białych (Luma {value})';
+	@override String get shiny_auto_thresholds_desc => 'Wskazówka dotycząca aparatów w telefonach komórkowych: Przy resztkowym świetle w pomieszczeniu zwiększyć próg czerni (np. 35–50) i nieco obniżyć próg bieli.';
+	@override String get shiny_auto_counting_for => 'Liczy się dla: {name}';
+	@override String get shiny_auto_switch_hunt_btn => 'Przenieś się tutaj';
+	@override String get shiny_auto_pending_banner => 'Auto-Counter zaznaczony – uruchomi się automatycznie, gdy tylko skaner będzie działał.';
+	@override String get shiny_auto_pending_cancel => 'Anuluj';
+	@override String get shiny_auto_help_tooltip => 'Pokaż wyjaśnienie i gesty';
+	@override String get shiny_auto_help_title => 'Automatyczna legenda liczników i gestów';
+	@override String get shiny_auto_help_phases_desc => '• Gotowy: Slot czeka na kolejne Begegnung.\n• Policzone: Trafienia policzone, czekają na koniec walki/Reset.\n• Reset...: Czas odnowienia ubiega przed Scharfschalten.\n ponownie• Shiny!: Wykryto Shiny – slot wstrzymany do Freigabe.\n• Wstrzymany: Slot ręcznie wstrzymany.';
+	@override String get shiny_auto_help_gestures_desc => 'Stuknij w chip slotu u dołu = wstrzymaj/wznów slot.\nPrzytrzymaj chip slotu = natychmiast ręcznie przywróć slot do działania (Re-Arm).';
+	@override String get multi_hunt_help_tooltip => 'Instrukcja Multi-Hunt';
+	@override String get multi_hunt_help_title => 'Panel Multi-Hunt – Jak to działa';
+	@override String get multi_hunt_help_body => '• Równoległe polowania: Zarządzaj kilkoma grami jednocześnie obok siebie (+1 / -1 / pauza / faza).\n• Własne reguły automatyczne (🎛️): Każda karta może mieć własne zasady wykrywania (np. Wild, miękki reset, wylęganie jaja).\n• Sloty skanowania (+ sloty skanowania): Przypisuj wykryte sloty wieloinstancyjne (#1, #2, ...) konkretnym polowaniom.\n• Zatrzymane polowania: W razie potrzeby ukrywaj i pokazuj za pomocą przycisku u góry.';
 }
 
 /// The flat map containing all translations for locale <pl>.
@@ -2905,7 +2933,7 @@ extension on TranslationsPl {
 			'ball_lure_ball' => 'Kulka przynęty',
 			'ball_moon_ball' => 'Moon Ball',
 			'ball_friend_ball' => 'Bal Przyjaciela',
-			'ball_love_ball' => 'Sympaball',
+			'ball_love_ball' => 'Bal Solidarności',
 			'ball_heavy_ball' => 'Ciężka kula',
 			'ball_fast_ball' => 'Turbokula',
 			'ball_sport_ball' => 'Piłka turniejowa',
@@ -4763,6 +4791,34 @@ extension on TranslationsPl {
 			'multi_hunt_phase_status' => 'Faza {phase} · {status}',
 			'multi_hunt_slot_number' => 'Gniazdo #{slot}',
 			'scanner_event_egg_hatched_badge' => 'WYKLUCIE JAJ',
+			'shiny_auto_mode_desc_wild' => 'Liczy się za wykryte dzikie spotkania (+1 lub liczba hord). Automatycznie odzyskuje się po zakończeniu walki (ucieczka/zwycięstwo), schwytaniu lub przejściu na ekran.',
+			'shiny_auto_mode_desc_soft_reset' => 'Idealne dla Starterów, Legend i Giftów. Liczy, gdy Pokémon zostanie wykryty i odzyskuje się po ekranie tytułowym ("Dalej"/"Kontynuuj"), czarnym ekranie lub własnym tekstzie resetu.',
+			'shiny_auto_mode_desc_egg' => 'Liczy jaja Masudy-/hodowlane według tekstu wyklucia („… właśnie wykluło się z jaja!”) — w przypadku „Wszystkie Pokémony” również od razu przy „Och?”. Automatycznie włącza się ponownie dla każdego jaja.',
+			'shiny_auto_mode_desc_transition' => 'Liczy bez rozpoznawania tekstu na podstawie równomiernych przejść ładowania czarno-białego obrazu (np. resetów Overworld w Legendach: Arceus). Uwzględnia czas odnowienia resetu.',
+			'shiny_auto_filter_desc_all' => 'Każde rozpoznane Pokémon wywołuje +1 — idealne do losowych spotkań i faz shiny.',
+			'shiny_auto_filter_desc_target' => 'Liczy się tylko, jeśli docelowy Pokémon tego polowania zostanie wykryty — zapobiega błędnemu liczeniu podczas wprowadzeń starterów lub obcych Pokémonów.',
+			'shiny_auto_horde_desc' => 'Zwiększa przy spotkaniach masowych lub podwójnych o całkowitą wykrytą liczbę przeciwników zamiast +1.',
+			'shiny_auto_black_reset_desc' => 'Zalecane dla miękkich resetów i ekranów ładowania: Jednolite przejście na czerń sprawia, że slot znów staje się ostry po upływie czasu odnowienia.',
+			'shiny_auto_white_reset_desc' => 'Aktywuj tylko, gdy Twoja gra jest całkowicie przejrzana na biało. W grach z białymi okienkami dialogowymi pozostaw wyłączone.',
+			'shiny_auto_pause_on_shiny_desc' => 'Natychmiast zatrzymuje odpowiedni slot skanowania, gdy tylko zostanie wykryty sygnał Shiny, abyś przypadkowo nie przegapił trafienia.',
+			'shiny_auto_custom_triggers_desc' => 'Opcjonalnie dla ROM-hacków lub gier fanowskich: Własne teksty, które mają się liczyć. Użyj {pokemon} jako symbol zastępczy dla nazwy Pokémona.',
+			'shiny_auto_custom_resets_desc' => 'Opcjonalnie: Własne słowa w menu lub na ekranie tytułowym, które ponownie aktywują już zajęty slot.',
+			'shiny_auto_cooldown_desc' => 'Minimalny czas oczekiwania po resecie/przejściu, zanim ten sam slot będzie mógł ponownie liczyć (zapobiega podwójnemu liczeniu).',
+			'shiny_auto_transition_duration_desc' => 'Jak długo ekran musi pozostać czarno-biały, aby był uznany za prawdziwe przejście, a nie migotanie.',
+			'shiny_auto_black_threshold_label' => 'Próg czerni (Luma {value})',
+			'shiny_auto_white_threshold_label' => 'Próg obrazów białych (Luma {value})',
+			'shiny_auto_thresholds_desc' => 'Wskazówka dotycząca aparatów w telefonach komórkowych: Przy resztkowym świetle w pomieszczeniu zwiększyć próg czerni (np. 35–50) i nieco obniżyć próg bieli.',
+			'shiny_auto_counting_for' => 'Liczy się dla: {name}',
+			'shiny_auto_switch_hunt_btn' => 'Przenieś się tutaj',
+			'shiny_auto_pending_banner' => 'Auto-Counter zaznaczony – uruchomi się automatycznie, gdy tylko skaner będzie działał.',
+			'shiny_auto_pending_cancel' => 'Anuluj',
+			'shiny_auto_help_tooltip' => 'Pokaż wyjaśnienie i gesty',
+			'shiny_auto_help_title' => 'Automatyczna legenda liczników i gestów',
+			'shiny_auto_help_phases_desc' => '• Gotowy: Slot czeka na kolejne Begegnung.\n• Policzone: Trafienia policzone, czekają na koniec walki/Reset.\n• Reset...: Czas odnowienia ubiega przed Scharfschalten.\n ponownie• Shiny!: Wykryto Shiny – slot wstrzymany do Freigabe.\n• Wstrzymany: Slot ręcznie wstrzymany.',
+			'shiny_auto_help_gestures_desc' => 'Stuknij w chip slotu u dołu = wstrzymaj/wznów slot.\nPrzytrzymaj chip slotu = natychmiast ręcznie przywróć slot do działania (Re-Arm).',
+			'multi_hunt_help_tooltip' => 'Instrukcja Multi-Hunt',
+			'multi_hunt_help_title' => 'Panel Multi-Hunt – Jak to działa',
+			'multi_hunt_help_body' => '• Równoległe polowania: Zarządzaj kilkoma grami jednocześnie obok siebie (+1 / -1 / pauza / faza).\n• Własne reguły automatyczne (🎛️): Każda karta może mieć własne zasady wykrywania (np. Wild, miękki reset, wylęganie jaja).\n• Sloty skanowania (+ sloty skanowania): Przypisuj wykryte sloty wieloinstancyjne (#1, #2, ...) konkretnym polowaniom.\n• Zatrzymane polowania: W razie potrzeby ukrywaj i pokazuj za pomocą przycisku u góry.',
 			_ => null,
 		};
 	}

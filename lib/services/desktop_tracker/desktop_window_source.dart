@@ -285,6 +285,17 @@ class DesktopWindowSource
     _transitionDetector.setMinTransitionDuration(duration);
   }
 
+  @override
+  void updateTransitionThresholds({
+    required int blackThreshold,
+    required int whiteThreshold,
+  }) {
+    _transitionDetector.updateThresholds(
+      blackThreshold: blackThreshold,
+      whiteThreshold: whiteThreshold,
+    );
+  }
+
   List<MultiInstanceSlot> get multiInstanceSlots => _multiInstanceSlots;
 
   @override

@@ -503,7 +503,7 @@ class TranslationsNl extends Translations with BaseTranslations<AppLocale, Trans
 	@override String get version_the_crown_tundra_shield => 'Sneeuwlanden van de Kroon (SH)';
 	@override String get version_brilliant_diamond => 'Stralende diamant';
 	@override String get version_shining_pearl => 'Lichtgevende parel';
-	@override String get version_legends_arceus => 'Legenden: Arceus';
+	@override String get version_legends_arceus => 'Legendes: Arceus';
 	@override String get version_scarlet => 'Karmozijn';
 	@override String get version_violet => 'Purper';
 	@override String get version_the_teal_mask_scarlet => 'De turkooisgroene mask (KA)';
@@ -2392,6 +2392,34 @@ class TranslationsNl extends Translations with BaseTranslations<AppLocale, Trans
 	@override String get multi_hunt_phase_status => 'Fase {phase} · {status}';
 	@override String get multi_hunt_slot_number => 'Slot #{slot}';
 	@override String get scanner_event_egg_hatched_badge => 'EI-UITKOMST';
+	@override String get shiny_auto_mode_desc_wild => 'Telt bij gedetecteerde wilde ontmoetingen (+1 of aantal hordes). Wordt na het gevecht (vlucht/overwinning), vangen of zwartschermovergang automatisch weer geactiveerd.';
+	@override String get shiny_auto_mode_desc_soft_reset => 'Ideaal voor starters, legendarische Pokémon en geschenken. Wordt geteld bij herkenning van het Pokémon en wordt weer actief na het titel scherm („Verder“/„Continue“), zwart scherm of eigen reset-tekst.';
+	@override String get shiny_auto_mode_desc_egg => 'Telt Masuda-/Kweek-eieren via de uitkomsttekst („... is uit het ei gekomen!“) — bij „Alle Pokémon“ ook al direct bij „Oh?“. Wordt automatisch opnieuw geactiveerd per ei.';
+	@override String get shiny_auto_mode_desc_transition => 'Telt zonder tekstanalyse op basis van gelijkmatige zwart/wit beeldlaadovergangen (bijv. Overworld-resets in Legenden: Arceus). Houdt rekening met de reset-cooldown.';
+	@override String get shiny_auto_filter_desc_all => 'Elk herkend Pokémon activeert +1 — ideaal voor willekeurige ontmoetingen en glanzende fasen.';
+	@override String get shiny_auto_filter_desc_target => 'Telt alleen mee als het doel-Pokémon van deze hunts wordt herkend — voorkomt fouttellingen bij starter-intro\'s of vreemde Pokémon.';
+	@override String get shiny_auto_horde_desc => 'Verhoogt bij massale of dubbele ontmoetingen met het totale aantal erkende vijanden in plaats van +1.';
+	@override String get shiny_auto_black_reset_desc => 'Aanbevolen voor soft-resets & laadschermen: Een gelijkmatig zwarte overgang maakt de slot na afloop van de cooldown weer scherp.';
+	@override String get shiny_auto_white_reset_desc => 'Alleen activeren als je spel volledig wit is overgestemd. Bij spellen met witte dialoogvensters uitgeschakeld laten.';
+	@override String get shiny_auto_pause_on_shiny_desc => 'Zet de betrokken scan-slot onmiddellijk stop zodra een Shiny-signaal wordt gedetecteerd, zodat je de treffer niet per ongeluk misloopt.';
+	@override String get shiny_auto_custom_triggers_desc => 'Optioneel voor ROM-hacks of fangames: Eigen teksten die meetellen. Gebruik {pokemon} als plaatsaanduiding voor de Pokémon-naam.';
+	@override String get shiny_auto_custom_resets_desc => 'Optioneel: Eigen menu- of titelbeeldschermwoorden die een al geteld slot weer scherp maken.';
+	@override String get shiny_auto_cooldown_desc => 'Minimale wachttijd na een reset/overgang voordat dezelfde slot weer mag tellen (voorkomt dubbele telling).';
+	@override String get shiny_auto_transition_duration_desc => 'Hoe lang het scherm minimaal zwart/wit moet blijven om als een echte overgang in plaats van flikkeren te worden beschouwd.';
+	@override String get shiny_auto_black_threshold_label => 'Zwartbeeld-drempel (Luma {value})';
+	@override String get shiny_auto_white_threshold_label => 'Witbeeld-drempel (Luma {value})';
+	@override String get shiny_auto_thresholds_desc => 'Tip voor mobiele telefooncamera\'s: Bij restlicht in de kamer de zwartbeelddrempel hoger (bijv. 35–50) en de witbeelddrempel iets lager instellen.';
+	@override String get shiny_auto_counting_for => 'Telt voor: {name}';
+	@override String get shiny_auto_switch_hunt_btn => 'Hierheen gaan';
+	@override String get shiny_auto_pending_banner => 'Auto-teller genoteerd – start automatisch zodra de scanner loopt.';
+	@override String get shiny_auto_pending_cancel => 'Annuleren';
+	@override String get shiny_auto_help_tooltip => 'Uitleg & gebaren weergeven';
+	@override String get shiny_auto_help_title => 'Auto-Counter Legende & Gebaren';
+	@override String get shiny_auto_help_phases_desc => '• Klaar: Slot wacht op de volgende ontmoeting.\n• Geteld: Treffer geteld, wacht op het einde van het gevecht/reset.\n• Reset…: Cooldown loopt voor heractivering.\n• Shiny!: Shiny gedetecteerd – slot gepauzeerd tot vrijgave.\n• Gepauzeerd: Slot handmatig gestopt.';
+	@override String get shiny_auto_help_gestures_desc => 'Onder aan de slot-chips tikken = Slot pauzeren/voortzetten.\nSlot-chip ingedrukt houden = Slot meteen handmatig weer scherp maken (Re-Arm).';
+	@override String get multi_hunt_help_tooltip => 'Multi-jacht handleiding';
+	@override String get multi_hunt_help_title => 'Multi-Hunt Dashboard – Zo werkt het';
+	@override String get multi_hunt_help_body => '• Parallelle Hunts: Beheer meerdere spellen tegelijkertijd naast elkaar (+1 / -1 / Pauze / Fase).\n• Eigen Auto-Regels (🎛️): Elke kaart kan eigen detectieregels krijgen (bijv. Wild, Soft Reset, Ei-uitkomst).\n• Scan-Slots (+ Scan-Slots): Wijs herkende Multi-Instance-Slots (#1, #2, …) doelgericht toe aan bepaalde Hunts.\n• Gepauzeerde Hunts: Toon of verberg via de knop bovenaan indien nodig.';
 }
 
 /// The flat map containing all translations for locale <nl>.
@@ -2866,7 +2894,7 @@ extension on TranslationsNl {
 			'version_the_crown_tundra_shield' => 'Sneeuwlanden van de Kroon (SH)',
 			'version_brilliant_diamond' => 'Stralende diamant',
 			'version_shining_pearl' => 'Lichtgevende parel',
-			'version_legends_arceus' => 'Legenden: Arceus',
+			'version_legends_arceus' => 'Legendes: Arceus',
 			'version_scarlet' => 'Karmozijn',
 			'version_violet' => 'Purper',
 			'version_the_teal_mask_scarlet' => 'De turkooisgroene mask (KA)',
@@ -4763,6 +4791,34 @@ extension on TranslationsNl {
 			'multi_hunt_phase_status' => 'Fase {phase} · {status}',
 			'multi_hunt_slot_number' => 'Slot #{slot}',
 			'scanner_event_egg_hatched_badge' => 'EI-UITKOMST',
+			'shiny_auto_mode_desc_wild' => 'Telt bij gedetecteerde wilde ontmoetingen (+1 of aantal hordes). Wordt na het gevecht (vlucht/overwinning), vangen of zwartschermovergang automatisch weer geactiveerd.',
+			'shiny_auto_mode_desc_soft_reset' => 'Ideaal voor starters, legendarische Pokémon en geschenken. Wordt geteld bij herkenning van het Pokémon en wordt weer actief na het titel scherm („Verder“/„Continue“), zwart scherm of eigen reset-tekst.',
+			'shiny_auto_mode_desc_egg' => 'Telt Masuda-/Kweek-eieren via de uitkomsttekst („... is uit het ei gekomen!“) — bij „Alle Pokémon“ ook al direct bij „Oh?“. Wordt automatisch opnieuw geactiveerd per ei.',
+			'shiny_auto_mode_desc_transition' => 'Telt zonder tekstanalyse op basis van gelijkmatige zwart/wit beeldlaadovergangen (bijv. Overworld-resets in Legenden: Arceus). Houdt rekening met de reset-cooldown.',
+			'shiny_auto_filter_desc_all' => 'Elk herkend Pokémon activeert +1 — ideaal voor willekeurige ontmoetingen en glanzende fasen.',
+			'shiny_auto_filter_desc_target' => 'Telt alleen mee als het doel-Pokémon van deze hunts wordt herkend — voorkomt fouttellingen bij starter-intro\'s of vreemde Pokémon.',
+			'shiny_auto_horde_desc' => 'Verhoogt bij massale of dubbele ontmoetingen met het totale aantal erkende vijanden in plaats van +1.',
+			'shiny_auto_black_reset_desc' => 'Aanbevolen voor soft-resets & laadschermen: Een gelijkmatig zwarte overgang maakt de slot na afloop van de cooldown weer scherp.',
+			'shiny_auto_white_reset_desc' => 'Alleen activeren als je spel volledig wit is overgestemd. Bij spellen met witte dialoogvensters uitgeschakeld laten.',
+			'shiny_auto_pause_on_shiny_desc' => 'Zet de betrokken scan-slot onmiddellijk stop zodra een Shiny-signaal wordt gedetecteerd, zodat je de treffer niet per ongeluk misloopt.',
+			'shiny_auto_custom_triggers_desc' => 'Optioneel voor ROM-hacks of fangames: Eigen teksten die meetellen. Gebruik {pokemon} als plaatsaanduiding voor de Pokémon-naam.',
+			'shiny_auto_custom_resets_desc' => 'Optioneel: Eigen menu- of titelbeeldschermwoorden die een al geteld slot weer scherp maken.',
+			'shiny_auto_cooldown_desc' => 'Minimale wachttijd na een reset/overgang voordat dezelfde slot weer mag tellen (voorkomt dubbele telling).',
+			'shiny_auto_transition_duration_desc' => 'Hoe lang het scherm minimaal zwart/wit moet blijven om als een echte overgang in plaats van flikkeren te worden beschouwd.',
+			'shiny_auto_black_threshold_label' => 'Zwartbeeld-drempel (Luma {value})',
+			'shiny_auto_white_threshold_label' => 'Witbeeld-drempel (Luma {value})',
+			'shiny_auto_thresholds_desc' => 'Tip voor mobiele telefooncamera\'s: Bij restlicht in de kamer de zwartbeelddrempel hoger (bijv. 35–50) en de witbeelddrempel iets lager instellen.',
+			'shiny_auto_counting_for' => 'Telt voor: {name}',
+			'shiny_auto_switch_hunt_btn' => 'Hierheen gaan',
+			'shiny_auto_pending_banner' => 'Auto-teller genoteerd – start automatisch zodra de scanner loopt.',
+			'shiny_auto_pending_cancel' => 'Annuleren',
+			'shiny_auto_help_tooltip' => 'Uitleg & gebaren weergeven',
+			'shiny_auto_help_title' => 'Auto-Counter Legende & Gebaren',
+			'shiny_auto_help_phases_desc' => '• Klaar: Slot wacht op de volgende ontmoeting.\n• Geteld: Treffer geteld, wacht op het einde van het gevecht/reset.\n• Reset…: Cooldown loopt voor heractivering.\n• Shiny!: Shiny gedetecteerd – slot gepauzeerd tot vrijgave.\n• Gepauzeerd: Slot handmatig gestopt.',
+			'shiny_auto_help_gestures_desc' => 'Onder aan de slot-chips tikken = Slot pauzeren/voortzetten.\nSlot-chip ingedrukt houden = Slot meteen handmatig weer scherp maken (Re-Arm).',
+			'multi_hunt_help_tooltip' => 'Multi-jacht handleiding',
+			'multi_hunt_help_title' => 'Multi-Hunt Dashboard – Zo werkt het',
+			'multi_hunt_help_body' => '• Parallelle Hunts: Beheer meerdere spellen tegelijkertijd naast elkaar (+1 / -1 / Pauze / Fase).\n• Eigen Auto-Regels (🎛️): Elke kaart kan eigen detectieregels krijgen (bijv. Wild, Soft Reset, Ei-uitkomst).\n• Scan-Slots (+ Scan-Slots): Wijs herkende Multi-Instance-Slots (#1, #2, …) doelgericht toe aan bepaalde Hunts.\n• Gepauzeerde Hunts: Toon of verberg via de knop bovenaan indien nodig.',
 			_ => null,
 		};
 	}

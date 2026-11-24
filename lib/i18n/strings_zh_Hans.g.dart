@@ -2392,6 +2392,34 @@ class TranslationsZhHans extends Translations with BaseTranslations<AppLocale, T
 	@override String get multi_hunt_phase_status => '阶段 {phase} · {status}';
 	@override String get multi_hunt_slot_number => '插槽 #{slot}';
 	@override String get scanner_event_egg_hatched_badge => '蛋孵化';
+	@override String get shiny_auto_mode_desc_wild => '在发现的野生遭遇中计数（+1 或群体数量）。战斗结束后（逃跑/胜利）、捕获或黑屏过渡时会自动重新激活。';
+	@override String get shiny_auto_mode_desc_soft_reset => '非常适合初学者、传奇和礼物。在识别宝可梦时计数，并在标题画面（“继续”/“Continue”）、黑屏或自身重置文字后重新激活。';
+	@override String get shiny_auto_mode_desc_egg => '通过孵化提示（“…从蛋里孵出来了！”）统计Masuda/繁殖的蛋——在“所有宝可梦”中也可以直接在“哦？”时统计。每个蛋会自动重新激活。';
+	@override String get shiny_auto_mode_desc_transition => '基于平滑的黑白图像加载过渡（例如《传奇：阿尔宙斯》中的主世界重置），无需文本识别即可进行计数。 尊重重置冷却时间。';
+	@override String get shiny_auto_filter_desc_all => '每个检测到的神奇宝贝都会触发 +1 - 非常适合随机遭遇和闪亮阶段。';
+	@override String get shiny_auto_filter_desc_target => '仅当本次狩猎的目标神奇宝贝被识别时才计数 - 防止对入门介绍或外国神奇宝贝的错误计数。';
+	@override String get shiny_auto_horde_desc => '在大规模或双重遭遇中，增加检测到的敌人总数，而不是+1。';
+	@override String get shiny_auto_black_reset_desc => '推荐用于软重置和加载屏幕：一个均匀的黑色过渡会在冷却时间结束后使插槽重新清晰。';
+	@override String get shiny_auto_white_reset_desc => '仅在你的游戏完全白屏时启用。在有白色对话框的游戏中保持关闭。';
+	@override String get shiny_auto_pause_on_shiny_desc => '一旦检测到闪亮信号，立即停止相关的扫描槽，以免你意外错过目标。';
+	@override String get shiny_auto_custom_triggers_desc => '可选用于ROM修改或粉丝游戏：自定义需要计数的文本。使用 {pokemon} 作为宝可梦名称的占位符。';
+	@override String get shiny_auto_custom_resets_desc => '可选：自定义菜单或标题画面上的词语，使已经计数的槽位再次生效。';
+	@override String get shiny_auto_cooldown_desc => '重置/切换后必须等待的最短时间，才能让同一槽再次计数（防止重复计数）。';
+	@override String get shiny_auto_transition_duration_desc => '屏幕必须至少保持黑/白多长时间才能被视为真正的过渡而不是闪烁。';
+	@override String get shiny_auto_black_threshold_label => '黑场阈值（亮度 {value}）';
+	@override String get shiny_auto_white_threshold_label => '白场阈值（亮度 {value}）';
+	@override String get shiny_auto_thresholds_desc => '手机相机提示：在房间有余光的情况下，将黑色图像阈值调高（例如35–50），将白色图像阈值稍微调低。';
+	@override String get shiny_auto_counting_for => '计入：{name}';
+	@override String get shiny_auto_switch_hunt_btn => '切换到这里';
+	@override String get shiny_auto_pending_banner => '自动计数器已记录——扫描仪运行时会自动启动。';
+	@override String get shiny_auto_pending_cancel => '取消';
+	@override String get shiny_auto_help_tooltip => '显示说明和手势';
+	@override String get shiny_auto_help_title => '自动计数器 图例与手势';
+	@override String get shiny_auto_help_phases_desc => '• 准备：槽位等待下一次遇见。\n• 已计数：命中已计数，等待战斗结束/重置。\n• 重置中…：重新激活前冷却中。\n• 闪亮！：检测到闪亮——槽位暂停，直到释放。\n• 暂停：槽位已手动停止。';
+	@override String get shiny_auto_help_gestures_desc => '点击底部的插槽芯片=暂停/恢复插槽。\n按住插槽芯片=立即手动再次布防插槽（重新布防）。';
+	@override String get multi_hunt_help_tooltip => '多重狩猎指南';
+	@override String get multi_hunt_help_title => '多重狩猎仪表板 – 使用方法';
+	@override String get multi_hunt_help_body => '• 并行狩猎：同时管理多个游戏（+1 / -1 / 暂停/阶段）。\n• 自定义自动规则 (🎛️)：每张卡都可以接收自己的检测规则（例如狂野、软重置、蛋孵化）。\n• 扫描槽位（+ 扫描槽位）：明智地检测特定的多实例槽位（#1、#2、...） Hunts.\n• 暂停的狩猎：如有必要，使用上面的按钮再次显示和隐藏它们。';
 }
 
 /// The flat map containing all translations for locale <zh-Hans>.
@@ -4763,6 +4791,34 @@ extension on TranslationsZhHans {
 			'multi_hunt_phase_status' => '阶段 {phase} · {status}',
 			'multi_hunt_slot_number' => '插槽 #{slot}',
 			'scanner_event_egg_hatched_badge' => '蛋孵化',
+			'shiny_auto_mode_desc_wild' => '在发现的野生遭遇中计数（+1 或群体数量）。战斗结束后（逃跑/胜利）、捕获或黑屏过渡时会自动重新激活。',
+			'shiny_auto_mode_desc_soft_reset' => '非常适合初学者、传奇和礼物。在识别宝可梦时计数，并在标题画面（“继续”/“Continue”）、黑屏或自身重置文字后重新激活。',
+			'shiny_auto_mode_desc_egg' => '通过孵化提示（“…从蛋里孵出来了！”）统计Masuda/繁殖的蛋——在“所有宝可梦”中也可以直接在“哦？”时统计。每个蛋会自动重新激活。',
+			'shiny_auto_mode_desc_transition' => '基于平滑的黑白图像加载过渡（例如《传奇：阿尔宙斯》中的主世界重置），无需文本识别即可进行计数。 尊重重置冷却时间。',
+			'shiny_auto_filter_desc_all' => '每个检测到的神奇宝贝都会触发 +1 - 非常适合随机遭遇和闪亮阶段。',
+			'shiny_auto_filter_desc_target' => '仅当本次狩猎的目标神奇宝贝被识别时才计数 - 防止对入门介绍或外国神奇宝贝的错误计数。',
+			'shiny_auto_horde_desc' => '在大规模或双重遭遇中，增加检测到的敌人总数，而不是+1。',
+			'shiny_auto_black_reset_desc' => '推荐用于软重置和加载屏幕：一个均匀的黑色过渡会在冷却时间结束后使插槽重新清晰。',
+			'shiny_auto_white_reset_desc' => '仅在你的游戏完全白屏时启用。在有白色对话框的游戏中保持关闭。',
+			'shiny_auto_pause_on_shiny_desc' => '一旦检测到闪亮信号，立即停止相关的扫描槽，以免你意外错过目标。',
+			'shiny_auto_custom_triggers_desc' => '可选用于ROM修改或粉丝游戏：自定义需要计数的文本。使用 {pokemon} 作为宝可梦名称的占位符。',
+			'shiny_auto_custom_resets_desc' => '可选：自定义菜单或标题画面上的词语，使已经计数的槽位再次生效。',
+			'shiny_auto_cooldown_desc' => '重置/切换后必须等待的最短时间，才能让同一槽再次计数（防止重复计数）。',
+			'shiny_auto_transition_duration_desc' => '屏幕必须至少保持黑/白多长时间才能被视为真正的过渡而不是闪烁。',
+			'shiny_auto_black_threshold_label' => '黑场阈值（亮度 {value}）',
+			'shiny_auto_white_threshold_label' => '白场阈值（亮度 {value}）',
+			'shiny_auto_thresholds_desc' => '手机相机提示：在房间有余光的情况下，将黑色图像阈值调高（例如35–50），将白色图像阈值稍微调低。',
+			'shiny_auto_counting_for' => '计入：{name}',
+			'shiny_auto_switch_hunt_btn' => '切换到这里',
+			'shiny_auto_pending_banner' => '自动计数器已记录——扫描仪运行时会自动启动。',
+			'shiny_auto_pending_cancel' => '取消',
+			'shiny_auto_help_tooltip' => '显示说明和手势',
+			'shiny_auto_help_title' => '自动计数器 图例与手势',
+			'shiny_auto_help_phases_desc' => '• 准备：槽位等待下一次遇见。\n• 已计数：命中已计数，等待战斗结束/重置。\n• 重置中…：重新激活前冷却中。\n• 闪亮！：检测到闪亮——槽位暂停，直到释放。\n• 暂停：槽位已手动停止。',
+			'shiny_auto_help_gestures_desc' => '点击底部的插槽芯片=暂停/恢复插槽。\n按住插槽芯片=立即手动再次布防插槽（重新布防）。',
+			'multi_hunt_help_tooltip' => '多重狩猎指南',
+			'multi_hunt_help_title' => '多重狩猎仪表板 – 使用方法',
+			'multi_hunt_help_body' => '• 并行狩猎：同时管理多个游戏（+1 / -1 / 暂停/阶段）。\n• 自定义自动规则 (🎛️)：每张卡都可以接收自己的检测规则（例如狂野、软重置、蛋孵化）。\n• 扫描槽位（+ 扫描槽位）：明智地检测特定的多实例槽位（#1、#2、...） Hunts.\n• 暂停的狩猎：如有必要，使用上面的按钮再次显示和隐藏它们。',
 			_ => null,
 		};
 	}
