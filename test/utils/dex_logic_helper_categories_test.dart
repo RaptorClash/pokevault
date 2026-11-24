@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pokevault/utils/catch_rate/models.dart';
 import 'package:pokevault/utils/catch_rate/strategy_base.dart';
@@ -10,7 +10,7 @@ void main() {
     final strategy = CatchRateStrategyFactory.getStrategy(9.0);
 
     setUp(() {
-      LocaleSettings.setLocale(AppLocale.de);
+      LocaleSettings.setLocaleSync(AppLocale.de);
     });
 
     testWidgets('Rendert garantierten Fang in Grün', (

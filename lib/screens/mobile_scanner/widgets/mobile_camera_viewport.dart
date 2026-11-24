@@ -1,6 +1,6 @@
 import 'package:camera/camera.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import '../../../services/mobile_scanner/camera_scan_region.dart';
 import '../../../services/scanner_core/models/scanner_settings.dart'
     show ScanRegionPreset;

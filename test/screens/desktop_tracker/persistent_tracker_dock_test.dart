@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:provider/provider.dart';
@@ -738,8 +738,8 @@ void main() {
     testWidgets(
       'Switching LocaleSettings updates PersistentTrackerDock active and paused labels',
       (tester) async {
-        addTearDown(() => LocaleSettings.setLocale(AppLocale.de));
-        LocaleSettings.setLocale(AppLocale.en);
+        addTearDown(() => LocaleSettings.setLocaleSync(AppLocale.de));
+        LocaleSettings.setLocaleSync(AppLocale.en);
 
         await tester.pumpWidget(
           MaterialApp(

@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'dart:io';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:provider/provider.dart';
@@ -126,11 +126,11 @@ void main() {
     databaseFactory = databaseFactoryFfi;
     PathProviderPlatform.instance = MockPathProviderPlatform();
     SharedPreferences.setMockInitialValues({'app_db_version': DatabaseService.currentAppDbVersion});
-    LocaleSettings.setLocale(AppLocale.de);
+    LocaleSettings.setLocaleSync(AppLocale.de);
   });
 
   setUp(() async {
-    LocaleSettings.setLocale(AppLocale.de);
+    LocaleSettings.setLocaleSync(AppLocale.de);
     SharedPreferences.setMockInitialValues({'app_db_version': DatabaseService.currentAppDbVersion});
     prefs = await SharedPreferences.getInstance();
     tutorialProvider = TutorialProvider(prefs);

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pokevault/models/dex_view_models.dart';
 import 'package:pokevault/models/pokemon.dart';
@@ -54,7 +54,7 @@ DexDisplayEntry _createEntry({
 
 void main() {
   setUp(() {
-    LocaleSettings.setLocale(AppLocale.de);
+    LocaleSettings.setLocaleSync(AppLocale.de);
   });
 
   group('DexProgressDialog Widget Tests', () {

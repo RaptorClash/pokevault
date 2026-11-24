@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -139,7 +139,7 @@ void main() {
   });
 
   setUp(() async {
-    LocaleSettings.setLocale(AppLocale.de);
+    LocaleSettings.setLocaleSync(AppLocale.de);
     fakeDb = FakeDatabaseService();
     huntProvider = ShinyHuntProvider(
       databaseService: fakeDb,

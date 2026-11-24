@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// Represents a single progress row or category in the dex statistics.
 class ProgressItem {

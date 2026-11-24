@@ -1,5 +1,5 @@
 import 'dart:math' as math;
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// Status of an individual PC Box or Box partition on the completion card.
 class CardBoxItemStatus {

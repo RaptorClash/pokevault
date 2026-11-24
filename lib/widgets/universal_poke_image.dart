@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import 'poke_image_io.dart' if (dart.library.html) 'poke_image_web.dart';
 

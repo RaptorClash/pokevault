@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:typed_data';
 import 'package:file_selector/file_selector.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import '../../../i18n/strings.g.dart';
 import '../../../services/desktop_tracker/desktop_capture_driver.dart';
 import '../../../services/desktop_tracker/windows_desktop_bridge.dart';

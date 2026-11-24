@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pokevault/models/dex_card_models.dart';
 import 'package:pokevault/models/dex_progress_models.dart';
@@ -692,19 +692,19 @@ void main() {
       final config = DexCardConfig(style: DexCardStyle.analyst);
 
       // DE mode
-      LocaleSettings.setLocale(AppLocale.de);
+      LocaleSettings.setLocaleSync(AppLocale.de);
       await tester.pumpWidget(buildCardWidget(config: config, stats: statsWithGens));
       await tester.pumpAndSettle();
       expect(find.text('GENERATIONEN'), findsOneWidget);
 
       // EN mode
-      LocaleSettings.setLocale(AppLocale.en);
+      LocaleSettings.setLocaleSync(AppLocale.en);
       await tester.pumpWidget(buildCardWidget(config: config, stats: statsWithGens));
       await tester.pumpAndSettle();
       expect(find.text('GENERATIONS'), findsOneWidget);
 
       // Reset
-      LocaleSettings.setLocale(AppLocale.de);
+      LocaleSettings.setLocaleSync(AppLocale.de);
     });
 
     testWidgets('Toggles Variant Breakdown according to showVariants config', (tester) async {

@@ -1,4 +1,14 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
+// Bridge legacy Material ancestor required by flutter_colorpicker until upstream migrates to material_ui.
+// ignore: deprecated_member_use
+import 'package:flutter/material.dart' as legacy_material
+    show
+        Brightness,
+        DefaultMaterialLocalizations,
+        Material,
+        MaterialType,
+        Theme,
+        ThemeData;
 import 'package:provider/provider.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import '../../../../i18n/strings.g.dart';
@@ -230,13 +240,29 @@ class AppearanceCard extends StatelessWidget {
                 : t.choose_accent_color,
           ),
           content: SingleChildScrollView(
-            child: ColorPicker(
-              pickerColor: pickerColor,
-              onColorChanged: (color) => pickerColor = color,
-              pickerAreaHeightPercent: 0.8,
-              enableAlpha: true,
-              displayThumbColor: true,
-              hexInputBar: true,
+            child: Localizations.override(
+              context: context,
+              delegates: const [
+                legacy_material.DefaultMaterialLocalizations.delegate,
+              ],
+              child: legacy_material.Theme(
+                data: legacy_material.ThemeData(
+                  brightness: isDarkMode
+                      ? legacy_material.Brightness.dark
+                      : legacy_material.Brightness.light,
+                ),
+                child: legacy_material.Material(
+                  type: legacy_material.MaterialType.transparency,
+                  child: ColorPicker(
+                    pickerColor: pickerColor,
+                    onColorChanged: (color) => pickerColor = color,
+                    pickerAreaHeightPercent: 0.8,
+                    enableAlpha: true,
+                    displayThumbColor: true,
+                    hexInputBar: true,
+                  ),
+                ),
+              ),
             ),
           ),
           actions: [

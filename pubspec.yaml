@@ -35,39 +35,37 @@ dependencies:
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
-  cupertino_icons: ^1.0.8
+  cupertino_icons: ^2.0.0
   provider: ^6.1.5+1
-  file_selector: ^1.0.3
-  share_plus: ^12.0.2
+  file_selector: ^1.1.0
+  share_plus: ^13.3.1
   path_provider: ^2.1.6
-  shared_preferences: ^2.5.5
-  cached_network_image: ^3.4.1
+  shared_preferences: ^2.5.6
+  cached_network_image: ^4.0.7
   flutter_colorpicker: ^1.1.0
-  url_launcher: ^6.3.2
-  excel: ^4.0.6
-  archive: ^3.6.1
-  http: ^1.2.0
-  package_info_plus: ^8.0.0
-  open_filex: ^4.5.0
-  flutter_svg: ^2.3.0
-  sqflite: ^2.3.0
-  path: ^1.8.3
-  sqflite_common_ffi: ^2.3.3
-  file_saver: ^0.4.0
-  sqflite_common_ffi_web: ^1.1.2
-  googleapis: ^13.1.0
-  googleapis_auth: ^1.6.0
-  google_sign_in: ^6.2.1
-  extension_google_sign_in_as_googleapis_auth: ^2.0.7
-  slang: ^3.3.0
-  slang_flutter: ^3.1.0
-  uuid: ^4.5.1
-  universal_io: ^2.2.2
-  wakelock_plus: ^1.3.3
-  flutter_markdown: ^0.7.7+1
-  camera: ^0.11.1
-  google_mlkit_text_recognition: ^0.15.0
+  url_launcher: ^6.3.3
+  http: ^1.6.0
+  package_info_plus: ^10.2.2
+  open_filex: ^5.0.0
+  flutter_svg: ^2.5.0
+  sqflite: ^2.4.6
+  path: ^1.9.1
+  sqflite_common_ffi: ^2.4.7
+  sqflite_common_ffi_web: ^1.2.2
+  googleapis: ^19.0.0
+  googleapis_auth: ^2.3.7
+  google_sign_in: ^7.2.0
+  extension_google_sign_in_as_googleapis_auth: ^3.0.0
+  slang: ^4.19.2
+  slang_flutter: ^4.19.0
+  uuid: ^4.6.0
+  universal_io: ^2.3.1
+  wakelock_plus: ^1.8.2
+  flutter_markdown_plus: ^1.0.5
+  camera: ^0.12.2
+  google_mlkit_text_recognition: ^1.0.3
   camera_desktop: ^2.0.0
+  material_ui: ^1.11.1
 
 dev_dependencies:
   flutter_test:
@@ -79,12 +77,12 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^6.0.0
-  flutter_launcher_icons: ^0.13.1
-  flutter_native_splash: ^2.4.1
+  flutter_launcher_icons: ^0.14.4
+  flutter_native_splash: ^2.4.8
   mocktail: ^1.0.5
-  path_provider_platform_interface: ^2.1.2
+  path_provider_platform_interface: ^2.1.3
   plugin_platform_interface: ^2.1.8
-  file_selector_platform_interface: ^2.6.2
+  file_selector_platform_interface: ^2.7.0
   url_launcher_platform_interface: ^2.3.2
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

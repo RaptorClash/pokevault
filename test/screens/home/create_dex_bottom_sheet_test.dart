@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'dart:io';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:provider/provider.dart';
@@ -96,7 +96,7 @@ void main() {
 
   setUp(() {
     SharedPreferences.setMockInitialValues({});
-    LocaleSettings.setLocale(AppLocale.de);
+    LocaleSettings.setLocaleSync(AppLocale.de);
     mockDexProvider = MockDexProvider();
     mockTutorialProvider = MockTutorialProvider();
 

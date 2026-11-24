@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:flutter/gestures.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -168,7 +168,7 @@ void main() {
     databaseFactory = databaseFactoryFfi;
     PathProviderPlatform.instance = MockPathProviderPlatform();
     SharedPreferences.setMockInitialValues({'app_db_version': DatabaseService.currentAppDbVersion});
-    LocaleSettings.setLocale(AppLocale.de);
+    LocaleSettings.setLocaleSync(AppLocale.de);
   });
 
   tearDownAll(() {
@@ -182,7 +182,7 @@ void main() {
     String? uniqueId,
     void Function(String)? onNavigateToGender,
   }) {
-    LocaleSettings.setLocale(language == 'de' ? AppLocale.de : AppLocale.en);
+    LocaleSettings.setLocaleSync(language == 'de' ? AppLocale.de : AppLocale.en);
     final entry = DexDisplayEntry(
       pokemon: pokemon,
       uniqueId: uniqueId ?? '${pokemon.id}',
@@ -235,7 +235,7 @@ void main() {
     });
 
     testWidgets('Rendert einklappbare Karte (ExpansionTile) mit Männlich/Weiblich nach Aufklappen', (tester) async {
-      LocaleSettings.setLocale(AppLocale.de);
+      LocaleSettings.setLocaleSync(AppLocale.de);
       final diffPokemon = Pokemon(
         id: 3,
         nameDe: 'Bisaflor',
@@ -279,7 +279,7 @@ void main() {
     });
 
     testWidgets('Zeigt englischen Text wenn Sprache auf Englisch gesetzt und aufgeklappt ist', (tester) async {
-      LocaleSettings.setLocale(AppLocale.en);
+      LocaleSettings.setLocaleSync(AppLocale.en);
       final diffPokemon = Pokemon(
         id: 3,
         nameDe: 'Bisaflor',
@@ -307,7 +307,7 @@ void main() {
       expect(find.text('Male (♂)'), findsOneWidget);
       expect(find.text('Female (♀)'), findsOneWidget);
       expect(find.textContaining('flower'), findsOneWidget);
-      LocaleSettings.setLocale(AppLocale.de);
+      LocaleSettings.setLocaleSync(AppLocale.de);
     });
 
     testWidgets('Adversarial Boundary Test: Bildschirmgröße 320x480 ohne RenderFlex Overflow', (tester) async {

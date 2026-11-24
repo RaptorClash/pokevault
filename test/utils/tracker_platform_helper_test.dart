@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
@@ -31,7 +31,7 @@ void main() {
     setUp(() {
       TrackerPlatformHelper.resetDebugOverrides();
       SharedPreferences.setMockInitialValues({});
-      LocaleSettings.setLocale(AppLocale.de);
+      LocaleSettings.setLocaleSync(AppLocale.de);
       TutorialOverlay.resetShowing();
 
       mockDexProvider = _MockDexProvider();

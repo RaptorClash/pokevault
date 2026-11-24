@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../../../models/dex_card_models.dart';
 import '../../../models/dex_progress_models.dart';

@@ -1,5 +1,5 @@
 import 'package:flutter/gestures.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pokevault/i18n/strings.g.dart';
 import 'package:pokevault/models/dex_view_models.dart';
@@ -409,13 +409,13 @@ void main() {
     // Translation Verification
     // =========================================================================
     test('Translations: Keys for save, discard, yes, discard exist in DE and EN', () {
-      LocaleSettings.setLocale(AppLocale.de);
+      LocaleSettings.setLocaleSync(AppLocale.de);
       expect(t.edit_mode_save_title, equals('Änderungen speichern?'));
       expect(t.edit_mode_discard_title, equals('Möchtest du alle Änderungen verwerfen?'));
       expect(t.yes, equals('Ja'));
       expect(t.discard, equals('Verwerfen'));
 
-      LocaleSettings.setLocale(AppLocale.en);
+      LocaleSettings.setLocaleSync(AppLocale.en);
       expect(t.edit_mode_save_title, equals('Save changes?'));
       expect(t.edit_mode_discard_title, equals('Do you want to discard all changes?'));
       expect(t.yes, equals('Yes'));
@@ -548,7 +548,7 @@ void main() {
     // R3: Save (✓) Confirmation Dialog Workflow
     // =========================================================================
     testWidgets('R3: Save (✓) dialog cancel keeps edit mode active', (tester) async {
-      LocaleSettings.setLocale(AppLocale.de);
+      LocaleSettings.setLocaleSync(AppLocale.de);
       final box1 = createTestCustomBox(title: 'Box 1', pokemonIds: ['P1']);
       final dex = createTestUserDex(customBoxes: [box1]);
 
@@ -582,7 +582,7 @@ void main() {
     });
 
     testWidgets('R3: Save (✓) dialog confirm persists changes and exits edit mode', (tester) async {
-      LocaleSettings.setLocale(AppLocale.de);
+      LocaleSettings.setLocaleSync(AppLocale.de);
       final box1 = createTestCustomBox(title: 'Box 1', pokemonIds: ['P1']);
       final dex = createTestUserDex(customBoxes: [box1]);
 
@@ -614,7 +614,7 @@ void main() {
     // R3: Discard (✕) Confirmation Dialog & Rollback Workflow
     // =========================================================================
     testWidgets('R3: Discard (✕) dialog cancel keeps modifications and edit mode active', (tester) async {
-      LocaleSettings.setLocale(AppLocale.de);
+      LocaleSettings.setLocaleSync(AppLocale.de);
       final box1 = createTestCustomBox(title: 'Box 1', pokemonIds: ['ORIGINAL_MON']);
       final dex = createTestUserDex(customBoxes: [box1]);
 
@@ -650,7 +650,7 @@ void main() {
     });
 
     testWidgets('R3: Discard (✕) dialog confirm rolls back customBoxes to snapshot and exits edit mode', (tester) async {
-      LocaleSettings.setLocale(AppLocale.de);
+      LocaleSettings.setLocaleSync(AppLocale.de);
       final box1 = createTestCustomBox(title: 'Box 1', pokemonIds: ['ORIGINAL_1', 'ORIGINAL_2']);
       final dex = createTestUserDex(customBoxes: [box1]);
 
@@ -688,7 +688,7 @@ void main() {
     // R3: Back Navigation & PopScope Interception
     // =========================================================================
     testWidgets('R3: Leading back button triggers discard dialog and does not pop the screen', (tester) async {
-      LocaleSettings.setLocale(AppLocale.de);
+      LocaleSettings.setLocaleSync(AppLocale.de);
       final box1 = createTestCustomBox(title: 'Box 1', pokemonIds: ['P1']);
       final dex = createTestUserDex(customBoxes: [box1]);
 

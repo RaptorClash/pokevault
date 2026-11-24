@@ -15,13 +15,13 @@ class IsolateTranslator {
     for (final locale in AppLocale.values) {
       if (locale.languageCode.toLowerCase() == clean ||
           locale.languageTag.toLowerCase() == clean) {
-        return locale.build();
+        return locale.buildSync();
       }
     }
     try {
-      return AppLocaleUtils.parse(language).build();
+      return AppLocaleUtils.parse(language).buildSync();
     } catch (_) {
-      return AppLocale.de.build();
+      return AppLocale.de.buildSync();
     }
   }
 

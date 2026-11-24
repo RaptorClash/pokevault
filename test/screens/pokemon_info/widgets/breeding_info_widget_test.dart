@@ -1,5 +1,5 @@
 import 'dart:io';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:provider/provider.dart';
@@ -609,7 +609,7 @@ void main() {
     ];
 
     setUp(() {
-      LocaleSettings.setLocale(AppLocale.de);
+      LocaleSettings.setLocaleSync(AppLocale.de);
       mockProvider = MockDexProvider();
       mockSettingsProvider = MockSettingsProvider();
       when(() => mockSettingsProvider.currentLanguage).thenReturn('de');
@@ -766,7 +766,7 @@ void main() {
     testWidgets('Englische Lokalisierung wird korrekt dargestellt', (
       WidgetTester tester,
     ) async {
-      LocaleSettings.setLocale(AppLocale.en);
+      LocaleSettings.setLocaleSync(AppLocale.en);
       when(() => mockSettingsProvider.currentLanguage).thenReturn('en');
 
       await tester.pumpWidget(buildWidget(testPokemonList[6])); // Poliwag chain
@@ -785,7 +785,7 @@ void main() {
     testWidgets('Englische Lokalisierung für Ursaluna Vollmond', (
       WidgetTester tester,
     ) async {
-      LocaleSettings.setLocale(AppLocale.en);
+      LocaleSettings.setLocaleSync(AppLocale.en);
       when(() => mockSettingsProvider.currentLanguage).thenReturn('en');
 
       final teddiursa = testPokemonList.firstWhere((p) => p.id == 216);

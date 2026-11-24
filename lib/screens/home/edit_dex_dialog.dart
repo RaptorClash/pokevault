@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import '../../data/dex_groups_data.dart';
 import '../../i18n/strings.g.dart';
 import '../../models/user_dex.dart';

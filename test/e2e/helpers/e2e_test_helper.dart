@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:provider/provider.dart';
@@ -184,9 +184,9 @@ Widget wrapWithApp({
   _ensureDexFallbackRegistered();
   SharedPreferences.setMockInitialValues({});
   if (language == 'de') {
-    LocaleSettings.setLocale(AppLocale.de);
+    LocaleSettings.setLocaleSync(AppLocale.de);
   } else {
-    LocaleSettings.setLocale(AppLocale.en);
+    LocaleSettings.setLocaleSync(AppLocale.en);
   }
 
   final dexProvider = mockDexProvider ?? MockDexProvider();

@@ -4,7 +4,6 @@
 
 list(APPEND FLUTTER_PLUGIN_LIST
   camera_desktop
-  file_saver
   file_selector_windows
   url_launcher_windows
   share_plus

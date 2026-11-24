@@ -1,6 +1,6 @@
 import 'dart:typed_data';
 import 'package:camera/camera.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:provider/provider.dart';
@@ -62,7 +62,7 @@ void main() {
 
     setUp(() async {
       SharedPreferences.setMockInitialValues({});
-      LocaleSettings.setLocale(AppLocale.de);
+      LocaleSettings.setLocaleSync(AppLocale.de);
       await MobileCameraTrackerService.instance.stopSession();
 
       mockDexProvider = _MockDexProvider();
@@ -543,7 +543,7 @@ void main() {
       expect(tester.takeException(), isNull);
 
       mockSettingsProvider.setPokemonLanguage('en');
-      LocaleSettings.setLocale(AppLocale.en);
+      LocaleSettings.setLocaleSync(AppLocale.en);
       await tester.pumpAndSettle();
       expect(tester.takeException(), isNull);
     });

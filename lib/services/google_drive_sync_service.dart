@@ -19,13 +19,22 @@ class GoogleDriveSyncService {
   static final GoogleDriveSyncService instance = GoogleDriveSyncService._init();
   GoogleDriveSyncService._init();
 
+  static const List<String> _driveScopes = [drive.DriveApi.driveAppdataScope];
+
   AuthClient? _authClient;
-  GoogleSignIn? _webSignIn;
+  bool _webSignInInitialized = false;
   drive.DriveApi? get _driveApi =>
       _authClient != null ? drive.DriveApi(_authClient!) : null;
 
   /// Whether the user currently has an active, authenticated Google Drive session.
   bool get isSignedIn => _authClient != null;
+
+  Future<void> _ensureWebSignInInitialized(String clientId) async {
+    if (!_webSignInInitialized) {
+      await GoogleSignIn.instance.initialize(clientId: clientId);
+      _webSignInInitialized = true;
+    }
+  }
 
   /// Authenticates with Google Drive using the provided OAuth [clientId] and [clientSecret].
   ///
@@ -42,16 +51,28 @@ class GoogleDriveSyncService {
     // ==========================================
     if (kIsWeb) {
       try {
-        _webSignIn = GoogleSignIn(
-          clientId: clientId,
-          scopes: [drive.DriveApi.driveAppdataScope],
-        );
-        final account = await _webSignIn!.signIn();
-        if (account != null) {
-          _authClient = await _webSignIn!.authenticatedClient();
-          if (_authClient != null) return "OK";
+        await _ensureWebSignInInitialized(clientId);
+        final GoogleSignInClientAuthorization authorization;
+        if (GoogleSignIn.instance.supportsAuthenticate()) {
+          final account = await GoogleSignIn.instance.authenticate(
+            scopeHint: _driveScopes,
+          );
+          authorization =
+              await account.authorizationClient.authorizationForScopes(
+                _driveScopes,
+              ) ??
+              await account.authorizationClient.authorizeScopes(_driveScopes);
+        } else {
+          authorization = await GoogleSignIn.instance.authorizationClient
+              .authorizeScopes(_driveScopes);
         }
-        return "Web-Login abgebrochen.";
+        _authClient = authorization.authClient(scopes: _driveScopes);
+        return "OK";
+      } on GoogleSignInException catch (e) {
+        if (e.code == GoogleSignInExceptionCode.canceled) {
+          return "Web-Login abgebrochen.";
+        }
+        return "Web-Login Fehler: $e";
       } catch (e) {
         return "Web-Login Fehler: $e";
       }
@@ -165,14 +186,20 @@ class GoogleDriveSyncService {
     if (kIsWeb) {
       if (clientId.isEmpty) return false;
       try {
-        _webSignIn = GoogleSignIn(
-          clientId: clientId,
-          scopes: [drive.DriveApi.driveAppdataScope],
-        );
-        final account = await _webSignIn!.signInSilently();
-        if (account != null) {
-          _authClient = await _webSignIn!.authenticatedClient();
-          return _authClient != null;
+        await _ensureWebSignInInitialized(clientId);
+        final lightweightFuture =
+            GoogleSignIn.instance.attemptLightweightAuthentication();
+        final account =
+            lightweightFuture != null ? await lightweightFuture : null;
+        final authorization = account != null
+            ? await account.authorizationClient.authorizationForScopes(
+                _driveScopes,
+              )
+            : await GoogleSignIn.instance.authorizationClient
+                .authorizationForScopes(_driveScopes);
+        if (authorization != null) {
+          _authClient = authorization.authClient(scopes: _driveScopes);
+          return true;
         }
       } catch (_) {}
       return false;
@@ -225,8 +252,8 @@ class GoogleDriveSyncService {
 
   /// Revokes active session tokens, closes the HTTP auth client, and clears stored credentials.
   Future<void> signOut() async {
-    if (kIsWeb && _webSignIn != null) {
-      await _webSignIn!.signOut();
+    if (kIsWeb && _webSignInInitialized) {
+      await GoogleSignIn.instance.signOut();
     }
     _authClient?.close();
     _authClient = null;
