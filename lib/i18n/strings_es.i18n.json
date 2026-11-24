@@ -217,7 +217,7 @@
   "form_name_full-belly": "semilla de amapola",
   "form_name_hangry": "vapor de carbón",
   "form_name_crowned": "rey",
-  "form_name_eternamax": "Unendynamax",
+  "form_name_eternamax": "Sin Dynamax",
   "form_name_single-strike": "Estilo enfocado",
   "form_name_rapid-strike": "Estilo fluido",
   "form_name_dada": "papá",
@@ -2335,5 +2335,12 @@
   "multi_hunt_slot_assign_label": "Ranuras de escaneo",
   "multi_hunt_assign_slot_none": "Ninguna ranura asignada",
   "multi_hunt_open_counter": "Vista individual",
-  "multi_hunt_logs_title": "Registro Automático en Vivo ({count})"
+  "multi_hunt_logs_title": "Registro Automático en Vivo ({count})",
+  "multi_hunt_add_hunt": "Nueva caza",
+  "multi_hunt_show_paused": "Pausado ({count})",
+  "multi_hunt_hide_paused": "Ocultar pausado",
+  "multi_hunt_paused_section": "Cazas pausadas ({count})",
+  "multi_hunt_edit_rules_tooltip": "Reglas automáticas para esta caza",
+  "multi_hunt_edit_hunt_tooltip": "Editar caza",
+  "shiny_auto_setup_for_hunt": "Reglas para {name}"
 }

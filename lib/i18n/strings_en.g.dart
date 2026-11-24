@@ -2347,8 +2347,8 @@ class TranslationsEn extends Translations with BaseTranslations<AppLocale, Trans
 	@override String get shiny_auto_custom_reset_hint => 'e.g. Continue or Press Start';
 	@override String get shiny_auto_add_btn => 'Add Pokémon';
 	@override String get shiny_auto_safety_section => 'Safety & Notifications';
-	@override String get shiny_auto_sound_count => 'Sound during car counting';
-	@override String get shiny_auto_haptic_count => 'Vibration during car counting';
+	@override String get shiny_auto_sound_count => 'Sound on auto count';
+	@override String get shiny_auto_haptic_count => 'Vibration on auto count';
 	@override String get shiny_auto_sound_shiny => 'Alarm sound for shiny signal';
 	@override String get shiny_auto_haptic_shiny => 'Vibration with shiny signal';
 	@override String get shiny_auto_pause_on_shiny => 'Automatically pause slot on Shiny';
@@ -2370,6 +2370,13 @@ class TranslationsEn extends Translations with BaseTranslations<AppLocale, Trans
 	@override String get multi_hunt_assign_slot_none => 'No slot assigned';
 	@override String get multi_hunt_open_counter => 'Single view';
 	@override String get multi_hunt_logs_title => 'Live Auto-Log ({count})';
+	@override String get multi_hunt_add_hunt => 'New Hunt';
+	@override String get multi_hunt_show_paused => 'Paused ({count})';
+	@override String get multi_hunt_hide_paused => 'Hide paused';
+	@override String get multi_hunt_paused_section => 'Paused Hunts ({count})';
+	@override String get multi_hunt_edit_rules_tooltip => 'Auto rules for this hunt';
+	@override String get multi_hunt_edit_hunt_tooltip => 'Edit hunt';
+	@override String get shiny_auto_setup_for_hunt => 'Rules for {name}';
 }
 
 /// The flat map containing all translations for locale <en>.
@@ -4696,8 +4703,8 @@ extension on TranslationsEn {
 			'shiny_auto_custom_reset_hint' => 'e.g. Continue or Press Start',
 			'shiny_auto_add_btn' => 'Add Pokémon',
 			'shiny_auto_safety_section' => 'Safety & Notifications',
-			'shiny_auto_sound_count' => 'Sound during car counting',
-			'shiny_auto_haptic_count' => 'Vibration during car counting',
+			'shiny_auto_sound_count' => 'Sound on auto count',
+			'shiny_auto_haptic_count' => 'Vibration on auto count',
 			'shiny_auto_sound_shiny' => 'Alarm sound for shiny signal',
 			'shiny_auto_haptic_shiny' => 'Vibration with shiny signal',
 			'shiny_auto_pause_on_shiny' => 'Automatically pause slot on Shiny',
@@ -4719,6 +4726,13 @@ extension on TranslationsEn {
 			'multi_hunt_assign_slot_none' => 'No slot assigned',
 			'multi_hunt_open_counter' => 'Single view',
 			'multi_hunt_logs_title' => 'Live Auto-Log ({count})',
+			'multi_hunt_add_hunt' => 'New Hunt',
+			'multi_hunt_show_paused' => 'Paused ({count})',
+			'multi_hunt_hide_paused' => 'Hide paused',
+			'multi_hunt_paused_section' => 'Paused Hunts ({count})',
+			'multi_hunt_edit_rules_tooltip' => 'Auto rules for this hunt',
+			'multi_hunt_edit_hunt_tooltip' => 'Edit hunt',
+			'shiny_auto_setup_for_hunt' => 'Rules for {name}',
 			_ => null,
 		};
 	}

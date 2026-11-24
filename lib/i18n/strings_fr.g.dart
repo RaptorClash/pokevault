@@ -2370,6 +2370,13 @@ class TranslationsFr extends Translations with BaseTranslations<AppLocale, Trans
 	@override String get multi_hunt_assign_slot_none => 'Aucun emplacement attribué';
 	@override String get multi_hunt_open_counter => 'Vue individuelle';
 	@override String get multi_hunt_logs_title => 'Journal automatique en direct ({count})';
+	@override String get multi_hunt_add_hunt => 'Nouvelle chasse';
+	@override String get multi_hunt_show_paused => 'En pause ({count})';
+	@override String get multi_hunt_hide_paused => 'Masquer en pause';
+	@override String get multi_hunt_paused_section => 'Chasses en pause ({count})';
+	@override String get multi_hunt_edit_rules_tooltip => 'Règles automatiques pour cette chasse';
+	@override String get multi_hunt_edit_hunt_tooltip => 'Modifier la chasse';
+	@override String get shiny_auto_setup_for_hunt => 'Règles pour {name}';
 }
 
 /// The flat map containing all translations for locale <fr>.
@@ -4719,6 +4726,13 @@ extension on TranslationsFr {
 			'multi_hunt_assign_slot_none' => 'Aucun emplacement attribué',
 			'multi_hunt_open_counter' => 'Vue individuelle',
 			'multi_hunt_logs_title' => 'Journal automatique en direct ({count})',
+			'multi_hunt_add_hunt' => 'Nouvelle chasse',
+			'multi_hunt_show_paused' => 'En pause ({count})',
+			'multi_hunt_hide_paused' => 'Masquer en pause',
+			'multi_hunt_paused_section' => 'Chasses en pause ({count})',
+			'multi_hunt_edit_rules_tooltip' => 'Règles automatiques pour cette chasse',
+			'multi_hunt_edit_hunt_tooltip' => 'Modifier la chasse',
+			'shiny_auto_setup_for_hunt' => 'Règles pour {name}',
 			_ => null,
 		};
 	}

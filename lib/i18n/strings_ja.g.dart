@@ -2370,6 +2370,13 @@ class TranslationsJa extends Translations with BaseTranslations<AppLocale, Trans
 	@override String get multi_hunt_assign_slot_none => 'スロットが割り当てられていません';
 	@override String get multi_hunt_open_counter => '単独表示';
 	@override String get multi_hunt_logs_title => 'ライブオートログ ({count})';
+	@override String get multi_hunt_add_hunt => '新しいハント';
+	@override String get multi_hunt_show_paused => '一時停止 ({count})';
+	@override String get multi_hunt_hide_paused => '一時停止を非表示';
+	@override String get multi_hunt_paused_section => '一時停止されたハント ({count})';
+	@override String get multi_hunt_edit_rules_tooltip => 'このハントの自動ルール';
+	@override String get multi_hunt_edit_hunt_tooltip => 'ハントを編集';
+	@override String get shiny_auto_setup_for_hunt => '{name}のルール';
 }
 
 /// The flat map containing all translations for locale <ja>.
@@ -4719,6 +4726,13 @@ extension on TranslationsJa {
 			'multi_hunt_assign_slot_none' => 'スロットが割り当てられていません',
 			'multi_hunt_open_counter' => '単独表示',
 			'multi_hunt_logs_title' => 'ライブオートログ ({count})',
+			'multi_hunt_add_hunt' => '新しいハント',
+			'multi_hunt_show_paused' => '一時停止 ({count})',
+			'multi_hunt_hide_paused' => '一時停止を非表示',
+			'multi_hunt_paused_section' => '一時停止されたハント ({count})',
+			'multi_hunt_edit_rules_tooltip' => 'このハントの自動ルール',
+			'multi_hunt_edit_hunt_tooltip' => 'ハントを編集',
+			'shiny_auto_setup_for_hunt' => '{name}のルール',
 			_ => null,
 		};
 	}

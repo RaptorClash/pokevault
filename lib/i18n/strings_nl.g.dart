@@ -121,7 +121,7 @@ class TranslationsNl extends Translations with BaseTranslations<AppLocale, Trans
 	@override String get shiny_lock_banner_desc => 'Dit Pokémon kan op deze plek niet in zijn glinsterende vorm worden verkregen.';
 	@override String get form_regional => 'Regionale vormen';
 	@override String get form_regional_short => 'Regionale vormen';
-	@override String get form_mega => 'Mega';
+	@override String get form_mega => ']Mega';
 	@override String get form_gmax => 'Gigadynamax';
 	@override String get form_other => 'Andere (kostuums, Pokusan...)';
 	@override String get form_other_short => 'Overig (Kostuums...)';
@@ -172,9 +172,9 @@ class TranslationsNl extends Translations with BaseTranslations<AppLocale, Trans
 	@override String get form_name_galar => 'Galar';
 	@override String get form_name_hisui => 'Hisui';
 	@override String get form_name_paldea => 'Paldea';
-	@override String get form_name_mega => 'Mega';
+	@override String get form_name_mega => ']Mega';
 	@override String get form_name_mega_x => 'Mega X';
-	@override String get form_name_mega_y => 'Mega Y';
+	@override String get form_name_mega_y => ']Mega Y';
 	@override String get form_name_gmax => 'Gigadynamax';
 	@override String get form_name_spiky_eared => 'Met gedraaide oren';
 	@override String get form_name_cosplay => 'Cosplay';
@@ -196,7 +196,7 @@ class TranslationsNl extends Translations with BaseTranslations<AppLocale, Trans
 	@override String get form_name_sandstorm => 'Zand';
 	@override String get form_name_river => 'rivier';
 	@override String get form_name_monsoon => 'Moesson';
-	@override String get form_name_savanna => 'Savanne';
+	@override String get form_name_savanna => ']Savanne';
 	@override String get form_name_sun => 'Zon';
 	@override String get form_name_ocean => 'Oceaan';
 	@override String get form_name_jungle => 'Oerwoud';
@@ -425,7 +425,7 @@ class TranslationsNl extends Translations with BaseTranslations<AppLocale, Trans
 	@override String get cat_alcremie => 'Pokusan';
 	@override String get cat_gmax => 'Gigantamax';
 	@override String get cat_regional => 'Regionale vormen';
-	@override String get cat_mega => 'Mega';
+	@override String get cat_mega => ']Mega';
 	@override String get region_name_kanto => 'Kanto';
 	@override String get region_name_johto => 'Johto';
 	@override String get region_name_hoenn => 'Hoenn';
@@ -797,7 +797,7 @@ class TranslationsNl extends Translations with BaseTranslations<AppLocale, Trans
 	@override String get error_calc_catch_rate_ui => 'UI-invoerfout (vangstsnelheid):';
 	@override String get calc_max_raid => 'Dyna Raid';
 	@override String get calc_max_raid_guest => 'Raid-gast?';
-	@override String get calc_max_raid_gmax => 'Gigadynamax?';
+	@override String get calc_max_raid_gmax => ']Gigadynamax?';
 	@override String get calc_backstrike => 'Achteraanval';
 	@override String get calc_target_shiny => 'Het doel glanst';
 	@override String get calc_catch_window => 'Vangvenster (verbijsterd)';
@@ -976,7 +976,7 @@ class TranslationsNl extends Translations with BaseTranslations<AppLocale, Trans
 	@override String get loc_pinwheel_forest => 'Eeuwig Woud';
 	@override String get loc_shoal_cave => 'Kustgrot';
 	@override String get loc_sinnoh_route_217 => 'Route 217 (Sinnoh)';
-	@override String get loc_twist_mountain => 'Wendelberg';
+	@override String get loc_twist_mountain => ']Wendelberg';
 	@override String get loc_vast_poni_canyon => 'Canyon van Poni';
 	@override String get tutorial_skip => 'Overslaan';
 	@override String get tutorial_next => 'Volgende';
@@ -2002,7 +2002,7 @@ class TranslationsNl extends Translations with BaseTranslations<AppLocale, Trans
 	@override String get scanner_home_mobile_camera => 'Camera-tracker';
 	@override String get scanner_home_webcam_photo => 'Webcam- & Foto-tracker';
 	@override String get scanner_profile_standard => 'Standaard';
-	@override String get scanner_profile_pixel_art => 'Pixel-Art (DS)';
+	@override String get scanner_profile_pixel_art => ']Pixelkunst (DS)';
 	@override String get scanner_profile_camera_display => 'Camera / Scherm';
 	@override String get scanner_preset_full_window => 'Heel venster';
 	@override String get scanner_preset_ds_top => 'DS Boven';
@@ -2041,7 +2041,7 @@ class TranslationsNl extends Translations with BaseTranslations<AppLocale, Trans
 	@override String get scanner_waiting_for_game => 'Wacht op spel...';
 	@override String get scanner_hud_missing => '⚠️ Ontbreekt in de doel-Dex';
 	@override String get scanner_hud_footer => 'Altijd-bovenop · Klik + om in te voeren';
-	@override String get scanner_hud_live_label => 'LIVE SCAN';
+	@override String get scanner_hud_live_label => ']LIVE SCAN';
 	@override String get scanner_hud_shiny_badge => 'GLANZEND';
 	@override String get scanner_hud_add_tooltip => 'In doel-Dex invoeren';
 	@override String get scanner_hud_transparent_tooltip => 'Transparantie';
@@ -2247,7 +2247,7 @@ class TranslationsNl extends Translations with BaseTranslations<AppLocale, Trans
 	@override String get scanner_pattern_sandbox_empty => 'Voer boven een OCR-regel in om patronen + Smart-Search live te controleren.';
 	@override String get scanner_pattern_sandbox_no_event => 'Geen gebeurtenis gedetecteerd (UI/ruis of ontbrekend patroon).';
 	@override String get scanner_pattern_sandbox_no_match => 'Type: {type} | Ruwe tekst "{raw}" -> geen Pokédex-treffer >= 72%';
-	@override String get scanner_pattern_load_photo => 'Foto/Screenshot laden';
+	@override String get scanner_pattern_load_photo => 'Foto/Screenshot uploaden';
 	@override String get scanner_pattern_use_live_frame => 'Huidige live-frame gebruiken';
 	@override String get scanner_pattern_no_frame => 'Nog geen frame geladen. Laad een emulator-/camera-beeld om te testen.';
 	@override String get scanner_pattern_loaded_frame => 'Geladen frame: {width}×{height} ({format})';
@@ -2370,6 +2370,13 @@ class TranslationsNl extends Translations with BaseTranslations<AppLocale, Trans
 	@override String get multi_hunt_assign_slot_none => 'Geen slot toegewezen';
 	@override String get multi_hunt_open_counter => 'Enkelvoudige weergave';
 	@override String get multi_hunt_logs_title => 'Live Auto-Log ({count})';
+	@override String get multi_hunt_add_hunt => 'Nieuwe jacht';
+	@override String get multi_hunt_show_paused => 'Gepauzeerd ({count})';
+	@override String get multi_hunt_hide_paused => 'Gepauzeerd verbergen';
+	@override String get multi_hunt_paused_section => 'Gepauzeerde hunts ({count})';
+	@override String get multi_hunt_edit_rules_tooltip => 'Auto-regels voor deze Hunt';
+	@override String get multi_hunt_edit_hunt_tooltip => 'Jacht bewerken';
+	@override String get shiny_auto_setup_for_hunt => 'Regels voor {name}';
 }
 
 /// The flat map containing all translations for locale <nl>.
@@ -2462,7 +2469,7 @@ extension on TranslationsNl {
 			'shiny_lock_banner_desc' => 'Dit Pokémon kan op deze plek niet in zijn glinsterende vorm worden verkregen.',
 			'form_regional' => 'Regionale vormen',
 			'form_regional_short' => 'Regionale vormen',
-			'form_mega' => 'Mega',
+			'form_mega' => ']Mega',
 			'form_gmax' => 'Gigadynamax',
 			'form_other' => 'Andere (kostuums, Pokusan...)',
 			'form_other_short' => 'Overig (Kostuums...)',
@@ -2513,9 +2520,9 @@ extension on TranslationsNl {
 			'form_name_galar' => 'Galar',
 			'form_name_hisui' => 'Hisui',
 			'form_name_paldea' => 'Paldea',
-			'form_name_mega' => 'Mega',
+			'form_name_mega' => ']Mega',
 			'form_name_mega_x' => 'Mega X',
-			'form_name_mega_y' => 'Mega Y',
+			'form_name_mega_y' => ']Mega Y',
 			'form_name_gmax' => 'Gigadynamax',
 			'form_name_spiky_eared' => 'Met gedraaide oren',
 			'form_name_cosplay' => 'Cosplay',
@@ -2537,7 +2544,7 @@ extension on TranslationsNl {
 			'form_name_sandstorm' => 'Zand',
 			'form_name_river' => 'rivier',
 			'form_name_monsoon' => 'Moesson',
-			'form_name_savanna' => 'Savanne',
+			'form_name_savanna' => ']Savanne',
 			'form_name_sun' => 'Zon',
 			'form_name_ocean' => 'Oceaan',
 			'form_name_jungle' => 'Oerwoud',
@@ -2766,7 +2773,7 @@ extension on TranslationsNl {
 			'cat_alcremie' => 'Pokusan',
 			'cat_gmax' => 'Gigantamax',
 			'cat_regional' => 'Regionale vormen',
-			'cat_mega' => 'Mega',
+			'cat_mega' => ']Mega',
 			'region_name_kanto' => 'Kanto',
 			'region_name_johto' => 'Johto',
 			'region_name_hoenn' => 'Hoenn',
@@ -3140,7 +3147,7 @@ extension on TranslationsNl {
 			'error_calc_catch_rate_ui' => 'UI-invoerfout (vangstsnelheid):',
 			'calc_max_raid' => 'Dyna Raid',
 			'calc_max_raid_guest' => 'Raid-gast?',
-			'calc_max_raid_gmax' => 'Gigadynamax?',
+			'calc_max_raid_gmax' => ']Gigadynamax?',
 			'calc_backstrike' => 'Achteraanval',
 			'calc_target_shiny' => 'Het doel glanst',
 			'calc_catch_window' => 'Vangvenster (verbijsterd)',
@@ -3319,7 +3326,7 @@ extension on TranslationsNl {
 			'loc_pinwheel_forest' => 'Eeuwig Woud',
 			'loc_shoal_cave' => 'Kustgrot',
 			'loc_sinnoh_route_217' => 'Route 217 (Sinnoh)',
-			'loc_twist_mountain' => 'Wendelberg',
+			'loc_twist_mountain' => ']Wendelberg',
 			'loc_vast_poni_canyon' => 'Canyon van Poni',
 			'tutorial_skip' => 'Overslaan',
 			'tutorial_next' => 'Volgende',
@@ -4349,7 +4356,7 @@ extension on TranslationsNl {
 			'scanner_home_mobile_camera' => 'Camera-tracker',
 			'scanner_home_webcam_photo' => 'Webcam- & Foto-tracker',
 			'scanner_profile_standard' => 'Standaard',
-			'scanner_profile_pixel_art' => 'Pixel-Art (DS)',
+			'scanner_profile_pixel_art' => ']Pixelkunst (DS)',
 			'scanner_profile_camera_display' => 'Camera / Scherm',
 			'scanner_preset_full_window' => 'Heel venster',
 			'scanner_preset_ds_top' => 'DS Boven',
@@ -4388,7 +4395,7 @@ extension on TranslationsNl {
 			'scanner_waiting_for_game' => 'Wacht op spel...',
 			'scanner_hud_missing' => '⚠️ Ontbreekt in de doel-Dex',
 			'scanner_hud_footer' => 'Altijd-bovenop · Klik + om in te voeren',
-			'scanner_hud_live_label' => 'LIVE SCAN',
+			'scanner_hud_live_label' => ']LIVE SCAN',
 			'scanner_hud_shiny_badge' => 'GLANZEND',
 			'scanner_hud_add_tooltip' => 'In doel-Dex invoeren',
 			'scanner_hud_transparent_tooltip' => 'Transparantie',
@@ -4596,7 +4603,7 @@ extension on TranslationsNl {
 			'scanner_pattern_sandbox_empty' => 'Voer boven een OCR-regel in om patronen + Smart-Search live te controleren.',
 			'scanner_pattern_sandbox_no_event' => 'Geen gebeurtenis gedetecteerd (UI/ruis of ontbrekend patroon).',
 			'scanner_pattern_sandbox_no_match' => 'Type: {type} | Ruwe tekst "{raw}" -> geen Pokédex-treffer >= 72%',
-			'scanner_pattern_load_photo' => 'Foto/Screenshot laden',
+			'scanner_pattern_load_photo' => 'Foto/Screenshot uploaden',
 			'scanner_pattern_use_live_frame' => 'Huidige live-frame gebruiken',
 			'scanner_pattern_no_frame' => 'Nog geen frame geladen. Laad een emulator-/camera-beeld om te testen.',
 			'scanner_pattern_loaded_frame' => 'Geladen frame: {width}×{height} ({format})',
@@ -4719,6 +4726,13 @@ extension on TranslationsNl {
 			'multi_hunt_assign_slot_none' => 'Geen slot toegewezen',
 			'multi_hunt_open_counter' => 'Enkelvoudige weergave',
 			'multi_hunt_logs_title' => 'Live Auto-Log ({count})',
+			'multi_hunt_add_hunt' => 'Nieuwe jacht',
+			'multi_hunt_show_paused' => 'Gepauzeerd ({count})',
+			'multi_hunt_hide_paused' => 'Gepauzeerd verbergen',
+			'multi_hunt_paused_section' => 'Gepauzeerde hunts ({count})',
+			'multi_hunt_edit_rules_tooltip' => 'Auto-regels voor deze Hunt',
+			'multi_hunt_edit_hunt_tooltip' => 'Jacht bewerken',
+			'shiny_auto_setup_for_hunt' => 'Regels voor {name}',
 			_ => null,
 		};
 	}

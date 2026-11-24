@@ -2370,6 +2370,13 @@ class TranslationsRu extends Translations with BaseTranslations<AppLocale, Trans
 	@override String get multi_hunt_assign_slot_none => 'Слот не назначен';
 	@override String get multi_hunt_open_counter => 'Одиночный просмотр';
 	@override String get multi_hunt_logs_title => 'Живой авто-лог ({count})';
+	@override String get multi_hunt_add_hunt => 'Новая Охота';
+	@override String get multi_hunt_show_paused => 'Приостановлено ({count})';
+	@override String get multi_hunt_hide_paused => 'Скрыть приостановленные';
+	@override String get multi_hunt_paused_section => 'Приостановленные охоты ({count})';
+	@override String get multi_hunt_edit_rules_tooltip => 'Авто-правила для этой охоты';
+	@override String get multi_hunt_edit_hunt_tooltip => 'Редактировать охоту';
+	@override String get shiny_auto_setup_for_hunt => 'Правила для {name}';
 }
 
 /// The flat map containing all translations for locale <ru>.
@@ -4719,6 +4726,13 @@ extension on TranslationsRu {
 			'multi_hunt_assign_slot_none' => 'Слот не назначен',
 			'multi_hunt_open_counter' => 'Одиночный просмотр',
 			'multi_hunt_logs_title' => 'Живой авто-лог ({count})',
+			'multi_hunt_add_hunt' => 'Новая Охота',
+			'multi_hunt_show_paused' => 'Приостановлено ({count})',
+			'multi_hunt_hide_paused' => 'Скрыть приостановленные',
+			'multi_hunt_paused_section' => 'Приостановленные охоты ({count})',
+			'multi_hunt_edit_rules_tooltip' => 'Авто-правила для этой охоты',
+			'multi_hunt_edit_hunt_tooltip' => 'Редактировать охоту',
+			'shiny_auto_setup_for_hunt' => 'Правила для {name}',
 			_ => null,
 		};
 	}

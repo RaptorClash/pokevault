@@ -2034,7 +2034,13 @@
     "0f400ff8bdc2679f5e022746ac84b394": "Alarm sound for shiny signal",
     "227c461a1f94475f66ee0b18b1c8e35b": "Sound during car counting",
     "6071460e50589d9d4ef879180eaa6e14": "Set up camera / PiP / multi-zones",
-    "01bc4ac08d5f6e180e477dbbb050de12": "Own reset patterns"
+    "01bc4ac08d5f6e180e477dbbb050de12": "Own reset patterns",
+    "0daf00da00e72588c96ba2bb9190159b": "Auto rules for this hunt",
+    "7476ab1899aa1f5ae25ec621907e851d": "Rules for {name}",
+    "56070749ee8a4784b5f9080fa671b59c": "Paused Hunts ({count})",
+    "ea8ce129f4bc6aad642de34253641d79": "Edit hunt",
+    "080a4fd95ff3a8d1bcf9bb9c22c09fe9": "Hide Paused",
+    "bb5b2c29fc9e98427b90b3e08419ae91": "Paused ({count})"
   },
   "fr": {
     "9c0ff701e7f3418e18dd19c800034de3": "# 🔴 PokéVault",
@@ -4272,7 +4278,13 @@
     "6071460e50589d9d4ef879180eaa6e14": "Configurer la caméra / PiP / zones multiples",
     "01bc4ac08d5f6e180e477dbbb050de12": "Modèles de réinitialisation personnalisés",
     "a0f2def47350048f693cd789ea6bef50": "Scan en cours...",
-    "f20710de667d30112709892e31dcb8b5": "Considérer la transition sur fond blanc comme une réinitialisation"
+    "f20710de667d30112709892e31dcb8b5": "Considérer la transition sur fond blanc comme une réinitialisation",
+    "bb5b2c29fc9e98427b90b3e08419ae91": "En pause ({count})",
+    "080a4fd95ff3a8d1bcf9bb9c22c09fe9": "Masquer en pause",
+    "56070749ee8a4784b5f9080fa671b59c": "Chasses en pause ({count})",
+    "0daf00da00e72588c96ba2bb9190159b": "Règles automatiques pour cette chasse",
+    "7476ab1899aa1f5ae25ec621907e851d": "Règles pour {name}",
+    "ea8ce129f4bc6aad642de34253641d79": "Modifier la chasse"
   },
   "es": {
     "9c0ff701e7f3418e18dd19c800034de3": "# 🔴 PokéVault",
@@ -6514,7 +6526,14 @@
     "227c461a1f94475f66ee0b18b1c8e35b": "Tono en conteo de autos",
     "6071460e50589d9d4ef879180eaa6e14": "Configurar cámara / PiP / multi-zonas",
     "01bc4ac08d5f6e180e477dbbb050de12": "Patrones de reinicio propios",
-    "f20710de667d30112709892e31dcb8b5": "Considerar la transición de la imagen en blanco como un reinicio"
+    "f20710de667d30112709892e31dcb8b5": "Considerar la transición de la imagen en blanco como un reinicio",
+    "bb5b2c29fc9e98427b90b3e08419ae91": "Pausado ({count})",
+    "080a4fd95ff3a8d1bcf9bb9c22c09fe9": "Ocultar pausado",
+    "56070749ee8a4784b5f9080fa671b59c": "Cazas pausadas ({count})",
+    "0daf00da00e72588c96ba2bb9190159b": "Reglas automáticas para esta caza",
+    "7476ab1899aa1f5ae25ec621907e851d": "Reglas para {name}",
+    "ea8ce129f4bc6aad642de34253641d79": "Editar caza",
+    "2215eed137cf1f7b24927625c24b11df": "Sin Dynamax"
   },
   "it": {
     "9c0ff701e7f3418e18dd19c800034de3": "# 🔴 PokéVault",
@@ -8776,7 +8795,13 @@
     "01bc4ac08d5f6e180e477dbbb050de12": "Propri modelli di reset",
     "f20710de667d30112709892e31dcb8b5": "Considerare il passaggio del modello bianco come un reset",
     "33f952105a9d56eb2a4d8892d255b816": "Reimposta...",
-    "abe2d4b9e258d7b8e6faf4685edc3368": "Lucido!"
+    "abe2d4b9e258d7b8e6faf4685edc3368": "Lucido!",
+    "bb5b2c29fc9e98427b90b3e08419ae91": "In pausa ({count})",
+    "080a4fd95ff3a8d1bcf9bb9c22c09fe9": "Nascondi in pausa",
+    "56070749ee8a4784b5f9080fa671b59c": "Hunts in pausa ({count})",
+    "0daf00da00e72588c96ba2bb9190159b": "Regole automatiche per questa caccia",
+    "7476ab1899aa1f5ae25ec621907e851d": "Regole per {name}",
+    "ea8ce129f4bc6aad642de34253641d79": "jagd bearbeiten"
   },
   "ja": {
     "9c0ff701e7f3418e18dd19c800034de3": "# 🔴 ポケヴォルト",
@@ -11097,7 +11122,13 @@
     "36a514261b8559cd321f1b7951d7ca16": "自動カウンターを停止",
     "abe2d4b9e258d7b8e6faf4685edc3368": "ピカピカ！",
     "69e98460747c4c6167f69caeeec4af3d": "ハブで少なくとも1つのシャイニーハントを作成して、複数のゲームを同時に追跡します。",
-    "f20710de667d30112709892e31dcb8b5": "ホワイトスクリーンの切り替えをリセットとして扱う"
+    "f20710de667d30112709892e31dcb8b5": "ホワイトスクリーンの切り替えをリセットとして扱う",
+    "56070749ee8a4784b5f9080fa671b59c": "一時停止されたハント ({count})",
+    "7476ab1899aa1f5ae25ec621907e851d": "{name}のルール",
+    "0daf00da00e72588c96ba2bb9190159b": "このハントの自動ルール",
+    "080a4fd95ff3a8d1bcf9bb9c22c09fe9": "一時停止を非表示",
+    "bb5b2c29fc9e98427b90b3e08419ae91": "一時停止 ({count})",
+    "ea8ce129f4bc6aad642de34253641d79": "ハントを編集"
   },
   "ko": {
     "9c0ff701e7f3418e18dd19c800034de3": "# 🔴 포켓볼트",
@@ -13419,7 +13450,13 @@
     "36a514261b8559cd321f1b7951d7ca16": "자동 카운터 중지",
     "abe2d4b9e258d7b8e6faf4685edc3368": "번쩍이는!",
     "69e98460747c4c6167f69caeeec4af3d": "허브에서 여러 게임을 동시에 추적하기 위해 최소한 하나의 샤이니 헌트를 생성하세요.",
-    "f20710de667d30112709892e31dcb8b5": "화이트 이미지 전환을 리셋으로 간주"
+    "f20710de667d30112709892e31dcb8b5": "화이트 이미지 전환을 리셋으로 간주",
+    "56070749ee8a4784b5f9080fa671b59c": "일시정지된 헌트 ({count})",
+    "7476ab1899aa1f5ae25ec621907e851d": "{name}의 규칙",
+    "0daf00da00e72588c96ba2bb9190159b": "이 헌트에 대한 자동 규칙",
+    "080a4fd95ff3a8d1bcf9bb9c22c09fe9": "일시정지된 항목 숨기기",
+    "bb5b2c29fc9e98427b90b3e08419ae91": "일시 중지됨 ({count})",
+    "ea8ce129f4bc6aad642de34253641d79": "사냥 편집"
   },
   "zh-Hans": {
     "9c0ff701e7f3418e18dd19c800034de3": "# 🔴 宝可梦库",
@@ -15751,7 +15788,13 @@
     "36a514261b8559cd321f1b7951d7ca16": "停止自动计数器",
     "abe2d4b9e258d7b8e6faf4685edc3368": "闪亮！",
     "69e98460747c4c6167f69caeeec4af3d": "在中心至少创建一次闪亮狩猎，以同时跟踪多个游戏。",
-    "f20710de667d30112709892e31dcb8b5": "将白色背景过渡视为重置"
+    "f20710de667d30112709892e31dcb8b5": "将白色背景过渡视为重置",
+    "56070749ee8a4784b5f9080fa671b59c": "已暂停的 Hunts ({count})",
+    "7476ab1899aa1f5ae25ec621907e851d": "{name} 的规则",
+    "0daf00da00e72588c96ba2bb9190159b": "此狩猎的自动规则",
+    "080a4fd95ff3a8d1bcf9bb9c22c09fe9": "隐藏已暂停",
+    "bb5b2c29fc9e98427b90b3e08419ae91": "已暂停 ({count})",
+    "ea8ce129f4bc6aad642de34253641d79": "编辑猎物"
   },
   "zh-Hant": {
     "9c0ff701e7f3418e18dd19c800034de3": "# 🔴 神奇寶貝保險庫",
@@ -18056,7 +18099,13 @@
     "36a514261b8559cd321f1b7951d7ca16": "停止自動計數器",
     "abe2d4b9e258d7b8e6faf4685edc3368": "閃亮！",
     "69e98460747c4c6167f69caeeec4af3d": "在集線器中至少創建一次閃光狩獵，以同時追蹤多個遊戲。",
-    "f20710de667d30112709892e31dcb8b5": "將白圖過渡視為重置"
+    "f20710de667d30112709892e31dcb8b5": "將白圖過渡視為重置",
+    "56070749ee8a4784b5f9080fa671b59c": "暫停的獵捕 ({count})",
+    "7476ab1899aa1f5ae25ec621907e851d": "{name} 的規則",
+    "0daf00da00e72588c96ba2bb9190159b": "此獵捕的自動規則",
+    "bb5b2c29fc9e98427b90b3e08419ae91": "暫停的 ({count})",
+    "080a4fd95ff3a8d1bcf9bb9c22c09fe9": "隱藏已暫停",
+    "ea8ce129f4bc6aad642de34253641d79": "編輯狩獵"
   },
   "pt": {
     "9c0ff701e7f3418e18dd19c800034de3": "# 🔴 PokéVault",
@@ -20317,7 +20366,13 @@
     "227c461a1f94475f66ee0b18b1c8e35b": "Tom na contagem de carros",
     "6071460e50589d9d4ef879180eaa6e14": "Configurar câmera / PiP / múltiplas zonas",
     "01bc4ac08d5f6e180e477dbbb050de12": "Padrões de reset próprios",
-    "f20710de667d30112709892e31dcb8b5": "Considerar a transição de imagem branca como reinício"
+    "f20710de667d30112709892e31dcb8b5": "Considerar a transição de imagem branca como reinício",
+    "bb5b2c29fc9e98427b90b3e08419ae91": "Pausado ({count})",
+    "080a4fd95ff3a8d1bcf9bb9c22c09fe9": "Ocultar pausado",
+    "56070749ee8a4784b5f9080fa671b59c": "Caças Pausadas ({count})",
+    "0daf00da00e72588c96ba2bb9190159b": "Regras automáticas para esta caçada",
+    "7476ab1899aa1f5ae25ec621907e851d": "Regras para {name}",
+    "ea8ce129f4bc6aad642de34253641d79": "Editar Caça"
   },
   "nl": {
     "9c0ff701e7f3418e18dd19c800034de3": "# 🔴 PokéVault",
@@ -22425,11 +22480,11 @@
     "a4352cdc322972096c71cacf7a39f559": "ACTIEVE PATRONEN ({count})",
     "386b1c7c52c211598c11b041eabbbe34": "Desktop-tracker & overlay",
     "7904381b1d3fade479bf858a28e2108c": "Webcam- & Foto-tracker",
-    "a01c3ecbb2d4d418496327461c00820b": "Pixel-Art (DS)",
+    "a01c3ecbb2d4d418496327461c00820b": "]Pixelkunst (DS)",
     "dff08d1e23b5630258dcc6cec9ba8c8f": "Tesseract.js ({lang} · IndexedDB)",
     "f35d25277cc50c27cf7b5d69181dd381": "LIVE",
     "d2d84c1fc4f2d5d5f1c43bdb29dc236f": "HUD",
-    "ea5eb6fa7639ec215581a4233c3414c0": "LIVE SCAN",
+    "ea5eb6fa7639ec215581a4233c3414c0": "]LIVE SCAN",
     "bb0355976a39e5c754e0f5f4b82dd9f0": "Scannen",
     "a5163fe21f330316158294f4b906f597": "Foto",
     "7f4486544da6ac997e09c9bfe680da59": "VANG",
@@ -22441,7 +22496,7 @@
     "9bcf1286bca77d355b66733ca23f744a": "Voer boven een OCR-regel in om patronen + Smart-Search live te controleren.",
     "fd4f6eeaf702a48672c050781f1a08fd": "Geen gebeurtenis gedetecteerd (UI/ruis of ontbrekend patroon).",
     "3ccefca599fa3841e14fec35b5404ef0": "Type: {type} | Ruwe tekst \"{raw}\" -> geen Pokédex-treffer >= 72%",
-    "d865acfeb34f342fbfdd96da2a33295a": "Foto/Screenshot laden",
+    "d865acfeb34f342fbfdd96da2a33295a": "Foto/Screenshot uploaden",
     "b0986de9b0b874b8cc2246cdf4ce75eb": "Huidige live-frame gebruiken",
     "6ee5d28f8ed071f2365583818e56a0e2": "Nog geen frame geladen. Laad een emulator-/camera-beeld om te testen.",
     "9ad3423ba726faff0af543ed444078d0": "Geladen frame: {width}×{height} ({format})",
@@ -22539,7 +22594,18 @@
     "227c461a1f94475f66ee0b18b1c8e35b": "Geluid bij auto-telling",
     "6071460e50589d9d4ef879180eaa6e14": "Camera / PiP / Multi-zones instellen",
     "01bc4ac08d5f6e180e477dbbb050de12": "Eigen resetpatronen",
-    "eb7297e94e2cb86e90a6ead067666717": "Vergoeding"
+    "eb7297e94e2cb86e90a6ead067666717": "Vergoeding",
+    "478d55864f6e77fdd232fc46bd8bff36": "]Mega Y",
+    "fdb140257badcf41d8fbef6676050bed": "]Gigadynamax?",
+    "7b69e8ae901cac74dfe1834fdb286081": "]Wendelberg",
+    "fde5020a5a97322bf5a7aee8174abbd8": "]Mega",
+    "a6b32966614b09fe0bf17cdbb6503da1": "]Savanne",
+    "0daf00da00e72588c96ba2bb9190159b": "Auto-regels voor deze Hunt",
+    "7476ab1899aa1f5ae25ec621907e851d": "Regels voor {name}",
+    "56070749ee8a4784b5f9080fa671b59c": "Gepauzeerde hunts ({count})",
+    "ea8ce129f4bc6aad642de34253641d79": "Jacht bewerken",
+    "080a4fd95ff3a8d1bcf9bb9c22c09fe9": "Gepauzeerd verbergen",
+    "bb5b2c29fc9e98427b90b3e08419ae91": "Gepauzeerd ({count})"
   },
   "pl": {
     "9c0ff701e7f3418e18dd19c800034de3": "# 🔴 PokéVault",
@@ -24803,7 +24869,13 @@
     "01bc4ac08d5f6e180e477dbbb050de12": "Wzory resetowania własne",
     "f20710de667d30112709892e31dcb8b5": "Ocenić przejście obrazu białego jako reset",
     "95249fb86145a6c1747a1c7ab1dae313": "perła Schillera",
-    "33f952105a9d56eb2a4d8892d255b816": "Resetowanie..."
+    "33f952105a9d56eb2a4d8892d255b816": "Resetowanie...",
+    "bb5b2c29fc9e98427b90b3e08419ae91": "Wstrzymano ({count})",
+    "080a4fd95ff3a8d1bcf9bb9c22c09fe9": "Ukryj wstrzymane",
+    "56070749ee8a4784b5f9080fa671b59c": "Wstrzymane polowania ({count})",
+    "0daf00da00e72588c96ba2bb9190159b": "Automatyczne zasady dla tego polowania",
+    "7476ab1899aa1f5ae25ec621907e851d": "Zasady dla {name}",
+    "ea8ce129f4bc6aad642de34253641d79": "Edytuj polowanie"
   },
   "ru": {
     "9c0ff701e7f3418e18dd19c800034de3": "# 🔴 ПокеВаульт",
@@ -27140,7 +27212,13 @@
     "36a514261b8559cd321f1b7951d7ca16": "Остановить авто-счетчик",
     "abe2d4b9e258d7b8e6faf4685edc3368": "Блестяще!",
     "69e98460747c4c6167f69caeeec4af3d": "Создайте как минимум один Shiny Hunt в хабе, чтобы отслеживать несколько игр одновременно.",
-    "f20710de667d30112709892e31dcb8b5": "Оценивать переход белого изображения как сброс"
+    "f20710de667d30112709892e31dcb8b5": "Оценивать переход белого изображения как сброс",
+    "56070749ee8a4784b5f9080fa671b59c": "Приостановленные охоты ({count})",
+    "7476ab1899aa1f5ae25ec621907e851d": "Правила для {name}",
+    "0daf00da00e72588c96ba2bb9190159b": "Авто-правила для этой охоты",
+    "080a4fd95ff3a8d1bcf9bb9c22c09fe9": "Скрыть приостановленные",
+    "bb5b2c29fc9e98427b90b3e08419ae91": "Приостановлено ({count})",
+    "ea8ce129f4bc6aad642de34253641d79": "Редактировать охоту"
   },
   "en->de": {
     "4e446c9c74f02a92f8ff8faeaa19787d": "**Neue Funktionen**",

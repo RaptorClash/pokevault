@@ -69,6 +69,8 @@ class ShinyAutoCounterSettings {
   final bool playHapticOnShiny;
   final bool autoPauseSlotOnShiny;
   final Map<int, String> slotToHuntOverrides;
+  final bool usePerHuntMethodDefaults;
+  final Map<String, ShinyAutoCounterSettings> huntSettingsOverrides;
 
   const ShinyAutoCounterSettings({
     this.detectionMode = ShinyHuntDetectionMode.wildEncounter,
@@ -86,14 +88,45 @@ class ShinyAutoCounterSettings {
     this.playHapticOnShiny = true,
     this.autoPauseSlotOnShiny = true,
     this.slotToHuntOverrides = const {},
+    this.usePerHuntMethodDefaults = false,
+    this.huntSettingsOverrides = const {},
   });
 
-  factory ShinyAutoCounterSettings.forHuntMethod(String method) {
+  factory ShinyAutoCounterSettings.forHuntMethod(
+    String method, {
+    bool usePerHuntMethodDefaults = true,
+  }) {
     final mode = ShinyHuntDetectionModeHelpers.defaultForHuntMethod(method);
     return ShinyAutoCounterSettings(
       detectionMode: mode,
       matchFilter: mode.defaultMatchFilter,
+      usePerHuntMethodDefaults: usePerHuntMethodDefaults,
     );
+  }
+
+  /// Resolves the effective settings for [huntId] / [huntMethod]:
+  /// 1. Explicit per-hunt override in [huntSettingsOverrides] wins.
+  /// 2. If [usePerHuntMethodDefaults] is enabled, derives detection mode & filter
+  ///    from [huntMethod] while inheriting global safety/transition preferences.
+  /// 3. Otherwise falls back to this base settings object.
+  ShinyAutoCounterSettings resolveForHunt({
+    String? huntId,
+    String? huntMethod,
+  }) {
+    if (huntId != null && huntSettingsOverrides.containsKey(huntId)) {
+      return huntSettingsOverrides[huntId]!;
+    }
+    if (usePerHuntMethodDefaults &&
+        huntMethod != null &&
+        huntMethod.trim().isNotEmpty) {
+      final mode = ShinyHuntDetectionModeHelpers.defaultForHuntMethod(huntMethod);
+      return copyWith(
+        detectionMode: mode,
+        matchFilter: mode.defaultMatchFilter,
+        huntSettingsOverrides: const {},
+      );
+    }
+    return this;
   }
 
   ShinyAutoCounterSettings copyWith({
@@ -112,6 +145,8 @@ class ShinyAutoCounterSettings {
     bool? playHapticOnShiny,
     bool? autoPauseSlotOnShiny,
     Map<int, String>? slotToHuntOverrides,
+    bool? usePerHuntMethodDefaults,
+    Map<String, ShinyAutoCounterSettings>? huntSettingsOverrides,
   }) {
     return ShinyAutoCounterSettings(
       detectionMode: detectionMode ?? this.detectionMode,
@@ -136,23 +171,45 @@ class ShinyAutoCounterSettings {
       playHapticOnShiny: playHapticOnShiny ?? this.playHapticOnShiny,
       autoPauseSlotOnShiny: autoPauseSlotOnShiny ?? this.autoPauseSlotOnShiny,
       slotToHuntOverrides: slotToHuntOverrides ?? this.slotToHuntOverrides,
+      usePerHuntMethodDefaults:
+          usePerHuntMethodDefaults ?? this.usePerHuntMethodDefaults,
+      huntSettingsOverrides:
+          huntSettingsOverrides ?? this.huntSettingsOverrides,
     );
   }
 
-  /// Builds combined custom patterns for `OcrDetectionEngine.updateCustomPatterns`.
+  /// Builds combined custom patterns for `OcrDetectionEngine.updateCustomPatterns`,
+  /// including any per-hunt custom trigger/reset patterns.
   List<CustomOcrPattern> buildEngineCustomPatterns() {
-    final result = <CustomOcrPattern>[...customTriggerPatterns];
-    for (int i = 0; i < customResetPatterns.length; i++) {
-      final phrase = customResetPatterns[i].trim();
-      if (phrase.isEmpty) continue;
-      result.add(
-        CustomOcrPattern(
-          id: 'shiny_reset_$i',
-          template: phrase,
-          eventType: ScannerEventType.customReset,
-          enabled: true,
-        ),
-      );
+    final result = <CustomOcrPattern>[];
+    final seenIds = <String>{};
+
+    void addRuleSet(ShinyAutoCounterSettings s, String prefix) {
+      for (final p in s.customTriggerPatterns) {
+        if (seenIds.add(p.id)) {
+          result.add(p);
+        }
+      }
+      for (int i = 0; i < s.customResetPatterns.length; i++) {
+        final phrase = s.customResetPatterns[i].trim();
+        if (phrase.isEmpty) continue;
+        final id = '${prefix}_reset_$i';
+        if (seenIds.add(id)) {
+          result.add(
+            CustomOcrPattern(
+              id: id,
+              template: phrase,
+              eventType: ScannerEventType.customReset,
+              enabled: true,
+            ),
+          );
+        }
+      }
+    }
+
+    addRuleSet(this, 'shiny');
+    for (final entry in huntSettingsOverrides.entries) {
+      addRuleSet(entry.value, 'shiny_${entry.key}');
     }
     return List.unmodifiable(result);
   }
@@ -177,6 +234,12 @@ class ShinyAutoCounterSettings {
       'slotToHuntOverrides': {
         for (final e in slotToHuntOverrides.entries) e.key.toString(): e.value,
       },
+      'usePerHuntMethodDefaults': usePerHuntMethodDefaults,
+      if (huntSettingsOverrides.isNotEmpty)
+        'huntSettingsOverrides': {
+          for (final e in huntSettingsOverrides.entries)
+            e.key: e.value.copyWith(huntSettingsOverrides: const {}).toMap(),
+        },
     };
   }
 
@@ -234,6 +297,19 @@ class ShinyAutoCounterSettings {
       }
     }
 
+    final huntOverrides = <String, ShinyAutoCounterSettings>{};
+    final rawHuntOverrides = map['huntSettingsOverrides'];
+    if (rawHuntOverrides is Map) {
+      for (final e in rawHuntOverrides.entries) {
+        final hid = e.key.toString();
+        if (hid.isNotEmpty && e.value is Map) {
+          huntOverrides[hid] = ShinyAutoCounterSettings.fromMap(
+            Map<String, dynamic>.from(e.value as Map),
+          ).copyWith(huntSettingsOverrides: const {});
+        }
+      }
+    }
+
     return ShinyAutoCounterSettings(
       detectionMode: mode,
       matchFilter: filter,
@@ -254,6 +330,9 @@ class ShinyAutoCounterSettings {
       playHapticOnShiny: map['playHapticOnShiny'] as bool? ?? true,
       autoPauseSlotOnShiny: map['autoPauseSlotOnShiny'] as bool? ?? true,
       slotToHuntOverrides: Map.unmodifiable(overrides),
+      usePerHuntMethodDefaults:
+          map['usePerHuntMethodDefaults'] as bool? ?? false,
+      huntSettingsOverrides: Map.unmodifiable(huntOverrides),
     );
   }
 

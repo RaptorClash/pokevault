@@ -2335,5 +2335,12 @@
   "multi_hunt_slot_assign_label": "Сканировать слоты",
   "multi_hunt_assign_slot_none": "Слот не назначен",
   "multi_hunt_open_counter": "Одиночный просмотр",
-  "multi_hunt_logs_title": "Живой авто-лог ({count})"
+  "multi_hunt_logs_title": "Живой авто-лог ({count})",
+  "multi_hunt_add_hunt": "Новая Охота",
+  "multi_hunt_show_paused": "Приостановлено ({count})",
+  "multi_hunt_hide_paused": "Скрыть приостановленные",
+  "multi_hunt_paused_section": "Приостановленные охоты ({count})",
+  "multi_hunt_edit_rules_tooltip": "Авто-правила для этой охоты",
+  "multi_hunt_edit_hunt_tooltip": "Редактировать охоту",
+  "shiny_auto_setup_for_hunt": "Правила для {name}"
 }

@@ -2370,6 +2370,13 @@ class TranslationsZhHant extends Translations with BaseTranslations<AppLocale, T
 	@override String get multi_hunt_assign_slot_none => '未分配時段';
 	@override String get multi_hunt_open_counter => '單一檢視';
 	@override String get multi_hunt_logs_title => '即時自動記錄 ({count})';
+	@override String get multi_hunt_add_hunt => '新獵物';
+	@override String get multi_hunt_show_paused => '暫停的 ({count})';
+	@override String get multi_hunt_hide_paused => '隱藏已暫停';
+	@override String get multi_hunt_paused_section => '暫停的獵捕 ({count})';
+	@override String get multi_hunt_edit_rules_tooltip => '此獵捕的自動規則';
+	@override String get multi_hunt_edit_hunt_tooltip => '編輯狩獵';
+	@override String get shiny_auto_setup_for_hunt => '{name} 的規則';
 }
 
 /// The flat map containing all translations for locale <zh-Hant>.
@@ -4719,6 +4726,13 @@ extension on TranslationsZhHant {
 			'multi_hunt_assign_slot_none' => '未分配時段',
 			'multi_hunt_open_counter' => '單一檢視',
 			'multi_hunt_logs_title' => '即時自動記錄 ({count})',
+			'multi_hunt_add_hunt' => '新獵物',
+			'multi_hunt_show_paused' => '暫停的 ({count})',
+			'multi_hunt_hide_paused' => '隱藏已暫停',
+			'multi_hunt_paused_section' => '暫停的獵捕 ({count})',
+			'multi_hunt_edit_rules_tooltip' => '此獵捕的自動規則',
+			'multi_hunt_edit_hunt_tooltip' => '編輯狩獵',
+			'shiny_auto_setup_for_hunt' => '{name} 的規則',
 			_ => null,
 		};
 	}

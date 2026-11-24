@@ -257,7 +257,7 @@ class TranslationsEs extends Translations with BaseTranslations<AppLocale, Trans
 	@override String get form_name_full_belly => 'semilla de amapola';
 	@override String get form_name_hangry => 'vapor de carbón';
 	@override String get form_name_crowned => 'rey';
-	@override String get form_name_eternamax => 'Unendynamax';
+	@override String get form_name_eternamax => 'Sin Dynamax';
 	@override String get form_name_single_strike => 'Estilo enfocado';
 	@override String get form_name_rapid_strike => 'Estilo fluido';
 	@override String get form_name_dada => 'papá';
@@ -2370,6 +2370,13 @@ class TranslationsEs extends Translations with BaseTranslations<AppLocale, Trans
 	@override String get multi_hunt_assign_slot_none => 'Ninguna ranura asignada';
 	@override String get multi_hunt_open_counter => 'Vista individual';
 	@override String get multi_hunt_logs_title => 'Registro Automático en Vivo ({count})';
+	@override String get multi_hunt_add_hunt => 'Nueva caza';
+	@override String get multi_hunt_show_paused => 'Pausado ({count})';
+	@override String get multi_hunt_hide_paused => 'Ocultar pausado';
+	@override String get multi_hunt_paused_section => 'Cazas pausadas ({count})';
+	@override String get multi_hunt_edit_rules_tooltip => 'Reglas automáticas para esta caza';
+	@override String get multi_hunt_edit_hunt_tooltip => 'Editar caza';
+	@override String get shiny_auto_setup_for_hunt => 'Reglas para {name}';
 }
 
 /// The flat map containing all translations for locale <es>.
@@ -2598,7 +2605,7 @@ extension on TranslationsEs {
 			'form_name_full_belly' => 'semilla de amapola',
 			'form_name_hangry' => 'vapor de carbón',
 			'form_name_crowned' => 'rey',
-			'form_name_eternamax' => 'Unendynamax',
+			'form_name_eternamax' => 'Sin Dynamax',
 			'form_name_single_strike' => 'Estilo enfocado',
 			'form_name_rapid_strike' => 'Estilo fluido',
 			'form_name_dada' => 'papá',
@@ -4719,6 +4726,13 @@ extension on TranslationsEs {
 			'multi_hunt_assign_slot_none' => 'Ninguna ranura asignada',
 			'multi_hunt_open_counter' => 'Vista individual',
 			'multi_hunt_logs_title' => 'Registro Automático en Vivo ({count})',
+			'multi_hunt_add_hunt' => 'Nueva caza',
+			'multi_hunt_show_paused' => 'Pausado ({count})',
+			'multi_hunt_hide_paused' => 'Ocultar pausado',
+			'multi_hunt_paused_section' => 'Cazas pausadas ({count})',
+			'multi_hunt_edit_rules_tooltip' => 'Reglas automáticas para esta caza',
+			'multi_hunt_edit_hunt_tooltip' => 'Editar caza',
+			'shiny_auto_setup_for_hunt' => 'Reglas para {name}',
 			_ => null,
 		};
 	}

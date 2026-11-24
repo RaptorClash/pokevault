@@ -862,7 +862,7 @@
   "evo_trade_species": "przeciwko {0}",
   "species_remoraid": "Remoraid",
   "species_shelmet": "kask z przyłbicą",
-  "species_karrablast": "Laukaps",
+  "species_karrablast": "Cebula",
   "evo_multiplayer": "tryb wieloosobowy",
   "evo_steps": "po {0} krokach (Let's Go)",
   "evo_damage": "{0}+ obrażeń",
@@ -2335,5 +2335,12 @@
   "multi_hunt_slot_assign_label": "Sloty skanowania",
   "multi_hunt_assign_slot_none": "Brak przypisanego slotu",
   "multi_hunt_open_counter": "Widok pojedynczy",
-  "multi_hunt_logs_title": "Automatyczne logowanie na żywo ({count})"
+  "multi_hunt_logs_title": "Automatyczne logowanie na żywo ({count})",
+  "multi_hunt_add_hunt": "Nowe polowanie",
+  "multi_hunt_show_paused": "Wstrzymano ({count})",
+  "multi_hunt_hide_paused": "Ukryj wstrzymane",
+  "multi_hunt_paused_section": "Wstrzymane polowania ({count})",
+  "multi_hunt_edit_rules_tooltip": "Automatyczne zasady dla tego polowania",
+  "multi_hunt_edit_hunt_tooltip": "Edytuj polowanie",
+  "shiny_auto_setup_for_hunt": "Zasady dla {name}"
 }

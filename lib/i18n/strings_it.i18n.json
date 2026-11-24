@@ -2335,5 +2335,12 @@
   "multi_hunt_slot_assign_label": "Slot di scansione",
   "multi_hunt_assign_slot_none": "Nessuno slot assegnato",
   "multi_hunt_open_counter": "Visualizzazione singola",
-  "multi_hunt_logs_title": "Registrazione automatica dal vivo ({count})"
+  "multi_hunt_logs_title": "Registrazione automatica dal vivo ({count})",
+  "multi_hunt_add_hunt": "Nuova caccia",
+  "multi_hunt_show_paused": "In pausa ({count})",
+  "multi_hunt_hide_paused": "Nascondi in pausa",
+  "multi_hunt_paused_section": "Hunts in pausa ({count})",
+  "multi_hunt_edit_rules_tooltip": "Regole automatiche per questa caccia",
+  "multi_hunt_edit_hunt_tooltip": "jagd bearbeiten",
+  "shiny_auto_setup_for_hunt": "Regole per {name}"
 }

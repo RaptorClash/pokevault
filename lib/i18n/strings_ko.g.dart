@@ -2370,6 +2370,13 @@ class TranslationsKo extends Translations with BaseTranslations<AppLocale, Trans
 	@override String get multi_hunt_assign_slot_none => '할당된 슬롯이 없음';
 	@override String get multi_hunt_open_counter => '단일 보기';
 	@override String get multi_hunt_logs_title => '실시간 자동 기록 ({count})';
+	@override String get multi_hunt_add_hunt => '뉴 헌트';
+	@override String get multi_hunt_show_paused => '일시 중지됨 ({count})';
+	@override String get multi_hunt_hide_paused => '일시정지된 항목 숨기기';
+	@override String get multi_hunt_paused_section => '일시정지된 헌트 ({count})';
+	@override String get multi_hunt_edit_rules_tooltip => '이 헌트에 대한 자동 규칙';
+	@override String get multi_hunt_edit_hunt_tooltip => '사냥 편집';
+	@override String get shiny_auto_setup_for_hunt => '{name}의 규칙';
 }
 
 /// The flat map containing all translations for locale <ko>.
@@ -4719,6 +4726,13 @@ extension on TranslationsKo {
 			'multi_hunt_assign_slot_none' => '할당된 슬롯이 없음',
 			'multi_hunt_open_counter' => '단일 보기',
 			'multi_hunt_logs_title' => '실시간 자동 기록 ({count})',
+			'multi_hunt_add_hunt' => '뉴 헌트',
+			'multi_hunt_show_paused' => '일시 중지됨 ({count})',
+			'multi_hunt_hide_paused' => '일시정지된 항목 숨기기',
+			'multi_hunt_paused_section' => '일시정지된 헌트 ({count})',
+			'multi_hunt_edit_rules_tooltip' => '이 헌트에 대한 자동 규칙',
+			'multi_hunt_edit_hunt_tooltip' => '사냥 편집',
+			'shiny_auto_setup_for_hunt' => '{name}의 규칙',
 			_ => null,
 		};
 	}

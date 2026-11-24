@@ -21,6 +21,7 @@ class ShinyAutoCounterSetupSheet extends StatefulWidget {
   final ShinyAutoCounterService? service;
   final VoidCallback? onStarted;
   final bool showSourceLauncher;
+  final bool perHuntOverride;
 
   const ShinyAutoCounterSetupSheet({
     super.key,
@@ -28,6 +29,7 @@ class ShinyAutoCounterSetupSheet extends StatefulWidget {
     this.service,
     this.onStarted,
     this.showSourceLauncher = true,
+    this.perHuntOverride = false,
   });
 
   static Future<void> show(
@@ -35,6 +37,7 @@ class ShinyAutoCounterSetupSheet extends StatefulWidget {
     required ShinyHunt hunt,
     ShinyAutoCounterService? service,
     VoidCallback? onStarted,
+    bool perHuntOverride = false,
   }) {
     return showModalBottomSheet<void>(
       context: context,
@@ -51,6 +54,7 @@ class ShinyAutoCounterSetupSheet extends StatefulWidget {
             hunt: hunt,
             service: service,
             onStarted: onStarted,
+            perHuntOverride: perHuntOverride,
           ),
         ),
       ),
@@ -74,17 +78,29 @@ class _ShinyAutoCounterSetupSheetState
   @override
   void initState() {
     super.initState();
-    _settings = _service.isRunning
-        ? _service.settings
-        : ShinyAutoCounterSettings.forHuntMethod(widget.hunt.method);
+    if (widget.perHuntOverride) {
+      _settings = _service.settingsForHunt(widget.hunt);
+    } else {
+      _settings = _service.isRunning
+          ? _service.settings
+          : ShinyAutoCounterSettings.forHuntMethod(widget.hunt.method);
+    }
     ShinyAutoCounterSettings.loadFromPrefs().then((saved) {
       if (!mounted || saved == null || _service.isRunning) return;
+      if (widget.perHuntOverride) {
+        final savedOverride = saved.huntSettingsOverrides[widget.hunt.id];
+        if (savedOverride != null) {
+          setState(() => _settings = savedOverride);
+        }
+        return;
+      }
       setState(() {
+        final mode = ShinyHuntDetectionModeHelpers.defaultForHuntMethod(
+          widget.hunt.method,
+        );
         _settings = saved.copyWith(
-          detectionMode:
-              ShinyHuntDetectionModeHelpers.defaultForHuntMethod(
-            widget.hunt.method,
-          ),
+          detectionMode: mode,
+          matchFilter: mode.defaultMatchFilter,
         );
       });
     });
@@ -179,6 +195,30 @@ class _ShinyAutoCounterSetupSheetState
   }
 
   Future<void> _applyOrStart() async {
+    if (widget.perHuntOverride) {
+      _service.updateHuntSettings(widget.hunt.id, _settings);
+      if (!mounted) return;
+      final active = _resolveActiveSource();
+      if (!_service.isRunning && active.coordinator != null) {
+        final huntProvider =
+            Provider.of<ShinyHuntProvider>(context, listen: false);
+        _service.startSession(
+          huntProvider: huntProvider,
+          coordinator: active.coordinator!,
+          source: active.source,
+          defaultHuntId: widget.hunt.id,
+          slotIds: active.slotIds,
+          slotColorOverrides: active.slotColors,
+          settings: _service.settings.copyWith(usePerHuntMethodDefaults: true),
+        );
+        widget.onStarted?.call();
+      }
+      if (mounted && Navigator.of(context).canPop()) {
+        Navigator.of(context).pop();
+      }
+      return;
+    }
+
     await ShinyAutoCounterSettings.saveToPrefs(_settings);
     if (!mounted) return;
 
@@ -259,7 +299,14 @@ class _ShinyAutoCounterSetupSheetState
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      t.shiny_auto_setup_title,
+                      widget.perHuntOverride
+                          ? t.shiny_auto_setup_for_hunt.replaceAll(
+                              '{name}',
+                              widget.hunt.title.isNotEmpty
+                                  ? widget.hunt.title
+                                  : widget.hunt.pokemonName,
+                            )
+                          : t.shiny_auto_setup_title,
                       style: theme.textTheme.titleMedium
                           ?.copyWith(fontWeight: FontWeight.bold),
                     ),
@@ -619,11 +666,13 @@ class _ShinyAutoCounterSetupSheetState
                       : Icons.sensors_rounded,
                 ),
                 label: Text(
-                  hasActiveSource
-                      ? t.shiny_auto_connect_active_source
-                      : (_service.isRunning
-                          ? t.shiny_auto_save_btn
-                          : t.shiny_auto_start_btn),
+                  widget.perHuntOverride
+                      ? t.shiny_auto_save_btn
+                      : (hasActiveSource
+                          ? t.shiny_auto_connect_active_source
+                          : (_service.isRunning
+                              ? t.shiny_auto_save_btn
+                              : t.shiny_auto_start_btn)),
                 ),
                 onPressed: _applyOrStart,
               ),

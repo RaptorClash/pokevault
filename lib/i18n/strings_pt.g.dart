@@ -2370,6 +2370,13 @@ class TranslationsPt extends Translations with BaseTranslations<AppLocale, Trans
 	@override String get multi_hunt_assign_slot_none => 'Nenhum slot atribuído';
 	@override String get multi_hunt_open_counter => 'Visualização individual';
 	@override String get multi_hunt_logs_title => 'Registro automático ao vivo ({count})';
+	@override String get multi_hunt_add_hunt => 'Nova caça';
+	@override String get multi_hunt_show_paused => 'Pausado ({count})';
+	@override String get multi_hunt_hide_paused => 'Ocultar pausado';
+	@override String get multi_hunt_paused_section => 'Caças Pausadas ({count})';
+	@override String get multi_hunt_edit_rules_tooltip => 'Regras automáticas para esta caçada';
+	@override String get multi_hunt_edit_hunt_tooltip => 'Editar Caça';
+	@override String get shiny_auto_setup_for_hunt => 'Regras para {name}';
 }
 
 /// The flat map containing all translations for locale <pt>.
@@ -4719,6 +4726,13 @@ extension on TranslationsPt {
 			'multi_hunt_assign_slot_none' => 'Nenhum slot atribuído',
 			'multi_hunt_open_counter' => 'Visualização individual',
 			'multi_hunt_logs_title' => 'Registro automático ao vivo ({count})',
+			'multi_hunt_add_hunt' => 'Nova caça',
+			'multi_hunt_show_paused' => 'Pausado ({count})',
+			'multi_hunt_hide_paused' => 'Ocultar pausado',
+			'multi_hunt_paused_section' => 'Caças Pausadas ({count})',
+			'multi_hunt_edit_rules_tooltip' => 'Regras automáticas para esta caçada',
+			'multi_hunt_edit_hunt_tooltip' => 'Editar Caça',
+			'shiny_auto_setup_for_hunt' => 'Regras para {name}',
 			_ => null,
 		};
 	}

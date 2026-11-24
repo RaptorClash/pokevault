@@ -896,7 +896,7 @@ class TranslationsPl extends Translations with BaseTranslations<AppLocale, Trans
 	@override String get evo_trade_species => 'przeciwko {0}';
 	@override String get species_remoraid => 'Remoraid';
 	@override String get species_shelmet => 'kask z przyłbicą';
-	@override String get species_karrablast => 'Laukaps';
+	@override String get species_karrablast => 'Cebula';
 	@override String get evo_multiplayer => 'tryb wieloosobowy';
 	@override String get evo_steps => 'po {0} krokach (Let\'s Go)';
 	@override String get evo_damage => '{0}+ obrażeń';
@@ -2370,6 +2370,13 @@ class TranslationsPl extends Translations with BaseTranslations<AppLocale, Trans
 	@override String get multi_hunt_assign_slot_none => 'Brak przypisanego slotu';
 	@override String get multi_hunt_open_counter => 'Widok pojedynczy';
 	@override String get multi_hunt_logs_title => 'Automatyczne logowanie na żywo ({count})';
+	@override String get multi_hunt_add_hunt => 'Nowe polowanie';
+	@override String get multi_hunt_show_paused => 'Wstrzymano ({count})';
+	@override String get multi_hunt_hide_paused => 'Ukryj wstrzymane';
+	@override String get multi_hunt_paused_section => 'Wstrzymane polowania ({count})';
+	@override String get multi_hunt_edit_rules_tooltip => 'Automatyczne zasady dla tego polowania';
+	@override String get multi_hunt_edit_hunt_tooltip => 'Edytuj polowanie';
+	@override String get shiny_auto_setup_for_hunt => 'Zasady dla {name}';
 }
 
 /// The flat map containing all translations for locale <pl>.
@@ -3239,7 +3246,7 @@ extension on TranslationsPl {
 			'evo_trade_species' => 'przeciwko {0}',
 			'species_remoraid' => 'Remoraid',
 			'species_shelmet' => 'kask z przyłbicą',
-			'species_karrablast' => 'Laukaps',
+			'species_karrablast' => 'Cebula',
 			'evo_multiplayer' => 'tryb wieloosobowy',
 			'evo_steps' => 'po {0} krokach (Let\'s Go)',
 			'evo_damage' => '{0}+ obrażeń',
@@ -4719,6 +4726,13 @@ extension on TranslationsPl {
 			'multi_hunt_assign_slot_none' => 'Brak przypisanego slotu',
 			'multi_hunt_open_counter' => 'Widok pojedynczy',
 			'multi_hunt_logs_title' => 'Automatyczne logowanie na żywo ({count})',
+			'multi_hunt_add_hunt' => 'Nowe polowanie',
+			'multi_hunt_show_paused' => 'Wstrzymano ({count})',
+			'multi_hunt_hide_paused' => 'Ukryj wstrzymane',
+			'multi_hunt_paused_section' => 'Wstrzymane polowania ({count})',
+			'multi_hunt_edit_rules_tooltip' => 'Automatyczne zasady dla tego polowania',
+			'multi_hunt_edit_hunt_tooltip' => 'Edytuj polowanie',
+			'shiny_auto_setup_for_hunt' => 'Zasady dla {name}',
 			_ => null,
 		};
 	}

@@ -16,6 +16,8 @@ import 'package:pokevault/models/shiny_hunt.dart';
 import 'package:pokevault/models/user_dex.dart';
 import 'package:pokevault/providers/dex_provider.dart';
 import 'package:pokevault/providers/shiny_hunt_provider.dart';
+import 'package:pokevault/screens/shiny_hunt/dialogs/create_edit_hunt_dialog.dart';
+import 'package:pokevault/screens/shiny_hunt/dialogs/shiny_auto_counter_setup_sheet.dart';
 import 'package:pokevault/screens/shiny_hunt/multi_hunt_dashboard_screen.dart';
 import 'package:pokevault/screens/shiny_hunt/shiny_hunts_hub_screen.dart';
 import 'package:pokevault/services/database_service.dart';
@@ -248,11 +250,13 @@ void main() {
       expect(huntProvider.getHuntById('h1')!.currentEncounters, equals(1));
       expect(huntProvider.getHuntById('h2')!.currentEncounters, equals(0));
 
-      // Pause h2 manually
+      // Pause h2 manually -> h2 moves out of active grid into paused toggle
       await tester.ensureVisible(find.byKey(const Key('multi_hunt_pause_h2')));
       await tester.tap(find.byKey(const Key('multi_hunt_pause_h2')));
       await tester.pump();
       expect(huntProvider.getHuntById('h2')!.isPaused, isTrue);
+      expect(find.byKey(const Key('multi_hunt_card_h2')), findsNothing);
+      expect(find.byKey(const Key('multi_hunt_toggle_paused_btn')), findsOneWidget);
 
       // Auto event on slot 1 increments h1
       await coordinator.processFrameText('Ein wildes Mewtu erscheint!', instanceIndex: 1);
@@ -262,6 +266,64 @@ void main() {
 
       await service.stopSession();
       await coordinator.dispose();
+    });
+
+    testWidgets('hides paused hunts by default, allows showing and resuming them', (tester) async {
+      await createHunt('h-act', 150, 'Mewtu');
+      final pausedHunt = await createHunt('h-pau', 4, 'Glumanda');
+      await huntProvider.pauseHunt(pausedHunt.id);
+
+      await tester.pumpWidget(wrap(const MultiHuntDashboardScreen()));
+      await tester.pump();
+
+      expect(find.byKey(const Key('multi_hunt_card_h-act')), findsOneWidget);
+      expect(find.byKey(const Key('multi_hunt_card_h-pau')), findsNothing);
+
+      final toggleBtn = find.byKey(const Key('multi_hunt_toggle_paused_btn'));
+      expect(toggleBtn, findsOneWidget);
+      await tester.tap(toggleBtn);
+      await tester.pump();
+
+      expect(find.byKey(const Key('multi_hunt_card_h-pau')), findsOneWidget);
+
+      // Resume paused hunt from the paused section
+      await tester.ensureVisible(find.byKey(const Key('multi_hunt_pause_h-pau')));
+      await tester.tap(find.byKey(const Key('multi_hunt_pause_h-pau')));
+      await tester.pump();
+
+      expect(huntProvider.getHuntById('h-pau')!.isActive, isTrue);
+      expect(find.byKey(const Key('multi_hunt_card_h-pau')), findsOneWidget);
+    });
+
+    testWidgets('supports adding a new hunt directly and editing per-hunt rules or hunt metadata', (tester) async {
+      await createHunt('h1', 150, 'Mewtu');
+
+      await tester.pumpWidget(wrap(const MultiHuntDashboardScreen()));
+      await tester.pump();
+
+      // Add hunt button opens CreateEditHuntDialog
+      await tester.tap(find.byKey(const Key('multi_hunt_add_hunt_btn')));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+      expect(find.byType(CreateEditHuntDialog), findsOneWidget);
+      Navigator.of(tester.element(find.byType(CreateEditHuntDialog))).pop();
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+
+      // Per-hunt rules button opens ShinyAutoCounterSetupSheet
+      await tester.tap(find.byKey(const Key('multi_hunt_rules_h1')));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+      expect(find.byType(ShinyAutoCounterSetupSheet), findsOneWidget);
+      Navigator.of(tester.element(find.byType(ShinyAutoCounterSetupSheet))).pop();
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+
+      // Edit hunt button opens CreateEditHuntDialog for h1
+      await tester.tap(find.byKey(const Key('multi_hunt_edit_h1')));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+      expect(find.byType(CreateEditHuntDialog), findsOneWidget);
     });
 
     testWidgets('renders cleanly across extreme viewport sizes (320x480, 640x320 landscape, 1440x900 desktop) and runtime DE<->EN switch', (tester) async {

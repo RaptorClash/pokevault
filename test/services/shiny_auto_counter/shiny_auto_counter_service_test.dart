@@ -240,5 +240,74 @@ void main() {
       await service.stopSession();
       await coordinator.dispose();
     });
+
+    test('Per-hunt rules: automatic method defaults and explicit updateHuntSettings isolate parallel hunts', () async {
+      var clock = Duration.zero;
+      final provider = ShinyHuntProvider(
+        databaseService: DatabaseService.instance,
+        enableTimer: false,
+      );
+      await provider.initialized;
+      await provider.createHunt(
+        _makeHunt(id: 'hunt-egg', pokemonId: 4, pokemonName: 'Glumanda', method: 'Masuda-Methode'),
+      );
+      await provider.createHunt(
+        _makeHunt(id: 'hunt-sr', pokemonId: 150, pokemonName: 'Mewtu', method: 'Soft Reset'),
+      );
+
+      final coordinator = buildTestCoordinator(() => clock);
+      final service = ShinyAutoCounterService.forTesting(elapsedClock: () => clock);
+
+      // Start session without overriding settings -> automatic per-hunt method defaults
+      service.startSession(
+        huntProvider: provider,
+        coordinator: coordinator,
+        defaultHuntId: 'hunt-egg',
+        slotIds: const [1, 2],
+        settings: const ShinyAutoCounterSettings(
+          usePerHuntMethodDefaults: true,
+          slotToHuntOverrides: {1: 'hunt-egg', 2: 'hunt-sr'},
+        ),
+      );
+
+      // Wild encounter on slot 1 (eggHatch mode) should NOT count
+      await coordinator.processFrameText('Ein wildes Pikachu erscheint!', instanceIndex: 1);
+      // Egg hatched on slot 1 counts for hunt-egg
+      await coordinator.processFrameText('Glumanda ist aus dem Ei geschlüpft!', instanceIndex: 1);
+      // Non-target Rattfratz on slot 2 (softReset + targetPokemonOnly) should NOT count; Mewtu counts
+      await coordinator.processFrameText('Ein wildes Pikachu erscheint!', instanceIndex: 2);
+      await coordinator.processFrameText('Ein wildes Mewtu erscheint!', instanceIndex: 2);
+      await service.waitForIdle();
+
+      expect(provider.getHuntById('hunt-egg')!.currentEncounters, equals(1));
+      expect(provider.getHuntById('hunt-sr')!.currentEncounters, equals(1));
+
+      // Now explicitly override hunt-egg to wildEncounter + allPokemon without affecting hunt-sr
+      service.updateHuntSettings(
+        'hunt-egg',
+        const ShinyAutoCounterSettings(
+          detectionMode: ShinyHuntDetectionMode.wildEncounter,
+          matchFilter: ShinyMatchFilter.allPokemon,
+        ),
+      );
+      service.rearmSlot(1);
+
+      await coordinator.processFrameText('Ein wildes Zubat erscheint!', instanceIndex: 1);
+      await service.waitForIdle();
+      expect(provider.getHuntById('hunt-egg')!.currentEncounters, equals(2));
+      expect(provider.getHuntById('hunt-sr')!.currentEncounters, equals(1));
+
+      // Serialization roundtrip preserves huntSettingsOverrides
+      final map = service.settings.toMap();
+      final restored = ShinyAutoCounterSettings.fromMap(map);
+      expect(restored.huntSettingsOverrides.containsKey('hunt-egg'), isTrue);
+      expect(
+        restored.huntSettingsOverrides['hunt-egg']!.detectionMode,
+        equals(ShinyHuntDetectionMode.wildEncounter),
+      );
+
+      await service.stopSession();
+      await coordinator.dispose();
+    });
   });
 }

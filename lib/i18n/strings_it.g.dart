@@ -2370,6 +2370,13 @@ class TranslationsIt extends Translations with BaseTranslations<AppLocale, Trans
 	@override String get multi_hunt_assign_slot_none => 'Nessuno slot assegnato';
 	@override String get multi_hunt_open_counter => 'Visualizzazione singola';
 	@override String get multi_hunt_logs_title => 'Registrazione automatica dal vivo ({count})';
+	@override String get multi_hunt_add_hunt => 'Nuova caccia';
+	@override String get multi_hunt_show_paused => 'In pausa ({count})';
+	@override String get multi_hunt_hide_paused => 'Nascondi in pausa';
+	@override String get multi_hunt_paused_section => 'Hunts in pausa ({count})';
+	@override String get multi_hunt_edit_rules_tooltip => 'Regole automatiche per questa caccia';
+	@override String get multi_hunt_edit_hunt_tooltip => 'jagd bearbeiten';
+	@override String get shiny_auto_setup_for_hunt => 'Regole per {name}';
 }
 
 /// The flat map containing all translations for locale <it>.
@@ -4719,6 +4726,13 @@ extension on TranslationsIt {
 			'multi_hunt_assign_slot_none' => 'Nessuno slot assegnato',
 			'multi_hunt_open_counter' => 'Visualizzazione singola',
 			'multi_hunt_logs_title' => 'Registrazione automatica dal vivo ({count})',
+			'multi_hunt_add_hunt' => 'Nuova caccia',
+			'multi_hunt_show_paused' => 'In pausa ({count})',
+			'multi_hunt_hide_paused' => 'Nascondi in pausa',
+			'multi_hunt_paused_section' => 'Hunts in pausa ({count})',
+			'multi_hunt_edit_rules_tooltip' => 'Regole automatiche per questa caccia',
+			'multi_hunt_edit_hunt_tooltip' => 'jagd bearbeiten',
+			'shiny_auto_setup_for_hunt' => 'Regole per {name}',
 			_ => null,
 		};
 	}

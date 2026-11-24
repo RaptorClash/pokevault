@@ -2370,6 +2370,13 @@ class TranslationsZhHans extends Translations with BaseTranslations<AppLocale, T
 	@override String get multi_hunt_assign_slot_none => '未分配槽位';
 	@override String get multi_hunt_open_counter => '单视图';
 	@override String get multi_hunt_logs_title => '实时自动日志 ({count})';
+	@override String get multi_hunt_add_hunt => '新狩猎';
+	@override String get multi_hunt_show_paused => '已暂停 ({count})';
+	@override String get multi_hunt_hide_paused => '隐藏已暂停';
+	@override String get multi_hunt_paused_section => '已暂停的 Hunts ({count})';
+	@override String get multi_hunt_edit_rules_tooltip => '此狩猎的自动规则';
+	@override String get multi_hunt_edit_hunt_tooltip => '编辑猎物';
+	@override String get shiny_auto_setup_for_hunt => '{name} 的规则';
 }
 
 /// The flat map containing all translations for locale <zh-Hans>.
@@ -4719,6 +4726,13 @@ extension on TranslationsZhHans {
 			'multi_hunt_assign_slot_none' => '未分配槽位',
 			'multi_hunt_open_counter' => '单视图',
 			'multi_hunt_logs_title' => '实时自动日志 ({count})',
+			'multi_hunt_add_hunt' => '新狩猎',
+			'multi_hunt_show_paused' => '已暂停 ({count})',
+			'multi_hunt_hide_paused' => '隐藏已暂停',
+			'multi_hunt_paused_section' => '已暂停的 Hunts ({count})',
+			'multi_hunt_edit_rules_tooltip' => '此狩猎的自动规则',
+			'multi_hunt_edit_hunt_tooltip' => '编辑猎物',
+			'shiny_auto_setup_for_hunt' => '{name} 的规则',
 			_ => null,
 		};
 	}

@@ -163,6 +163,10 @@ class ShinyAutoCounterService {
       final targetHuntId =
           _settings.slotToHuntOverrides[sid] ?? defaultHuntId;
       final targetHunt = huntProvider.getHuntById(targetHuntId);
+      final effectiveSettings = _settings.resolveForHunt(
+        huntId: targetHuntId,
+        huntMethod: targetHunt?.method,
+      );
 
       _slots[sid] = ShinySlotStateMachine(
         slotId: sid,
@@ -170,7 +174,7 @@ class ShinyAutoCounterService {
         targetPokemonId: targetHunt?.pokemonId,
         targetPokemonName: targetHunt?.pokemonName,
         assignedHuntId: targetHuntId,
-        settings: _settings,
+        settings: effectiveSettings,
         elapsedClock: _elapsedClock,
       );
     }
@@ -200,6 +204,9 @@ class ShinyAutoCounterService {
     for (final slot in _slots.values) {
       if (!_settings.slotToHuntOverrides.containsKey(slot.slotId)) {
         final h = _huntProvider?.getHuntById(huntId);
+        slot.updateSettings(
+          _settings.resolveForHunt(huntId: huntId, huntMethod: h?.method),
+        );
         slot.updateTarget(
           pokemonId: h?.pokemonId,
           pokemonName: h?.pokemonName,
@@ -210,6 +217,22 @@ class ShinyAutoCounterService {
     _publishSlotSnapshots();
   }
 
+  /// Resolves the effective auto-counter settings for a specific [hunt].
+  ShinyAutoCounterSettings settingsForHunt(ShinyHunt hunt) {
+    return _settings.resolveForHunt(huntId: hunt.id, huntMethod: hunt.method);
+  }
+
+  /// Stores or updates a per-hunt auto-counter rule override and applies it
+  /// immediately to all slots assigned to [huntId].
+  void updateHuntSettings(String huntId, ShinyAutoCounterSettings huntRule) {
+    final nextOverrides =
+        Map<String, ShinyAutoCounterSettings>.from(_settings.huntSettingsOverrides);
+    nextOverrides[huntId] = huntRule.copyWith(huntSettingsOverrides: const {});
+    final updated = _settings.copyWith(huntSettingsOverrides: nextOverrides);
+    updateSettings(updated);
+    unawaited(ShinyAutoCounterSettings.saveToPrefs(updated));
+  }
+
   void updateSettings(ShinyAutoCounterSettings next) {
     _settings = next;
     settingsNotifier.value = next;
@@ -218,7 +241,9 @@ class ShinyAutoCounterService {
     for (final slot in _slots.values) {
       final assigned = next.slotToHuntOverrides[slot.slotId] ?? _defaultHuntId;
       final h = assigned != null ? _huntProvider?.getHuntById(assigned) : null;
-      slot.updateSettings(next);
+      slot.updateSettings(
+        next.resolveForHunt(huntId: assigned, huntMethod: h?.method),
+      );
       slot.updateTarget(
         pokemonId: h?.pokemonId,
         pokemonName: h?.pokemonName,
@@ -399,7 +424,10 @@ class ShinyAutoCounterService {
         targetPokemonId: h?.pokemonId,
         targetPokemonName: h?.pokemonName,
         assignedHuntId: huntId,
-        settings: _settings,
+        settings: _settings.resolveForHunt(
+          huntId: huntId,
+          huntMethod: h?.method,
+        ),
         elapsedClock: _elapsedClock,
       );
       _slots[instanceIndex] = created;
@@ -507,21 +535,33 @@ class ShinyAutoCounterService {
 
     if (decision.isShiny) {
       latestShinyAlertNotifier.value = entry;
-      await _triggerFeedback(entry, isShiny: true, sourceEvent: sourceEvent);
+      await _triggerFeedback(
+        entry,
+        isShiny: true,
+        slotSettings: slot.settings,
+        sourceEvent: sourceEvent,
+      );
     } else {
-      await _triggerFeedback(entry, isShiny: false, sourceEvent: sourceEvent);
+      await _triggerFeedback(
+        entry,
+        isShiny: false,
+        slotSettings: slot.settings,
+        sourceEvent: sourceEvent,
+      );
     }
   }
 
   Future<void> _triggerFeedback(
     AutoCountLogEntry entry, {
     required bool isShiny,
+    required ShinyAutoCounterSettings slotSettings,
     ScannerEvent? sourceEvent,
   }) async {
     final playSound =
-        isShiny ? _settings.playSoundOnShiny : _settings.playSoundOnCount;
-    final playHaptic =
-        isShiny ? _settings.playHapticOnShiny : _settings.playHapticOnCount;
+        isShiny ? slotSettings.playSoundOnShiny : slotSettings.playSoundOnCount;
+    final playHaptic = isShiny
+        ? slotSettings.playHapticOnShiny
+        : slotSettings.playHapticOnCount;
 
     if (playHaptic) {
       try {

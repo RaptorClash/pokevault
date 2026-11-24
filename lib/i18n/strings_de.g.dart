@@ -7034,6 +7034,27 @@ class Translations with BaseTranslations<AppLocale, Translations> {
 
 	/// de: 'Live Auto-Log ({count})'
 	String get multi_hunt_logs_title => 'Live Auto-Log ({count})';
+
+	/// de: 'Neuer Hunt'
+	String get multi_hunt_add_hunt => 'Neuer Hunt';
+
+	/// de: 'Pausierte ({count})'
+	String get multi_hunt_show_paused => 'Pausierte ({count})';
+
+	/// de: 'Pausierte ausblenden'
+	String get multi_hunt_hide_paused => 'Pausierte ausblenden';
+
+	/// de: 'Pausierte Hunts ({count})'
+	String get multi_hunt_paused_section => 'Pausierte Hunts ({count})';
+
+	/// de: 'Auto-Regeln für diesen Hunt'
+	String get multi_hunt_edit_rules_tooltip => 'Auto-Regeln für diesen Hunt';
+
+	/// de: 'Hunt bearbeiten'
+	String get multi_hunt_edit_hunt_tooltip => 'Hunt bearbeiten';
+
+	/// de: 'Regeln für {name}'
+	String get shiny_auto_setup_for_hunt => 'Regeln für {name}';
 }
 
 /// The flat map containing all translations for locale <de>.
@@ -9383,6 +9404,13 @@ extension on Translations {
 			'multi_hunt_assign_slot_none' => 'Kein Slot zugewiesen',
 			'multi_hunt_open_counter' => 'Einzelansicht',
 			'multi_hunt_logs_title' => 'Live Auto-Log ({count})',
+			'multi_hunt_add_hunt' => 'Neuer Hunt',
+			'multi_hunt_show_paused' => 'Pausierte ({count})',
+			'multi_hunt_hide_paused' => 'Pausierte ausblenden',
+			'multi_hunt_paused_section' => 'Pausierte Hunts ({count})',
+			'multi_hunt_edit_rules_tooltip' => 'Auto-Regeln für diesen Hunt',
+			'multi_hunt_edit_hunt_tooltip' => 'Hunt bearbeiten',
+			'shiny_auto_setup_for_hunt' => 'Regeln für {name}',
 			_ => null,
 		};
 	}
