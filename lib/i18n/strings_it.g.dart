@@ -2377,6 +2377,21 @@ class TranslationsIt extends Translations with BaseTranslations<AppLocale, Trans
 	@override String get multi_hunt_edit_rules_tooltip => 'Regole automatiche per questa caccia';
 	@override String get multi_hunt_edit_hunt_tooltip => 'jagd bearbeiten';
 	@override String get shiny_auto_setup_for_hunt => 'Regole per {name}';
+	@override String get shiny_auto_timing_section => 'Avanzato / Regolazione fine del timing';
+	@override String get shiny_auto_cooldown_label => 'Reimposta-Cooldown (ms)';
+	@override String get shiny_auto_transition_duration_label => 'Durata min. immagine bianco/nero (ms)';
+	@override String get shiny_auto_slot_chip_tooltip => 'Toccare: Pausa · Tenere premuto: Pronto manuale (Re-Arm)';
+	@override String get shiny_auto_logs_tooltip => 'Mostra registro automatico in tempo reale';
+	@override String get shiny_auto_logs_empty => 'Nessun conteggio automatico in questa sessione.';
+	@override String get shiny_auto_logs_undone => 'Annullato';
+	@override String get shiny_auto_rearm_all_btn => 'Tutti gli slot pronti';
+	@override String get shiny_auto_reason_black_reset => 'Reset immagine nera';
+	@override String get shiny_auto_reason_white_reset => 'Reset del bianco';
+	@override String get shiny_auto_reason_egg_oh => 'Schiusa delle uova iniziata (Oh?)';
+	@override String get shiny_auto_reason_shiny => 'Shiny rilevato: {name}';
+	@override String get multi_hunt_phase_status => 'Fase {phase} · {status}';
+	@override String get multi_hunt_slot_number => 'Slot #{slot}';
+	@override String get scanner_event_egg_hatched_badge => 'SCHIUSA UOVA';
 }
 
 /// The flat map containing all translations for locale <it>.
@@ -4733,6 +4748,21 @@ extension on TranslationsIt {
 			'multi_hunt_edit_rules_tooltip' => 'Regole automatiche per questa caccia',
 			'multi_hunt_edit_hunt_tooltip' => 'jagd bearbeiten',
 			'shiny_auto_setup_for_hunt' => 'Regole per {name}',
+			'shiny_auto_timing_section' => 'Avanzato / Regolazione fine del timing',
+			'shiny_auto_cooldown_label' => 'Reimposta-Cooldown (ms)',
+			'shiny_auto_transition_duration_label' => 'Durata min. immagine bianco/nero (ms)',
+			'shiny_auto_slot_chip_tooltip' => 'Toccare: Pausa · Tenere premuto: Pronto manuale (Re-Arm)',
+			'shiny_auto_logs_tooltip' => 'Mostra registro automatico in tempo reale',
+			'shiny_auto_logs_empty' => 'Nessun conteggio automatico in questa sessione.',
+			'shiny_auto_logs_undone' => 'Annullato',
+			'shiny_auto_rearm_all_btn' => 'Tutti gli slot pronti',
+			'shiny_auto_reason_black_reset' => 'Reset immagine nera',
+			'shiny_auto_reason_white_reset' => 'Reset del bianco',
+			'shiny_auto_reason_egg_oh' => 'Schiusa delle uova iniziata (Oh?)',
+			'shiny_auto_reason_shiny' => 'Shiny rilevato: {name}',
+			'multi_hunt_phase_status' => 'Fase {phase} · {status}',
+			'multi_hunt_slot_number' => 'Slot #{slot}',
+			'scanner_event_egg_hatched_badge' => 'SCHIUSA UOVA',
 			_ => null,
 		};
 	}

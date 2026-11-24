@@ -43,7 +43,7 @@ class FrameTransitionDetector {
   final int blackThreshold;
   final int whiteThreshold;
   final int hysteresisMargin;
-  final Duration minTransitionDuration;
+  Duration minTransitionDuration;
   final Duration Function()? elapsedClock;
   final Stopwatch _monotonic = Stopwatch()..start();
   final Map<int, _SlotTracker> _slots = {};
@@ -55,6 +55,11 @@ class FrameTransitionDetector {
     this.minTransitionDuration = const Duration(milliseconds: 300),
     this.elapsedClock,
   });
+
+  void setMinTransitionDuration(Duration duration) {
+    final clampedMs = duration.inMilliseconds.clamp(150, 5000);
+    minTransitionDuration = Duration(milliseconds: clampedMs);
+  }
 
   Duration get _now => elapsedClock?.call() ?? _monotonic.elapsed;
 
@@ -102,13 +107,14 @@ class FrameTransitionDetector {
 
     switch (tracker.state) {
       case _SlotLuminanceState.normal:
-        tracker.hasSeenNormal = true;
         if (avgLuma <= blackThreshold) {
           tracker.state = _SlotLuminanceState.inBlack;
           tracker.transitionStartedAt = now;
         } else if (avgLuma >= whiteThreshold) {
           tracker.state = _SlotLuminanceState.inWhite;
           tracker.transitionStartedAt = now;
+        } else {
+          tracker.hasSeenNormal = true;
         }
         return null;
 
@@ -124,11 +130,11 @@ class FrameTransitionDetector {
         if (avgLuma >= whiteThreshold) {
           tracker.state = _SlotLuminanceState.inWhite;
           tracker.transitionStartedAt = now;
-        } else {
-          tracker.state = _SlotLuminanceState.normal;
-          tracker.hasSeenNormal = true;
-          tracker.transitionStartedAt = null;
+          return null;
         }
+        tracker.state = _SlotLuminanceState.normal;
+        tracker.hasSeenNormal = true;
+        tracker.transitionStartedAt = null;
 
         if (validNormalRecovery) {
           return FrameTransitionEvent(
@@ -153,11 +159,11 @@ class FrameTransitionDetector {
         if (avgLuma <= blackThreshold) {
           tracker.state = _SlotLuminanceState.inBlack;
           tracker.transitionStartedAt = now;
-        } else {
-          tracker.state = _SlotLuminanceState.normal;
-          tracker.hasSeenNormal = true;
-          tracker.transitionStartedAt = null;
+          return null;
         }
+        tracker.state = _SlotLuminanceState.normal;
+        tracker.hasSeenNormal = true;
+        tracker.transitionStartedAt = null;
 
         if (validNormalRecovery) {
           return FrameTransitionEvent(

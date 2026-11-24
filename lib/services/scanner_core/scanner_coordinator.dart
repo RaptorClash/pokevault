@@ -422,6 +422,7 @@ class ScannerCoordinator {
           instanceIndex: instanceIndex,
           instanceColorHex: instanceColorHex,
           encounterCount: count,
+          matchedCustomPatternId: parseResult.matchedCustomPatternId,
         );
         focusGroup.add(event);
 
@@ -580,6 +581,7 @@ class ScannerCoordinator {
       isSmartMatch: isSmartMatch,
       instanceIndex: instanceIndex,
       instanceColorHex: instanceColorHex,
+      matchedCustomPatternId: parseResult.matchedCustomPatternId,
     );
 
     if (!_activeFocusController.isClosed) {

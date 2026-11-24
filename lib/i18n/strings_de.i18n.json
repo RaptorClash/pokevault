@@ -2342,5 +2342,20 @@
   "multi_hunt_paused_section": "Pausierte Hunts ({count})",
   "multi_hunt_edit_rules_tooltip": "Auto-Regeln für diesen Hunt",
   "multi_hunt_edit_hunt_tooltip": "Hunt bearbeiten",
-  "shiny_auto_setup_for_hunt": "Regeln für {name}"
+  "shiny_auto_setup_for_hunt": "Regeln für {name}",
+  "shiny_auto_timing_section": "Erweitert / Timing-Feintuning",
+  "shiny_auto_cooldown_label": "Reset-Cooldown (ms)",
+  "shiny_auto_transition_duration_label": "Min. Schwarz-/Weißbild-Dauer (ms)",
+  "shiny_auto_slot_chip_tooltip": "Tippen: Pause · Gedrückt halten: Manuell bereit (Re-Arm)",
+  "shiny_auto_logs_tooltip": "Live Auto-Log anzeigen",
+  "shiny_auto_logs_empty": "Noch keine automatischen Zählungen in dieser Sitzung.",
+  "shiny_auto_logs_undone": "Rückgängig gemacht",
+  "shiny_auto_rearm_all_btn": "Alle Slots bereit",
+  "shiny_auto_reason_black_reset": "Schwarzbild-Reset",
+  "shiny_auto_reason_white_reset": "Weißbild-Reset",
+  "shiny_auto_reason_egg_oh": "Ei-Schlupf gestartet (Oh?)",
+  "shiny_auto_reason_shiny": "Shiny erkannt: {name}",
+  "multi_hunt_phase_status": "Phase {phase} · {status}",
+  "multi_hunt_slot_number": "Slot #{slot}",
+  "scanner_event_egg_hatched_badge": "EI-SCHLUPF"
 }

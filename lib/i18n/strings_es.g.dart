@@ -2377,6 +2377,21 @@ class TranslationsEs extends Translations with BaseTranslations<AppLocale, Trans
 	@override String get multi_hunt_edit_rules_tooltip => 'Reglas automáticas para esta caza';
 	@override String get multi_hunt_edit_hunt_tooltip => 'Editar caza';
 	@override String get shiny_auto_setup_for_hunt => 'Reglas para {name}';
+	@override String get shiny_auto_timing_section => 'Ampliado / Ajuste de tiempo';
+	@override String get shiny_auto_cooldown_label => 'Reiniciar enfriamiento (ms)';
+	@override String get shiny_auto_transition_duration_label => 'Duración mínima de imagen blanco/negro (ms)';
+	@override String get shiny_auto_slot_chip_tooltip => 'Tocar: Pausa · Mantener presionado: Listo manualmente (Rearmar)';
+	@override String get shiny_auto_logs_tooltip => 'Mostrar registro automático en vivo';
+	@override String get shiny_auto_logs_empty => 'Aún no hay conteos automáticos en esta sesión.';
+	@override String get shiny_auto_logs_undone => 'Deshecho';
+	@override String get shiny_auto_rearm_all_btn => 'Todas las ranuras listas';
+	@override String get shiny_auto_reason_black_reset => 'Restablecimiento de pantalla negra';
+	@override String get shiny_auto_reason_white_reset => 'Restablecimiento de balance de blancos';
+	@override String get shiny_auto_reason_egg_oh => 'Eclosión de huevo iniciada (¿Oh?)';
+	@override String get shiny_auto_reason_shiny => 'Shiny detectado: {name}';
+	@override String get multi_hunt_phase_status => 'Fase {phase} · {status}';
+	@override String get multi_hunt_slot_number => 'Ranura #{slot}';
+	@override String get scanner_event_egg_hatched_badge => 'EI-HUEVO';
 }
 
 /// The flat map containing all translations for locale <es>.
@@ -4733,6 +4748,21 @@ extension on TranslationsEs {
 			'multi_hunt_edit_rules_tooltip' => 'Reglas automáticas para esta caza',
 			'multi_hunt_edit_hunt_tooltip' => 'Editar caza',
 			'shiny_auto_setup_for_hunt' => 'Reglas para {name}',
+			'shiny_auto_timing_section' => 'Ampliado / Ajuste de tiempo',
+			'shiny_auto_cooldown_label' => 'Reiniciar enfriamiento (ms)',
+			'shiny_auto_transition_duration_label' => 'Duración mínima de imagen blanco/negro (ms)',
+			'shiny_auto_slot_chip_tooltip' => 'Tocar: Pausa · Mantener presionado: Listo manualmente (Rearmar)',
+			'shiny_auto_logs_tooltip' => 'Mostrar registro automático en vivo',
+			'shiny_auto_logs_empty' => 'Aún no hay conteos automáticos en esta sesión.',
+			'shiny_auto_logs_undone' => 'Deshecho',
+			'shiny_auto_rearm_all_btn' => 'Todas las ranuras listas',
+			'shiny_auto_reason_black_reset' => 'Restablecimiento de pantalla negra',
+			'shiny_auto_reason_white_reset' => 'Restablecimiento de balance de blancos',
+			'shiny_auto_reason_egg_oh' => 'Eclosión de huevo iniciada (¿Oh?)',
+			'shiny_auto_reason_shiny' => 'Shiny detectado: {name}',
+			'multi_hunt_phase_status' => 'Fase {phase} · {status}',
+			'multi_hunt_slot_number' => 'Ranura #{slot}',
+			'scanner_event_egg_hatched_badge' => 'EI-HUEVO',
 			_ => null,
 		};
 	}

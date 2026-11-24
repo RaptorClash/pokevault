@@ -178,22 +178,44 @@ class ShinyAutoCounterSettings {
     );
   }
 
+  /// Returns the minimum transition duration across base settings and all per-hunt overrides.
+  int effectiveMinTransitionDurationMs() {
+    int minMs = transitionMinDurationMs;
+    for (final override in huntSettingsOverrides.values) {
+      if (override.transitionMinDurationMs < minMs) {
+        minMs = override.transitionMinDurationMs;
+      }
+    }
+    return minMs;
+  }
+
   /// Builds combined custom patterns for `OcrDetectionEngine.updateCustomPatterns`,
   /// including any per-hunt custom trigger/reset patterns.
   List<CustomOcrPattern> buildEngineCustomPatterns() {
     final result = <CustomOcrPattern>[];
     final seenIds = <String>{};
 
-    void addRuleSet(ShinyAutoCounterSettings s, String prefix) {
+    void addRuleSet(ShinyAutoCounterSettings s, String? huntIdScope) {
       for (final p in s.customTriggerPatterns) {
-        if (seenIds.add(p.id)) {
-          result.add(p);
+        final scopedId =
+            huntIdScope != null ? 'shiny_hunt:$huntIdScope:${p.id}' : p.id;
+        if (seenIds.add(scopedId)) {
+          result.add(
+            CustomOcrPattern(
+              id: scopedId,
+              template: p.template,
+              eventType: p.eventType,
+              enabled: p.enabled,
+            ),
+          );
         }
       }
       for (int i = 0; i < s.customResetPatterns.length; i++) {
         final phrase = s.customResetPatterns[i].trim();
         if (phrase.isEmpty) continue;
-        final id = '${prefix}_reset_$i';
+        final id = huntIdScope != null
+            ? 'shiny_hunt:$huntIdScope:reset_$i'
+            : 'shiny_reset_$i';
         if (seenIds.add(id)) {
           result.add(
             CustomOcrPattern(
@@ -207,9 +229,9 @@ class ShinyAutoCounterSettings {
       }
     }
 
-    addRuleSet(this, 'shiny');
+    addRuleSet(this, null);
     for (final entry in huntSettingsOverrides.entries) {
-      addRuleSet(entry.value, 'shiny_${entry.key}');
+      addRuleSet(entry.value, entry.key);
     }
     return List.unmodifiable(result);
   }

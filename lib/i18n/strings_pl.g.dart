@@ -2377,6 +2377,21 @@ class TranslationsPl extends Translations with BaseTranslations<AppLocale, Trans
 	@override String get multi_hunt_edit_rules_tooltip => 'Automatyczne zasady dla tego polowania';
 	@override String get multi_hunt_edit_hunt_tooltip => 'Edytuj polowanie';
 	@override String get shiny_auto_setup_for_hunt => 'Zasady dla {name}';
+	@override String get shiny_auto_timing_section => 'Zaawansowane / Dodatkowe dostrajanie czasu';
+	@override String get shiny_auto_cooldown_label => 'Reset-czas odnowienia (ms)';
+	@override String get shiny_auto_transition_duration_label => 'Min. czas trwania obrazu czarno-białego (ms)';
+	@override String get shiny_auto_slot_chip_tooltip => 'Dotknij: Pauza · Przytrzymaj: Ręczne gotowanie (Re-Arm)';
+	@override String get shiny_auto_logs_tooltip => 'Pokaż automatyczny dziennik na żywo';
+	@override String get shiny_auto_logs_empty => 'Jeszcze nie ma automatycznych zliczeń w tej sesji.';
+	@override String get shiny_auto_logs_undone => 'Cofnięto';
+	@override String get shiny_auto_rearm_all_btn => 'Wszystkie gniazda gotowe';
+	@override String get shiny_auto_reason_black_reset => 'Reset obrazu czarnego';
+	@override String get shiny_auto_reason_white_reset => 'Reset balansu bieli';
+	@override String get shiny_auto_reason_egg_oh => 'Wykluwanie się jajka rozpoczęte (Oh?)';
+	@override String get shiny_auto_reason_shiny => 'Shiny wykryty: {name}';
+	@override String get multi_hunt_phase_status => 'Faza {phase} · {status}';
+	@override String get multi_hunt_slot_number => 'Gniazdo #{slot}';
+	@override String get scanner_event_egg_hatched_badge => 'WYKLUCIE JAJ';
 }
 
 /// The flat map containing all translations for locale <pl>.
@@ -4733,6 +4748,21 @@ extension on TranslationsPl {
 			'multi_hunt_edit_rules_tooltip' => 'Automatyczne zasady dla tego polowania',
 			'multi_hunt_edit_hunt_tooltip' => 'Edytuj polowanie',
 			'shiny_auto_setup_for_hunt' => 'Zasady dla {name}',
+			'shiny_auto_timing_section' => 'Zaawansowane / Dodatkowe dostrajanie czasu',
+			'shiny_auto_cooldown_label' => 'Reset-czas odnowienia (ms)',
+			'shiny_auto_transition_duration_label' => 'Min. czas trwania obrazu czarno-białego (ms)',
+			'shiny_auto_slot_chip_tooltip' => 'Dotknij: Pauza · Przytrzymaj: Ręczne gotowanie (Re-Arm)',
+			'shiny_auto_logs_tooltip' => 'Pokaż automatyczny dziennik na żywo',
+			'shiny_auto_logs_empty' => 'Jeszcze nie ma automatycznych zliczeń w tej sesji.',
+			'shiny_auto_logs_undone' => 'Cofnięto',
+			'shiny_auto_rearm_all_btn' => 'Wszystkie gniazda gotowe',
+			'shiny_auto_reason_black_reset' => 'Reset obrazu czarnego',
+			'shiny_auto_reason_white_reset' => 'Reset balansu bieli',
+			'shiny_auto_reason_egg_oh' => 'Wykluwanie się jajka rozpoczęte (Oh?)',
+			'shiny_auto_reason_shiny' => 'Shiny wykryty: {name}',
+			'multi_hunt_phase_status' => 'Faza {phase} · {status}',
+			'multi_hunt_slot_number' => 'Gniazdo #{slot}',
+			'scanner_event_egg_hatched_badge' => 'WYKLUCIE JAJ',
 			_ => null,
 		};
 	}

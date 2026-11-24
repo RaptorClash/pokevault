@@ -2377,6 +2377,21 @@ class TranslationsRu extends Translations with BaseTranslations<AppLocale, Trans
 	@override String get multi_hunt_edit_rules_tooltip => 'Авто-правила для этой охоты';
 	@override String get multi_hunt_edit_hunt_tooltip => 'Редактировать охоту';
 	@override String get shiny_auto_setup_for_hunt => 'Правила для {name}';
+	@override String get shiny_auto_timing_section => 'Расширенные / Настройка времени';
+	@override String get shiny_auto_cooldown_label => 'Время перезарядки сброса (мс)';
+	@override String get shiny_auto_transition_duration_label => 'Мин. длительность черно-белого изображения (мс)';
+	@override String get shiny_auto_slot_chip_tooltip => 'Нажмите: Пауза · Удерживать: Ручной режим готовности (Повторная активация)';
+	@override String get shiny_auto_logs_tooltip => 'Показать журнал автозаписи в реальном времени';
+	@override String get shiny_auto_logs_empty => 'В этой сессии автоматических подсчетов еще нет.';
+	@override String get shiny_auto_logs_undone => 'Отменено';
+	@override String get shiny_auto_rearm_all_btn => 'Все слоты готовы';
+	@override String get shiny_auto_reason_black_reset => 'Сброс черного экрана';
+	@override String get shiny_auto_reason_white_reset => 'Сброс белого изображения';
+	@override String get shiny_auto_reason_egg_oh => 'Вылупление яйца началось (Ох?)';
+	@override String get shiny_auto_reason_shiny => 'Shiny обнаружен: {name}';
+	@override String get multi_hunt_phase_status => 'Фаза {phase} · {status}';
+	@override String get multi_hunt_slot_number => 'Слот #{slot}';
+	@override String get scanner_event_egg_hatched_badge => 'Вылупление из яйца';
 }
 
 /// The flat map containing all translations for locale <ru>.
@@ -4733,6 +4748,21 @@ extension on TranslationsRu {
 			'multi_hunt_edit_rules_tooltip' => 'Авто-правила для этой охоты',
 			'multi_hunt_edit_hunt_tooltip' => 'Редактировать охоту',
 			'shiny_auto_setup_for_hunt' => 'Правила для {name}',
+			'shiny_auto_timing_section' => 'Расширенные / Настройка времени',
+			'shiny_auto_cooldown_label' => 'Время перезарядки сброса (мс)',
+			'shiny_auto_transition_duration_label' => 'Мин. длительность черно-белого изображения (мс)',
+			'shiny_auto_slot_chip_tooltip' => 'Нажмите: Пауза · Удерживать: Ручной режим готовности (Повторная активация)',
+			'shiny_auto_logs_tooltip' => 'Показать журнал автозаписи в реальном времени',
+			'shiny_auto_logs_empty' => 'В этой сессии автоматических подсчетов еще нет.',
+			'shiny_auto_logs_undone' => 'Отменено',
+			'shiny_auto_rearm_all_btn' => 'Все слоты готовы',
+			'shiny_auto_reason_black_reset' => 'Сброс черного экрана',
+			'shiny_auto_reason_white_reset' => 'Сброс белого изображения',
+			'shiny_auto_reason_egg_oh' => 'Вылупление яйца началось (Ох?)',
+			'shiny_auto_reason_shiny' => 'Shiny обнаружен: {name}',
+			'multi_hunt_phase_status' => 'Фаза {phase} · {status}',
+			'multi_hunt_slot_number' => 'Слот #{slot}',
+			'scanner_event_egg_hatched_badge' => 'Вылупление из яйца',
 			_ => null,
 		};
 	}

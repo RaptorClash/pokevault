@@ -309,5 +309,153 @@ void main() {
       await service.stopSession();
       await coordinator.dispose();
     });
+
+    test('Paused hunt is strictly ignored: no increment, no log, no slot lock, no negative undo', () async {
+      var clock = Duration.zero;
+      final provider = ShinyHuntProvider(
+        databaseService: DatabaseService.instance,
+        enableTimer: false,
+      );
+      await provider.initialized;
+      await provider.createHunt(_makeHunt(id: 'hunt-p', pokemonId: 150, pokemonName: 'Mewtu'));
+      await provider.pauseHunt('hunt-p');
+
+      final coordinator = buildTestCoordinator(() => clock);
+      final service = ShinyAutoCounterService.forTesting(elapsedClock: () => clock);
+
+      service.startSession(
+        huntProvider: provider,
+        coordinator: coordinator,
+        defaultHuntId: 'hunt-p',
+        slotIds: const [1],
+        settings: const ShinyAutoCounterSettings(
+          detectionMode: ShinyHuntDetectionMode.softReset,
+          matchFilter: ShinyMatchFilter.targetPokemonOnly,
+        ),
+      );
+
+      await coordinator.processFrameText('Ein wildes Mewtu erscheint!', instanceIndex: 1);
+      await service.waitForIdle();
+
+      expect(provider.getHuntById('hunt-p')!.currentEncounters, equals(0));
+      expect(service.recentLogs, isEmpty);
+      expect(service.undoLastCount(), isFalse);
+      expect(service.slotStatesNotifier.value.first.phase.name, equals('armed'));
+
+      await service.stopSession();
+      await coordinator.dispose();
+    });
+
+    test('Zombie-session protection & pattern cleanup on source stop / coordinator dispose', () async {
+      var clock = Duration.zero;
+      final provider = ShinyHuntProvider(
+        databaseService: DatabaseService.instance,
+        enableTimer: false,
+      );
+      await provider.initialized;
+      await provider.createHunt(_makeHunt(id: 'hunt-z', pokemonId: 150, pokemonName: 'Mewtu'));
+
+      final coordinator = buildTestCoordinator(() => clock);
+      final service = ShinyAutoCounterService.forTesting(elapsedClock: () => clock);
+
+      service.startSession(
+        huntProvider: provider,
+        coordinator: coordinator,
+        defaultHuntId: 'hunt-z',
+        slotIds: const [1],
+        settings: const ShinyAutoCounterSettings(
+          customResetPatterns: ['Press A Custom'],
+        ),
+      );
+      expect(service.isRunning, isTrue);
+
+      await coordinator.dispose();
+      await Future<void>.delayed(Duration.zero);
+      expect(service.isRunning, isFalse);
+
+      // Restart with new coordinator and verify stopSession restores coordinator custom patterns
+      final coord2 = buildTestCoordinator(() => clock);
+      service.startSession(
+        huntProvider: provider,
+        coordinator: coord2,
+        defaultHuntId: 'hunt-z',
+        slotIds: const [1],
+        settings: const ShinyAutoCounterSettings(
+          customResetPatterns: ['Press A Custom'],
+        ),
+      );
+      expect(coord2.engine.detectResetCue('Press A Custom'), isNot(ResetCue.none));
+      await service.stopSession();
+      expect(coord2.engine.detectResetCue('Press A Custom'), equals(ResetCue.none));
+      await coord2.dispose();
+    });
+
+    test('Double-shiny alert protection, undo slot re-arm, live hunt sync, and rearmAllSlots', () async {
+      var clock = Duration.zero;
+      final provider = ShinyHuntProvider(
+        databaseService: DatabaseService.instance,
+        enableTimer: false,
+      );
+      await provider.initialized;
+      await provider.createHunt(_makeHunt(id: 'hunt-ds', pokemonId: 150, pokemonName: 'Mewtu'));
+      await provider.createHunt(_makeHunt(id: 'hunt-del', pokemonId: 4, pokemonName: 'Glumanda'));
+
+      final coordinator = buildTestCoordinator(() => clock);
+      // Default SystemSound feedback when feedback is null must not throw
+      final service = ShinyAutoCounterService.forTesting(elapsedClock: () => clock);
+
+      service.startSession(
+        huntProvider: provider,
+        coordinator: coordinator,
+        defaultHuntId: 'hunt-ds',
+        slotIds: const [1, 2, 3],
+        settings: const ShinyAutoCounterSettings(
+          detectionMode: ShinyHuntDetectionMode.softReset,
+          autoPauseSlotOnShiny: true,
+          playSoundOnCount: true,
+          playSoundOnShiny: true,
+          slotToHuntOverrides: {3: 'hunt-del'},
+        ),
+      );
+
+      // Slot 1 & 2 both hit shiny
+      await coordinator.processFrameText('Wildes ✨ Mewtu erscheint!', instanceIndex: 1);
+      await coordinator.processFrameText('Wildes ✨ Mewtu erscheint!', instanceIndex: 2);
+      await service.waitForIdle();
+
+      expect(service.latestShinyAlertNotifier.value?.slotId, equals(2));
+
+      // Resuming Slot 2 must keep shiny alert active for Slot 1!
+      service.resumeShinyPausedSlot(2);
+      expect(service.latestShinyAlertNotifier.value?.slotId, equals(1));
+
+      // Normal encounter on Slot 2 -> counted -> undo re-arms Slot 2 immediately
+      await coordinator.processFrameText('Ein wildes Mewtu erscheint!', instanceIndex: 2);
+      await service.waitForIdle();
+      expect(provider.getHuntById('hunt-ds')!.currentEncounters, equals(3));
+
+      expect(service.undoLastCount(), isTrue);
+      expect(provider.getHuntById('hunt-ds')!.currentEncounters, equals(2));
+      final slot2AfterUndo = service.slotStatesNotifier.value.firstWhere((s) => s.slotId == 2);
+      expect(slot2AfterUndo.phase.name, equals('armed'));
+      expect(slot2AfterUndo.sessionCount, equals(1));
+
+      // rearmAllSlots leaves Slot 1 pausedByShiny while re-arming others
+      await coordinator.processFrameText('Ein wildes Mewtu erscheint!', instanceIndex: 2);
+      await service.waitForIdle();
+      service.rearmAllSlots();
+      final s1 = service.slotStatesNotifier.value.firstWhere((s) => s.slotId == 1);
+      final s2 = service.slotStatesNotifier.value.firstWhere((s) => s.slotId == 2);
+      expect(s1.phase.name, equals('pausedByShiny'));
+      expect(s2.phase.name, equals('armed'));
+
+      // Deleting hunt-del prunes stale override
+      await provider.deleteHunt('hunt-del');
+      await Future<void>.delayed(Duration.zero);
+      expect(service.settings.slotToHuntOverrides.containsKey(3), isFalse);
+
+      await service.stopSession();
+      await coordinator.dispose();
+    });
   });
 }

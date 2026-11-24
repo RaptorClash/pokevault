@@ -470,7 +470,12 @@ class _MultiHuntCard extends StatelessWidget {
                                         color: Color(s.colorHex),
                                       ),
                                       const SizedBox(width: 8),
-                                      Text('Slot #${s.slotId}'),
+                                      Text(
+                                        t.multi_hunt_slot_number.replaceAll(
+                                          '{slot}',
+                                          s.slotId.toString(),
+                                        ),
+                                      ),
                                     ],
                                   ),
                                 );
@@ -521,7 +526,14 @@ class _MultiHuntCard extends StatelessWidget {
                     ),
                   ),
                   Text(
-                    'Phase ${hunt.phase} · ${hunt.isPaused ? t.shiny_hunt_paused : t.shiny_hunt_status_active}',
+                    t.multi_hunt_phase_status
+                        .replaceAll('{phase}', hunt.phase.toString())
+                        .replaceAll(
+                          '{status}',
+                          hunt.isPaused
+                              ? t.shiny_hunt_paused
+                              : t.shiny_hunt_status_active,
+                        ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(

@@ -2377,6 +2377,21 @@ class TranslationsJa extends Translations with BaseTranslations<AppLocale, Trans
 	@override String get multi_hunt_edit_rules_tooltip => 'このハントの自動ルール';
 	@override String get multi_hunt_edit_hunt_tooltip => 'ハントを編集';
 	@override String get shiny_auto_setup_for_hunt => '{name}のルール';
+	@override String get shiny_auto_timing_section => '拡張 / タイミング微調整';
+	@override String get shiny_auto_cooldown_label => 'リセットクールダウン (ms)';
+	@override String get shiny_auto_transition_duration_label => '最小黒／白画像期間 (ms)';
+	@override String get shiny_auto_slot_chip_tooltip => 'タップ: 一時停止 · 長押し: 手動準備 (再装填)';
+	@override String get shiny_auto_logs_tooltip => 'ライブオートログを表示';
+	@override String get shiny_auto_logs_empty => 'このセッションではまだ自動カウントはありません。';
+	@override String get shiny_auto_logs_undone => '元に戻した';
+	@override String get shiny_auto_rearm_all_btn => 'すべてのスロットが準備できています';
+	@override String get shiny_auto_reason_black_reset => '黒画面リセット';
+	@override String get shiny_auto_reason_white_reset => 'ホワイトイメージリセット';
+	@override String get shiny_auto_reason_egg_oh => '卵の孵化が開始されました (あれ?)';
+	@override String get shiny_auto_reason_shiny => '光り輝くものを検出: {name}';
+	@override String get multi_hunt_phase_status => 'フェーズ {phase} · {status}';
+	@override String get multi_hunt_slot_number => 'スロット #{slot}';
+	@override String get scanner_event_egg_hatched_badge => 'EI-スループ';
 }
 
 /// The flat map containing all translations for locale <ja>.
@@ -4733,6 +4748,21 @@ extension on TranslationsJa {
 			'multi_hunt_edit_rules_tooltip' => 'このハントの自動ルール',
 			'multi_hunt_edit_hunt_tooltip' => 'ハントを編集',
 			'shiny_auto_setup_for_hunt' => '{name}のルール',
+			'shiny_auto_timing_section' => '拡張 / タイミング微調整',
+			'shiny_auto_cooldown_label' => 'リセットクールダウン (ms)',
+			'shiny_auto_transition_duration_label' => '最小黒／白画像期間 (ms)',
+			'shiny_auto_slot_chip_tooltip' => 'タップ: 一時停止 · 長押し: 手動準備 (再装填)',
+			'shiny_auto_logs_tooltip' => 'ライブオートログを表示',
+			'shiny_auto_logs_empty' => 'このセッションではまだ自動カウントはありません。',
+			'shiny_auto_logs_undone' => '元に戻した',
+			'shiny_auto_rearm_all_btn' => 'すべてのスロットが準備できています',
+			'shiny_auto_reason_black_reset' => '黒画面リセット',
+			'shiny_auto_reason_white_reset' => 'ホワイトイメージリセット',
+			'shiny_auto_reason_egg_oh' => '卵の孵化が開始されました (あれ?)',
+			'shiny_auto_reason_shiny' => '光り輝くものを検出: {name}',
+			'multi_hunt_phase_status' => 'フェーズ {phase} · {status}',
+			'multi_hunt_slot_number' => 'スロット #{slot}',
+			'scanner_event_egg_hatched_badge' => 'EI-スループ',
 			_ => null,
 		};
 	}

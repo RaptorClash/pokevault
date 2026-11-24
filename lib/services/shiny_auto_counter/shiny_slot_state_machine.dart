@@ -38,6 +38,7 @@ class ShinyCountDecision {
   final bool shouldIncrement;
   final int delta;
   final bool isShiny;
+  final bool isShinyAlertOnly;
   final String reason;
   final int? pokemonId;
   final String? pokemonName;
@@ -46,6 +47,7 @@ class ShinyCountDecision {
       : shouldIncrement = false,
         delta = 0,
         isShiny = false,
+        isShinyAlertOnly = false,
         pokemonId = null,
         pokemonName = null;
 
@@ -55,7 +57,17 @@ class ShinyCountDecision {
     this.isShiny = false,
     this.pokemonId,
     this.pokemonName,
-  }) : shouldIncrement = true;
+  })  : shouldIncrement = true,
+        isShinyAlertOnly = false;
+
+  const ShinyCountDecision.shinyAlert({
+    required this.reason,
+    this.pokemonId,
+    this.pokemonName,
+  })  : shouldIncrement = false,
+        delta = 0,
+        isShiny = true,
+        isShinyAlertOnly = true;
 }
 
 /// Pure-Dart per-slot state machine preventing duplicate counts during idle/pause
@@ -144,6 +156,14 @@ class ShinySlotStateMachine {
     _eggOhPromptCounted = false;
   }
 
+  /// Reverts a previously counted increment on this slot and immediately re-arms it.
+  void recordUndo(int delta) {
+    if (delta > 0) {
+      _sessionCount = (_sessionCount - delta).clamp(0, 9999999);
+    }
+    forceRearm();
+  }
+
   void _promoteRearmIfReady() {
     if (_phase != ShinySlotPhase.rearmPending) return;
     final started = _rearmStartedAt;
@@ -171,8 +191,22 @@ class ShinySlotStateMachine {
     }
   }
 
+  bool _patternBelongsToSlot(String? patternId) {
+    if (patternId == null || !patternId.startsWith('shiny_hunt:')) {
+      return true;
+    }
+    final rest = patternId.substring('shiny_hunt:'.length);
+    final sepIdx = rest.indexOf(':');
+    if (sepIdx <= 0) return true;
+    final huntScopeId = rest.substring(0, sepIdx);
+    return assignedHuntId == huntScopeId;
+  }
+
   bool _matchesTarget(ScannerEvent event) {
     if (settings.matchFilter == ShinyMatchFilter.allPokemon) {
+      return true;
+    }
+    if (event.matchedCustomPatternId != null && event.pokemonId == null) {
       return true;
     }
     if (targetPokemonId != null && event.pokemonId != null) {
@@ -202,19 +236,51 @@ class ShinySlotStateMachine {
 
   /// Processes a parsed [ScannerEvent].
   ShinyCountDecision onScannerEvent(ScannerEvent event) {
+    if (!_patternBelongsToSlot(event.matchedCustomPatternId)) {
+      return const ShinyCountDecision.none('hunt_scope_mismatch');
+    }
+
     if (event.type == ScannerEventType.softReset ||
         event.type == ScannerEventType.customReset) {
-      _beginRearm('Reset-Pattern');
+      _beginRearm('reset_pattern');
       return const ShinyCountDecision.none('rearm_from_event');
     }
 
     if (event.type == ScannerEventType.caught &&
         settings.detectionMode == ShinyHuntDetectionMode.wildEncounter) {
-      _beginRearm('Gefangen');
+      _beginRearm('caught');
       return const ShinyCountDecision.none('rearm_caught');
     }
 
     _promoteRearmIfReady();
+
+    // Egg-hatch follow-up after "Oh?": allow shiny alert / pause and auto-rearm without double-counting.
+    if (settings.detectionMode == ShinyHuntDetectionMode.eggHatch &&
+        event.type == ScannerEventType.eggHatched &&
+        _eggOhPromptCounted &&
+        _phase == ShinySlotPhase.counted &&
+        _matchesTarget(event)) {
+      _eggOhPromptCounted = false;
+      _lastEventAt = DateTime.now();
+      if (event.matchedName.isNotEmpty) {
+        _lastTriggerLabel = event.matchedName;
+      }
+      if (event.isShiny) {
+        if (settings.autoPauseSlotOnShiny) {
+          _phase = ShinySlotPhase.pausedByShiny;
+        } else {
+          _beginRearm('egg_hatched');
+        }
+        return ShinyCountDecision.shinyAlert(
+          reason: 'shiny:${event.matchedName}',
+          pokemonId: event.pokemonId,
+          pokemonName: event.matchedName,
+        );
+      }
+      _beginRearm('egg_hatched');
+      return const ShinyCountDecision.none('egg_already_counted_on_oh');
+    }
+
     if (_phase != ShinySlotPhase.armed) {
       return const ShinyCountDecision.none('slot_not_armed');
     }
@@ -225,13 +291,6 @@ class ShinySlotStateMachine {
 
     if (!_matchesTarget(event)) {
       return const ShinyCountDecision.none('target_filter_mismatch');
-    }
-
-    // If egg was already counted on "Oh?" prompt, suppress duplicate on eggHatched.
-    if (settings.detectionMode == ShinyHuntDetectionMode.eggHatch &&
-        event.type == ScannerEventType.eggHatched &&
-        _eggOhPromptCounted) {
-      return const ShinyCountDecision.none('egg_already_counted_on_oh');
     }
 
     final delta = (settings.detectionMode == ShinyHuntDetectionMode.wildEncounter &&
@@ -250,12 +309,18 @@ class ShinySlotStateMachine {
       _phase = ShinySlotPhase.pausedByShiny;
     } else {
       _phase = ShinySlotPhase.counted;
+      if (settings.detectionMode == ShinyHuntDetectionMode.eggHatch &&
+          event.type == ScannerEventType.eggHatched) {
+        _beginRearm('egg_hatched');
+      }
     }
 
     return ShinyCountDecision.increment(
       delta: delta,
       isShiny: event.isShiny,
-      reason: event.isShiny ? 'Shiny erkannt: ${event.matchedName}' : 'OCR: ${event.matchedName}',
+      reason: event.isShiny
+          ? 'shiny:${event.matchedName}'
+          : 'ocr:${event.matchedName}',
       pokemonId: event.pokemonId,
       pokemonName: event.matchedName,
     );
@@ -274,11 +339,11 @@ class ShinySlotStateMachine {
       _eggOhPromptCounted = true;
       _sessionCount += 1;
       _lastEventAt = DateTime.now();
-      _lastTriggerLabel = 'Oh? (Ei)';
+      _lastTriggerLabel = 'egg_oh_prompt';
       _phase = ShinySlotPhase.counted;
       return const ShinyCountDecision.increment(
         delta: 1,
-        reason: 'Ei-Schlupf gestartet (Oh?)',
+        reason: 'egg_oh_prompt',
       );
     }
     return const ShinyCountDecision.none();
@@ -288,14 +353,14 @@ class ShinySlotStateMachine {
   bool onBattleCue(BattleCue cue) {
     if (cue == BattleCue.battleEnded) {
       final wasCounted = _phase == ShinySlotPhase.counted;
-      _beginRearm('Kampf beendet');
+      _beginRearm('battle_ended');
       return wasCounted;
     }
     return false;
   }
 
   /// Processes a soft-reset / title-screen cue.
-  bool onResetCue(ResetCue cue, {String rawLabel = 'Reset-Menü'}) {
+  bool onResetCue(ResetCue cue, {String rawLabel = 'reset_menu'}) {
     if (cue != ResetCue.none) {
       final wasCounted = _phase == ShinySlotPhase.counted;
       _beginRearm(rawLabel);
@@ -346,8 +411,8 @@ class ShinySlotStateMachine {
       _sessionCount += 1;
       _lastEventAt = DateTime.now();
       _lastTriggerLabel = transition.type == FrameTransitionType.blackScreenEnded
-          ? 'Schwarzbild-Reset'
-          : 'Weißbild-Reset';
+          ? 'black_screen_reset'
+          : 'white_screen_reset';
       _phase = ShinySlotPhase.armed;
       return ShinyCountDecision.increment(
         delta: 1,
@@ -357,8 +422,8 @@ class ShinySlotStateMachine {
 
     _beginRearm(
       transition.type == FrameTransitionType.blackScreenEnded
-          ? 'Schwarzbild'
-          : 'Weißbild',
+          ? 'black_screen'
+          : 'white_screen',
     );
     return const ShinyCountDecision.none('rearm_from_transition');
   }

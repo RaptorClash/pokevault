@@ -2377,6 +2377,21 @@ class TranslationsKo extends Translations with BaseTranslations<AppLocale, Trans
 	@override String get multi_hunt_edit_rules_tooltip => '이 헌트에 대한 자동 규칙';
 	@override String get multi_hunt_edit_hunt_tooltip => '사냥 편집';
 	@override String get shiny_auto_setup_for_hunt => '{name}의 규칙';
+	@override String get shiny_auto_timing_section => '확장 / 타이밍 미세조정';
+	@override String get shiny_auto_cooldown_label => '재설정 대기 시간(밀리초)';
+	@override String get shiny_auto_transition_duration_label => '최소 흑백 이미지 지속 시간(밀리초)';
+	@override String get shiny_auto_slot_chip_tooltip => '탭: 일시정지 · 길게 누르기: 수동 준비(재장전)';
+	@override String get shiny_auto_logs_tooltip => '라이브 자동 로그 표시';
+	@override String get shiny_auto_logs_empty => '이 세션에는 아직 자동 계산이 없습니다.';
+	@override String get shiny_auto_logs_undone => '되돌림';
+	@override String get shiny_auto_rearm_all_btn => '모든 슬롯 준비 완료';
+	@override String get shiny_auto_reason_black_reset => '검은 화면 재설정';
+	@override String get shiny_auto_reason_white_reset => '화이트 밸런스 리셋';
+	@override String get shiny_auto_reason_egg_oh => '알 부화 시작됨 (어?)';
+	@override String get shiny_auto_reason_shiny => 'Shiny 감지됨: {name}';
+	@override String get multi_hunt_phase_status => '단계 {phase} · {status}';
+	@override String get multi_hunt_slot_number => '슬롯 #{slot}';
+	@override String get scanner_event_egg_hatched_badge => '알 부화';
 }
 
 /// The flat map containing all translations for locale <ko>.
@@ -4733,6 +4748,21 @@ extension on TranslationsKo {
 			'multi_hunt_edit_rules_tooltip' => '이 헌트에 대한 자동 규칙',
 			'multi_hunt_edit_hunt_tooltip' => '사냥 편집',
 			'shiny_auto_setup_for_hunt' => '{name}의 규칙',
+			'shiny_auto_timing_section' => '확장 / 타이밍 미세조정',
+			'shiny_auto_cooldown_label' => '재설정 대기 시간(밀리초)',
+			'shiny_auto_transition_duration_label' => '최소 흑백 이미지 지속 시간(밀리초)',
+			'shiny_auto_slot_chip_tooltip' => '탭: 일시정지 · 길게 누르기: 수동 준비(재장전)',
+			'shiny_auto_logs_tooltip' => '라이브 자동 로그 표시',
+			'shiny_auto_logs_empty' => '이 세션에는 아직 자동 계산이 없습니다.',
+			'shiny_auto_logs_undone' => '되돌림',
+			'shiny_auto_rearm_all_btn' => '모든 슬롯 준비 완료',
+			'shiny_auto_reason_black_reset' => '검은 화면 재설정',
+			'shiny_auto_reason_white_reset' => '화이트 밸런스 리셋',
+			'shiny_auto_reason_egg_oh' => '알 부화 시작됨 (어?)',
+			'shiny_auto_reason_shiny' => 'Shiny 감지됨: {name}',
+			'multi_hunt_phase_status' => '단계 {phase} · {status}',
+			'multi_hunt_slot_number' => '슬롯 #{slot}',
+			'scanner_event_egg_hatched_badge' => '알 부화',
 			_ => null,
 		};
 	}

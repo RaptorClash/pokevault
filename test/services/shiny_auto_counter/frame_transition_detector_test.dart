@@ -136,5 +136,66 @@ void main() {
       expect(ev1, isNotNull);
       expect(ev1!.slotId, equals(1));
     });
+
+    test('starting directly on black screen does NOT fire blackScreenEnded when normal screen appears', () {
+      var clock = Duration.zero;
+      final detector = FrameTransitionDetector(
+        minTransitionDuration: const Duration(milliseconds: 300),
+        elapsedClock: () => clock,
+      );
+
+      final black = _solidBgraFrame(width: 20, height: 20, b: 0, g: 0, r: 0);
+      final normal = _solidBgraFrame(width: 20, height: 20, b: 120, g: 120, r: 120);
+
+      expect(detector.analyzeFrame(black, slotId: 1), isNull);
+      clock += const Duration(milliseconds: 500);
+      expect(detector.analyzeFrame(black, slotId: 1), isNull);
+      clock += const Duration(milliseconds: 100);
+      expect(detector.analyzeFrame(normal, slotId: 1), isNull);
+    });
+
+    test('direct black -> white -> normal transition does not double-emit on black -> white boundary', () {
+      var clock = Duration.zero;
+      final detector = FrameTransitionDetector(
+        minTransitionDuration: const Duration(milliseconds: 300),
+        elapsedClock: () => clock,
+      );
+
+      final normal = _solidBgraFrame(width: 20, height: 20, b: 120, g: 120, r: 120);
+      final black = _solidBgraFrame(width: 20, height: 20, b: 2, g: 2, r: 2);
+      final white = _solidBgraFrame(width: 20, height: 20, b: 252, g: 252, r: 252);
+
+      expect(detector.analyzeFrame(normal, slotId: 1), isNull);
+      clock += const Duration(milliseconds: 50);
+      expect(detector.analyzeFrame(black, slotId: 1), isNull);
+      clock += const Duration(milliseconds: 400);
+      // Direct jump black -> white must NOT emit blackScreenEnded
+      expect(detector.analyzeFrame(white, slotId: 1), isNull);
+      clock += const Duration(milliseconds: 400);
+      // Returning to normal emits only whiteScreenEnded
+      final ev = detector.analyzeFrame(normal, slotId: 1);
+      expect(ev, isNotNull);
+      expect(ev!.type, equals(FrameTransitionType.whiteScreenEnded));
+    });
+
+    test('setMinTransitionDuration updates threshold dynamically', () {
+      var clock = Duration.zero;
+      final detector = FrameTransitionDetector(
+        minTransitionDuration: const Duration(milliseconds: 350),
+        elapsedClock: () => clock,
+      );
+      detector.setMinTransitionDuration(const Duration(milliseconds: 150));
+
+      final normal = _solidBgraFrame(width: 20, height: 20, b: 120, g: 120, r: 120);
+      final black = _solidBgraFrame(width: 20, height: 20, b: 2, g: 2, r: 2);
+
+      expect(detector.analyzeFrame(normal, slotId: 1), isNull);
+      clock += const Duration(milliseconds: 50);
+      expect(detector.analyzeFrame(black, slotId: 1), isNull);
+      clock += const Duration(milliseconds: 180);
+      final ev = detector.analyzeFrame(normal, slotId: 1);
+      expect(ev, isNotNull);
+      expect(ev!.type, equals(FrameTransitionType.blackScreenEnded));
+    });
   });
 }

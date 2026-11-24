@@ -7055,6 +7055,51 @@ class Translations with BaseTranslations<AppLocale, Translations> {
 
 	/// de: 'Regeln für {name}'
 	String get shiny_auto_setup_for_hunt => 'Regeln für {name}';
+
+	/// de: 'Erweitert / Timing-Feintuning'
+	String get shiny_auto_timing_section => 'Erweitert / Timing-Feintuning';
+
+	/// de: 'Reset-Cooldown (ms)'
+	String get shiny_auto_cooldown_label => 'Reset-Cooldown (ms)';
+
+	/// de: 'Min. Schwarz-/Weißbild-Dauer (ms)'
+	String get shiny_auto_transition_duration_label => 'Min. Schwarz-/Weißbild-Dauer (ms)';
+
+	/// de: 'Tippen: Pause · Gedrückt halten: Manuell bereit (Re-Arm)'
+	String get shiny_auto_slot_chip_tooltip => 'Tippen: Pause · Gedrückt halten: Manuell bereit (Re-Arm)';
+
+	/// de: 'Live Auto-Log anzeigen'
+	String get shiny_auto_logs_tooltip => 'Live Auto-Log anzeigen';
+
+	/// de: 'Noch keine automatischen Zählungen in dieser Sitzung.'
+	String get shiny_auto_logs_empty => 'Noch keine automatischen Zählungen in dieser Sitzung.';
+
+	/// de: 'Rückgängig gemacht'
+	String get shiny_auto_logs_undone => 'Rückgängig gemacht';
+
+	/// de: 'Alle Slots bereit'
+	String get shiny_auto_rearm_all_btn => 'Alle Slots bereit';
+
+	/// de: 'Schwarzbild-Reset'
+	String get shiny_auto_reason_black_reset => 'Schwarzbild-Reset';
+
+	/// de: 'Weißbild-Reset'
+	String get shiny_auto_reason_white_reset => 'Weißbild-Reset';
+
+	/// de: 'Ei-Schlupf gestartet (Oh?)'
+	String get shiny_auto_reason_egg_oh => 'Ei-Schlupf gestartet (Oh?)';
+
+	/// de: 'Shiny erkannt: {name}'
+	String get shiny_auto_reason_shiny => 'Shiny erkannt: {name}';
+
+	/// de: 'Phase {phase} · {status}'
+	String get multi_hunt_phase_status => 'Phase {phase} · {status}';
+
+	/// de: 'Slot #{slot}'
+	String get multi_hunt_slot_number => 'Slot #{slot}';
+
+	/// de: 'EI-SCHLUPF'
+	String get scanner_event_egg_hatched_badge => 'EI-SCHLUPF';
 }
 
 /// The flat map containing all translations for locale <de>.
@@ -9411,6 +9456,21 @@ extension on Translations {
 			'multi_hunt_edit_rules_tooltip' => 'Auto-Regeln für diesen Hunt',
 			'multi_hunt_edit_hunt_tooltip' => 'Hunt bearbeiten',
 			'shiny_auto_setup_for_hunt' => 'Regeln für {name}',
+			'shiny_auto_timing_section' => 'Erweitert / Timing-Feintuning',
+			'shiny_auto_cooldown_label' => 'Reset-Cooldown (ms)',
+			'shiny_auto_transition_duration_label' => 'Min. Schwarz-/Weißbild-Dauer (ms)',
+			'shiny_auto_slot_chip_tooltip' => 'Tippen: Pause · Gedrückt halten: Manuell bereit (Re-Arm)',
+			'shiny_auto_logs_tooltip' => 'Live Auto-Log anzeigen',
+			'shiny_auto_logs_empty' => 'Noch keine automatischen Zählungen in dieser Sitzung.',
+			'shiny_auto_logs_undone' => 'Rückgängig gemacht',
+			'shiny_auto_rearm_all_btn' => 'Alle Slots bereit',
+			'shiny_auto_reason_black_reset' => 'Schwarzbild-Reset',
+			'shiny_auto_reason_white_reset' => 'Weißbild-Reset',
+			'shiny_auto_reason_egg_oh' => 'Ei-Schlupf gestartet (Oh?)',
+			'shiny_auto_reason_shiny' => 'Shiny erkannt: {name}',
+			'multi_hunt_phase_status' => 'Phase {phase} · {status}',
+			'multi_hunt_slot_number' => 'Slot #{slot}',
+			'scanner_event_egg_hatched_badge' => 'EI-SCHLUPF',
 			_ => null,
 		};
 	}

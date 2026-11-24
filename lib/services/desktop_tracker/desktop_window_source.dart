@@ -280,6 +280,11 @@ class DesktopWindowSource
   Stream<FrameTransitionEvent> get transitionStream =>
       _transitionController.stream;
 
+  @override
+  void updateTransitionMinDuration(Duration duration) {
+    _transitionDetector.setMinTransitionDuration(duration);
+  }
+
   List<MultiInstanceSlot> get multiInstanceSlots => _multiInstanceSlots;
 
   @override

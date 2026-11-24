@@ -324,5 +324,104 @@ void main() {
 
       await coordinator.dispose();
     });
+
+    testWidgets('Live Auto-Log bottom sheet opens from bar, supports per-entry Undo and Re-Arm All', (tester) async {
+      final hunt = makeHunt();
+      await huntProvider.createHunt(hunt);
+      final coordinator = makeCoordinator();
+      final service = ShinyAutoCounterService.forTesting();
+      service.startSession(
+        huntProvider: huntProvider,
+        coordinator: coordinator,
+        defaultHuntId: hunt.id,
+        slotIds: const [1, 2],
+        settings: const ShinyAutoCounterSettings(
+          detectionMode: ShinyHuntDetectionMode.softReset,
+        ),
+      );
+
+      await coordinator.processFrameText('Ein wildes Mewtu erscheint!', instanceIndex: 1);
+      await service.waitForIdle();
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: ShinyAutoCounterBar(service: service),
+          ),
+        ),
+      );
+
+      expect(find.byKey(const Key('shiny_auto_logs_btn')), findsOneWidget);
+      await tester.tap(find.byKey(const Key('shiny_auto_logs_btn')));
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(const Key('shiny_auto_logs_sheet')), findsOneWidget);
+      expect(find.byKey(const Key('shiny_auto_rearm_all_btn')), findsOneWidget);
+
+      await tester.tap(find.byKey(const Key('shiny_auto_log_undo_0')));
+      await tester.pump();
+      expect(huntProvider.getHuntById(hunt.id)!.currentEncounters, equals(0));
+
+      await tester.tap(find.byKey(const Key('shiny_auto_rearm_all_btn')));
+      await tester.pump();
+      expect(tester.takeException(), isNull);
+
+      await service.stopSession();
+      await coordinator.dispose();
+    });
+
+    testWidgets('SetupSheet hides OCR sections in screenTransitionOnly mode and supports timing sliders + custom ms input', (tester) async {
+      SharedPreferences.setMockInitialValues({'app_db_version': 21});
+      final hunt = makeHunt();
+      await huntProvider.createHunt(hunt);
+      final service = ShinyAutoCounterService.forTesting();
+
+      await tester.pumpWidget(
+        MultiProvider(
+          providers: [
+            ChangeNotifierProvider<ShinyHuntProvider>.value(value: huntProvider),
+            ChangeNotifierProvider<DexProvider>.value(value: dexProvider),
+          ],
+          child: MaterialApp(
+            home: Scaffold(
+              body: ShinyAutoCounterSetupSheet(
+                hunt: hunt,
+                service: service,
+                showSourceLauncher: false,
+              ),
+            ),
+          ),
+        ),
+      );
+
+      // Expand timing section and enter custom cooldown > slider max (12000 ms)
+      await tester.ensureVisible(find.byKey(const Key('setup_timing_expansion')));
+      await tester.tap(find.byKey(const Key('setup_timing_expansion')));
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(const Key('setup_cooldown_input')), findsOneWidget);
+      expect(find.byKey(const Key('setup_transition_input')), findsOneWidget);
+
+      await tester.enterText(find.byKey(const Key('setup_cooldown_input')), '12000');
+      await tester.testTextInput.receiveAction(TextInputAction.done);
+      await tester.pump();
+
+      // Switch to screenTransitionOnly -> OCR sections hidden
+      await tester.ensureVisible(find.byKey(const Key('setup_mode_screenTransitionOnly')));
+      await tester.tap(find.byKey(const Key('setup_mode_screenTransitionOnly')));
+      await tester.pump();
+      expect(find.byKey(const Key('setup_custom_trigger_field')), findsNothing);
+      expect(find.byKey(const Key('setup_filter_allPokemon')), findsNothing);
+
+      await tester.ensureVisible(find.byKey(const Key('setup_start_btn')));
+      await tester.tap(find.byKey(const Key('setup_start_btn')));
+      await tester.pumpAndSettle();
+
+      final saved = await ShinyAutoCounterSettings.loadFromPrefs();
+      expect(saved, isNotNull);
+      expect(saved!.minResetCooldownMs, equals(12000));
+      expect(saved.detectionMode, equals(ShinyHuntDetectionMode.screenTransitionOnly));
+      expect(tester.takeException(), isNull);
+    });
   });
 }

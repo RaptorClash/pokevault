@@ -74,6 +74,11 @@ class MobileCameraSource
       _transitionController.stream;
 
   @override
+  void updateTransitionMinDuration(Duration duration) {
+    _transitionDetector.setMinTransitionDuration(duration);
+  }
+
+  @override
   bool get isRunning => _running;
 
   Duration get pollInterval => _pollInterval;

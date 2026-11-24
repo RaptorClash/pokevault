@@ -45,6 +45,7 @@ class OcrParseResult {
   final double confidence;
   final bool isSmartSearchFallback;
   final bool isMultiEncounter;
+  final String? matchedCustomPatternId;
 
   const OcrParseResult({
     required this.type,
@@ -58,6 +59,7 @@ class OcrParseResult {
     this.confidence = 1.0,
     this.isSmartSearchFallback = false,
     this.isMultiEncounter = false,
+    this.matchedCustomPatternId,
   });
 }
 
@@ -513,8 +515,12 @@ class OcrDetectionEngine {
     ),
   ];
 
-  List<({RegExp regex, ScannerEventType eventType, bool hasPokemonPlaceholder})>
-      _compiledCustomPatterns = const [];
+  List<({
+    String id,
+    RegExp regex,
+    ScannerEventType eventType,
+    bool hasPokemonPlaceholder,
+  })> _compiledCustomPatterns = const [];
 
   OcrDetectionEngine({List<CustomOcrPattern> customPatterns = const []}) {
     updateCustomPatterns(customPatterns);
@@ -522,8 +528,12 @@ class OcrDetectionEngine {
 
   /// Replaces the active custom OCR pattern list and compiles regexes once.
   void updateCustomPatterns(List<CustomOcrPattern> patterns) {
-    final compiled =
-        <({RegExp regex, ScannerEventType eventType, bool hasPokemonPlaceholder})>[];
+    final compiled = <({
+      String id,
+      RegExp regex,
+      ScannerEventType eventType,
+      bool hasPokemonPlaceholder,
+    })>[];
     for (final p in patterns) {
       if (!p.enabled) continue;
       final regex = _compileCustomTemplate(
@@ -536,6 +546,7 @@ class OcrDetectionEngine {
       );
       if (regex != null) {
         compiled.add((
+          id: p.id,
           regex: regex,
           eventType: p.eventType,
           hasPokemonPlaceholder: p.template.contains('{pokemon}'),
@@ -608,6 +619,7 @@ class OcrDetectionEngine {
     final trimmed = rawText.trim();
     if (trimmed.isEmpty) return ResetCue.none;
     for (final cp in _compiledCustomPatterns) {
+      if (cp.id.startsWith('shiny_hunt:')) continue;
       if ((cp.eventType == ScannerEventType.customReset ||
               cp.eventType == ScannerEventType.softReset) &&
           cp.regex.hasMatch(trimmed)) {
@@ -724,6 +736,7 @@ class OcrDetectionEngine {
               gender: gender,
               isAlpha: isAlpha,
               confidence: 0.96,
+              matchedCustomPatternId: cp.id,
             );
           }
           if (match.groupCount >= 1) {
@@ -738,6 +751,7 @@ class OcrDetectionEngine {
                 isAlpha: isAlpha,
                 confidence: 0.96,
                 isSmartSearchFallback: name.contains(' '),
+                matchedCustomPatternId: cp.id,
               );
             }
           }

@@ -2342,5 +2342,20 @@
   "multi_hunt_paused_section": "暫停的獵捕 ({count})",
   "multi_hunt_edit_rules_tooltip": "此獵捕的自動規則",
   "multi_hunt_edit_hunt_tooltip": "編輯狩獵",
-  "shiny_auto_setup_for_hunt": "{name} 的規則"
+  "shiny_auto_setup_for_hunt": "{name} 的規則",
+  "shiny_auto_timing_section": "進階 / 時間微調",
+  "shiny_auto_cooldown_label": "重置冷卻時間（毫秒）",
+  "shiny_auto_transition_duration_label": "最短黑白圖像持續時間（毫秒）",
+  "shiny_auto_slot_chip_tooltip": "點擊：暫停 · 長按：手動準備（重新啟動）",
+  "shiny_auto_logs_tooltip": "顯示即時自動日誌",
+  "shiny_auto_logs_empty": "此會話尚無自動計數。",
+  "shiny_auto_logs_undone": "已撤銷",
+  "shiny_auto_rearm_all_btn": "所有插槽已準備好",
+  "shiny_auto_reason_black_reset": "黑屏重置",
+  "shiny_auto_reason_white_reset": "白圖重置",
+  "shiny_auto_reason_egg_oh": "卵孵化開始（哦？）",
+  "shiny_auto_reason_shiny": "Shiny 偵測到：{name}",
+  "multi_hunt_phase_status": "階段 {phase} · {status}",
+  "multi_hunt_slot_number": "插槽 #{slot}",
+  "scanner_event_egg_hatched_badge": "卵孵化"
 }

@@ -2342,5 +2342,20 @@
   "multi_hunt_paused_section": "Paused Hunts ({count})",
   "multi_hunt_edit_rules_tooltip": "Auto rules for this hunt",
   "multi_hunt_edit_hunt_tooltip": "Edit hunt",
-  "shiny_auto_setup_for_hunt": "Rules for {name}"
+  "shiny_auto_setup_for_hunt": "Rules for {name}",
+  "shiny_auto_timing_section": "Advanced / Timing Tuning",
+  "shiny_auto_cooldown_label": "Reset Cooldown (ms)",
+  "shiny_auto_transition_duration_label": "Min. Black/White Screen Duration (ms)",
+  "shiny_auto_slot_chip_tooltip": "Tap: Pause · Long-press: Re-arm manually",
+  "shiny_auto_logs_tooltip": "Show Live Auto-Log",
+  "shiny_auto_logs_empty": "No automatic counts recorded in this session yet.",
+  "shiny_auto_logs_undone": "Undone",
+  "shiny_auto_rearm_all_btn": "Re-arm all slots",
+  "shiny_auto_reason_black_reset": "Black screen reset",
+  "shiny_auto_reason_white_reset": "White screen reset",
+  "shiny_auto_reason_egg_oh": "Egg hatch started (Oh?)",
+  "shiny_auto_reason_shiny": "Shiny detected: {name}",
+  "multi_hunt_phase_status": "Phase {phase} · {status}",
+  "multi_hunt_slot_number": "Slot #{slot}",
+  "scanner_event_egg_hatched_badge": "EGG HATCH"
 }

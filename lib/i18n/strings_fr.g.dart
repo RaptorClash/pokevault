@@ -2377,6 +2377,21 @@ class TranslationsFr extends Translations with BaseTranslations<AppLocale, Trans
 	@override String get multi_hunt_edit_rules_tooltip => 'Règles automatiques pour cette chasse';
 	@override String get multi_hunt_edit_hunt_tooltip => 'Modifier la chasse';
 	@override String get shiny_auto_setup_for_hunt => 'Règles pour {name}';
+	@override String get shiny_auto_timing_section => 'Étendu / Ajustement du timing';
+	@override String get shiny_auto_cooldown_label => 'Réinitialiser le temps de récupération (ms)';
+	@override String get shiny_auto_transition_duration_label => 'Durée min. image noir/blanc (ms)';
+	@override String get shiny_auto_slot_chip_tooltip => 'Appuyer : Pause · Maintenir : Prêt manuel (Réarmer)';
+	@override String get shiny_auto_logs_tooltip => 'Afficher le journal automatique en direct';
+	@override String get shiny_auto_logs_empty => 'Pas encore de comptages automatiques dans cette session.';
+	@override String get shiny_auto_logs_undone => 'Annulé';
+	@override String get shiny_auto_rearm_all_btn => 'Tous les emplacements prêts';
+	@override String get shiny_auto_reason_black_reset => 'Réinitialisation de l\'image noire';
+	@override String get shiny_auto_reason_white_reset => 'Réinitialisation de l\'image blanche';
+	@override String get shiny_auto_reason_egg_oh => 'Éclosion d\'œuf lancée (Oh ?)';
+	@override String get shiny_auto_reason_shiny => 'Shiny détecté : {name}';
+	@override String get multi_hunt_phase_status => 'Phase {phase} · {status}';
+	@override String get multi_hunt_slot_number => 'Emplacement #{slot}';
+	@override String get scanner_event_egg_hatched_badge => 'Éclosion';
 }
 
 /// The flat map containing all translations for locale <fr>.
@@ -4733,6 +4748,21 @@ extension on TranslationsFr {
 			'multi_hunt_edit_rules_tooltip' => 'Règles automatiques pour cette chasse',
 			'multi_hunt_edit_hunt_tooltip' => 'Modifier la chasse',
 			'shiny_auto_setup_for_hunt' => 'Règles pour {name}',
+			'shiny_auto_timing_section' => 'Étendu / Ajustement du timing',
+			'shiny_auto_cooldown_label' => 'Réinitialiser le temps de récupération (ms)',
+			'shiny_auto_transition_duration_label' => 'Durée min. image noir/blanc (ms)',
+			'shiny_auto_slot_chip_tooltip' => 'Appuyer : Pause · Maintenir : Prêt manuel (Réarmer)',
+			'shiny_auto_logs_tooltip' => 'Afficher le journal automatique en direct',
+			'shiny_auto_logs_empty' => 'Pas encore de comptages automatiques dans cette session.',
+			'shiny_auto_logs_undone' => 'Annulé',
+			'shiny_auto_rearm_all_btn' => 'Tous les emplacements prêts',
+			'shiny_auto_reason_black_reset' => 'Réinitialisation de l\'image noire',
+			'shiny_auto_reason_white_reset' => 'Réinitialisation de l\'image blanche',
+			'shiny_auto_reason_egg_oh' => 'Éclosion d\'œuf lancée (Oh ?)',
+			'shiny_auto_reason_shiny' => 'Shiny détecté : {name}',
+			'multi_hunt_phase_status' => 'Phase {phase} · {status}',
+			'multi_hunt_slot_number' => 'Emplacement #{slot}',
+			'scanner_event_egg_hatched_badge' => 'Éclosion',
 			_ => null,
 		};
 	}

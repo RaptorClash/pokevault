@@ -39,6 +39,7 @@ abstract interface class MultiInstanceScannerSource implements ScannerSource {
 /// Optional extension for capture sources emitting luminance-based black/white transitions.
 abstract interface class FrameTransitionScannerSource implements ScannerSource {
   Stream<FrameTransitionEvent> get transitionStream;
+  void updateTransitionMinDuration(Duration duration);
 }
 
 /// In-memory mock scanner source for unit tests and simulations.

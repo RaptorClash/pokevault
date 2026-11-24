@@ -2377,6 +2377,21 @@ class TranslationsZhHans extends Translations with BaseTranslations<AppLocale, T
 	@override String get multi_hunt_edit_rules_tooltip => '此狩猎的自动规则';
 	@override String get multi_hunt_edit_hunt_tooltip => '编辑猎物';
 	@override String get shiny_auto_setup_for_hunt => '{name} 的规则';
+	@override String get shiny_auto_timing_section => '高级 / 时序微调';
+	@override String get shiny_auto_cooldown_label => '重置冷却时间（毫秒）';
+	@override String get shiny_auto_transition_duration_label => '最小黑白图像持续时间（毫秒）';
+	@override String get shiny_auto_slot_chip_tooltip => '点击：暂停 · 长按：手动准备（重新激活）';
+	@override String get shiny_auto_logs_tooltip => '显示实时自动日志';
+	@override String get shiny_auto_logs_empty => '本次会议尚无自动计数。';
+	@override String get shiny_auto_logs_undone => '已撤销';
+	@override String get shiny_auto_rearm_all_btn => '所有槽位已准备好';
+	@override String get shiny_auto_reason_black_reset => '黑屏重置';
+	@override String get shiny_auto_reason_white_reset => '白色图像重置';
+	@override String get shiny_auto_reason_egg_oh => '蛋孵化开始（哦？）';
+	@override String get shiny_auto_reason_shiny => '发现闪光: {name}';
+	@override String get multi_hunt_phase_status => '阶段 {phase} · {status}';
+	@override String get multi_hunt_slot_number => '插槽 #{slot}';
+	@override String get scanner_event_egg_hatched_badge => '蛋孵化';
 }
 
 /// The flat map containing all translations for locale <zh-Hans>.
@@ -4733,6 +4748,21 @@ extension on TranslationsZhHans {
 			'multi_hunt_edit_rules_tooltip' => '此狩猎的自动规则',
 			'multi_hunt_edit_hunt_tooltip' => '编辑猎物',
 			'shiny_auto_setup_for_hunt' => '{name} 的规则',
+			'shiny_auto_timing_section' => '高级 / 时序微调',
+			'shiny_auto_cooldown_label' => '重置冷却时间（毫秒）',
+			'shiny_auto_transition_duration_label' => '最小黑白图像持续时间（毫秒）',
+			'shiny_auto_slot_chip_tooltip' => '点击：暂停 · 长按：手动准备（重新激活）',
+			'shiny_auto_logs_tooltip' => '显示实时自动日志',
+			'shiny_auto_logs_empty' => '本次会议尚无自动计数。',
+			'shiny_auto_logs_undone' => '已撤销',
+			'shiny_auto_rearm_all_btn' => '所有槽位已准备好',
+			'shiny_auto_reason_black_reset' => '黑屏重置',
+			'shiny_auto_reason_white_reset' => '白色图像重置',
+			'shiny_auto_reason_egg_oh' => '蛋孵化开始（哦？）',
+			'shiny_auto_reason_shiny' => '发现闪光: {name}',
+			'multi_hunt_phase_status' => '阶段 {phase} · {status}',
+			'multi_hunt_slot_number' => '插槽 #{slot}',
+			'scanner_event_egg_hatched_badge' => '蛋孵化',
 			_ => null,
 		};
 	}

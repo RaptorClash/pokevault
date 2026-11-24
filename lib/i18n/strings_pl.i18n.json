@@ -2342,5 +2342,20 @@
   "multi_hunt_paused_section": "Wstrzymane polowania ({count})",
   "multi_hunt_edit_rules_tooltip": "Automatyczne zasady dla tego polowania",
   "multi_hunt_edit_hunt_tooltip": "Edytuj polowanie",
-  "shiny_auto_setup_for_hunt": "Zasady dla {name}"
+  "shiny_auto_setup_for_hunt": "Zasady dla {name}",
+  "shiny_auto_timing_section": "Zaawansowane / Dodatkowe dostrajanie czasu",
+  "shiny_auto_cooldown_label": "Reset-czas odnowienia (ms)",
+  "shiny_auto_transition_duration_label": "Min. czas trwania obrazu czarno-białego (ms)",
+  "shiny_auto_slot_chip_tooltip": "Dotknij: Pauza · Przytrzymaj: Ręczne gotowanie (Re-Arm)",
+  "shiny_auto_logs_tooltip": "Pokaż automatyczny dziennik na żywo",
+  "shiny_auto_logs_empty": "Jeszcze nie ma automatycznych zliczeń w tej sesji.",
+  "shiny_auto_logs_undone": "Cofnięto",
+  "shiny_auto_rearm_all_btn": "Wszystkie gniazda gotowe",
+  "shiny_auto_reason_black_reset": "Reset obrazu czarnego",
+  "shiny_auto_reason_white_reset": "Reset balansu bieli",
+  "shiny_auto_reason_egg_oh": "Wykluwanie się jajka rozpoczęte (Oh?)",
+  "shiny_auto_reason_shiny": "Shiny wykryty: {name}",
+  "multi_hunt_phase_status": "Faza {phase} · {status}",
+  "multi_hunt_slot_number": "Gniazdo #{slot}",
+  "scanner_event_egg_hatched_badge": "WYKLUCIE JAJ"
 }

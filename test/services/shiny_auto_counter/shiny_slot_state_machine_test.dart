@@ -302,5 +302,154 @@ void main() {
       clock += const Duration(milliseconds: 600);
       expect(machine.onScannerEvent(_encounter(pokemonId: 150, name: 'Mewtu')).shouldIncrement, isTrue);
     });
+
+    test('Egg Hatch: Oh? counts +1 and subsequent shiny eggHatched triggers shiny alert + pause without double counting', () {
+      var clock = Duration.zero;
+      final machine = ShinySlotStateMachine(
+        slotId: 1,
+        colorHex: 0xFFA855F7,
+        targetPokemonId: 4,
+        targetPokemonName: 'Glumanda',
+        settings: const ShinyAutoCounterSettings(
+          detectionMode: ShinyHuntDetectionMode.eggHatch,
+          matchFilter: ShinyMatchFilter.targetPokemonOnly,
+          autoPauseSlotOnShiny: true,
+          minResetCooldownMs: 1200,
+        ),
+        elapsedClock: () => clock,
+      );
+
+      final oh = machine.onEggHatchCue(EggHatchCue.ohPrompt);
+      expect(oh.shouldIncrement, isTrue);
+      expect(oh.delta, equals(1));
+      expect(machine.phase, equals(ShinySlotPhase.counted));
+
+      clock += const Duration(seconds: 4);
+      final shinyHatched = machine.onScannerEvent(
+        ScannerEvent(
+          type: ScannerEventType.eggHatched,
+          pokemonId: 4,
+          rawText: '✨ Glumanda ist aus dem Ei geschlüpft!',
+          matchedName: 'Glumanda',
+          isShiny: true,
+          timestamp: DateTime(2026, 1, 1),
+        ),
+      );
+      expect(shinyHatched.shouldIncrement, isFalse);
+      expect(shinyHatched.isShiny, isTrue);
+      expect(shinyHatched.isShinyAlertOnly, isTrue);
+      expect(machine.phase, equals(ShinySlotPhase.pausedByShiny));
+      expect(machine.sessionCount, equals(1));
+    });
+
+    test('Egg Hatch: non-shiny eggHatched (with or without Oh?) auto-rearms after minResetCooldownMs without black screen', () {
+      var clock = Duration.zero;
+      final machine = ShinySlotStateMachine(
+        slotId: 1,
+        colorHex: 0xFFA855F7,
+        targetPokemonId: 4,
+        targetPokemonName: 'Glumanda',
+        settings: const ShinyAutoCounterSettings(
+          detectionMode: ShinyHuntDetectionMode.eggHatch,
+          matchFilter: ShinyMatchFilter.targetPokemonOnly,
+          minResetCooldownMs: 1200,
+        ),
+        elapsedClock: () => clock,
+      );
+
+      // Cycle 1: Oh? -> non-shiny eggHatched -> auto re-arm
+      expect(machine.onEggHatchCue(EggHatchCue.ohPrompt).shouldIncrement, isTrue);
+      clock += const Duration(seconds: 3);
+      final hatchedEvent = ScannerEvent(
+        type: ScannerEventType.eggHatched,
+        pokemonId: 4,
+        rawText: 'Glumanda ist aus dem Ei geschlüpft!',
+        matchedName: 'Glumanda',
+        timestamp: DateTime(2026, 1, 1),
+      );
+      final afterOh = machine.onScannerEvent(hatchedEvent);
+      expect(afterOh.shouldIncrement, isFalse);
+      expect(machine.phase, equals(ShinySlotPhase.rearmPending));
+
+      clock += const Duration(milliseconds: 1300);
+      // Cycle 2: direct eggHatched without Oh? -> counts +1 and auto-rearms
+      final direct = machine.onScannerEvent(hatchedEvent);
+      expect(direct.shouldIncrement, isTrue);
+      expect(direct.delta, equals(1));
+      expect(machine.phase, equals(ShinySlotPhase.rearmPending));
+
+      clock += const Duration(milliseconds: 1300);
+      expect(machine.onEggHatchCue(EggHatchCue.ohPrompt).shouldIncrement, isTrue);
+    });
+
+    test('Literal custom trigger without {pokemon} works in targetPokemonOnly and respects per-hunt scope', () {
+      final machineA = ShinySlotStateMachine(
+        slotId: 1,
+        colorHex: 0xFFA855F7,
+        targetPokemonId: 150,
+        targetPokemonName: 'Mewtu',
+        assignedHuntId: 'hunt-a',
+        settings: const ShinyAutoCounterSettings(
+          detectionMode: ShinyHuntDetectionMode.softReset,
+          matchFilter: ShinyMatchFilter.targetPokemonOnly,
+        ),
+      );
+      final machineB = ShinySlotStateMachine(
+        slotId: 2,
+        colorHex: 0xFFEC4899,
+        targetPokemonId: 4,
+        targetPokemonName: 'Glumanda',
+        assignedHuntId: 'hunt-b',
+        settings: const ShinyAutoCounterSettings(
+          detectionMode: ShinyHuntDetectionMode.softReset,
+          matchFilter: ShinyMatchFilter.targetPokemonOnly,
+        ),
+      );
+
+      final globalCustomEvent = ScannerEvent(
+        type: ScannerEventType.encounter,
+        pokemonId: null,
+        rawText: 'Wähle Starter',
+        matchedName: 'Wähle Starter',
+        matchedCustomPatternId: 'shiny_trig_1',
+        timestamp: DateTime(2026, 1, 1),
+      );
+      expect(machineA.onScannerEvent(globalCustomEvent).shouldIncrement, isTrue);
+
+      final scopedCustomEvent = ScannerEvent(
+        type: ScannerEventType.encounter,
+        pokemonId: null,
+        rawText: 'Mewtu Intro',
+        matchedName: 'Mewtu Intro',
+        matchedCustomPatternId: 'shiny_hunt:hunt-a:trig_2',
+        timestamp: DateTime(2026, 1, 1),
+      );
+      machineA.forceRearm();
+      expect(machineA.onScannerEvent(scopedCustomEvent).shouldIncrement, isTrue);
+      expect(machineB.onScannerEvent(scopedCustomEvent).shouldIncrement, isFalse);
+      expect(machineB.phase, equals(ShinySlotPhase.armed));
+    });
+
+    test('recordUndo decrements sessionCount safely and immediately re-arms slot', () {
+      final machine = ShinySlotStateMachine(
+        slotId: 1,
+        colorHex: 0xFFA855F7,
+        targetPokemonId: 150,
+        targetPokemonName: 'Mewtu',
+        settings: const ShinyAutoCounterSettings(
+          detectionMode: ShinyHuntDetectionMode.softReset,
+        ),
+      );
+      expect(machine.onScannerEvent(_encounter(pokemonId: 150, name: 'Mewtu')).shouldIncrement, isTrue);
+      expect(machine.sessionCount, equals(1));
+      expect(machine.phase, equals(ShinySlotPhase.counted));
+
+      machine.recordUndo(1);
+      expect(machine.sessionCount, equals(0));
+      expect(machine.phase, equals(ShinySlotPhase.armed));
+
+      machine.recordUndo(5);
+      expect(machine.sessionCount, equals(0));
+    });
   });
 }

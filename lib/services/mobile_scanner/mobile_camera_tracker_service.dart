@@ -4,6 +4,7 @@ import 'package:flutter/widgets.dart';
 import '../desktop_tracker/evolution_chain_helper.dart';
 import '../scanner_core/models/scanner_event.dart';
 import '../scanner_core/scanner_coordinator.dart';
+import '../shiny_auto_counter/shiny_auto_counter_service.dart';
 import 'camera_frame_pump.dart';
 import 'camera_scan_region.dart';
 import 'mobile_camera_source.dart';
@@ -276,6 +277,8 @@ class MobileCameraTrackerService {
     await _focusSub?.cancel();
     _focusSub = null;
 
+    final stoppedCoordinator = _coordinator;
+    ShinyAutoCounterService.instance.onSourceStopped(stoppedCoordinator);
     await _coordinator?.stop();
     if (_ownsCameraSourceOnStop) {
       await _cameraSource?.dispose();

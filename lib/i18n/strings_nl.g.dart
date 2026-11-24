@@ -422,7 +422,7 @@ class TranslationsNl extends Translations with BaseTranslations<AppLocale, Trans
 	@override String get cat_cap => 'Pet Pikachu';
 	@override String get cat_unown => 'Oncognitodex';
 	@override String get cat_vivillon => 'Vivillon';
-	@override String get cat_alcremie => 'Pokusan';
+	@override String get cat_alcremie => 'Beet';
 	@override String get cat_gmax => 'Gigantamax';
 	@override String get cat_regional => 'Regionale vormen';
 	@override String get cat_mega => ']Mega';
@@ -570,7 +570,7 @@ class TranslationsNl extends Translations with BaseTranslations<AppLocale, Trans
 	@override String get table_hp_8 => 'Tabel 2 (HP IV: 8)';
 	@override String get stat_hp => 'HP';
 	@override String get stat_atk => 'ANG';
-	@override String get stat_def => 'VER';
+	@override String get stat_def => 'ZIE';
 	@override String get stat_spe => 'INIT';
 	@override String get stat_spc => 'SPEZ';
 	@override String get shiny_huntable_yes => 'Regulier Huntbaar: Ja';
@@ -1950,7 +1950,7 @@ class TranslationsNl extends Translations with BaseTranslations<AppLocale, Trans
 	@override String get tutorial_scanner_mob_modes_text => 'Gebruik Auto voor het hele beeld of teken exacte rechthoeken voor Zone A (Textbox), Zone B (Focus) en Multi-Instancies.';
 	@override String get tutorial_scanner_mob_photo_title => 'Foto- & Screenshot-import';
 	@override String get tutorial_scanner_mob_photo_text => 'Alternatief kun je altijd foto\'s of screenshots uit je galerij laden en één keer laten scannen.';
-	@override String get tutorial_scanner_mob_pip_title => 'Split-Screen & Mini-PiP';
+	@override String get tutorial_scanner_mob_pip_title => 'Gesplitst scherm & Mini-PiP';
 	@override String get tutorial_scanner_mob_pip_text => 'Schakel tussen volledig scherm, gesplitste tabbladen of het beweegbare mini-venster (PiP) terwijl je door je Dexen bladert.';
 	@override String get tutorial_scanner_mob_dex_title => 'Doel-Dex, Ontwikkeling & Diagnose';
 	@override String get tutorial_scanner_mob_dex_text => 'Kies je doel-Dex, controleer ontbrekende evoluties in het focus-tabblad en bekijk Live-OCR-logs in het diagnostiek-tabblad.';
@@ -2377,6 +2377,21 @@ class TranslationsNl extends Translations with BaseTranslations<AppLocale, Trans
 	@override String get multi_hunt_edit_rules_tooltip => 'Auto-regels voor deze Hunt';
 	@override String get multi_hunt_edit_hunt_tooltip => 'Jacht bewerken';
 	@override String get shiny_auto_setup_for_hunt => 'Regels voor {name}';
+	@override String get shiny_auto_timing_section => 'Uitgebreid / Timing-fijnstelling';
+	@override String get shiny_auto_cooldown_label => 'Reset-afkoeling (ms)';
+	@override String get shiny_auto_transition_duration_label => 'Min. zwart-witbeeld-duur (ms)';
+	@override String get shiny_auto_slot_chip_tooltip => 'Tik: Pauze · Ingedrukt houden: Handmatig gereed (Herbewapenen)';
+	@override String get shiny_auto_logs_tooltip => 'Live Auto-log weergeven';
+	@override String get shiny_auto_logs_empty => 'Nog geen automatische tellingen in deze sessie.';
+	@override String get shiny_auto_logs_undone => 'Ongedaan gemaakt';
+	@override String get shiny_auto_rearm_all_btn => 'Alle slots klaar';
+	@override String get shiny_auto_reason_black_reset => 'Zwartbeeld-reset';
+	@override String get shiny_auto_reason_white_reset => 'Witbalans-reset';
+	@override String get shiny_auto_reason_egg_oh => 'Ei-uitkomen gestart (Oh?)';
+	@override String get shiny_auto_reason_shiny => 'Shiny herkend: {name}';
+	@override String get multi_hunt_phase_status => 'Fase {phase} · {status}';
+	@override String get multi_hunt_slot_number => 'Slot #{slot}';
+	@override String get scanner_event_egg_hatched_badge => 'EI-UITKOMST';
 }
 
 /// The flat map containing all translations for locale <nl>.
@@ -2770,7 +2785,7 @@ extension on TranslationsNl {
 			'cat_cap' => 'Pet Pikachu',
 			'cat_unown' => 'Oncognitodex',
 			'cat_vivillon' => 'Vivillon',
-			'cat_alcremie' => 'Pokusan',
+			'cat_alcremie' => 'Beet',
 			'cat_gmax' => 'Gigantamax',
 			'cat_regional' => 'Regionale vormen',
 			'cat_mega' => ']Mega',
@@ -2920,7 +2935,7 @@ extension on TranslationsNl {
 			'table_hp_8' => 'Tabel 2 (HP IV: 8)',
 			'stat_hp' => 'HP',
 			'stat_atk' => 'ANG',
-			'stat_def' => 'VER',
+			'stat_def' => 'ZIE',
 			'stat_spe' => 'INIT',
 			'stat_spc' => 'SPEZ',
 			'shiny_huntable_yes' => 'Regulier Huntbaar: Ja',
@@ -4304,7 +4319,7 @@ extension on TranslationsNl {
 			'tutorial_scanner_mob_modes_text' => 'Gebruik Auto voor het hele beeld of teken exacte rechthoeken voor Zone A (Textbox), Zone B (Focus) en Multi-Instancies.',
 			'tutorial_scanner_mob_photo_title' => 'Foto- & Screenshot-import',
 			'tutorial_scanner_mob_photo_text' => 'Alternatief kun je altijd foto\'s of screenshots uit je galerij laden en één keer laten scannen.',
-			'tutorial_scanner_mob_pip_title' => 'Split-Screen & Mini-PiP',
+			'tutorial_scanner_mob_pip_title' => 'Gesplitst scherm & Mini-PiP',
 			'tutorial_scanner_mob_pip_text' => 'Schakel tussen volledig scherm, gesplitste tabbladen of het beweegbare mini-venster (PiP) terwijl je door je Dexen bladert.',
 			'tutorial_scanner_mob_dex_title' => 'Doel-Dex, Ontwikkeling & Diagnose',
 			'tutorial_scanner_mob_dex_text' => 'Kies je doel-Dex, controleer ontbrekende evoluties in het focus-tabblad en bekijk Live-OCR-logs in het diagnostiek-tabblad.',
@@ -4733,6 +4748,21 @@ extension on TranslationsNl {
 			'multi_hunt_edit_rules_tooltip' => 'Auto-regels voor deze Hunt',
 			'multi_hunt_edit_hunt_tooltip' => 'Jacht bewerken',
 			'shiny_auto_setup_for_hunt' => 'Regels voor {name}',
+			'shiny_auto_timing_section' => 'Uitgebreid / Timing-fijnstelling',
+			'shiny_auto_cooldown_label' => 'Reset-afkoeling (ms)',
+			'shiny_auto_transition_duration_label' => 'Min. zwart-witbeeld-duur (ms)',
+			'shiny_auto_slot_chip_tooltip' => 'Tik: Pauze · Ingedrukt houden: Handmatig gereed (Herbewapenen)',
+			'shiny_auto_logs_tooltip' => 'Live Auto-log weergeven',
+			'shiny_auto_logs_empty' => 'Nog geen automatische tellingen in deze sessie.',
+			'shiny_auto_logs_undone' => 'Ongedaan gemaakt',
+			'shiny_auto_rearm_all_btn' => 'Alle slots klaar',
+			'shiny_auto_reason_black_reset' => 'Zwartbeeld-reset',
+			'shiny_auto_reason_white_reset' => 'Witbalans-reset',
+			'shiny_auto_reason_egg_oh' => 'Ei-uitkomen gestart (Oh?)',
+			'shiny_auto_reason_shiny' => 'Shiny herkend: {name}',
+			'multi_hunt_phase_status' => 'Fase {phase} · {status}',
+			'multi_hunt_slot_number' => 'Slot #{slot}',
+			'scanner_event_egg_hatched_badge' => 'EI-UITKOMST',
 			_ => null,
 		};
 	}

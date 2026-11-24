@@ -27,6 +27,195 @@ class ShinyAutoCounterBar extends StatelessWidget {
     };
   }
 
+  String _formatReason(String reason) {
+    if (reason == 'black_screen_reset') return t.shiny_auto_reason_black_reset;
+    if (reason == 'white_screen_reset') return t.shiny_auto_reason_white_reset;
+    if (reason == 'egg_oh_prompt') return t.shiny_auto_reason_egg_oh;
+    if (reason.startsWith('shiny:')) {
+      final name = reason.substring('shiny:'.length);
+      return t.shiny_auto_reason_shiny.replaceAll('{name}', name);
+    }
+    if (reason.startsWith('ocr:')) {
+      return 'OCR: ${reason.substring('ocr:'.length)}';
+    }
+    return reason;
+  }
+
+  String _formatTime(DateTime dt) {
+    final h = dt.hour.toString().padLeft(2, '0');
+    final m = dt.minute.toString().padLeft(2, '0');
+    final s = dt.second.toString().padLeft(2, '0');
+    return '$h:$m:$s';
+  }
+
+  void _showLogsSheet(BuildContext context) {
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      showDragHandle: true,
+      builder: (sheetCtx) {
+        final theme = Theme.of(sheetCtx);
+        return SafeArea(
+          child: SizedBox(
+            key: const Key('shiny_auto_logs_sheet'),
+            height: MediaQuery.sizeOf(sheetCtx).height * 0.6,
+            child: ValueListenableBuilder<List<AutoCountLogEntry>>(
+              valueListenable: service.recentLogsNotifier,
+              builder: (context, logs, _) {
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 4, 12, 8),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.history_rounded, size: 20),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              t.multi_hunt_logs_title.replaceAll(
+                                '{count}',
+                                logs.length.toString(),
+                              ),
+                              style: theme.textTheme.titleMedium
+                                  ?.copyWith(fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                          TextButton.icon(
+                            key: const Key('shiny_auto_rearm_all_btn'),
+                            icon: const Icon(Icons.refresh_rounded, size: 16),
+                            label: Text(
+                              t.shiny_auto_rearm_all_btn,
+                              style: const TextStyle(fontSize: 12),
+                            ),
+                            onPressed: service.rearmAllSlots,
+                          ),
+                        ],
+                      ),
+                    ),
+                    const Divider(height: 1),
+                    Expanded(
+                      child: logs.isEmpty
+                          ? Center(
+                              child: Padding(
+                                padding: const EdgeInsets.all(24),
+                                child: Text(
+                                  t.shiny_auto_logs_empty,
+                                  textAlign: TextAlign.center,
+                                  style: theme.textTheme.bodySmall,
+                                ),
+                              ),
+                            )
+                          : ListView.separated(
+                              padding: const EdgeInsets.all(12),
+                              itemCount: logs.length,
+                              separatorBuilder: (_, _) =>
+                                  const SizedBox(height: 6),
+                              itemBuilder: (context, index) {
+                                final entry = logs[index];
+                                final slotColor = Color(entry.colorHex);
+                                return Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 10,
+                                    vertical: 8,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: entry.undone
+                                        ? theme.colorScheme
+                                            .surfaceContainerHighest
+                                            .withValues(alpha: 0.25)
+                                        : (entry.isShiny
+                                            ? Colors.amber
+                                                .withValues(alpha: 0.16)
+                                            : theme.colorScheme
+                                                .surfaceContainerHighest
+                                                .withValues(alpha: 0.5)),
+                                    borderRadius: BorderRadius.circular(10),
+                                    border: Border.all(
+                                      color: entry.isShiny && !entry.undone
+                                          ? Colors.amber
+                                          : theme.colorScheme.outlineVariant,
+                                    ),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 7,
+                                          vertical: 2,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color:
+                                              slotColor.withValues(alpha: 0.16),
+                                          borderRadius:
+                                              BorderRadius.circular(8),
+                                          border: Border.all(color: slotColor),
+                                        ),
+                                        child: Text(
+                                          '#${entry.slotId}',
+                                          style: const TextStyle(
+                                            fontSize: 11,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              '+${entry.delta} · ${_formatReason(entry.reason)}',
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                              style: TextStyle(
+                                                fontSize: 12,
+                                                fontWeight: FontWeight.w600,
+                                                decoration: entry.undone
+                                                    ? TextDecoration.lineThrough
+                                                    : null,
+                                              ),
+                                            ),
+                                            Text(
+                                              entry.undone
+                                                  ? '${_formatTime(entry.timestamp)} · ${t.shiny_auto_logs_undone}'
+                                                  : _formatTime(
+                                                      entry.timestamp,
+                                                    ),
+                                              style: TextStyle(
+                                                fontSize: 10.5,
+                                                color: Colors.grey.shade500,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      if (!entry.undone && entry.delta > 0)
+                                        TextButton(
+                                          key: Key(
+                                            'shiny_auto_log_undo_$index',
+                                          ),
+                                          onPressed: () =>
+                                              service.undoEntry(entry.id),
+                                          child: Text(t.shiny_auto_undo),
+                                        ),
+                                    ],
+                                  ),
+                                );
+                              },
+                            ),
+                    ),
+                  ],
+                );
+              },
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -89,6 +278,21 @@ class ShinyAutoCounterBar extends StatelessWidget {
                                 fontWeight: FontWeight.w700,
                               ),
                             ),
+                          ),
+                          IconButton(
+                            key: const Key('shiny_auto_logs_btn'),
+                            visualDensity: VisualDensity.compact,
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(
+                              minWidth: 32,
+                              minHeight: 32,
+                            ),
+                            tooltip: t.shiny_auto_logs_tooltip,
+                            icon: const Icon(
+                              Icons.history_rounded,
+                              size: 18,
+                            ),
+                            onPressed: () => _showLogsSheet(context),
                           ),
                           IconButton(
                             key: const Key('shiny_auto_undo_btn'),
@@ -181,51 +385,54 @@ class ShinyAutoCounterBar extends StatelessWidget {
                             slot.phase == ShinySlotPhase.pausedByShiny;
                         final isPausedSlot =
                             slot.phase == ShinySlotPhase.pausedManual;
-                        return InkWell(
-                          key: Key('shiny_auto_slot_chip_${slot.slotId}'),
-                          borderRadius: BorderRadius.circular(12),
-                          onTap: () => service.togglePauseSlot(slot.slotId),
-                          onLongPress: () => service.rearmSlot(slot.slotId),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 3,
-                            ),
-                            decoration: BoxDecoration(
-                              color: isShiny
-                                  ? Colors.amber.withValues(alpha: 0.25)
-                                  : color.withValues(
-                                      alpha: isPausedSlot ? 0.08 : 0.16,
-                                    ),
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(
-                                color: isShiny ? Colors.amber : color,
-                                width: isShiny ? 1.5 : 1.0,
+                        return Tooltip(
+                          message: t.shiny_auto_slot_chip_tooltip,
+                          child: InkWell(
+                            key: Key('shiny_auto_slot_chip_${slot.slotId}'),
+                            borderRadius: BorderRadius.circular(12),
+                            onTap: () => service.togglePauseSlot(slot.slotId),
+                            onLongPress: () => service.rearmSlot(slot.slotId),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 3,
                               ),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Container(
-                                  width: 7,
-                                  height: 7,
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    color: isShiny ? Colors.amber : color,
-                                  ),
+                              decoration: BoxDecoration(
+                                color: isShiny
+                                    ? Colors.amber.withValues(alpha: 0.25)
+                                    : color.withValues(
+                                        alpha: isPausedSlot ? 0.08 : 0.16,
+                                      ),
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: isShiny ? Colors.amber : color,
+                                  width: isShiny ? 1.5 : 1.0,
                                 ),
-                                const SizedBox(width: 5),
-                                Text(
-                                  '#${slot.slotId} · ${_phaseLabel(slot.phase)}',
-                                  style: TextStyle(
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.w600,
-                                    color: isShiny
-                                        ? Colors.amber.shade700
-                                        : null,
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Container(
+                                    width: 7,
+                                    height: 7,
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: isShiny ? Colors.amber : color,
+                                    ),
                                   ),
-                                ),
-                              ],
+                                  const SizedBox(width: 5),
+                                  Text(
+                                    '#${slot.slotId} · ${_phaseLabel(slot.phase)}',
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w600,
+                                      color: isShiny
+                                          ? Colors.amber.shade700
+                                          : null,
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
                         );

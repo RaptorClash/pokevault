@@ -6,6 +6,7 @@ import 'package:universal_io/io.dart' as io;
 import '../../i18n/strings.g.dart';
 import '../scanner_core/models/scanner_event.dart';
 import '../scanner_core/scanner_coordinator.dart';
+import '../shiny_auto_counter/shiny_auto_counter_service.dart';
 import 'desktop_window_source.dart';
 import 'evolution_chain_helper.dart';
 import 'screen_region.dart';
@@ -446,6 +447,7 @@ class DesktopTrackerService {
 
     await eventSub?.cancel();
     await focusSub?.cancel();
+    ShinyAutoCounterService.instance.onSourceStopped(coordinator);
     await coordinator?.stop();
     if (shouldDisposeSource) {
       await windowSource?.dispose();
