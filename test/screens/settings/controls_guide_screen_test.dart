@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -11,14 +11,14 @@ import 'package:pokevault/screens/settings/widgets/misc_settings_cards.dart';
 void main() {
   setUp(() {
     SharedPreferences.setMockInitialValues({});
-    LocaleSettings.setLocale(AppLocale.de);
+    LocaleSettings.setLocaleSync(AppLocale.de);
   });
 
   Widget createTestWidget({
     TargetPlatform? initialPlatform,
     String language = 'de',
   }) {
-    LocaleSettings.setLocale(language == 'en' ? AppLocale.en : AppLocale.de);
+    LocaleSettings.setLocaleSync(language == 'en' ? AppLocale.en : AppLocale.de);
     return MaterialApp(
       locale: language == 'de' ? const Locale('de') : const Locale('en'),
       home: ControlsGuideScreen(initialPlatform: initialPlatform),

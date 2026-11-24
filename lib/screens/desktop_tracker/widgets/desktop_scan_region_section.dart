@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:typed_data';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../../../services/desktop_tracker/desktop_window_source.dart';
 import '../../../services/desktop_tracker/screen_region.dart';

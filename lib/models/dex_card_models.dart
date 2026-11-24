@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// The 4 design styles available for the Living Dex Completion Card.
 enum DexCardStyle {

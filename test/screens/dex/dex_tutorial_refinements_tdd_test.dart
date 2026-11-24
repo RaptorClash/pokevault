@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'dart:io';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:provider/provider.dart';
@@ -146,7 +146,7 @@ void main() {
     SharedPreferences.setMockInitialValues({'app_db_version': DatabaseService.currentAppDbVersion});
     await DatabaseService.instance.appDatabase;
     await DatabaseService.instance.userDatabase;
-    LocaleSettings.setLocale(AppLocale.de);
+    LocaleSettings.setLocaleSync(AppLocale.de);
     registerFallbackValue(UserDex.fallback('fallback_dex'));
   });
 
@@ -157,7 +157,7 @@ void main() {
   });
 
   setUp(() async {
-    LocaleSettings.setLocale(AppLocale.de);
+    LocaleSettings.setLocaleSync(AppLocale.de);
     PackageInfo.setMockInitialValues(
       appName: 'Pokevault',
       packageName: 'com.example.pokevault',
@@ -223,7 +223,7 @@ void main() {
   group('Issue 1: Search & Target Pokémon in Dex', () {
     test('Translations refer to Gengar instead of Pikachu in search & ignore steps', () {
       // German
-      LocaleSettings.setLocale(AppLocale.de);
+      LocaleSettings.setLocaleSync(AppLocale.de);
       final deSearch = t.tutorial_dex_search_text;
       expect(deSearch, contains('Gengar'));
       expect(deSearch, isNot(contains('Pikachu')));
@@ -241,7 +241,7 @@ void main() {
       expect(deRestore, isNot(contains('Pikachu')));
 
       // English
-      LocaleSettings.setLocale(AppLocale.en);
+      LocaleSettings.setLocaleSync(AppLocale.en);
       final enSearch = t.tutorial_dex_search_text;
       expect(enSearch, contains('Gengar'));
       expect(enSearch, isNot(contains('Pikachu')));

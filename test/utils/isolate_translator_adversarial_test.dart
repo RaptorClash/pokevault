@@ -236,7 +236,7 @@ void main() {
     test('Rapid consecutive LocaleSettings.setLocale switching preserves consistency between t and currentLocale', () {
       for (int i = 0; i < 200; i++) {
         final targetLocale = i.isEven ? AppLocale.de : AppLocale.en;
-        LocaleSettings.setLocale(targetLocale);
+        LocaleSettings.setLocaleSync(targetLocale);
 
         expect(LocaleSettings.currentLocale, equals(targetLocale));
         if (targetLocale == AppLocale.de) {
@@ -275,7 +275,7 @@ void main() {
         final locale = i.isEven ? AppLocale.de : AppLocale.en;
         futures.add(
           Future.delayed(Duration(milliseconds: i % 5), () {
-            LocaleSettings.setLocale(locale);
+            LocaleSettings.setLocaleSync(locale);
           }),
         );
       }

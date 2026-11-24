@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import '../../../i18n/strings.g.dart';
 import '../../../services/mobile_scanner/camera_scan_region.dart';
 import '../../../services/mobile_scanner/mobile_camera_tracker_service.dart';

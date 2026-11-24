@@ -1,12 +1,11 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_markdown/flutter_markdown.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:provider/provider.dart';
-import 'package:url_launcher/url_launcher.dart';
 import '../../i18n/strings.g.dart';
 import '../../providers/dex_provider.dart';
 import '../../services/dex_storage_service.dart';
 import '../../utils/notification_helper.dart';
 import '../../utils/update_helper.dart';
+import 'release_notes_markdown.dart';
 
 class UpdateDialog extends StatefulWidget {
   final UpdateInfo updateInfo;
@@ -26,7 +25,6 @@ class _UpdateDialogState extends State<UpdateDialog> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-
     return PopScope(
       canPop: !_isDownloading && !_isBackingUp,
       child: AlertDialog(
@@ -46,44 +44,7 @@ class _UpdateDialogState extends State<UpdateDialog> {
                   ),
                 ),
                 const SizedBox(height: 12),
-                MarkdownBody(
-                  data: UpdateHelper.filterReleaseNotes(
-                    widget.updateInfo.releaseNotes,
-                    LocaleSettings.currentLocale.languageCode,
-                  ),
-                  selectable: true,
-                  softLineBreak: true,
-                  styleSheet: MarkdownStyleSheet.fromTheme(
-                    theme,
-                  ).copyWith(
-                    p: theme.textTheme.bodyMedium?.copyWith(fontSize: 14),
-                    h1: theme.textTheme.titleLarge?.copyWith(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                    h2: theme.textTheme.titleMedium?.copyWith(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                    h3: theme.textTheme.titleSmall?.copyWith(
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                    ),
-                    listBullet: theme.textTheme.bodyMedium?.copyWith(fontSize: 14),
-                  ),
-                  onTapLink: (text, href, title) async {
-                    if (href != null) {
-                      final uri = Uri.tryParse(href);
-                      if (uri != null) {
-                        try {
-                          await launchUrl(uri, mode: LaunchMode.externalApplication);
-                        } catch (e) {
-                          debugPrint('Could not launch URL: $e');
-                        }
-                      }
-                    }
-                  },
-                ),
+                ReleaseNotesMarkdown(releaseNotes: widget.updateInfo.releaseNotes),
                 const SizedBox(height: 16),
                 Container(
                   padding: const EdgeInsets.all(12),

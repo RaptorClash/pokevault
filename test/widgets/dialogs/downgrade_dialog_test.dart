@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_markdown/flutter_markdown.dart';
+import 'package:material_ui/material_ui.dart';
+import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:provider/provider.dart';
@@ -23,7 +23,7 @@ void main() {
     testWidgets(
       'Durchläuft Info -> Backup -> Warnung beim Tippen der Buttons',
       (WidgetTester tester) async {
-        LocaleSettings.setLocale(AppLocale.de);
+        LocaleSettings.setLocaleSync(AppLocale.de);
 
         await tester.pumpWidget(
           MaterialApp(
@@ -52,7 +52,7 @@ void main() {
     testWidgets(
       'Zurück-Knopf im Backup-Schritt navigiert zurück zum Info-Schritt',
       (WidgetTester tester) async {
-        LocaleSettings.setLocale(AppLocale.de);
+        LocaleSettings.setLocaleSync(AppLocale.de);
 
         await tester.pumpWidget(
           MaterialApp(
@@ -81,7 +81,7 @@ void main() {
     testWidgets(
       'Zurück-Knopf im FinalWarning-Schritt navigiert zurück zum Backup-Schritt',
       (WidgetTester tester) async {
-        LocaleSettings.setLocale(AppLocale.de);
+        LocaleSettings.setLocaleSync(AppLocale.de);
 
         await tester.pumpWidget(
           MaterialApp(
@@ -112,7 +112,7 @@ void main() {
     testWidgets(
       'Release Notes im DowngradeDialog werden nach Sprache gefiltert',
       (WidgetTester tester) async {
-        LocaleSettings.setLocale(AppLocale.de);
+        LocaleSettings.setLocaleSync(AppLocale.de);
 
         final multiLangRelease = UpdateInfo(
           version: '1.0.0',
@@ -142,7 +142,7 @@ Deutsche Notizen für Downgrade.
     testWidgets(
       'Backup-Button im Backup-Schritt führt Backup aus und wechselt zu Letzte Warnung',
       (WidgetTester tester) async {
-        LocaleSettings.setLocale(AppLocale.de);
+        LocaleSettings.setLocaleSync(AppLocale.de);
         final mockDexProvider = MockDexProvider();
         when(() => mockDexProvider.userDexes).thenReturn([]);
 

@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// A performance-optimized [Card] containing an [ExpansionTile] that defers building
 /// its inner content until explicitly expanded by the user.

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:pokevault/models/pokemon.dart';
@@ -31,7 +31,7 @@ void main() {
       testWidgets(
         'Rendert korrekte Strings und reagiert auf Klick in Sprache: $lang',
         (WidgetTester tester) async {
-          LocaleSettings.setLocale(lang == 'en' ? AppLocale.en : AppLocale.de);
+          LocaleSettings.setLocaleSync(lang == 'en' ? AppLocale.en : AppLocale.de);
 
           final dummyPokemon = Pokemon(
             id: 1,

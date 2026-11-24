@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:pokevault/screens/pokemon_info/widgets/encounters_widget.dart';
@@ -65,7 +65,7 @@ void main() {
   });
 
   setUp(() {
-    LocaleSettings.setLocale(AppLocale.de);
+    LocaleSettings.setLocaleSync(AppLocale.de);
   });
 
   final testPokemon = createTestPokemon(id: 1, nameDe: 'Bisasam', nameEn: 'Bulbasaur');

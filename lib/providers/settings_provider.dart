@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../i18n/strings.g.dart';
 import '../i18n/language_registry.g.dart';
@@ -100,9 +100,9 @@ class SettingsProvider with ChangeNotifier {
     pokemonLanguage = prefs.getString('pokemonLanguage') ?? 'auto';
 
     try {
-      LocaleSettings.setLocaleRaw(currentLanguage);
+      LocaleSettings.setLocaleRawSync(currentLanguage);
     } catch (_) {
-      LocaleSettings.setLocale(
+      LocaleSettings.setLocaleSync(
         currentLanguage == 'de' ? AppLocale.de : AppLocale.en,
       );
     }
@@ -142,9 +142,9 @@ class SettingsProvider with ChangeNotifier {
   void setLanguage(String lang) {
     currentLanguage = lang;
     try {
-      LocaleSettings.setLocaleRaw(lang);
+      LocaleSettings.setLocaleRawSync(lang);
     } catch (_) {
-      LocaleSettings.setLocale(lang == 'de' ? AppLocale.de : AppLocale.en);
+      LocaleSettings.setLocaleSync(lang == 'de' ? AppLocale.de : AppLocale.en);
     }
     notifyListeners();
     SharedPreferences.getInstance().then((prefs) {

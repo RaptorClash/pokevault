@@ -1,12 +1,11 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_markdown/flutter_markdown.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:provider/provider.dart';
-import 'package:url_launcher/url_launcher.dart';
 import '../../i18n/strings.g.dart';
 import '../../utils/notification_helper.dart';
 import '../../utils/update_helper.dart';
 import '../../services/dex_storage_service.dart';
 import '../../providers/dex_provider.dart';
+import 'release_notes_markdown.dart';
 
 enum DowngradeStep { info, backup, finalWarning, downloading, success }
 
@@ -101,45 +100,7 @@ class _DowngradeDialogState extends State<DowngradeDialog> {
             style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
           ),
           const SizedBox(height: 12),
-          MarkdownBody(
-            data: UpdateHelper.filterReleaseNotes(
-              widget.releaseInfo.releaseNotes,
-              LocaleSettings.currentLocale.languageCode,
-            ),
-            selectable: true,
-            softLineBreak: true,
-            styleSheet: MarkdownStyleSheet.fromTheme(
-              Theme.of(context),
-            ).copyWith(
-              p: Theme.of(context).textTheme.bodyMedium?.copyWith(fontSize: 14),
-              h1: Theme.of(context).textTheme.titleLarge?.copyWith(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
-              h2: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-              ),
-              h3: Theme.of(context).textTheme.titleSmall?.copyWith(
-                fontSize: 14,
-                fontWeight: FontWeight.bold,
-              ),
-              listBullet:
-                  Theme.of(context).textTheme.bodyMedium?.copyWith(fontSize: 14),
-            ),
-            onTapLink: (text, href, title) async {
-              if (href != null) {
-                final uri = Uri.tryParse(href);
-                if (uri != null) {
-                  try {
-                    await launchUrl(uri, mode: LaunchMode.externalApplication);
-                  } catch (e) {
-                    debugPrint('Could not launch URL: $e');
-                  }
-                }
-              }
-            },
-          ),
+          ReleaseNotesMarkdown(releaseNotes: widget.releaseInfo.releaseNotes),
           const SizedBox(height: 16),
           Container(
             padding: const EdgeInsets.all(12),

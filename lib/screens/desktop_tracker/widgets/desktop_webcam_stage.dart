@@ -1,7 +1,7 @@
 import 'dart:math' as math;
 import 'package:camera/camera.dart';
 import 'package:flutter/foundation.dart' show ValueListenable;
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import '../../../services/camera_ocr/web_ocr_status.dart';
 import '../../../services/mobile_scanner/camera_scan_region.dart';
 import '../../../services/scanner_core/models/scanner_settings.dart';

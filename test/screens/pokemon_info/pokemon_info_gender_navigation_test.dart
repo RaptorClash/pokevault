@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:path_provider_platform_interface/path_provider_platform_interface.dart';
@@ -179,7 +179,7 @@ void main() {
     databaseFactory = databaseFactoryFfi;
     PathProviderPlatform.instance = MockPathProviderPlatform();
     SharedPreferences.setMockInitialValues({'app_db_version': DatabaseService.currentAppDbVersion});
-    LocaleSettings.setLocale(AppLocale.de);
+    LocaleSettings.setLocaleSync(AppLocale.de);
     final dbFile = File('assets/db/pokedex.sqlite');
     if (dbFile.existsSync()) {
       testDb = await openDatabase(dbFile.absolute.path, readOnly: true);

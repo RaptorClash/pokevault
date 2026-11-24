@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:io';
-import 'package:flutter/material.dart';
-import 'package:flutter_markdown/flutter_markdown.dart';
+import 'package:material_ui/material_ui.dart';
+import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:provider/provider.dart';
@@ -53,7 +53,7 @@ void main() {
 
     setUp(() {
       HttpOverrides.global = _MockHttpOverrides();
-      LocaleSettings.setLocale(AppLocale.de);
+      LocaleSettings.setLocaleSync(AppLocale.de);
     });
 
     tearDown(() {
@@ -143,7 +143,7 @@ void main() {
     testWidgets('Rendert MarkdownBody und filtert Notizen nach aktiver Sprache (de)', (
       WidgetTester tester,
     ) async {
-      LocaleSettings.setLocale(AppLocale.de);
+      LocaleSettings.setLocaleSync(AppLocale.de);
 
       final multiLangUpdate = UpdateInfo(
         version: '2.0.0',
@@ -177,7 +177,7 @@ void main() {
     testWidgets('Rendert MarkdownBody und filtert Notizen nach aktiver Sprache (en)', (
       WidgetTester tester,
     ) async {
-      LocaleSettings.setLocale(AppLocale.en);
+      LocaleSettings.setLocaleSync(AppLocale.en);
 
       final multiLangUpdate = UpdateInfo(
         version: '2.0.0',

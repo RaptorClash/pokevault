@@ -1,11 +1,11 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pokevault/i18n/strings.g.dart';
 import 'package:pokevault/screens/dex/widgets/dex_app_bar_actions.dart';
 
 void main() {
   setUpAll(() {
-    LocaleSettings.setLocale(AppLocale.de);
+    LocaleSettings.setLocaleSync(AppLocale.de);
   });
 
   Widget buildTestWidget({
@@ -155,8 +155,8 @@ void main() {
     });
 
     testWidgets('Localizes Mobile Scanner tooltip according to active AppLocale', (tester) async {
-      LocaleSettings.setLocale(AppLocale.en);
-      addTearDown(() => LocaleSettings.setLocale(AppLocale.de));
+      LocaleSettings.setLocaleSync(AppLocale.en);
+      addTearDown(() => LocaleSettings.setLocaleSync(AppLocale.de));
 
       bool mobileClicked = false;
       await tester.pumpWidget(MaterialApp(

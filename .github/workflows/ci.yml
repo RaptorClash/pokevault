@@ -2,7 +2,7 @@ name: CI Quality Gate
 
 on:
   push:
-    branches: [ main, master, 'release/**', 'feature/**', 'hotfix/**' ]
+    branches: [ main, master, 'release/**', 'feature/**', 'refactor/**', 'hotfix/**' ]
   pull_request:
     branches: [ main, master, 'release/**' ]
 

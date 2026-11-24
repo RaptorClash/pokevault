@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:provider/provider.dart';
@@ -24,7 +24,7 @@ void main() {
     late UserDex testDex;
 
     setUp(() async {
-      LocaleSettings.setLocale(AppLocale.de);
+      LocaleSettings.setLocaleSync(AppLocale.de);
       SharedPreferences.setMockInitialValues({});
       prefs = await SharedPreferences.getInstance();
       tutorialProvider = TutorialProvider(prefs);

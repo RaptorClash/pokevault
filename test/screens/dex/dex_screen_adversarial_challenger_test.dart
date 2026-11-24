@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pokevault/i18n/strings.g.dart';
 import 'package:pokevault/models/dex_view_models.dart';
@@ -451,7 +451,7 @@ void main() {
     // Test 4: Multiple sequential batch deletions in edit mode without exiting
     // -------------------------------------------------------------------------
     testWidgets('ADV-4: Multiple sequential batch deletions keep isEditMode true throughout and rollback preserves all', (tester) async {
-      LocaleSettings.setLocale(AppLocale.de);
+      LocaleSettings.setLocaleSync(AppLocale.de);
       final box1 = createTestCustomBox(title: 'Box 1', pokemonIds: ['A1', 'A2', 'A3', 'A4']);
       final box2 = createTestCustomBox(title: 'Box 2', pokemonIds: ['B1', 'B2', 'B3', 'B4']);
       final dex = createTestUserDex(customBoxes: [box1, box2]);

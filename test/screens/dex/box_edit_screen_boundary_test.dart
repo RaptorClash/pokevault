@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
@@ -27,9 +27,9 @@ void main() {
   // =========================================================================
   group('Target 1: Language Hot-Switching & Localization Boundary Stress', () {
     test('1.1: Exact English dictionary definitions and non-null UI texts', () {
-      LocaleSettings.setLocale(AppLocale.en);
+      LocaleSettings.setLocaleSync(AppLocale.en);
 
-      final enDict = AppLocale.en.build();
+      final enDict = AppLocale.en.buildSync();
 
       const expectedKeys = [
         'box_edit_settings_header',
@@ -52,9 +52,9 @@ void main() {
     });
 
     test('1.2: Exact German dictionary definitions and non-null UI texts', () {
-      LocaleSettings.setLocale(AppLocale.de);
+      LocaleSettings.setLocaleSync(AppLocale.de);
 
-      final deDict = AppLocale.de.build();
+      final deDict = AppLocale.de.buildSync();
 
       const expectedKeys = [
         'box_edit_settings_header',
@@ -78,10 +78,10 @@ void main() {
 
     test('1.3: Fallback mechanism resolves to English for unknown locales (es, fr, it, ja, unknown)', () {
       const unknownLocales = ['es', 'fr', 'it', 'ja', 'unknown', ''];
-      final enDict = AppLocale.en.build();
+      final enDict = AppLocale.en.buildSync();
 
       for (final locale in unknownLocales) {
-        LocaleSettings.setLocale(locale == 'de' ? AppLocale.de : AppLocale.en);
+        LocaleSettings.setLocaleSync(locale == 'de' ? AppLocale.de : AppLocale.en);
 
         expect(
           t.box_edit_settings_header,

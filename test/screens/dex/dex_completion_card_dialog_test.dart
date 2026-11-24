@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 import 'package:pokevault/models/dex_card_models.dart';
@@ -288,7 +288,10 @@ void main() {
       expect(tester.takeException(), isNull);
 
       // Tap 9:16 Story
-      await tester.tap(find.text('9:16 Story'));
+      final storyBtn = find.text('9:16 Story');
+      await tester.ensureVisible(storyBtn);
+      await tester.pumpAndSettle();
+      await tester.tap(storyBtn);
       await tester.pumpAndSettle();
       expect(tester.takeException(), isNull);
     });

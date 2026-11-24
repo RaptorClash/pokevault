@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'dart:io';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:provider/provider.dart';
@@ -99,7 +99,7 @@ void main() {
 
   setUp(() {
     SharedPreferences.setMockInitialValues({});
-    LocaleSettings.setLocale(AppLocale.de);
+    LocaleSettings.setLocaleSync(AppLocale.de);
     mockDexProvider = MockDexProvider();
     mockTutorialProvider = MockTutorialProvider();
   });
@@ -188,7 +188,7 @@ void main() {
     });
 
     test('Translation keys for glitch tutorial step exist in German and English', () {
-      LocaleSettings.setLocale(AppLocale.de);
+      LocaleSettings.setLocaleSync(AppLocale.de);
       final titleDe = t.tutorial_create_step7_glitch_title;
       final textDe = t.tutorial_create_step7_glitch_text;
 
@@ -200,7 +200,7 @@ void main() {
       expect(textDe, isNot(equals('tutorial_create_step7_glitch_text')));
       expect(textDe.toLowerCase(), contains('glitch'));
 
-      LocaleSettings.setLocale(AppLocale.en);
+      LocaleSettings.setLocaleSync(AppLocale.en);
       final titleEn = t.tutorial_create_step7_glitch_title;
       final textEn = t.tutorial_create_step7_glitch_text;
 

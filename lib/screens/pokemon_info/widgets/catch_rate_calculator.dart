@@ -1,5 +1,5 @@
 import 'dart:math';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import '../../../i18n/strings.g.dart';
 import '../../../models/pokemon.dart';
 import '../../../utils/notification_helper.dart';

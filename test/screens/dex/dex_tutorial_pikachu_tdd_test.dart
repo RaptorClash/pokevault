@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'dart:io';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:provider/provider.dart';
@@ -118,12 +118,12 @@ void main() {
     databaseFactory = databaseFactoryFfi;
     PathProviderPlatform.instance = MockPathProviderPlatform();
     SharedPreferences.setMockInitialValues({'app_db_version': DatabaseService.currentAppDbVersion});
-    LocaleSettings.setLocale(AppLocale.de);
+    LocaleSettings.setLocaleSync(AppLocale.de);
     registerFallbackValue(UserDex.fallback('fallback_dex'));
   });
 
   setUp(() async {
-    LocaleSettings.setLocale(AppLocale.de);
+    LocaleSettings.setLocaleSync(AppLocale.de);
     SharedPreferences.setMockInitialValues({'app_db_version': DatabaseService.currentAppDbVersion});
     prefs = await SharedPreferences.getInstance();
     tutorialProvider = TutorialProvider(prefs);
@@ -138,7 +138,7 @@ void main() {
 
   test('Translations exist for tutorial_info_language_title and tutorial_info_language_text in German and English', () {
     // German
-    LocaleSettings.setLocale(AppLocale.de);
+    LocaleSettings.setLocaleSync(AppLocale.de);
     final deTitle = t.tutorial_info_language_title;
     final deText = t.tutorial_info_language_text;
     expect(deTitle, isNot(equals('tutorial_info_language_title')));
@@ -147,7 +147,7 @@ void main() {
     expect(deText.isNotEmpty, isTrue);
 
     // English
-    LocaleSettings.setLocale(AppLocale.en);
+    LocaleSettings.setLocaleSync(AppLocale.en);
     final enTitle = t.tutorial_info_language_title;
     final enText = t.tutorial_info_language_text;
     expect(enTitle, isNot(equals('tutorial_info_language_title')));

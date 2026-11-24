@@ -1,11 +1,11 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pokevault/i18n/strings.g.dart';
 import 'package:pokevault/screens/shiny_hunt/widgets/hunt_counter_controls.dart';
 
 void main() {
   setUpAll(() {
-    LocaleSettings.setLocale(AppLocale.de);
+    LocaleSettings.setLocaleSync(AppLocale.de);
   });
 
   Widget buildTestWidget({

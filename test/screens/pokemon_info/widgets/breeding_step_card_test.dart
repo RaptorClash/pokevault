@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:provider/provider.dart';
@@ -74,7 +74,7 @@ void main() {
     testWidgets('Zeigt Schritt-Nummer und Rendert Eltern-Icons', (
       WidgetTester tester,
     ) async {
-      LocaleSettings.setLocale(AppLocale.de);
+      LocaleSettings.setLocaleSync(AppLocale.de);
       await tester.pumpWidget(buildCard(p1Shiny: true, cCarrier: false));
 
       expect(find.text('Schritt 1'), findsOneWidget);

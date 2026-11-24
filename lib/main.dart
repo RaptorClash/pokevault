@@ -1,7 +1,7 @@
 // coverage:ignore-file
 import 'dart:ui';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:provider/provider.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:sqflite_common_ffi_web/sqflite_ffi_web.dart';
@@ -18,7 +18,6 @@ import 'utils/notification_helper.dart';
 import 'utils/tracker_platform_helper.dart';
 import 'i18n/strings.g.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
 
 void main() async {
   FlutterError.onError = (FlutterErrorDetails details) {
@@ -37,7 +36,7 @@ void main() async {
 
   try {
     WidgetsFlutterBinding.ensureInitialized();
-    LocaleSettings.useDeviceLocale();
+    LocaleSettings.useDeviceLocaleSync();
 
     final prefs = await SharedPreferences.getInstance();
 

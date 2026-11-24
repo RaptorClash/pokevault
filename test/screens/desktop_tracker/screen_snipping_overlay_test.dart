@@ -1,5 +1,5 @@
 import 'dart:typed_data';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pokevault/screens/desktop_tracker/widgets/screen_snipping_overlay.dart';
 import 'package:pokevault/services/desktop_tracker/screen_region.dart';

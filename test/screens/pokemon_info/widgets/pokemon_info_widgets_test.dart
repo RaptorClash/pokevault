@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:provider/provider.dart';
@@ -58,7 +58,7 @@ void main() {
       when(() => mockProvider.allPokemon).thenReturn([dummyPokemon]);
       when(() => mockSettingsProvider.currentLanguage).thenReturn('de');
       when(() => mockProvider.ballUrls).thenReturn({'poke': 'https://url'});
-      LocaleSettings.setLocale(AppLocale.de);
+      LocaleSettings.setLocaleSync(AppLocale.de);
     });
 
     testWidgets(

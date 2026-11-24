@@ -16,7 +16,7 @@ analyzer:
     - windows/**
     - macos/**
     - linux/**
-    - lib/i18n/strings.g.dart
+    - lib/i18n/strings*.g.dart
 include: package:flutter_lints/flutter.yaml
 
 linter:

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:pokevault/models/user_dex.dart';
@@ -13,7 +13,7 @@ void main() {
   late MockDexProvider mockDexProvider;
 
   setUp(() {
-    LocaleSettings.setLocale(AppLocale.de);
+    LocaleSettings.setLocaleSync(AppLocale.de);
     mockDexProvider = MockDexProvider();
   });
 
