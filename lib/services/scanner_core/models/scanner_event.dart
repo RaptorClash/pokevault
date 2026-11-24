@@ -7,6 +7,9 @@ enum ScannerEventType {
   evolved,
   shinyDetected,
   alphaDetected,
+  eggHatched,
+  softReset,
+  customReset,
   unknown,
 }
 

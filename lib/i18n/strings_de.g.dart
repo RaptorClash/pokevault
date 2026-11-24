@@ -6881,6 +6881,159 @@ class Translations with BaseTranslations<AppLocale, Translations> {
 
 	/// de: 'AUTO-MODUS · {preset}'
 	String get scanner_mob_auto_mode => 'AUTO-MODUS · {preset}';
+
+	/// de: 'Auto-Scanner konfigurieren'
+	String get shiny_auto_btn_tooltip => 'Auto-Scanner konfigurieren';
+
+	/// de: 'Auto-Counter aktiv'
+	String get shiny_auto_bar_active => 'Auto-Counter aktiv';
+
+	/// de: 'Auto-Counter pausiert'
+	String get shiny_auto_bar_paused => 'Auto-Counter pausiert';
+
+	/// de: 'Undo'
+	String get shiny_auto_undo => 'Undo';
+
+	/// de: 'Auto-Counter Setup'
+	String get shiny_auto_setup_title => 'Auto-Counter Setup';
+
+	/// de: 'Scan-Quelle'
+	String get shiny_auto_source_section => 'Scan-Quelle';
+
+	/// de: 'Scanner-Quelle aktiv'
+	String get shiny_auto_source_connected => 'Scanner-Quelle aktiv';
+
+	/// de: 'Noch keine aktive Scan-Quelle verbunden.'
+	String get shiny_auto_source_none => 'Noch keine aktive Scan-Quelle verbunden.';
+
+	/// de: 'Fenster / Bildschirm / Webcam einrichten'
+	String get shiny_auto_open_desktop_scanner => 'Fenster / Bildschirm / Webcam einrichten';
+
+	/// de: 'Kamera / PiP / Multi-Zonen einrichten'
+	String get shiny_auto_open_mobile_scanner => 'Kamera / PiP / Multi-Zonen einrichten';
+
+	/// de: 'Mit aktiver Quelle starten'
+	String get shiny_auto_connect_active_source => 'Mit aktiver Quelle starten';
+
+	/// de: 'Erkennungsmethode & Reset-Logik'
+	String get shiny_auto_mode_section => 'Erkennungsmethode & Reset-Logik';
+
+	/// de: 'Wild Encounter'
+	String get shiny_auto_mode_wild => 'Wild Encounter';
+
+	/// de: 'Soft Reset'
+	String get shiny_auto_mode_soft_reset => 'Soft Reset';
+
+	/// de: 'Ei-Schlupf (Masuda)'
+	String get shiny_auto_mode_egg => 'Ei-Schlupf (Masuda)';
+
+	/// de: 'Overworld / Ladebildschirm'
+	String get shiny_auto_mode_transition => 'Overworld / Ladebildschirm';
+
+	/// de: 'Welche Pokémon zählen?'
+	String get shiny_auto_filter_section => 'Welche Pokémon zählen?';
+
+	/// de: 'Alle Pokémon'
+	String get shiny_auto_filter_all => 'Alle Pokémon';
+
+	/// de: 'Nur Ziel-Pokémon'
+	String get shiny_auto_filter_target => 'Nur Ziel-Pokémon';
+
+	/// de: 'Doppel-/Horden-Anzahl (+N) übernehmen'
+	String get shiny_auto_horde_toggle => 'Doppel-/Horden-Anzahl (+N) übernehmen';
+
+	/// de: 'Schwarzbild-Übergang als Reset werten'
+	String get shiny_auto_black_reset_toggle => 'Schwarzbild-Übergang als Reset werten';
+
+	/// de: 'Weißbild-Übergang als Reset werten'
+	String get shiny_auto_white_reset_toggle => 'Weißbild-Übergang als Reset werten';
+
+	/// de: 'Eigene Trigger-Muster'
+	String get shiny_auto_custom_triggers => 'Eigene Trigger-Muster';
+
+	/// de: 'Eigene Reset-Muster'
+	String get shiny_auto_custom_resets => 'Eigene Reset-Muster';
+
+	/// de: 'z. B. {pokemon} erscheint'
+	String get shiny_auto_custom_trigger_hint => 'z. B. {pokemon} erscheint';
+
+	/// de: 'z. B. Weiter oder Press Start'
+	String get shiny_auto_custom_reset_hint => 'z. B. Weiter oder Press Start';
+
+	/// de: 'Hinzufügen'
+	String get shiny_auto_add_btn => 'Hinzufügen';
+
+	/// de: 'Safety & Benachrichtigungen'
+	String get shiny_auto_safety_section => 'Safety & Benachrichtigungen';
+
+	/// de: 'Ton bei Auto-Zählung'
+	String get shiny_auto_sound_count => 'Ton bei Auto-Zählung';
+
+	/// de: 'Vibration bei Auto-Zählung'
+	String get shiny_auto_haptic_count => 'Vibration bei Auto-Zählung';
+
+	/// de: 'Alarm-Ton bei Shiny-Signal'
+	String get shiny_auto_sound_shiny => 'Alarm-Ton bei Shiny-Signal';
+
+	/// de: 'Vibration bei Shiny-Signal'
+	String get shiny_auto_haptic_shiny => 'Vibration bei Shiny-Signal';
+
+	/// de: 'Slot bei Shiny automatisch pausieren'
+	String get shiny_auto_pause_on_shiny => 'Slot bei Shiny automatisch pausieren';
+
+	/// de: 'Auto-Counter starten'
+	String get shiny_auto_start_btn => 'Auto-Counter starten';
+
+	/// de: 'Einstellungen übernehmen'
+	String get shiny_auto_save_btn => 'Einstellungen übernehmen';
+
+	/// de: 'SHINY-SIGNAL auf Slot #{slot}!'
+	String get shiny_auto_shiny_alert_title => 'SHINY-SIGNAL auf Slot #{slot}!';
+
+	/// de: 'Slot fortsetzen'
+	String get shiny_auto_shiny_alert_resume => 'Slot fortsetzen';
+
+	/// de: 'Bereit'
+	String get shiny_auto_slot_armed => 'Bereit';
+
+	/// de: 'Gezählt'
+	String get shiny_auto_slot_counted => 'Gezählt';
+
+	/// de: 'Reset...'
+	String get shiny_auto_slot_rearm => 'Reset...';
+
+	/// de: 'Shiny!'
+	String get shiny_auto_slot_shiny => 'Shiny!';
+
+	/// de: 'Pausiert'
+	String get shiny_auto_slot_paused => 'Pausiert';
+
+	/// de: 'Auto-Counter stoppen'
+	String get shiny_auto_stop_tooltip => 'Auto-Counter stoppen';
+
+	/// de: 'Multi-Hunt Dashboard'
+	String get multi_hunt_dashboard_title => 'Multi-Hunt Dashboard';
+
+	/// de: 'Multi-Hunt Dashboard öffnen'
+	String get multi_hunt_dashboard_tooltip => 'Multi-Hunt Dashboard öffnen';
+
+	/// de: 'Keine aktiven oder pausierten Hunts'
+	String get multi_hunt_empty_title => 'Keine aktiven oder pausierten Hunts';
+
+	/// de: 'Erstelle mindestens einen Shiny Hunt im Hub, um mehrere Spiele gleichzeitig zu tracken.'
+	String get multi_hunt_empty_desc => 'Erstelle mindestens einen Shiny Hunt im Hub, um mehrere Spiele gleichzeitig zu tracken.';
+
+	/// de: 'Scan-Slots'
+	String get multi_hunt_slot_assign_label => 'Scan-Slots';
+
+	/// de: 'Kein Slot zugewiesen'
+	String get multi_hunt_assign_slot_none => 'Kein Slot zugewiesen';
+
+	/// de: 'Einzelansicht'
+	String get multi_hunt_open_counter => 'Einzelansicht';
+
+	/// de: 'Live Auto-Log ({count})'
+	String get multi_hunt_logs_title => 'Live Auto-Log ({count})';
 }
 
 /// The flat map containing all translations for locale <de>.
@@ -9179,6 +9332,57 @@ extension on Translations {
 			'scanner_mob_pip_enlarge' => 'Kamera vergrößern',
 			'scanner_mob_pip_scanning' => 'Scanne...',
 			'scanner_mob_auto_mode' => 'AUTO-MODUS · {preset}',
+			'shiny_auto_btn_tooltip' => 'Auto-Scanner konfigurieren',
+			'shiny_auto_bar_active' => 'Auto-Counter aktiv',
+			'shiny_auto_bar_paused' => 'Auto-Counter pausiert',
+			'shiny_auto_undo' => 'Undo',
+			'shiny_auto_setup_title' => 'Auto-Counter Setup',
+			'shiny_auto_source_section' => 'Scan-Quelle',
+			'shiny_auto_source_connected' => 'Scanner-Quelle aktiv',
+			'shiny_auto_source_none' => 'Noch keine aktive Scan-Quelle verbunden.',
+			'shiny_auto_open_desktop_scanner' => 'Fenster / Bildschirm / Webcam einrichten',
+			'shiny_auto_open_mobile_scanner' => 'Kamera / PiP / Multi-Zonen einrichten',
+			'shiny_auto_connect_active_source' => 'Mit aktiver Quelle starten',
+			'shiny_auto_mode_section' => 'Erkennungsmethode & Reset-Logik',
+			'shiny_auto_mode_wild' => 'Wild Encounter',
+			'shiny_auto_mode_soft_reset' => 'Soft Reset',
+			'shiny_auto_mode_egg' => 'Ei-Schlupf (Masuda)',
+			'shiny_auto_mode_transition' => 'Overworld / Ladebildschirm',
+			'shiny_auto_filter_section' => 'Welche Pokémon zählen?',
+			'shiny_auto_filter_all' => 'Alle Pokémon',
+			'shiny_auto_filter_target' => 'Nur Ziel-Pokémon',
+			'shiny_auto_horde_toggle' => 'Doppel-/Horden-Anzahl (+N) übernehmen',
+			'shiny_auto_black_reset_toggle' => 'Schwarzbild-Übergang als Reset werten',
+			'shiny_auto_white_reset_toggle' => 'Weißbild-Übergang als Reset werten',
+			'shiny_auto_custom_triggers' => 'Eigene Trigger-Muster',
+			'shiny_auto_custom_resets' => 'Eigene Reset-Muster',
+			'shiny_auto_custom_trigger_hint' => 'z. B. {pokemon} erscheint',
+			'shiny_auto_custom_reset_hint' => 'z. B. Weiter oder Press Start',
+			'shiny_auto_add_btn' => 'Hinzufügen',
+			'shiny_auto_safety_section' => 'Safety & Benachrichtigungen',
+			'shiny_auto_sound_count' => 'Ton bei Auto-Zählung',
+			'shiny_auto_haptic_count' => 'Vibration bei Auto-Zählung',
+			'shiny_auto_sound_shiny' => 'Alarm-Ton bei Shiny-Signal',
+			'shiny_auto_haptic_shiny' => 'Vibration bei Shiny-Signal',
+			'shiny_auto_pause_on_shiny' => 'Slot bei Shiny automatisch pausieren',
+			'shiny_auto_start_btn' => 'Auto-Counter starten',
+			'shiny_auto_save_btn' => 'Einstellungen übernehmen',
+			'shiny_auto_shiny_alert_title' => 'SHINY-SIGNAL auf Slot #{slot}!',
+			'shiny_auto_shiny_alert_resume' => 'Slot fortsetzen',
+			'shiny_auto_slot_armed' => 'Bereit',
+			'shiny_auto_slot_counted' => 'Gezählt',
+			'shiny_auto_slot_rearm' => 'Reset...',
+			'shiny_auto_slot_shiny' => 'Shiny!',
+			'shiny_auto_slot_paused' => 'Pausiert',
+			'shiny_auto_stop_tooltip' => 'Auto-Counter stoppen',
+			'multi_hunt_dashboard_title' => 'Multi-Hunt Dashboard',
+			'multi_hunt_dashboard_tooltip' => 'Multi-Hunt Dashboard öffnen',
+			'multi_hunt_empty_title' => 'Keine aktiven oder pausierten Hunts',
+			'multi_hunt_empty_desc' => 'Erstelle mindestens einen Shiny Hunt im Hub, um mehrere Spiele gleichzeitig zu tracken.',
+			'multi_hunt_slot_assign_label' => 'Scan-Slots',
+			'multi_hunt_assign_slot_none' => 'Kein Slot zugewiesen',
+			'multi_hunt_open_counter' => 'Einzelansicht',
+			'multi_hunt_logs_title' => 'Live Auto-Log ({count})',
 			_ => null,
 		};
 	}

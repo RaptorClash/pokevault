@@ -6,6 +6,24 @@ import 'models/scanner_event.dart';
 import 'models/scanner_settings.dart';
 import 'source/scanner_source.dart';
 
+/// Semantic cue telemetry emitted on every processed OCR frame for downstream listeners
+/// such as the Shiny-Hunt auto-counter state machine.
+class ScannerCueSignal {
+  final int slotId;
+  final String rawText;
+  final BattleCue battleCue;
+  final EggHatchCue eggHatchCue;
+  final ResetCue resetCue;
+
+  const ScannerCueSignal({
+    required this.slotId,
+    required this.rawText,
+    required this.battleCue,
+    required this.eggHatchCue,
+    required this.resetCue,
+  });
+}
+
 /// Central coordinator connecting OCR engine, fuzzy dictionary, feedback, and active sources.
 class ScannerCoordinator {
   final OcrDetectionEngine engine;
@@ -22,6 +40,8 @@ class ScannerCoordinator {
       StreamController<ScannerEvent>.broadcast();
   final StreamController<List<ScannerEvent>> _activeFocusController =
       StreamController<List<ScannerEvent>>.broadcast();
+  final StreamController<ScannerCueSignal> _cueController =
+      StreamController<ScannerCueSignal>.broadcast();
 
   // Debouncing / Duplicate suppression cache per (role/type/pokemonId/shiny) key
   final Map<String, Duration> _recentEmittedAt = {};
@@ -74,6 +94,24 @@ class ScannerCoordinator {
   /// Broadcast stream of grouped active opponent(s) detected in a frame (1..5 Pokémon).
   Stream<List<ScannerEvent>> get activeFocusStream =>
       _activeFocusController.stream;
+
+  /// Broadcast stream of semantic cues (battle end, egg hatch prompt, reset cue, raw text).
+  Stream<ScannerCueSignal> get cueStream => _cueController.stream;
+
+  /// Clears active single-screen battle deduplication and cooldown caches for [slotId] (or all slots).
+  void clearBattleState([int? slotId]) {
+    if (slotId == null) {
+      _activeBattlesBySlot.clear();
+      _recentEmittedAt.clear();
+      return;
+    }
+    _activeBattlesBySlot.remove(slotId);
+    final instPrefix = 'inst_${slotId}_';
+    final rawPrefix = '${slotId}_';
+    _recentEmittedAt.removeWhere(
+      (k, _) => k.startsWith(instPrefix) || k.startsWith(rawPrefix),
+    );
+  }
 
   /// Sets the app/Dex fallback game language and updates [matcher]'s active language filter.
   /// If `settings.ocrLanguage` is an explicit override (not `'auto'`), that override wins.
@@ -238,6 +276,25 @@ class ScannerCoordinator {
     final elapsed = _currentElapsed;
     final battleSlotKey = instanceIndex ?? 0;
     final battleCue = engine.detectBattleCue(rawText);
+    final eggHatchCue = engine.detectEggHatchCue(rawText);
+    final resetCue = engine.detectResetCue(rawText);
+
+    if (rawText.trim().isNotEmpty && !_cueController.isClosed) {
+      _cueController.add(
+        ScannerCueSignal(
+          slotId: battleSlotKey,
+          rawText: rawText,
+          battleCue: battleCue,
+          eggHatchCue: eggHatchCue,
+          resetCue: resetCue,
+        ),
+      );
+    }
+
+    if (resetCue != ResetCue.none) {
+      clearBattleState(battleSlotKey);
+    }
+
     if (battleCue == BattleCue.battleEnded) {
       _activeBattlesBySlot.remove(battleSlotKey);
       return const [];
@@ -576,6 +633,7 @@ class ScannerCoordinator {
     _multiSourceSub = null;
     await _eventsController.close();
     await _activeFocusController.close();
+    await _cueController.close();
   }
 }
 

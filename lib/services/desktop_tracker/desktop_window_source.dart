@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:ui';
 import 'package:flutter/foundation.dart';
 import '../scanner_core/media/frame_band_cropper.dart';
+import '../scanner_core/media/frame_transition_detector.dart';
 import '../scanner_core/models/scanner_settings.dart';
 import '../scanner_core/source/scanner_source.dart';
 import 'desktop_capture_driver.dart';
@@ -182,7 +183,10 @@ int computeFrameFingerprint(CapturedFrame frame) {
 /// crops the dialogue/textbox area (Zone A) plus an optional opponent HUD (Zone B)
 /// and Multi-Instance slots, runs local OCR only on changed frames, and feeds streams.
 class DesktopWindowSource
-    implements DualZoneScannerSource, MultiInstanceScannerSource {
+    implements
+        DualZoneScannerSource,
+        MultiInstanceScannerSource,
+        FrameTransitionScannerSource {
   final DesktopCaptureDriver captureDriver;
   final DesktopOcrDriver ocrDriver;
   Duration _pollInterval;
@@ -209,6 +213,9 @@ class DesktopWindowSource
       StreamController<String>.broadcast();
   final StreamController<MultiInstanceTextEmission> _multiTextController =
       StreamController<MultiInstanceTextEmission>.broadcast();
+  final StreamController<FrameTransitionEvent> _transitionController =
+      StreamController<FrameTransitionEvent>.broadcast();
+  final FrameTransitionDetector _transitionDetector = FrameTransitionDetector();
   final ValueNotifier<LiveOcrScanStatus> liveScanStatusNotifier =
       ValueNotifier(const LiveOcrScanStatus());
   final ValueNotifier<LiveOcrScanStatus> liveFocusStatusNotifier =
@@ -268,6 +275,10 @@ class DesktopWindowSource
   @override
   Stream<MultiInstanceTextEmission> get multiInstanceTextStream =>
       _multiTextController.stream;
+
+  @override
+  Stream<FrameTransitionEvent> get transitionStream =>
+      _transitionController.stream;
 
   List<MultiInstanceSlot> get multiInstanceSlots => _multiInstanceSlots;
 
@@ -519,6 +530,10 @@ class DesktopWindowSource
       if (_disposed) return frame;
 
       if (frame != null) {
+        final transition = _transitionDetector.analyzeFrame(frame, slotId: 0);
+        if (transition != null && !_transitionController.isClosed) {
+          _transitionController.add(transition);
+        }
         final fp = computeFrameFingerprint(frame);
         final changed = _lastZoneAFingerprint != fp;
         _lastZoneAFingerprint = fp;
@@ -844,6 +859,14 @@ class DesktopWindowSource
   }) async {
     if (frame == null) return;
 
+    if (!encounterOnly) {
+      final transition =
+          _transitionDetector.analyzeFrame(frame, slotId: slot.id);
+      if (transition != null && !_transitionController.isClosed) {
+        _transitionController.add(transition);
+      }
+    }
+
     final fp = computeFrameFingerprint(frame);
     if (fingerprintCache[slot.id] == fp) return;
     fingerprintCache[slot.id] = fp;
@@ -991,5 +1014,6 @@ class DesktopWindowSource
     await _textController.close();
     await _focusTextController.close();
     await _multiTextController.close();
+    await _transitionController.close();
   }
 }

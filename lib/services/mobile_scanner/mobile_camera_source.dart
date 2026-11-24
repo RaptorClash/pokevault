@@ -4,6 +4,7 @@ import '../desktop_tracker/desktop_capture_driver.dart';
 import '../desktop_tracker/desktop_ocr_driver.dart';
 import '../desktop_tracker/desktop_window_source.dart';
 import '../desktop_tracker/window_detector.dart';
+import '../scanner_core/media/frame_transition_detector.dart';
 import '../scanner_core/models/scanner_settings.dart';
 import '../scanner_core/source/scanner_source.dart';
 import 'camera_frame_processor.dart';
@@ -12,7 +13,10 @@ import 'camera_scan_region.dart';
 /// Camera-backed [ScannerSource] supporting Auto full-frame mode as well as
 /// strict per-rectangle ROI cropping for Zone A, Zone B (Live-Fokus), and Multi-Instance slots.
 class MobileCameraSource
-    implements DualZoneScannerSource, MultiInstanceScannerSource {
+    implements
+        DualZoneScannerSource,
+        MultiInstanceScannerSource,
+        FrameTransitionScannerSource {
   final DesktopOcrDriver ocrDriver;
   Duration _pollInterval;
   MobileCameraScanMode _scanMode;
@@ -35,6 +39,9 @@ class MobileCameraSource
       StreamController<String>.broadcast();
   final StreamController<MultiInstanceTextEmission> _multiTextController =
       StreamController<MultiInstanceTextEmission>.broadcast();
+  final StreamController<FrameTransitionEvent> _transitionController =
+      StreamController<FrameTransitionEvent>.broadcast();
+  final FrameTransitionDetector _transitionDetector = FrameTransitionDetector();
 
   final ValueNotifier<LiveOcrScanStatus> liveScanStatusNotifier =
       ValueNotifier(const LiveOcrScanStatus());
@@ -61,6 +68,10 @@ class MobileCameraSource
   @override
   Stream<MultiInstanceTextEmission> get multiInstanceTextStream =>
       _multiTextController.stream;
+
+  @override
+  Stream<FrameTransitionEvent> get transitionStream =>
+      _transitionController.stream;
 
   @override
   bool get isRunning => _running;
@@ -257,6 +268,16 @@ class MobileCameraSource
     bool encounterOnly = false,
     required bool bypassHash,
   }) async {
+    if (role != CameraZoneRole.focus && !encounterOnly) {
+      final transition = _transitionDetector.analyzeFrame(
+        croppedFrame,
+        slotId: role == CameraZoneRole.multiInstance ? (slotId ?? 2) : 0,
+      );
+      if (transition != null && !_transitionController.isClosed) {
+        _transitionController.add(transition);
+      }
+    }
+
     final fingerprint = computeFrameFingerprint(croppedFrame);
     if (!bypassHash && _lastFingerprintByZone[zoneKey] == fingerprint) {
       return;
@@ -353,5 +374,6 @@ class MobileCameraSource
     await _textController.close();
     await _focusTextController.close();
     await _multiTextController.close();
+    await _transitionController.close();
   }
 }

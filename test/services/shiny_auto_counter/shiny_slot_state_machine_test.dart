@@ -1,0 +1,306 @@
+import 'package:flutter_test/flutter_test.dart';
+import 'package:pokevault/services/scanner_core/engine/ocr_detection_engine.dart';
+import 'package:pokevault/services/scanner_core/media/frame_transition_detector.dart';
+import 'package:pokevault/services/scanner_core/models/scanner_event.dart';
+import 'package:pokevault/services/shiny_auto_counter/shiny_auto_counter_config.dart';
+import 'package:pokevault/services/shiny_auto_counter/shiny_slot_state_machine.dart';
+
+ScannerEvent _encounter({
+  int pokemonId = 150,
+  String name = 'Mewtu',
+  bool isShiny = false,
+  int encounterCount = 1,
+  int slotId = 1,
+}) {
+  return ScannerEvent(
+    type: ScannerEventType.encounter,
+    pokemonId: pokemonId,
+    rawText: 'Wildes $name erscheint!',
+    matchedName: name,
+    isShiny: isShiny,
+    timestamp: DateTime(2026, 1, 1),
+    instanceIndex: slotId,
+    encounterCount: encounterCount,
+  );
+}
+
+void main() {
+  group('ShinySlotStateMachine', () {
+    test('Soft Reset cycle: counts target once, blocks duplicate while idle, re-arms on reset cue or black screen', () {
+      var clock = Duration.zero;
+      final machine = ShinySlotStateMachine(
+        slotId: 1,
+        colorHex: 0xFFA855F7,
+        targetPokemonId: 150,
+        targetPokemonName: 'Mewtu',
+        settings: const ShinyAutoCounterSettings(
+          detectionMode: ShinyHuntDetectionMode.softReset,
+          matchFilter: ShinyMatchFilter.targetPokemonOnly,
+          minResetCooldownMs: 1200,
+        ),
+        elapsedClock: () => clock,
+      );
+
+      // Non-target Pokemon (e.g., professor intro Rattfratz) is ignored in targetPokemonOnly mode
+      final ignoredDecision = machine.onScannerEvent(
+        _encounter(pokemonId: 19, name: 'Rattfratz'),
+      );
+      expect(ignoredDecision.shouldIncrement, isFalse);
+      expect(machine.phase, equals(ShinySlotPhase.armed));
+
+      // Target Pokemon counts +1
+      final firstCount = machine.onScannerEvent(_encounter(pokemonId: 150, name: 'Mewtu'));
+      expect(firstCount.shouldIncrement, isTrue);
+      expect(firstCount.delta, equals(1));
+      expect(machine.phase, equals(ShinySlotPhase.counted));
+
+      // Challenger: 30 minutes pause on same screen -> NEVER counts again!
+      for (int minute = 1; minute <= 30; minute++) {
+        clock += const Duration(minutes: 1);
+        final repeat = machine.onScannerEvent(_encounter(pokemonId: 150, name: 'Mewtu'));
+        expect(repeat.shouldIncrement, isFalse);
+        expect(machine.phase, equals(ShinySlotPhase.counted));
+      }
+
+      // Soft reset text cue ("Weiter") transitions counted -> rearmPending -> armed after cooldown
+      final resetAccepted = machine.onResetCue(ResetCue.titleOrContinue, rawLabel: 'Weiter');
+      expect(resetAccepted, isTrue);
+      expect(machine.phase, equals(ShinySlotPhase.rearmPending));
+
+      // Too early (only 500ms after reset cue)
+      clock += const Duration(milliseconds: 500);
+      expect(machine.onScannerEvent(_encounter(pokemonId: 150, name: 'Mewtu')).shouldIncrement, isFalse);
+
+      // After minResetCooldownMs (1200ms) -> re-arms and counts next encounter
+      clock += const Duration(milliseconds: 800);
+      final secondCount = machine.onScannerEvent(_encounter(pokemonId: 150, name: 'Mewtu'));
+      expect(secondCount.shouldIncrement, isTrue);
+      expect(secondCount.delta, equals(1));
+      expect(machine.phase, equals(ShinySlotPhase.counted));
+
+      // Black screen transition also re-arms
+      machine.onFrameTransition(
+        FrameTransitionEvent(
+          slotId: 1,
+          type: FrameTransitionType.blackScreenEnded,
+          durationMs: 500,
+          averageLuma: 5,
+          timestamp: DateTime(2026, 1, 1),
+        ),
+      );
+      clock += const Duration(milliseconds: 1300);
+      final thirdCount = machine.onScannerEvent(_encounter(pokemonId: 150, name: 'Mewtu'));
+      expect(thirdCount.shouldIncrement, isTrue);
+    });
+
+    test('Wild Encounter cycle: counts all wild Pokemon including horde count, re-arms on battle end', () {
+      var clock = Duration.zero;
+      final machine = ShinySlotStateMachine(
+        slotId: 1,
+        colorHex: 0xFFA855F7,
+        targetPokemonId: 25,
+        targetPokemonName: 'Pikachu',
+        settings: const ShinyAutoCounterSettings(
+          detectionMode: ShinyHuntDetectionMode.wildEncounter,
+          matchFilter: ShinyMatchFilter.allPokemon,
+          useEventEncounterCount: true,
+          minResetCooldownMs: 1000,
+        ),
+        elapsedClock: () => clock,
+      );
+
+      // Horde of 5 Zubats counts +5
+      final hordeCount = machine.onScannerEvent(
+        _encounter(pokemonId: 41, name: 'Zubat', encounterCount: 5),
+      );
+      expect(hordeCount.shouldIncrement, isTrue);
+      expect(hordeCount.delta, equals(5));
+      expect(machine.phase, equals(ShinySlotPhase.counted));
+
+      // Battle menu keeps it counted
+      machine.onBattleCue(BattleCue.battleMenu);
+      expect(machine.phase, equals(ShinySlotPhase.counted));
+
+      // Battle end re-arms
+      machine.onBattleCue(BattleCue.battleEnded);
+      expect(machine.phase, equals(ShinySlotPhase.rearmPending));
+
+      clock += const Duration(milliseconds: 1100);
+      final nextCount = machine.onScannerEvent(_encounter(pokemonId: 25, name: 'Pikachu'));
+      expect(nextCount.shouldIncrement, isTrue);
+      expect(nextCount.delta, equals(1));
+    });
+
+    test('Egg Hatch cycle: Oh? + hatched message counts strictly once per egg', () {
+      var clock = Duration.zero;
+      final machine = ShinySlotStateMachine(
+        slotId: 1,
+        colorHex: 0xFFA855F7,
+        targetPokemonId: 4,
+        targetPokemonName: 'Glumanda',
+        settings: const ShinyAutoCounterSettings(
+          detectionMode: ShinyHuntDetectionMode.eggHatch,
+          matchFilter: ShinyMatchFilter.targetPokemonOnly,
+          minResetCooldownMs: 1200,
+        ),
+        elapsedClock: () => clock,
+      );
+
+      // "Oh?" starts hatch cycle and counts once
+      final ohDecision = machine.onEggHatchCue(EggHatchCue.ohPrompt);
+      expect(ohDecision.shouldIncrement, isTrue);
+      expect(ohDecision.delta, equals(1));
+      expect(machine.phase, equals(ShinySlotPhase.counted));
+
+      // Resulting eggHatched text for the same egg must NOT double-count
+      clock += const Duration(milliseconds: 1500);
+      final hatchedEvent = ScannerEvent(
+        type: ScannerEventType.eggHatched,
+        pokemonId: 4,
+        rawText: 'Glumanda ist aus dem Ei geschlüpft!',
+        matchedName: 'Glumanda',
+        timestamp: DateTime(2026, 1, 1),
+      );
+      expect(machine.onScannerEvent(hatchedEvent).shouldIncrement, isFalse);
+
+      // Black screen / transition after hatch re-arms for next egg
+      machine.onFrameTransition(
+        FrameTransitionEvent(
+          slotId: 1,
+          type: FrameTransitionType.blackScreenEnded,
+          durationMs: 450,
+          averageLuma: 4,
+          timestamp: DateTime(2026, 1, 1),
+        ),
+      );
+      clock += const Duration(milliseconds: 1300);
+      expect(machine.onScannerEvent(hatchedEvent).shouldIncrement, isTrue);
+    });
+
+    test('Overworld screenTransitionOnly mode counts valid black screen transitions', () {
+      var clock = Duration.zero;
+      final machine = ShinySlotStateMachine(
+        slotId: 1,
+        colorHex: 0xFFA855F7,
+        targetPokemonId: 493,
+        targetPokemonName: 'Arceus',
+        settings: const ShinyAutoCounterSettings(
+          detectionMode: ShinyHuntDetectionMode.screenTransitionOnly,
+          minResetCooldownMs: 2500,
+        ),
+        elapsedClock: () => clock,
+      );
+
+      final first = machine.onFrameTransition(
+        FrameTransitionEvent(
+          slotId: 1,
+          type: FrameTransitionType.blackScreenEnded,
+          durationMs: 450,
+          averageLuma: 3,
+          timestamp: DateTime(2026, 1, 1),
+        ),
+      );
+      expect(first.shouldIncrement, isTrue);
+      expect(first.delta, equals(1));
+
+      // Too soon -> ignored
+      clock += const Duration(milliseconds: 1000);
+      final tooSoon = machine.onFrameTransition(
+        FrameTransitionEvent(
+          slotId: 1,
+          type: FrameTransitionType.blackScreenEnded,
+          durationMs: 450,
+          averageLuma: 3,
+          timestamp: DateTime(2026, 1, 1),
+        ),
+      );
+      expect(tooSoon.shouldIncrement, isFalse);
+
+      // After cooldown -> counts
+      clock += const Duration(milliseconds: 2000);
+      final second = machine.onFrameTransition(
+        FrameTransitionEvent(
+          slotId: 1,
+          type: FrameTransitionType.blackScreenEnded,
+          durationMs: 450,
+          averageLuma: 3,
+          timestamp: DateTime(2026, 1, 1),
+        ),
+      );
+      expect(second.shouldIncrement, isTrue);
+    });
+
+    test('Shiny detection honors autoPauseSlotOnShiny toggle', () {
+      var clock = Duration.zero;
+      final autoPauseMachine = ShinySlotStateMachine(
+        slotId: 1,
+        colorHex: 0xFFA855F7,
+        targetPokemonId: 150,
+        targetPokemonName: 'Mewtu',
+        settings: const ShinyAutoCounterSettings(
+          detectionMode: ShinyHuntDetectionMode.softReset,
+          autoPauseSlotOnShiny: true,
+        ),
+        elapsedClock: () => clock,
+      );
+
+      final shinyHit = autoPauseMachine.onScannerEvent(
+        _encounter(pokemonId: 150, name: 'Mewtu', isShiny: true),
+      );
+      expect(shinyHit.shouldIncrement, isTrue);
+      expect(shinyHit.isShiny, isTrue);
+      expect(autoPauseMachine.phase, equals(ShinySlotPhase.pausedByShiny));
+
+      // Even after reset signal, stays pausedByShiny until user manually resumes
+      autoPauseMachine.onResetCue(ResetCue.titleOrContinue);
+      clock += const Duration(seconds: 5);
+      expect(autoPauseMachine.phase, equals(ShinySlotPhase.pausedByShiny));
+
+      autoPauseMachine.resumeFromShinyPause();
+      expect(autoPauseMachine.phase, equals(ShinySlotPhase.armed));
+
+      // With autoPauseSlotOnShiny: false, slot keeps normal counted -> re-arm flow
+      final noPauseMachine = ShinySlotStateMachine(
+        slotId: 2,
+        colorHex: 0xFFEC4899,
+        targetPokemonId: 150,
+        targetPokemonName: 'Mewtu',
+        settings: const ShinyAutoCounterSettings(
+          detectionMode: ShinyHuntDetectionMode.softReset,
+          autoPauseSlotOnShiny: false,
+        ),
+        elapsedClock: () => clock,
+      );
+      final hit2 = noPauseMachine.onScannerEvent(
+        _encounter(pokemonId: 150, name: 'Mewtu', isShiny: true, slotId: 2),
+      );
+      expect(hit2.isShiny, isTrue);
+      expect(noPauseMachine.phase, equals(ShinySlotPhase.counted));
+    });
+
+    test('Custom reset pattern re-arms counted slot', () {
+      var clock = Duration.zero;
+      final machine = ShinySlotStateMachine(
+        slotId: 1,
+        colorHex: 0xFFA855F7,
+        targetPokemonId: 150,
+        targetPokemonName: 'Mewtu',
+        settings: const ShinyAutoCounterSettings(
+          detectionMode: ShinyHuntDetectionMode.softReset,
+          customResetPatterns: ['Press A to Start'],
+          minResetCooldownMs: 500,
+        ),
+        elapsedClock: () => clock,
+      );
+
+      expect(machine.onScannerEvent(_encounter(pokemonId: 150, name: 'Mewtu')).shouldIncrement, isTrue);
+      expect(
+        machine.onRawText('Welcome! Press A to Start now!'),
+        isTrue,
+      );
+      expect(machine.phase, equals(ShinySlotPhase.rearmPending));
+      clock += const Duration(milliseconds: 600);
+      expect(machine.onScannerEvent(_encounter(pokemonId: 150, name: 'Mewtu')).shouldIncrement, isTrue);
+    });
+  });
+}

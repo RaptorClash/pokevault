@@ -338,6 +338,17 @@ class DesktopEventFeedCard extends StatelessWidget {
         fg = Colors.red;
         label = 'ALPHA';
         break;
+      case ScannerEventType.eggHatched:
+        bg = Colors.teal.withValues(alpha: 0.15);
+        fg = Colors.teal;
+        label = 'EI-SCHLUPF';
+        break;
+      case ScannerEventType.softReset:
+      case ScannerEventType.customReset:
+        bg = Colors.orange.withValues(alpha: 0.15);
+        fg = Colors.orange;
+        label = 'RESET';
+        break;
       case ScannerEventType.unknown:
         bg = Colors.grey.withValues(alpha: 0.15);
         fg = Colors.grey;

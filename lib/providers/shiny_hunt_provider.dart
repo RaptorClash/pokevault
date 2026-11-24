@@ -176,6 +176,45 @@ class ShinyHuntProvider extends ChangeNotifier with WidgetsBindingObserver {
     _markDirtyAndDebounce(huntId);
   }
 
+  /// Automatically increments the encounter count by an explicit [delta] (e.g. from OCR/camera).
+  ///
+  /// Resets the AFK interaction timer so hunt duration tracking stays active while auto-hunting.
+  void incrementAuto(
+    String huntId, {
+    int? delta,
+    bool resumeIfPaused = false,
+  }) {
+    final hunt = getHuntById(huntId);
+    if (hunt == null || hunt.isCompleted) return;
+    final stepDelta = (delta ?? hunt.incrementStep).clamp(1, 9999999);
+
+    if (hunt.isPaused) {
+      if (!resumeIfPaused) return;
+      hunt.status = 'active';
+      if (hunt.pauseHistory.isNotEmpty && hunt.pauseHistory.last.resumedAt == null) {
+        hunt.pauseHistory.last.resumedAt = DateTime.now();
+      }
+    }
+
+    hunt.currentEncounters = (hunt.currentEncounters + stepDelta).clamp(0, 9999999);
+    hunt.updatedAt = DateTime.now();
+    registerInteraction();
+    notifyListeners();
+    _markDirtyAndDebounce(huntId);
+  }
+
+  /// Automatically decrements the encounter count by [delta] (e.g. for Auto-Counter Undo), clamping at zero.
+  void decrementAuto(String huntId, {int delta = 1}) {
+    final hunt = getHuntById(huntId);
+    if (hunt == null || hunt.isCompleted || delta <= 0) return;
+
+    hunt.currentEncounters = (hunt.currentEncounters - delta).clamp(0, 9999999);
+    hunt.updatedAt = DateTime.now();
+    registerInteraction();
+    notifyListeners();
+    _markDirtyAndDebounce(huntId);
+  }
+
   /// Sets the increment step size (e.g. 1, 5) for encounter counting.
   void setStep(String huntId, int newStep) {
     final hunt = getHuntById(huntId);

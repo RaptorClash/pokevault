@@ -1,4 +1,5 @@
 import 'dart:async';
+import '../media/frame_transition_detector.dart';
 
 /// Abstract source providing OCR text stream from cameras, screen-capture, or test mocks.
 abstract class ScannerSource {
@@ -33,6 +34,11 @@ class MultiInstanceTextEmission {
 /// Optional extension for capture sources emitting slot-tagged multi-instance OCR frames.
 abstract interface class MultiInstanceScannerSource implements ScannerSource {
   Stream<MultiInstanceTextEmission> get multiInstanceTextStream;
+}
+
+/// Optional extension for capture sources emitting luminance-based black/white transitions.
+abstract interface class FrameTransitionScannerSource implements ScannerSource {
+  Stream<FrameTransitionEvent> get transitionStream;
 }
 
 /// In-memory mock scanner source for unit tests and simulations.

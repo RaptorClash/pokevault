@@ -10,14 +10,18 @@ import '../../providers/tutorial_provider.dart';
 import '../../utils/shiny_hunt_odds_helper.dart';
 import '../../utils/dex_logic_helper.dart';
 import '../../i18n/strings.g.dart';
+import '../../services/shiny_auto_counter/shiny_auto_counter_service.dart';
 import '../../widgets/universal_poke_image.dart';
 import '../../widgets/tutorial/tutorial_overlay.dart';
 import 'dialogs/create_edit_hunt_dialog.dart';
 import 'dialogs/record_phase_dialog.dart';
+import 'dialogs/shiny_auto_counter_setup_sheet.dart';
 import 'dialogs/shiny_catch_dialog.dart';
 import 'dialogs/shiny_hunt_timeline_dialog.dart';
+import 'multi_hunt_dashboard_screen.dart';
 import 'widgets/hunt_odds_card.dart';
 import 'widgets/hunt_counter_controls.dart';
+import 'widgets/shiny_auto_counter_bar.dart';
 
 class ShinyHuntCounterScreen extends StatefulWidget {
   final String huntId;
@@ -143,6 +147,10 @@ class _ShinyHuntCounterScreenState extends State<ShinyHuntCounterScreen> {
 
   void _handleKeyEvent(KeyEvent event) {
     if (event is! KeyDownEvent) return;
+    final route = ModalRoute.of(context);
+    if (route != null && !route.isCurrent) return;
+    final focusedWidget = FocusManager.instance.primaryFocus?.context?.widget;
+    if (focusedWidget is EditableText) return;
 
     final huntProvider = Provider.of<ShinyHuntProvider>(context, listen: false);
     final key = event.logicalKey;
@@ -857,6 +865,32 @@ class _ShinyHuntCounterScreenState extends State<ShinyHuntCounterScreen> {
               },
             ),
             if (!_isLockMode && !hunt.isCompleted) ...[
+              ValueListenableBuilder<bool>(
+                valueListenable: ShinyAutoCounterService.instance.isRunningNotifier,
+                builder: (context, isAutoRunning, _) => IconButton(
+                  key: const Key('counter_auto_scanner_btn'),
+                  icon: Icon(
+                    Icons.center_focus_strong,
+                    color: isAutoRunning ? Colors.greenAccent : null,
+                  ),
+                  tooltip: t.shiny_auto_btn_tooltip,
+                  onPressed: () => ShinyAutoCounterSetupSheet.show(
+                    context,
+                    hunt: hunt,
+                  ),
+                ),
+              ),
+              IconButton(
+                icon: const Icon(Icons.grid_view_rounded),
+                tooltip: t.multi_hunt_dashboard_tooltip,
+                onPressed: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => const MultiHuntDashboardScreen(),
+                    ),
+                  );
+                },
+              ),
               OutlinedButton.icon(
                 style: OutlinedButton.styleFrom(
                   visualDensity: VisualDensity.compact,
@@ -922,6 +956,16 @@ class _ShinyHuntCounterScreenState extends State<ShinyHuntCounterScreen> {
 
               // Phasen-Historie
               _buildPhaseHistory(hunt, isDark),
+
+              // Live Auto-Counter Status Bar (when active)
+              if (!hunt.isCompleted)
+                ShinyAutoCounterBar(
+                  service: ShinyAutoCounterService.instance,
+                  onOpenSetup: () => ShinyAutoCounterSetupSheet.show(
+                    context,
+                    hunt: hunt,
+                  ),
+                ),
 
               // 2. Große Tap-Zone & Sprite-Bereich
               Expanded(

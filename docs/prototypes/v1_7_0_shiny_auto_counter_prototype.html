@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="de" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PokéVault v1.7.0 – Shiny Auto-Counter & Multi-Hunt Dashboard Prototype</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            vaultBg: '#101218',
+            vaultCard: '#1A1D26',
+            vaultSurface: '#232733',
+            vaultBorder: '#2F3546',
+            vaultPurple: '#9575CD',
+            vaultGold: '#FFB300',
+            vaultGreen: '#4CAF50',
+            vaultRed: '#EF5350',
+            vaultCyan: '#26C6DA',
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      background-color: #101218;
+      color: #E8ECF4;
+    }
+    .shiny-pulse {
+      animation: shinyPulse 1.4s infinite ease-in-out;
+    }
+    @keyframes shinyPulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(255, 179, 0, 0.45); }
+      50% { box-shadow: 0 0 0 10px rgba(255, 179, 0, 0); }
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col">
+  <header class="border-b border-vaultBorder bg-vaultCard/95 backdrop-blur sticky top-0 z-40">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-3">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-purple-600 flex items-center justify-center font-bold text-white shadow">✨</div>
+        <div>
+          <h1 class="font-bold text-base sm:text-lg text-white flex items-center gap-2">
+            PokéVault Shiny Auto-Counter
+            <span class="text-xs px-2 py-0.5 rounded-full bg-vaultPurple/20 text-vaultPurple border border-vaultPurple/40 font-mono">v1.7.0 Prototype</span>
+          </h1>
+          <p class="text-xs text-slate-400">Single Counter · Setup-Sheet · Multi-Hunt-Dashboard · Mobile PiP & Multi-Zone</p>
+        </div>
+      </div>
+
+      <nav class="flex flex-wrap gap-1.5 bg-vaultSurface p-1 rounded-xl border border-vaultBorder">
+        <button onclick="switchTab('single')" id="tab-single" class="tab-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-vaultPurple text-white">Single Counter + Bar</button>
+        <button onclick="switchTab('multi')" id="tab-multi" class="tab-btn px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-300 hover:bg-white/5">Multi-Hunt Dashboard</button>
+        <button onclick="switchTab('mobile')" id="tab-mobile" class="tab-btn px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-300 hover:bg-white/5">Mobile PiP & Multi-Zone</button>
+      </nav>
+    </div>
+  </header>
+
+  <main class="max-w-7xl w-full mx-auto px-4 py-6 flex-1 space-y-6">
+    <!-- TAB 1: Single Counter + Status Bar + Setup Modal -->
+    <section id="view-single" class="space-y-4">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+        <!-- Counter Window -->
+        <div class="lg:col-span-7 bg-vaultCard border border-vaultBorder rounded-2xl overflow-hidden shadow-xl">
+          <!-- AppBar -->
+          <div class="px-4 py-3 bg-vaultSurface border-b border-vaultBorder flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <span class="text-slate-400 text-sm">←</span>
+              <div>
+                <div class="font-bold text-sm text-white">Mewtu (Soft Reset)</div>
+                <div class="text-[11px] text-slate-400">SoulSilver · Gen 4 · Basis 1:8192</div>
+              </div>
+            </div>
+            <div class="flex items-center gap-2">
+              <button onclick="openSetupModal()" class="px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 hover:bg-emerald-500/30">
+                ⚡ Auto-Scanner Setup
+              </button>
+              <button onclick="switchTab('multi')" class="px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-vaultSurface border border-vaultBorder text-slate-200 hover:bg-white/5">
+                Multi-Hunt
+              </button>
+            </div>
+          </div>
+
+          <!-- Compact Live Auto-Counter Bar -->
+          <div class="px-4 py-2.5 bg-slate-900/80 border-b border-vaultBorder space-y-2">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <div class="flex items-center gap-2 text-xs">
+                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                <span class="font-semibold text-emerald-300">Auto-Counter aktiv</span>
+                <span class="text-slate-400">· Soft Reset (Nur Ziel)</span>
+              </div>
+              <div class="flex items-center gap-1.5">
+                <button onclick="simulateAutoTrigger(1, 'Mewtu', false)" class="px-2 py-1 rounded bg-purple-500/20 text-purple-200 text-[11px] border border-purple-500/40 hover:bg-purple-500/30">+ Simuliere #1</button>
+                <button onclick="simulateResetSignal(1)" class="px-2 py-1 rounded bg-slate-700 text-slate-200 text-[11px] hover:bg-slate-600">↻ Schwarzbild Reset #1</button>
+                <button onclick="simulateAutoTrigger(2, 'Mewtu', true)" class="px-2 py-1 rounded bg-amber-500/20 text-amber-300 text-[11px] border border-amber-500/40 hover:bg-amber-500/30">✨ Shiny #2</button>
+                <button onclick="undoLastAuto()" class="px-2 py-1 rounded bg-rose-500/20 text-rose-200 text-[11px] border border-rose-500/40 hover:bg-rose-500/30">↶ Undo (-1)</button>
+              </div>
+            </div>
+
+            <!-- Slot Chips -->
+            <div class="flex flex-wrap gap-2" id="single-slot-chips"></div>
+
+            <!-- Shiny Alert Banner (toggled dynamically) -->
+            <div id="shiny-alert-banner" class="hidden p-2.5 rounded-xl bg-amber-500/15 border border-amber-400/60 shiny-pulse flex items-center justify-between gap-2">
+              <div class="text-xs">
+                <span class="font-bold text-amber-300">✨ SHINY-SIGNAL auf Slot #2!</span>
+                <span class="text-amber-100/90 ml-1">Slot #2 wurde sicherheitshalber pausiert.</span>
+              </div>
+              <button onclick="resumeShinySlot(2)" class="px-2.5 py-1 rounded-lg bg-amber-400 text-slate-950 font-bold text-[11px]">Slot fortsetzen</button>
+            </div>
+          </div>
+
+          <!-- Main Counter Display -->
+          <div class="p-6 flex flex-col items-center text-center space-y-4">
+            <div class="w-24 h-24 rounded-2xl bg-vaultSurface border border-vaultBorder flex items-center justify-center text-4xl">🔮✨</div>
+            <div>
+              <div id="single-counter-value" class="text-6xl font-black tracking-tight text-white font-mono">1.428</div>
+              <div class="text-xs text-slate-400 mt-1">Aktuelle Phase 1 · Zeit: 02:14:09 · Pace: 124/h</div>
+            </div>
+
+            <!-- Manual Controls remain 100% accessible -->
+            <div class="flex items-center gap-3 w-full max-w-sm">
+              <button onclick="manualDelta(-1)" class="px-5 py-3 rounded-xl bg-vaultSurface border border-vaultBorder text-lg font-bold hover:bg-white/5">-1</button>
+              <button onclick="manualDelta(1)" class="flex-1 py-3.5 rounded-xl bg-vaultPurple text-white text-xl font-black shadow-lg shadow-purple-900/30 hover:bg-purple-500">+1 Encounter</button>
+            </div>
+            <div class="text-[11px] text-slate-400" id="last-log-line">Letztes Event: Slot #1 · Mewtu erkannt (+1) · Re-Arm wartet auf Reset/Schwarzbild</div>
+          </div>
+        </div>
+
+        <!-- Inline Preview of Setup Sheet -->
+        <div class="lg:col-span-5 bg-vaultCard border border-vaultBorder rounded-2xl p-4 space-y-4">
+          <div class="flex items-center justify-between border-b border-vaultBorder pb-2.5">
+            <h2 class="font-bold text-sm text-white">Setup-Sheet (Vorschau)</h2>
+            <span class="text-[11px] px-2 py-0.5 rounded bg-vaultSurface text-slate-300">Desktop & Mobile</span>
+          </div>
+
+          <div class="space-y-3 text-xs">
+            <div>
+              <label class="text-slate-400 font-semibold block mb-1">1. Scan-Quelle</label>
+              <div class="grid grid-cols-2 gap-2">
+                <button class="p-2 rounded-lg bg-vaultPurple/20 border border-vaultPurple text-left font-semibold text-white">🖥️ Fenster / Multi-Grid (4×)</button>
+                <button class="p-2 rounded-lg bg-vaultSurface border border-vaultBorder text-left text-slate-300">📷 Webcam / Handy-Kamera</button>
+              </div>
+            </div>
+
+            <div>
+              <label class="text-slate-400 font-semibold block mb-1">2. Methoden-Preset & Re-Arm-Regel</label>
+              <select class="w-full bg-vaultSurface border border-vaultBorder rounded-lg px-2.5 py-2 text-slate-100">
+                <option>Soft Reset (Ziel-Pokémon + Titeltext / Schwarzbild)</option>
+                <option>Wild Encounter (Alle Pokémon + Flucht/Kampf-Ende)</option>
+                <option>Ei-Schlupf / Masuda (9 Sprachen + Oh?-Schutz)</option>
+                <option>Overworld Ladebildschirm (Legenden: Arceus / Z-A)</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="text-slate-400 font-semibold block mb-1">3. Eigene Patterns (Trigger & Reset)</label>
+              <div class="space-y-1.5">
+                <div class="flex items-center justify-between bg-vaultSurface px-2.5 py-1.5 rounded-lg border border-vaultBorder">
+                  <span>Trigger: <code class="text-emerald-300">{pokemon} erscheint</code></span>
+                  <span class="text-[10px] text-slate-400">Aktiv</span>
+                </div>
+                <div class="flex items-center justify-between bg-vaultSurface px-2.5 py-1.5 rounded-lg border border-vaultBorder">
+                  <span>Reset: <code class="text-cyan-300">Weiter</code> / <code class="text-cyan-300">Schwarzbild ≥ 350ms</code></span>
+                  <span class="text-[10px] text-slate-400">Aktiv</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="space-y-2 pt-1">
+              <label class="text-slate-400 font-semibold block">4. Safety & Benachrichtigungen</label>
+              <label class="flex items-center justify-between bg-vaultSurface px-3 py-2 rounded-lg">
+                <span>Sound & Vibration bei Auto-+1</span>
+                <input type="checkbox" checked class="accent-vaultPurple" />
+              </label>
+              <label class="flex items-center justify-between bg-vaultSurface px-3 py-2 rounded-lg">
+                <span>Alarm bei Shiny-Signal (Sound/Vibration)</span>
+                <input type="checkbox" checked class="accent-amber-400" />
+              </label>
+              <label class="flex items-center justify-between bg-vaultSurface px-3 py-2 rounded-lg">
+                <span>Auto-Pause des Slots bei Shiny</span>
+                <input type="checkbox" checked class="accent-amber-400" />
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 2: Multi-Hunt Dashboard -->
+    <section id="view-multi" class="hidden space-y-4">
+      <div class="bg-vaultCard border border-vaultBorder rounded-2xl p-4 flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h2 class="font-bold text-base text-white">Multi-Hunt Dashboard (4 parallele Spiele)</h2>
+          <p class="text-xs text-slate-400">Jeder Hunt behält alle manuellen Controls (+1 / -1 / Pause / Phase / Gefangen) und empfängt Ereignisse der zugewiesenen Scan-Slots.</p>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="px-2.5 py-1 rounded-lg bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-xs font-semibold">● 4 Slots aktiv</span>
+          <button onclick="undoLastAuto()" class="px-3 py-1.5 rounded-lg bg-rose-500/20 text-rose-200 border border-rose-500/40 text-xs font-semibold">↶ Letztes Auto-Undo</button>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4" id="multi-hunt-grid"></div>
+    </section>
+
+    <!-- TAB 3: Mobile PiP & Multi-Zone -->
+    <section id="view-mobile" class="hidden flex justify-center">
+      <div class="w-[360px] h-[740px] rounded-[36px] border-4 border-slate-700 bg-vaultBg overflow-hidden shadow-2xl flex flex-col relative">
+        <div class="px-4 py-2.5 bg-vaultCard border-b border-vaultBorder flex items-center justify-between text-xs">
+          <span class="font-bold text-white">📱 Shiny Counter (Mobile)</span>
+          <span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300">Kamera PiP aktiv</span>
+        </div>
+
+        <div class="p-3 bg-slate-900 border-b border-vaultBorder flex items-center justify-between text-[11px]">
+          <div class="flex gap-1.5">
+            <span class="px-2 py-0.5 rounded-full bg-purple-500/20 border border-purple-400 text-purple-200">#1 Armed</span>
+            <span class="px-2 py-0.5 rounded-full bg-pink-500/20 border border-pink-400 text-pink-200">#2 Counted</span>
+          </div>
+          <button class="text-rose-300 font-semibold">↶ Undo</button>
+        </div>
+
+        <div class="flex-1 p-5 flex flex-col items-center justify-center text-center space-y-4">
+          <div class="text-5xl font-black text-white font-mono">642</div>
+          <div class="text-xs text-slate-400">Evoli · Masuda-Methode (Switch + 3DS)</div>
+          <button class="w-full py-4 rounded-2xl bg-vaultPurple text-white font-bold text-lg shadow-lg">+1 Encounter</button>
+        </div>
+
+        <!-- Floating Camera PiP with Multi-Zone boxes -->
+        <div class="absolute right-3 bottom-20 w-44 h-36 rounded-2xl border-2 border-vaultPurple bg-slate-950 shadow-2xl overflow-hidden flex flex-col">
+          <div class="px-2 py-1 bg-black/70 text-[10px] flex items-center justify-between text-slate-200">
+            <span>📷 Live PiP (2 Zonen)</span>
+            <span>⤢</span>
+          </div>
+          <div class="relative flex-1 bg-gradient-to-br from-slate-800 to-slate-900 p-1.5">
+            <div class="absolute left-2 top-2 w-16 h-12 border-2 border-purple-400 rounded bg-purple-500/10 flex items-end p-0.5 text-[9px] text-purple-200">#1 Switch</div>
+            <div class="absolute right-2 bottom-2 w-16 h-12 border-2 border-pink-400 rounded bg-pink-500/10 flex items-end p-0.5 text-[9px] text-pink-200">#2 3DS</div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Setup Modal -->
+  <div id="setup-modal" class="hidden fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4">
+    <div class="bg-vaultCard border border-vaultBorder rounded-2xl max-w-lg w-full p-5 space-y-4">
+      <div class="flex items-center justify-between">
+        <h3 class="font-bold text-base text-white">Auto-Scanner konfigurieren</h3>
+        <button onclick="closeSetupModal()" class="text-slate-400 hover:text-white">✕</button>
+      </div>
+      <p class="text-xs text-slate-300">Wähle Desktop-Fenster/Multi-Grid oder Mobile-Kamera, passe die Reset-Erkennung an und weise optional einzelne Slots anderen Hunts zu.</p>
+      <div class="flex justify-end gap-2">
+        <button onclick="closeSetupModal()" class="px-4 py-2 rounded-xl bg-vaultSurface text-xs font-semibold">Schließen</button>
+        <button onclick="closeSetupModal()" class="px-4 py-2 rounded-xl bg-vaultPurple text-white text-xs font-semibold">Scanner starten</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let singleCount = 1428;
+    const undoStack = [];
+    const slotStates = {
+      1: { color: '#A855F7', phase: 'armed', label: 'Bereit' },
+      2: { color: '#EC4899', phase: 'armed', label: 'Bereit' },
+      3: { color: '#F59E0B', phase: 'counted', label: 'Gezählt (wartet auf Reset)' },
+      4: { color: '#3B82F6', phase: 'armed', label: 'Bereit' },
+    };
+
+    const multiHunts = [
+      { id: 'h1', name: 'Mewtu', game: 'SoulSilver', method: 'Soft Reset', count: 1428, slots: ['#1', '#2'], odds: '1:8192', paused: false },
+      { id: 'h2', name: 'Glumanda', game: 'Karmesin', method: 'Masuda-Methode', count: 412, slots: ['#3'], odds: '1:512', paused: false },
+      { id: 'h3', name: 'Evoli', game: 'Smaragd', method: 'Wild Encounter', count: 2905, slots: ['#4'], odds: '1:8192', paused: false },
+    ];
+
+    function switchTab(tab) {
+      ['single', 'multi', 'mobile'].forEach(t => {
+        document.getElementById('view-' + t).classList.toggle('hidden', t !== tab);
+        const btn = document.getElementById('tab-' + t);
+        btn.className = t === tab
+          ? 'tab-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-vaultPurple text-white'
+          : 'tab-btn px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-300 hover:bg-white/5';
+      });
+    }
+
+    function renderSlots() {
+      const container = document.getElementById('single-slot-chips');
+      container.innerHTML = Object.entries(slotStates).map(([id, s]) => `
+        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold border"
+              style="border-color:${s.color}; background:${s.color}22;">
+          <span class="w-2 h-2 rounded-full" style="background:${s.color}"></span>
+          #${id} · ${s.label}
+        </span>
+      `).join('');
+    }
+
+    function simulateAutoTrigger(slotId, name, isShiny) {
+      const s = slotStates[slotId];
+      if (s.phase !== 'armed') {
+        document.getElementById('last-log-line').textContent =
+          `Slot #${slotId} blockiert (${s.label}) – kein Doppelcount während Pause/Standbild!`;
+        return;
+      }
+      singleCount += 1;
+      undoStack.push(1);
+      s.phase = isShiny ? 'pausedByShiny' : 'counted';
+      s.label = isShiny ? '✨ SHINY PAUSIERT' : 'Gezählt (wartet auf Reset)';
+      document.getElementById('single-counter-value').textContent = singleCount.toLocaleString('de-DE');
+      document.getElementById('last-log-line').textContent =
+        `Slot #${slotId} · ${name} erkannt (+1) ${isShiny ? '✨ SHINY!' : ''}`;
+      document.getElementById('shiny-alert-banner').classList.toggle('hidden', !isShiny);
+      renderSlots();
+    }
+
+    function simulateResetSignal(slotId) {
+      slotStates[slotId].phase = 'armed';
+      slotStates[slotId].label = 'Bereit (Re-Armed)';
+      document.getElementById('last-log-line').textContent =
+        `Slot #${slotId} · Schwarzbild-Übergang erkannt → wieder scharfgeschaltet (Armed)`;
+      renderSlots();
+    }
+
+    function resumeShinySlot(slotId) {
+      slotStates[slotId].phase = 'armed';
+      slotStates[slotId].label = 'Bereit';
+      document.getElementById('shiny-alert-banner').classList.add('hidden');
+      renderSlots();
+    }
+
+    function undoLastAuto() {
+      if (undoStack.length === 0) return;
+      const d = undoStack.pop();
+      singleCount = Math.max(0, singleCount - d);
+      document.getElementById('single-counter-value').textContent = singleCount.toLocaleString('de-DE');
+      document.getElementById('last-log-line').textContent = `Undo ausgeführt (-${d})`;
+    }
+
+    function manualDelta(d) {
+      singleCount = Math.max(0, singleCount + d);
+      document.getElementById('single-counter-value').textContent = singleCount.toLocaleString('de-DE');
+    }
+
+    function renderMultiHunts() {
+      const grid = document.getElementById('multi-hunt-grid');
+      grid.innerHTML = multiHunts.map((h, i) => `
+        <div class="bg-vaultCard border border-vaultBorder rounded-2xl p-4 flex flex-col justify-between space-y-3">
+          <div class="flex items-start justify-between gap-2">
+            <div>
+              <div class="font-bold text-white text-sm">${h.name}</div>
+              <div class="text-[11px] text-slate-400">${h.game} · ${h.method} · ${h.odds}</div>
+            </div>
+            <div class="flex gap-1">
+              ${h.slots.map(s => `<span class="px-2 py-0.5 rounded-full bg-purple-500/20 border border-purple-400/50 text-purple-200 text-[10px] font-bold">${s}</span>`).join('')}
+            </div>
+          </div>
+
+          <div class="text-center py-2 bg-vaultSurface rounded-xl border border-vaultBorder">
+            <div class="text-4xl font-black font-mono text-white">${h.count.toLocaleString('de-DE')}</div>
+            <div class="text-[11px] text-slate-400">${h.paused ? 'Pausiert' : 'Aktiv'}</div>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <button onclick="multiHunts[${i}].count = Math.max(0, multiHunts[${i}].count - 1); renderMultiHunts();" class="px-3 py-2 rounded-xl bg-vaultSurface border border-vaultBorder font-bold text-sm">-1</button>
+            <button onclick="multiHunts[${i}].count += 1; renderMultiHunts();" class="flex-1 py-2 rounded-xl bg-vaultPurple text-white font-bold text-sm">+1</button>
+            <button onclick="multiHunts[${i}].paused = !multiHunts[${i}].paused; renderMultiHunts();" class="px-3 py-2 rounded-xl bg-vaultSurface border border-vaultBorder text-xs">${h.paused ? '▶' : '⏸'}</button>
+          </div>
+
+          <div class="flex items-center justify-between text-[11px] pt-1 border-t border-vaultBorder text-slate-400">
+            <button class="hover:text-amber-300">⚡ Phase loggen</button>
+            <button class="hover:text-emerald-300 font-semibold">✨ Gefangen!</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function openSetupModal() { document.getElementById('setup-modal').classList.remove('hidden'); }
+    function closeSetupModal() { document.getElementById('setup-modal').classList.add('hidden'); }
+
+    renderSlots();
+    renderMultiHunts();
+  </script>
+</body>
+</html>

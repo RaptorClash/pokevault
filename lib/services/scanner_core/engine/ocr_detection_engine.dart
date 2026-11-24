@@ -18,6 +18,20 @@ enum BattleCue {
   battleEnded,
 }
 
+/// Semantic egg-hatching cues used by the Shiny-Hunt auto-counter state machine.
+enum EggHatchCue {
+  none,
+  ohPrompt,
+  hatched,
+}
+
+/// Semantic soft-reset / title-screen cues used to re-arm a counted slot.
+enum ResetCue {
+  none,
+  titleOrContinue,
+  customReset,
+}
+
 /// Result from parsing raw OCR text through the [OcrDetectionEngine].
 class OcrParseResult {
   final ScannerEventType type;
@@ -63,6 +77,79 @@ class OcrDetectionEngine {
     r'(?:\berfolgreich\s+geflohen\b|\bentkommen\b|\bgot\s+away\s+safely\b|\bran\s+away\b|\b(?:wurde\s+besiegt|ging\s+k\.?o\.?|fainted)\b|vous\s+prenez\s+la\s+fuite|escapaste\s+sin\s+problemas|scappato\s+senza\s+problemi|にげきれた|도망쳤다|逃走了|逃跑了)',
     caseSensitive: false,
   );
+
+  static final RegExp _eggPromptCuePattern = RegExp(
+    r'(?:^\s*(?:oh\?|nanu\?!|huh\?|¿eh\?|eh\?|おや？|어라\?|咦？)\s*$|\b(?:oh\?|nanu\?!|huh\?)\b|おや？|어라\?|咦？)',
+    caseSensitive: false,
+  );
+
+  static final RegExp _softResetCuePattern = RegExp(
+    r'(?:\b(?:weiter|continue|press\s+start|neues\s+spiel|new\s+game|spielstand|continuer|continuar|continua)\b|つづきから|さいしょから|이어하기|继续游戏|繼續遊戲)',
+    caseSensitive: false,
+  );
+
+  // Egg Hatch Patterns across all 9 franchise languages
+  static final List<({RegExp regex, String lang})> _eggHatchPatterns = [
+    (
+      regex: RegExp(
+        r'([^\n\r!！]+?)\s+ist aus dem Ei geschlüpft(?:[!！]|$)',
+        caseSensitive: false,
+      ),
+      lang: 'de',
+    ),
+    (
+      regex: RegExp(
+        r'([^\n\r!！]+?)\s+hatched from the Egg(?:[!！]|$)',
+        caseSensitive: false,
+      ),
+      lang: 'en',
+    ),
+    (
+      regex: RegExp(
+        r"([^\n\r!！]+?)\s+vient d'éclore(?:\s*[!！]|$)",
+        caseSensitive: false,
+      ),
+      lang: 'fr',
+    ),
+    (
+      regex: RegExp(
+        r'¡?([^\n\r!！]+?)\s+salió del Huevo(?:[!！]|$)',
+        caseSensitive: false,
+      ),
+      lang: 'es',
+    ),
+    (
+      regex: RegExp(
+        r"([^\n\r!！]+?)\s+è nato dall'Uovo(?:[!！]|$)",
+        caseSensitive: false,
+      ),
+      lang: 'it',
+    ),
+    (
+      regex: RegExp(
+        r'([^\n\r!！]+?)が\s*タマゴから\s*かえった(?:[!！]|$)',
+      ),
+      lang: 'ja',
+    ),
+    (
+      regex: RegExp(
+        r'([^\n\r!！]+?)(?:이|가)\s*알에서\s*태어났다(?:[!！]|$)',
+      ),
+      lang: 'ko',
+    ),
+    (
+      regex: RegExp(
+        r'([^\n\r!！]+?)从蛋里孵出来了(?:[!！]|$)',
+      ),
+      lang: 'zh-Hans',
+    ),
+    (
+      regex: RegExp(
+        r'([^\n\r!！]+?)從蛋裡孵出來了(?:[!！]|$)',
+      ),
+      lang: 'zh-Hant',
+    ),
+  ];
 
   static final RegExp _uiOrCounterPattern = RegExp(
     r'(?:\b[o0-9]+\s*(?:von|of|/)\s*\d+\b|^\s*[o0-9]+\s+(?:gefangen|caught)\s*$|\b(?:ziel-?pok[eé]dex|live-?ereignisse|aktueller\s+live-?fokus|fehlt\s+im\s+ziel-?dex|scan-?bereich|desktop\s+tracker|ocr\s+aktiv|floating\s+hud)\b)',
@@ -426,8 +513,8 @@ class OcrDetectionEngine {
     ),
   ];
 
-  List<({RegExp regex, ScannerEventType eventType})> _compiledCustomPatterns =
-      const [];
+  List<({RegExp regex, ScannerEventType eventType, bool hasPokemonPlaceholder})>
+      _compiledCustomPatterns = const [];
 
   OcrDetectionEngine({List<CustomOcrPattern> customPatterns = const []}) {
     updateCustomPatterns(customPatterns);
@@ -435,22 +522,39 @@ class OcrDetectionEngine {
 
   /// Replaces the active custom OCR pattern list and compiles regexes once.
   void updateCustomPatterns(List<CustomOcrPattern> patterns) {
-    final compiled = <({RegExp regex, ScannerEventType eventType})>[];
+    final compiled =
+        <({RegExp regex, ScannerEventType eventType, bool hasPokemonPlaceholder})>[];
     for (final p in patterns) {
       if (!p.enabled) continue;
-      final regex = _compileCustomTemplate(p.template);
+      final regex = _compileCustomTemplate(
+        p.template,
+        allowLiteralWithoutPlaceholder:
+            p.eventType == ScannerEventType.softReset ||
+            p.eventType == ScannerEventType.customReset ||
+            p.eventType == ScannerEventType.eggHatched ||
+            p.eventType == ScannerEventType.encounter,
+      );
       if (regex != null) {
-        compiled.add((regex: regex, eventType: p.eventType));
+        compiled.add((
+          regex: regex,
+          eventType: p.eventType,
+          hasPokemonPlaceholder: p.template.contains('{pokemon}'),
+        ));
       }
     }
     _compiledCustomPatterns = List.unmodifiable(compiled);
   }
 
-  static RegExp? _compileCustomTemplate(String rawTemplate) {
+  static RegExp? _compileCustomTemplate(
+    String rawTemplate, {
+    bool allowLiteralWithoutPlaceholder = false,
+  }) {
     final template = rawTemplate.trim();
-    if (template.isEmpty || !template.contains('{pokemon}')) return null;
+    if (template.isEmpty) return null;
+    final hasPlaceholder = template.contains('{pokemon}');
+    if (!hasPlaceholder && !allowLiteralWithoutPlaceholder) return null;
 
-    final endsWithPokemon = template.endsWith('{pokemon}');
+    final endsWithPokemon = hasPlaceholder && template.endsWith('{pokemon}');
     final buffer = StringBuffer();
     int idx = 0;
     while (idx < template.length) {
@@ -482,6 +586,38 @@ class OcrDetectionEngine {
       return BattleCue.battleMenu;
     }
     return BattleCue.none;
+  }
+
+  /// Classifies whether [rawText] indicates an egg-hatching prompt ("Oh?") or completion.
+  EggHatchCue detectEggHatchCue(String rawText) {
+    final trimmed = rawText.trim();
+    if (trimmed.isEmpty) return EggHatchCue.none;
+    for (final ep in _eggHatchPatterns) {
+      if (ep.regex.hasMatch(trimmed)) {
+        return EggHatchCue.hatched;
+      }
+    }
+    if (_eggPromptCuePattern.hasMatch(trimmed)) {
+      return EggHatchCue.ohPrompt;
+    }
+    return EggHatchCue.none;
+  }
+
+  /// Classifies whether [rawText] indicates a soft-reset / title-screen cue or custom reset rule.
+  ResetCue detectResetCue(String rawText) {
+    final trimmed = rawText.trim();
+    if (trimmed.isEmpty) return ResetCue.none;
+    for (final cp in _compiledCustomPatterns) {
+      if ((cp.eventType == ScannerEventType.customReset ||
+              cp.eventType == ScannerEventType.softReset) &&
+          cp.regex.hasMatch(trimmed)) {
+        return ResetCue.customReset;
+      }
+    }
+    if (_softResetCuePattern.hasMatch(trimmed)) {
+      return ResetCue.titleOrContinue;
+    }
+    return ResetCue.none;
   }
 
   /// Parses [rawText] into an [OcrParseResult], or returns `null` if the text contains no valid game events.
@@ -578,18 +714,50 @@ class OcrDetectionEngine {
       // Check user custom patterns first (allows explicit overrides per game/ROM)
       for (final cp in _compiledCustomPatterns) {
         final match = cp.regex.firstMatch(lineTrimmed);
-        if (match != null && match.groupCount >= 1) {
-          final name = _cleanName(match.group(1) ?? '');
-          if (name.isNotEmpty && !_isInvalidCandidate(name)) {
+        if (match != null) {
+          if (!cp.hasPokemonPlaceholder) {
             return OcrParseResult(
               type: cp.eventType,
-              extractedPokemonName: name,
+              extractedPokemonName: match.group(0)?.trim() ?? lineTrimmed,
               detectedLanguage: 'custom',
               isShiny: isShiny,
               gender: gender,
               isAlpha: isAlpha,
               confidence: 0.96,
-              isSmartSearchFallback: name.contains(' '),
+            );
+          }
+          if (match.groupCount >= 1) {
+            final name = _cleanName(match.group(1) ?? '');
+            if (name.isNotEmpty && !_isInvalidCandidate(name)) {
+              return OcrParseResult(
+                type: cp.eventType,
+                extractedPokemonName: name,
+                detectedLanguage: 'custom',
+                isShiny: isShiny,
+                gender: gender,
+                isAlpha: isAlpha,
+                confidence: 0.96,
+                isSmartSearchFallback: name.contains(' '),
+              );
+            }
+          }
+        }
+      }
+
+      // Check Egg Hatched
+      for (final eh in _eggHatchPatterns) {
+        final match = eh.regex.firstMatch(lineTrimmed);
+        if (match != null) {
+          final name = _cleanName(_extractFirstGroup(match));
+          if (name.isNotEmpty && !_isInvalidCandidate(name)) {
+            return OcrParseResult(
+              type: ScannerEventType.eggHatched,
+              extractedPokemonName: name,
+              detectedLanguage: eh.lang,
+              isShiny: isShiny,
+              gender: gender,
+              isAlpha: isAlpha,
+              confidence: 0.95,
             );
           }
         }
