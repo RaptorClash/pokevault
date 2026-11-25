@@ -7,7 +7,10 @@ import 'package:pokevault/models/pokemon.dart';
 import 'package:pokevault/models/user_dex.dart';
 import 'package:pokevault/providers/dex_provider.dart';
 import 'package:pokevault/screens/desktop_tracker/desktop_tracker_screen.dart';
+import 'package:pokevault/screens/desktop_tracker/widgets/desktop_tracker_dialogs.dart';
 import 'package:pokevault/screens/desktop_tracker/widgets/desktop_webcam_stage.dart';
+import 'package:pokevault/screens/desktop_tracker/widgets/live_frame_thumbnail.dart';
+import 'package:pokevault/services/desktop_tracker/desktop_capture_driver.dart';
 import 'package:pokevault/screens/desktop_tracker/widgets/dex_selection_modal.dart';
 import 'package:pokevault/screens/desktop_tracker/widgets/floating_overlay_hud.dart';
 import 'package:pokevault/screens/desktop_tracker/widgets/persistent_tracker_dock.dart';
@@ -498,6 +501,58 @@ void main() {
       expect(tester.takeException(), isNull);
       expect(find.text('Webcam Tracker'), findsOneWidget);
       expect(find.byKey(const Key('desktop_webcam_stage')), findsOneWidget);
+    });
+
+    testWidgets('320x480 extreme narrow viewport: SelfScanOverlapDialog & LiveFrameThumbnail(maxDecodeWidth) render with NO overflow', (tester) async {
+      tester.view.physicalSize = const Size(320, 480);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      final bigBgra = CapturedFrame(
+        width: 120,
+        height: 80,
+        bytes: List<int>.filled(120 * 80 * 4, 180),
+        pixelFormat: 'bgra8888',
+      );
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: Column(
+              children: [
+                SizedBox(
+                  width: 60,
+                  height: 36,
+                  child: LiveFrameThumbnail(
+                    liveFrame: bigBgra,
+                    fallbackPngBytes: null,
+                    fallbackIcon: Icons.crop_free,
+                    maxDecodeWidth: 64,
+                  ),
+                ),
+                Builder(
+                  builder: (ctx) => ElevatedButton(
+                    key: const Key('open_overlap_dialog'),
+                    onPressed: () =>
+                        DesktopTrackerDialogs.showSelfScanOverlapDialog(ctx),
+                    child: const Text('Open'),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byKey(const Key('open_overlap_dialog')));
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(const Key('dialog_self_scan_overlap')), findsOneWidget);
+      expect(tester.takeException(), isNull);
     });
   });
 }

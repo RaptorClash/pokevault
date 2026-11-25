@@ -53,6 +53,13 @@ class _FakeBridge implements DesktopPlatformBridge {
     if (region == null) clearedBordersCount++;
   }
   @override
+  Future<NativeCaptureAnalyzeResult?> captureAndAnalyze(
+    NativeCaptureAnalyzeRequest request,
+  ) async =>
+      null;
+  @override
+  Future<void> clearNativeScanCache() async {}
+  @override
   Future<bool> showFloatingHud(NativeHudState state) async {
     hudVisible = true;
     return true;

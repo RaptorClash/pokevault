@@ -125,6 +125,7 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
   bool _showZoneBInfo = false;
   bool _showScanProfileInfo = false;
   bool _isEditingCameraRegions = false;
+  bool _hasShownSelfScanDialogThisSession = false;
   DexProvider? _dexProvider;
 
   bool get _isLiveWindows =>
@@ -179,6 +180,7 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
                       widget.coordinator.settings.preprocessProfile,
                   onRecognitionResult: _handleOcrMetaResult,
                 ),
+                nativeBridge: bridge,
               )
             : DesktopWindowSource(
                 captureDriver: const DefaultDesktopCaptureDriver(),
@@ -200,6 +202,12 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
     _activeWindowSource.setMultiInstanceSlots(
       widget.coordinator.settings.multiInstanceSlots,
     );
+    _activeWindowSource.setMaskSelfWindow(
+      widget.coordinator.settings.maskSelfWindow,
+    );
+    _activeWindowSource.setPreviewPolicy(enabled: true, maxWidth: 320);
+    _activeWindowSource.selfWindowOverlapNotifier
+        .addListener(_onSelfWindowOverlapChanged);
     unawaited(_loadPersistedSettings());
     final service = DesktopTrackerService.instance;
     final reusedExistingSession = widget.windowSource != null &&
@@ -401,7 +409,9 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
           current.liveFocusPreset == LiveFocusPreset.disabled &&
           current.ignoredPokemonIds.isEmpty &&
           current.showScreenBorders &&
-          current.multiInstanceSlots.isEmpty;
+          current.multiInstanceSlots.isEmpty &&
+          !current.maskSelfWindow &&
+          !current.suppressSelfScanWarning;
       if (!isPristine) return;
 
       final merged = current.copyWith(
@@ -416,6 +426,8 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
         showScreenBorders: saved.showScreenBorders,
         multiInstanceSlots: saved.multiInstanceSlots,
         extraFocusRegions: saved.extraFocusRegions,
+        maskSelfWindow: saved.maskSelfWindow,
+        suppressSelfScanWarning: saved.suppressSelfScanWarning,
       );
       if (merged.scanIntervalMs == current.scanIntervalMs &&
           merged.preprocessProfile == current.preprocessProfile &&
@@ -425,7 +437,9 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
           merged.ignoredPokemonIds.isEmpty &&
           merged.showScreenBorders == current.showScreenBorders &&
           merged.multiInstanceSlots.isEmpty &&
-          merged.extraFocusRegions.isEmpty) {
+          merged.extraFocusRegions.isEmpty &&
+          !merged.maskSelfWindow &&
+          !merged.suppressSelfScanWarning) {
         return;
       }
       widget.coordinator.updateSettings(merged);
@@ -436,6 +450,7 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
       _activeWindowSource.setLiveFocusPreset(merged.liveFocusPreset);
       _activeWindowSource.setExtraFocusRegions(merged.extraFocusRegions);
       _activeWindowSource.setMultiInstanceSlots(merged.multiInstanceSlots);
+      _activeWindowSource.setMaskSelfWindow(merged.maskSelfWindow);
       didChangeDependencies();
       _syncOverlayBorders();
       if (mounted) setState(() {});
@@ -463,6 +478,7 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
     _activeWindowSource.setLiveFocusPreset(next.liveFocusPreset);
     _activeWindowSource.setExtraFocusRegions(next.extraFocusRegions);
     _activeWindowSource.setMultiInstanceSlots(next.multiInstanceSlots);
+    _activeWindowSource.setMaskSelfWindow(next.maskSelfWindow);
     _webcamController.setOcrLanguageTag(_ocrLanguageTag);
     didChangeDependencies();
     _syncOverlayBorders();
@@ -750,6 +766,8 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
   @override
   void dispose() {
     TutorialOverlay.resetShowing();
+    _activeWindowSource.selfWindowOverlapNotifier
+        .removeListener(_onSelfWindowOverlapChanged);
     final service = DesktopTrackerService.instance;
     service.showFloatingHudNotifier
         .removeListener(_onServiceHudVisibilityChanged);
@@ -767,6 +785,7 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
             _showFloatingHud);
 
     if (keepAlive) {
+      _activeWindowSource.setPreviewPolicy(enabled: false);
       service.isPaused = !_isScanningActive;
       final dexProv = _dexProvider;
       final fallbackDexId = _selectedDexId;
@@ -1588,7 +1607,32 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
     );
   }
 
-  void _openEnlargedPreview({
+  void _onSelfWindowOverlapChanged() {
+    if (!mounted) return;
+    if (!_activeWindowSource.selfWindowOverlapNotifier.value) return;
+    final current = widget.coordinator.settings;
+    if (current.maskSelfWindow ||
+        current.suppressSelfScanWarning ||
+        _hasShownSelfScanDialogThisSession) {
+      return;
+    }
+    _hasShownSelfScanDialogThisSession = true;
+    Future<void>.microtask(() async {
+      if (!mounted) return;
+      final res = await DesktopTrackerDialogs.showSelfScanOverlapDialog(context);
+      if (!mounted || res == null) return;
+      final next = widget.coordinator.settings.copyWith(
+        maskSelfWindow: res.maskSelfWindow,
+        suppressSelfScanWarning:
+            res.suppressWarning ||
+            widget.coordinator.settings.suppressSelfScanWarning,
+      );
+      _updateSettingsAndPersist(next);
+      if (mounted) setState(() {});
+    });
+  }
+
+  Future<void> _openEnlargedPreview({
     required CapturedFrame? liveFrame,
     required Uint8List? fallbackPng,
     required String title,
@@ -1597,18 +1641,25 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
     ValueListenable<Map<String, CapturedFrame>>? boxFramesListenable,
     ValueListenable<Map<String, String>>? boxPreviewsListenable,
     String? boxKey,
-  }) {
-    DesktopTrackerDialogs.showEnlargedPreview(
-      context,
-      liveFrame: liveFrame,
-      fallbackPng: fallbackPng,
-      title: title,
-      statusListenable: statusListenable,
-      frameListenable: frameListenable,
-      boxFramesListenable: boxFramesListenable,
-      boxPreviewsListenable: boxPreviewsListenable,
-      boxKey: boxKey,
-    );
+  }) async {
+    _activeWindowSource.setPreviewPolicy(enabled: true, maxWidth: 960);
+    try {
+      await DesktopTrackerDialogs.showEnlargedPreview(
+        context,
+        liveFrame: liveFrame,
+        fallbackPng: fallbackPng,
+        title: title,
+        statusListenable: statusListenable,
+        frameListenable: frameListenable,
+        boxFramesListenable: boxFramesListenable,
+        boxPreviewsListenable: boxPreviewsListenable,
+        boxKey: boxKey,
+      );
+    } finally {
+      if (mounted) {
+        _activeWindowSource.setPreviewPolicy(enabled: true, maxWidth: 320);
+      }
+    }
   }
 
   Widget _buildScanRegionSection(bool isDark) {
@@ -1977,14 +2028,17 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
                         children: [
                           SizedBox(
                             width: 380,
-                            child: SingleChildScrollView(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.stretch,
-                                children: [
-                                  windowControlCard,
-                                  const SizedBox(height: 14),
-                                  targetFocusCard,
-                                ],
+                            child: RepaintBoundary(
+                              child: SingleChildScrollView(
+                                child: Column(
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.stretch,
+                                  children: [
+                                    windowControlCard,
+                                    const SizedBox(height: 14),
+                                    targetFocusCard,
+                                  ],
+                                ),
                               ),
                             ),
                           ),

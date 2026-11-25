@@ -185,6 +185,23 @@ class VisualShinyColorDetector {
   }) {
     final hist = extractHistogram(frame);
     if (hist == null) return null;
+    return analyzeHistogram(
+      hist,
+      slotId: slotId,
+      speciesKey: speciesKey,
+      deviationThreshold: deviationThreshold,
+    );
+  }
+
+  /// Evaluates a precomputed 16-bin normalized HSV histogram against the learned
+  /// baseline for `(slotId, speciesKey)` and returns a signal if deviation >= [deviationThreshold].
+  VisualShinySignal? analyzeHistogram(
+    List<double> hist, {
+    required int slotId,
+    required String speciesKey,
+    required double deviationThreshold,
+  }) {
+    if (hist.length != 16) return null;
 
     final k = _key(slotId, speciesKey);
     final baseline = _baselines.putIfAbsent(k, _ColorBaseline.new);

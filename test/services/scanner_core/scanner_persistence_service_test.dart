@@ -37,6 +37,8 @@ void main() {
         ignoredPokemonIds: [25, 133],
         showScreenBorders: false,
         multiInstanceSlots: [],
+        maskSelfWindow: true,
+        suppressSelfScanWarning: true,
       );
 
       await service.saveScannerSettings(saved);
@@ -59,6 +61,8 @@ void main() {
       expect(loaded.liveFocusPreset, LiveFocusPreset.topLeft);
       expect(loaded.ignoredPokemonIds, [25, 133]);
       expect(loaded.showScreenBorders, isFalse);
+      expect(loaded.maskSelfWindow, isTrue);
+      expect(loaded.suppressSelfScanWarning, isTrue);
     });
   });
 }

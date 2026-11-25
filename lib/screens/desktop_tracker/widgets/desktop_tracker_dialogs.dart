@@ -166,6 +166,7 @@ class DesktopTrackerDialogs {
         liveFrame: liveFrame,
         fallbackPngBytes: fallbackPng,
         fallbackIcon: Icons.crop_free,
+        maxDecodeWidth: 960,
       ),
     );
   }
@@ -217,7 +218,7 @@ class DesktopTrackerDialogs {
     );
   }
 
-  static void showEnlargedPreview(
+  static Future<void> showEnlargedPreview(
     BuildContext context, {
     required CapturedFrame? liveFrame,
     required Uint8List? fallbackPng,
@@ -227,7 +228,7 @@ class DesktopTrackerDialogs {
     ValueListenable<Map<String, CapturedFrame>>? boxFramesListenable,
     ValueListenable<Map<String, String>>? boxPreviewsListenable,
     String? boxKey,
-  }) {
+  }) async {
     if (liveFrame == null &&
         fallbackPng == null &&
         statusListenable == null &&
@@ -237,7 +238,7 @@ class DesktopTrackerDialogs {
     }
     final hasStatusBar = statusListenable != null ||
         (boxPreviewsListenable != null && boxKey != null);
-    showDialog<void>(
+    await showDialog<void>(
       context: context,
       builder: (ctx) => AlertDialog(
         key: const Key('enlarged_preview_dialog'),
@@ -727,6 +728,110 @@ class DesktopTrackerDialogs {
           },
         );
       },
+    );
+  }
+
+  /// Warns the user when the active desktop scan region overlaps PokéVault's own
+  /// window and offers black-masking to stop self-scans and reduce CPU load.
+  static Future<({bool maskSelfWindow, bool suppressWarning})?>
+      showSelfScanOverlapDialog(BuildContext context) {
+    bool suppressWarning = false;
+    return showDialog<({bool maskSelfWindow, bool suppressWarning})>(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setDialogState) {
+          final isDark = Theme.of(context).brightness == Brightness.dark;
+          return AlertDialog(
+            key: const Key('dialog_self_scan_overlap'),
+            backgroundColor: isDark ? const Color(0xFF1E1E2C) : Colors.white,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(18),
+            ),
+            title: const Row(
+              children: [
+                Icon(
+                  Icons.warning_amber_rounded,
+                  color: Colors.amber,
+                  size: 22,
+                ),
+                SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    'PokéVault liegt im aktiven Scan-Bereich',
+                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ],
+            ),
+            content: SizedBox(
+              width: 420,
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Das PokéVault-Fenster überlappt den überwachten Bildschirmbereich. '
+                      'Dadurch kann die Live-OCR eigene Texte scannen und unnötig Leistung verbrauchen.',
+                      style: TextStyle(fontSize: 12),
+                    ),
+                    const SizedBox(height: 12),
+                    InkWell(
+                      borderRadius: BorderRadius.circular(8),
+                      onTap: () => setDialogState(
+                        () => suppressWarning = !suppressWarning,
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 4),
+                        child: Row(
+                          children: [
+                            Checkbox(
+                              key: const Key('chk_suppress_self_scan_warning'),
+                              value: suppressWarning,
+                              onChanged: (v) => setDialogState(
+                                () => suppressWarning = v ?? false,
+                              ),
+                              visualDensity: VisualDensity.compact,
+                            ),
+                            const Expanded(
+                              child: Text(
+                                'Diesen Hinweis nicht mehr anzeigen',
+                                style: TextStyle(fontSize: 12),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            actions: [
+              TextButton(
+                key: const Key('btn_mask_self_window_ignore'),
+                onPressed: () => Navigator.of(ctx).pop((
+                  maskSelfWindow: false,
+                  suppressWarning: suppressWarning,
+                )),
+                child: const Text('Unmaskiert lassen'),
+              ),
+              ElevatedButton(
+                key: const Key('btn_mask_self_window_confirm'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF10B981),
+                  foregroundColor: Colors.white,
+                ),
+                onPressed: () => Navigator.of(ctx).pop((
+                  maskSelfWindow: true,
+                  suppressWarning: suppressWarning,
+                )),
+                child: const Text('PokéVault ausblenden (Empfohlen)'),
+              ),
+            ],
+          );
+        },
+      ),
     );
   }
 }

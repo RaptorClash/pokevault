@@ -1,10 +1,13 @@
 import 'dart:ui';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pokevault/services/desktop_tracker/desktop_capture_driver.dart';
 import 'package:pokevault/services/desktop_tracker/desktop_ocr_driver.dart';
 import 'package:pokevault/services/desktop_tracker/desktop_window_source.dart';
 import 'package:pokevault/services/desktop_tracker/screen_region.dart';
 import 'package:pokevault/services/desktop_tracker/window_detector.dart';
+import 'package:pokevault/services/desktop_tracker/windows_desktop_bridge.dart';
+import 'package:pokevault/services/scanner_core/media/frame_transition_detector.dart';
 import 'package:pokevault/services/scanner_core/models/scanner_settings.dart';
 import 'package:pokevault/services/scanner_core/source/scanner_source.dart';
 
@@ -613,7 +616,264 @@ void main() {
       expect(src.liveFocusStatusNotifier.value.scanCount, 0);
       expect(src.liveFocusStatusNotifier.value.latestFrame, isNull);
     });
+
+    test('nativeBridge.captureAndAnalyze fast-path skips legacy drivers, throttles thumbnails to ~1Hz, and forwards Luma/HSV/SelfOverlap', () async {
+      var clock = Duration.zero;
+      final legacyCap = _CountingOnlyCaptureDriver();
+      final legacyOcr = _CountingOcrDriver(const ['Legacy']);
+      final nativeBridge = _FastPathBridge();
+
+      final src = DesktopWindowSource(
+        captureDriver: legacyCap,
+        ocrDriver: legacyOcr,
+        nativeBridge: nativeBridge,
+        elapsedClock: () => clock,
+      );
+      addTearDown(src.dispose);
+
+      src.setSelectedWindow(
+        const DesktopWindowInfo(
+          id: 1,
+          hwnd: 999,
+          title: 'Monitor 1',
+          width: 1920,
+          height: 1080,
+          isDesktopScreen: true,
+        ),
+      );
+      src.setScreenRegion(
+        ScreenRegion(
+          x: 0,
+          y: 0,
+          width: 1920,
+          height: 1080,
+          isAbsoluteScreen: true,
+        ),
+      );
+      src.setPreviewPolicy(enabled: true, maxWidth: 320);
+
+      final texts = <String>[];
+      final transitions = <FrameTransitionEvent>[];
+      final visuals = <SlotVisualFrame>[];
+      final tSub = src.textStream.listen(texts.add);
+      final trSub = src.transitionStream.listen(transitions.add);
+      final vSub = src.visualFrameStream.listen(visuals.add);
+      addTearDown(() async {
+        await tSub.cancel();
+        await trSub.cancel();
+        await vSub.cancel();
+      });
+
+      // Tick 1: should include thumbnail (first request), computeColorHistogram == true, maskSelfWindow == false
+      nativeBridge.nextResult = const NativeCaptureAnalyzeResult(
+        captured: true,
+        ocrSkipped: false,
+        lines: ['Ein wildes Pikachu erscheint!'],
+        frameWidth: 1920,
+        frameHeight: 1080,
+        captureMethod: 'bitblt_screen',
+        brightnessSummary: 'luma=10..220 avg=120 nonBlack=95%',
+        avgLuma: 120.0,
+        stdDev: 5.0,
+        colorHistogram: [0.1, 0.2, 0.3, 0.4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        selfWindowOverlaps: true,
+        thumbnailFrame: CapturedFrame(
+          width: 320,
+          height: 180,
+          bytes: [137, 80, 78, 71],
+          pixelFormat: 'png',
+        ),
+      );
+
+      await src.triggerSingleScan();
+      await Future<void>.delayed(Duration.zero);
+
+      expect(legacyCap.captureCount, 0);
+      expect(legacyOcr.ocrCount, 0);
+      expect(nativeBridge.requests, hasLength(1));
+      expect(nativeBridge.requests.last.includeThumbnail, isTrue);
+      expect(nativeBridge.requests.last.thumbnailMaxWidth, 320);
+      expect(nativeBridge.requests.last.computeColorHistogram, isTrue);
+      expect(nativeBridge.requests.last.maskSelfWindow, isFalse);
+      expect(src.selfWindowOverlapNotifier.value, isTrue);
+      expect(texts, contains('Ein wildes Pikachu erscheint!'));
+      expect(visuals, hasLength(1));
+      expect(visuals.first.precomputedHistogram, hasLength(16));
+
+      // Tick 2 at +400ms: thumbnail throttled (<1000ms), static frame skipped OCR, black transition entered
+      clock += const Duration(milliseconds: 400);
+      nativeBridge.nextResult = const NativeCaptureAnalyzeResult(
+        captured: true,
+        ocrSkipped: true,
+        frameWidth: 1920,
+        frameHeight: 1080,
+        captureMethod: 'bitblt_screen',
+        avgLuma: 2.0,
+        stdDev: 0.0,
+        selfWindowOverlaps: true,
+      );
+      await src.triggerSingleScan();
+      expect(nativeBridge.requests.last.includeThumbnail, isFalse);
+
+      // Tick 3 at +1100ms: thumbnail allowed again (>=1000ms), transition back to normal -> blackScreenEnded!
+      clock += const Duration(milliseconds: 700);
+      src.setMaskSelfWindow(true);
+      nativeBridge.nextResult = const NativeCaptureAnalyzeResult(
+        captured: true,
+        ocrSkipped: false,
+        lines: ['Pikachu'],
+        frameWidth: 1920,
+        frameHeight: 1080,
+        captureMethod: 'bitblt_screen',
+        avgLuma: 120.0,
+        stdDev: 5.0,
+        selfWindowOverlaps: false,
+      );
+      await src.triggerSingleScan();
+      await Future<void>.delayed(Duration.zero);
+      expect(nativeBridge.requests.last.includeThumbnail, isTrue);
+      expect(nativeBridge.requests.last.maskSelfWindow, isTrue);
+      expect(transitions, hasLength(1));
+      expect(transitions.first.type, FrameTransitionType.blackScreenEnded);
+
+      // Background mode (preview disabled): 0 thumbnail requests even after 5 seconds
+      clock += const Duration(seconds: 5);
+      src.setPreviewPolicy(enabled: false);
+      await src.triggerSingleScan();
+      expect(nativeBridge.requests.last.includeThumbnail, isFalse);
+    });
+
+    test('Multi-instance slots use nativeBridge.captureAndAnalyze when nativeBridge is configured', () async {
+      final legacyCap = _CountingOnlyCaptureDriver();
+      final legacyOcr = _CountingOcrDriver(const []);
+      final nativeBridge = _FastPathBridge();
+
+      final src = DesktopWindowSource(
+        captureDriver: legacyCap,
+        ocrDriver: legacyOcr,
+        nativeBridge: nativeBridge,
+      );
+      addTearDown(src.dispose);
+
+      src.setMultiInstanceSlots([
+        MultiInstanceSlot(
+          id: 2,
+          label: '#2',
+          colorHex: 0xFFA855F7,
+          scanEnabled: true,
+          scanRegion: ScreenRegion(
+            x: 100,
+            y: 200,
+            width: 300,
+            height: 100,
+            isAbsoluteScreen: true,
+          ),
+        ),
+      ]);
+
+      final multiEmissions = <MultiInstanceTextEmission>[];
+      final sub = src.multiInstanceTextStream.listen(multiEmissions.add);
+      addTearDown(sub.cancel);
+
+      nativeBridge.nextResult = const NativeCaptureAnalyzeResult(
+        captured: true,
+        ocrSkipped: false,
+        lines: ['Ein wildes Zorua erscheint!'],
+        frameWidth: 300,
+        frameHeight: 100,
+      );
+
+      await src.triggerSingleScan();
+      await Future<void>.delayed(Duration.zero);
+
+      expect(legacyCap.captureCount, 0);
+      expect(legacyOcr.ocrCount, 0);
+      expect(multiEmissions, hasLength(1));
+      expect(multiEmissions.first.slotId, 2);
+      expect(multiEmissions.first.rawText, contains('Zorua'));
+    });
   });
+}
+
+class _CountingOnlyCaptureDriver implements DesktopCaptureDriver {
+  int captureCount = 0;
+  @override
+  Future<CapturedFrame?> captureWindow({
+    required DesktopWindowInfo window,
+    Rect? cropRegion,
+    ScreenRegion? screenRegion,
+  }) async {
+    captureCount++;
+    return null;
+  }
+}
+
+class _FastPathBridge implements DesktopPlatformBridge {
+  final List<NativeCaptureAnalyzeRequest> requests = [];
+  NativeCaptureAnalyzeResult nextResult = const NativeCaptureAnalyzeResult();
+
+  @override
+  ValueChanged<NativeHudAction>? onHudAction;
+
+  @override
+  Future<NativeCaptureAnalyzeResult?> captureAndAnalyze(
+    NativeCaptureAnalyzeRequest request,
+  ) async {
+    requests.add(request);
+    return nextResult;
+  }
+
+  @override
+  Future<void> clearNativeScanCache() async {}
+
+  @override
+  Future<CapturedFrame?> captureRegion(ScreenRegion region) async => null;
+
+  @override
+  Future<CapturedFrame?> captureWindow(
+    DesktopWindowInfo window, {
+    Rect? cropRegion,
+  }) async =>
+      null;
+
+  @override
+  Future<List<DesktopWindowInfo>> enumerateWindowsAndMonitors() async =>
+      const [];
+
+  @override
+  Future<void> hideFloatingHud() async {}
+
+  @override
+  Future<OcrRecognitionResult> recognizeText(
+    CapturedFrame frame, {
+    String? languageTag,
+    String? preprocessProfile,
+  }) async =>
+      const OcrRecognitionResult();
+
+  @override
+  Future<void> setOverlayBorders(List<OverlayBorderSpec> borders) async {}
+
+  @override
+  Future<void> setScanRegionBorder(
+    ScreenRegion? region, {
+    bool active = true,
+  }) async {}
+
+  @override
+  Future<bool> showFloatingHud(NativeHudState state) async => true;
+
+  @override
+  Future<ScreenRegionCaptureResult?> startDesktopSnipping({
+    bool hideAppWindow = false,
+    String? hintLabel,
+    String? confirmLabel,
+    String? cancelLabel,
+  }) async =>
+      null;
+
+  @override
+  Future<bool> updateFloatingHud(NativeHudState state) async => true;
 }
 
 class _SequenceFrameCaptureDriver implements DesktopCaptureDriver {

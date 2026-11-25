@@ -47,14 +47,17 @@ abstract interface class FrameTransitionScannerSource implements ScannerSource {
   });
 }
 
-/// Slot-tagged captured video/window frame emitted for optional visual Shiny heuristics.
+/// Slot-tagged captured video/window frame (or precomputed 16-bin HSV histogram)
+/// emitted for optional visual Shiny heuristics.
 class SlotVisualFrame {
   final int slotId;
-  final CapturedFrame frame;
+  final CapturedFrame? frame;
+  final List<double>? precomputedHistogram;
 
   const SlotVisualFrame({
     required this.slotId,
-    required this.frame,
+    this.frame,
+    this.precomputedHistogram,
   });
 }
 

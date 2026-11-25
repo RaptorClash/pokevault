@@ -126,8 +126,26 @@ class FrameTransitionDetector {
   FrameTransitionEvent? analyzeFrame(CapturedFrame frame, {int slotId = 0}) {
     final sample = sampleFrameLuminance(frame);
     if (sample == null) return null;
-    final avgLuma = sample.avgLuma;
-    final stdDev = sample.stdDev;
+    return analyzeLuminance(
+      avgLuma: sample.avgLuma,
+      stdDev: sample.stdDev,
+      slotId: slotId,
+    );
+  }
+
+  /// Analyzes precomputed BT.601 luminance ([avgLuma], [stdDev]) for [slotId]
+  /// and returns a [FrameTransitionEvent] when a valid black/white transition completes.
+  FrameTransitionEvent? analyzeLuminance({
+    required double avgLuma,
+    required double stdDev,
+    int slotId = 0,
+  }) {
+    if (avgLuma.isNaN || avgLuma.isInfinite || stdDev.isNaN || stdDev.isInfinite) {
+      return null;
+    }
+    if (avgLuma < 0.0 || avgLuma > 255.0 || stdDev < 0.0) {
+      return null;
+    }
 
     final tracker = _slots.putIfAbsent(slotId, _SlotTracker.new);
     final now = _now;

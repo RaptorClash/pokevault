@@ -152,6 +152,15 @@ class FakeWindowsDesktopBridge implements DesktopPlatformBridge {
       const OcrRecognitionResult();
 
   @override
+  Future<NativeCaptureAnalyzeResult?> captureAndAnalyze(
+    NativeCaptureAnalyzeRequest request,
+  ) async =>
+      null;
+
+  @override
+  Future<void> clearNativeScanCache() async {}
+
+  @override
   Future<bool> showFloatingHud(NativeHudState state) async {
     return (await onShowHud?.call(state)) ?? true;
   }
@@ -2268,6 +2277,71 @@ void main() {
         contains('Lithomith Lv.24'),
       );
       expect(find.textContaining('#6'), findsWidgets);
+    });
+
+    testWidgets('Self-scan overlap triggers warning dialog once and updates maskSelfWindow + suppressSelfScanWarning', (tester) async {
+      tester.view.physicalSize = const Size(1280, 900);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      final activeSource = DesktopWindowSource(
+        captureDriver: MockCaptureDriver(),
+        ocrDriver: MockOcrDriver()..textToReturn = '',
+      );
+      addTearDown(activeSource.dispose);
+
+      await tester.pumpWidget(
+        ChangeNotifierProvider<DexProvider>.value(
+          value: mockDexProvider,
+          child: MaterialApp(
+            home: DesktopTrackerScreen(
+              coordinator: coordinator,
+              windowSource: activeSource,
+              detectedWindows: [DesktopWindowInfo.primaryScreen()],
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      activeSource.selfWindowOverlapNotifier.value = true;
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(const Key('dialog_self_scan_overlap')), findsOneWidget);
+      await tester.tap(find.byKey(const Key('chk_suppress_self_scan_warning')));
+      await tester.pump();
+      await tester.tap(find.byKey(const Key('btn_mask_self_window_confirm')));
+      await tester.pumpAndSettle();
+
+      expect(coordinator.settings.maskSelfWindow, isTrue);
+      expect(coordinator.settings.suppressSelfScanWarning, isTrue);
+      expect(activeSource.maskSelfWindow, isTrue);
+    });
+
+    testWidgets('TrackerSettingsDialog exposes switch_mask_self_window toggle', (tester) async {
+      tester.view.physicalSize = const Size(1280, 900);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      await tester.pumpWidget(createWidgetUnderTest());
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byKey(const Key('btn_tracker_settings')));
+      await tester.pumpAndSettle();
+
+      final sw = find.byKey(const Key('switch_mask_self_window'));
+      expect(sw, findsOneWidget);
+      await tester.ensureVisible(sw);
+      await tester.tap(sw);
+      await tester.pumpAndSettle();
+
+      expect(coordinator.settings.maskSelfWindow, isTrue);
     });
   });
 }

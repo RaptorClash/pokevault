@@ -880,16 +880,31 @@ class ShinyAutoCounterService {
     final pending = _pendingColorSampleBySlot[slot.slotId];
     if (pending == null) return;
 
-    // Wait until a frame with sufficient chroma arrives (skip black/white fades).
-    if (VisualShinyColorDetector.extractHistogram(vf.frame) == null) return;
-    _pendingColorSampleBySlot.remove(slot.slotId);
+    final precomputed = vf.precomputedHistogram;
+    final VisualShinySignal? signal;
+    if (precomputed != null) {
+      if (precomputed.length != 16) return;
+      _pendingColorSampleBySlot.remove(slot.slotId);
+      signal = _colorDetector.analyzeHistogram(
+        precomputed,
+        slotId: slot.slotId,
+        speciesKey: pending.speciesKey,
+        deviationThreshold: slot.settings.colorDeviationThreshold,
+      );
+    } else {
+      final frame = vf.frame;
+      if (frame == null) return;
+      // Wait until a frame with sufficient chroma arrives (skip black/white fades).
+      if (VisualShinyColorDetector.extractHistogram(frame) == null) return;
+      _pendingColorSampleBySlot.remove(slot.slotId);
 
-    final signal = _colorDetector.analyzeEncounterFrame(
-      vf.frame,
-      slotId: slot.slotId,
-      speciesKey: pending.speciesKey,
-      deviationThreshold: slot.settings.colorDeviationThreshold,
-    );
+      signal = _colorDetector.analyzeEncounterFrame(
+        frame,
+        slotId: slot.slotId,
+        speciesKey: pending.speciesKey,
+        deviationThreshold: slot.settings.colorDeviationThreshold,
+      );
+    }
     if (signal != null) {
       final decision = slot.onVisualShinySignal(signal);
       await _applyDecision(

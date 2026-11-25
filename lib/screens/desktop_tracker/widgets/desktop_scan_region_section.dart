@@ -347,8 +347,9 @@ class DesktopScanRegionSection extends StatelessWidget {
                 ],
                 if (hasCustomRegion || selectedWindow != null) ...[
                   const SizedBox(height: 8),
-                  ValueListenableBuilder<LiveOcrScanStatus>(
-                    valueListenable: windowSource.liveScanStatusNotifier,
+                  RepaintBoundary(
+                    child: ValueListenableBuilder<LiveOcrScanStatus>(
+                      valueListenable: windowSource.liveScanStatusNotifier,
                     builder: (context, scanStatus, _) {
                       final isMonitor = !hasCustomRegion &&
                           (selectedWindow?.isDesktopScreen ?? false);
@@ -433,6 +434,7 @@ class DesktopScanRegionSection extends StatelessWidget {
                         trailing: trailingAction,
                       );
                     },
+                    ),
                   ),
                 ],
                 const SizedBox(height: 8),

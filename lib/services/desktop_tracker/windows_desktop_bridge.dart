@@ -184,6 +184,126 @@ class NativeHudState {
   }
 }
 
+/// Request payload for the native background `captureAndAnalyze` fast-path.
+class NativeCaptureAnalyzeRequest {
+  final String mode; // 'region' | 'window'
+  final int hwnd;
+  final Rect? cropRegion;
+  final ScreenRegion? screenRegion;
+  final String slotKey;
+  final bool forceOcr;
+  final String? languageTag;
+  final String preprocessProfile;
+  final bool maskSelfWindow;
+  final bool computeColorHistogram;
+  final bool includeThumbnail;
+  final int thumbnailMaxWidth;
+  final bool multiBandFallback;
+
+  const NativeCaptureAnalyzeRequest({
+    required this.mode,
+    this.hwnd = 0,
+    this.cropRegion,
+    this.screenRegion,
+    required this.slotKey,
+    this.forceOcr = false,
+    this.languageTag,
+    this.preprocessProfile = 'standard',
+    this.maskSelfWindow = false,
+    this.computeColorHistogram = false,
+    this.includeThumbnail = false,
+    this.thumbnailMaxWidth = 320,
+    this.multiBandFallback = false,
+  });
+
+  Map<String, dynamic> toMap() => {
+        'mode': mode,
+        'hwnd': hwnd,
+        if (cropRegion != null)
+          'cropRegion': {
+            'x': cropRegion!.left,
+            'y': cropRegion!.top,
+            'width': cropRegion!.width,
+            'height': cropRegion!.height,
+          },
+        if (screenRegion != null)
+          'screenRegion': {
+            'x': screenRegion!.x,
+            'y': screenRegion!.y,
+            'width': screenRegion!.width,
+            'height': screenRegion!.height,
+          },
+        'slotKey': slotKey,
+        'forceOcr': forceOcr,
+        if (languageTag != null && languageTag!.isNotEmpty)
+          'languageTag': languageTag,
+        'preprocessProfile': preprocessProfile,
+        'maskSelfWindow': maskSelfWindow,
+        'computeColorHistogram': computeColorHistogram,
+        'includeThumbnail': includeThumbnail,
+        'thumbnailMaxWidth': thumbnailMaxWidth,
+        'multiBandFallback': multiBandFallback,
+      };
+}
+
+/// Lightweight response returned by native `captureAndAnalyze` without transferring raw full-res pixels.
+class NativeCaptureAnalyzeResult {
+  final bool captured;
+  final bool ocrSkipped;
+  final List<String> lines;
+  final bool usedFallbackLanguage;
+  final String? resolvedLanguageTag;
+  final String? requestedLanguageTag;
+  final List<String> availableLanguageTags;
+  final bool ocrSucceeded;
+  final String? errorHint;
+  final int captureDurationMs;
+  final int ocrDurationMs;
+  final int frameWidth;
+  final int frameHeight;
+  final String captureMethod;
+  final String brightnessSummary;
+  final double? avgLuma;
+  final double? stdDev;
+  final List<double>? colorHistogram;
+  final bool selfWindowOverlaps;
+  final CapturedFrame? thumbnailFrame;
+
+  const NativeCaptureAnalyzeResult({
+    this.captured = false,
+    this.ocrSkipped = true,
+    this.lines = const [],
+    this.usedFallbackLanguage = false,
+    this.resolvedLanguageTag,
+    this.requestedLanguageTag,
+    this.availableLanguageTags = const [],
+    this.ocrSucceeded = true,
+    this.errorHint,
+    this.captureDurationMs = 0,
+    this.ocrDurationMs = 0,
+    this.frameWidth = 0,
+    this.frameHeight = 0,
+    this.captureMethod = 'unknown',
+    this.brightnessSummary = '',
+    this.avgLuma,
+    this.stdDev,
+    this.colorHistogram,
+    this.selfWindowOverlaps = false,
+    this.thumbnailFrame,
+  });
+
+  OcrRecognitionResult toOcrRecognitionResult() => OcrRecognitionResult(
+        lines: lines,
+        usedFallbackLanguage: usedFallbackLanguage,
+        resolvedLanguageTag: resolvedLanguageTag,
+        requestedLanguageTag: requestedLanguageTag,
+        availableLanguageTags: availableLanguageTags,
+        ocrSucceeded: ocrSucceeded,
+        ocrDurationMs: ocrDurationMs,
+        errorHint: errorHint,
+      );
+}
+
 /// Abstract platform bridge for desktop tracker operations.
 abstract class DesktopPlatformBridge {
   ValueChanged<NativeHudAction>? get onHudAction;
@@ -210,6 +330,13 @@ abstract class DesktopPlatformBridge {
     String? languageTag,
     String? preprocessProfile,
   });
+
+  Future<NativeCaptureAnalyzeResult?> captureAndAnalyze(
+    NativeCaptureAnalyzeRequest request,
+  ) async =>
+      null;
+
+  Future<void> clearNativeScanCache() async {}
 
   Future<bool> showFloatingHud(NativeHudState state);
 
@@ -601,6 +728,90 @@ class WindowsDesktopBridge implements DesktopPlatformBridge {
         errorHint: e.toString(),
       );
     }
+  }
+
+  @override
+  Future<NativeCaptureAnalyzeResult?> captureAndAnalyze(
+    NativeCaptureAnalyzeRequest request,
+  ) async {
+    try {
+      final raw = await channel.invokeMapMethod<String, dynamic>(
+        'captureAndAnalyze',
+        request.toMap(),
+      );
+      if (raw == null) return null;
+
+      final linesRaw = raw['lines'] as List? ?? const [];
+      final lines = linesRaw
+          .map((e) => e.toString().trim())
+          .where((e) => e.isNotEmpty)
+          .toList();
+      final availRaw = raw['availableLanguages'] as List? ?? const [];
+      final availTags = availRaw
+          .map((e) => e.toString().trim())
+          .where((e) => e.isNotEmpty)
+          .toList();
+
+      List<double>? hist;
+      final rawHist = raw['colorHistogram'];
+      if (rawHist is List && rawHist.length == 16) {
+        hist = rawHist
+            .map((e) => (e is num) ? e.toDouble() : 0.0)
+            .toList(growable: false);
+      }
+
+      CapturedFrame? thumb;
+      final thumbBytesRaw = raw['thumbnailPng'];
+      final thumbW = (raw['thumbnailWidth'] as num?)?.toInt() ?? 0;
+      final thumbH = (raw['thumbnailHeight'] as num?)?.toInt() ?? 0;
+      if (thumbBytesRaw is List && thumbW > 0 && thumbH > 0) {
+        final Uint8List pngBytes = thumbBytesRaw is Uint8List
+            ? thumbBytesRaw
+            : Uint8List.fromList(thumbBytesRaw.cast<int>());
+        if (pngBytes.isNotEmpty) {
+          thumb = CapturedFrame(
+            width: thumbW,
+            height: thumbH,
+            bytes: pngBytes,
+            pixelFormat: 'png',
+            captureMethod: raw['captureMethod'] as String?,
+          );
+        }
+      }
+
+      return NativeCaptureAnalyzeResult(
+        captured: raw['captured'] as bool? ?? false,
+        ocrSkipped: raw['ocrSkipped'] as bool? ?? true,
+        lines: lines,
+        usedFallbackLanguage: raw['usedFallbackLanguage'] as bool? ?? false,
+        resolvedLanguageTag: raw['resolvedLanguageTag'] as String?,
+        requestedLanguageTag:
+            (raw['requestedLanguageTag'] as String?) ?? request.languageTag,
+        availableLanguageTags: availTags,
+        ocrSucceeded: raw['ocrSucceeded'] as bool? ?? true,
+        errorHint: raw['errorHint'] as String?,
+        captureDurationMs: (raw['captureDurationMs'] as num?)?.toInt() ?? 0,
+        ocrDurationMs: (raw['ocrDurationMs'] as num?)?.toInt() ?? 0,
+        frameWidth: (raw['frameWidth'] as num?)?.toInt() ?? 0,
+        frameHeight: (raw['frameHeight'] as num?)?.toInt() ?? 0,
+        captureMethod: (raw['captureMethod'] as String?) ?? 'unknown',
+        brightnessSummary: (raw['brightnessSummary'] as String?) ?? '',
+        avgLuma: (raw['avgLuma'] as num?)?.toDouble(),
+        stdDev: (raw['stdDev'] as num?)?.toDouble(),
+        colorHistogram: hist,
+        selfWindowOverlaps: raw['selfWindowOverlaps'] as bool? ?? false,
+        thumbnailFrame: thumb,
+      );
+    } catch (_) {
+      return null;
+    }
+  }
+
+  @override
+  Future<void> clearNativeScanCache() async {
+    try {
+      await channel.invokeMethod<bool>('clearScanCache');
+    } catch (_) {}
   }
 
   @override

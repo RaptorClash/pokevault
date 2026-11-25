@@ -263,5 +263,48 @@ void main() {
       expect(ev, isNotNull);
       expect(ev!.type, equals(FrameTransitionType.blackScreenEnded));
     });
+
+    test('analyzeLuminance matches analyzeFrame parity and handles boundary inputs safely', () {
+      var clock = Duration.zero;
+      final frameDet = FrameTransitionDetector(
+        minTransitionDuration: const Duration(milliseconds: 300),
+        elapsedClock: () => clock,
+      );
+      final lumaDet = FrameTransitionDetector(
+        minTransitionDuration: const Duration(milliseconds: 300),
+        elapsedClock: () => clock,
+      );
+
+      final normal = _solidBgraFrame(width: 16, height: 16, b: 120, g: 120, r: 120);
+      final black = _solidBgraFrame(width: 16, height: 16, b: 2, g: 2, r: 2);
+
+      // NaN / negative / >255 inputs must not crash or trigger transitions
+      expect(
+        lumaDet.analyzeLuminance(avgLuma: double.nan, stdDev: 0.0, slotId: 1),
+        isNull,
+      );
+      expect(
+        lumaDet.analyzeLuminance(avgLuma: -10.0, stdDev: double.nan, slotId: 1),
+        isNull,
+      );
+
+      expect(frameDet.analyzeFrame(normal, slotId: 1), isNull);
+      expect(lumaDet.analyzeLuminance(avgLuma: 120.0, stdDev: 0.0, slotId: 1), isNull);
+
+      clock += const Duration(milliseconds: 100);
+      expect(frameDet.analyzeFrame(black, slotId: 1), isNull);
+      expect(lumaDet.analyzeLuminance(avgLuma: 2.0, stdDev: 0.0, slotId: 1), isNull);
+
+      // Brief recovery < 300ms does not emit
+      clock += const Duration(milliseconds: 400);
+      final evFrame = frameDet.analyzeFrame(normal, slotId: 1);
+      final evLuma = lumaDet.analyzeLuminance(avgLuma: 120.0, stdDev: 0.0, slotId: 1);
+
+      expect(evFrame, isNotNull);
+      expect(evLuma, isNotNull);
+      expect(evLuma!.type, equals(evFrame!.type));
+      expect(evLuma.durationMs, equals(evFrame.durationMs));
+      expect(evLuma.slotId, equals(evFrame.slotId));
+    });
   });
 }

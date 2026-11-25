@@ -218,5 +218,73 @@ void main() {
         isNull,
       );
     });
+
+    test('analyzeHistogram matches analyzeEncounterFrame parity and rejects invalid histograms', () {
+      final detFrame = VisualShinyColorDetector();
+      final detHist = VisualShinyColorDetector();
+
+      final blue = _makeSolidBgraFrame(width: 48, height: 48, r: 30, g: 110, b: 235);
+      final green = _makeSolidBgraFrame(width: 48, height: 48, r: 30, g: 220, b: 65);
+      final blueHist = VisualShinyColorDetector.extractHistogram(blue)!;
+      final greenHist = VisualShinyColorDetector.extractHistogram(green)!;
+
+      // Invalid/empty/short histograms safely return null
+      expect(
+        detHist.analyzeHistogram(
+          const [],
+          slotId: 1,
+          speciesKey: '25',
+          deviationThreshold: 0.35,
+        ),
+        isNull,
+      );
+      expect(
+        detHist.analyzeHistogram(
+          const [0.5, 0.5],
+          slotId: 1,
+          speciesKey: '25',
+          deviationThreshold: 0.35,
+        ),
+        isNull,
+      );
+
+      for (int i = 0; i < 3; i++) {
+        expect(
+          detFrame.analyzeEncounterFrame(
+            blue,
+            slotId: 1,
+            speciesKey: '25',
+            deviationThreshold: 0.38,
+          ),
+          isNull,
+        );
+        expect(
+          detHist.analyzeHistogram(
+            blueHist,
+            slotId: 1,
+            speciesKey: '25',
+            deviationThreshold: 0.38,
+          ),
+          isNull,
+        );
+      }
+
+      final sigFrame = detFrame.analyzeEncounterFrame(
+        green,
+        slotId: 1,
+        speciesKey: '25',
+        deviationThreshold: 0.38,
+      );
+      final sigHist = detHist.analyzeHistogram(
+        greenHist,
+        slotId: 1,
+        speciesKey: '25',
+        deviationThreshold: 0.38,
+      );
+      expect(sigFrame, isNotNull);
+      expect(sigHist, isNotNull);
+      expect(sigHist!.score, closeTo(sigFrame!.score, 0.0001));
+      expect(sigHist.source, equals(ShinyDetectionSource.colorDeviation));
+    });
   });
 }

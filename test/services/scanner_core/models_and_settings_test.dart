@@ -328,5 +328,30 @@ void main() {
       expect(reloaded.extraFocusRegions.first.x, 600);
       expect(reloaded.extraFocusRegions.first.label, 'Fokus B2');
     });
+
+    test('ScannerSettings maskSelfWindow and suppressSelfScanWarning default false and roundtrip cleanly', () async {
+      SharedPreferences.setMockInitialValues({});
+      final service = ScannerPersistenceService();
+
+      final defaults = ScannerSettings.defaults();
+      expect(defaults.maskSelfWindow, isFalse);
+      expect(defaults.suppressSelfScanWarning, isFalse);
+
+      final updated = defaults.copyWith(
+        maskSelfWindow: true,
+        suppressSelfScanWarning: true,
+      );
+      expect(updated.maskSelfWindow, isTrue);
+      expect(updated.suppressSelfScanWarning, isTrue);
+
+      final roundtrip = ScannerSettings.fromMap(updated.toMap());
+      expect(roundtrip.maskSelfWindow, isTrue);
+      expect(roundtrip.suppressSelfScanWarning, isTrue);
+
+      await service.saveScannerSettings(updated);
+      final reloaded = await service.loadScannerSettings();
+      expect(reloaded.maskSelfWindow, isTrue);
+      expect(reloaded.suppressSelfScanWarning, isTrue);
+    });
   });
 }
