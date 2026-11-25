@@ -1,5 +1,6 @@
 import '../scanner_core/engine/ocr_detection_engine.dart';
 import '../scanner_core/media/frame_transition_detector.dart';
+import '../scanner_core/media/visual_shiny_detector.dart';
 import '../scanner_core/models/scanner_event.dart';
 import 'shiny_auto_counter_config.dart';
 
@@ -445,5 +446,24 @@ class ShinySlotStateMachine {
           : 'white_screen',
     );
     return const ShinyCountDecision.none('rearm_from_transition');
+  }
+
+  /// Processes a visual Shiny heuristic signal ([SparkleDelayDetector] or [VisualShinyColorDetector]).
+  /// Only fires when the slot has just counted an encounter (`ShinySlotPhase.counted`)
+  /// and is not already paused.
+  ShinyCountDecision onVisualShinySignal(VisualShinySignal signal) {
+    if (_phase != ShinySlotPhase.counted) {
+      return const ShinyCountDecision.none('visual_shiny_slot_not_counted');
+    }
+    _lastEventAt = DateTime.now();
+    _lastTriggerLabel = '${signal.source.name}:${signal.details}';
+    if (settings.autoPauseSlotOnShiny) {
+      _phase = ShinySlotPhase.pausedByShiny;
+    }
+    return ShinyCountDecision.shinyAlert(
+      reason: '${signal.source.name}:${signal.details}',
+      pokemonId: targetPokemonId,
+      pokemonName: targetPokemonName,
+    );
   }
 }

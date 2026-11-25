@@ -90,8 +90,16 @@ void main() {
 
     expect(find.byType(RotomUpdateWelcomeDialog), findsNothing);
     expect(tutProvider.isScannerDeltaTourActive, isTrue);
-    // HomeScreen Delta Tour TutorialOverlay should now highlight the Scanner action button
+    // HomeScreen v1.7 Delta Tour Step 1: Shiny Hunt overview
     expect(find.byType(TutorialOverlay), findsOneWidget);
+    expect(find.text(t.tutorial_v17_home_shiny_title), findsOneWidget);
+
+    await tester.tap(find.text(t.tutorial_next));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+
+    // Step 2: Scanner icon highlight
+    expect(find.text(t.tutorial_scanner_home_delta_title), findsOneWidget);
 
     // Tapping the highlighted Scanner action button ends Delta-Tour and launches MobileCameraTrackerScreen
     await tester.tap(find.byIcon(Icons.photo_camera_outlined), warnIfMissed: false);

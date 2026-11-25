@@ -16,6 +16,7 @@ import '../../../services/scanner_core/source/scanner_source.dart';
 import '../../../services/shiny_auto_counter/shiny_auto_counter_config.dart';
 import '../../../services/shiny_auto_counter/shiny_auto_counter_service.dart';
 import '../../../utils/tracker_platform_helper.dart';
+import '../controllers/shiny_auto_counter_setup_tutorial_controller.dart';
 
 /// Bottom sheet / modal for configuring and launching the visual Shiny-Hunt auto-counter.
 class ShinyAutoCounterSetupSheet extends StatefulWidget {
@@ -83,6 +84,8 @@ class _ShinyAutoCounterSetupSheetState
   final TextEditingController _resetController = TextEditingController();
   late final TextEditingController _cooldownController;
   late final TextEditingController _transitionDurationController;
+  final ShinyAutoCounterSetupTutorialController _tutorialController =
+      ShinyAutoCounterSetupTutorialController();
 
   ShinyAutoCounterService get _service =>
       widget.service ?? ShinyAutoCounterService.instance;
@@ -105,6 +108,13 @@ class _ShinyAutoCounterSetupSheetState
     );
 
     unawaited(_loadPersistedSettings());
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _tutorialController.showIfNeeded(
+        context: context,
+        isMounted: mounted,
+        perHuntOverride: widget.perHuntOverride,
+      );
+    });
   }
 
   Future<void> _loadPersistedSettings() async {
@@ -404,374 +414,417 @@ class _ShinyAutoCounterSetupSheetState
             const SizedBox(height: 12),
 
             // 1. Source status & launcher (hidden for per-hunt rule modal)
-            if (!widget.perHuntOverride) ...[
-              Text(
-                t.shiny_auto_source_section,
-                style: theme.textTheme.labelLarge
-                    ?.copyWith(fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 6),
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.surfaceContainerHighest
-                      .withValues(alpha: 0.45),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Row(
+            if (!widget.perHuntOverride)
+              Column(
+                key: _tutorialController.sourceSectionKey,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text(
+                    t.shiny_auto_source_section,
+                    style: theme.textTheme.labelLarge
+                        ?.copyWith(fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 6),
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.surfaceContainerHighest
+                          .withValues(alpha: 0.45),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        Icon(
-                          hasActiveSource
-                              ? Icons.check_circle
-                              : Icons.sensors_off,
-                          size: 18,
-                          color: hasActiveSource ? Colors.green : Colors.orange,
+                        Row(
+                          children: [
+                            Icon(
+                              hasActiveSource
+                                  ? Icons.check_circle
+                                  : Icons.sensors_off,
+                              size: 18,
+                              color:
+                                  hasActiveSource ? Colors.green : Colors.orange,
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                hasActiveSource
+                                    ? '${t.shiny_auto_source_connected} (${active.slotIds.length}×)'
+                                    : t.shiny_auto_source_none,
+                                style: const TextStyle(fontSize: 12),
+                              ),
+                            ),
+                          ],
                         ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            hasActiveSource
-                                ? '${t.shiny_auto_source_connected} (${active.slotIds.length}×)'
-                                : t.shiny_auto_source_none,
-                            style: const TextStyle(fontSize: 12),
+                        if (widget.showSourceLauncher) ...[
+                          const SizedBox(height: 8),
+                          OutlinedButton.icon(
+                            icon: Icon(
+                              TrackerPlatformHelper.isMobile
+                                  ? Icons.camera_alt_outlined
+                                  : Icons.desktop_windows_outlined,
+                              size: 16,
+                            ),
+                            label: Text(
+                              TrackerPlatformHelper.isMobile
+                                  ? t.shiny_auto_open_mobile_scanner
+                                  : t.shiny_auto_open_desktop_scanner,
+                              style: const TextStyle(fontSize: 12),
+                            ),
+                            onPressed: () {
+                              final dexProvider = Provider.of<DexProvider>(
+                                context,
+                                listen: false,
+                              );
+                              ScannerLauncherHelper.openPlatformTracker(
+                                context,
+                                allPokemon: dexProvider.allPokemon,
+                                dexId: widget.hunt.targetDexId,
+                              );
+                            },
                           ),
-                        ),
+                        ],
                       ],
                     ),
-                    if (widget.showSourceLauncher) ...[
-                      const SizedBox(height: 8),
-                      OutlinedButton.icon(
-                        icon: Icon(
-                          TrackerPlatformHelper.isMobile
-                              ? Icons.camera_alt_outlined
-                              : Icons.desktop_windows_outlined,
-                          size: 16,
-                        ),
-                        label: Text(
-                          TrackerPlatformHelper.isMobile
-                              ? t.shiny_auto_open_mobile_scanner
-                              : t.shiny_auto_open_desktop_scanner,
-                          style: const TextStyle(fontSize: 12),
-                        ),
-                        onPressed: () {
-                          final dexProvider =
-                              Provider.of<DexProvider>(context, listen: false);
-                          ScannerLauncherHelper.openPlatformTracker(
-                            context,
-                            allPokemon: dexProvider.allPokemon,
-                            dexId: widget.hunt.targetDexId,
-                          );
-                        },
-                      ),
-                    ],
-                  ],
-                ),
+                  ),
+                  const SizedBox(height: 14),
+                ],
               ),
-              const SizedBox(height: 14),
-            ],
 
             // 2. Detection Mode Preset
-            Text(
-              t.shiny_auto_mode_section,
-              style: theme.textTheme.labelLarge
-                  ?.copyWith(fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 6),
-            Wrap(
-              spacing: 8,
-              runSpacing: 6,
-              children: ShinyHuntDetectionMode.values.map((mode) {
-                final selected = _settings.detectionMode == mode;
-                return ChoiceChip(
-                  key: Key('setup_mode_${mode.name}'),
-                  label:
-                      Text(_modeLabel(mode), style: const TextStyle(fontSize: 12)),
-                  selected: selected,
-                  onSelected: (_) {
-                    final targetEventType = mode == ShinyHuntDetectionMode.eggHatch
-                        ? ScannerEventType.eggHatched
-                        : ScannerEventType.encounter;
-                    final updatedTriggers = _settings.customTriggerPatterns
-                        .map(
-                          (p) => CustomOcrPattern(
-                            id: p.id,
-                            template: p.template,
-                            eventType: targetEventType,
-                            enabled: p.enabled,
-                          ),
-                        )
-                        .toList();
-                    _updateSettings(
-                      _settings.copyWith(
-                        detectionMode: mode,
-                        matchFilter: mode.defaultMatchFilter,
-                        customTriggerPatterns: updatedTriggers,
-                      ),
-                    );
-                  },
-                );
-              }).toList(),
-            ),
-            const SizedBox(height: 8),
-            Container(
-              key: const Key('setup_mode_info_box'),
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-              decoration: BoxDecoration(
-                color: theme.colorScheme.primaryContainer.withValues(alpha: 0.35),
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(
-                  color: theme.colorScheme.primary.withValues(alpha: 0.3),
-                ),
-              ),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Icon(
-                    Icons.info_outline_rounded,
-                    size: 16,
-                    color: theme.colorScheme.primary,
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      _modeDescription(_settings.detectionMode),
-                      style: theme.textTheme.bodySmall?.copyWith(fontSize: 11.5),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 12),
-
-            // 3. Match filter & transition toggles
-            if (!isTransitionOnly) ...[
-              Text(
-                t.shiny_auto_filter_section,
-                style: theme.textTheme.labelLarge
-                    ?.copyWith(fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 6),
-              Wrap(
-                spacing: 8,
-                runSpacing: 6,
-                children: [
-                  ChoiceChip(
-                    key: Key(
-                      'setup_filter_${ShinyMatchFilter.allPokemon.name}',
-                    ),
-                    label: Text(t.shiny_auto_filter_all,
-                        style: const TextStyle(fontSize: 12)),
-                    selected:
-                        _settings.matchFilter == ShinyMatchFilter.allPokemon,
-                    onSelected: (_) => _updateSettings(
-                      _settings.copyWith(
-                        matchFilter: ShinyMatchFilter.allPokemon,
-                      ),
-                    ),
-                  ),
-                  ChoiceChip(
-                    key: Key(
-                      'setup_filter_${ShinyMatchFilter.targetPokemonOnly.name}',
-                    ),
-                    label: Text(t.shiny_auto_filter_target,
-                        style: const TextStyle(fontSize: 12)),
-                    selected: _settings.matchFilter ==
-                        ShinyMatchFilter.targetPokemonOnly,
-                    onSelected: (_) => _updateSettings(
-                      _settings.copyWith(
-                        matchFilter: ShinyMatchFilter.targetPokemonOnly,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 4),
-              Text(
-                _settings.matchFilter == ShinyMatchFilter.allPokemon
-                    ? t.shiny_auto_filter_desc_all
-                    : t.shiny_auto_filter_desc_target,
-                style: theme.textTheme.bodySmall?.copyWith(
-                  fontSize: 11,
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
-              ),
-              if (isWildMode)
-                SwitchListTile(
-                  dense: true,
-                  contentPadding: EdgeInsets.zero,
-                  title: Text(t.shiny_auto_horde_toggle,
-                      style: const TextStyle(fontSize: 13)),
-                  subtitle: Text(
-                    t.shiny_auto_horde_desc,
-                    style: const TextStyle(fontSize: 11),
-                  ),
-                  value: _settings.useEventEncounterCount,
-                  onChanged: (v) => _updateSettings(
-                    _settings.copyWith(useEventEncounterCount: v),
-                  ),
-                ),
-            ],
-            SwitchListTile(
-              dense: true,
-              contentPadding: EdgeInsets.zero,
-              title: Text(t.shiny_auto_black_reset_toggle,
-                  style: const TextStyle(fontSize: 13)),
-              subtitle: Text(
-                t.shiny_auto_black_reset_desc,
-                style: const TextStyle(fontSize: 11),
-              ),
-              value: _settings.enableBlackScreenReset,
-              onChanged: (v) => _updateSettings(
-                _settings.copyWith(enableBlackScreenReset: v),
-              ),
-            ),
-            SwitchListTile(
-              dense: true,
-              contentPadding: EdgeInsets.zero,
-              title: Text(t.shiny_auto_white_reset_toggle,
-                  style: const TextStyle(fontSize: 13)),
-              subtitle: Text(
-                t.shiny_auto_white_reset_desc,
-                style: const TextStyle(fontSize: 11),
-              ),
-              value: _settings.enableWhiteScreenReset,
-              onChanged: (v) => _updateSettings(
-                _settings.copyWith(enableWhiteScreenReset: v),
-              ),
-            ),
-            const SizedBox(height: 10),
-
-            // 4. Custom Trigger & Reset Patterns
-            if (!isTransitionOnly) ...[
-              Text(
-                t.shiny_auto_custom_triggers,
-                style: theme.textTheme.labelLarge
-                    ?.copyWith(fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 2),
-              Text(
-                t.shiny_auto_custom_triggers_desc,
-                style: theme.textTheme.bodySmall?.copyWith(
-                  fontSize: 11,
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      key: const Key('setup_custom_trigger_field'),
-                      controller: _triggerController,
-                      decoration: InputDecoration(
-                        isDense: true,
-                        hintText: t.shiny_auto_custom_trigger_hint,
-                        border: const OutlineInputBorder(),
-                      ),
-                      onSubmitted: (_) => _addCustomTrigger(),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  FilledButton.tonal(
-                    key: const Key('setup_add_trigger_btn'),
-                    onPressed: _addCustomTrigger,
-                    child: Text(t.shiny_auto_add_btn),
-                  ),
-                ],
-              ),
-              if (_settings.customTriggerPatterns.isNotEmpty)
-                Padding(
-                  padding: const EdgeInsets.only(top: 6),
-                  child: Wrap(
-                    spacing: 6,
-                    runSpacing: 4,
-                    children: _settings.customTriggerPatterns.map((p) {
-                      return InputChip(
-                        label: Text(p.template,
-                            style: const TextStyle(fontSize: 11)),
-                        onDeleted: () {
-                          _updateSettings(
-                            _settings.copyWith(
-                              customTriggerPatterns: _settings
-                                  .customTriggerPatterns
-                                  .where((e) => e.id != p.id)
-                                  .toList(),
-                            ),
-                          );
-                        },
-                      );
-                    }).toList(),
-                  ),
-                ),
-              const SizedBox(height: 10),
-            ],
-
-            Text(
-              t.shiny_auto_custom_resets,
-              style: theme.textTheme.labelLarge
-                  ?.copyWith(fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 2),
-            Text(
-              t.shiny_auto_custom_resets_desc,
-              style: theme.textTheme.bodySmall?.copyWith(
-                fontSize: 11,
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Row(
+            Column(
+              key: _tutorialController.modeSectionKey,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Expanded(
-                  child: TextField(
-                    key: const Key('setup_custom_reset_field'),
-                    controller: _resetController,
-                    decoration: InputDecoration(
-                      isDense: true,
-                      hintText: t.shiny_auto_custom_reset_hint,
-                      border: const OutlineInputBorder(),
-                    ),
-                    onSubmitted: (_) => _addCustomReset(),
-                  ),
+                Text(
+                  t.shiny_auto_mode_section,
+                  style: theme.textTheme.labelLarge
+                      ?.copyWith(fontWeight: FontWeight.bold),
                 ),
-                const SizedBox(width: 8),
-                FilledButton.tonal(
-                  key: const Key('setup_add_reset_btn'),
-                  onPressed: _addCustomReset,
-                  child: Text(t.shiny_auto_add_btn),
-                ),
-              ],
-            ),
-            if (_settings.customResetPatterns.isNotEmpty)
-              Padding(
-                padding: const EdgeInsets.only(top: 6),
-                child: Wrap(
-                  spacing: 6,
-                  runSpacing: 4,
-                  children:
-                      _settings.customResetPatterns.asMap().entries.map((e) {
-                    return InputChip(
-                      label:
-                          Text(e.value, style: const TextStyle(fontSize: 11)),
-                      onDeleted: () {
-                        final next = List<String>.from(
-                          _settings.customResetPatterns,
-                        )..removeAt(e.key);
+                const SizedBox(height: 6),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 6,
+                  children: ShinyHuntDetectionMode.values.map((mode) {
+                    final selected = _settings.detectionMode == mode;
+                    return ChoiceChip(
+                      key: Key('setup_mode_${mode.name}'),
+                      label: Text(_modeLabel(mode),
+                          style: const TextStyle(fontSize: 12)),
+                      selected: selected,
+                      onSelected: (_) {
+                        final targetEventType =
+                            mode == ShinyHuntDetectionMode.eggHatch
+                                ? ScannerEventType.eggHatched
+                                : ScannerEventType.encounter;
+                        final updatedTriggers = _settings.customTriggerPatterns
+                            .map(
+                              (p) => CustomOcrPattern(
+                                id: p.id,
+                                template: p.template,
+                                eventType: targetEventType,
+                                enabled: p.enabled,
+                              ),
+                            )
+                            .toList();
                         _updateSettings(
-                          _settings.copyWith(customResetPatterns: next),
+                          _settings.copyWith(
+                            detectionMode: mode,
+                            matchFilter: mode.defaultMatchFilter,
+                            customTriggerPatterns: updatedTriggers,
+                          ),
                         );
                       },
                     );
                   }).toList(),
                 ),
-              ),
-            const SizedBox(height: 12),
+                const SizedBox(height: 8),
+                Container(
+                  key: const Key('setup_mode_info_box'),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.primaryContainer
+                        .withValues(alpha: 0.35),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(
+                      color: theme.colorScheme.primary.withValues(alpha: 0.3),
+                    ),
+                  ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Icon(
+                        Icons.info_outline_rounded,
+                        size: 16,
+                        color: theme.colorScheme.primary,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          _modeDescription(_settings.detectionMode),
+                          style: theme.textTheme.bodySmall
+                              ?.copyWith(fontSize: 11.5),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                if (_settings.detectionMode ==
+                    ShinyHuntDetectionMode.softReset) ...[
+                  const SizedBox(height: 6),
+                  Text(
+                    t.shiny_auto_soft_reset_starter_hint,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      fontSize: 11,
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+                const SizedBox(height: 12),
+              ],
+            ),
+
+            // 3. Match filter & transition toggles
+            Column(
+              key: _tutorialController.filterResetSectionKey,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                if (!isTransitionOnly) ...[
+                  Text(
+                    t.shiny_auto_filter_section,
+                    style: theme.textTheme.labelLarge
+                        ?.copyWith(fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 6),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 6,
+                    children: [
+                      ChoiceChip(
+                        key: Key(
+                          'setup_filter_${ShinyMatchFilter.allPokemon.name}',
+                        ),
+                        label: Text(t.shiny_auto_filter_all,
+                            style: const TextStyle(fontSize: 12)),
+                        selected:
+                            _settings.matchFilter == ShinyMatchFilter.allPokemon,
+                        onSelected: (_) => _updateSettings(
+                          _settings.copyWith(
+                            matchFilter: ShinyMatchFilter.allPokemon,
+                          ),
+                        ),
+                      ),
+                      ChoiceChip(
+                        key: Key(
+                          'setup_filter_${ShinyMatchFilter.targetPokemonOnly.name}',
+                        ),
+                        label: Text(t.shiny_auto_filter_target,
+                            style: const TextStyle(fontSize: 12)),
+                        selected: _settings.matchFilter ==
+                            ShinyMatchFilter.targetPokemonOnly,
+                        onSelected: (_) => _updateSettings(
+                          _settings.copyWith(
+                            matchFilter: ShinyMatchFilter.targetPokemonOnly,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    _settings.matchFilter == ShinyMatchFilter.allPokemon
+                        ? t.shiny_auto_filter_desc_all
+                        : t.shiny_auto_filter_desc_target,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      fontSize: 11,
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                  if (isWildMode)
+                    SwitchListTile(
+                      dense: true,
+                      contentPadding: EdgeInsets.zero,
+                      title: Text(t.shiny_auto_horde_toggle,
+                          style: const TextStyle(fontSize: 13)),
+                      subtitle: Text(
+                        t.shiny_auto_horde_desc,
+                        style: const TextStyle(fontSize: 11),
+                      ),
+                      value: _settings.useEventEncounterCount,
+                      onChanged: (v) => _updateSettings(
+                        _settings.copyWith(useEventEncounterCount: v),
+                      ),
+                    ),
+                ],
+                SwitchListTile(
+                  dense: true,
+                  contentPadding: EdgeInsets.zero,
+                  title: Text(t.shiny_auto_black_reset_toggle,
+                      style: const TextStyle(fontSize: 13)),
+                  subtitle: Text(
+                    t.shiny_auto_black_reset_desc,
+                    style: const TextStyle(fontSize: 11),
+                  ),
+                  value: _settings.enableBlackScreenReset,
+                  onChanged: (v) => _updateSettings(
+                    _settings.copyWith(enableBlackScreenReset: v),
+                  ),
+                ),
+                SwitchListTile(
+                  dense: true,
+                  contentPadding: EdgeInsets.zero,
+                  title: Text(t.shiny_auto_white_reset_toggle,
+                      style: const TextStyle(fontSize: 13)),
+                  subtitle: Text(
+                    t.shiny_auto_white_reset_desc,
+                    style: const TextStyle(fontSize: 11),
+                  ),
+                  value: _settings.enableWhiteScreenReset,
+                  onChanged: (v) => _updateSettings(
+                    _settings.copyWith(enableWhiteScreenReset: v),
+                  ),
+                ),
+                const SizedBox(height: 10),
+              ],
+            ),
+
+            // 4. Custom Trigger & Reset Patterns
+            Column(
+              key: _tutorialController.customPatternsSectionKey,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                if (!isTransitionOnly) ...[
+                  Text(
+                    t.shiny_auto_custom_triggers,
+                    style: theme.textTheme.labelLarge
+                        ?.copyWith(fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    t.shiny_auto_custom_triggers_desc,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      fontSize: 11,
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          key: const Key('setup_custom_trigger_field'),
+                          controller: _triggerController,
+                          decoration: InputDecoration(
+                            isDense: true,
+                            hintText: t.shiny_auto_custom_trigger_hint,
+                            border: const OutlineInputBorder(),
+                          ),
+                          onSubmitted: (_) => _addCustomTrigger(),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      FilledButton.tonal(
+                        key: const Key('setup_add_trigger_btn'),
+                        onPressed: _addCustomTrigger,
+                        child: Text(t.shiny_auto_add_btn),
+                      ),
+                    ],
+                  ),
+                  if (_settings.customTriggerPatterns.isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 6),
+                      child: Wrap(
+                        spacing: 6,
+                        runSpacing: 4,
+                        children: _settings.customTriggerPatterns.map((p) {
+                          return InputChip(
+                            label: Text(p.template,
+                                style: const TextStyle(fontSize: 11)),
+                            onDeleted: () {
+                              _updateSettings(
+                                _settings.copyWith(
+                                  customTriggerPatterns: _settings
+                                      .customTriggerPatterns
+                                      .where((e) => e.id != p.id)
+                                      .toList(),
+                                ),
+                              );
+                            },
+                          );
+                        }).toList(),
+                      ),
+                    ),
+                  const SizedBox(height: 10),
+                ],
+
+                Text(
+                  t.shiny_auto_custom_resets,
+                  style: theme.textTheme.labelLarge
+                      ?.copyWith(fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  t.shiny_auto_custom_resets_desc,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    fontSize: 11,
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        key: const Key('setup_custom_reset_field'),
+                        controller: _resetController,
+                        decoration: InputDecoration(
+                          isDense: true,
+                          hintText: t.shiny_auto_custom_reset_hint,
+                          border: const OutlineInputBorder(),
+                        ),
+                        onSubmitted: (_) => _addCustomReset(),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    FilledButton.tonal(
+                      key: const Key('setup_add_reset_btn'),
+                      onPressed: _addCustomReset,
+                      child: Text(t.shiny_auto_add_btn),
+                    ),
+                  ],
+                ),
+                if (_settings.customResetPatterns.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 6),
+                    child: Wrap(
+                      spacing: 6,
+                      runSpacing: 4,
+                      children:
+                          _settings.customResetPatterns.asMap().entries.map((e) {
+                        return InputChip(
+                          label:
+                              Text(e.value, style: const TextStyle(fontSize: 11)),
+                          onDeleted: () {
+                            final next = List<String>.from(
+                              _settings.customResetPatterns,
+                            )..removeAt(e.key);
+                            _updateSettings(
+                              _settings.copyWith(customResetPatterns: next),
+                            );
+                          },
+                        );
+                      }).toList(),
+                    ),
+                  ),
+                const SizedBox(height: 12),
+              ],
+            ),
 
             // 5. Advanced / Timing Tuning (Slider + Custom ms input + Luma Thresholds)
-            ExpansionTile(
+            KeyedSubtree(
+              key: _tutorialController.timingSectionKey,
+              child: ExpansionTile(
               key: const Key('setup_timing_expansion'),
               tilePadding: EdgeInsets.zero,
               childrenPadding: const EdgeInsets.only(bottom: 8),
@@ -872,89 +925,204 @@ class _ShinyAutoCounterSetupSheetState
                 ),
               ],
             ),
+            ),
             const SizedBox(height: 8),
 
             // 6. Safety & Notifications
-            Text(
-              t.shiny_auto_safety_section,
-              style: theme.textTheme.labelLarge
-                  ?.copyWith(fontWeight: FontWeight.bold),
-            ),
-            SwitchListTile(
-              key: const Key('setup_toggle_sound_count'),
-              dense: true,
-              contentPadding: EdgeInsets.zero,
-              title: Text(t.shiny_auto_sound_count,
-                  style: const TextStyle(fontSize: 13)),
-              value: _settings.playSoundOnCount,
-              onChanged: (v) => _updateSettings(
-                _settings.copyWith(playSoundOnCount: v),
-              ),
-            ),
-            SwitchListTile(
-              dense: true,
-              contentPadding: EdgeInsets.zero,
-              title: Text(t.shiny_auto_haptic_count,
-                  style: const TextStyle(fontSize: 13)),
-              value: _settings.playHapticOnCount,
-              onChanged: (v) => _updateSettings(
-                _settings.copyWith(playHapticOnCount: v),
-              ),
-            ),
-            SwitchListTile(
-              dense: true,
-              contentPadding: EdgeInsets.zero,
-              title: Text(t.shiny_auto_sound_shiny,
-                  style: const TextStyle(fontSize: 13)),
-              value: _settings.playSoundOnShiny,
-              onChanged: (v) => _updateSettings(
-                _settings.copyWith(playSoundOnShiny: v),
-              ),
-            ),
-            SwitchListTile(
-              dense: true,
-              contentPadding: EdgeInsets.zero,
-              title: Text(t.shiny_auto_haptic_shiny,
-                  style: const TextStyle(fontSize: 13)),
-              value: _settings.playHapticOnShiny,
-              onChanged: (v) => _updateSettings(
-                _settings.copyWith(playHapticOnShiny: v),
-              ),
-            ),
-            SwitchListTile(
-              key: const Key('setup_toggle_auto_pause_shiny'),
-              dense: true,
-              contentPadding: EdgeInsets.zero,
-              title: Text(t.shiny_auto_pause_on_shiny,
-                  style: const TextStyle(fontSize: 13)),
-              subtitle: Text(
-                t.shiny_auto_pause_on_shiny_desc,
-                style: const TextStyle(fontSize: 11),
-              ),
-              value: _settings.autoPauseSlotOnShiny,
-              onChanged: (v) => _updateSettings(
-                _settings.copyWith(autoPauseSlotOnShiny: v),
-              ),
-            ),
-            const SizedBox(height: 14),
+            Column(
+              key: _tutorialController.safetyStartSectionKey,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(
+                  t.shiny_auto_safety_section,
+                  style: theme.textTheme.labelLarge
+                      ?.copyWith(fontWeight: FontWeight.bold),
+                ),
+                SwitchListTile(
+                  key: const Key('setup_toggle_sound_count'),
+                  dense: true,
+                  contentPadding: EdgeInsets.zero,
+                  title: Text(t.shiny_auto_sound_count,
+                      style: const TextStyle(fontSize: 13)),
+                  value: _settings.playSoundOnCount,
+                  onChanged: (v) => _updateSettings(
+                    _settings.copyWith(playSoundOnCount: v),
+                  ),
+                ),
+                SwitchListTile(
+                  dense: true,
+                  contentPadding: EdgeInsets.zero,
+                  title: Text(t.shiny_auto_haptic_count,
+                      style: const TextStyle(fontSize: 13)),
+                  value: _settings.playHapticOnCount,
+                  onChanged: (v) => _updateSettings(
+                    _settings.copyWith(playHapticOnCount: v),
+                  ),
+                ),
+                SwitchListTile(
+                  dense: true,
+                  contentPadding: EdgeInsets.zero,
+                  title: Text(t.shiny_auto_sound_shiny,
+                      style: const TextStyle(fontSize: 13)),
+                  value: _settings.playSoundOnShiny,
+                  onChanged: (v) => _updateSettings(
+                    _settings.copyWith(playSoundOnShiny: v),
+                  ),
+                ),
+                SwitchListTile(
+                  dense: true,
+                  contentPadding: EdgeInsets.zero,
+                  title: Text(t.shiny_auto_haptic_shiny,
+                      style: const TextStyle(fontSize: 13)),
+                  value: _settings.playHapticOnShiny,
+                  onChanged: (v) => _updateSettings(
+                    _settings.copyWith(playHapticOnShiny: v),
+                  ),
+                ),
+                SwitchListTile(
+                  key: const Key('setup_toggle_auto_pause_shiny'),
+                  dense: true,
+                  contentPadding: EdgeInsets.zero,
+                  title: Text(t.shiny_auto_pause_on_shiny,
+                      style: const TextStyle(fontSize: 13)),
+                  subtitle: Text(
+                    t.shiny_auto_pause_on_shiny_desc,
+                    style: const TextStyle(fontSize: 11),
+                  ),
+                  value: _settings.autoPauseSlotOnShiny,
+                  onChanged: (v) => _updateSettings(
+                    _settings.copyWith(autoPauseSlotOnShiny: v),
+                  ),
+                ),
+                Container(
+                  margin: const EdgeInsets.only(top: 6, bottom: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 8,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.amber.withValues(alpha: 0.10),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(
+                      color: Colors.amber.withValues(alpha: 0.35),
+                    ),
+                  ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Icon(
+                        Icons.auto_awesome_outlined,
+                        size: 16,
+                        color: Colors.amber,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          t.shiny_auto_shiny_ocr_info,
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            fontSize: 11,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                SwitchListTile(
+                  key: const Key('setup_toggle_sparkle_delay'),
+                  dense: true,
+                  contentPadding: EdgeInsets.zero,
+                  title: Text(t.shiny_auto_sparkle_delay_toggle,
+                      style: const TextStyle(fontSize: 13)),
+                  subtitle: Text(
+                    t.shiny_auto_sparkle_delay_desc,
+                    style: const TextStyle(fontSize: 11),
+                  ),
+                  value: _settings.enableSparkleDelayShinyCheck,
+                  onChanged: (v) => _updateSettings(
+                    _settings.copyWith(enableSparkleDelayShinyCheck: v),
+                  ),
+                ),
+                if (_settings.enableSparkleDelayShinyCheck) ...[
+                  Text(
+                    t.shiny_auto_sparkle_delay_threshold_label.replaceAll(
+                      '{ms}',
+                      _settings.sparkleDelayThresholdMs.toString(),
+                    ),
+                    style: const TextStyle(fontSize: 12),
+                  ),
+                  Slider(
+                    key: const Key('setup_sparkle_delay_slider'),
+                    value: _settings.sparkleDelayThresholdMs
+                        .toDouble()
+                        .clamp(500, 3500),
+                    min: 500,
+                    max: 3500,
+                    divisions: 30,
+                    onChanged: (v) => _updateSettings(
+                      _settings.copyWith(sparkleDelayThresholdMs: v.round()),
+                    ),
+                  ),
+                ],
+                SwitchListTile(
+                  key: const Key('setup_toggle_color_deviation'),
+                  dense: true,
+                  contentPadding: EdgeInsets.zero,
+                  title: Text(t.shiny_auto_color_dev_toggle,
+                      style: const TextStyle(fontSize: 13)),
+                  subtitle: Text(
+                    t.shiny_auto_color_dev_desc,
+                    style: const TextStyle(fontSize: 11),
+                  ),
+                  value: _settings.enableColorDeviationShinyCheck,
+                  onChanged: (v) => _updateSettings(
+                    _settings.copyWith(enableColorDeviationShinyCheck: v),
+                  ),
+                ),
+                if (_settings.enableColorDeviationShinyCheck) ...[
+                  Text(
+                    t.shiny_auto_color_dev_threshold_label.replaceAll(
+                      '{pct}',
+                      (_settings.colorDeviationThreshold * 100)
+                          .round()
+                          .toString(),
+                    ),
+                    style: const TextStyle(fontSize: 12),
+                  ),
+                  Slider(
+                    key: const Key('setup_color_deviation_slider'),
+                    value: (_settings.colorDeviationThreshold * 100)
+                        .clamp(20, 70),
+                    min: 20,
+                    max: 70,
+                    divisions: 25,
+                    onChanged: (v) => _updateSettings(
+                      _settings.copyWith(
+                        colorDeviationThreshold: v.round() / 100.0,
+                      ),
+                    ),
+                  ),
+                ],
+                const SizedBox(height: 14),
 
-            FilledButton.icon(
-              key: const Key('setup_start_btn'),
-              icon: Icon(
-                _service.isRunning
-                    ? Icons.check_rounded
-                    : (hasActiveSource
-                        ? Icons.play_arrow_rounded
-                        : Icons.sensors_rounded),
-              ),
-              label: Text(
-                widget.perHuntOverride || _service.isRunning
-                    ? t.shiny_auto_save_btn
-                    : (hasActiveSource
-                        ? t.shiny_auto_connect_active_source
-                        : t.shiny_auto_start_btn),
-              ),
-              onPressed: _applyOrStart,
+                FilledButton.icon(
+                  key: const Key('setup_start_btn'),
+                  icon: Icon(
+                    _service.isRunning
+                        ? Icons.check_rounded
+                        : (hasActiveSource
+                            ? Icons.play_arrow_rounded
+                            : Icons.sensors_rounded),
+                  ),
+                  label: Text(
+                    widget.perHuntOverride || _service.isRunning
+                        ? t.shiny_auto_save_btn
+                        : (hasActiveSource
+                            ? t.shiny_auto_connect_active_source
+                            : t.shiny_auto_start_btn),
+                  ),
+                  onPressed: _applyOrStart,
+                ),
+              ],
             ),
           ],
         );

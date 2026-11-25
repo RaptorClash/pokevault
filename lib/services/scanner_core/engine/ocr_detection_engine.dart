@@ -94,35 +94,42 @@ class OcrDetectionEngine {
   static final List<({RegExp regex, String lang})> _eggHatchPatterns = [
     (
       regex: RegExp(
-        r'([^\n\r!！]+?)\s+ist aus dem Ei geschlüpft(?:[!！]|$)',
+        r'Aus\s+dem\s+Ei\s+ist\s+(?:ein\s+|eine\s+)?([^\n\r!！]+?)\s+geschlüpft(?:[!！]|$)',
         caseSensitive: false,
       ),
       lang: 'de',
     ),
     (
       regex: RegExp(
-        r'([^\n\r!！]+?)\s+hatched from the Egg(?:[!！]|$)',
+        r'(?:Ein\s+|Eine\s+)?([^\n\r!！]+?)\s+ist\s+aus\s+dem\s+Ei\s+geschlüpft(?:[!！]|$)',
+        caseSensitive: false,
+      ),
+      lang: 'de',
+    ),
+    (
+      regex: RegExp(
+        r'(?:An?\s+)?([^\n\r!！]+?)\s+hatched\s+from\s+the\s+Egg(?:[!！]|$)',
         caseSensitive: false,
       ),
       lang: 'en',
     ),
     (
       regex: RegExp(
-        r"([^\n\r!！]+?)\s+vient d'éclore(?:\s*[!！]|$)",
+        r"(?:Un\s+|Une\s+)?([^\n\r!！]+?)\s+vient\s+d'éclore(?:\s*[!！]|$)",
         caseSensitive: false,
       ),
       lang: 'fr',
     ),
     (
       regex: RegExp(
-        r'¡?([^\n\r!！]+?)\s+salió del Huevo(?:[!！]|$)',
+        r'¡?(?:Un\s+|Una\s+)?([^\n\r!！]+?)\s+salió\s+del\s+Huevo(?:[!！]|$)',
         caseSensitive: false,
       ),
       lang: 'es',
     ),
     (
       regex: RegExp(
-        r"([^\n\r!！]+?)\s+è nato dall'Uovo(?:[!！]|$)",
+        r"(?:Un\s+|Una\s+)?([^\n\r!！]+?)\s+è\s+nato\s+dall'Uovo(?:[!！]|$)",
         caseSensitive: false,
       ),
       lang: 'it',
@@ -982,6 +989,14 @@ class OcrDetectionEngine {
     var s = raw.trim();
     // Strip common surrounding noise / quotes / punctuation
     s = s.replaceAll(RegExp(r'^["\s¡!！]+|["\s!！]+$'), '');
+    // Strip standalone leading indefinite articles (e.g. "ein Glumanda", "a Charmander")
+    final withoutArticle = s.replaceFirst(
+      RegExp(r'^(?:ein|eine|un|une|una|a|an)\s+', caseSensitive: false),
+      '',
+    );
+    if (withoutArticle.trim().isNotEmpty) {
+      s = withoutArticle.trim();
+    }
     // Strip tags like (Männlich), (Weiblich), (Shiny), (schillernd), ♂, ♀, ✨, Alpha, Elite
     s = s.replaceAll(
       RegExp(

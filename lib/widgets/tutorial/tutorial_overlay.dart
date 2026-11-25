@@ -612,7 +612,9 @@ class _TutorialOverlayState extends State<TutorialOverlay>
     if (_easterEggPos != null) {
       calcTop = _easterEggPos!.dy;
     } else if (isIntro) {
-      calcTop = (screenHeight / 2) - 100;
+      calcTop = screenHeight < 600
+          ? ((screenHeight / 2) - 180).clamp(16.0, screenHeight * 0.25)
+          : (screenHeight / 2) - 100;
     } else if (isHugeTarget) {
       calcBottom = 40.0;
     } else if (showBubbleTop) {

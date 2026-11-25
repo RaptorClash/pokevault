@@ -1,4 +1,6 @@
+import 'dart:async';
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path_provider_platform_interface/path_provider_platform_interface.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
@@ -7,13 +9,16 @@ import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:pokevault/models/shiny_hunt.dart';
 import 'package:pokevault/providers/shiny_hunt_provider.dart';
 import 'package:pokevault/services/database_service.dart';
+import 'package:pokevault/services/desktop_tracker/desktop_capture_driver.dart';
 import 'package:pokevault/services/scanner_core/engine/ocr_detection_engine.dart';
 import 'package:pokevault/services/scanner_core/engine/pokemon_fuzzy_matcher.dart';
 import 'package:pokevault/services/scanner_core/feedback/scanner_feedback.dart';
 import 'package:pokevault/services/scanner_core/media/frame_transition_detector.dart';
+import 'package:pokevault/services/scanner_core/media/visual_shiny_detector.dart';
 import 'package:pokevault/services/scanner_core/models/scanner_event.dart';
 import 'package:pokevault/services/scanner_core/models/scanner_settings.dart';
 import 'package:pokevault/services/scanner_core/scanner_coordinator.dart';
+import 'package:pokevault/services/scanner_core/source/scanner_source.dart';
 import 'package:pokevault/services/shiny_auto_counter/shiny_auto_counter_config.dart';
 import 'package:pokevault/services/shiny_auto_counter/shiny_auto_counter_service.dart';
 import 'package:pokevault/services/shiny_auto_counter/shiny_slot_state_machine.dart';
@@ -25,6 +30,56 @@ class _MockPathProvider extends Fake
   _MockPathProvider(this.dir);
   @override
   Future<String?> getApplicationDocumentsPath() async => dir.path;
+}
+
+class _FakeVisualSource implements VisualFrameScannerSource {
+  final StreamController<String> _text = StreamController<String>.broadcast();
+  final StreamController<SlotVisualFrame> _visual =
+      StreamController<SlotVisualFrame>.broadcast();
+  bool _running = false;
+
+  @override
+  Stream<String> get textStream => _text.stream;
+
+  @override
+  Stream<SlotVisualFrame> get visualFrameStream => _visual.stream;
+
+  @override
+  bool get isRunning => _running;
+
+  @override
+  Future<void> start() async => _running = true;
+
+  @override
+  Future<void> stop() async => _running = false;
+
+  void emitVisualFrame(int slotId, int r, int g, int b) {
+    final bytes = Uint8List(32 * 32 * 4);
+    for (int i = 0; i < bytes.length; i += 4) {
+      bytes[i] = b;
+      bytes[i + 1] = g;
+      bytes[i + 2] = r;
+      bytes[i + 3] = 255;
+    }
+    _visual.add(
+      SlotVisualFrame(
+        slotId: slotId,
+        frame: CapturedFrame(
+          width: 32,
+          height: 32,
+          bytes: bytes,
+          pixelFormat: 'bgra8888',
+        ),
+      ),
+    );
+  }
+
+  @override
+  Future<void> dispose() async {
+    _running = false;
+    await _text.close();
+    await _visual.close();
+  }
 }
 
 class _CountingFeedback implements ScannerFeedback {
@@ -680,6 +735,160 @@ void main() {
       expect(provider.getHuntById('hunt-pend')!.currentEncounters, equals(1));
 
       await service.stopSession();
+      await coordinator.dispose();
+    });
+
+    test('Beta visual shiny config roundtrip + backward compatibility with legacy maps', () {
+      const cfg = ShinyAutoCounterSettings(
+        enableSparkleDelayShinyCheck: true,
+        sparkleDelayThresholdMs: 1350,
+        enableColorDeviationShinyCheck: true,
+        colorDeviationThreshold: 0.42,
+      );
+      final map = cfg.toMap();
+      final restored = ShinyAutoCounterSettings.fromMap(map);
+      expect(restored.enableSparkleDelayShinyCheck, isTrue);
+      expect(restored.sparkleDelayThresholdMs, equals(1350));
+      expect(restored.enableColorDeviationShinyCheck, isTrue);
+      expect(restored.colorDeviationThreshold, closeTo(0.42, 0.001));
+
+      final legacy = ShinyAutoCounterSettings.fromMap(const {'detectionMode': 'softReset'});
+      expect(legacy.enableSparkleDelayShinyCheck, isFalse);
+      expect(legacy.sparkleDelayThresholdMs, equals(1000));
+      expect(legacy.enableColorDeviationShinyCheck, isFalse);
+      expect(legacy.colorDeviationThreshold, closeTo(0.38, 0.001));
+    });
+
+    test('Sparkle-Delay heuristic pauses slot and emits activeShinyAlertsNotifier entry with sparkleDelay source', () async {
+      var clock = Duration.zero;
+      final provider = ShinyHuntProvider(
+        databaseService: DatabaseService.instance,
+        enableTimer: false,
+      );
+      await provider.initialized;
+      await provider.createHunt(_makeHunt(id: 'hunt-sd', pokemonId: 150, pokemonName: 'Mewtu'));
+
+      final coordinator = buildTestCoordinator(() => clock);
+      final feedback = _CountingFeedback();
+      final service = ShinyAutoCounterService.forTesting(
+        elapsedClock: () => clock,
+        feedback: feedback,
+      );
+
+      service.startSession(
+        huntProvider: provider,
+        coordinator: coordinator,
+        defaultHuntId: 'hunt-sd',
+        slotIds: const [1],
+        settings: const ShinyAutoCounterSettings(
+          detectionMode: ShinyHuntDetectionMode.softReset,
+          minResetCooldownMs: 200,
+          enableSparkleDelayShinyCheck: true,
+          sparkleDelayThresholdMs: 1000,
+        ),
+      );
+
+      // 3 normal cycles (~1400ms from encounter to battleMenu)
+      for (int i = 0; i < 3; i++) {
+        await coordinator.processFrameText('Ein wildes Mewtu erscheint!', instanceIndex: 1);
+        await service.waitForIdle();
+        clock += const Duration(milliseconds: 1400);
+        await coordinator.processFrameText('Was soll Glumanda tun?', instanceIndex: 1);
+        await service.waitForIdle();
+        expect(service.activeShinyAlertsNotifier.value, isEmpty);
+
+        // Reset + rearm
+        await coordinator.processFrameText('Weiter', instanceIndex: 1);
+        await service.waitForIdle();
+        clock += const Duration(milliseconds: 400);
+      }
+
+      // 4th encounter with +1400ms sparkle delay (2800ms total)
+      await coordinator.processFrameText('Ein wildes Mewtu erscheint!', instanceIndex: 1);
+      await service.waitForIdle();
+      clock += const Duration(milliseconds: 2800);
+      await coordinator.processFrameText('Was soll Glumanda tun?', instanceIndex: 1);
+      await service.waitForIdle();
+
+      expect(service.slotStatesNotifier.value.first.phase, equals(ShinySlotPhase.pausedByShiny));
+      expect(service.activeShinyAlertsNotifier.value.length, equals(1));
+      expect(
+        service.activeShinyAlertsNotifier.value.first.detectionSource,
+        equals(ShinyDetectionSource.sparkleDelay),
+      );
+      expect(feedback.shinies, equals(1));
+
+      await service.stopSession();
+      expect(service.latestShinyAlertNotifier.value, isNull);
+      expect(service.activeShinyAlertsNotifier.value, isEmpty);
+      await coordinator.dispose();
+    });
+
+    test('Color-Deviation heuristic via VisualFrameScannerSource pauses slot and tracks multi-slot active alerts', () async {
+      var clock = Duration.zero;
+      final provider = ShinyHuntProvider(
+        databaseService: DatabaseService.instance,
+        enableTimer: false,
+      );
+      await provider.initialized;
+      await provider.createHunt(_makeHunt(id: 'hunt-cd', pokemonId: 25, pokemonName: 'Pikachu', method: 'Wild'));
+
+      final coordinator = buildTestCoordinator(() => clock);
+      final source = _FakeVisualSource();
+      await source.start();
+      final service = ShinyAutoCounterService.forTesting(elapsedClock: () => clock);
+
+      service.startSession(
+        huntProvider: provider,
+        coordinator: coordinator,
+        source: source,
+        defaultHuntId: 'hunt-cd',
+        slotIds: const [1, 2],
+        settings: const ShinyAutoCounterSettings(
+          detectionMode: ShinyHuntDetectionMode.wildEncounter,
+          minResetCooldownMs: 200,
+          enableColorDeviationShinyCheck: true,
+          colorDeviationThreshold: 0.35,
+        ),
+      );
+
+      // 3 normal blue frames on slot 1
+      for (int i = 0; i < 3; i++) {
+        await coordinator.processFrameText('Ein wildes Pikachu erscheint!', instanceIndex: 1);
+        await service.waitForIdle();
+        source.emitVisualFrame(1, 30, 110, 235);
+        await service.waitForIdle();
+        await coordinator.processFrameText('Du bist entkommen!', instanceIndex: 1);
+        await service.waitForIdle();
+        clock += const Duration(milliseconds: 400);
+      }
+
+      // 4th encounter on slot 1 with green shiny sprite frame
+      await coordinator.processFrameText('Ein wildes Pikachu erscheint!', instanceIndex: 1);
+      await service.waitForIdle();
+      source.emitVisualFrame(1, 30, 220, 65);
+      await service.waitForIdle();
+
+      // Simultaneous OCR shiny on slot 2
+      await coordinator.processFrameText('Wildes ✨ Pikachu erscheint!', instanceIndex: 2);
+      await service.waitForIdle();
+
+      expect(service.activeShinyAlertsNotifier.value.length, equals(2));
+      final alert1 = service.activeShinyAlertsNotifier.value.firstWhere((e) => e.slotId == 1);
+      final alert2 = service.activeShinyAlertsNotifier.value.firstWhere((e) => e.slotId == 2);
+      expect(alert1.detectionSource, equals(ShinyDetectionSource.colorDeviation));
+      expect(alert2.detectionSource, equals(ShinyDetectionSource.ocrText));
+
+      // Resuming slot 1 keeps slot 2 active in both notifiers
+      service.resumeShinyPausedSlot(1);
+      expect(service.activeShinyAlertsNotifier.value.length, equals(1));
+      expect(service.activeShinyAlertsNotifier.value.first.slotId, equals(2));
+      expect(service.latestShinyAlertNotifier.value?.slotId, equals(2));
+
+      await service.stopSession();
+      expect(service.activeShinyAlertsNotifier.value, isEmpty);
+      expect(service.latestShinyAlertNotifier.value, isNull);
+      await source.dispose();
       await coordinator.dispose();
     });
   });

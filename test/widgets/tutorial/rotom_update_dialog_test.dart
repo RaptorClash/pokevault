@@ -119,9 +119,10 @@ void main() {
       await tester.tap(find.text('Show Scanner Dialog'));
       await tester.pumpAndSettle();
 
-      // Mobile variant highlights Camera/PiP, not Windows HUD
+      // Mobile variant highlights Camera/PiP AND Multi-Hunt/Auto-Counter, not Windows HUD
       expect(find.textContaining('Kamera'), findsWidgets);
       expect(find.textContaining('PiP'), findsWidgets);
+      expect(find.textContaining('Multi-Hunt'), findsWidgets);
       expect(find.textContaining('Floating HUD'), findsNothing);
 
       final startBtn = find.text('Neuheiten-Tour starten');
@@ -129,6 +130,41 @@ void main() {
       await tester.tap(startBtn);
       await tester.pumpAndSettle();
       expect(tutorialProvider.isScannerDeltaTourActive, isTrue);
+    });
+
+    testWidgets('RotomUpdateWelcomeDialog v1.7 Desktop mode includes Floating HUD and Multi-Hunt/Auto-Counter', (
+      WidgetTester tester,
+    ) async {
+      LocaleSettings.setLocaleSync(AppLocale.de);
+      TrackerPlatformHelper.debugIsMobileOverride = () => false;
+      TrackerPlatformHelper.debugIsDesktopOverride = () => true;
+      addTearDown(TrackerPlatformHelper.resetDebugOverrides);
+
+      await tester.pumpWidget(
+        ChangeNotifierProvider<TutorialProvider>.value(
+          value: tutorialProvider,
+          child: MaterialApp(
+            home: Builder(
+              builder: (context) => Scaffold(
+                body: ElevatedButton(
+                  onPressed: () => RotomUpdateWelcomeDialog.show(
+                    context,
+                    updateType: RotomUpdateType.scanner,
+                  ),
+                  child: const Text('Show Desktop Dialog'),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      await tester.tap(find.text('Show Desktop Dialog'));
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('UPDATE v1.7'), findsWidgets);
+      expect(find.textContaining('Floating HUD'), findsWidgets);
+      expect(find.textContaining('Multi-Hunt'), findsWidgets);
     });
   });
 }

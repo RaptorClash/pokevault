@@ -90,7 +90,7 @@ BEGIN
         BLOCK "040904e4"
         BEGIN
             VALUE "CompanyName", "RaptorClash" "\0"
-            VALUE "FileDescription", "PokéVault - Pokémon Living Dex & Shiny Tracker" "\0"
+            VALUE "FileDescription", "PokéVault" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
             VALUE "InternalName", "com.raptorclash.pokevault" "\0"
             VALUE "LegalCopyright", "Copyright (C) 2026 RaptorClash. All rights reserved." "\0"

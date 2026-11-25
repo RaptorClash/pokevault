@@ -39,9 +39,9 @@ void main() {
       expect(chapter.isNewInV16, isFalse);
     });
 
-    test('TutorialChapters registry provides all core + platform scanner chapters', () {
+    test('TutorialChapters registry provides all core + platform scanner + v1.7 auto-counter chapters', () {
       final chapters = TutorialChapters.all;
-      expect(chapters.length, equals(12));
+      expect(chapters.length, equals(13));
 
       final ids = chapters.map((c) => c.id).toList();
       expect(ids, containsAll([
@@ -57,11 +57,29 @@ void main() {
         'module_backup_sync',
         'module_scanner_mobile',
         'module_scanner_desktop',
+        'module_shiny_auto_counter',
       ]));
 
       // Verify v1.6 new chapters count (6 chapters: boxes, shiny, stats, info, route, controls)
       final v16Chapters = chapters.where((c) => c.isNewInV16).toList();
       expect(v16Chapters.length, equals(6));
+
+      // Verify v1.7 new chapters (mobile scanner, desktop scanner, shiny auto-counter)
+      final v17Chapters = chapters.where((c) => c.isNewInV17).toList();
+      expect(v17Chapters.length, equals(3));
+
+      final shinyCh = chapters.firstWhere((c) => c.id == 'module_shiny_hunt');
+      expect(shinyCh.stepCount, equals(6));
+
+      final autoCh = chapters.firstWhere((c) => c.id == 'module_shiny_auto_counter');
+      expect(autoCh.version, equals(3));
+      expect(autoCh.mobileOnly, isNull);
+      expect(autoCh.stepCount, equals(5));
+      expect(autoCh.requiredFeatureKeys, containsAll([
+        'multi_hunt_dashboard',
+        'shiny_auto_counter_setup',
+        'shiny_auto_counter_bar',
+      ]));
 
       // Each chapter must have demo steps defined
       for (final ch in chapters) {

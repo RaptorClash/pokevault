@@ -218,6 +218,14 @@ class RotomUpdateWelcomeDialog extends StatelessWidget {
                   title: t.tutorial_scanner_mob_f3_title,
                   desc: t.tutorial_scanner_mob_f3_desc,
                 ),
+                const SizedBox(height: 8),
+                _buildFeatureCard(
+                  context,
+                  icon: Icons.grid_view_rounded,
+                  iconColor: Colors.amber,
+                  title: t.tutorial_v17_shiny_f4_title,
+                  desc: t.tutorial_v17_shiny_f4_desc,
+                ),
               ] else if (isScanner) ...[
                 _buildFeatureCard(
                   context,
@@ -241,6 +249,14 @@ class RotomUpdateWelcomeDialog extends StatelessWidget {
                   iconColor: Colors.amber,
                   title: t.tutorial_scanner_desk_f3_title,
                   desc: t.tutorial_scanner_desk_f3_desc,
+                ),
+                const SizedBox(height: 8),
+                _buildFeatureCard(
+                  context,
+                  icon: Icons.grid_view_rounded,
+                  iconColor: Colors.amber,
+                  title: t.tutorial_v17_shiny_f4_title,
+                  desc: t.tutorial_v17_shiny_f4_desc,
                 ),
               ] else ...[
                 // Feature cards grid (v1.6)
@@ -323,7 +339,7 @@ class RotomUpdateWelcomeDialog extends StatelessWidget {
                     ),
                     onPressed: () async {
                       if (isScanner) {
-                        await tutProvider.startScannerDeltaTour();
+                        await tutProvider.startV17DeltaTour();
                       } else {
                         await tutProvider.startV16DeltaTour();
                       }

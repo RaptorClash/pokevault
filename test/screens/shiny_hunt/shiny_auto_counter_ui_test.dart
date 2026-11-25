@@ -267,7 +267,11 @@ void main() {
       // Add custom trigger pattern
       await tester.ensureVisible(find.byKey(const Key('setup_custom_trigger_field')));
       await tester.enterText(find.byKey(const Key('setup_custom_trigger_field')), '{pokemon} erscheint');
-      await tester.ensureVisible(find.byKey(const Key('setup_add_trigger_btn')));
+      await Scrollable.ensureVisible(
+        tester.element(find.byKey(const Key('setup_add_trigger_btn'))),
+        alignment: 0.5,
+      );
+      await tester.pumpAndSettle();
       await tester.tap(find.byKey(const Key('setup_add_trigger_btn')));
       await tester.pump();
       expect(find.text('{pokemon} erscheint'), findsOneWidget);
@@ -275,7 +279,11 @@ void main() {
       // Add custom reset pattern
       await tester.ensureVisible(find.byKey(const Key('setup_custom_reset_field')));
       await tester.enterText(find.byKey(const Key('setup_custom_reset_field')), 'Weiter');
-      await tester.ensureVisible(find.byKey(const Key('setup_add_reset_btn')));
+      await Scrollable.ensureVisible(
+        tester.element(find.byKey(const Key('setup_add_reset_btn'))),
+        alignment: 0.5,
+      );
+      await tester.pumpAndSettle();
       await tester.tap(find.byKey(const Key('setup_add_reset_btn')));
       await tester.pump();
       expect(find.text('Weiter'), findsOneWidget);
@@ -608,6 +616,156 @@ void main() {
       await tester.tap(find.byKey(const Key('shiny_auto_help_btn')));
       await tester.pumpAndSettle();
       expect(find.byKey(const Key('shiny_auto_help_dialog')), findsOneWidget);
+      expect(tester.takeException(), isNull);
+
+      await service.stopSession();
+      await coordinator.dispose();
+    });
+
+    testWidgets('SetupSheet exposes Beta Sparkle-Delay and Color-Deviation toggles & sliders and persists them', (tester) async {
+      SharedPreferences.setMockInitialValues({'app_db_version': 21});
+      final hunt = makeHunt();
+      await huntProvider.createHunt(hunt);
+      final service = ShinyAutoCounterService.forTesting();
+
+      await tester.pumpWidget(
+        MultiProvider(
+          providers: [
+            ChangeNotifierProvider<ShinyHuntProvider>.value(value: huntProvider),
+            ChangeNotifierProvider<DexProvider>.value(value: dexProvider),
+          ],
+          child: TranslationProvider(
+            child: MaterialApp(
+              home: Scaffold(
+                body: ShinyAutoCounterSetupSheet(
+                  hunt: hunt,
+                  service: service,
+                  showSourceLauncher: false,
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      await tester.ensureVisible(find.byKey(const Key('setup_toggle_sparkle_delay')));
+      await tester.tap(find.byKey(const Key('setup_toggle_sparkle_delay')));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('setup_sparkle_delay_slider')), findsOneWidget);
+
+      await tester.ensureVisible(find.byKey(const Key('setup_toggle_color_deviation')));
+      await tester.tap(find.byKey(const Key('setup_toggle_color_deviation')));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('setup_color_deviation_slider')), findsOneWidget);
+
+      await tester.ensureVisible(find.byKey(const Key('setup_start_btn')));
+      await tester.tap(find.byKey(const Key('setup_start_btn')));
+      await tester.pumpAndSettle();
+
+      final saved = await ShinyAutoCounterSettings.loadFromPrefs();
+      expect(saved, isNotNull);
+      expect(saved!.enableSparkleDelayShinyCheck, isTrue);
+      expect(saved.enableColorDeviationShinyCheck, isTrue);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('ShinyAutoCounterBar renders multi-slot Shiny banners, source badges, Catch & visible Re-Arm on 320x480 + DE/EN switch', (tester) async {
+      await tester.binding.setSurfaceSize(const Size(320, 480));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      final hunt = makeHunt();
+      await huntProvider.createHunt(hunt);
+      var clock = Duration.zero;
+      final coordinator = ScannerCoordinator(
+        engine: OcrDetectionEngine(),
+        matcher: PokemonFuzzyMatcher.withEntries(const [
+          PokemonMatcherEntry(id: 150, name: 'Mewtu', language: 'de'),
+        ]),
+        elapsedClock: () => clock,
+      );
+      final service = ShinyAutoCounterService.forTesting(elapsedClock: () => clock);
+      service.startSession(
+        huntProvider: huntProvider,
+        coordinator: coordinator,
+        defaultHuntId: hunt.id,
+        slotIds: const [1, 2, 3],
+        settings: const ShinyAutoCounterSettings(
+          detectionMode: ShinyHuntDetectionMode.softReset,
+          autoPauseSlotOnShiny: true,
+          enableSparkleDelayShinyCheck: true,
+          sparkleDelayThresholdMs: 1000,
+        ),
+      );
+
+      String? caughtHuntId;
+      int? caughtSlotId;
+
+      await tester.pumpWidget(
+        TranslationProvider(
+          child: MaterialApp(
+            home: Scaffold(
+              body: ShinyAutoCounterBar(
+                service: service,
+                currentHuntId: hunt.id,
+                resolveHuntName: (id) => huntProvider.getHuntById(id)?.title,
+                onMarkShinyCaught: (huntId, slotId) {
+                  caughtHuntId = huntId;
+                  caughtSlotId = slotId;
+                },
+              ),
+            ),
+          ),
+        ),
+      );
+
+      // Slot 3 counts normally -> counted phase -> visible Re-Arm buttons appear
+      await coordinator.processFrameText('Ein wildes Mewtu erscheint!', instanceIndex: 3);
+      await service.waitForIdle();
+      await tester.pump();
+      expect(find.byKey(const Key('shiny_auto_bar_rearm_all_btn')), findsOneWidget);
+      expect(find.byKey(const Key('shiny_auto_slot_rearm_3')), findsOneWidget);
+
+      await tester.tap(find.byKey(const Key('shiny_auto_slot_rearm_3')));
+      await tester.pump();
+      expect(find.byKey(const Key('shiny_auto_bar_rearm_all_btn')), findsNothing);
+
+      // Slot 1 hits OCR shiny, Slot 2 hits Sparkle-Delay shiny after 3 normal encounters
+      await coordinator.processFrameText('Wildes ✨ Mewtu erscheint!', instanceIndex: 1);
+      await service.waitForIdle();
+
+      for (int i = 0; i < 3; i++) {
+        await coordinator.processFrameText('Ein wildes Mewtu erscheint!', instanceIndex: 2);
+        await service.waitForIdle();
+        clock += const Duration(milliseconds: 1400);
+        await coordinator.processFrameText('Was soll Glumanda tun?', instanceIndex: 2);
+        await service.waitForIdle();
+        await coordinator.processFrameText('Weiter', instanceIndex: 2);
+        await service.waitForIdle();
+        clock += const Duration(milliseconds: 1300);
+      }
+      await coordinator.processFrameText('Ein wildes Mewtu erscheint!', instanceIndex: 2);
+      await service.waitForIdle();
+      clock += const Duration(milliseconds: 2800);
+      await coordinator.processFrameText('Was soll Glumanda tun?', instanceIndex: 2);
+      await service.waitForIdle();
+      await tester.pump();
+
+      expect(find.byKey(const Key('shiny_auto_shiny_banner')), findsOneWidget);
+      expect(find.byKey(const Key('shiny_auto_shiny_banner_1')), findsOneWidget);
+      expect(find.byKey(const Key('shiny_auto_shiny_source_1')), findsOneWidget);
+      expect(find.byKey(const Key('shiny_auto_shiny_source_2')), findsOneWidget);
+      expect(find.textContaining('Mewtu'), findsWidgets);
+
+      // Quick catch action fires callback with huntId & slotId
+      await tester.tap(find.byKey(const Key('shiny_auto_catch_shiny_btn_2')));
+      await tester.pump();
+      expect(caughtHuntId, equals(hunt.id));
+      expect(caughtSlotId, equals(2));
+
+      // Switch locale DE -> EN at runtime without overflow
+      LocaleSettings.setLocaleSync(AppLocale.en);
+      await tester.pump();
+      expect(find.byKey(const Key('shiny_auto_shiny_banner')), findsOneWidget);
       expect(tester.takeException(), isNull);
 
       await service.stopSession();

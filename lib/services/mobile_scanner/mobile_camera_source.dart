@@ -16,7 +16,8 @@ class MobileCameraSource
     implements
         DualZoneScannerSource,
         MultiInstanceScannerSource,
-        FrameTransitionScannerSource {
+        FrameTransitionScannerSource,
+        VisualFrameScannerSource {
   final DesktopOcrDriver ocrDriver;
   Duration _pollInterval;
   MobileCameraScanMode _scanMode;
@@ -41,6 +42,8 @@ class MobileCameraSource
       StreamController<MultiInstanceTextEmission>.broadcast();
   final StreamController<FrameTransitionEvent> _transitionController =
       StreamController<FrameTransitionEvent>.broadcast();
+  final StreamController<SlotVisualFrame> _visualFrameController =
+      StreamController<SlotVisualFrame>.broadcast();
   final FrameTransitionDetector _transitionDetector = FrameTransitionDetector();
 
   final ValueNotifier<LiveOcrScanStatus> liveScanStatusNotifier =
@@ -72,6 +75,10 @@ class MobileCameraSource
   @override
   Stream<FrameTransitionEvent> get transitionStream =>
       _transitionController.stream;
+
+  @override
+  Stream<SlotVisualFrame> get visualFrameStream =>
+      _visualFrameController.stream;
 
   @override
   void updateTransitionMinDuration(Duration duration) {
@@ -296,12 +303,20 @@ class MobileCameraSource
     bool trackTransition = true,
   }) async {
     if (trackTransition && role != CameraZoneRole.focus && !encounterOnly) {
+      final resolvedSlotId =
+          role == CameraZoneRole.multiInstance ? (slotId ?? 2) : 0;
       final transition = _transitionDetector.analyzeFrame(
         croppedFrame,
-        slotId: role == CameraZoneRole.multiInstance ? (slotId ?? 2) : 0,
+        slotId: resolvedSlotId,
       );
       if (transition != null && !_transitionController.isClosed) {
         _transitionController.add(transition);
+      }
+      if (_visualFrameController.hasListener &&
+          !_visualFrameController.isClosed) {
+        _visualFrameController.add(
+          SlotVisualFrame(slotId: resolvedSlotId, frame: croppedFrame),
+        );
       }
     }
 
@@ -402,5 +417,6 @@ class MobileCameraSource
     await _focusTextController.close();
     await _multiTextController.close();
     await _transitionController.close();
+    await _visualFrameController.close();
   }
 }

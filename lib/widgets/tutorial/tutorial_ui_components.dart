@@ -380,61 +380,67 @@ class TutorialBubble extends StatelessWidget {
             const SizedBox(height: 12),
 
             // Bottom action row
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                if (onPrev != null && stepIndex > 0)
-                  TextButton.icon(
-                    style: TextButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 4,
+            SizedBox(
+              width: double.infinity,
+              child: Wrap(
+                alignment: WrapAlignment.spaceBetween,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                spacing: 8,
+                runSpacing: 6,
+                children: [
+                  if (onPrev != null && stepIndex > 0)
+                    TextButton.icon(
+                      style: TextButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
+                        visualDensity: VisualDensity.compact,
                       ),
-                      visualDensity: VisualDensity.compact,
-                    ),
-                    onPressed: isEasterEggActive ? null : onPrev,
-                    icon: const Icon(Icons.arrow_back, size: 13),
-                    label: FittedBox(
-                      fit: BoxFit.scaleDown,
-                      child: Text(
-                        t.previous,
-                        style: const TextStyle(fontSize: 11.5),
+                      onPressed: isEasterEggActive ? null : onPrev,
+                      icon: const Icon(Icons.arrow_back, size: 13),
+                      label: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text(
+                          t.previous,
+                          style: const TextStyle(fontSize: 11.5),
+                        ),
                       ),
-                    ),
-                  )
-                else
-                  const SizedBox.shrink(),
-                if (showNextBtn)
-                  ElevatedButton.icon(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: theme.colorScheme.primary,
-                      foregroundColor: theme.colorScheme.onPrimary,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 6,
+                    )
+                  else
+                    const SizedBox.shrink(),
+                  if (showNextBtn)
+                    ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: theme.colorScheme.primary,
+                        foregroundColor: theme.colorScheme.onPrimary,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 6,
+                        ),
+                        visualDensity: VisualDensity.compact,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(9),
+                        ),
                       ),
-                      visualDensity: VisualDensity.compact,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(9),
+                      onPressed: isEasterEggActive ? null : onNext,
+                      icon: Icon(
+                        isLast ? Icons.check : Icons.arrow_forward,
+                        size: 13,
                       ),
-                    ),
-                    onPressed: isEasterEggActive ? null : onNext,
-                    icon: Icon(
-                      isLast ? Icons.check : Icons.arrow_forward,
-                      size: 13,
-                    ),
-                    label: FittedBox(
-                      fit: BoxFit.scaleDown,
-                      child: Text(
-                        isLast ? t.tutorial_finish : t.tutorial_next,
-                        style: const TextStyle(
-                          fontSize: 11.5,
-                          fontWeight: FontWeight.bold,
+                      label: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text(
+                          isLast ? t.tutorial_finish : t.tutorial_next,
+                          style: const TextStyle(
+                            fontSize: 11.5,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
                     ),
-                  ),
-              ],
+                ],
+              ),
             ),
           ],
         ),

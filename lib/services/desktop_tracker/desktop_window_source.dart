@@ -186,7 +186,8 @@ class DesktopWindowSource
     implements
         DualZoneScannerSource,
         MultiInstanceScannerSource,
-        FrameTransitionScannerSource {
+        FrameTransitionScannerSource,
+        VisualFrameScannerSource {
   final DesktopCaptureDriver captureDriver;
   final DesktopOcrDriver ocrDriver;
   Duration _pollInterval;
@@ -215,6 +216,8 @@ class DesktopWindowSource
       StreamController<MultiInstanceTextEmission>.broadcast();
   final StreamController<FrameTransitionEvent> _transitionController =
       StreamController<FrameTransitionEvent>.broadcast();
+  final StreamController<SlotVisualFrame> _visualFrameController =
+      StreamController<SlotVisualFrame>.broadcast();
   final FrameTransitionDetector _transitionDetector = FrameTransitionDetector();
   final ValueNotifier<LiveOcrScanStatus> liveScanStatusNotifier =
       ValueNotifier(const LiveOcrScanStatus());
@@ -279,6 +282,10 @@ class DesktopWindowSource
   @override
   Stream<FrameTransitionEvent> get transitionStream =>
       _transitionController.stream;
+
+  @override
+  Stream<SlotVisualFrame> get visualFrameStream =>
+      _visualFrameController.stream;
 
   @override
   void updateTransitionMinDuration(Duration duration) {
@@ -549,6 +556,10 @@ class DesktopWindowSource
         final transition = _transitionDetector.analyzeFrame(frame, slotId: 0);
         if (transition != null && !_transitionController.isClosed) {
           _transitionController.add(transition);
+        }
+        if (_visualFrameController.hasListener &&
+            !_visualFrameController.isClosed) {
+          _visualFrameController.add(SlotVisualFrame(slotId: 0, frame: frame));
         }
         final fp = computeFrameFingerprint(frame);
         final changed = _lastZoneAFingerprint != fp;
@@ -881,6 +892,12 @@ class DesktopWindowSource
       if (transition != null && !_transitionController.isClosed) {
         _transitionController.add(transition);
       }
+      if (_visualFrameController.hasListener &&
+          !_visualFrameController.isClosed) {
+        _visualFrameController.add(
+          SlotVisualFrame(slotId: slot.id, frame: frame),
+        );
+      }
     }
 
     final fp = computeFrameFingerprint(frame);
@@ -1031,5 +1048,6 @@ class DesktopWindowSource
     await _focusTextController.close();
     await _multiTextController.close();
     await _transitionController.close();
+    await _visualFrameController.close();
   }
 }

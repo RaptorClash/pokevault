@@ -70,6 +70,10 @@ class ShinyAutoCounterSettings {
   final bool playSoundOnShiny;
   final bool playHapticOnShiny;
   final bool autoPauseSlotOnShiny;
+  final bool enableSparkleDelayShinyCheck;
+  final int sparkleDelayThresholdMs;
+  final bool enableColorDeviationShinyCheck;
+  final double colorDeviationThreshold;
   final Map<int, String> slotToHuntOverrides;
   final bool usePerHuntMethodDefaults;
   final Map<String, ShinyAutoCounterSettings> huntSettingsOverrides;
@@ -91,6 +95,10 @@ class ShinyAutoCounterSettings {
     this.playSoundOnShiny = true,
     this.playHapticOnShiny = true,
     this.autoPauseSlotOnShiny = true,
+    this.enableSparkleDelayShinyCheck = false,
+    this.sparkleDelayThresholdMs = 1000,
+    this.enableColorDeviationShinyCheck = false,
+    this.colorDeviationThreshold = 0.38,
     this.slotToHuntOverrides = const {},
     this.usePerHuntMethodDefaults = false,
     this.huntSettingsOverrides = const {},
@@ -150,6 +158,10 @@ class ShinyAutoCounterSettings {
     bool? playSoundOnShiny,
     bool? playHapticOnShiny,
     bool? autoPauseSlotOnShiny,
+    bool? enableSparkleDelayShinyCheck,
+    int? sparkleDelayThresholdMs,
+    bool? enableColorDeviationShinyCheck,
+    double? colorDeviationThreshold,
     Map<int, String>? slotToHuntOverrides,
     bool? usePerHuntMethodDefaults,
     Map<String, ShinyAutoCounterSettings>? huntSettingsOverrides,
@@ -180,6 +192,17 @@ class ShinyAutoCounterSettings {
       playSoundOnShiny: playSoundOnShiny ?? this.playSoundOnShiny,
       playHapticOnShiny: playHapticOnShiny ?? this.playHapticOnShiny,
       autoPauseSlotOnShiny: autoPauseSlotOnShiny ?? this.autoPauseSlotOnShiny,
+      enableSparkleDelayShinyCheck:
+          enableSparkleDelayShinyCheck ?? this.enableSparkleDelayShinyCheck,
+      sparkleDelayThresholdMs:
+          (sparkleDelayThresholdMs ?? this.sparkleDelayThresholdMs)
+              .clamp(500, 4000),
+      enableColorDeviationShinyCheck:
+          enableColorDeviationShinyCheck ?? this.enableColorDeviationShinyCheck,
+      colorDeviationThreshold:
+          (colorDeviationThreshold ?? this.colorDeviationThreshold)
+              .clamp(0.15, 0.75)
+              .toDouble(),
       slotToHuntOverrides: slotToHuntOverrides ?? this.slotToHuntOverrides,
       usePerHuntMethodDefaults:
           usePerHuntMethodDefaults ?? this.usePerHuntMethodDefaults,
@@ -187,6 +210,12 @@ class ShinyAutoCounterSettings {
           huntSettingsOverrides ?? this.huntSettingsOverrides,
     );
   }
+
+  /// Whether color-deviation Shiny checks are enabled globally or on any per-hunt rule.
+  bool get anyColorDeviationEnabled =>
+      enableColorDeviationShinyCheck ||
+      huntSettingsOverrides.values
+          .any((override) => override.enableColorDeviationShinyCheck);
 
   /// Returns the minimum transition duration across base settings and all per-hunt overrides.
   int effectiveMinTransitionDurationMs() {
@@ -287,6 +316,10 @@ class ShinyAutoCounterSettings {
       'playSoundOnShiny': playSoundOnShiny,
       'playHapticOnShiny': playHapticOnShiny,
       'autoPauseSlotOnShiny': autoPauseSlotOnShiny,
+      'enableSparkleDelayShinyCheck': enableSparkleDelayShinyCheck,
+      'sparkleDelayThresholdMs': sparkleDelayThresholdMs,
+      'enableColorDeviationShinyCheck': enableColorDeviationShinyCheck,
+      'colorDeviationThreshold': colorDeviationThreshold,
       'slotToHuntOverrides': {
         for (final e in slotToHuntOverrides.entries) e.key.toString(): e.value,
       },
@@ -389,6 +422,17 @@ class ShinyAutoCounterSettings {
       playSoundOnShiny: map['playSoundOnShiny'] as bool? ?? true,
       playHapticOnShiny: map['playHapticOnShiny'] as bool? ?? true,
       autoPauseSlotOnShiny: map['autoPauseSlotOnShiny'] as bool? ?? true,
+      enableSparkleDelayShinyCheck:
+          map['enableSparkleDelayShinyCheck'] as bool? ?? false,
+      sparkleDelayThresholdMs:
+          ((map['sparkleDelayThresholdMs'] as num?)?.toInt() ?? 1000)
+              .clamp(500, 4000),
+      enableColorDeviationShinyCheck:
+          map['enableColorDeviationShinyCheck'] as bool? ?? false,
+      colorDeviationThreshold:
+          ((map['colorDeviationThreshold'] as num?)?.toDouble() ?? 0.38)
+              .clamp(0.15, 0.75)
+              .toDouble(),
       slotToHuntOverrides: Map.unmodifiable(overrides),
       usePerHuntMethodDefaults:
           map['usePerHuntMethodDefaults'] as bool? ?? false,

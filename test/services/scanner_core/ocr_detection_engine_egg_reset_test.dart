@@ -83,5 +83,26 @@ void main() {
       expect(trigRes!.type, equals(ScannerEventType.encounter));
       expect(trigRes.extractedPokemonName, equals('Mewtu'));
     });
+
+    test('parses German/English/French egg hatch variants with indefinite articles without corrupting names like Enton or Aron', () {
+      const variants = [
+        ('Aus dem Ei ist ein Glumanda geschlüpft!', 'Glumanda', 'de'),
+        ('Aus dem Ei ist eine Evoli geschlüpft!', 'Evoli', 'de'),
+        ('Ein Glumanda ist aus dem Ei geschlüpft!', 'Glumanda', 'de'),
+        ('A Charmander hatched from the Egg!', 'Charmander', 'en'),
+        ("Un Salamèche vient d'éclore !", 'Salamèche', 'fr'),
+        ('Enton ist aus dem Ei geschlüpft!', 'Enton', 'de'),
+        ('Aron hatched from the Egg!', 'Aron', 'en'),
+      ];
+
+      for (final (text, expectedName, expectedLang) in variants) {
+        final res = engine.parse(text);
+        expect(res, isNotNull, reason: 'Failed for: $text');
+        expect(res!.type, equals(ScannerEventType.eggHatched), reason: 'Type mismatch for: $text');
+        expect(res.extractedPokemonName, equals(expectedName), reason: 'Name mismatch for: $text');
+        expect(res.detectedLanguage, equals(expectedLang), reason: 'Lang mismatch for: $text');
+        expect(engine.detectEggHatchCue(text), equals(EggHatchCue.hatched));
+      }
+    });
   });
 }

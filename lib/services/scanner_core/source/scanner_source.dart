@@ -1,4 +1,5 @@
 import 'dart:async';
+import '../../desktop_tracker/desktop_capture_driver.dart';
 import '../media/frame_transition_detector.dart';
 
 /// Abstract source providing OCR text stream from cameras, screen-capture, or test mocks.
@@ -44,6 +45,22 @@ abstract interface class FrameTransitionScannerSource implements ScannerSource {
     required int blackThreshold,
     required int whiteThreshold,
   });
+}
+
+/// Slot-tagged captured video/window frame emitted for optional visual Shiny heuristics.
+class SlotVisualFrame {
+  final int slotId;
+  final CapturedFrame frame;
+
+  const SlotVisualFrame({
+    required this.slotId,
+    required this.frame,
+  });
+}
+
+/// Optional extension for capture sources emitting slot-tagged BGRA8888 frames.
+abstract interface class VisualFrameScannerSource implements ScannerSource {
+  Stream<SlotVisualFrame> get visualFrameStream;
 }
 
 /// In-memory mock scanner source for unit tests and simulations.

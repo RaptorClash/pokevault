@@ -1,13 +1,16 @@
 import 'package:material_ui/material_ui.dart';
 import '../../../i18n/strings.g.dart';
+import '../../../services/scanner_core/media/visual_shiny_detector.dart';
 import '../../../services/shiny_auto_counter/shiny_auto_counter_service.dart';
 import '../../../services/shiny_auto_counter/shiny_slot_state_machine.dart';
+import '../controllers/shiny_auto_counter_bar_tutorial_controller.dart';
 
 /// Compact live status bar displayed inside Shiny Hunter screens while the
 /// visual auto-counter is active.
-class ShinyAutoCounterBar extends StatelessWidget {
+class ShinyAutoCounterBar extends StatefulWidget {
   final ShinyAutoCounterService service;
   final VoidCallback? onOpenSetup;
+  final void Function(String huntId, int slotId)? onMarkShinyCaught;
   final bool compact;
   final String? currentHuntId;
   final String? Function(String huntId)? resolveHuntName;
@@ -16,10 +19,70 @@ class ShinyAutoCounterBar extends StatelessWidget {
     super.key = const Key('shiny_auto_bar'),
     required this.service,
     this.onOpenSetup,
+    this.onMarkShinyCaught,
     this.compact = false,
     this.currentHuntId,
     this.resolveHuntName,
   });
+
+  @override
+  State<ShinyAutoCounterBar> createState() => _ShinyAutoCounterBarState();
+}
+
+class _ShinyAutoCounterBarState extends State<ShinyAutoCounterBar> {
+  final ShinyAutoCounterBarTutorialController _tutorialController =
+      ShinyAutoCounterBarTutorialController();
+
+  @override
+  void initState() {
+    super.initState();
+    widget.service.isRunningNotifier.addListener(_onRunningChanged);
+    _scheduleTutorialCheck();
+  }
+
+  @override
+  void didUpdateWidget(covariant ShinyAutoCounterBar oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.service != widget.service) {
+      oldWidget.service.isRunningNotifier.removeListener(_onRunningChanged);
+      widget.service.isRunningNotifier.addListener(_onRunningChanged);
+      _scheduleTutorialCheck();
+    }
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _scheduleTutorialCheck();
+  }
+
+  @override
+  void dispose() {
+    widget.service.isRunningNotifier.removeListener(_onRunningChanged);
+    super.dispose();
+  }
+
+  void _onRunningChanged() {
+    if (widget.service.isRunningNotifier.value) {
+      _scheduleTutorialCheck();
+    }
+  }
+
+  void _scheduleTutorialCheck() {
+    if (!widget.service.isRunningNotifier.value) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final svc = widget.service;
+      final hasSlotsArea =
+          svc.slotStatesNotifier.value.isNotEmpty || svc.defaultHuntId != null;
+      _tutorialController.maybeShowIfNeeded(
+        context: context,
+        isMounted: mounted,
+        isRunning: svc.isRunningNotifier.value,
+        hasSlotsArea: hasSlotsArea,
+      );
+    });
+  }
 
   String _phaseLabel(ShinySlotPhase phase) {
     return switch (phase) {
@@ -38,6 +101,14 @@ class ShinyAutoCounterBar extends StatelessWidget {
     if (reason.startsWith('shiny:')) {
       final name = reason.substring('shiny:'.length);
       return t.shiny_auto_reason_shiny.replaceAll('{name}', name);
+    }
+    if (reason.startsWith('sparkleDelay:')) {
+      final details = reason.substring('sparkleDelay:'.length);
+      return t.shiny_auto_reason_sparkle_delay.replaceAll('{details}', details);
+    }
+    if (reason.startsWith('colorDeviation:')) {
+      final details = reason.substring('colorDeviation:'.length);
+      return t.shiny_auto_reason_color_dev.replaceAll('{details}', details);
     }
     if (reason.startsWith('ocr:')) {
       return 'OCR: ${reason.substring('ocr:'.length)}';
@@ -102,7 +173,7 @@ class ShinyAutoCounterBar extends StatelessWidget {
             key: const Key('shiny_auto_logs_sheet'),
             height: MediaQuery.sizeOf(sheetCtx).height * 0.6,
             child: ValueListenableBuilder<List<AutoCountLogEntry>>(
-              valueListenable: service.recentLogsNotifier,
+              valueListenable: widget.service.recentLogsNotifier,
               builder: (context, logs, _) {
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -130,7 +201,7 @@ class ShinyAutoCounterBar extends StatelessWidget {
                               t.shiny_auto_rearm_all_btn,
                               style: const TextStyle(fontSize: 12),
                             ),
-                            onPressed: service.rearmAllSlots,
+                            onPressed: widget.service.rearmAllSlots,
                           ),
                         ],
                       ),
@@ -239,7 +310,7 @@ class ShinyAutoCounterBar extends StatelessWidget {
                                             'shiny_auto_log_undo_$index',
                                           ),
                                           onPressed: () =>
-                                              service.undoEntry(entry.id),
+                                              widget.service.undoEntry(entry.id),
                                           child: Text(t.shiny_auto_undo),
                                         ),
                                     ],
@@ -262,6 +333,11 @@ class ShinyAutoCounterBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final service = widget.service;
+    final compact = widget.compact;
+    final currentHuntId = widget.currentHuntId;
+    final resolveHuntName = widget.resolveHuntName;
+    final onOpenSetup = widget.onOpenSetup;
 
     return ValueListenableBuilder<bool>(
       valueListenable: service.isRunningNotifier,
@@ -310,35 +386,39 @@ class ShinyAutoCounterBar extends StatelessWidget {
               );
             }
 
-            return Container(
-              margin: const EdgeInsets.fromLTRB(12, 4, 12, 4),
-              padding: EdgeInsets.symmetric(
-                horizontal: 10,
-                vertical: compact ? 6 : 8,
-              ),
-              decoration: BoxDecoration(
-                color: isDark
-                    ? Colors.blueGrey.shade900.withValues(alpha: 0.92)
-                    : Colors.indigo.shade50.withValues(alpha: 0.9),
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(
-                  color: theme.colorScheme.primary.withValues(alpha: 0.35),
+            return KeyedSubtree(
+              key: _tutorialController.barRootKey,
+              child: Container(
+                margin: const EdgeInsets.fromLTRB(12, 4, 12, 4),
+                padding: EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: compact ? 6 : 8,
                 ),
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  // Top row: Active status + Help + Logs + Undo + Pause + Setup + Stop
-                  ValueListenableBuilder<bool>(
-                    valueListenable: service.isPausedNotifier,
-                    builder: (context, isPaused, _) {
-                      return ValueListenableBuilder<List<AutoCountLogEntry>>(
-                        valueListenable: service.recentLogsNotifier,
-                        builder: (context, logs, _) {
-                          final hasUndoable =
-                              logs.any((e) => !e.undone && e.delta > 0);
-                          return Row(
+                decoration: BoxDecoration(
+                  color: isDark
+                      ? Colors.blueGrey.shade900.withValues(alpha: 0.92)
+                      : Colors.indigo.shade50.withValues(alpha: 0.9),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(
+                    color: theme.colorScheme.primary.withValues(alpha: 0.35),
+                  ),
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    // Top row: Active status + Help + Logs + Undo + Pause + Setup + Stop
+                    KeyedSubtree(
+                      key: _tutorialController.controlsRowKey,
+                      child: ValueListenableBuilder<bool>(
+                        valueListenable: service.isPausedNotifier,
+                        builder: (context, isPaused, _) {
+                          return ValueListenableBuilder<List<AutoCountLogEntry>>(
+                            valueListenable: service.recentLogsNotifier,
+                            builder: (context, logs, _) {
+                              final hasUndoable =
+                                  logs.any((e) => !e.undone && e.delta > 0);
+                              return Row(
                             children: [
                               Container(
                                 width: 8,
@@ -378,6 +458,35 @@ class ShinyAutoCounterBar extends StatelessWidget {
                                   size: 17,
                                 ),
                                 onPressed: () => _showHelpDialog(context),
+                              ),
+                              ValueListenableBuilder<List<ShinySlotSnapshot>>(
+                                valueListenable: service.slotStatesNotifier,
+                                builder: (context, slots, _) {
+                                  final needsRearm = slots.any(
+                                    (s) =>
+                                        s.phase == ShinySlotPhase.counted ||
+                                        s.phase == ShinySlotPhase.rearmPending,
+                                  );
+                                  if (!needsRearm) {
+                                    return const SizedBox.shrink();
+                                  }
+                                  return IconButton(
+                                    key: const Key('shiny_auto_bar_rearm_all_btn'),
+                                    visualDensity: VisualDensity.compact,
+                                    padding: EdgeInsets.zero,
+                                    constraints: const BoxConstraints(
+                                      minWidth: 28,
+                                      minHeight: 28,
+                                    ),
+                                    tooltip: t.shiny_auto_rearm_all_tooltip,
+                                    icon: const Icon(
+                                      Icons.refresh_rounded,
+                                      size: 17,
+                                      color: Colors.lightBlueAccent,
+                                    ),
+                                    onPressed: service.rearmAllSlots,
+                                  );
+                                },
                               ),
                               IconButton(
                                 key: const Key('shiny_auto_logs_btn'),
@@ -468,25 +577,28 @@ class ShinyAutoCounterBar extends StatelessWidget {
                         },
                       );
                     },
+                      ),
                   ),
 
                   // Target hunt indicator + quick switch + slot status chips
-                  ValueListenableBuilder<List<ShinySlotSnapshot>>(
-                    valueListenable: service.slotStatesNotifier,
-                    builder: (context, slots, _) {
-                      final activeHuntId = service.defaultHuntId;
-                      final targetHuntName = activeHuntId != null
-                          ? resolveHuntName?.call(activeHuntId)
-                          : null;
-                      final isDifferentHunt = currentHuntId != null &&
-                          activeHuntId != null &&
-                          currentHuntId != activeHuntId;
-                      if (slots.isEmpty &&
-                          targetHuntName == null &&
-                          !isDifferentHunt) {
-                        return const SizedBox.shrink();
-                      }
-                      return Column(
+                  KeyedSubtree(
+                    key: _tutorialController.slotsAreaKey,
+                    child: ValueListenableBuilder<List<ShinySlotSnapshot>>(
+                      valueListenable: service.slotStatesNotifier,
+                      builder: (context, slots, _) {
+                        final activeHuntId = service.defaultHuntId;
+                        final targetHuntName = activeHuntId != null
+                            ? resolveHuntName?.call(activeHuntId)
+                            : null;
+                        final isDifferentHunt = currentHuntId != null &&
+                            activeHuntId != null &&
+                            currentHuntId != activeHuntId;
+                        if (slots.isEmpty &&
+                            targetHuntName == null &&
+                            !isDifferentHunt) {
+                          return const SizedBox.shrink();
+                        }
+                        return Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
                           if (targetHuntName != null || isDifferentHunt)
@@ -523,7 +635,7 @@ class ShinyAutoCounterBar extends StatelessWidget {
                                       labelStyle: const TextStyle(fontSize: 11),
                                       label: Text(t.shiny_auto_switch_hunt_btn),
                                       onPressed: () => service
-                                          .setDefaultHuntId(currentHuntId!),
+                                          .setDefaultHuntId(currentHuntId),
                                     ),
                                 ],
                               ),
@@ -540,6 +652,8 @@ class ShinyAutoCounterBar extends StatelessWidget {
                                       slot.phase == ShinySlotPhase.pausedByShiny;
                                   final isPausedSlot =
                                       slot.phase == ShinySlotPhase.pausedManual;
+                                  final isCounted =
+                                      slot.phase == ShinySlotPhase.counted;
                                   return Tooltip(
                                     message: t.shiny_auto_slot_chip_tooltip,
                                     child: InkWell(
@@ -567,8 +681,9 @@ class ShinyAutoCounterBar extends StatelessWidget {
                                           borderRadius:
                                               BorderRadius.circular(12),
                                           border: Border.all(
-                                            color:
-                                                isShiny ? Colors.amber : color,
+                                            color: isShiny
+                                                ? Colors.amber
+                                                : color,
                                             width: isShiny ? 1.5 : 1.0,
                                           ),
                                         ),
@@ -596,6 +711,28 @@ class ShinyAutoCounterBar extends StatelessWidget {
                                                     : null,
                                               ),
                                             ),
+                                            if (isCounted) ...[
+                                              const SizedBox(width: 4),
+                                              InkWell(
+                                                key: Key(
+                                                  'shiny_auto_slot_rearm_${slot.slotId}',
+                                                ),
+                                                onTap: () => service
+                                                    .rearmSlot(slot.slotId),
+                                                child: Tooltip(
+                                                  message: t
+                                                      .shiny_auto_rearm_single_tooltip
+                                                      .replaceAll(
+                                                    '{slot}',
+                                                    slot.slotId.toString(),
+                                                  ),
+                                                  child: const Icon(
+                                                    Icons.refresh_rounded,
+                                                    size: 13,
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
                                           ],
                                         ),
                                       ),
@@ -607,86 +744,181 @@ class ShinyAutoCounterBar extends StatelessWidget {
                         ],
                       );
                     },
+                    ),
                   ),
 
-                  // Prominent Shiny Alert Banner when a Shiny signal occurred
-                  ValueListenableBuilder<AutoCountLogEntry?>(
-                    valueListenable: service.latestShinyAlertNotifier,
-                    builder: (context, shinyAlert, _) {
-                      if (shinyAlert == null) return const SizedBox.shrink();
-                      return Container(
-                        key: const Key('shiny_auto_shiny_banner'),
-                        margin: const EdgeInsets.only(top: 6),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 6,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.amber.withValues(alpha: 0.22),
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(color: Colors.amber, width: 1.5),
-                        ),
-                        child: Wrap(
-                          spacing: 8,
-                          runSpacing: 4,
-                          crossAxisAlignment: WrapCrossAlignment.center,
-                          alignment: WrapAlignment.spaceBetween,
-                          children: [
-                            Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                const Icon(
-                                  Icons.auto_awesome,
-                                  color: Colors.amber,
-                                  size: 16,
-                                ),
-                                const SizedBox(width: 6),
-                                Flexible(
-                                  child: Text(
-                                    t.shiny_auto_shiny_alert_title.replaceAll(
-                                      '{slot}',
-                                      shinyAlert.slotId.toString(),
-                                    ),
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 12,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            FilledButton.tonal(
-                              key: const Key('shiny_auto_resume_shiny_btn'),
-                              style: FilledButton.styleFrom(
-                                visualDensity: VisualDensity.compact,
-                                backgroundColor: Colors.amber,
-                                foregroundColor: Colors.black,
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 10,
-                                  vertical: 4,
-                                ),
-                              ),
-                              onPressed: () => service
-                                  .resumeShinyPausedSlot(shinyAlert.slotId),
-                              child: Text(
-                                t.shiny_auto_shiny_alert_resume,
-                                style: const TextStyle(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
+                  // Prominent Shiny Alert Banners for ALL Shiny-paused slots
+                  ValueListenableBuilder<List<AutoCountLogEntry>>(
+                    valueListenable: service.activeShinyAlertsNotifier,
+                    builder: (context, alerts, _) {
+                      if (alerts.isEmpty) return const SizedBox.shrink();
+                      final list = Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          for (int i = 0; i < alerts.length; i++) ...[
+                            _buildShinyAlertCard(
+                              context,
+                              theme: theme,
+                              service: service,
+                              alert: alerts[i],
+                              isPrimary: i == 0,
                             ),
                           ],
-                        ),
+                        ],
+                      );
+                      if (alerts.length <= 1) return list;
+                      return ConstrainedBox(
+                        constraints: const BoxConstraints(maxHeight: 170),
+                        child: SingleChildScrollView(child: list),
                       );
                     },
                   ),
                 ],
               ),
+            ),
             );
           },
         );
       },
     );
+  }
+
+  Widget _buildShinyAlertCard(
+    BuildContext context, {
+    required ThemeData theme,
+    required ShinyAutoCounterService service,
+    required AutoCountLogEntry alert,
+    required bool isPrimary,
+  }) {
+    final rawName = alert.pokemonName?.trim();
+    final fallbackName = widget.resolveHuntName?.call(alert.huntId)?.trim();
+    final displayName = (rawName != null && rawName.isNotEmpty)
+        ? rawName
+        : (fallbackName != null && fallbackName.isNotEmpty ? fallbackName : '');
+    final baseTitle = t.shiny_auto_shiny_alert_title
+        .replaceAll('{slot}', alert.slotId.toString());
+    final titleText =
+        displayName.isNotEmpty ? '$baseTitle · $displayName' : baseTitle;
+    final sourceLabel = _sourceLabel(alert.detectionSource);
+
+    return Container(
+      key: isPrimary
+          ? const Key('shiny_auto_shiny_banner')
+          : Key('shiny_auto_shiny_banner_${alert.slotId}'),
+      margin: const EdgeInsets.only(top: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+      decoration: BoxDecoration(
+        color: Colors.amber.withValues(alpha: 0.22),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: Colors.amber, width: 1.5),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Wrap(
+            spacing: 6,
+            runSpacing: 4,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              const Icon(Icons.auto_awesome, color: Colors.amber, size: 16),
+              Text(
+                titleText,
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 12,
+                ),
+              ),
+              Container(
+                key: Key('shiny_auto_shiny_source_${alert.slotId}'),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: Colors.amber.withValues(alpha: 0.25),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: Colors.amber.withValues(alpha: 0.65),
+                  ),
+                ),
+                child: Text(
+                  sourceLabel,
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w700,
+                    color: theme.brightness == Brightness.dark
+                        ? Colors.amber.shade200
+                        : Colors.amber.shade900,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          Wrap(
+            spacing: 6,
+            runSpacing: 4,
+            alignment: WrapAlignment.end,
+            children: [
+              if (widget.onMarkShinyCaught != null && alert.huntId.isNotEmpty)
+                FilledButton.tonalIcon(
+                  key: Key('shiny_auto_catch_shiny_btn_${alert.slotId}'),
+                  style: FilledButton.styleFrom(
+                    visualDensity: VisualDensity.compact,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    minimumSize: Size.zero,
+                    backgroundColor: Colors.green.shade600,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 5,
+                    ),
+                  ),
+                  onPressed: () =>
+                      widget.onMarkShinyCaught!(alert.huntId, alert.slotId),
+                  icon: const Icon(Icons.catching_pokemon, size: 14),
+                  label: Text(
+                    t.shiny_auto_shiny_mark_caught,
+                    style: const TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              FilledButton.tonal(
+                key: isPrimary
+                    ? const Key('shiny_auto_resume_shiny_btn')
+                    : Key('shiny_auto_resume_shiny_btn_${alert.slotId}'),
+                style: FilledButton.styleFrom(
+                  visualDensity: VisualDensity.compact,
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  minimumSize: Size.zero,
+                  backgroundColor: Colors.amber,
+                  foregroundColor: Colors.black,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 5,
+                  ),
+                ),
+                onPressed: () => service.resumeShinyPausedSlot(alert.slotId),
+                child: Text(
+                  t.shiny_auto_shiny_alert_resume,
+                  style: const TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _sourceLabel(ShinyDetectionSource? source) {
+    return switch (source) {
+      ShinyDetectionSource.sparkleDelay => t.shiny_auto_source_sparkle_delay,
+      ShinyDetectionSource.colorDeviation => t.shiny_auto_source_color_dev,
+      ShinyDetectionSource.ocrText || null => t.shiny_auto_source_ocr,
+    };
   }
 }

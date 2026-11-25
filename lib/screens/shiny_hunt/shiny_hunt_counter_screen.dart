@@ -45,6 +45,8 @@ class _ShinyHuntCounterScreenState extends State<ShinyHuntCounterScreen> {
   final GlobalKey _counterAreaKey = GlobalKey();
   final GlobalKey _buttonsKey = GlobalKey();
   final GlobalKey _phasesActionsKey = GlobalKey();
+  final GlobalKey _autoCounterBtnKey = GlobalKey();
+  final GlobalKey _dashboardBtnKey = GlobalKey();
 
   @override
   void didChangeDependencies() {
@@ -80,7 +82,7 @@ class _ShinyHuntCounterScreenState extends State<ShinyHuntCounterScreen> {
       huntProvider = null;
     }
     final hunt = huntProvider?.getHuntById(widget.huntId);
-    if (hunt == null || hunt.isCompleted) return;
+    if (hunt == null || hunt.isCompleted || _isLockMode) return;
 
     if (!tutProvider.hasSeenFeature('shiny_hunt_counter')) {
       TutorialOverlay.show(
@@ -107,9 +109,47 @@ class _ShinyHuntCounterScreenState extends State<ShinyHuntCounterScreen> {
               textKey: 'tutorial_shiny_phases_actions_text',
               rotomMood: RotomMood.happy,
             ),
+            TutorialStep(
+              targetKey: _autoCounterBtnKey,
+              titleKey: 'tutorial_shiny_counter_auto_title',
+              textKey: 'tutorial_shiny_counter_auto_text',
+              rotomMood: RotomMood.explaining,
+            ),
+            TutorialStep(
+              targetKey: _dashboardBtnKey,
+              titleKey: 'tutorial_shiny_counter_dashboard_title',
+              textKey: 'tutorial_shiny_counter_dashboard_text',
+              rotomMood: RotomMood.happy,
+            ),
           ],
         ),
-        () => tutProvider.markFeatureAsSeen('shiny_hunt_counter'),
+        () {
+          tutProvider.markFeatureAsSeen('shiny_hunt_counter');
+          tutProvider.markFeatureAsSeen('shiny_hunt_counter_v17_delta');
+        },
+      );
+    } else if (!tutProvider.hasSeenFeature('shiny_hunt_counter_v17_delta')) {
+      TutorialOverlay.show(
+        context,
+        TutorialFeature(
+          id: 'shiny_hunt_counter_v17_delta',
+          nameKey: 'tutorial_chapter_shiny_hunt_title',
+          steps: [
+            TutorialStep(
+              targetKey: _autoCounterBtnKey,
+              titleKey: 'tutorial_shiny_counter_auto_title',
+              textKey: 'tutorial_shiny_counter_auto_text',
+              rotomMood: RotomMood.explaining,
+            ),
+            TutorialStep(
+              targetKey: _dashboardBtnKey,
+              titleKey: 'tutorial_shiny_counter_dashboard_title',
+              textKey: 'tutorial_shiny_counter_dashboard_text',
+              rotomMood: RotomMood.happy,
+            ),
+          ],
+        ),
+        () => tutProvider.markFeatureAsSeen('shiny_hunt_counter_v17_delta'),
       );
     }
   }
@@ -865,31 +905,37 @@ class _ShinyHuntCounterScreenState extends State<ShinyHuntCounterScreen> {
               },
             ),
             if (!_isLockMode && !hunt.isCompleted) ...[
-              ValueListenableBuilder<bool>(
-                valueListenable: ShinyAutoCounterService.instance.isRunningNotifier,
-                builder: (context, isAutoRunning, _) => IconButton(
-                  key: const Key('counter_auto_scanner_btn'),
-                  icon: Icon(
-                    Icons.center_focus_strong,
-                    color: isAutoRunning ? Colors.greenAccent : null,
-                  ),
-                  tooltip: t.shiny_auto_btn_tooltip,
-                  onPressed: () => ShinyAutoCounterSetupSheet.show(
-                    context,
-                    hunt: hunt,
+              KeyedSubtree(
+                key: _autoCounterBtnKey,
+                child: ValueListenableBuilder<bool>(
+                  valueListenable: ShinyAutoCounterService.instance.isRunningNotifier,
+                  builder: (context, isAutoRunning, _) => IconButton(
+                    key: const Key('counter_auto_scanner_btn'),
+                    icon: Icon(
+                      Icons.center_focus_strong,
+                      color: isAutoRunning ? Colors.greenAccent : null,
+                    ),
+                    tooltip: t.shiny_auto_btn_tooltip,
+                    onPressed: () => ShinyAutoCounterSetupSheet.show(
+                      context,
+                      hunt: hunt,
+                    ),
                   ),
                 ),
               ),
-              IconButton(
-                icon: const Icon(Icons.grid_view_rounded),
-                tooltip: t.multi_hunt_dashboard_tooltip,
-                onPressed: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) => const MultiHuntDashboardScreen(),
-                    ),
-                  );
-                },
+              KeyedSubtree(
+                key: _dashboardBtnKey,
+                child: IconButton(
+                  icon: const Icon(Icons.grid_view_rounded),
+                  tooltip: t.multi_hunt_dashboard_tooltip,
+                  onPressed: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => const MultiHuntDashboardScreen(),
+                      ),
+                    );
+                  },
+                ),
               ),
               OutlinedButton.icon(
                 style: OutlinedButton.styleFrom(
@@ -971,6 +1017,18 @@ class _ShinyHuntCounterScreenState extends State<ShinyHuntCounterScreen> {
                     context,
                     hunt: hunt,
                   ),
+                  onMarkShinyCaught: (huntId, slotId) async {
+                    final target = huntProvider.getHuntById(huntId);
+                    if (target == null) return;
+                    final caught = await showDialog<bool>(
+                      context: context,
+                      builder: (_) => ShinyCatchDialog(hunt: target),
+                    );
+                    if (caught == true) {
+                      ShinyAutoCounterService.instance
+                          .resumeShinyPausedSlot(slotId);
+                    }
+                  },
                 ),
 
               // 2. Große Tap-Zone & Sprite-Bereich

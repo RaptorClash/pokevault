@@ -202,24 +202,51 @@ class _HomeScreenState extends State<HomeScreen> {
       final hasScannerBtn =
           TrackerPlatformHelper.isDesktopOverlaySupported ||
               TrackerPlatformHelper.isCameraTrackerSupported;
-      if (hasScannerBtn && _currentFolderId == 'root') {
+      if (_currentFolderId == 'root') {
         TutorialOverlay.show(
           context,
           TutorialFeature(
             id: 'scanner_delta_home',
-            nameKey: 'tutorial_scanner_tour_btn',
+            nameKey: 'tutorial_v17_tour_btn',
             steps: [
-              TutorialStep(
-                targetKey: _scannerActionKey,
-                titleKey: 'tutorial_scanner_home_delta_title',
-                textKey: 'tutorial_scanner_home_delta_text',
-                rotomMood: RotomMood.happy,
-                requireTargetTap: true,
-                onTargetTap: () {
-                  tutProvider.endScannerDeltaTour();
-                  _openPlatformTrackerSelector();
-                },
-              ),
+              if (hasScannerBtn) ...[
+                TutorialStep(
+                  targetKey: _shinyHuntActionKey,
+                  titleKey: 'tutorial_v17_home_shiny_title',
+                  textKey: 'tutorial_v17_home_shiny_text',
+                  rotomMood: RotomMood.explaining,
+                  requireTargetTap: false,
+                ),
+                TutorialStep(
+                  targetKey: _scannerActionKey,
+                  titleKey: 'tutorial_scanner_home_delta_title',
+                  textKey: 'tutorial_scanner_home_delta_text',
+                  rotomMood: RotomMood.happy,
+                  requireTargetTap: true,
+                  onTargetTap: () {
+                    tutProvider.endScannerDeltaTour();
+                    _openPlatformTrackerSelector();
+                  },
+                ),
+              ] else
+                TutorialStep(
+                  targetKey: _shinyHuntActionKey,
+                  titleKey: 'tutorial_v17_home_shiny_title',
+                  textKey: 'tutorial_v17_home_shiny_text',
+                  rotomMood: RotomMood.happy,
+                  requireTargetTap: true,
+                  onTargetTap: () {
+                    tutProvider.endScannerDeltaTour();
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const ShinyHuntsHubScreen(),
+                      ),
+                    ).then((_) {
+                      if (mounted) _showTutorialIfNeeded();
+                    });
+                  },
+                ),
             ],
           ),
           () => tutProvider.endScannerDeltaTour(),

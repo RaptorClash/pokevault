@@ -11,6 +11,7 @@ import 'dialogs/create_edit_hunt_dialog.dart';
 import 'dialogs/record_phase_dialog.dart';
 import 'dialogs/shiny_auto_counter_setup_sheet.dart';
 import 'dialogs/shiny_catch_dialog.dart';
+import 'controllers/multi_hunt_dashboard_tutorial_controller.dart';
 import 'shiny_hunt_counter_screen.dart';
 import 'widgets/shiny_auto_counter_bar.dart';
 
@@ -32,9 +33,29 @@ class MultiHuntDashboardScreen extends StatefulWidget {
 
 class _MultiHuntDashboardScreenState extends State<MultiHuntDashboardScreen> {
   bool _showPaused = false;
+  final MultiHuntDashboardTutorialController _tutorialController =
+      MultiHuntDashboardTutorialController();
 
   ShinyAutoCounterService get _service =>
       widget.autoCounterService ?? ShinyAutoCounterService.instance;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final huntProvider = Provider.of<ShinyHuntProvider>(context, listen: false);
+      final active = huntProvider.activeHunts;
+      final paused = huntProvider.pausedHunts;
+      _tutorialController.showIfNeeded(
+        context: context,
+        isMounted: mounted,
+        hasActiveHunts: active.isNotEmpty,
+        hasPausedHunts: paused.isNotEmpty,
+        hasVisibleCard: active.isNotEmpty || (_showPaused && paused.isNotEmpty),
+      );
+    });
+  }
 
   void _openCreateHuntDialog() {
     showDialog<ShinyHunt?>(
@@ -84,42 +105,54 @@ class _MultiHuntDashboardScreenState extends State<MultiHuntDashboardScreen> {
         title: Text(t.multi_hunt_dashboard_title),
         actions: [
           if (pausedHunts.isNotEmpty)
-            TextButton.icon(
-              key: const Key('multi_hunt_toggle_paused_btn'),
-              icon: Icon(
-                _showPaused ? Icons.visibility_off : Icons.pause_circle_outline,
-                size: 18,
+            KeyedSubtree(
+              key: _tutorialController.pausedToggleBtnKey,
+              child: TextButton.icon(
+                key: const Key('multi_hunt_toggle_paused_btn'),
+                icon: Icon(
+                  _showPaused ? Icons.visibility_off : Icons.pause_circle_outline,
+                  size: 18,
+                ),
+                label: Text(
+                  _showPaused
+                      ? t.multi_hunt_hide_paused
+                      : t.multi_hunt_show_paused
+                          .replaceAll('{count}', pausedHunts.length.toString()),
+                  style: const TextStyle(fontSize: 12),
+                ),
+                onPressed: () => setState(() => _showPaused = !_showPaused),
               ),
-              label: Text(
-                _showPaused
-                    ? t.multi_hunt_hide_paused
-                    : t.multi_hunt_show_paused
-                        .replaceAll('{count}', pausedHunts.length.toString()),
-                style: const TextStyle(fontSize: 12),
-              ),
-              onPressed: () => setState(() => _showPaused = !_showPaused),
             ),
-          IconButton(
-            key: const Key('multi_hunt_help_btn'),
-            icon: const Icon(Icons.help_outline_rounded),
-            tooltip: t.multi_hunt_help_tooltip,
-            onPressed: () => _showHelpDialog(context),
+          KeyedSubtree(
+            key: _tutorialController.helpBtnKey,
+            child: IconButton(
+              key: const Key('multi_hunt_help_btn'),
+              icon: const Icon(Icons.help_outline_rounded),
+              tooltip: t.multi_hunt_help_tooltip,
+              onPressed: () => _showHelpDialog(context),
+            ),
           ),
-          IconButton(
-            key: const Key('multi_hunt_add_hunt_btn'),
-            icon: const Icon(Icons.add_circle_outline),
-            tooltip: t.multi_hunt_add_hunt,
-            onPressed: _openCreateHuntDialog,
+          KeyedSubtree(
+            key: _tutorialController.addHuntBtnKey,
+            child: IconButton(
+              key: const Key('multi_hunt_add_hunt_btn'),
+              icon: const Icon(Icons.add_circle_outline),
+              tooltip: t.multi_hunt_add_hunt,
+              onPressed: _openCreateHuntDialog,
+            ),
           ),
           if (activeHunts.isNotEmpty)
-            IconButton(
-              key: const Key('multi_hunt_setup_btn'),
-              icon: const Icon(Icons.center_focus_strong),
-              tooltip: t.shiny_auto_btn_tooltip,
-              onPressed: () => ShinyAutoCounterSetupSheet.show(
-                context,
-                hunt: activeHunts.first,
-                service: _service,
+            KeyedSubtree(
+              key: _tutorialController.autoSetupBtnKey,
+              child: IconButton(
+                key: const Key('multi_hunt_setup_btn'),
+                icon: const Icon(Icons.center_focus_strong),
+                tooltip: t.shiny_auto_btn_tooltip,
+                onPressed: () => ShinyAutoCounterSetupSheet.show(
+                  context,
+                  hunt: activeHunts.first,
+                  service: _service,
+                ),
               ),
             ),
         ],
@@ -138,6 +171,17 @@ class _MultiHuntDashboardScreenState extends State<MultiHuntDashboardScreen> {
                         service: _service,
                       )
                   : null,
+              onMarkShinyCaught: (huntId, slotId) async {
+                final target = huntProvider.getHuntById(huntId);
+                if (target == null) return;
+                final caught = await showDialog<bool>(
+                  context: context,
+                  builder: (_) => ShinyCatchDialog(hunt: target),
+                );
+                if (caught == true) {
+                  _service.resumeShinyPausedSlot(slotId);
+                }
+              },
             ),
             Expanded(
               child: !hasAnyVisible
@@ -217,16 +261,29 @@ class _MultiHuntDashboardScreenState extends State<MultiHuntDashboardScreen> {
                                 Wrap(
                                   spacing: spacing,
                                   runSpacing: spacing,
-                                  children: activeHunts.map((hunt) {
-                                    return SizedBox(
-                                      width: cardWidth,
-                                      child: _MultiHuntCard(
-                                        hunt: hunt,
-                                        huntProvider: huntProvider,
-                                        service: _service,
+                                  children: [
+                                    for (int i = 0; i < activeHunts.length; i++)
+                                      SizedBox(
+                                        width: cardWidth,
+                                        child: _MultiHuntCard(
+                                          hunt: activeHunts[i],
+                                          huntProvider: huntProvider,
+                                          service: _service,
+                                          counterKey: i == 0
+                                              ? _tutorialController
+                                                  .firstCardCounterKey
+                                              : null,
+                                          rulesKey: i == 0
+                                              ? _tutorialController
+                                                  .firstCardRulesKey
+                                              : null,
+                                          slotsKey: i == 0
+                                              ? _tutorialController
+                                                  .firstCardSlotsKey
+                                              : null,
+                                        ),
                                       ),
-                                    );
-                                  }).toList(),
+                                  ],
                                 ),
                               if (_showPaused && pausedHunts.isNotEmpty) ...[
                                 if (activeHunts.isNotEmpty)
@@ -257,16 +314,32 @@ class _MultiHuntDashboardScreenState extends State<MultiHuntDashboardScreen> {
                                 Wrap(
                                   spacing: spacing,
                                   runSpacing: spacing,
-                                  children: pausedHunts.map((hunt) {
-                                    return SizedBox(
-                                      width: cardWidth,
-                                      child: _MultiHuntCard(
-                                        hunt: hunt,
-                                        huntProvider: huntProvider,
-                                        service: _service,
+                                  children: [
+                                    for (int i = 0; i < pausedHunts.length; i++)
+                                      SizedBox(
+                                        width: cardWidth,
+                                        child: _MultiHuntCard(
+                                          hunt: pausedHunts[i],
+                                          huntProvider: huntProvider,
+                                          service: _service,
+                                          counterKey:
+                                              activeHunts.isEmpty && i == 0
+                                                  ? _tutorialController
+                                                      .firstCardCounterKey
+                                                  : null,
+                                          rulesKey:
+                                              activeHunts.isEmpty && i == 0
+                                                  ? _tutorialController
+                                                      .firstCardRulesKey
+                                                  : null,
+                                          slotsKey:
+                                              activeHunts.isEmpty && i == 0
+                                                  ? _tutorialController
+                                                      .firstCardSlotsKey
+                                                  : null,
+                                        ),
                                       ),
-                                    );
-                                  }).toList(),
+                                  ],
                                 ),
                               ],
                             ],
@@ -286,11 +359,17 @@ class _MultiHuntCard extends StatelessWidget {
   final ShinyHunt hunt;
   final ShinyHuntProvider huntProvider;
   final ShinyAutoCounterService service;
+  final GlobalKey? counterKey;
+  final GlobalKey? rulesKey;
+  final GlobalKey? slotsKey;
 
   const _MultiHuntCard({
     required this.hunt,
     required this.huntProvider,
     required this.service,
+    this.counterKey,
+    this.rulesKey,
+    this.slotsKey,
   });
 
   String _slotPhaseLabel(ShinySlotPhase phase) {
@@ -375,16 +454,19 @@ class _MultiHuntCard extends StatelessWidget {
                     ],
                   ),
                 ),
-                IconButton(
-                  key: Key('multi_hunt_rules_${hunt.id}'),
-                  visualDensity: VisualDensity.compact,
-                  tooltip: t.multi_hunt_edit_rules_tooltip,
-                  icon: const Icon(Icons.tune_rounded, size: 18),
-                  onPressed: () => ShinyAutoCounterSetupSheet.show(
-                    context,
-                    hunt: hunt,
-                    service: service,
-                    perHuntOverride: true,
+                KeyedSubtree(
+                  key: rulesKey,
+                  child: IconButton(
+                    key: Key('multi_hunt_rules_${hunt.id}'),
+                    visualDensity: VisualDensity.compact,
+                    tooltip: t.multi_hunt_edit_rules_tooltip,
+                    icon: const Icon(Icons.tune_rounded, size: 18),
+                    onPressed: () => ShinyAutoCounterSetupSheet.show(
+                      context,
+                      hunt: hunt,
+                      service: service,
+                      perHuntOverride: true,
+                    ),
                   ),
                 ),
                 IconButton(
@@ -430,11 +512,13 @@ class _MultiHuntCard extends StatelessWidget {
                         .toList();
                     return Padding(
                       padding: const EdgeInsets.only(top: 6),
-                      child: Wrap(
-                        spacing: 6,
-                        runSpacing: 4,
-                        crossAxisAlignment: WrapCrossAlignment.center,
-                        children: [
+                      child: KeyedSubtree(
+                        key: slotsKey,
+                        child: Wrap(
+                          spacing: 6,
+                          runSpacing: 4,
+                          crossAxisAlignment: WrapCrossAlignment.center,
+                          children: [
                           InkWell(
                             borderRadius: BorderRadius.circular(10),
                             onTap: () => ShinyAutoCounterSetupSheet.show(
@@ -471,6 +555,8 @@ class _MultiHuntCard extends StatelessWidget {
                             final color = Color(s.colorHex);
                             final isShiny =
                                 s.phase == ShinySlotPhase.pausedByShiny;
+                            final isCounted =
+                                s.phase == ShinySlotPhase.counted;
                             return InkWell(
                               borderRadius: BorderRadius.circular(10),
                               onTap: () => service.togglePauseSlot(s.slotId),
@@ -489,13 +575,42 @@ class _MultiHuntCard extends StatelessWidget {
                                     color: isShiny ? Colors.amber : color,
                                   ),
                                 ),
-                                child: Text(
-                                  '#${s.slotId} · ${_slotPhaseLabel(s.phase)}',
-                                  style: TextStyle(
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.bold,
-                                    color: isShiny ? Colors.amber.shade700 : null,
-                                  ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Text(
+                                      '#${s.slotId} · ${_slotPhaseLabel(s.phase)}',
+                                      style: TextStyle(
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.bold,
+                                        color: isShiny
+                                            ? Colors.amber.shade700
+                                            : null,
+                                      ),
+                                    ),
+                                    if (isCounted) ...[
+                                      const SizedBox(width: 4),
+                                      InkWell(
+                                        key: Key(
+                                          'multi_hunt_slot_rearm_${hunt.id}_${s.slotId}',
+                                        ),
+                                        onTap: () =>
+                                            service.rearmSlot(s.slotId),
+                                        child: Tooltip(
+                                          message: t
+                                              .shiny_auto_rearm_single_tooltip
+                                              .replaceAll(
+                                            '{slot}',
+                                            s.slotId.toString(),
+                                          ),
+                                          child: const Icon(
+                                            Icons.refresh_rounded,
+                                            size: 13,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ],
                                 ),
                               ),
                             );
@@ -556,6 +671,7 @@ class _MultiHuntCard extends StatelessWidget {
                               ),
                             ),
                         ],
+                        ),
                       ),
                     );
                   },
@@ -566,40 +682,43 @@ class _MultiHuntCard extends StatelessWidget {
             const SizedBox(height: 10),
 
             // Counter Display
-            Container(
-              padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
-              decoration: BoxDecoration(
-                color: theme.colorScheme.surfaceContainerHighest
-                    .withValues(alpha: 0.35),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Column(
-                children: [
-                  Text(
-                    hunt.currentEncounters.toString(),
-                    style: TextStyle(
-                      fontSize: 34,
-                      fontWeight: FontWeight.w900,
-                      color: theme.colorScheme.primary,
+            KeyedSubtree(
+              key: counterKey,
+              child: Container(
+                padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.surfaceContainerHighest
+                      .withValues(alpha: 0.35),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Column(
+                  children: [
+                    Text(
+                      hunt.currentEncounters.toString(),
+                      style: TextStyle(
+                        fontSize: 34,
+                        fontWeight: FontWeight.w900,
+                        color: theme.colorScheme.primary,
+                      ),
                     ),
-                  ),
-                  Text(
-                    t.multi_hunt_phase_status
-                        .replaceAll('{phase}', hunt.phase.toString())
-                        .replaceAll(
-                          '{status}',
-                          hunt.isPaused
-                              ? t.shiny_hunt_paused
-                              : t.shiny_hunt_status_active,
-                        ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontSize: 11,
-                      color: hunt.isPaused ? Colors.amber : Colors.grey.shade500,
+                    Text(
+                      t.multi_hunt_phase_status
+                          .replaceAll('{phase}', hunt.phase.toString())
+                          .replaceAll(
+                            '{status}',
+                            hunt.isPaused
+                                ? t.shiny_hunt_paused
+                                : t.shiny_hunt_status_active,
+                          ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: hunt.isPaused ? Colors.amber : Colors.grey.shade500,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
 

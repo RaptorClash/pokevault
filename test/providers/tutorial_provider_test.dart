@@ -250,6 +250,57 @@ void main() {
       tutorialProvider.endDeltaTour();
       expect(tutorialProvider.isDeltaTourActive, isFalse);
     });
+
+    test('startV17DeltaTour resets scanner, shiny delta & auto-counter keys and clears skip_all_tutorials', () async {
+      await tutorialProvider.skipAllTutorials();
+      await tutorialProvider.markFeatureAsSeen('mobile_scanner_tour');
+      await tutorialProvider.markFeatureAsSeen('desktop_scanner_tour');
+      await tutorialProvider.markFeatureAsSeen('shiny_hunt_hub_v17_delta');
+      await tutorialProvider.markFeatureAsSeen('shiny_hunt_counter_v17_delta');
+      await tutorialProvider.markFeatureAsSeen('multi_hunt_dashboard');
+      await tutorialProvider.markFeatureAsSeen('shiny_auto_counter_setup');
+      await tutorialProvider.markFeatureAsSeen('shiny_auto_counter_bar');
+
+      await tutorialProvider.startV17DeltaTour();
+
+      expect(tutorialProvider.isScannerDeltaTourActive, isTrue);
+      expect(tutorialProvider.isScannerUpdateAnnounced, isTrue);
+      expect(prefs.getBool('skip_all_tutorials'), isNull);
+      expect(tutorialProvider.hasSeenFeature('mobile_scanner_tour'), isFalse);
+      expect(tutorialProvider.hasSeenFeature('desktop_scanner_tour'), isFalse);
+      expect(tutorialProvider.hasSeenFeature('shiny_hunt_hub_v17_delta'), isFalse);
+      expect(tutorialProvider.hasSeenFeature('shiny_hunt_counter_v17_delta'), isFalse);
+      expect(tutorialProvider.hasSeenFeature('multi_hunt_dashboard'), isFalse);
+      expect(tutorialProvider.hasSeenFeature('shiny_auto_counter_setup'), isFalse);
+      expect(tutorialProvider.hasSeenFeature('shiny_auto_counter_bar'), isFalse);
+    });
+
+    test('prepareChapterForLiveReplay clears skip_all_tutorials and resets chapter + companion keys', () async {
+      await tutorialProvider.skipAllTutorials();
+      await tutorialProvider.markFeatureAsSeen('settings_screen');
+      await tutorialProvider.markFeatureAsSeen('cloud_sync');
+      await tutorialProvider.markFeatureAsSeen('data_backup');
+      await tutorialProvider.markFeatureAsSeen('shiny_hunt_hub');
+      await tutorialProvider.markFeatureAsSeen('shiny_hunt_counter');
+      await tutorialProvider.markFeatureAsSeen('create_hunt_dialog');
+      await tutorialProvider.markFeatureAsSeen('multi_hunt_dashboard');
+
+      await tutorialProvider.prepareChapterForLiveReplay('module_backup_sync');
+      expect(prefs.getBool('skip_all_tutorials'), isNull);
+      expect(tutorialProvider.hasSeenFeature('settings_screen'), isFalse);
+      expect(tutorialProvider.hasSeenFeature('cloud_sync'), isFalse);
+      expect(tutorialProvider.hasSeenFeature('data_backup'), isFalse);
+
+      await tutorialProvider.prepareChapterForLiveReplay('module_shiny_hunt');
+      expect(tutorialProvider.hasSeenFeature('shiny_hunt_hub'), isFalse);
+      expect(tutorialProvider.hasSeenFeature('shiny_hunt_counter'), isFalse);
+      expect(tutorialProvider.hasSeenFeature('create_hunt_dialog'), isFalse);
+
+      await tutorialProvider.prepareChapterForLiveReplay('module_shiny_auto_counter');
+      expect(tutorialProvider.hasSeenFeature('multi_hunt_dashboard'), isFalse);
+      expect(tutorialProvider.hasSeenFeature('shiny_auto_counter_setup'), isFalse);
+      expect(tutorialProvider.hasSeenFeature('shiny_auto_counter_bar'), isFalse);
+    });
   });
 }
 
