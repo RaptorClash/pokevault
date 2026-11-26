@@ -37,6 +37,8 @@ class MobileCameraTrackerService {
   double minZoom = 1.0;
   double maxZoom = 1.0;
   bool _ownsCameraSourceOnStop = false;
+  int _sessionGeneration = 0;
+  _MobilePipLifecycleObserver? _pipLifecycleObserver;
 
   final ValueNotifier<double?> previewAspectRatioNotifier = ValueNotifier(null);
   final ValueNotifier<bool> isTrackingNotifier = ValueNotifier(false);
@@ -81,6 +83,7 @@ class MobileCameraTrackerService {
     Future<void> Function()? onToggleTorch,
     bool ownsCameraSource = false,
   }) {
+    _sessionGeneration++;
     final prevSource = _cameraSource;
     final prevCoord = _coordinator;
     final prevOwned = _ownsCameraSourceOnStop;
@@ -132,7 +135,11 @@ class MobileCameraTrackerService {
         currentRegions.where((r) => r.enabled && r.slotId != null).toList();
     final hasPrimaryScan = mode == MobileCameraScanMode.autoFull ||
         currentRegions.any(
-          (r) => r.enabled && r.role == CameraZoneRole.scan && r.slotId == null,
+          (r) =>
+              r.enabled &&
+              (r.role == CameraZoneRole.scan ||
+                  r.role == CameraZoneRole.focus) &&
+              r.slotId == null,
         );
     final slotIdSet = <int>{
       if (hasPrimaryScan || multiRegions.isEmpty) 1,
@@ -190,7 +197,44 @@ class MobileCameraTrackerService {
 
   void setViewMode(MobileScannerViewMode mode) {
     viewModeNotifier.value = mode;
-    isPipVisibleNotifier.value = mode == MobileScannerViewMode.pip;
+    final pipActive = mode == MobileScannerViewMode.pip;
+    isPipVisibleNotifier.value = pipActive;
+    if (pipActive) {
+      _registerPipLifecycleObserver();
+    } else {
+      _unregisterPipLifecycleObserver();
+    }
+  }
+
+  void _registerPipLifecycleObserver() {
+    if (_pipLifecycleObserver != null) return;
+    final observer = _MobilePipLifecycleObserver(this);
+    _pipLifecycleObserver = observer;
+    WidgetsBinding.instance.addObserver(observer);
+  }
+
+  void _unregisterPipLifecycleObserver() {
+    final observer = _pipLifecycleObserver;
+    if (observer == null) return;
+    _pipLifecycleObserver = null;
+    WidgetsBinding.instance.removeObserver(observer);
+  }
+
+  void _handlePipAppLifecycleState(AppLifecycleState state) {
+    if (!isPipVisibleNotifier.value) return;
+    if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.inactive ||
+        state == AppLifecycleState.hidden) {
+      if (!isPausedNotifier.value) {
+        _coordinator?.stop();
+        unawaited(activeFramePump?.pause());
+      }
+    } else if (state == AppLifecycleState.resumed) {
+      if (!isPausedNotifier.value && isTrackingNotifier.value) {
+        _coordinator?.start();
+        unawaited(activeFramePump?.resume());
+      }
+    }
   }
 
   void enterPipMode() {
@@ -299,6 +343,9 @@ class MobileCameraTrackerService {
   }
 
   Future<void> stopSession() async {
+    final stopGen = ++_sessionGeneration;
+    _unregisterPipLifecycleObserver();
+
     isTrackingNotifier.value = false;
     isPausedNotifier.value = false;
     isPipVisibleNotifier.value = false;
@@ -322,8 +369,22 @@ class MobileCameraTrackerService {
     final disableWakelock = _onDisableWakelockCallback;
     _onDisableWakelockCallback = null;
     activeCameraController = null;
-    await activeFramePump?.dispose();
+    final pumpToDispose = activeFramePump;
     activeFramePump = null;
+
+    final eventSubToCancel = _eventSub;
+    _eventSub = null;
+    final focusSubToCancel = _focusSub;
+    _focusSub = null;
+    final stoppedCoordinator = _coordinator;
+    _coordinator = null;
+    final sourceToDispose = _cameraSource;
+    _cameraSource = null;
+    final ownsSource = _ownsCameraSourceOnStop;
+    _ownsCameraSourceOnStop = false;
+    _activeDexId = null;
+
+    await pumpToDispose?.dispose();
 
     if (disposeCamera != null) {
       try {
@@ -337,20 +398,25 @@ class MobileCameraTrackerService {
       } catch (_) {}
     }
 
-    await _eventSub?.cancel();
-    _eventSub = null;
-    await _focusSub?.cancel();
-    _focusSub = null;
+    await eventSubToCancel?.cancel();
+    await focusSubToCancel?.cancel();
 
-    final stoppedCoordinator = _coordinator;
-    ShinyAutoCounterService.instance.onSourceStopped(stoppedCoordinator);
-    await _coordinator?.stop();
-    if (_ownsCameraSourceOnStop) {
-      await _cameraSource?.dispose();
+    if (stopGen == _sessionGeneration) {
+      ShinyAutoCounterService.instance.onSourceStopped(stoppedCoordinator);
     }
-    _ownsCameraSourceOnStop = false;
-    _coordinator = null;
-    _cameraSource = null;
-    _activeDexId = null;
+    await stoppedCoordinator?.stop();
+    if (ownsSource) {
+      await sourceToDispose?.dispose();
+    }
+  }
+}
+
+class _MobilePipLifecycleObserver with WidgetsBindingObserver {
+  final MobileCameraTrackerService _service;
+  _MobilePipLifecycleObserver(this._service);
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    _service._handlePipAppLifecycleState(state);
   }
 }

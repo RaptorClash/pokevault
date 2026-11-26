@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'engine/ocr_detection_engine.dart';
 import 'engine/pokemon_fuzzy_matcher.dart';
 import 'feedback/scanner_feedback.dart';
@@ -63,6 +64,7 @@ class ScannerCoordinator {
   int _droppedFramesCount = 0;
   String? _effectiveOcrLanguage;
   List<CustomOcrPattern> _overlayCustomPatterns = const [];
+  bool Function(int slotId, String patternId)? _slotCustomPatternFilter;
   bool _suppressEncounterFeedback = false;
 
   /// Resolved effective game/OCR language code (e.g. `'de'`, `'en'`), or `null` for all.
@@ -114,6 +116,14 @@ class ScannerCoordinator {
     _syncEngineCustomPatterns();
   }
 
+  /// Registers an optional per-slot filter so custom patterns scoped to one hunt
+  /// never shadow another slot's rules or built-in patterns.
+  void setSlotCustomPatternFilter(
+    bool Function(int slotId, String patternId)? filter,
+  ) {
+    _slotCustomPatternFilter = filter;
+  }
+
   /// Suppresses coordinator encounter/shiny audio feedback while an external auto-counter
   /// owns encounter notifications.
   void setSuppressEncounterFeedback(bool suppress) {
@@ -162,11 +172,19 @@ class ScannerCoordinator {
     _multiSourceSub?.cancel();
     _source = source;
     _sourceSub = _source!.textStream.listen((text) {
-      processFrameText(text, encounterOnly: false, allowMultiEncounter: true);
+      processFrameText(text, encounterOnly: false, allowMultiEncounter: true)
+          .catchError((Object e, StackTrace st) {
+        debugPrint('ScannerCoordinator bindSource error: $e');
+        return const <ScannerEvent>[];
+      });
     });
     if (source is DualZoneScannerSource) {
       _focusSourceSub = source.focusTextStream.listen((text) {
-        processFrameText(text, encounterOnly: true, allowMultiEncounter: true);
+        processFrameText(text, encounterOnly: true, allowMultiEncounter: true)
+            .catchError((Object e, StackTrace st) {
+          debugPrint('ScannerCoordinator bindSource focus error: $e');
+          return const <ScannerEvent>[];
+        });
       });
     }
     if (source is MultiInstanceScannerSource) {
@@ -177,7 +195,10 @@ class ScannerCoordinator {
           allowMultiEncounter: true,
           instanceIndex: emission.slotId,
           instanceColorHex: emission.colorHex,
-        );
+        ).catchError((Object e, StackTrace st) {
+          debugPrint('ScannerCoordinator bindSource multi error: $e');
+          return const <ScannerEvent>[];
+        });
       });
     }
   }
@@ -186,7 +207,11 @@ class ScannerCoordinator {
   void bindFocusStream(Stream<String> focusStream) {
     _focusSourceSub?.cancel();
     _focusSourceSub = focusStream.listen((text) {
-      processFrameText(text, encounterOnly: true, allowMultiEncounter: true);
+      processFrameText(text, encounterOnly: true, allowMultiEncounter: true)
+          .catchError((Object e, StackTrace st) {
+        debugPrint('ScannerCoordinator bindFocusStream error: $e');
+        return const <ScannerEvent>[];
+      });
     });
   }
 
@@ -335,11 +360,15 @@ class ScannerCoordinator {
       return const [];
     }
 
+    final slotFilter = _slotCustomPatternFilter;
     final parseResult = engine.parse(
       rawText,
       role: encounterOnly
           ? OcrScanRole.enemyHudFocusOnly
           : OcrScanRole.dialogueAndCatch,
+      customPatternFilter: slotFilter == null
+          ? null
+          : (patternId) => slotFilter(battleSlotKey, patternId),
     );
     if (parseResult == null) return const [];
 

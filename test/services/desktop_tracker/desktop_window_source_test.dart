@@ -1029,6 +1029,107 @@ void main() {
       await snippetFuture;
       await previewFuture;
     });
+
+    test('mixed native + fallback multi-instance slots do not double-capture native slots', () async {
+      final legacyCap = _CountingOnlyCaptureDriver();
+      final legacyOcr = _CountingOcrDriver(const []);
+      final nativeBridge = _FastPathBridge();
+      final src = DesktopWindowSource(
+        captureDriver: legacyCap,
+        ocrDriver: legacyOcr,
+        nativeBridge: nativeBridge,
+      );
+      addTearDown(src.dispose);
+
+      const nativeWin = DesktopWindowInfo(
+        id: 1,
+        hwnd: 101,
+        title: 'mGBA #1',
+        width: 800,
+        height: 600,
+      );
+      const fallbackWin = DesktopWindowInfo(
+        id: 2,
+        hwnd: 0,
+        title: 'Custom Capture #2',
+        width: 800,
+        height: 600,
+      );
+      src.updateKnownWindows([nativeWin, fallbackWin]);
+      src.setMultiInstanceSlots([
+        const MultiInstanceSlot(
+          id: 1,
+          label: '#1',
+          colorHex: 0xFFA855F7,
+          windowHwnd: 101,
+          windowTitle: 'mGBA #1',
+          scanEnabled: true,
+        ),
+        const MultiInstanceSlot(
+          id: 2,
+          label: '#2',
+          colorHex: 0xFFEC4899,
+          windowTitle: 'Custom Capture #2',
+          scanEnabled: true,
+        ),
+      ]);
+
+      nativeBridge.nextResult = const NativeCaptureAnalyzeResult(
+        captured: true,
+        ocrSkipped: false,
+        lines: ['Ein wildes Pikachu erscheint!'],
+        frameWidth: 800,
+        frameHeight: 600,
+      );
+
+      final emissions = <MultiInstanceTextEmission>[];
+      final sub = src.multiInstanceTextStream.listen(emissions.add);
+      addTearDown(sub.cancel);
+
+      await src.triggerSingleScan();
+      await Future<void>.delayed(Duration.zero);
+
+      // Slot 1 went through nativeBridge; legacyCap must ONLY capture Slot 2 (1 call, not 2).
+      expect(nativeBridge.requests.where((r) => r.slotKey == 'multi_1_scan'), hasLength(1));
+      expect(legacyCap.captureCount, 1);
+      expect(emissions.where((e) => e.slotId == 1), hasLength(1));
+    });
+
+    test('stale isMinimized flag on DesktopWindowInfo does not block native fast-path for hwnd > 0', () async {
+      final legacyCap = _CountingOnlyCaptureDriver();
+      final legacyOcr = _CountingOcrDriver(const []);
+      final nativeBridge = _FastPathBridge();
+      final src = DesktopWindowSource(
+        captureDriver: legacyCap,
+        ocrDriver: legacyOcr,
+        nativeBridge: nativeBridge,
+      );
+      addTearDown(src.dispose);
+
+      // Window was minimized at enumeration time, then restored by user.
+      src.setSelectedWindow(
+        const DesktopWindowInfo(
+          id: 1,
+          hwnd: 555,
+          title: 'mGBA Restored',
+          width: 800,
+          height: 600,
+          isMinimized: true,
+        ),
+      );
+      nativeBridge.nextResult = const NativeCaptureAnalyzeResult(
+        captured: true,
+        ocrSkipped: false,
+        lines: ['Pikachu'],
+        frameWidth: 800,
+        frameHeight: 600,
+      );
+
+      await src.triggerSingleScan();
+
+      expect(nativeBridge.requests.where((r) => r.slotKey == 'zoneA' && r.hwnd == 555), hasLength(1));
+      expect(legacyCap.captureCount, 0);
+    });
   });
 }
 

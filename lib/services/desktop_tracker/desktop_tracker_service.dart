@@ -76,6 +76,18 @@ class DesktopTrackerService {
   void setBackgroundCleanup(Future<void> Function()? callback) {
     _backgroundCleanupCallback = callback;
   }
+
+  /// Runs and clears any pending background cleanup callback (e.g., before re-opening
+  /// a hardware camera inside a newly mounted [DesktopTrackerScreen]).
+  Future<void> runAndClearBackgroundCleanup() async {
+    final cb = _backgroundCleanupCallback;
+    _backgroundCleanupCallback = null;
+    if (cb != null) {
+      try {
+        await cb();
+      } catch (_) {}
+    }
+  }
   ScannerEvent? get latestEvent => latestEventNotifier.value;
   bool get isTrackingActive => _isTracking;
   bool get showFloatingHud => showFloatingHudNotifier.value;
@@ -271,8 +283,13 @@ class DesktopTrackerService {
     bool ownsWindowSource = false,
     bool initiallyPaused = false,
   }) {
+    final previousCoordinator = _coordinator;
     final previousSource = _windowSource;
     final previouslyOwned = _ownsWindowSource;
+    if (previousCoordinator != null &&
+        !identical(previousCoordinator, coordinator)) {
+      ShinyAutoCounterService.instance.onSourceStopped(previousCoordinator);
+    }
     _coordinator = coordinator;
     _windowSource = windowSource;
     _activeSource = activeSource ?? windowSource;

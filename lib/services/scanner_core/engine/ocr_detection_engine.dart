@@ -115,7 +115,7 @@ class OcrDetectionEngine {
     ),
     (
       regex: RegExp(
-        r"(?:Un\s+|Une\s+)?([^\n\r!！]+?)\s+vient\s+d'éclore(?:\s*[!！]|$)",
+        r"(?:Un\s+|Une\s+)?([^\n\r!！]+?)\s+vient\s+d['’]éclore(?:\s*[!！]|$)",
         caseSensitive: false,
       ),
       lang: 'fr',
@@ -129,7 +129,7 @@ class OcrDetectionEngine {
     ),
     (
       regex: RegExp(
-        r"(?:Un\s+|Una\s+)?([^\n\r!！]+?)\s+è\s+nato\s+dall'Uovo(?:[!！]|$)",
+        r"(?:Un\s+|Una\s+)?([^\n\r!！]+?)\s+è\s+nato\s+dall['’]Uovo(?:[!！]|$)",
         caseSensitive: false,
       ),
       lang: 'it',
@@ -162,6 +162,11 @@ class OcrDetectionEngine {
 
   static final RegExp _uiOrCounterPattern = RegExp(
     r'(?:\b[o0-9]+\s*(?:von|of|/)\s*\d+\b|^\s*[o0-9]+\s+(?:gefangen|caught)\s*$|\b(?:ziel-?pok[eé]dex|live-?ereignisse|aktueller\s+live-?fokus|fehlt\s+im\s+ziel-?dex|scan-?bereich|desktop\s+tracker|ocr\s+aktiv|floating\s+hud)\b)',
+    caseSensitive: false,
+  );
+
+  static final RegExp _hudUiChromePattern = RegExp(
+    r'(?:^\s*[o0-9]+\s+(?:gefangen|caught)\s*$|\b(?:ziel-?pok[eé]dex|live-?ereignisse|aktueller\s+live-?fokus|fehlt\s+im\s+ziel-?dex|scan-?bereich|desktop\s+tracker|ocr\s+aktiv|floating\s+hud)\b)',
     caseSensitive: false,
   );
 
@@ -629,7 +634,9 @@ class OcrDetectionEngine {
     final trimmed = rawText.trim();
     if (trimmed.isEmpty) return ResetCue.none;
     for (final cp in _compiledCustomPatterns) {
-      if (cp.id.startsWith('shiny_hunt:')) continue;
+      if (cp.id.startsWith('shiny_hunt:') || cp.id.startsWith('shiny_base:')) {
+        continue;
+      }
       if ((cp.eventType == ScannerEventType.customReset ||
               cp.eventType == ScannerEventType.softReset) &&
           cp.regex.hasMatch(trimmed)) {
@@ -649,6 +656,7 @@ class OcrDetectionEngine {
   OcrParseResult? parse(
     String rawText, {
     OcrScanRole role = OcrScanRole.dialogueAndCatch,
+    bool Function(String patternId)? customPatternFilter,
   }) {
     final trimmed = rawText.trim();
     if (trimmed.isEmpty) return null;
@@ -660,15 +668,16 @@ class OcrDetectionEngine {
         .map((e) => e.trim())
         .where((e) => e.isNotEmpty)
         .toList();
-    final filteredLines = lines
-        .where(
-          (l) =>
-              !_uiOrCounterPattern.hasMatch(l) &&
-              !_emulatorChromePattern.hasMatch(l) &&
-              !_noisePattern.hasMatch(l) &&
-              !_battlePromptPattern.hasMatch(l),
-        )
-        .toList();
+    final filteredLines = lines.where((l) {
+      if (_emulatorChromePattern.hasMatch(l) ||
+          _battlePromptPattern.hasMatch(l)) {
+        return false;
+      }
+      if (role == OcrScanRole.enemyHudFocusOnly) {
+        return !_hudUiChromePattern.hasMatch(l);
+      }
+      return !_uiOrCounterPattern.hasMatch(l) && !_noisePattern.hasMatch(l);
+    }).toList();
     if (filteredLines.isEmpty) return null;
 
     // Evaluate shiny/alpha/gender markers only on filtered game text so emulator
@@ -741,6 +750,9 @@ class OcrDetectionEngine {
 
       // Check user custom patterns first (allows explicit overrides per game/ROM)
       for (final cp in _compiledCustomPatterns) {
+        if (customPatternFilter != null && !customPatternFilter(cp.id)) {
+          continue;
+        }
         final match = cp.regex.firstMatch(lineTrimmed);
         if (match != null) {
           if (!cp.hasPokemonPlaceholder) {

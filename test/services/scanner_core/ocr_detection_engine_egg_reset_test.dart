@@ -183,5 +183,63 @@ void main() {
       expect(resetEvents, hasLength(1));
       expect(resetEvents.first.type, equals(ScannerEventType.customReset));
     });
+
+    test('enemyHudFocusOnly preserves Pokemon names on lines with Lv/KP/HP counters', () {
+      final p1 = engine.parse(
+        'Pikachu Lv.5 18/18',
+        role: OcrScanRole.enemyHudFocusOnly,
+      );
+      expect(p1, isNotNull);
+      expect(p1!.extractedPokemonNames, contains('Pikachu'));
+
+      final p2 = engine.parse(
+        'Glumanda KP 20/20',
+        role: OcrScanRole.enemyHudFocusOnly,
+      );
+      expect(p2, isNotNull);
+      expect(p2!.extractedPokemonNames, contains('Glumanda'));
+    });
+
+    test('detectResetCue skips shiny_base: IDs and parse respects customPatternFilter', () {
+      engine.updateCustomPatterns(const [
+        CustomOcrPattern(
+          id: 'shiny_base:reset_0',
+          template: 'Soft Reset Now',
+          eventType: ScannerEventType.customReset,
+        ),
+        CustomOcrPattern(
+          id: 'shiny_hunt:huntA:trig_0',
+          template: 'Wildes {pokemon} erscheint!',
+          eventType: ScannerEventType.encounter,
+        ),
+      ]);
+
+      // Base auto-counter reset must NOT leak globally via detectResetCue
+      expect(engine.detectResetCue('Soft Reset Now'), equals(ResetCue.none));
+
+      // Filtering out huntA allows built-in encounter parser to handle the text cleanly
+      final filtered = engine.parse(
+        'Wildes Pikachu erscheint!',
+        customPatternFilter: (id) => !id.startsWith('shiny_hunt:huntA:'),
+      );
+      expect(filtered, isNotNull);
+      expect(filtered!.matchedCustomPatternId, isNull);
+      expect(filtered.type, equals(ScannerEventType.encounter));
+      expect(filtered.extractedPokemonName, equals('Pikachu'));
+    });
+
+    test('parses FR and IT egg hatch messages with typographic apostrophe U+2019', () {
+      final fr = engine.parse('Salamèche vient d\u2019éclore !');
+      expect(fr, isNotNull);
+      expect(fr!.type, equals(ScannerEventType.eggHatched));
+      expect(fr.extractedPokemonName, equals('Salamèche'));
+      expect(fr.detectedLanguage, equals('fr'));
+
+      final it = engine.parse('Charmander è nato dall\u2019Uovo!');
+      expect(it, isNotNull);
+      expect(it!.type, equals(ScannerEventType.eggHatched));
+      expect(it.extractedPokemonName, equals('Charmander'));
+      expect(it.detectedLanguage, equals('it'));
+    });
   });
 }

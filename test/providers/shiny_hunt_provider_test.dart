@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -255,4 +256,92 @@ void main() {
 
     provider.dispose();
   });
+
+  test('preserves manual increment/decrement during loadHunts, serializes concurrent flushes, and guards notifyListeners after dispose', () async {
+    final loadCompleter = Completer<List<ShinyHunt>>();
+    final slowDb = _DelayedHuntDatabase(
+      base: DatabaseService.instance,
+      loadFuture: loadCompleter.future,
+    );
+    final now = DateTime.now();
+    final initialHunt = ShinyHunt(
+      id: 'hunt-race-1',
+      title: 'Evoli',
+      pokemonId: 133,
+      pokemonName: 'Evoli',
+      game: 'Violet',
+      generation: 9.0,
+      method: 'Wild',
+      baseOdds: 4096.0,
+      currentEncounters: 10,
+      createdAt: now,
+      updatedAt: now,
+    );
+    await DatabaseService.instance.saveShinyHunt(initialHunt);
+
+    final provider = ShinyHuntProvider(
+      databaseService: slowDb,
+      enableTimer: false,
+    );
+    await provider.initialized;
+
+    // Trigger loadHunts (stalls on loadCompleter), then perform manual increment while loading
+    final loadFuture = provider.loadHunts();
+    await Future<void>.delayed(Duration.zero);
+    provider.increment('hunt-race-1');
+    provider.increment('hunt-race-1');
+    provider.decrement('hunt-race-1');
+
+    loadCompleter.complete([
+      ShinyHunt(
+        id: 'hunt-race-1',
+        title: 'Evoli',
+        pokemonId: 133,
+        pokemonName: 'Evoli',
+        game: 'Violet',
+        generation: 9.0,
+        method: 'Wild',
+        baseOdds: 4096.0,
+        currentEncounters: 10,
+        createdAt: now,
+        updatedAt: now,
+      ),
+    ]);
+    await loadFuture;
+
+    // Net +1 delta must survive reload (10 + 1 = 11) and be flushed to DB
+    expect(provider.getHuntById('hunt-race-1')!.currentEncounters, equals(11));
+    final fromDb = await DatabaseService.instance.getShinyHunt('hunt-race-1');
+    expect(fromDb!.currentEncounters, equals(11));
+
+    // Dispose while a second loadHunts is in flight -> completing after dispose must NOT throw FlutterError
+    final loadCompleter2 = Completer<List<ShinyHunt>>();
+    slowDb.loadFuture = loadCompleter2.future;
+    final loadFuture2 = provider.loadHunts();
+    await Future<void>.delayed(Duration.zero);
+    provider.dispose();
+    loadCompleter2.complete([]);
+    await loadFuture2;
+  });
+}
+
+class _DelayedHuntDatabase extends Fake implements DatabaseService {
+  final DatabaseService base;
+  Future<List<ShinyHunt>> loadFuture;
+
+  _DelayedHuntDatabase({required this.base, required this.loadFuture});
+
+  bool _firstInitLoad = true;
+
+  @override
+  Future<List<ShinyHunt>> getAllShinyHunts({bool includeDeleted = false}) {
+    if (_firstInitLoad) {
+      _firstInitLoad = false;
+      return base.getAllShinyHunts(includeDeleted: includeDeleted);
+    }
+    return loadFuture;
+  }
+
+  @override
+  Future<void> saveShinyHunt(ShinyHunt hunt) => base.saveShinyHunt(hunt);
 }

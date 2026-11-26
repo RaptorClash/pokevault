@@ -25,6 +25,7 @@ import '../../services/scanner_core/models/scanner_event.dart';
 import '../../services/scanner_core/models/scanner_settings.dart';
 import '../../services/scanner_core/scanner_coordinator.dart';
 import '../../services/scanner_core/scanner_persistence_service.dart';
+import '../../services/scanner_core/source/scanner_source.dart';
 import '../../services/shiny_auto_counter/shiny_auto_counter_service.dart';
 import '../../utils/dex_logic_helper.dart';
 import '../../utils/tracker_platform_helper.dart';
@@ -681,11 +682,18 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
         _selectDefaultWindow();
         _isRefreshingWindows = false;
       });
-    } catch (_) {
+    } catch (e) {
       if (!mounted) return;
       setState(() {
         _isRefreshingWindows = false;
       });
+      ScaffoldMessenger.maybeOf(context)?.showSnackBar(
+        SnackBar(
+          content: Text('Fenster-/Kamera-Liste konnte nicht geladen werden: $e'),
+          duration: const Duration(seconds: 3),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
     }
   }
 
@@ -699,20 +707,27 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
   }
 
   void _bindSourceForSelection(DesktopWindowInfo? window) {
+    final ScannerSource nextSource;
     if (window != null && window.isCameraSource) {
       if (_activeWindowSource.isRunning) {
         unawaited(_activeWindowSource.stop());
       }
-      final camSource = _ensureCameraSource();
-      widget.coordinator.bindSource(camSource);
-      DesktopTrackerService.instance.setActiveSource(camSource);
+      nextSource = _ensureCameraSource();
     } else {
       final camSource = _webcamController.cameraSource;
       if (camSource != null && camSource.isRunning) {
         unawaited(camSource.stop());
       }
-      widget.coordinator.bindSource(_activeWindowSource);
-      DesktopTrackerService.instance.setActiveSource(_activeWindowSource);
+      nextSource = _activeWindowSource;
+    }
+    widget.coordinator.bindSource(nextSource);
+    DesktopTrackerService.instance.setActiveSource(nextSource);
+    if (ShinyAutoCounterService.instance.isRunning &&
+        identical(
+          ShinyAutoCounterService.instance.coordinator,
+          widget.coordinator,
+        )) {
+      unawaited(ShinyAutoCounterService.instance.rebindSource(nextSource));
     }
   }
 
@@ -730,7 +745,16 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
     }
   }
 
-  Future<void> _syncCameraHardwareForSelection(DesktopWindowInfo? window) {
+  Future<void> _syncCameraHardwareForSelection(DesktopWindowInfo? window) async {
+    if (window != null &&
+        window.isCameraSource &&
+        !identical(
+          _webcamController.cameraSource,
+          DesktopTrackerService.instance.activeSource,
+        )) {
+      await DesktopTrackerService.instance.runAndClearBackgroundCleanup();
+      if (!mounted) return;
+    }
     return _webcamController.syncHardwareForSelection(
       window: window,
       ocrLanguageTag: _ocrLanguageTag,
@@ -1002,6 +1026,7 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
     _updateSettingsAndPersist(
       widget.coordinator.settings.copyWith(multiInstanceSlots: nextSlots),
     );
+    DesktopTrackerService.instance.isPaused = false;
     widget.coordinator.start();
     unawaited(_activeWindowSource.triggerSingleScan());
   }
@@ -1046,6 +1071,7 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
           _isScanningActive = true;
           _hasUserToggledScan = false;
         });
+        DesktopTrackerService.instance.isPaused = false;
         widget.coordinator.start();
       }
       unawaited(_activeWindowSource.triggerSingleScan());
@@ -1102,6 +1128,7 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
     _updateSettingsAndPersist(
       widget.coordinator.settings.copyWith(extraFocusRegions: nextRegions),
     );
+    DesktopTrackerService.instance.isPaused = false;
     widget.coordinator.start();
     unawaited(_activeWindowSource.triggerSingleScan());
   }
@@ -1152,6 +1179,7 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
             liveFocusPreset: LiveFocusPreset.customRegion,
           ),
         );
+        DesktopTrackerService.instance.isPaused = false;
         widget.coordinator.start();
         unawaited(_activeWindowSource.triggerSingleScan());
       }
@@ -1398,6 +1426,12 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
       _hasUserToggledScan = true;
       _isScanningActive = !_isScanningActive;
       DesktopTrackerService.instance.isPaused = !_isScanningActive;
+      if (identical(
+        ShinyAutoCounterService.instance.coordinator,
+        widget.coordinator,
+      )) {
+        ShinyAutoCounterService.instance.setGlobalPause(!_isScanningActive);
+      }
       if (_isScanningActive) {
         widget.coordinator.start();
         unawaited(_webcamController.cameraFramePump?.resume());
@@ -2161,7 +2195,12 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
                   hasMissingEvolutions: _dexController
                           .activeEvolutionStatus?.hasMissingEvolutions ??
                       false,
-                  onClose: () => setState(() => _showFloatingHud = false),
+                  onClose: () {
+                    setState(() => _showFloatingHud = false);
+                    unawaited(
+                      DesktopTrackerService.instance.setFloatingHudVisible(false),
+                    );
+                  },
                   onCompactChanged: (c) => setState(() => _hudCompact = c),
                   onPinnedChanged: (p) => setState(() => _hudPinned = p),
                   onOpacityChanged: (o) => setState(() => _hudOpacity = o),

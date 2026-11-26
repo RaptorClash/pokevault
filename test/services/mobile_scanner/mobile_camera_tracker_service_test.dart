@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pokevault/services/mobile_scanner/camera_scan_region.dart';
@@ -201,6 +202,125 @@ void main() {
       expect(autoCounter.isPaused, isTrue);
       service.togglePause();
       expect(autoCounter.isPaused, isFalse);
+
+      await autoCounter.stopSession();
+      provider.dispose();
+    });
+
+    test('stopSession async teardown race does not tear down a newly started session', () async {
+      final disposeCamCompleter = Completer<void>();
+      final coord2 = ScannerCoordinator(
+        engine: OcrDetectionEngine(),
+        matcher: PokemonFuzzyMatcher.withEntries(const []),
+      );
+      final source2 = MobileCameraSource(
+        ocrDriver: MobileOcrDriver(customRecognizer: (_, _) async => const []),
+      );
+      addTearDown(() async {
+        await coord2.dispose();
+        await source2.dispose();
+      });
+
+      service.startSession(
+        coordinator: coordinator,
+        cameraSource: source,
+        dexId: 'dex_1',
+      );
+      service.attachPipCallbacks(
+        onDisposeCamera: () => disposeCamCompleter.future,
+      );
+
+      // Begin async stopSession (simulates screen dispose)
+      final oldStopFuture = service.stopSession();
+      await Future<void>.delayed(Duration.zero);
+
+      // Quickly reopen screen and start new session BEFORE old camera dispose finishes
+      service.startSession(
+        coordinator: coord2,
+        cameraSource: source2,
+        dexId: 'dex_2',
+      );
+
+      // Complete old camera disposal
+      disposeCamCompleter.complete();
+      await oldStopFuture;
+
+      expect(service.isTrackingActive, isTrue);
+      expect(service.coordinator, same(coord2));
+      expect(service.cameraSource, same(source2));
+      expect(service.activeDexId, 'dex_2');
+    });
+
+    test('primary focus region + multiInstance slot includes Slot 1 in auto-counter routing', () async {
+      SharedPreferences.setMockInitialValues({});
+      sqfliteFfiInit();
+      databaseFactory = databaseFactoryFfi;
+      final provider = ShinyHuntProvider(
+        databaseService: DatabaseService.instance,
+        enableTimer: false,
+      );
+      await provider.initialized;
+      final now = DateTime.now();
+      await provider.createHunt(
+        ShinyHunt(
+          id: 'mob-focus-hunt',
+          title: 'Glumanda',
+          pokemonId: 4,
+          pokemonName: 'Glumanda',
+          game: 'Violet',
+          generation: 9.0,
+          method: 'Wild',
+          baseOdds: 4096.0,
+          createdAt: now,
+          updatedAt: now,
+        ),
+      );
+
+      source.setScanMode(MobileCameraScanMode.customRegions);
+      source.setRegions([
+        NormalizedScanRect(
+          id: 'focus_1',
+          role: CameraZoneRole.focus,
+          left: 0.0,
+          top: 0.0,
+          width: 0.5,
+          height: 0.5,
+          colorHex: 0xFF06B6D4,
+          label: 'Focus #1',
+          encounterOnly: true,
+        ),
+        NormalizedScanRect(
+          id: 'multi_2',
+          role: CameraZoneRole.multiInstance,
+          slotId: 2,
+          left: 0.5,
+          top: 0.0,
+          width: 0.5,
+          height: 0.5,
+          colorHex: 0xFFA855F7,
+          label: '#2',
+        ),
+      ]);
+
+      service.startSession(
+        coordinator: coordinator,
+        cameraSource: source,
+        dexId: 'dex_kanto',
+      );
+      final autoCounter = ShinyAutoCounterService.instance;
+      autoCounter.startSession(
+        huntProvider: provider,
+        coordinator: coordinator,
+        source: source,
+        defaultHuntId: 'mob-focus-hunt',
+        slotIds: const [1],
+      );
+      service.setRegions(source.regions);
+
+      expect(
+        autoCounter.slotStatesNotifier.value.map((s) => s.slotId).toList(),
+        equals([1, 2]),
+      );
 
       await autoCounter.stopSession();
       provider.dispose();

@@ -13,6 +13,7 @@ import 'package:wakelock_plus_platform_interface/wakelock_plus_platform_interfac
 import 'package:pokevault/i18n/strings.g.dart';
 import 'package:pokevault/models/pokemon.dart';
 import 'package:pokevault/models/shiny_hunt.dart';
+import 'package:pokevault/models/tutorial_step.dart';
 import 'package:pokevault/models/user_dex.dart';
 import 'package:pokevault/providers/dex_provider.dart';
 import 'package:pokevault/providers/shiny_hunt_provider.dart';
@@ -719,6 +720,74 @@ void main() {
       expect(find.text(t.tutorial_multi_hunt_intro_title), findsOneWidget);
       // Should be translated into English, not German
       expect(t.tutorial_multi_hunt_intro_title, isNot(contains('Willkommen')));
+    });
+
+    testWidgets('TutorialOverlay overlap does not permanently drop ShinyAutoCounterBar tour', (tester) async {
+      final prefs = await SharedPreferences.getInstance();
+      final tutProvider = TutorialProvider(prefs);
+      await tutProvider.markFeatureAsSeen('multi_hunt_dashboard');
+      final hunt = makeHunt();
+      await huntProvider.createHunt(hunt);
+      final service = ShinyAutoCounterService.forTesting();
+      final coordinator = makeCoordinator();
+      addTearDown(() async {
+        TutorialOverlay.resetShowing();
+        await service.stopSession();
+        await coordinator.dispose();
+      });
+
+      late BuildContext rootCtx;
+      await tester.pumpWidget(
+        wrapProviders(
+          tutProvider: tutProvider,
+          child: Builder(
+            builder: (ctx) {
+              rootCtx = ctx;
+              return Scaffold(
+                body: ShinyAutoCounterBar(
+                  service: service,
+                  currentHuntId: hunt.id,
+                ),
+              );
+            },
+          ),
+        ),
+      );
+      await pumpView(tester);
+
+      // Show another TutorialOverlay first
+      TutorialOverlay.show(
+        rootCtx,
+        TutorialFeature(
+          id: 'other_tour',
+          nameKey: 'tutorial_chapter_shiny_hunt_title',
+          steps: [
+            TutorialStep(
+              targetKey: GlobalKey(),
+              titleKey: 'tutorial_multi_hunt_intro_title',
+              textKey: 'tutorial_multi_hunt_intro_text',
+            ),
+          ],
+        ),
+        () {},
+      );
+      await pumpView(tester);
+      expect(TutorialOverlay.isShowing, isTrue);
+
+      // Start session while other TutorialOverlay is showing -> must NOT set _hasTriggered permanently
+      service.startSession(
+        huntProvider: huntProvider,
+        coordinator: coordinator,
+        defaultHuntId: hunt.id,
+        slotIds: const [1],
+      );
+      await pumpView(tester);
+
+      // Dismiss the first overlay -> ShinyAutoCounterBar tour should still be eligible and show
+      await tester.tapAt(const Offset(10, 10));
+      await pumpView(tester);
+      // Verify TutorialOverlay.isShowing returned false and bar wasn't permanently marked seen
+      expect(tutProvider.hasSeenFeature('shiny_auto_counter_bar'), isFalse);
     });
   });
 }

@@ -18,6 +18,7 @@ class ShinyHuntProvider extends ChangeNotifier with WidgetsBindingObserver {
   final DatabaseService db;
   List<ShinyHunt> _hunts = [];
   bool _isLoading = true;
+  bool _disposed = false;
 
   // Debouncing & Flush
   final Set<String> _pendingDirtyHuntIds = {};
@@ -150,7 +151,23 @@ class ShinyHuntProvider extends ChangeNotifier with WidgetsBindingObserver {
       debugPrint('Fehler beim Laden der Shiny Hunts: $e');
     } finally {
       _isLoading = false;
-      notifyListeners();
+      _notifySafely();
+      if (!_disposed && _pendingDirtyHuntIds.isNotEmpty) {
+        if (!_enableTimer) {
+          try {
+            await flushPendingWrites();
+          } catch (e) {
+            debugPrint('ShinyHuntProvider post-load flush error: $e');
+          }
+        } else {
+          _sqliteDebounceTimer?.cancel();
+          _sqliteDebounceTimer = Timer(const Duration(milliseconds: 250), () {
+            unawaited(flushPendingWrites().catchError((Object e) {
+              debugPrint('ShinyHuntProvider post-load debounced flush error: $e');
+            }));
+          });
+        }
+      }
     }
   }
 
@@ -187,8 +204,12 @@ class ShinyHuntProvider extends ChangeNotifier with WidgetsBindingObserver {
     }
     hunt.currentEncounters += hunt.incrementStep;
     hunt.updatedAt = DateTime.now();
+    if (_isLoading) {
+      _loadingDeltaById[huntId] =
+          (_loadingDeltaById[huntId] ?? 0) + hunt.incrementStep;
+    }
     registerInteraction();
-    notifyListeners();
+    _notifySafely();
     _markDirtyAndDebounce(huntId);
   }
 
@@ -197,10 +218,16 @@ class ShinyHuntProvider extends ChangeNotifier with WidgetsBindingObserver {
     final hunt = getHuntById(huntId);
     if (hunt == null || hunt.isCompleted) return;
 
+    final prevEncounters = hunt.currentEncounters;
     hunt.currentEncounters = (hunt.currentEncounters - hunt.incrementStep).clamp(0, 9999999);
+    final appliedDelta = hunt.currentEncounters - prevEncounters;
     hunt.updatedAt = DateTime.now();
+    if (_isLoading && appliedDelta != 0) {
+      _loadingDeltaById[huntId] =
+          (_loadingDeltaById[huntId] ?? 0) + appliedDelta;
+    }
     registerInteraction();
-    notifyListeners();
+    _notifySafely();
     _markDirtyAndDebounce(huntId);
   }
 
@@ -439,15 +466,29 @@ class ShinyHuntProvider extends ChangeNotifier with WidgetsBindingObserver {
 
   // --- SQLite Debounce & Flush ---
 
+  void _notifySafely() {
+    if (!_disposed) {
+      notifyListeners();
+    }
+  }
+
   void _markDirtyAndDebounce(String huntId) {
     _pendingDirtyHuntIds.add(huntId);
+    if (_isLoading) {
+      // Defer SQLite writes until loadHunts() completes and merges _loadingDeltaById.
+      return;
+    }
     if (!_enableTimer) {
-      flushPendingWrites();
+      unawaited(flushPendingWrites().catchError((Object e) {
+        debugPrint('ShinyHuntProvider immediate flush error: $e');
+      }));
       return;
     }
     _sqliteDebounceTimer?.cancel();
     _sqliteDebounceTimer = Timer(const Duration(milliseconds: 250), () {
-      flushPendingWrites();
+      unawaited(flushPendingWrites().catchError((Object e) {
+        debugPrint('ShinyHuntProvider debounced flush error: $e');
+      }));
     });
     _triggerCloudSyncLater();
   }
@@ -457,10 +498,10 @@ class ShinyHuntProvider extends ChangeNotifier with WidgetsBindingObserver {
     _sqliteDebounceTimer?.cancel();
     _sqliteDebounceTimer = null;
 
-    if (_flushInFlight != null) {
+    while (_flushInFlight != null) {
       await _flushInFlight;
-      if (_pendingDirtyHuntIds.isEmpty) return;
     }
+    if (_pendingDirtyHuntIds.isEmpty) return;
 
     Future<void> runFlush() async {
       while (_pendingDirtyHuntIds.isNotEmpty) {
@@ -508,9 +549,11 @@ class ShinyHuntProvider extends ChangeNotifier with WidgetsBindingObserver {
     if (!_enableTimer) return;
     if (_attachedDexProvider != null) {
       if (immediate) {
-        flushPendingWrites().then((_) {
+        unawaited(flushPendingWrites().then((_) {
           _attachedDexProvider?.triggerAutoUpload();
-        });
+        }).catchError((Object e) {
+          debugPrint('ShinyHuntProvider immediate cloud sync flush error: $e');
+        }));
       } else {
         _attachedDexProvider!.triggerAutoUpload();
       }
@@ -573,18 +616,23 @@ class ShinyHuntProvider extends ChangeNotifier with WidgetsBindingObserver {
         state == AppLifecycleState.hidden) {
       _isAppInForeground = false;
       // Pflicht-Flush bei App-Hintergrundwechsel!
-      flushPendingWrites();
+      unawaited(flushPendingWrites().catchError((Object e) {
+        debugPrint('ShinyHuntProvider lifecycle flush error: $e');
+      }));
     }
   }
 
   @override
   void dispose() {
+    _disposed = true;
     detachDexProvider();
     WidgetsBinding.instance.removeObserver(this);
     _sqliteDebounceTimer?.cancel();
     _cloudDebounceTimer?.cancel();
     _oneSecondTimer?.cancel();
-    flushPendingWrites();
+    unawaited(flushPendingWrites().catchError((Object e) {
+      debugPrint('ShinyHuntProvider dispose flush error: $e');
+    }));
     super.dispose();
   }
 }

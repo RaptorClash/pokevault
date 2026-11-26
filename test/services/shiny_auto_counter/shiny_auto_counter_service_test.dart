@@ -495,9 +495,12 @@ void main() {
           customResetPatterns: ['Press A Custom'],
         ),
       );
-      expect(coord2.engine.detectResetCue('Press A Custom'), isNot(ResetCue.none));
+      expect(
+        coord2.engine.parse('Press A Custom')?.type,
+        equals(ScannerEventType.customReset),
+      );
       await service.stopSession();
-      expect(coord2.engine.detectResetCue('Press A Custom'), equals(ResetCue.none));
+      expect(coord2.engine.parse('Press A Custom'), isNull);
       await coord2.dispose();
     });
 
@@ -1326,6 +1329,220 @@ void main() {
       await Future<void>.delayed(const Duration(milliseconds: 1150));
       expect(provider.getHuntById('hunt-1')!.totalTimeSeconds, greaterThanOrEqualTo(1));
       expect(provider.getHuntById('hunt-2')!.totalTimeSeconds, greaterThanOrEqualTo(1));
+      provider.dispose();
+    });
+
+    test('Multi-slot custom pattern isolation prevents shadowing and base-reset leakage', () async {
+      var clock = Duration.zero;
+      final provider = ShinyHuntProvider(
+        databaseService: DatabaseService.instance,
+        enableTimer: false,
+      );
+      await provider.initialized;
+      await provider.createHunt(_makeHunt(id: 'hunt-a', pokemonId: 25, pokemonName: 'Pikachu', method: 'Wild'));
+      await provider.createHunt(_makeHunt(id: 'hunt-b', pokemonId: 4, pokemonName: 'Glumanda', method: 'Wild'));
+
+      final coordinator = buildTestCoordinator(() => clock);
+      final source = _FakeTransitionSource();
+      await source.start();
+      final service = ShinyAutoCounterService.forTesting(elapsedClock: () => clock);
+
+      service.startSession(
+        huntProvider: provider,
+        coordinator: coordinator,
+        source: source,
+        defaultHuntId: 'hunt-a',
+        slotIds: const [1, 2],
+        settings: const ShinyAutoCounterSettings(
+          detectionMode: ShinyHuntDetectionMode.wildEncounter,
+          slotToHuntOverrides: {1: 'hunt-a', 2: 'hunt-b'},
+          customResetPatterns: ['Base Reset Phrase'],
+          huntSettingsOverrides: {
+            'hunt-a': ShinyAutoCounterSettings(
+              detectionMode: ShinyHuntDetectionMode.wildEncounter,
+              matchFilter: ShinyMatchFilter.allPokemon,
+              customTriggerPatterns: [
+                CustomOcrPattern(
+                  id: 't_a',
+                  template: 'Custom Wave {pokemon}',
+                  eventType: ScannerEventType.encounter,
+                ),
+              ],
+            ),
+            'hunt-b': ShinyAutoCounterSettings(
+              detectionMode: ShinyHuntDetectionMode.wildEncounter,
+              matchFilter: ShinyMatchFilter.allPokemon,
+              customTriggerPatterns: [
+                CustomOcrPattern(
+                  id: 't_b',
+                  template: 'Custom Wave {pokemon}',
+                  eventType: ScannerEventType.encounter,
+                ),
+              ],
+            ),
+          },
+        ),
+      );
+
+      // Both Slot 1 (hunt-a) and Slot 2 (hunt-b) share "Custom Wave {pokemon}" -> neither may shadow the other
+      await coordinator.processFrameText('Custom Wave Pikachu', instanceIndex: 1);
+      await coordinator.processFrameText('Custom Wave Glumanda', instanceIndex: 2);
+      await service.waitForIdle();
+      expect(provider.getHuntById('hunt-a')!.currentEncounters, equals(1));
+      expect(provider.getHuntById('hunt-b')!.currentEncounters, equals(1));
+
+      // Base Reset Phrase must NOT rearm hunt-a or hunt-b because both have explicit overrides without it
+      await coordinator.processFrameText('Base Reset Phrase', instanceIndex: 1);
+      await coordinator.processFrameText('Base Reset Phrase', instanceIndex: 2);
+      await service.waitForIdle();
+      expect(service.slotStatesNotifier.value[0].phase, equals(ShinySlotPhase.counted));
+      expect(service.slotStatesNotifier.value[1].phase, equals(ShinySlotPhase.counted));
+
+      await service.stopSession();
+      await source.dispose();
+      await coordinator.dispose();
+      provider.dispose();
+    });
+
+    test('Hunt switch, deletion, undo older entry, pause, rearmAllSlots, and rebindSource harden live state', () async {
+      var clock = Duration.zero;
+      final provider = ShinyHuntProvider(
+        databaseService: DatabaseService.instance,
+        enableTimer: false,
+      );
+      await provider.initialized;
+      await provider.createHunt(_makeHunt(id: 'hunt-1', pokemonId: 25, pokemonName: 'Pikachu', method: 'Wild'));
+      await provider.createHunt(_makeHunt(id: 'hunt-2', pokemonId: 4, pokemonName: 'Glumanda', method: 'Wild'));
+
+      final coordinator = buildTestCoordinator(() => clock);
+      final source1 = _FakeTransitionSource();
+      final source2 = _FakeTransitionSource();
+      await source1.start();
+      await source2.start();
+      final service = ShinyAutoCounterService.forTesting(elapsedClock: () => clock);
+
+      service.startSession(
+        huntProvider: provider,
+        coordinator: coordinator,
+        source: source1,
+        defaultHuntId: 'hunt-1',
+        slotIds: const [1],
+        settings: const ShinyAutoCounterSettings(
+          detectionMode: ShinyHuntDetectionMode.wildEncounter,
+          minResetCooldownMs: 200,
+          enableSparkleDelayShinyCheck: true,
+          sparkleDelayThresholdMs: 1200,
+          autoPauseSlotOnShiny: true,
+        ),
+      );
+
+      // Count encounter 1, finish battle, count encounter 2 -> slot is counted
+      await coordinator.processFrameText('Ein wildes Pikachu erscheint!', instanceIndex: 1);
+      await service.waitForIdle();
+      final oldLogId = service.recentLogs.first.id;
+      await coordinator.processFrameText('Du bist entkommen!', instanceIndex: 1);
+      await service.waitForIdle();
+      clock += const Duration(milliseconds: 300);
+
+      await coordinator.processFrameText('Ein wildes Pikachu erscheint!', instanceIndex: 1);
+      await service.waitForIdle();
+      expect(service.slotStatesNotifier.value.single.phase, equals(ShinySlotPhase.counted));
+
+      // Undo OLDER entry -> must decrement count WITHOUT re-arming active counted slot
+      expect(service.undoEntry(oldLogId), isTrue);
+      expect(service.slotStatesNotifier.value.single.phase, equals(ShinySlotPhase.counted));
+
+      // Global pause clears SparkleDelay pending state so resuming + Kampf menu does not false-shiny
+      service.setGlobalPause(true);
+      clock += const Duration(seconds: 5);
+      service.setGlobalPause(false);
+      await coordinator.processFrameText('Was soll Pikachu tun?', instanceIndex: 1);
+      await service.waitForIdle();
+      expect(service.activeShinyAlertsNotifier.value, isEmpty);
+
+      // Switch default hunt to hunt-2 -> must re-arm counted slot cleanly
+      service.setDefaultHuntId('hunt-2');
+      expect(service.slotStatesNotifier.value.single.phase, equals(ShinySlotPhase.armed));
+
+      // Rebind to source2 -> transitions on source2 must drive the slot
+      await coordinator.processFrameText('Ein wildes Glumanda erscheint!', instanceIndex: 1);
+      await service.waitForIdle();
+      expect(service.slotStatesNotifier.value.single.phase, equals(ShinySlotPhase.counted));
+      await service.rebindSource(source2, slotIds: const [1]);
+      source2._transitions.add(
+        FrameTransitionEvent(
+          slotId: 1,
+          type: FrameTransitionType.blackScreenEnded,
+          durationMs: 400,
+          averageLuma: 5.0,
+          timestamp: DateTime(2026),
+        ),
+      );
+      await service.waitForIdle();
+      expect(service.slotStatesNotifier.value.single.phase, equals(ShinySlotPhase.rearmPending));
+
+      // Manual pause + rearmAllSlots must sync provider active auto-hunts
+      service.togglePauseSlot(1);
+      expect(service.slotStatesNotifier.value.single.phase, equals(ShinySlotPhase.pausedManual));
+      service.rearmAllSlots();
+      expect(service.slotStatesNotifier.value.single.phase, equals(ShinySlotPhase.armed));
+
+      // Deleting hunt-2 while slot is pausedByShiny must clear alert & re-arm
+      await coordinator.processFrameText('Wildes ✨ Glumanda erscheint!', instanceIndex: 1);
+      await service.waitForIdle();
+      expect(service.slotStatesNotifier.value.single.phase, equals(ShinySlotPhase.pausedByShiny));
+      expect(service.activeShinyAlertsNotifier.value, isNotEmpty);
+      await provider.deleteHunt('hunt-2', softDelete: false);
+      expect(service.activeShinyAlertsNotifier.value, isEmpty);
+      expect(service.slotStatesNotifier.value.single.phase, equals(ShinySlotPhase.armed));
+
+      await service.stopSession();
+      await source1.dispose();
+      await source2.dispose();
+      await coordinator.dispose();
+      provider.dispose();
+    });
+
+    test('Egg-hatch 18s safety timer survives unrelated ScannerEvents', () async {
+      final provider = ShinyHuntProvider(
+        databaseService: DatabaseService.instance,
+        enableTimer: false,
+      );
+      await provider.initialized;
+      await provider.createHunt(_makeHunt(id: 'hunt-egg-t', pokemonId: 4, pokemonName: 'Glumanda', method: 'Masuda'));
+
+      final coordinator = buildTestCoordinator(() => Duration.zero);
+      final source = _FakeTransitionSource();
+      await source.start();
+      // Use real timer (elapsedClock == null) so _scheduleRearmTimer creates the 18s timer
+      final service = ShinyAutoCounterService.forTesting();
+
+      service.startSession(
+        huntProvider: provider,
+        coordinator: coordinator,
+        source: source,
+        defaultHuntId: 'hunt-egg-t',
+        slotIds: const [1],
+        settings: const ShinyAutoCounterSettings(
+          detectionMode: ShinyHuntDetectionMode.eggHatch,
+          matchFilter: ShinyMatchFilter.allPokemon,
+          minResetCooldownMs: 300,
+        ),
+      );
+
+      await coordinator.processFrameText('Oh?', instanceIndex: 1);
+      await service.waitForIdle();
+      expect(service.slotStatesNotifier.value.single.phase, equals(ShinySlotPhase.counted));
+      expect(service.hasPendingRearmTimer(1), isTrue);
+
+      // Stray encounter event while egg prompt is active must NOT cancel the 18s safety timer
+      await coordinator.processFrameText('Wildes Pikachu erscheint!', instanceIndex: 1);
+      await service.waitForIdle();
+      expect(service.hasPendingRearmTimer(1), isTrue);
+
+      await service.stopSession();
+      await source.dispose();
+      await coordinator.dispose();
       provider.dispose();
     });
   });

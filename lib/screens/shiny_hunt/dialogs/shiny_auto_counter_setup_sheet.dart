@@ -335,6 +335,13 @@ class _ShinyAutoCounterSetupSheetState
     if (_service.isRunning &&
         (active.coordinator == null ||
             identical(_service.coordinator, active.coordinator))) {
+      if (active.source != null && !identical(_service.source, active.source)) {
+        await _service.rebindSource(
+          active.source,
+          slotIds: active.slotIds,
+          slotColorOverrides: active.slotColors,
+        );
+      }
       _service.updateSettings(effectiveSettings);
       if (!widget.preserveDefaultHuntId &&
           _service.defaultHuntId != widget.hunt.id) {

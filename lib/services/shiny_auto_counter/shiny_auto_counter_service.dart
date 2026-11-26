@@ -126,7 +126,11 @@ class ShinyAutoCounterService {
   bool _paused = false;
   bool _syncingProvider = false;
   bool _settingsLoaded = false;
+  Future<void>? _settingsLoadFuture;
   _PendingAutoCounterSession? _pendingSession;
+
+  @visibleForTesting
+  bool hasPendingRearmTimer(int slotId) => _rearmTimers.containsKey(slotId);
 
   final ValueNotifier<bool> isRunningNotifier = ValueNotifier(false);
   final ValueNotifier<bool> isPausedNotifier = ValueNotifier(false);
@@ -158,16 +162,27 @@ class ShinyAutoCounterService {
   }
 
   /// Ensures persisted auto-counter settings are loaded once before reading or merging rules.
-  Future<void> ensureSettingsLoaded() async {
-    if (_settingsLoaded) return;
-    final loaded = await ShinyAutoCounterSettings.loadFromPrefs();
-    _settingsLoaded = true;
-    if (loaded != null && !_running) {
-      _settings = _huntProvider != null
-          ? _pruneStaleOverrides(loaded, _huntProvider!)
-          : loaded;
-      settingsNotifier.value = _settings;
-    }
+  Future<void> ensureSettingsLoaded() {
+    if (_settingsLoaded) return Future.value();
+    final existing = _settingsLoadFuture;
+    if (existing != null) return existing;
+    final future = () async {
+      try {
+        final loaded = await ShinyAutoCounterSettings.loadFromPrefs();
+        if (_settingsLoaded) return;
+        _settingsLoaded = true;
+        if (loaded != null && !_running) {
+          _settings = _huntProvider != null
+              ? _pruneStaleOverrides(loaded, _huntProvider!)
+              : loaded;
+          settingsNotifier.value = _settings;
+        }
+      } finally {
+        _settingsLoadFuture = null;
+      }
+    }();
+    _settingsLoadFuture = future;
+    return future;
   }
 
   /// Arms a pending session that automatically attaches as soon as a desktop or mobile
@@ -365,9 +380,7 @@ class ShinyAutoCounterService {
           huntId: huntId,
         );
         if (changedHunt) {
-          _sparkleDelayDetector.reset(slot.slotId);
-          _colorDetector.reset(slot.slotId);
-          _pendingColorSampleBySlot.remove(slot.slotId);
+          _resetSlotForHuntChange(slot);
         }
       }
     }
@@ -375,6 +388,18 @@ class ShinyAutoCounterService {
     _syncVisualFrameSubscription();
     _syncProviderActiveAutoHunts();
     _publishSlotSnapshots();
+  }
+
+  void _resetSlotForHuntChange(ShinySlotStateMachine slot) {
+    _cancelRearmTimer(slot.slotId);
+    _clearCoordinatorBattleState(slot.slotId);
+    _sparkleDelayDetector.reset(slot.slotId);
+    _colorDetector.reset(slot.slotId);
+    _pendingColorSampleBySlot.remove(slot.slotId);
+    _removeShinyAlertForSlot(slot.slotId);
+    if (slot.phase != ShinySlotPhase.pausedManual) {
+      slot.forceRearm();
+    }
   }
 
   /// Resolves the effective auto-counter settings for a specific [hunt].
@@ -432,15 +457,44 @@ class ShinyAutoCounterService {
         huntId: assigned,
       );
       if (changedTarget) {
-        _sparkleDelayDetector.reset(slot.slotId);
-        _colorDetector.reset(slot.slotId);
-        _pendingColorSampleBySlot.remove(slot.slotId);
+        _resetSlotForHuntChange(slot);
       }
     }
     _syncSourceTransitionConfig();
     _syncVisualFrameSubscription();
     _syncProviderActiveAutoHunts();
     _publishSlotSnapshots();
+  }
+
+  /// Rebinds the active [ScannerSource] live (e.g., when switching Window <-> Webcam)
+  /// without tearing down the running auto-counter session.
+  Future<void> rebindSource(
+    ScannerSource? source, {
+    List<int>? slotIds,
+    Map<int, int>? slotColorOverrides,
+  }) async {
+    if (!_running) return;
+    final gen = _sessionGeneration;
+    final oldTransitionSub = _transitionSub;
+    final oldVisualSub = _visualFrameSub;
+    _transitionSub = null;
+    _visualFrameSub = null;
+    _source = source;
+    if (source is FrameTransitionScannerSource) {
+      _transitionSub = source.transitionStream.listen((transition) {
+        _enqueue(() => _processFrameTransition(transition));
+      });
+    }
+    if (slotIds != null) {
+      syncSlots(slotIds: slotIds, slotColorOverrides: slotColorOverrides);
+    } else {
+      _syncSourceTransitionConfig();
+      _syncVisualFrameSubscription();
+      _publishSlotSnapshots();
+    }
+    await oldTransitionSub?.cancel();
+    await oldVisualSub?.cancel();
+    if (gen != _sessionGeneration || !_running) return;
   }
 
   /// Synchronizes live multi-instance slot additions and removals during an active session,
@@ -513,13 +567,15 @@ class ShinyAutoCounterService {
   }
 
   void toggleGlobalPause() {
-    _paused = !_paused;
-    isPausedNotifier.value = _paused;
-    _syncProviderActiveAutoHunts();
+    setGlobalPause(!_paused);
   }
 
   void setGlobalPause(bool paused) {
     _paused = paused;
+    if (paused) {
+      _sparkleDelayDetector.reset();
+      _pendingColorSampleBySlot.clear();
+    }
     isPausedNotifier.value = _paused;
     _syncProviderActiveAutoHunts();
   }
@@ -534,6 +590,8 @@ class ShinyAutoCounterService {
       final nextPaused = slot.phase != ShinySlotPhase.pausedManual;
       if (nextPaused) {
         _cancelRearmTimer(slotId);
+        _sparkleDelayDetector.clearPendingEncounter(slotId);
+        _pendingColorSampleBySlot.remove(slotId);
       }
       slot.setManualPaused(nextPaused);
     }
@@ -627,6 +685,7 @@ class ShinyAutoCounterService {
       _pendingColorSampleBySlot.remove(slot.slotId);
       _sparkleDelayDetector.clearPendingEncounter(slot.slotId);
     }
+    _syncProviderActiveAutoHunts();
     _publishSlotSnapshots();
   }
 
@@ -679,15 +738,20 @@ class ShinyAutoCounterService {
         (slot.phase == ShinySlotPhase.pausedManual ||
             (slot.phase == ShinySlotPhase.pausedByShiny &&
                 (!isLatestForSlot || !entry.isShiny)));
+    final canRearmActiveSlot = isLatestForSlot && !preservePause;
 
-    if (!preservePause) {
+    if (canRearmActiveSlot) {
       _cancelRearmTimer(entry.slotId);
       _clearCoordinatorBattleState(entry.slotId);
       _pendingColorSampleBySlot.remove(entry.slotId);
       _sparkleDelayDetector.clearPendingEncounter(entry.slotId);
     }
-    slot?.recordUndo(entry.delta, preservePause: preservePause);
-    if (entry.isShiny && !preservePause) {
+    slot?.recordUndo(
+      entry.delta,
+      preservePause: preservePause,
+      allowRearm: isLatestForSlot,
+    );
+    if (entry.isShiny && canRearmActiveSlot) {
       _removeShinyAlertForSlot(entry.slotId);
     }
     _logs[idx] = entry.copyWith(undone: true);
@@ -724,6 +788,7 @@ class ShinyAutoCounterService {
     final coord = _coordinator;
     if (coord != null) {
       coord.setOverlayCustomPatterns(const []);
+      coord.setSlotCustomPatternFilter(null);
       coord.setSuppressEncounterFeedback(false);
       if (stopCoordinatorSource) {
         await coord.stop();
@@ -795,14 +860,20 @@ class ShinyAutoCounterService {
     if (_elapsedClock != null) return;
     if (slot.phase == ShinySlotPhase.counted &&
         slot.settings.detectionMode == ShinyHuntDetectionMode.eggHatch) {
-      _rearmTimers[slot.slotId] = Timer(const Duration(seconds: 18), () {
-        _rearmTimers.remove(slot.slotId);
-        if (!_running) return;
-        if (slot.checkRearmReady()) {
-          _clearCoordinatorBattleState(slot.slotId);
-          _publishSlotSnapshots();
-        }
-      });
+      _rearmTimers[slot.slotId] = Timer(
+        const Duration(seconds: 18, milliseconds: 50),
+        () {
+          _rearmTimers.remove(slot.slotId);
+          if (!_running || !identical(_slots[slot.slotId], slot)) return;
+          if (slot.checkRearmReady()) {
+            _clearCoordinatorBattleState(slot.slotId);
+            _publishSlotSnapshots();
+          } else if (slot.phase == ShinySlotPhase.counted &&
+              slot.settings.detectionMode == ShinyHuntDetectionMode.eggHatch) {
+            _scheduleRearmTimer(slot);
+          }
+        },
+      );
       return;
     }
     if (slot.phase != ShinySlotPhase.rearmPending) return;
@@ -899,29 +970,21 @@ class ShinyAutoCounterService {
         final assigned =
             _settings.slotToHuntOverrides[slot.slotId] ?? _defaultHuntId;
         final h = assigned != null ? provider.getHuntById(assigned) : null;
-        if (h != null &&
-            h.isCompleted &&
-            slot.phase == ShinySlotPhase.pausedByShiny) {
-          _cancelRearmTimer(slot.slotId);
-          slot.resumeFromShinyPause();
-          _clearCoordinatorBattleState(slot.slotId);
-          _pendingColorSampleBySlot.remove(slot.slotId);
-          _sparkleDelayDetector.reset(slot.slotId);
-          _colorDetector.reset(slot.slotId);
-          _removeShinyAlertForSlot(slot.slotId);
-          slotsChanged = true;
-        }
-        if (slot.targetPokemonId != h?.pokemonId ||
+        final huntGoneOrCompleted = h == null || h.isCompleted;
+        final targetChanged = slot.targetPokemonId != h?.pokemonId ||
             slot.targetPokemonName != h?.pokemonName ||
-            slot.assignedHuntId != assigned) {
+            slot.assignedHuntId != assigned;
+        if (targetChanged ||
+            (huntGoneOrCompleted &&
+                (slot.phase == ShinySlotPhase.pausedByShiny ||
+                    slot.phase == ShinySlotPhase.counted ||
+                    slot.phase == ShinySlotPhase.rearmPending))) {
           slot.updateTarget(
             pokemonId: h?.pokemonId,
             pokemonName: h?.pokemonName,
             huntId: assigned,
           );
-          _sparkleDelayDetector.reset(slot.slotId);
-          _colorDetector.reset(slot.slotId);
-          _pendingColorSampleBySlot.remove(slot.slotId);
+          _resetSlotForHuntChange(slot);
           slotsChanged = true;
         }
         final hasOverride =
@@ -949,10 +1012,28 @@ class ShinyAutoCounterService {
     }
   }
 
+  bool _patternBelongsToSlotFilter(int slotId, String patternId) {
+    final slot = _slots[slotId] ??
+        (slotId == 0 ? (_slots[1] ?? _slots.values.firstOrNull) : null);
+    if (slot == null) return true;
+    if (patternId.startsWith('shiny_base:')) {
+      return !slot.hasExplicitHuntOverride;
+    }
+    if (!patternId.startsWith('shiny_hunt:')) {
+      return true;
+    }
+    final rest = patternId.substring('shiny_hunt:'.length);
+    final sepIdx = rest.indexOf(':');
+    if (sepIdx <= 0) return true;
+    final huntScopeId = rest.substring(0, sepIdx);
+    return slot.assignedHuntId == huntScopeId;
+  }
+
   void _applyCustomPatternsToCoordinator() {
     final coord = _coordinator;
     if (coord == null) return;
     coord.setOverlayCustomPatterns(_settings.buildEngineCustomPatterns());
+    coord.setSlotCustomPatternFilter(_patternBelongsToSlotFilter);
   }
 
   Future<void> _enqueue(Future<void> Function() action) {
@@ -1052,8 +1133,11 @@ class ShinyAutoCounterService {
       _clearCoordinatorBattleState(slot.slotId);
     }
     if (slot.phase == ShinySlotPhase.rearmPending) {
-      _pendingColorSampleBySlot.remove(slot.slotId);
-      _sparkleDelayDetector.clearPendingEncounter(slot.slotId);
+      if (!(decision.shouldIncrement &&
+          slot.settings.detectionMode == ShinyHuntDetectionMode.eggHatch)) {
+        _pendingColorSampleBySlot.remove(slot.slotId);
+        _sparkleDelayDetector.clearPendingEncounter(slot.slotId);
+      }
       if (prevPhase == ShinySlotPhase.counted) {
         _clearCoordinatorBattleState(slot.slotId);
       }
@@ -1062,7 +1146,9 @@ class ShinyAutoCounterService {
       _cancelRearmTimer(slot.slotId);
       _sparkleDelayDetector.clearPendingEncounter(slot.slotId);
       _syncProviderActiveAutoHunts();
-    } else if (slot.phase != ShinySlotPhase.rearmPending) {
+    } else if (slot.phase != ShinySlotPhase.rearmPending &&
+        !(slot.phase == ShinySlotPhase.counted &&
+            slot.settings.detectionMode == ShinyHuntDetectionMode.eggHatch)) {
       _cancelRearmTimer(slot.slotId);
     }
     await _applyDecision(slot, decision, sourceEvent: event);
@@ -1098,7 +1184,7 @@ class ShinyAutoCounterService {
 
     if (cue.battleCue == BattleCue.battleMenu &&
         slot.settings.enableSparkleDelayShinyCheck &&
-        slot.phase == ShinySlotPhase.counted) {
+        slot.canEvaluateVisualShiny) {
       final signal = _sparkleDelayDetector.onBattleMenuSeen(
         slot.slotId,
         _nowElapsed,
@@ -1120,7 +1206,9 @@ class ShinyAutoCounterService {
     if (cue.eggHatchCue == EggHatchCue.ohPrompt) {
       final decision = slot.onEggHatchCue(cue.eggHatchCue);
       await _applyDecision(slot, decision);
-      if (slot.phase == ShinySlotPhase.counted) {
+      if (_running &&
+          identical(_slots[slot.slotId], slot) &&
+          slot.phase == ShinySlotPhase.counted) {
         _scheduleRearmTimer(slot);
       }
     }
@@ -1132,7 +1220,7 @@ class ShinyAutoCounterService {
     final slot = _resolveSlot(vf.slotId == 0 ? null : vf.slotId);
     if (slot == null || !_isSlotHuntActive(slot)) return;
     if (!slot.settings.enableColorDeviationShinyCheck) return;
-    if (slot.phase != ShinySlotPhase.counted) {
+    if (!slot.canEvaluateVisualShiny) {
       _pendingColorSampleBySlot.remove(slot.slotId);
       return;
     }
@@ -1155,11 +1243,12 @@ class ShinyAutoCounterService {
       final frame = vf.frame;
       if (frame == null) return;
       // Wait until a frame with sufficient chroma arrives (skip black/white fades).
-      if (VisualShinyColorDetector.extractHistogram(frame) == null) return;
+      final hist = VisualShinyColorDetector.extractHistogram(frame);
+      if (hist == null) return;
       _pendingColorSampleBySlot.remove(slot.slotId);
 
-      signal = _colorDetector.analyzeEncounterFrame(
-        frame,
+      signal = _colorDetector.analyzeHistogram(
+        hist,
         slotId: slot.slotId,
         speciesKey: pending.speciesKey,
         deviationThreshold: slot.settings.colorDeviationThreshold,
@@ -1297,9 +1386,12 @@ class ShinyAutoCounterService {
         _sparkleDelayDetector.onEncounterCounted(slot.slotId, _nowElapsed);
       }
       if (slot.settings.enableColorDeviationShinyCheck) {
+        final fallbackName =
+            (decision.pokemonName?.trim().isNotEmpty ?? false)
+                ? decision.pokemonName!.trim()
+                : huntId;
         _pendingColorSampleBySlot[slot.slotId] = (
-          speciesKey:
-              '${decision.pokemonId ?? decision.pokemonName ?? huntId}',
+          speciesKey: '${decision.pokemonId ?? fallbackName}',
           pokemonId: decision.pokemonId,
           pokemonName: decision.pokemonName,
           sampleAfter: _nowElapsed + const Duration(milliseconds: 700),

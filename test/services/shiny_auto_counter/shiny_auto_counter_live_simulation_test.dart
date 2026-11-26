@@ -502,5 +502,108 @@ void main() {
         provider.dispose();
       },
     );
+
+    test('Live visual color-deviation shiny alert works in screenTransitionOnly and default eggHatch modes', () async {
+      var clock = Duration.zero;
+      final provider = ShinyHuntProvider(
+        databaseService: DatabaseService.instance,
+        enableTimer: false,
+      );
+      await provider.initialized;
+      await provider.createHunt(_makeHunt(id: 'hunt-trans', pokemonId: 150, pokemonName: 'Mewtu', method: 'Soft Reset'));
+      await provider.createHunt(_makeHunt(id: 'hunt-egg', pokemonId: 4, pokemonName: 'Glumanda', method: 'Masuda'));
+
+      final coordinator = _buildCoordinator(() => clock);
+      final source = _SimMultiSlotSource();
+      await source.start();
+      final service = ShinyAutoCounterService.forTesting(elapsedClock: () => clock);
+
+      // 1) screenTransitionOnly + ColorDeviation
+      service.startSession(
+        huntProvider: provider,
+        coordinator: coordinator,
+        source: source,
+        defaultHuntId: 'hunt-trans',
+        slotIds: const [1],
+        settings: const ShinyAutoCounterSettings(
+          detectionMode: ShinyHuntDetectionMode.screenTransitionOnly,
+          minResetCooldownMs: 200,
+          transitionMinDurationMs: 200,
+          enableColorDeviationShinyCheck: true,
+          colorDeviationThreshold: 0.35,
+          autoPauseSlotOnShiny: true,
+        ),
+      );
+
+      for (int i = 0; i < 3; i++) {
+        clock += const Duration(milliseconds: 300);
+        await service.handleFrameTransition(
+          FrameTransitionEvent(
+            slotId: 1,
+            type: FrameTransitionType.blackScreenEnded,
+            durationMs: 350,
+            averageLuma: 5.0,
+            timestamp: DateTime(2026),
+          ),
+        );
+        clock += const Duration(milliseconds: 750);
+        source.emitVisualFrame(1, 30, 110, 235);
+        await service.waitForIdle();
+      }
+      clock += const Duration(milliseconds: 300);
+      await service.handleFrameTransition(
+        FrameTransitionEvent(
+          slotId: 1,
+          type: FrameTransitionType.blackScreenEnded,
+          durationMs: 350,
+          averageLuma: 5.0,
+          timestamp: DateTime(2026),
+        ),
+      );
+      clock += const Duration(milliseconds: 750);
+      source.emitVisualFrame(1, 30, 220, 65);
+      await service.waitForIdle();
+      expect(service.activeShinyAlertsNotifier.value, hasLength(1));
+      expect(service.slotStatesNotifier.value.single.phase, equals(ShinySlotPhase.pausedByShiny));
+      await service.stopSession();
+
+      // 2) default eggHatch (targetPokemonOnly) + ColorDeviation
+      service.startSession(
+        huntProvider: provider,
+        coordinator: coordinator,
+        source: source,
+        defaultHuntId: 'hunt-egg',
+        slotIds: const [1],
+        settings: const ShinyAutoCounterSettings(
+          detectionMode: ShinyHuntDetectionMode.eggHatch,
+          matchFilter: ShinyMatchFilter.targetPokemonOnly,
+          minResetCooldownMs: 1200,
+          enableColorDeviationShinyCheck: true,
+          colorDeviationThreshold: 0.35,
+          autoPauseSlotOnShiny: true,
+        ),
+      );
+
+      for (int i = 0; i < 3; i++) {
+        await coordinator.processFrameText('Glumanda ist aus dem Ei geschlüpft!', instanceIndex: 1);
+        await service.waitForIdle();
+        clock += const Duration(milliseconds: 750);
+        source.emitVisualFrame(1, 30, 110, 235);
+        await service.waitForIdle();
+        clock += const Duration(milliseconds: 850);
+      }
+      await coordinator.processFrameText('Glumanda ist aus dem Ei geschlüpft!', instanceIndex: 1);
+      await service.waitForIdle();
+      clock += const Duration(milliseconds: 750);
+      source.emitVisualFrame(1, 30, 220, 65);
+      await service.waitForIdle();
+      expect(service.activeShinyAlertsNotifier.value, hasLength(1));
+      expect(service.slotStatesNotifier.value.single.phase, equals(ShinySlotPhase.pausedByShiny));
+
+      await service.stopSession();
+      await source.dispose();
+      await coordinator.dispose();
+      provider.dispose();
+    });
   });
 }

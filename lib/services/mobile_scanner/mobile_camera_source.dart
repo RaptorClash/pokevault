@@ -27,6 +27,7 @@ class MobileCameraSource
   OcrPreprocessProfile _preprocessProfile;
 
   bool _running = false;
+  bool _disposed = false;
   bool _scanInFlight = false;
   DateTime? _lastProcessedAt;
   CapturedFrame? _latestUprightFrame;
@@ -279,6 +280,17 @@ class MobileCameraSource
     // track transitions & visual color heuristics on the primary enabled region.
     primaryScanZoneId ??= enabledRegions.first.id;
 
+    // Track transition & visual color on at most one region per slotId (preferring !encounterOnly).
+    final trackedSlotRegionIds = <int, String>{};
+    for (final r in enabledRegions) {
+      if (r.role == CameraZoneRole.multiInstance) {
+        final sid = r.slotId ?? 2;
+        if (!trackedSlotRegionIds.containsKey(sid) || !r.encounterOnly) {
+          trackedSlotRegionIds[sid] = r.id;
+        }
+      }
+    }
+
     for (final region in enabledRegions) {
       final cropped = CameraFrameProcessor.cropFrameToNormalizedRect(
         uprightFrame,
@@ -286,18 +298,22 @@ class MobileCameraSource
       );
       if (cropped == null) continue;
 
+      final isMulti = region.role == CameraZoneRole.multiInstance;
+      final trackTransition = isMulti
+          ? trackedSlotRegionIds[region.slotId ?? 2] == region.id
+          : region.id == primaryScanZoneId;
+
       await _runOcrOnRegion(
         zoneKey: region.id,
         targetDescription: region.label,
         croppedFrame: cropped,
-        visualColorFrame: uprightFrame,
+        visualColorFrame: isMulti ? cropped : uprightFrame,
         role: region.role,
         slotId: region.slotId,
         colorHex: region.colorHex,
         encounterOnly: region.encounterOnly,
         bypassHash: bypassHash,
-        trackTransition: region.role == CameraZoneRole.multiInstance ||
-            region.id == primaryScanZoneId,
+        trackTransition: trackTransition,
       );
     }
   }
@@ -343,7 +359,7 @@ class MobileCameraSource
 
     final t0 = DateTime.now();
     final lines = await ocrDriver.recognizeText(croppedFrame);
-    if (!_running && bypassHash == false) return;
+    if (_disposed || (!_running && !bypassHash)) return;
     final ocrMs = DateTime.now().difference(t0).inMilliseconds;
     final joined = lines.join('\n').trim();
     final diagnosticHint = ocrDriver is DiagnosticOcrDriver
@@ -418,6 +434,7 @@ class MobileCameraSource
   }
 
   void _appendLog(OcrScanLogEntry entry) {
+    if (_disposed) return;
     final current = List<OcrScanLogEntry>.from(scanLogsNotifier.value);
     current.insert(0, entry);
     if (current.length > _maxScanLogs) {
@@ -428,8 +445,15 @@ class MobileCameraSource
 
   @override
   Future<void> dispose() async {
+    if (_disposed) return;
+    _disposed = true;
     _running = false;
     _latestUprightFrame = null;
+    if (ocrDriver is DisposableOcrDriver) {
+      try {
+        await (ocrDriver as DisposableOcrDriver).dispose();
+      } catch (_) {}
+    }
     liveScanStatusNotifier.dispose();
     liveFocusStatusNotifier.dispose();
     scanLogsNotifier.dispose();

@@ -260,8 +260,6 @@ class _MobileCameraTrackerScreenState extends State<MobileCameraTrackerScreen>
     _focusSub?.cancel();
 
     if (!_handedOffToPip) {
-      unawaited(_disableWakelock());
-      unawaited(_hardwareController.disposeHardwareCamera());
       unawaited(_trackerService.stopSession());
     }
     _hardwareController.dispose();

@@ -376,7 +376,7 @@ class DesktopWindowSource
           : targetRect;
       mode = 'region';
       effectiveScreen = ScreenRegion.fromRect(absRect, isAbsoluteScreen: true);
-    } else if (window.hwnd > 0 && !window.isMinimized) {
+    } else if (window.hwnd > 0) {
       mode = 'window';
       hwnd = window.hwnd;
       effectiveCrop = cropRegion;
@@ -1547,6 +1547,7 @@ class DesktopWindowSource
         ));
       }
 
+      bool handledAny = false;
       if (nativeSpecs.isNotEmpty) {
         final results = await Future.wait([
           for (final item in nativeSpecs)
@@ -1558,7 +1559,6 @@ class DesktopWindowSource
           return (anyCaptured: anyCaptured, selfWindowOverlaps: selfOverlaps);
         }
 
-        bool handledAny = false;
         for (int i = 0; i < nativeSpecs.length; i++) {
           final res = results[i];
           if (res == null) continue;
@@ -1615,6 +1615,39 @@ class DesktopWindowSource
       if (fallbackSpecs.isEmpty && nativeSpecs.isEmpty) {
         return (anyCaptured: false, selfWindowOverlaps: false);
       }
+
+      final remainingSpecs = handledAny ? fallbackSpecs : zoneSpecs;
+      final capturedFrames = await Future.wait([
+        for (final spec in remainingSpecs)
+          captureDriver
+              .captureWindow(
+                window: spec.targetWindow,
+                cropRegion: spec.cropRegion,
+                screenRegion: spec.screenRegion,
+              )
+              .catchError((_) => null),
+      ]);
+      if (_disposed) {
+        return (anyCaptured: anyCaptured, selfWindowOverlaps: selfOverlaps);
+      }
+
+      for (int i = 0; i < remainingSpecs.length; i++) {
+        final spec = remainingSpecs[i];
+        try {
+          await _emitSlotZoneOcr(
+            slot: spec.slot,
+            frame: capturedFrames[i],
+            fingerprintCache: spec.fingerprintCache,
+            encounterOnly: spec.encounterOnly,
+          );
+          if (capturedFrames[i] != null) {
+            anyCaptured = true;
+          }
+        } catch (_) {
+          // Isolate per-slot errors so other Shiny-Hunting instances keep scanning
+        }
+      }
+      return (anyCaptured: anyCaptured, selfWindowOverlaps: selfOverlaps);
     }
 
     final capturedFrames = await Future.wait([

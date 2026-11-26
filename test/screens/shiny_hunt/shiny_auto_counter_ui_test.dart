@@ -933,5 +933,54 @@ void main() {
       expect(find.byKey(const Key('counter_auto_scanner_btn')), findsOneWidget);
       expect(find.byKey(const Key('counter_appbar_more_menu')), findsOneWidget);
     });
+
+    testWidgets('ShinyAutoCounterBar top row renders all 7 buttons at 320x480 on Android without overflow', (tester) async {
+      await tester.binding.setSurfaceSize(const Size(320, 480));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      final hunt = makeHunt();
+      await huntProvider.createHunt(hunt);
+      final service = ShinyAutoCounterService.forTesting();
+      final coordinator = makeCoordinator();
+      addTearDown(() async {
+        await service.stopSession();
+        await coordinator.dispose();
+      });
+
+      service.startSession(
+        huntProvider: huntProvider,
+        coordinator: coordinator,
+        defaultHuntId: hunt.id,
+        slotIds: const [1],
+      );
+      await coordinator.processFrameText('Wildes Mewtu erscheint!', instanceIndex: 1);
+      await service.waitForIdle();
+
+      await tester.pumpWidget(
+        MultiProvider(
+          providers: [
+            ChangeNotifierProvider<ShinyHuntProvider>.value(value: huntProvider),
+            ChangeNotifierProvider<DexProvider>.value(value: dexProvider),
+          ],
+          child: TranslationProvider(
+            child: MaterialApp(
+              theme: ThemeData(platform: TargetPlatform.android),
+              home: Scaffold(
+                body: ShinyAutoCounterBar(
+                  service: service,
+                  currentHuntId: hunt.id,
+                  onOpenSetup: () {},
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+      expect(tester.takeException(), isNull);
+      expect(find.byKey(const Key('shiny_auto_help_btn')), findsOneWidget);
+      expect(find.byKey(const Key('shiny_auto_bar_rearm_all_btn')), findsOneWidget);
+      expect(find.byKey(const Key('shiny_auto_stop_btn')), findsOneWidget);
+    });
   });
 }

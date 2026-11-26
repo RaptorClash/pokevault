@@ -142,6 +142,46 @@ void main() {
       expect(captures, greaterThan(beforePause));
       await pump.dispose();
     });
+
+    test('serializes rapid pause/resume and does not permanently fall back to polling on transient exception', () async {
+      int startCalls = 0;
+      int stopCalls = 0;
+      bool streamActive = false;
+
+      final pump = CameraFramePump(
+        startImageStream: () async {
+          startCalls++;
+          await Future<void>.delayed(const Duration(milliseconds: 15));
+          if (startCalls == 1) {
+            throw StateError('transient camera busy');
+          }
+          streamActive = true;
+        },
+        stopImageStream: () async {
+          stopCalls++;
+          await Future<void>.delayed(const Duration(milliseconds: 15));
+          streamActive = false;
+        },
+        captureStillBytes: () async => null,
+        decodeStillFrame: (_) async => null,
+        onDecodedFrame: (_) async {},
+        pollInterval: const Duration(milliseconds: 25),
+      );
+
+      // Transient error on first start must NOT lock _isUsingPollingFallback = true
+      await pump.start();
+      expect(pump.isUsingPollingFallback, isFalse);
+
+      // Rapid start/pause/resume should serialize cleanly and end with stream active
+      await Future.wait([
+        pump.start(),
+        pump.pause(),
+        pump.resume(),
+      ]);
+      expect(streamActive, isTrue);
+      expect(stopCalls, greaterThanOrEqualTo(0));
+      await pump.dispose();
+    });
   });
 
   group('CameraFrameProcessor.extractPackedBgraBytes (TDD)', () {

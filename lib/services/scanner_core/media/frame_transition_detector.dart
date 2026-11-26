@@ -132,21 +132,26 @@ class FrameTransitionDetector {
     final expectedBytes = frame.width * frame.height * 4;
     if (frame.bytes.length < expectedBytes || expectedBytes < 4) return null;
 
-    final totalPixels = frame.width * frame.height;
-    final step = totalPixels > 2400 ? totalPixels ~/ 1200 : 1;
+    final stepX = math.max(1, frame.width ~/ 40);
+    final stepY = math.max(1, frame.height ~/ 30);
+    final startX = stepX > 1 ? stepX ~/ 2 : 0;
+    final startY = stepY > 1 ? stepY ~/ 2 : 0;
     int sum = 0;
     int sumSq = 0;
     int count = 0;
 
-    for (int px = 0; px < totalPixels; px += step) {
-      final idx = px * 4;
-      final b = frame.bytes[idx];
-      final g = frame.bytes[idx + 1];
-      final r = frame.bytes[idx + 2];
-      final luma = (r * 299 + g * 587 + b * 114) ~/ 1000;
-      sum += luma;
-      sumSq += luma * luma;
-      count++;
+    for (int y = startY; y < frame.height; y += stepY) {
+      final rowOffset = y * frame.width;
+      for (int x = startX; x < frame.width; x += stepX) {
+        final idx = (rowOffset + x) * 4;
+        final b = frame.bytes[idx];
+        final g = frame.bytes[idx + 1];
+        final r = frame.bytes[idx + 2];
+        final luma = (r * 299 + g * 587 + b * 114) ~/ 1000;
+        sum += luma;
+        sumSq += luma * luma;
+        count++;
+      }
     }
     if (count == 0) return null;
     final mean = sum / count;

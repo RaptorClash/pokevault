@@ -461,6 +461,7 @@ struct OcrRuntimeCache {
       ocr_statics;
   Microsoft::WRL::ComPtr<ABI::Windows::Graphics::Imaging::ISoftwareBitmapStatics>
       bmp_statics;
+  UINT32 max_image_dimension = 2600;
   bool available_languages_loaded = false;
   std::vector<std::string> available_languages;
   std::unordered_map<std::string, CachedOcrEngineEntry> engines_by_tag;
@@ -469,6 +470,7 @@ struct OcrRuntimeCache {
     engines_by_tag.clear();
     available_languages.clear();
     available_languages_loaded = false;
+    max_image_dimension = 2600;
     bmp_statics.Reset();
     ocr_statics.Reset();
   }
@@ -507,6 +509,11 @@ bool RunWindowsMediaOcrCached(OcrRuntimeCache* cache,
     if (FAILED(hr) || !cache->ocr_statics) {
       if (out_error_hint) *out_error_hint = "OcrEngine factory init failed";
       return false;
+    }
+    UINT32 queried_max_dim = 0;
+    if (SUCCEEDED(cache->ocr_statics->get_MaxImageDimension(&queried_max_dim)) &&
+        queried_max_dim >= 128) {
+      cache->max_image_dimension = queried_max_dim;
     }
   }
 
@@ -666,6 +673,18 @@ bool RunWindowsMediaOcrCached(OcrRuntimeCache* cache,
   }
 
   constexpr int kOcrPad = 16;
+  const int max_allowed =
+      (std::max)(64, static_cast<int>(cache->max_image_dimension) - kOcrPad * 2);
+  const int max_scaled = (std::max)(scaled_w, scaled_h);
+  if (max_scaled > max_allowed) {
+    const double clamp_ratio =
+        static_cast<double>(max_allowed) / static_cast<double>(max_scaled);
+    scaled_w =
+        (std::max)(1, static_cast<int>(std::floor(scaled_w * clamp_ratio)));
+    scaled_h =
+        (std::max)(1, static_cast<int>(std::floor(scaled_h * clamp_ratio)));
+    skip_gdi_resample = false;
+  }
   const int padded_w = scaled_w + kOcrPad * 2;
   const int padded_h = scaled_h + kOcrPad * 2;
 
@@ -1056,6 +1075,12 @@ bool ApplySelfWindowMaskIfOverlapping(HWND main_hwnd,
       IsIconic(main_hwnd) || cap_w <= 0 || cap_h <= 0) {
     return false;
   }
+  DWORD main_cloaked = 0;
+  if (SUCCEEDED(DwmGetWindowAttribute(main_hwnd, DWMWA_CLOAKED, &main_cloaked,
+                                      sizeof(main_cloaked))) &&
+      main_cloaked != 0) {
+    return false;
+  }
   RECT main_rect{};
   if (!GetAccurateWindowRect(main_hwnd, &main_rect)) {
     return false;
@@ -1101,9 +1126,23 @@ bool ApplySelfWindowMaskIfOverlapping(HWND main_hwnd,
     }
 
     LONG_PTR ex_style = GetWindowLongPtrW(cur, GWL_EXSTYLE);
-    if ((ex_style & WS_EX_LAYERED) != 0 &&
-        (ex_style & WS_EX_TRANSPARENT) != 0) {
+    if ((ex_style & WS_EX_NOREDIRECTIONBITMAP) != 0) {
       continue;
+    }
+    if ((ex_style & WS_EX_TOOLWINDOW) != 0 &&
+        (ex_style & WS_EX_APPWINDOW) == 0) {
+      continue;
+    }
+    if ((ex_style & WS_EX_LAYERED) != 0) {
+      if ((ex_style & WS_EX_TRANSPARENT) != 0) {
+        continue;
+      }
+      BYTE alpha = 255;
+      DWORD flags = 0;
+      if (GetLayeredWindowAttributes(cur, nullptr, &alpha, &flags) &&
+          (flags & LWA_ALPHA) != 0 && alpha == 0) {
+        continue;
+      }
     }
 
     RECT occ{};
@@ -1355,6 +1394,31 @@ bool RunZoneBMultiBandOcr(OcrRuntimeCache* cache,
     return false;
   }
 
+  const auto sweep_start = std::chrono::steady_clock::now();
+  auto over_budget = [&]() {
+    return std::chrono::duration_cast<std::chrono::milliseconds>(
+               std::chrono::steady_clock::now() - sweep_start)
+               .count() >= 220;
+  };
+  auto has_candidate_token = [](const std::vector<std::string>& lines) {
+    for (const auto& l : lines) {
+      int run = 0;
+      int non_ascii = 0;
+      for (unsigned char c : l) {
+        if (c >= 0x80) {
+          non_ascii++;
+          if (non_ascii >= 2) return true;
+        } else if (std::isalpha(c)) {
+          run++;
+          if (run >= 3) return true;
+        } else {
+          run = 0;
+        }
+      }
+    }
+    return false;
+  };
+
   std::vector<std::string> base_lines;
   const bool base_ok = RunWindowsMediaOcrCached(
       cache, stop_event, bgra_bytes, width, height, language_tag,
@@ -1370,7 +1434,7 @@ bool RunZoneBMultiBandOcr(OcrRuntimeCache* cache,
   std::string zone_summary;
   ComputeLuminanceAndSummary(bgra_bytes, width, height, &zone_luma, &zone_std,
                              &zone_summary);
-  if (zone_std < 6.0 || is_stopping()) {
+  if (zone_std < 6.0 || is_stopping() || over_budget()) {
     if (out_lines) {
       *out_lines = std::move(merged);
     }
@@ -1391,7 +1455,7 @@ bool RunZoneBMultiBandOcr(OcrRuntimeCache* cache,
         {(std::max)(0, width - band_w), 0, band_w, height},
     };
     for (const auto& b : bands) {
-      if (is_stopping()) return;
+      if (is_stopping() || over_budget()) return;
       if (b.w <= 0 || b.h <= 0 || b.x + b.w > width || b.y + b.h > height) {
         continue;
       }
@@ -1406,10 +1470,10 @@ bool RunZoneBMultiBandOcr(OcrRuntimeCache* cache,
     }
   };
 
-  if (count_candidates() < 2 && !is_stopping()) {
+  if (count_candidates() < 2 && !is_stopping() && !over_budget()) {
     run_bands(bgra_bytes);
   }
-  if (count_candidates() == 0 && !is_stopping()) {
+  if (count_candidates() == 0 && !is_stopping() && !over_budget()) {
     auto inverted = InvertBgraLuminance(bgra_bytes);
     std::vector<std::string> inv_lines;
     if (RunWindowsMediaOcrCached(cache, stop_event, inverted, width, height,
@@ -1417,7 +1481,8 @@ bool RunZoneBMultiBandOcr(OcrRuntimeCache* cache,
                                  nullptr, nullptr, nullptr, nullptr)) {
       add_lines(inv_lines);
     }
-    if (!inv_lines.empty() && count_candidates() < 2 && !is_stopping()) {
+    if (has_candidate_token(inv_lines) && count_candidates() < 2 &&
+        !is_stopping() && !over_budget()) {
       run_bands(inverted);
     }
   }
@@ -1512,6 +1577,29 @@ DesktopTrackerPlugin::~DesktopTrackerPlugin() {
     pending_snip_result_.reset();
   }
   if (dispatcher_hwnd_) {
+    MSG msg{};
+    while (PeekMessageW(&msg, dispatcher_hwnd_, kMsgOcrComplete,
+                        kMsgCaptureAnalyzeComplete, PM_REMOVE)) {
+      if (msg.message == kMsgOcrComplete) {
+        auto* payload = reinterpret_cast<OcrAsyncPayload*>(msg.lParam);
+        if (payload) {
+          payload->result.release();
+          delete payload;
+        }
+      } else if (msg.message == kMsgCaptureComplete) {
+        auto* payload = reinterpret_cast<CaptureAsyncPayload*>(msg.lParam);
+        if (payload) {
+          payload->result.release();
+          delete payload;
+        }
+      } else if (msg.message == kMsgCaptureAnalyzeComplete) {
+        auto* payload = reinterpret_cast<CaptureAnalyzePayload*>(msg.lParam);
+        if (payload) {
+          payload->result.release();
+          delete payload;
+        }
+      }
+    }
     DestroyWindow(dispatcher_hwnd_);
     dispatcher_hwnd_ = nullptr;
   }
@@ -2201,13 +2289,16 @@ bool CaptureWindowRaw(CacheListT* cache_list,
                       int* out_crop_x = nullptr,
                       int* out_crop_y = nullptr) {
   using CacheEntryT = typename CacheListT::value_type;
-  auto erase_hwnd_cache = [&](HWND h) {
+  auto erase_frame_cache = [&](HWND h) {
     if (cache_list) {
       cache_list->erase(
           std::remove_if(cache_list->begin(), cache_list->end(),
                          [h](const CacheEntryT& e) { return e.hwnd == h; }),
           cache_list->end());
     }
+  };
+  auto invalidate_hwnd = [&](HWND h) {
+    erase_frame_cache(h);
     if (verified_pw_hwnds) {
       verified_pw_hwnds->erase(h);
     }
@@ -2218,20 +2309,20 @@ bool CaptureWindowRaw(CacheListT* cache_list,
   }
   HWND target = reinterpret_cast<HWND>(hwnd_val);
   if (!IsWindow(target) || IsIconic(target)) {
-    erase_hwnd_cache(target);
+    invalidate_hwnd(target);
     return false;
   }
 
   RECT win_rect{};
   if (!GetWindowRect(target, &win_rect)) {
-    erase_hwnd_cache(target);
+    invalidate_hwnd(target);
     return false;
   }
 
   const int full_w = win_rect.right - win_rect.left;
   const int full_h = win_rect.bottom - win_rect.top;
   if (full_w <= 0 || full_h <= 0) {
-    erase_hwnd_cache(target);
+    invalidate_hwnd(target);
     return false;
   }
 
@@ -2287,7 +2378,7 @@ bool CaptureWindowRaw(CacheListT* cache_list,
     if (!full_dib || !full_bits) {
       if (full_dib) DeleteObject(full_dib);
       ReleaseDC(nullptr, screen_dc);
-      erase_hwnd_cache(target);
+      invalidate_hwnd(target);
       return false;
     }
 
@@ -2334,11 +2425,11 @@ bool CaptureWindowRaw(CacheListT* cache_list,
       DeleteDC(full_dc);
       DeleteObject(full_dib);
       ReleaseDC(nullptr, screen_dc);
-      erase_hwnd_cache(target);
+      invalidate_hwnd(target);
       return false;
     }
 
-    erase_hwnd_cache(target);
+    erase_frame_cache(target);
     if (cache_list->size() >= 4) {
       auto oldest_it = std::min_element(
           cache_list->begin(), cache_list->end(),
@@ -2615,7 +2706,7 @@ void DesktopTrackerPlugin::OcrWorkerLoop() {
       task.ocr_payload->ocr_duration_ms =
           std::chrono::duration_cast<std::chrono::milliseconds>(t1 - t0).count();
 
-      if (!alive || !alive->load() ||
+      if (!notify_hwnd || !alive || !alive->load() ||
           !PostMessageW(notify_hwnd, kMsgOcrComplete, 0,
                         reinterpret_cast<LPARAM>(task.ocr_payload))) {
         task.ocr_payload->result.release();
@@ -2645,7 +2736,7 @@ void DesktopTrackerPlugin::OcrWorkerLoop() {
             &print_window_verified_hwnds_);
       }
 
-      if (!alive || !alive->load() ||
+      if (!notify_hwnd || !alive || !alive->load() ||
           !PostMessageW(notify_hwnd, kMsgCaptureComplete, 0,
                         reinterpret_cast<LPARAM>(task.capture_payload))) {
         task.capture_payload->result.release();
@@ -2775,7 +2866,7 @@ void DesktopTrackerPlugin::OcrWorkerLoop() {
         p->error_hint = "Capture failed or window unavailable";
       }
 
-      if (!alive || !alive->load() ||
+      if (!notify_hwnd || !alive || !alive->load() ||
           !PostMessageW(notify_hwnd, kMsgCaptureAnalyzeComplete, 0,
                         reinterpret_cast<LPARAM>(p))) {
         p->result.release();
@@ -3561,6 +3652,10 @@ LRESULT CALLBACK DesktopTrackerPlugin::SnippingWndProc(HWND hwnd,
         return 0;
       }
       break;
+
+    case WM_CAPTURECHANGED:
+      self->snip_is_dragging_ = false;
+      return 0;
   }
 
   return DefWindowProcW(hwnd, msg, wparam, lparam);
@@ -3678,6 +3773,10 @@ LRESULT CALLBACK DesktopTrackerPlugin::HudWndProc(HWND hwnd,
         return 0;
       }
       break;
+
+    case WM_CAPTURECHANGED:
+      self->hud_is_dragging_ = false;
+      return 0;
   }
 
   return DefWindowProcW(hwnd, msg, wparam, lparam);

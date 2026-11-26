@@ -14,7 +14,8 @@ class MobileOcrDriver
     implements
         LanguageAwareOcrDriver,
         PreprocessAwareOcrDriver,
-        DiagnosticOcrDriver {
+        DiagnosticOcrDriver,
+        DisposableOcrDriver {
   final Future<List<String>> Function(
     CapturedFrame frame,
     TextRecognitionScript script,
@@ -170,6 +171,7 @@ class MobileOcrDriver
     );
   }
 
+  @override
   Future<void> dispose() async {
     for (final recognizer in _recognizers.values) {
       await recognizer.close();

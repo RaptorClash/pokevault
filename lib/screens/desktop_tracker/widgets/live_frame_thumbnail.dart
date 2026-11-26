@@ -130,28 +130,35 @@ class _LiveFrameThumbnailState extends State<LiveFrameThumbnail> {
       targetHeight =
           (frame.height * maxW / frame.width).round().clamp(1, frame.height);
     }
-    ui.decodeImageFromPixels(
-      rawBytes,
-      frame.width,
-      frame.height,
-      ui.PixelFormat.bgra8888,
-      (image) {
-        _decodingInFlight = false;
-        if (!mounted || !identical(widget.liveFrame, frame)) {
-          image.dispose();
+    try {
+      ui.decodeImageFromPixels(
+        rawBytes,
+        frame.width,
+        frame.height,
+        ui.PixelFormat.bgra8888,
+        (image) {
+          _decodingInFlight = false;
+          if (!mounted ||
+              widget.liveFrame == null ||
+              widget.liveFrame!.pixelFormat != 'bgra8888') {
+            image.dispose();
+            _drainPendingDecode();
+            return;
+          }
+          final prev = _decodedImage;
+          setState(() {
+            _decodedImage = image;
+          });
+          _disposeImageSafely(prev);
           _drainPendingDecode();
-          return;
-        }
-        final prev = _decodedImage;
-        setState(() {
-          _decodedImage = image;
-        });
-        _disposeImageSafely(prev);
-        _drainPendingDecode();
-      },
-      targetWidth: targetWidth,
-      targetHeight: targetHeight,
-    );
+        },
+        targetWidth: targetWidth,
+        targetHeight: targetHeight,
+      );
+    } catch (_) {
+      _decodingInFlight = false;
+      _drainPendingDecode();
+    }
   }
 
   void _drainPendingDecode() {

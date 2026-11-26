@@ -92,6 +92,7 @@ class ShinySlotStateMachine {
   DateTime? _lastEventAt;
   bool _eggOhPromptCounted = false;
   bool _shinyAlertedForCurrentEncounter = false;
+  bool _visualObservationPending = false;
   DateTime? _lastCountedEventTimestamp;
   bool hasExplicitHuntOverride = false;
 
@@ -108,6 +109,13 @@ class ShinySlotStateMachine {
   ShinySlotPhase get phase => _phase;
   int get sessionCount => _sessionCount;
   String? get lastTriggerLabel => _lastTriggerLabel;
+  bool get canEvaluateVisualShiny =>
+      _phase == ShinySlotPhase.counted ||
+      (_visualObservationPending &&
+          (_phase == ShinySlotPhase.rearmPending ||
+              (_phase == ShinySlotPhase.armed &&
+                  settings.detectionMode ==
+                      ShinyHuntDetectionMode.screenTransitionOnly)));
 
   Duration get _now => elapsedClock?.call() ?? _monotonic.elapsed;
 
@@ -144,12 +152,14 @@ class ShinySlotStateMachine {
   void setManualPaused(bool paused) {
     if (paused) {
       _phase = ShinySlotPhase.pausedManual;
+      _visualObservationPending = false;
     } else if (_phase == ShinySlotPhase.pausedManual) {
       _phase = ShinySlotPhase.armed;
       _rearmStartedAt = null;
       _eggOhPromptCounted = false;
       _eggOhPromptAt = null;
       _shinyAlertedForCurrentEncounter = false;
+      _visualObservationPending = false;
     }
   }
 
@@ -160,6 +170,7 @@ class ShinySlotStateMachine {
       _eggOhPromptCounted = false;
       _eggOhPromptAt = null;
       _shinyAlertedForCurrentEncounter = false;
+      _visualObservationPending = false;
       _lastCountedEventTimestamp = null;
     }
   }
@@ -170,14 +181,22 @@ class ShinySlotStateMachine {
     _eggOhPromptCounted = false;
     _eggOhPromptAt = null;
     _shinyAlertedForCurrentEncounter = false;
+    _visualObservationPending = false;
     _lastCountedEventTimestamp = null;
   }
 
   /// Reverts a previously counted increment on this slot and immediately re-arms it
-  /// (unless [preservePause] is true for active shiny/manual pause).
-  void recordUndo(int delta, {bool preservePause = false}) {
+  /// (unless [preservePause] is true for active shiny/manual pause or [allowRearm] is false).
+  void recordUndo(
+    int delta, {
+    bool preservePause = false,
+    bool allowRearm = true,
+  }) {
     if (delta > 0) {
       _sessionCount = (_sessionCount - delta).clamp(0, 9999999);
+    }
+    if (!allowRearm) {
+      return;
     }
     if (preservePause &&
         (_phase == ShinySlotPhase.pausedByShiny ||
@@ -249,6 +268,7 @@ class ShinySlotStateMachine {
       _rearmStartedAt = _now;
       _lastTriggerLabel = reason;
       _lastCountedEventTimestamp = null;
+      _visualObservationPending = false;
     }
   }
 
@@ -425,11 +445,14 @@ class ShinySlotStateMachine {
 
     if (event.isShiny && settings.autoPauseSlotOnShiny) {
       _phase = ShinySlotPhase.pausedByShiny;
+      _visualObservationPending = false;
     } else {
       _phase = ShinySlotPhase.counted;
+      _visualObservationPending = !event.isShiny;
       if (settings.detectionMode == ShinyHuntDetectionMode.eggHatch &&
           event.type == ScannerEventType.eggHatched) {
         _beginRearm('egg_hatched');
+        _visualObservationPending = !event.isShiny;
       }
     }
 
@@ -537,6 +560,8 @@ class ShinySlotStateMachine {
           ? 'black_screen_reset'
           : 'white_screen_reset';
       _phase = ShinySlotPhase.armed;
+      _shinyAlertedForCurrentEncounter = false;
+      _visualObservationPending = true;
       return ShinyCountDecision.increment(
         delta: 1,
         reason: _lastTriggerLabel!,
@@ -552,19 +577,20 @@ class ShinySlotStateMachine {
   }
 
   /// Processes a visual Shiny heuristic signal ([SparkleDelayDetector] or [VisualShinyColorDetector]).
-  /// Only fires when the slot has just counted an encounter (`ShinySlotPhase.counted`)
-  /// and is not already paused or alerted for the current encounter.
+  /// Fires when the slot is inside a valid post-count observation window and is not
+  /// already paused or alerted for the current encounter.
   ShinyCountDecision onVisualShinySignal(
     VisualShinySignal signal, {
     int? detectedPokemonId,
     String? detectedPokemonName,
   }) {
-    if (_phase != ShinySlotPhase.counted) {
+    if (!canEvaluateVisualShiny) {
       return const ShinyCountDecision.none('visual_shiny_slot_not_counted');
     }
     if (_shinyAlertedForCurrentEncounter) {
       return const ShinyCountDecision.none('already_shiny_alerted');
     }
+    _visualObservationPending = false;
     _shinyAlertedForCurrentEncounter = true;
     _lastEventAt = DateTime.now();
     _lastTriggerLabel = '${signal.source.name}:${signal.details}';

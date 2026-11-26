@@ -30,6 +30,10 @@ import 'package:pokevault/services/scanner_core/models/scanner_event.dart';
 import 'package:pokevault/services/scanner_core/models/scanner_settings.dart';
 import 'package:pokevault/services/scanner_core/scanner_coordinator.dart';
 import 'package:pokevault/services/scanner_core/source/scanner_source.dart';
+import 'package:pokevault/services/shiny_auto_counter/shiny_auto_counter_service.dart';
+import 'package:pokevault/models/shiny_hunt.dart';
+import 'package:pokevault/providers/shiny_hunt_provider.dart';
+import 'package:pokevault/services/database_service.dart';
 import 'package:pokevault/utils/tracker_platform_helper.dart';
 
 class MockCaptureDriver implements DesktopCaptureDriver {
@@ -2481,5 +2485,152 @@ void main() {
       await tester.pumpAndSettle();
       expect(tester.takeException(), isNull);
     });
+
+    testWidgets('LiveFrameThumbnail still renders decoded BGRA image when newer frame arrives mid-decode', (tester) async {
+      final frame1 = CapturedFrame(
+        width: 16,
+        height: 16,
+        bytes: Uint8List.fromList(List<int>.filled(16 * 16 * 4, 200)),
+        pixelFormat: 'bgra8888',
+      );
+      final frame2 = CapturedFrame(
+        width: 16,
+        height: 16,
+        bytes: Uint8List.fromList(List<int>.filled(16 * 16 * 4, 150)),
+        pixelFormat: 'bgra8888',
+      );
+      final notifier = ValueNotifier<CapturedFrame?>(frame1);
+      addTearDown(notifier.dispose);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: SizedBox(
+              width: 120,
+              height: 90,
+              child: ValueListenableBuilder<CapturedFrame?>(
+                valueListenable: notifier,
+                builder: (_, f, _) => LiveFrameThumbnail(
+                  liveFrame: f,
+                  fallbackPngBytes: null,
+                  fallbackIcon: Icons.videocam_off,
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      // Immediately swap to frame2 on first pump before frame1's decode completes
+      await tester.pump();
+      notifier.value = frame2;
+      await tester.pump();
+      await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 100)));
+      await tester.pump();
+
+      expect(find.byType(RawImage), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('DesktopTrackerScreen syncs pause to ShinyAutoCounterService, clears isPaused on zone start, and rebinds source on Window <-> Webcam switch', (tester) async {
+      SharedPreferences.setMockInitialValues({});
+      final huntProvider = ShinyHuntProvider(
+        databaseService: _FakeTrackerHuntDb(),
+        enableTimer: false,
+      );
+      await huntProvider.initialized;
+      final now = DateTime.now();
+      await huntProvider.createHunt(
+        ShinyHunt(
+          id: 'ui-rebind-hunt',
+          title: 'Pikachu',
+          pokemonId: 25,
+          pokemonName: 'Pikachu',
+          game: 'Violet',
+          generation: 9.0,
+          method: 'Wild',
+          baseOdds: 4096.0,
+          createdAt: now,
+          updatedAt: now,
+        ),
+      );
+
+      final activeSource = DesktopWindowSource(
+        captureDriver: MockCaptureDriver(),
+        ocrDriver: MockOcrDriver()..textToReturn = '',
+      );
+      addTearDown(() async {
+        await ShinyAutoCounterService.instance.stopSession();
+        await activeSource.dispose();
+        huntProvider.dispose();
+      });
+
+      final wins = [
+        const DesktopWindowInfo(id: 1, hwnd: 10, title: 'mGBA', width: 800, height: 600),
+        DesktopWindowInfo.webcam(index: 0, name: 'Test Webcam'),
+      ];
+
+      await tester.pumpWidget(
+        MultiProvider(
+          providers: [
+            ChangeNotifierProvider<DexProvider>.value(value: mockDexProvider),
+          ],
+          child: MaterialApp(
+            home: DesktopTrackerScreen(
+              coordinator: coordinator,
+              windowSource: activeSource,
+              detectedWindows: wins,
+              disableHardwareCamera: true,
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Bind ShinyAutoCounterService.instance (used by DesktopTrackerScreen)
+      ShinyAutoCounterService.instance.startSession(
+        huntProvider: huntProvider,
+        coordinator: coordinator,
+        source: activeSource,
+        defaultHuntId: 'ui-rebind-hunt',
+        slotIds: const [1],
+      );
+
+      // Pausing via screen button must sync ShinyAutoCounterService.setGlobalPause(true)
+      final pauseBtn = find.byIcon(Icons.pause);
+      expect(pauseBtn, findsOneWidget);
+      await tester.ensureVisible(pauseBtn);
+      await tester.tap(pauseBtn);
+      await tester.pump();
+      expect(ShinyAutoCounterService.instance.isPaused, isTrue);
+
+      final resumeBtn = find.byIcon(Icons.play_arrow);
+      expect(resumeBtn, findsOneWidget);
+      await tester.tap(resumeBtn);
+      await tester.pump();
+      expect(ShinyAutoCounterService.instance.isPaused, isFalse);
+
+      // Switching dropdown from mGBA -> Test Webcam must rebind ShinyAutoCounterService.source
+      final dropdown = find.byType(DropdownButton<DesktopWindowInfo>);
+      expect(dropdown, findsOneWidget);
+      await tester.ensureVisible(dropdown);
+      await tester.tap(dropdown);
+      await tester.pumpAndSettle();
+      await tester.tap(find.textContaining('Test Webcam').last);
+      await tester.pumpAndSettle();
+      expect(
+        identical(ShinyAutoCounterService.instance.source, activeSource),
+        isFalse,
+      );
+    });
   });
+}
+
+class _FakeTrackerHuntDb extends Fake implements DatabaseService {
+  @override
+  Future<List<ShinyHunt>> getAllShinyHunts({bool includeDeleted = false}) async =>
+      const [];
+
+  @override
+  Future<void> saveShinyHunt(ShinyHunt hunt) async {}
 }

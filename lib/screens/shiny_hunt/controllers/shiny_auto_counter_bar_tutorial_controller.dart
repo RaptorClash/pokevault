@@ -34,6 +34,7 @@ class ShinyAutoCounterBarTutorialController {
     }
 
     if (tutProvider.hasSeenFeature('shiny_auto_counter_bar')) return;
+    if (TutorialOverlay.isShowing) return;
 
     _hasTriggered = true;
     start(

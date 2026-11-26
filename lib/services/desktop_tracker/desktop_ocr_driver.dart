@@ -23,6 +23,11 @@ abstract class DiagnosticOcrDriver implements DesktopOcrDriver {
   String? get lastDiagnosticHint;
 }
 
+/// Optional interface for OCR drivers that allocate native resources requiring disposal.
+abstract class DisposableOcrDriver implements DesktopOcrDriver {
+  Future<void> dispose();
+}
+
 /// Default desktop OCR driver delegating to Windows Media OCR (WinRT) or custom handler.
 class DefaultDesktopOcrDriver implements LanguageAwareOcrDriver {
   final Future<List<String>> Function(CapturedFrame frame)? nativeOcrHandler;

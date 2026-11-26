@@ -3,6 +3,9 @@ import 'dart:ui';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:pokevault/models/shiny_hunt.dart';
+import 'package:pokevault/providers/shiny_hunt_provider.dart';
+import 'package:pokevault/services/database_service.dart';
 import 'package:pokevault/services/desktop_tracker/desktop_capture_driver.dart';
 import 'package:pokevault/services/desktop_tracker/desktop_ocr_driver.dart';
 import 'package:pokevault/services/desktop_tracker/desktop_tracker_service.dart';
@@ -16,6 +19,9 @@ import 'package:pokevault/services/scanner_core/models/scanner_event.dart';
 import 'package:pokevault/services/scanner_core/models/scanner_settings.dart';
 import 'package:pokevault/services/scanner_core/scanner_coordinator.dart';
 import 'package:pokevault/services/scanner_core/source/scanner_source.dart';
+import 'package:pokevault/services/shiny_auto_counter/shiny_auto_counter_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 class _FakeBridge implements DesktopPlatformBridge {
   bool hudVisible = false;
@@ -79,6 +85,7 @@ class _FakeBridge implements DesktopPlatformBridge {
 }
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
   group('DesktopTrackerService Tests (TDD)', () {
     late DesktopTrackerService service;
 
@@ -343,6 +350,61 @@ void main() {
 
       await service.stopTracking();
       expect(fakeBridge.onHudAction, isNull);
+    });
+
+    test('startTracking calls ShinyAutoCounterService.onSourceStopped when replacing coordinator', () async {
+      SharedPreferences.setMockInitialValues({});
+      sqfliteFfiInit();
+      databaseFactory = databaseFactoryFfi;
+      final provider = ShinyHuntProvider(
+        databaseService: DatabaseService.instance,
+        enableTimer: false,
+      );
+      await provider.initialized;
+      final now = DateTime.now();
+      await provider.createHunt(
+        ShinyHunt(
+          id: 'desk-swap-hunt',
+          title: 'Pikachu',
+          pokemonId: 25,
+          pokemonName: 'Pikachu',
+          game: 'Violet',
+          generation: 9.0,
+          method: 'Wild',
+          baseOdds: 4096.0,
+          createdAt: now,
+          updatedAt: now,
+        ),
+      );
+
+      final coord1 = ScannerCoordinator(
+        engine: OcrDetectionEngine(),
+        matcher: PokemonFuzzyMatcher.withEntries([]),
+        settings: ScannerSettings.defaults(),
+      );
+      final coord2 = ScannerCoordinator(
+        engine: OcrDetectionEngine(),
+        matcher: PokemonFuzzyMatcher.withEntries([]),
+        settings: ScannerSettings.defaults(),
+      );
+      addTearDown(() async {
+        await ShinyAutoCounterService.instance.stopSession();
+        await coord1.dispose();
+        await coord2.dispose();
+        provider.dispose();
+      });
+
+      service.startTracking(coordinator: coord1);
+      ShinyAutoCounterService.instance.startSession(
+        huntProvider: provider,
+        coordinator: coord1,
+        defaultHuntId: 'desk-swap-hunt',
+        slotIds: const [1],
+      );
+      expect(ShinyAutoCounterService.instance.isRunning, isTrue);
+
+      service.startTracking(coordinator: coord2);
+      expect(ShinyAutoCounterService.instance.isRunning, isFalse);
     });
   });
 }

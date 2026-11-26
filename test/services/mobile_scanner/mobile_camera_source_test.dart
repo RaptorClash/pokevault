@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:typed_data';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pokevault/services/desktop_tracker/desktop_capture_driver.dart';
@@ -6,9 +7,10 @@ import 'package:pokevault/services/mobile_scanner/camera_scan_region.dart';
 import 'package:pokevault/services/mobile_scanner/mobile_camera_source.dart';
 import 'package:pokevault/services/scanner_core/source/scanner_source.dart';
 
-class _FakeRegionOcrDriver implements DesktopOcrDriver {
+class _FakeRegionOcrDriver implements DisposableOcrDriver {
   final List<CapturedFrame> seenFrames = [];
   String Function(CapturedFrame frame) handler;
+  bool disposed = false;
 
   _FakeRegionOcrDriver(this.handler);
 
@@ -17,6 +19,11 @@ class _FakeRegionOcrDriver implements DesktopOcrDriver {
     seenFrames.add(frame);
     final out = handler(frame);
     return out.isEmpty ? const [] : [out];
+  }
+
+  @override
+  Future<void> dispose() async {
+    disposed = true;
   }
 }
 
@@ -279,6 +286,88 @@ void main() {
       await source.stop();
       await visSub.cancel();
       await source.dispose();
+      expect(ocr.disposed, isTrue);
+    });
+
+    test('dispose cancels in-flight processPhotoFrame updates without FlutterError and disposes ocrDriver', () async {
+      final ocrCompleter = Completer<List<String>>();
+      final slowOcr = _CompleterOcrDriver(ocrCompleter.future);
+      final source = MobileCameraSource(ocrDriver: slowOcr);
+      await source.start();
+
+      final scanFuture = source.processPhotoFrame(_makeTwoToneFrame());
+      await Future<void>.delayed(Duration.zero);
+
+      await source.dispose();
+      expect(slowOcr.disposed, isTrue);
+
+      // Resolving OCR after dispose must NOT mutate disposed ValueNotifiers
+      ocrCompleter.complete(const ['Pikachu']);
+      await scanFuture;
+    });
+
+    test('multiInstance paired scan+focus regions emit single visual frame (cropped) and single transition check per slot', () async {
+      final ocr = _FakeRegionOcrDriver((_) => 'Wildes Pikachu');
+      final source = MobileCameraSource(ocrDriver: ocr);
+      source.setScanMode(MobileCameraScanMode.customRegions);
+      source.setRegions([
+        NormalizedScanRect(
+          id: 'multi_2_scan',
+          role: CameraZoneRole.multiInstance,
+          slotId: 2,
+          left: 0.0,
+          top: 0.5,
+          width: 1.0,
+          height: 0.5,
+          colorHex: 0xFFA855F7,
+          label: '#2 Scan',
+          encounterOnly: false,
+        ),
+        NormalizedScanRect(
+          id: 'multi_2_focus',
+          role: CameraZoneRole.multiInstance,
+          slotId: 2,
+          left: 0.0,
+          top: 0.0,
+          width: 1.0,
+          height: 0.5,
+          colorHex: 0xFFA855F7,
+          label: '#2 Focus',
+          encounterOnly: true,
+        ),
+      ]);
+
+      final visualFrames = <SlotVisualFrame>[];
+      final visSub = source.visualFrameStream.listen(visualFrames.add);
+
+      await source.start();
+      await source.submitCameraFrame(
+        _makeTwoToneFrame(width: 20, height: 20),
+        bypassThrottle: true,
+      );
+      await Future<void>.delayed(Duration.zero);
+
+      // Must emit only 1 visual frame for slot 2 (from scan region) using the cropped 20x10 frame, NOT 20x20 full frame
+      expect(visualFrames, hasLength(1));
+      expect(visualFrames.single.slotId, 2);
+      expect(visualFrames.single.frame?.height, 10);
+
+      await visSub.cancel();
+      await source.dispose();
     });
   });
+}
+
+class _CompleterOcrDriver implements DisposableOcrDriver {
+  final Future<List<String>> future;
+  bool disposed = false;
+  _CompleterOcrDriver(this.future);
+
+  @override
+  Future<List<String>> recognizeText(CapturedFrame frame) => future;
+
+  @override
+  Future<void> dispose() async {
+    disposed = true;
+  }
 }

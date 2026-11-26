@@ -16,6 +16,8 @@ class TutorialOverlay extends StatefulWidget {
   static Offset? lastTapPosition;
   static bool _isShowing = false;
 
+  static bool get isShowing => _isShowing;
+
   static void resetShowing() => _isShowing = false;
 
   const TutorialOverlay({

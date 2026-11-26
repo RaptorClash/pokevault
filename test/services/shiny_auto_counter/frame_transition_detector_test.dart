@@ -429,5 +429,35 @@ void main() {
       clock += const Duration(milliseconds: 120);
       expect(detector.analyzeLuminance(avgLuma: 120, stdDev: 5, slotId: 1), isNull);
     });
+
+    test('2D interior grid sampling avoids 1-pixel border aliasing on 1920x1200, 1600x1200, and 1080x2400', () {
+      for (final (w, h) in [(1920, 1200), (1600, 1200), (1080, 2400)]) {
+        final bytes = Uint8List(w * h * 4);
+        // Fill entire frame with bright interior (luma ~180)
+        for (int i = 0; i < w * h; i++) {
+          final off = i * 4;
+          bytes[off] = 180;
+          bytes[off + 1] = 180;
+          bytes[off + 2] = 180;
+          bytes[off + 3] = 255;
+        }
+        // Paint 1px dark border along leftmost column x == 0
+        for (int y = 0; y < h; y++) {
+          final off = (y * w) * 4;
+          bytes[off] = 0;
+          bytes[off + 1] = 0;
+          bytes[off + 2] = 0;
+        }
+        final frame = CapturedFrame(
+          width: w,
+          height: h,
+          bytes: bytes,
+          pixelFormat: 'bgra8888',
+        );
+        final sample = FrameTransitionDetector.sampleFrameLuminance(frame);
+        expect(sample, isNotNull, reason: 'Failed for ${w}x$h');
+        expect(sample!.avgLuma, greaterThan(150.0), reason: 'Column aliasing on ${w}x$h');
+      }
+    });
   });
 }

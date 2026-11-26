@@ -739,5 +739,95 @@ void main() {
       expect(machine.phase, equals(ShinySlotPhase.armed));
       expect(machine.onEggHatchCue(EggHatchCue.ohPrompt).shouldIncrement, isTrue);
     });
+
+    test('Visual Shiny signals fire during post-count observation window in screenTransitionOnly and eggHatch with single-alert guard', () {
+      var clock = Duration.zero;
+      final transMachine = ShinySlotStateMachine(
+        slotId: 1,
+        colorHex: 0xFFA855F7,
+        targetPokemonId: 150,
+        targetPokemonName: 'Mewtu',
+        settings: const ShinyAutoCounterSettings(
+          detectionMode: ShinyHuntDetectionMode.screenTransitionOnly,
+          enableColorDeviationShinyCheck: true,
+          autoPauseSlotOnShiny: false,
+          minResetCooldownMs: 200,
+        ),
+        elapsedClock: () => clock,
+      );
+
+      final countDec = transMachine.onFrameTransition(
+        FrameTransitionEvent(
+          slotId: 1,
+          type: FrameTransitionType.blackScreenEnded,
+          durationMs: 400,
+          averageLuma: 5.0,
+          timestamp: DateTime(2026),
+        ),
+      );
+      expect(countDec.shouldIncrement, isTrue);
+      expect(transMachine.phase, equals(ShinySlotPhase.armed));
+
+      final visSig = VisualShinySignal(
+        slotId: 1,
+        source: ShinyDetectionSource.colorDeviation,
+        score: 0.55,
+        details: 'hue_shift',
+        timestamp: DateTime(2026),
+      );
+      final alert1 = transMachine.onVisualShinySignal(visSig);
+      expect(alert1.isShinyAlertOnly, isTrue);
+      expect(alert1.isShiny, isTrue);
+      // Duplicate signal for same encounter must be suppressed
+      expect(transMachine.onVisualShinySignal(visSig).isShinyAlertOnly, isFalse);
+
+      // Next transition clears observation guard and re-opens window
+      clock += const Duration(milliseconds: 500);
+      expect(
+        transMachine
+            .onFrameTransition(
+              FrameTransitionEvent(
+                slotId: 1,
+                type: FrameTransitionType.blackScreenEnded,
+                durationMs: 400,
+                averageLuma: 5.0,
+                timestamp: DateTime(2026),
+              ),
+            )
+            .shouldIncrement,
+        isTrue,
+      );
+      expect(transMachine.onVisualShinySignal(visSig).isShinyAlertOnly, isTrue);
+
+      // Default eggHatch (targetPokemonOnly) transitions directly to rearmPending -> must still accept visual signal
+      final eggMachine = ShinySlotStateMachine(
+        slotId: 2,
+        colorHex: 0xFFEC4899,
+        targetPokemonId: 4,
+        targetPokemonName: 'Glumanda',
+        settings: const ShinyAutoCounterSettings(
+          detectionMode: ShinyHuntDetectionMode.eggHatch,
+          matchFilter: ShinyMatchFilter.targetPokemonOnly,
+          enableColorDeviationShinyCheck: true,
+          autoPauseSlotOnShiny: true,
+          minResetCooldownMs: 1200,
+        ),
+        elapsedClock: () => clock,
+      );
+      final eggCount = eggMachine.onScannerEvent(
+        ScannerEvent(
+          type: ScannerEventType.eggHatched,
+          pokemonId: 4,
+          rawText: 'Glumanda ist aus dem Ei geschlüpft!',
+          matchedName: 'Glumanda',
+          timestamp: DateTime(2026),
+        ),
+      );
+      expect(eggCount.shouldIncrement, isTrue);
+      expect(eggMachine.phase, equals(ShinySlotPhase.rearmPending));
+      final eggAlert = eggMachine.onVisualShinySignal(visSig);
+      expect(eggAlert.isShinyAlertOnly, isTrue);
+      expect(eggMachine.phase, equals(ShinySlotPhase.pausedByShiny));
+    });
   });
 }
