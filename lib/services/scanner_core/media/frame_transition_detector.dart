@@ -7,6 +7,19 @@ enum FrameTransitionType {
   whiteScreenEnded,
 }
 
+/// Per-slot luminance and duration thresholds for [FrameTransitionDetector].
+class SlotTransitionConfig {
+  final int blackThreshold;
+  final int whiteThreshold;
+  final Duration minTransitionDuration;
+
+  const SlotTransitionConfig({
+    required this.blackThreshold,
+    required this.whiteThreshold,
+    required this.minTransitionDuration,
+  });
+}
+
 /// Immutable event emitted when a slot finishes a solid black/white screen transition.
 class FrameTransitionEvent {
   final int slotId;
@@ -49,6 +62,7 @@ class FrameTransitionDetector {
   final Duration Function()? elapsedClock;
   final Stopwatch _monotonic = Stopwatch()..start();
   final Map<int, _SlotTracker> _slots = {};
+  final Map<int, SlotTransitionConfig> _slotConfigs = {};
 
   FrameTransitionDetector({
     this.blackThreshold = 18,
@@ -71,6 +85,27 @@ class FrameTransitionDetector {
     if (whiteThreshold != null) {
       this.whiteThreshold = whiteThreshold.clamp(175, 252);
     }
+  }
+
+  /// Configures isolated luminance and duration thresholds per slot ID.
+  void setSlotConfigs(Map<int, SlotTransitionConfig> configs) {
+    _slotConfigs
+      ..clear()
+      ..addEntries(
+        configs.entries.map(
+          (e) => MapEntry(
+            e.key,
+            SlotTransitionConfig(
+              blackThreshold: e.value.blackThreshold.clamp(5, 80),
+              whiteThreshold: e.value.whiteThreshold.clamp(175, 252),
+              minTransitionDuration: Duration(
+                milliseconds:
+                    e.value.minTransitionDuration.inMilliseconds.clamp(150, 5000),
+              ),
+            ),
+          ),
+        ),
+      );
   }
 
   Duration get _now => elapsedClock?.call() ?? _monotonic.elapsed;
@@ -148,14 +183,19 @@ class FrameTransitionDetector {
     }
 
     final tracker = _slots.putIfAbsent(slotId, _SlotTracker.new);
+    final slotCfg = _slotConfigs[slotId];
+    final effBlack = slotCfg?.blackThreshold ?? blackThreshold;
+    final effWhite = slotCfg?.whiteThreshold ?? whiteThreshold;
+    final effMinDuration =
+        slotCfg?.minTransitionDuration ?? minTransitionDuration;
     final now = _now;
 
     switch (tracker.state) {
       case _SlotLuminanceState.normal:
-        if (avgLuma <= blackThreshold && stdDev <= maxSolidStdDev) {
+        if (avgLuma <= effBlack && stdDev <= maxSolidStdDev) {
           tracker.state = _SlotLuminanceState.inBlack;
           tracker.transitionStartedAt = now;
-        } else if (avgLuma >= whiteThreshold && stdDev <= maxSolidStdDev) {
+        } else if (avgLuma >= effWhite && stdDev <= maxSolidStdDev) {
           tracker.state = _SlotLuminanceState.inWhite;
           tracker.transitionStartedAt = now;
         } else {
@@ -164,16 +204,16 @@ class FrameTransitionDetector {
         return null;
 
       case _SlotLuminanceState.inBlack:
-        if (avgLuma <= blackThreshold + hysteresisMargin &&
+        if (avgLuma <= effBlack + hysteresisMargin &&
             stdDev <= maxSolidStdDev + 6.0) {
           return null;
         }
         final started = tracker.transitionStartedAt;
         final duration = started != null ? now - started : Duration.zero;
         final validNormalRecovery =
-            tracker.hasSeenNormal && duration >= minTransitionDuration;
+            tracker.hasSeenNormal && duration >= effMinDuration;
 
-        if (avgLuma >= whiteThreshold && stdDev <= maxSolidStdDev) {
+        if (avgLuma >= effWhite && stdDev <= maxSolidStdDev) {
           tracker.state = _SlotLuminanceState.inWhite;
           tracker.transitionStartedAt = now;
           return null;
@@ -194,16 +234,16 @@ class FrameTransitionDetector {
         return null;
 
       case _SlotLuminanceState.inWhite:
-        if (avgLuma >= whiteThreshold - hysteresisMargin &&
+        if (avgLuma >= effWhite - hysteresisMargin &&
             stdDev <= maxSolidStdDev + 6.0) {
           return null;
         }
         final started = tracker.transitionStartedAt;
         final duration = started != null ? now - started : Duration.zero;
         final validNormalRecovery =
-            tracker.hasSeenNormal && duration >= minTransitionDuration;
+            tracker.hasSeenNormal && duration >= effMinDuration;
 
-        if (avgLuma <= blackThreshold && stdDev <= maxSolidStdDev) {
+        if (avgLuma <= effBlack && stdDev <= maxSolidStdDev) {
           tracker.state = _SlotLuminanceState.inBlack;
           tracker.transitionStartedAt = now;
           return null;

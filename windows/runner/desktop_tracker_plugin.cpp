@@ -1068,28 +1068,119 @@ bool ApplySelfWindowMaskIfOverlapping(HWND main_hwnd,
     return false;
   }
 
-  if (mask_self && bgra &&
-      bgra->size() >=
-          static_cast<size_t>(cap_w) * static_cast<size_t>(cap_h) * 4) {
-    const int local_x0 = ix0 - cap_x;
-    const int local_y0 = iy0 - cap_y;
-    const int local_x1 = ix1 - cap_x;
-    const int local_y1 = iy1 - cap_y;
-    for (int row = local_y0; row < local_y1; ++row) {
-      uint8_t* row_ptr =
-          bgra->data() +
-          (static_cast<size_t>(row) * static_cast<size_t>(cap_w) +
-           static_cast<size_t>(local_x0)) *
-              4;
-      const int span_px = local_x1 - local_x0;
-      for (int c = 0; c < span_px; ++c) {
-        row_ptr[c * 4 + 0] = 0;
-        row_ptr[c * 4 + 1] = 0;
-        row_ptr[c * 4 + 2] = 0;
-        row_ptr[c * 4 + 3] = 255;
+  // Subtract windows positioned above main_hwnd in Z-order so an emulator/game
+  // in the foreground is never falsely flagged or masked as self-overlap.
+  HRGN visible_rgn = CreateRectRgn(ix0, iy0, ix1, iy1);
+  if (!visible_rgn) {
+    return false;
+  }
+
+  const DWORD self_pid = GetCurrentProcessId();
+  for (HWND cur = GetWindow(main_hwnd, GW_HWNDPREV); cur != nullptr;
+       cur = GetWindow(cur, GW_HWNDPREV)) {
+    if (!IsWindowVisible(cur) || IsIconic(cur)) continue;
+    DWORD pid = 0;
+    GetWindowThreadProcessId(cur, &pid);
+    if (pid == self_pid) continue;
+
+    DWORD cloaked = 0;
+    if (SUCCEEDED(DwmGetWindowAttribute(cur, DWMWA_CLOAKED, &cloaked,
+                                        sizeof(cloaked))) &&
+        cloaked != 0) {
+      continue;
+    }
+
+    LONG_PTR ex_style = GetWindowLongPtrW(cur, GWL_EXSTYLE);
+    if ((ex_style & WS_EX_LAYERED) != 0 &&
+        (ex_style & WS_EX_TRANSPARENT) != 0) {
+      continue;
+    }
+
+    RECT occ{};
+    if (!GetAccurateWindowRect(cur, &occ)) continue;
+    if (occ.right <= ix0 || occ.left >= ix1 || occ.bottom <= iy0 ||
+        occ.top >= iy1) {
+      continue;
+    }
+
+    HRGN occ_rgn = CreateRectRgn(occ.left, occ.top, occ.right, occ.bottom);
+    if (occ_rgn) {
+      const int combine_res =
+          CombineRgn(visible_rgn, visible_rgn, occ_rgn, RGN_DIFF);
+      DeleteObject(occ_rgn);
+      if (combine_res == NULLREGION) {
+        DeleteObject(visible_rgn);
+        return false;
       }
     }
   }
+
+  const DWORD rgn_bytes = GetRegionData(visible_rgn, 0, nullptr);
+  if (rgn_bytes < sizeof(RGNDATAHEADER)) {
+    DeleteObject(visible_rgn);
+    return false;
+  }
+  std::vector<uint8_t> rgn_buf(rgn_bytes);
+  auto* rgn_data = reinterpret_cast<RGNDATA*>(rgn_buf.data());
+  if (GetRegionData(visible_rgn, rgn_bytes, rgn_data) == 0 ||
+      rgn_data->rdh.nCount == 0) {
+    DeleteObject(visible_rgn);
+    return false;
+  }
+
+  const RECT& bound = rgn_data->rdh.rcBound;
+  if ((bound.right - bound.left) < 24 || (bound.bottom - bound.top) < 24) {
+    DeleteObject(visible_rgn);
+    return false;
+  }
+
+  const auto* rects = reinterpret_cast<const RECT*>(rgn_data->Buffer);
+  int64_t visible_area = 0;
+  for (DWORD i = 0; i < rgn_data->rdh.nCount; ++i) {
+    const int rw =
+        (std::max)(0, static_cast<int>(rects[i].right - rects[i].left));
+    const int rh =
+        (std::max)(0, static_cast<int>(rects[i].bottom - rects[i].top));
+    visible_area += static_cast<int64_t>(rw) * static_cast<int64_t>(rh);
+  }
+  if (visible_area < 24 * 24) {
+    DeleteObject(visible_rgn);
+    return false;
+  }
+
+  if (mask_self && bgra &&
+      bgra->size() >=
+          static_cast<size_t>(cap_w) * static_cast<size_t>(cap_h) * 4) {
+    for (DWORD i = 0; i < rgn_data->rdh.nCount; ++i) {
+      const int rx0 = (std::max)(cap_x, static_cast<int>(rects[i].left));
+      const int ry0 = (std::max)(cap_y, static_cast<int>(rects[i].top));
+      const int rx1 =
+          (std::min)(cap_x + cap_w, static_cast<int>(rects[i].right));
+      const int ry1 =
+          (std::min)(cap_y + cap_h, static_cast<int>(rects[i].bottom));
+      if (rx1 <= rx0 || ry1 <= ry0) continue;
+
+      const int local_x0 = rx0 - cap_x;
+      const int local_y0 = ry0 - cap_y;
+      const int local_x1 = rx1 - cap_x;
+      const int local_y1 = ry1 - cap_y;
+      for (int row = local_y0; row < local_y1; ++row) {
+        uint8_t* row_ptr =
+            bgra->data() +
+            (static_cast<size_t>(row) * static_cast<size_t>(cap_w) +
+             static_cast<size_t>(local_x0)) *
+                4;
+        const int span_px = local_x1 - local_x0;
+        for (int c = 0; c < span_px; ++c) {
+          row_ptr[c * 4 + 0] = 0;
+          row_ptr[c * 4 + 1] = 0;
+          row_ptr[c * 4 + 2] = 0;
+          row_ptr[c * 4 + 3] = 255;
+        }
+      }
+    }
+  }
+  DeleteObject(visible_rgn);
   return true;
 }
 
@@ -1370,8 +1461,7 @@ DesktopTrackerPlugin::~DesktopTrackerPlugin() {
     CloseHandle(ocr_stop_event_);
     ocr_stop_event_ = nullptr;
   }
-  window_capture_cache_.bgra_bytes.clear();
-  window_capture_cache_.hwnd = nullptr;
+  window_capture_cache_.clear();
   slot_fingerprints_.clear();
 
   CleanupSnippingOverlay();
@@ -2055,8 +2145,8 @@ bool CaptureRegionRaw(int x,
   return true;
 }
 
-template <typename CacheT>
-bool CaptureWindowRaw(CacheT* cache,
+template <typename CacheListT>
+bool CaptureWindowRaw(CacheListT* cache_list,
                       int64_t hwnd_val,
                       bool has_crop,
                       int crop_x_in,
@@ -2067,32 +2157,34 @@ bool CaptureWindowRaw(CacheT* cache,
                       int* out_w,
                       int* out_h,
                       std::string* out_method) {
-  if (!cache || !out_bytes || hwnd_val == 0) {
-    if (cache) {
-      cache->bgra_bytes.clear();
-      cache->hwnd = nullptr;
-    }
+  using CacheEntryT = typename CacheListT::value_type;
+  auto erase_hwnd_cache = [&](HWND h) {
+    if (!cache_list) return;
+    cache_list->erase(
+        std::remove_if(cache_list->begin(), cache_list->end(),
+                       [h](const CacheEntryT& e) { return e.hwnd == h; }),
+        cache_list->end());
+  };
+
+  if (!cache_list || !out_bytes || hwnd_val == 0) {
     return false;
   }
   HWND target = reinterpret_cast<HWND>(hwnd_val);
   if (!IsWindow(target) || IsIconic(target)) {
-    cache->bgra_bytes.clear();
-    cache->hwnd = nullptr;
+    erase_hwnd_cache(target);
     return false;
   }
 
   RECT win_rect{};
   if (!GetWindowRect(target, &win_rect)) {
-    cache->bgra_bytes.clear();
-    cache->hwnd = nullptr;
+    erase_hwnd_cache(target);
     return false;
   }
 
   const int full_w = win_rect.right - win_rect.left;
   const int full_h = win_rect.bottom - win_rect.top;
   if (full_w <= 0 || full_h <= 0) {
-    cache->bgra_bytes.clear();
-    cache->hwnd = nullptr;
+    erase_hwnd_cache(target);
     return false;
   }
 
@@ -2113,19 +2205,23 @@ bool CaptureWindowRaw(CacheT* cache,
   const size_t full_bytes_len =
       static_cast<size_t>(full_w) * static_cast<size_t>(full_h) * 4;
   const auto now = std::chrono::steady_clock::now();
-  const bool cache_hit =
-      cache->hwnd == target &&
-      cache->width == full_w &&
-      cache->height == full_h &&
-      cache->bgra_bytes.size() == full_bytes_len &&
-      (now - cache->captured_at) <= std::chrono::milliseconds(60);
+
+  CacheEntryT* matched_cache = nullptr;
+  for (auto& entry : *cache_list) {
+    if (entry.hwnd == target && entry.width == full_w &&
+        entry.height == full_h && entry.bgra_bytes.size() == full_bytes_len &&
+        (now - entry.captured_at) <= std::chrono::milliseconds(120)) {
+      matched_cache = &entry;
+      break;
+    }
+  }
 
   std::string capture_method;
   const uint8_t* src_bytes = nullptr;
 
-  if (cache_hit) {
-    capture_method = cache->capture_method;
-    src_bytes = cache->bgra_bytes.data();
+  if (matched_cache) {
+    capture_method = matched_cache->capture_method;
+    src_bytes = matched_cache->bgra_bytes.data();
   } else {
     HDC screen_dc = GetDC(nullptr);
     if (!screen_dc) return false;
@@ -2144,8 +2240,7 @@ bool CaptureWindowRaw(CacheT* cache,
     if (!full_dib || !full_bits) {
       if (full_dib) DeleteObject(full_dib);
       ReleaseDC(nullptr, screen_dc);
-      cache->bgra_bytes.clear();
-      cache->hwnd = nullptr;
+      erase_hwnd_cache(target);
       return false;
     }
 
@@ -2154,7 +2249,29 @@ bool CaptureWindowRaw(CacheT* cache,
 
     capture_method = "printwindow_pw2";
     BOOL printed = PrintWindow(target, full_dc, 2);
-    if (!printed) {
+    if (printed) {
+      // Hardware-accelerated OpenGL/Vulkan emulators can return TRUE with a
+      // completely black buffer under PrintWindow; probe ~256 pixels and fall back.
+      bool all_black = true;
+      const size_t total_px =
+          static_cast<size_t>(full_w) * static_cast<size_t>(full_h);
+      const size_t step = (std::max)(static_cast<size_t>(1), total_px / 256);
+      const auto* px_bytes = static_cast<const uint8_t*>(full_bits);
+      for (size_t i = 0; i < total_px; i += step) {
+        const size_t off = i * 4;
+        if (px_bytes[off] != 0 || px_bytes[off + 1] != 0 ||
+            px_bytes[off + 2] != 0) {
+          all_black = false;
+          break;
+        }
+      }
+      if (all_black) {
+        if (BitBlt(full_dc, 0, 0, full_w, full_h, screen_dc, win_rect.left,
+                   win_rect.top, SRCCOPY | CAPTUREBLT)) {
+          capture_method = "bitblt_black_fallback";
+        }
+      }
+    } else {
       capture_method = "bitblt_fallback";
       printed = BitBlt(full_dc, 0, 0, full_w, full_h, screen_dc, win_rect.left,
                        win_rect.top, SRCCOPY | CAPTUREBLT);
@@ -2165,25 +2282,38 @@ bool CaptureWindowRaw(CacheT* cache,
       DeleteDC(full_dc);
       DeleteObject(full_dib);
       ReleaseDC(nullptr, screen_dc);
-      cache->bgra_bytes.clear();
-      cache->hwnd = nullptr;
+      erase_hwnd_cache(target);
       return false;
     }
 
-    cache->hwnd = target;
-    cache->width = full_w;
-    cache->height = full_h;
-    cache->capture_method = capture_method;
-    cache->captured_at = now;
-    cache->bgra_bytes.resize(full_bytes_len);
-    std::memcpy(cache->bgra_bytes.data(), full_bits, full_bytes_len);
+    erase_hwnd_cache(target);
+    if (cache_list->size() >= 4) {
+      auto oldest_it = std::min_element(
+          cache_list->begin(), cache_list->end(),
+          [](const CacheEntryT& a, const CacheEntryT& b) {
+            return a.captured_at < b.captured_at;
+          });
+      if (oldest_it != cache_list->end()) {
+        cache_list->erase(oldest_it);
+      }
+    }
+
+    CacheEntryT new_entry;
+    new_entry.hwnd = target;
+    new_entry.width = full_w;
+    new_entry.height = full_h;
+    new_entry.capture_method = capture_method;
+    new_entry.captured_at = now;
+    new_entry.bgra_bytes.resize(full_bytes_len);
+    std::memcpy(new_entry.bgra_bytes.data(), full_bits, full_bytes_len);
 
     SelectObject(full_dc, old_full);
     DeleteDC(full_dc);
     DeleteObject(full_dib);
     ReleaseDC(nullptr, screen_dc);
 
-    src_bytes = cache->bgra_bytes.data();
+    cache_list->push_back(std::move(new_entry));
+    src_bytes = cache_list->back().bgra_bytes.data();
   }
 
   const size_t out_bytes_len =
@@ -2305,6 +2435,7 @@ void DesktopTrackerPlugin::CaptureAndAnalyzeAsync(
   const int thumbnail_max_width =
       static_cast<int>(GetInt64Arg(args, "thumbnailMaxWidth", 320));
   const bool multi_band_fallback = GetBoolArg(args, "multiBandFallback", false);
+  const bool skip_ocr = GetBoolArg(args, "skipOcr", false);
 
   bool is_region = (mode == "region");
   int cap_x = 0, cap_y = 0, cap_w = 0, cap_h = 0;
@@ -2368,6 +2499,7 @@ void DesktopTrackerPlugin::CaptureAndAnalyzeAsync(
     task.include_thumbnail = include_thumbnail;
     task.thumbnail_max_width = thumbnail_max_width;
     task.multi_band_fallback = multi_band_fallback;
+    task.skip_ocr = skip_ocr;
     task.analyze_payload = payload;
     ocr_queue_.push(std::move(task));
   }
@@ -2409,8 +2541,7 @@ void DesktopTrackerPlugin::OcrWorkerLoop() {
 
     if (task.type == WorkerTask::Type::kClearScanCache) {
       slot_fingerprints_.clear();
-      window_capture_cache_.bgra_bytes.clear();
-      window_capture_cache_.hwnd = nullptr;
+      window_capture_cache_.clear();
       continue;
     }
 
@@ -2520,38 +2651,43 @@ void DesktopTrackerPlugin::OcrWorkerLoop() {
               frame_bytes, frame_w, frame_h, &p->color_histogram);
         }
 
-        const int64_t fp =
-            ComputeFrameFingerprintNative(frame_bytes, frame_w, frame_h);
-        auto fp_it = slot_fingerprints_.find(task.slot_key);
-        const bool changed = task.force_ocr ||
-                             fp_it == slot_fingerprints_.end() ||
-                             fp_it->second != fp;
-        slot_fingerprints_[task.slot_key] = fp;
-
-        if (changed) {
-          p->ocr_skipped = false;
-          const auto ocr_t0 = std::chrono::steady_clock::now();
-          if (task.multi_band_fallback) {
-            p->ocr_succeeded = RunZoneBMultiBandOcr(
-                &runtime_cache, ocr_stop_event_, frame_bytes, frame_w, frame_h,
-                task.language_tag, task.preprocess_profile, &p->lines,
-                &p->used_fallback_language, &p->resolved_language_tag,
-                &p->available_languages, &p->error_hint);
-          } else {
-            p->ocr_succeeded = RunWindowsMediaOcrCached(
-                &runtime_cache, ocr_stop_event_, frame_bytes, frame_w, frame_h,
-                task.language_tag, task.preprocess_profile, &p->lines,
-                &p->used_fallback_language, &p->resolved_language_tag,
-                &p->available_languages, &p->error_hint);
-          }
-          const auto ocr_t1 = std::chrono::steady_clock::now();
-          p->ocr_duration_ms =
-              std::chrono::duration_cast<std::chrono::milliseconds>(ocr_t1 -
-                                                                    ocr_t0)
-                  .count();
-        } else {
+        if (task.skip_ocr) {
           p->ocr_skipped = true;
           p->ocr_succeeded = true;
+        } else {
+          const int64_t fp =
+              ComputeFrameFingerprintNative(frame_bytes, frame_w, frame_h);
+          auto fp_it = slot_fingerprints_.find(task.slot_key);
+          const bool changed = task.force_ocr ||
+                               fp_it == slot_fingerprints_.end() ||
+                               fp_it->second != fp;
+          slot_fingerprints_[task.slot_key] = fp;
+
+          if (changed) {
+            p->ocr_skipped = false;
+            const auto ocr_t0 = std::chrono::steady_clock::now();
+            if (task.multi_band_fallback) {
+              p->ocr_succeeded = RunZoneBMultiBandOcr(
+                  &runtime_cache, ocr_stop_event_, frame_bytes, frame_w, frame_h,
+                  task.language_tag, task.preprocess_profile, &p->lines,
+                  &p->used_fallback_language, &p->resolved_language_tag,
+                  &p->available_languages, &p->error_hint);
+            } else {
+              p->ocr_succeeded = RunWindowsMediaOcrCached(
+                  &runtime_cache, ocr_stop_event_, frame_bytes, frame_w, frame_h,
+                  task.language_tag, task.preprocess_profile, &p->lines,
+                  &p->used_fallback_language, &p->resolved_language_tag,
+                  &p->available_languages, &p->error_hint);
+            }
+            const auto ocr_t1 = std::chrono::steady_clock::now();
+            p->ocr_duration_ms =
+                std::chrono::duration_cast<std::chrono::milliseconds>(ocr_t1 -
+                                                                      ocr_t0)
+                    .count();
+          } else {
+            p->ocr_skipped = true;
+            p->ocr_succeeded = true;
+          }
         }
 
         if (task.include_thumbnail) {

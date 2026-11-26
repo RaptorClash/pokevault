@@ -306,5 +306,57 @@ void main() {
       expect(evLuma.durationMs, equals(evFrame.durationMs));
       expect(evLuma.slotId, equals(evFrame.slotId));
     });
+
+    test('setSlotConfigs isolates black/white thresholds and minTransitionDuration per slot', () {
+      var clock = Duration.zero;
+      final detector = FrameTransitionDetector(
+        blackThreshold: 18,
+        whiteThreshold: 240,
+        minTransitionDuration: const Duration(milliseconds: 300),
+        elapsedClock: () => clock,
+      );
+      detector.setSlotConfigs({
+        1: const SlotTransitionConfig(
+          blackThreshold: 50,
+          whiteThreshold: 210,
+          minTransitionDuration: Duration(milliseconds: 250),
+        ),
+        2: const SlotTransitionConfig(
+          blackThreshold: 18,
+          whiteThreshold: 240,
+          minTransitionDuration: Duration(milliseconds: 500),
+        ),
+      });
+
+      // Normal scene on both slots
+      expect(detector.analyzeLuminance(avgLuma: 120, stdDev: 5, slotId: 1), isNull);
+      expect(detector.analyzeLuminance(avgLuma: 120, stdDev: 5, slotId: 2), isNull);
+
+      // Dim dark scene (luma=35) triggers Slot 1 (blackThreshold=50) but NOT Slot 2 (blackThreshold=18)
+      clock += const Duration(milliseconds: 50);
+      expect(detector.analyzeLuminance(avgLuma: 35, stdDev: 2, slotId: 1), isNull);
+      expect(detector.analyzeLuminance(avgLuma: 35, stdDev: 2, slotId: 2), isNull);
+
+      clock += const Duration(milliseconds: 260);
+      final ev1 = detector.analyzeLuminance(avgLuma: 120, stdDev: 5, slotId: 1);
+      final ev2 = detector.analyzeLuminance(avgLuma: 120, stdDev: 5, slotId: 2);
+      expect(ev1, isNotNull);
+      expect(ev1!.type, equals(FrameTransitionType.blackScreenEnded));
+      expect(ev2, isNull);
+
+      // Slot 2 requires >= 500ms even for true black (luma=4)
+      clock += const Duration(milliseconds: 50);
+      expect(detector.analyzeLuminance(avgLuma: 4, stdDev: 1, slotId: 2), isNull);
+      clock += const Duration(milliseconds: 350);
+      // 350ms < 500ms -> ignored
+      expect(detector.analyzeLuminance(avgLuma: 120, stdDev: 5, slotId: 2), isNull);
+
+      clock += const Duration(milliseconds: 50);
+      expect(detector.analyzeLuminance(avgLuma: 4, stdDev: 1, slotId: 2), isNull);
+      clock += const Duration(milliseconds: 520);
+      final ev2Long = detector.analyzeLuminance(avgLuma: 120, stdDev: 5, slotId: 2);
+      expect(ev2Long, isNotNull);
+      expect(ev2Long!.type, equals(FrameTransitionType.blackScreenEnded));
+    });
   });
 }

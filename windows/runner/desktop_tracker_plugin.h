@@ -178,6 +178,7 @@ class DesktopTrackerPlugin {
     bool include_thumbnail = false;
     int thumbnail_max_width = 320;
     bool multi_band_fallback = false;
+    bool skip_ocr = false;
     CaptureAsyncPayload* capture_payload = nullptr;
     CaptureAnalyzePayload* analyze_payload = nullptr;
   };
@@ -298,7 +299,7 @@ class DesktopTrackerPlugin {
   bool ocr_worker_stopping_ = false;
   HANDLE ocr_stop_event_ = nullptr;
   std::thread ocr_worker_thread_;
-  WindowCaptureCache window_capture_cache_{};
+  std::vector<WindowCaptureCache> window_capture_cache_;
   std::unordered_map<std::string, int64_t> slot_fingerprints_;
 
   // HUD state

@@ -239,7 +239,6 @@ class ShinyAutoCounterService {
 
     coordinator.setSuppressEncounterFeedback(true);
     _applyCustomPatternsToCoordinator();
-    _syncSourceTransitionConfig();
     huntProvider.addListener(_onHuntProviderChanged);
 
     _slots.clear();
@@ -266,6 +265,7 @@ class ShinyAutoCounterService {
         elapsedClock: _elapsedClock,
       );
     }
+    _syncSourceTransitionConfig();
 
     _eventSub = coordinator.events.listen(
       (event) {
@@ -311,6 +311,8 @@ class ShinyAutoCounterService {
         );
       }
     }
+    _syncSourceTransitionConfig();
+    _syncVisualFrameSubscription();
     _publishSlotSnapshots();
   }
 
@@ -337,7 +339,6 @@ class ShinyAutoCounterService {
     _settings = pruned;
     settingsNotifier.value = pruned;
     _applyCustomPatternsToCoordinator();
-    _syncSourceTransitionConfig();
 
     for (final slot in _slots.values) {
       final assigned = pruned.slotToHuntOverrides[slot.slotId] ?? _defaultHuntId;
@@ -351,6 +352,53 @@ class ShinyAutoCounterService {
         huntId: assigned,
       );
     }
+    _syncSourceTransitionConfig();
+    _syncVisualFrameSubscription();
+    _publishSlotSnapshots();
+  }
+
+  /// Synchronizes live multi-instance slot additions and removals during an active session,
+  /// preserving phase and session count for existing slots.
+  void syncSlots({
+    required List<int> slotIds,
+    Map<int, int>? slotColorOverrides,
+  }) {
+    if (!_running) return;
+    final effectiveIds = (slotIds.isEmpty ? const [1] : slotIds).toSet();
+
+    for (final sid in _slots.keys.toList()) {
+      if (!effectiveIds.contains(sid)) {
+        _cancelRearmTimer(sid);
+        _slots.remove(sid);
+        _pendingColorSampleBySlot.remove(sid);
+        _sparkleDelayDetector.reset(sid);
+        _colorDetector.reset(sid);
+        _removeShinyAlertForSlot(sid);
+      }
+    }
+
+    for (final sid in effectiveIds) {
+      if (!_slots.containsKey(sid)) {
+        final colorHex = slotColorOverrides?[sid] ??
+            MultiInstanceGridHelper.colorForIndex(sid > 0 ? sid - 1 : 0);
+        final huntId = _settings.slotToHuntOverrides[sid] ?? _defaultHuntId;
+        final h = huntId != null ? _huntProvider?.getHuntById(huntId) : null;
+        _slots[sid] = ShinySlotStateMachine(
+          slotId: sid,
+          colorHex: colorHex,
+          targetPokemonId: h?.pokemonId,
+          targetPokemonName: h?.pokemonName,
+          assignedHuntId: huntId,
+          settings: _settings.resolveForHunt(
+            huntId: huntId,
+            huntMethod: h?.method,
+          ),
+          elapsedClock: _elapsedClock,
+        );
+      }
+    }
+
+    _syncSourceTransitionConfig();
     _syncVisualFrameSubscription();
     _publishSlotSnapshots();
   }
@@ -637,12 +685,26 @@ class ShinyAutoCounterService {
     final src = _source;
     if (src is FrameTransitionScannerSource) {
       src.updateTransitionMinDuration(
-        Duration(milliseconds: _settings.effectiveMinTransitionDurationMs()),
+        Duration(milliseconds: _settings.transitionMinDurationMs),
       );
       src.updateTransitionThresholds(
-        blackThreshold: _settings.effectiveBlackLumaThreshold(),
-        whiteThreshold: _settings.effectiveWhiteLumaThreshold(),
+        blackThreshold: _settings.blackLumaThreshold,
+        whiteThreshold: _settings.whiteLumaThreshold,
       );
+      final slotConfigs = <int, SlotTransitionConfig>{};
+      for (final slot in _slots.values) {
+        final cfg = SlotTransitionConfig(
+          blackThreshold: slot.settings.blackLumaThreshold,
+          whiteThreshold: slot.settings.whiteLumaThreshold,
+          minTransitionDuration:
+              Duration(milliseconds: slot.settings.transitionMinDurationMs),
+        );
+        slotConfigs[slot.slotId] = cfg;
+        if (slot.slotId == 1) {
+          slotConfigs[0] = cfg;
+        }
+      }
+      src.updateSlotTransitionConfigs(slotConfigs);
     }
   }
 
@@ -711,6 +773,8 @@ class ShinyAutoCounterService {
         }
       }
       if (slotsChanged) {
+        _syncSourceTransitionConfig();
+        _syncVisualFrameSubscription();
         _publishSlotSnapshots();
       }
     } finally {

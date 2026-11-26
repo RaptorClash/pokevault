@@ -82,6 +82,58 @@ class _FakeVisualSource implements VisualFrameScannerSource {
   }
 }
 
+class _FakeTransitionSource implements FrameTransitionScannerSource {
+  final StreamController<String> _text = StreamController<String>.broadcast();
+  final StreamController<FrameTransitionEvent> _transitions =
+      StreamController<FrameTransitionEvent>.broadcast();
+  bool _running = false;
+  Duration? lastMinDuration;
+  int? lastBlackThreshold;
+  int? lastWhiteThreshold;
+  Map<int, SlotTransitionConfig> lastSlotConfigs = const {};
+
+  @override
+  Stream<String> get textStream => _text.stream;
+
+  @override
+  Stream<FrameTransitionEvent> get transitionStream => _transitions.stream;
+
+  @override
+  bool get isRunning => _running;
+
+  @override
+  Future<void> start() async => _running = true;
+
+  @override
+  Future<void> stop() async => _running = false;
+
+  @override
+  void updateTransitionMinDuration(Duration duration) {
+    lastMinDuration = duration;
+  }
+
+  @override
+  void updateTransitionThresholds({
+    required int blackThreshold,
+    required int whiteThreshold,
+  }) {
+    lastBlackThreshold = blackThreshold;
+    lastWhiteThreshold = whiteThreshold;
+  }
+
+  @override
+  void updateSlotTransitionConfigs(Map<int, SlotTransitionConfig> configs) {
+    lastSlotConfigs = Map.unmodifiable(configs);
+  }
+
+  @override
+  Future<void> dispose() async {
+    _running = false;
+    await _text.close();
+    await _transitions.close();
+  }
+}
+
 class _CountingFeedback implements ScannerFeedback {
   int encounters = 0;
   int shinies = 0;
@@ -888,6 +940,82 @@ void main() {
       await service.stopSession();
       expect(service.activeShinyAlertsNotifier.value, isEmpty);
       expect(service.latestShinyAlertNotifier.value, isNull);
+      await source.dispose();
+      await coordinator.dispose();
+    });
+
+    test('syncSlots live-adds/removes slots preserving existing state and pushes per-slot transition configs', () async {
+      var clock = Duration.zero;
+      final provider = ShinyHuntProvider(
+        databaseService: DatabaseService.instance,
+        enableTimer: false,
+      );
+      await provider.initialized;
+      await provider.createHunt(_makeHunt(id: 'hunt-a', pokemonId: 150, pokemonName: 'Mewtu'));
+      await provider.createHunt(_makeHunt(id: 'hunt-b', pokemonId: 25, pokemonName: 'Pikachu'));
+
+      final coordinator = buildTestCoordinator(() => clock);
+      final source = _FakeTransitionSource();
+      await source.start();
+      final service = ShinyAutoCounterService.forTesting(elapsedClock: () => clock);
+
+      service.startSession(
+        huntProvider: provider,
+        coordinator: coordinator,
+        source: source,
+        defaultHuntId: 'hunt-a',
+        slotIds: const [1],
+        settings: const ShinyAutoCounterSettings(
+          detectionMode: ShinyHuntDetectionMode.softReset,
+          blackLumaThreshold: 18,
+          whiteLumaThreshold: 240,
+          transitionMinDurationMs: 300,
+          slotToHuntOverrides: {2: 'hunt-b'},
+          huntSettingsOverrides: {
+            'hunt-b': ShinyAutoCounterSettings(
+              blackLumaThreshold: 55,
+              whiteLumaThreshold: 205,
+              transitionMinDurationMs: 450,
+            ),
+          },
+        ),
+      );
+
+      // Slot 1 counts once -> phase=counted, sessionCount=1
+      await coordinator.processFrameText('Ein wildes Mewtu erscheint!', instanceIndex: 1);
+      await service.waitForIdle();
+      expect(service.slotStatesNotifier.value.single.phase, equals(ShinySlotPhase.counted));
+      expect(service.slotStatesNotifier.value.single.sessionCount, equals(1));
+      expect(source.lastSlotConfigs[0]?.blackThreshold, equals(18));
+      expect(source.lastSlotConfigs[1]?.blackThreshold, equals(18));
+
+      // Live-add Slots 2 and 3 via syncSlots -> Slot 1 preserves phase/count, Slot 2 gets hunt-b thresholds
+      service.syncSlots(
+        slotIds: const [1, 2, 3],
+        slotColorOverrides: const {1: 0xFF112233, 2: 0xFF445566, 3: 0xFF778899},
+      );
+      expect(service.slotStatesNotifier.value.map((s) => s.slotId).toList(), equals([1, 2, 3]));
+      final slot1 = service.slotStatesNotifier.value.firstWhere((s) => s.slotId == 1);
+      expect(slot1.phase, equals(ShinySlotPhase.counted));
+      expect(slot1.sessionCount, equals(1));
+      expect(source.lastSlotConfigs[2]?.blackThreshold, equals(55));
+      expect(source.lastSlotConfigs[2]?.whiteThreshold, equals(205));
+      expect(
+        source.lastSlotConfigs[2]?.minTransitionDuration,
+        equals(const Duration(milliseconds: 450)),
+      );
+
+      // Shiny on Slot 2 -> active alert exists; removing Slot 2 clears alert & slot cleanly
+      await coordinator.processFrameText('Wildes ✨ Pikachu erscheint!', instanceIndex: 2);
+      await service.waitForIdle();
+      expect(service.activeShinyAlertsNotifier.value.any((a) => a.slotId == 2), isTrue);
+
+      service.syncSlots(slotIds: const [1, 3]);
+      expect(service.slotStatesNotifier.value.map((s) => s.slotId).toList(), equals([1, 3]));
+      expect(service.activeShinyAlertsNotifier.value.any((a) => a.slotId == 2), isFalse);
+      expect(source.lastSlotConfigs.containsKey(2), isFalse);
+
+      await service.stopSession();
       await source.dispose();
       await coordinator.dispose();
     });

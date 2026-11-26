@@ -792,6 +792,126 @@ void main() {
       expect(multiEmissions.first.slotId, 2);
       expect(multiEmissions.first.rawText, contains('Zorua'));
     });
+
+    test('capturePreviewOnly sends skipOcr=true, invalidation clears native cache & propagates forceOcr to Zone A/B/Multi, and Zone B throttles thumbnails', () async {
+      final legacyCap = _CountingOnlyCaptureDriver();
+      final legacyOcr = _CountingOcrDriver(const []);
+      final nativeBridge = _FastPathBridge();
+      var clock = Duration.zero;
+
+      final src = DesktopWindowSource(
+        captureDriver: legacyCap,
+        ocrDriver: legacyOcr,
+        nativeBridge: nativeBridge,
+        elapsedClock: () => clock,
+      );
+      addTearDown(src.dispose);
+
+      src.setSelectedWindow(
+        const DesktopWindowInfo(id: 1, hwnd: 101, title: 'mGBA', width: 800, height: 600),
+      );
+      src.setLiveFocusPreset(LiveFocusPreset.topRight);
+      src.setMultiInstanceSlots([
+        MultiInstanceSlot(
+          id: 2,
+          label: '#2',
+          colorHex: 0xFFA855F7,
+          scanEnabled: true,
+          scanRegion: ScreenRegion(
+            x: 10,
+            y: 20,
+            width: 200,
+            height: 80,
+            isAbsoluteScreen: true,
+          ),
+        ),
+      ]);
+      final clearCallsBefore = nativeBridge.clearCacheCalls;
+
+      // 1. capturePreviewOnly must request skipOcr=true and NOT increment scanCount
+      nativeBridge.nextResult = const NativeCaptureAnalyzeResult(
+        captured: true,
+        ocrSkipped: true,
+        frameWidth: 800,
+        frameHeight: 600,
+        thumbnailFrame: CapturedFrame(
+          width: 320,
+          height: 240,
+          bytes: [137, 80, 78, 71],
+          pixelFormat: 'png',
+        ),
+      );
+      final previewFrame = await src.capturePreviewOnly();
+      expect(previewFrame, isNotNull);
+      expect(nativeBridge.requests.last.skipOcr, isTrue);
+      expect(nativeBridge.requests.last.includeThumbnail, isTrue);
+      expect(src.liveScanStatusNotifier.value.scanCount, 0);
+
+      // 2. Language/profile/mask change invalidates native cache and forces OCR across Zone A, Zone B, and Multi-Slot #2
+      src.setOcrLanguageTag('en-US');
+      expect(nativeBridge.clearCacheCalls, greaterThan(clearCallsBefore));
+
+      nativeBridge.requests.clear();
+      nativeBridge.nextResult = const NativeCaptureAnalyzeResult(
+        captured: true,
+        ocrSkipped: false,
+        lines: ['Wild Pikachu appeared!'],
+        frameWidth: 800,
+        frameHeight: 600,
+        thumbnailFrame: CapturedFrame(
+          width: 320,
+          height: 240,
+          bytes: [137, 80, 78, 71],
+          pixelFormat: 'png',
+        ),
+      );
+      await src.triggerSingleScan();
+
+      final zoneAReq1 = nativeBridge.requests.firstWhere((r) => r.slotKey == 'zoneA');
+      final zoneBReq1 = nativeBridge.requests.firstWhere((r) => r.slotKey == 'zoneB_1');
+      final multiReq1 = nativeBridge.requests.firstWhere((r) => r.slotKey == 'multi_2_scan');
+      expect(zoneAReq1.forceOcr, isTrue);
+      expect(zoneBReq1.forceOcr, isTrue);
+      expect(multiReq1.forceOcr, isTrue);
+      expect(zoneBReq1.includeThumbnail, isTrue);
+
+      // 3. +400ms later: forceOcr resets to false, Zone B thumbnail is throttled, focusScanCount stays 1
+      clock += const Duration(milliseconds: 400);
+      nativeBridge.requests.clear();
+      nativeBridge.nextResult = const NativeCaptureAnalyzeResult(
+        captured: true,
+        ocrSkipped: true,
+        frameWidth: 800,
+        frameHeight: 600,
+      );
+      await src.triggerSingleScan();
+      expect(nativeBridge.requests.every((r) => !r.forceOcr), isTrue);
+      final zoneBReq2 = nativeBridge.requests.firstWhere((r) => r.slotKey == 'zoneB_1');
+      expect(zoneBReq2.includeThumbnail, isFalse);
+
+      // 4. +700ms later (>=1000ms): Zone B thumbnail allowed again, updates focusBoxFramesNotifier even if ocrSkipped=true
+      clock += const Duration(milliseconds: 700);
+      nativeBridge.requests.clear();
+      const updatedThumb = CapturedFrame(
+        width: 160,
+        height: 90,
+        bytes: [137, 80, 78, 72],
+        pixelFormat: 'png',
+      );
+      nativeBridge.nextResult = const NativeCaptureAnalyzeResult(
+        captured: true,
+        ocrSkipped: true,
+        frameWidth: 800,
+        frameHeight: 600,
+        thumbnailFrame: updatedThumb,
+      );
+      await src.triggerSingleScan();
+      final zoneBReq3 = nativeBridge.requests.firstWhere((r) => r.slotKey == 'zoneB_1');
+      expect(zoneBReq3.includeThumbnail, isTrue);
+      expect(src.focusBoxFramesNotifier.value['B1'], equals(updatedThumb));
+      expect(src.liveFocusStatusNotifier.value.latestFrame, equals(updatedThumb));
+      expect(src.liveFocusStatusNotifier.value.scanCount, 1);
+    });
   });
 }
 
@@ -810,6 +930,7 @@ class _CountingOnlyCaptureDriver implements DesktopCaptureDriver {
 
 class _FastPathBridge implements DesktopPlatformBridge {
   final List<NativeCaptureAnalyzeRequest> requests = [];
+  int clearCacheCalls = 0;
   NativeCaptureAnalyzeResult nextResult = const NativeCaptureAnalyzeResult();
 
   @override
@@ -824,7 +945,9 @@ class _FastPathBridge implements DesktopPlatformBridge {
   }
 
   @override
-  Future<void> clearNativeScanCache() async {}
+  Future<void> clearNativeScanCache() async {
+    clearCacheCalls++;
+  }
 
   @override
   Future<CapturedFrame?> captureRegion(ScreenRegion region) async => null;

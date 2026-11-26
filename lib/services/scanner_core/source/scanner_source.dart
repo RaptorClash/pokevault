@@ -45,6 +45,7 @@ abstract interface class FrameTransitionScannerSource implements ScannerSource {
     required int blackThreshold,
     required int whiteThreshold,
   });
+  void updateSlotTransitionConfigs(Map<int, SlotTransitionConfig> configs);
 }
 
 /// Slot-tagged captured video/window frame (or precomputed 16-bin HSV histogram)

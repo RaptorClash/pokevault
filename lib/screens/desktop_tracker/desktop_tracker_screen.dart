@@ -25,6 +25,7 @@ import '../../services/scanner_core/models/scanner_event.dart';
 import '../../services/scanner_core/models/scanner_settings.dart';
 import '../../services/scanner_core/scanner_coordinator.dart';
 import '../../services/scanner_core/scanner_persistence_service.dart';
+import '../../services/shiny_auto_counter/shiny_auto_counter_service.dart';
 import '../../utils/dex_logic_helper.dart';
 import '../../utils/tracker_platform_helper.dart';
 import '../../widgets/tutorial/tutorial_overlay.dart';
@@ -482,6 +483,18 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
     _webcamController.setOcrLanguageTag(_ocrLanguageTag);
     didChangeDependencies();
     _syncOverlayBorders();
+    final autoCounter = ShinyAutoCounterService.instance;
+    if (autoCounter.isRunning &&
+        identical(autoCounter.source, _activeWindowSource)) {
+      final enabledSlots =
+          next.multiInstanceSlots.where((s) => s.enabled).toList();
+      autoCounter.syncSlots(
+        slotIds: enabledSlots.isNotEmpty
+            ? enabledSlots.map((s) => s.id).toList()
+            : const [1],
+        slotColorOverrides: {for (final s in enabledSlots) s.id: s.colorHex},
+      );
+    }
     unawaited(_persistenceService.saveScannerSettings(next));
   }
 

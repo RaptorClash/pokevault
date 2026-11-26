@@ -16,6 +16,7 @@ import 'package:pokevault/models/shiny_hunt.dart';
 import 'package:pokevault/models/user_dex.dart';
 import 'package:pokevault/providers/dex_provider.dart';
 import 'package:pokevault/providers/shiny_hunt_provider.dart';
+import 'package:pokevault/screens/desktop_tracker/desktop_tracker_screen.dart';
 import 'package:pokevault/screens/shiny_hunt/dialogs/shiny_auto_counter_setup_sheet.dart';
 import 'package:pokevault/screens/shiny_hunt/shiny_hunt_counter_screen.dart';
 import 'package:pokevault/screens/shiny_hunt/widgets/shiny_auto_counter_bar.dart';
@@ -770,6 +771,68 @@ void main() {
 
       await service.stopSession();
       await coordinator.dispose();
+    });
+
+    testWidgets('SetupSheet without parentContext still launches platform tracker after modal pop', (tester) async {
+      final hunt = makeHunt();
+      await huntProvider.createHunt(hunt);
+      final service = ShinyAutoCounterService.forTesting();
+      addTearDown(() async {
+        service.cancelPendingSession();
+        await DesktopTrackerService.instance.stopTracking();
+      });
+
+      await tester.pumpWidget(
+        MultiProvider(
+          providers: [
+            ChangeNotifierProvider<ShinyHuntProvider>.value(value: huntProvider),
+            ChangeNotifierProvider<DexProvider>.value(value: dexProvider),
+          ],
+          child: TranslationProvider(
+            child: MaterialApp(
+              home: Scaffold(
+                body: Builder(
+                  builder: (btnCtx) => ElevatedButton(
+                    key: const Key('open_setup_modal_btn'),
+                    onPressed: () {
+                      showModalBottomSheet<void>(
+                        context: btnCtx,
+                        isScrollControlled: true,
+                        builder: (_) => SingleChildScrollView(
+                          child: ShinyAutoCounterSetupSheet(
+                            hunt: hunt,
+                            service: service,
+                            showSourceLauncher: true,
+                            parentContext: null,
+                            scrollable: false,
+                          ),
+                        ),
+                      );
+                    },
+                    child: const Text('Open'),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      await tester.tap(find.byKey(const Key('open_setup_modal_btn')));
+      await tester.pumpAndSettle();
+
+      await tester.ensureVisible(find.byKey(const Key('setup_start_btn')));
+      await tester.tap(find.byKey(const Key('setup_start_btn')));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 50));
+      await tester.pump(const Duration(milliseconds: 250));
+
+      expect(service.hasPendingSessionNotifier.value, isTrue);
+      expect(find.byType(DesktopTrackerScreen), findsOneWidget);
+      expect(tester.takeException(), isNull);
+
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pump();
     });
   });
 }

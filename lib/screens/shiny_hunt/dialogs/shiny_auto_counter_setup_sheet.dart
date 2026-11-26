@@ -331,14 +331,15 @@ class _ShinyAutoCounterSetupSheetState
     // No active source yet -> arm pending auto-connect and open platform scanner setup
     if (widget.showSourceLauncher) {
       final dexProvider = Provider.of<DexProvider>(context, listen: false);
-      final launchContext = widget.parentContext ?? context;
+      final navigator = Navigator.of(context);
+      final launchContext = widget.parentContext ?? navigator.context;
       _service.armPendingSession(
         huntProvider: huntProvider,
         defaultHuntId: widget.hunt.id,
         settings: _settings,
       );
-      if (mounted && Navigator.of(context).canPop()) {
-        Navigator.of(context).pop();
+      if (mounted && navigator.canPop()) {
+        navigator.pop();
       }
       if (launchContext.mounted) {
         ScannerLauncherHelper.openPlatformTracker(

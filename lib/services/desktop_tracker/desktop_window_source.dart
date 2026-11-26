@@ -213,8 +213,10 @@ class DesktopWindowSource
   bool _previewEnabled = true;
   int _previewMaxWidth = 320;
   Duration? _lastThumbnailRequestedAt;
+  Duration? _lastFocusThumbnailRequestedAt;
   bool _maskSelfWindow = false;
   bool _forceNextNativeOcr = false;
+  int _cacheGeneration = 0;
 
   bool get isDisposed => _disposed;
   bool get maskSelfWindow => _maskSelfWindow;
@@ -286,6 +288,15 @@ class DesktopWindowSource
     _previewMaxWidth = clampedWidth;
     if (changed && upgraded) {
       _lastThumbnailRequestedAt = null;
+      _lastFocusThumbnailRequestedAt = null;
+    }
+  }
+
+  void _invalidateNativeScanCache() {
+    _forceNextNativeOcr = true;
+    _cacheGeneration++;
+    if (nativeBridge != null) {
+      unawaited(nativeBridge!.clearNativeScanCache());
     }
   }
 
@@ -298,7 +309,7 @@ class DesktopWindowSource
     _lastExtraZoneBFingerprints.clear();
     _lastSlotScanFingerprints.clear();
     _lastSlotFocusFingerprints.clear();
-    _forceNextNativeOcr = true;
+    _invalidateNativeScanCache();
     if (enabled) {
       selfWindowOverlapNotifier.value = false;
     }
@@ -318,6 +329,21 @@ class DesktopWindowSource
     return false;
   }
 
+  bool _shouldRequestFocusThumbnail({bool force = false}) {
+    if (!_previewEnabled) return false;
+    final now = _nowElapsed;
+    if (force || _lastFocusThumbnailRequestedAt == null) {
+      _lastFocusThumbnailRequestedAt = now;
+      return true;
+    }
+    if (now - _lastFocusThumbnailRequestedAt! >=
+        const Duration(milliseconds: 1000)) {
+      _lastFocusThumbnailRequestedAt = now;
+      return true;
+    }
+    return false;
+  }
+
   NativeCaptureAnalyzeRequest? _buildNativeRequest({
     required DesktopWindowInfo window,
     required Rect? cropRegion,
@@ -327,6 +353,7 @@ class DesktopWindowSource
     required bool computeColorHistogram,
     required bool includeThumbnail,
     bool multiBandFallback = false,
+    bool skipOcr = false,
   }) {
     final String mode;
     int hwnd = 0;
@@ -371,6 +398,7 @@ class DesktopWindowSource
       includeThumbnail: includeThumbnail,
       thumbnailMaxWidth: _previewMaxWidth,
       multiBandFallback: multiBandFallback,
+      skipOcr: skipOcr,
     );
   }
 
@@ -421,6 +449,11 @@ class DesktopWindowSource
     );
   }
 
+  @override
+  void updateSlotTransitionConfigs(Map<int, SlotTransitionConfig> configs) {
+    _transitionDetector.setSlotConfigs(configs);
+  }
+
   List<MultiInstanceSlot> get multiInstanceSlots => _multiInstanceSlots;
 
   @override
@@ -454,7 +487,7 @@ class DesktopWindowSource
     _lastExtraZoneBFingerprints.clear();
     _lastSlotScanFingerprints.clear();
     _lastSlotFocusFingerprints.clear();
-    _forceNextNativeOcr = true;
+    _invalidateNativeScanCache();
     if (ocrDriver is LanguageAwareOcrDriver) {
       (ocrDriver as LanguageAwareOcrDriver).setLanguageTag(languageTag);
     }
@@ -467,7 +500,7 @@ class DesktopWindowSource
     _lastExtraZoneBFingerprints.clear();
     _lastSlotScanFingerprints.clear();
     _lastSlotFocusFingerprints.clear();
-    _forceNextNativeOcr = true;
+    _invalidateNativeScanCache();
     if (ocrDriver is PreprocessAwareOcrDriver) {
       (ocrDriver as PreprocessAwareOcrDriver).setPreprocessProfile(profile);
     }
@@ -479,7 +512,7 @@ class DesktopWindowSource
     _selectedWindow = window;
     _lastZoneAFingerprint = null;
     _lastZoneBFingerprint = null;
-    _forceNextNativeOcr = true;
+    _invalidateNativeScanCache();
     if (window != null && _cropRegion == null) {
       _cropRegion = WindowDetector().calculateDefaultDialogueRegion(
         windowWidth: window.width,
@@ -491,13 +524,13 @@ class DesktopWindowSource
   void setCropRegion(Rect? region) {
     _cropRegion = region;
     _lastZoneAFingerprint = null;
-    _forceNextNativeOcr = true;
+    _invalidateNativeScanCache();
   }
 
   void setScreenRegion(ScreenRegion? region) {
     _screenRegion = region;
     _lastZoneAFingerprint = null;
-    _forceNextNativeOcr = true;
+    _invalidateNativeScanCache();
     if (region == null) {
       selfWindowOverlapNotifier.value = false;
     }
@@ -509,7 +542,7 @@ class DesktopWindowSource
     _lastZoneBFingerprint = null;
     _lastExtraZoneBFingerprints.clear();
     _cachedFocusLinesByBox.clear();
-    _forceNextNativeOcr = true;
+    _invalidateNativeScanCache();
     if (preset != LiveFocusPreset.customRegion) {
       _liveFocusScreenRegion = null;
     }
@@ -526,7 +559,7 @@ class DesktopWindowSource
     _liveFocusScreenRegion = region;
     _lastZoneBFingerprint = null;
     _cachedFocusLinesByBox.remove('B1');
-    _forceNextNativeOcr = true;
+    _invalidateNativeScanCache();
     if (region != null) {
       _liveFocusPreset = LiveFocusPreset.customRegion;
     } else {
@@ -548,7 +581,7 @@ class DesktopWindowSource
     _cachedFocusLinesByBox.removeWhere((k, _) => k != 'B1');
     _latestFocusFramesByBox.removeWhere((k, _) => k != 'B1');
     focusBoxFramesNotifier.value = Map.unmodifiable(_latestFocusFramesByBox);
-    _forceNextNativeOcr = true;
+    _invalidateNativeScanCache();
   }
 
   /// Updates known desktop windows so window-bound multi-instance slots can resolve targets.
@@ -561,7 +594,7 @@ class DesktopWindowSource
     _multiInstanceSlots = List.unmodifiable(slots);
     _lastSlotScanFingerprints.clear();
     _lastSlotFocusFingerprints.clear();
-    _forceNextNativeOcr = true;
+    _invalidateNativeScanCache();
   }
 
   @override
@@ -618,6 +651,7 @@ class DesktopWindowSource
           forceOcr: false,
           computeColorHistogram: false,
           includeThumbnail: true,
+          skipOcr: true,
         );
         if (req != null) {
           final res = await nativeBridge!.captureAndAnalyze(req);
@@ -702,6 +736,8 @@ class DesktopWindowSource
     final sourceMode = _screenRegion != null ? 'desktop-region' : 'window';
     final targetDesc = _describeTarget(window);
     final capWatch = Stopwatch()..start();
+    final cycleForceOcr = _forceNextNativeOcr;
+    final cycleGen = _cacheGeneration;
 
     try {
       final nativeReq = nativeBridge != null
@@ -710,7 +746,7 @@ class DesktopWindowSource
               cropRegion: _cropRegion,
               screenRegion: _screenRegion,
               slotKey: 'zoneA',
-              forceOcr: _forceNextNativeOcr,
+              forceOcr: cycleForceOcr,
               computeColorHistogram: _visualFrameController.hasListener,
               includeThumbnail: _shouldRequestThumbnail(),
             )
@@ -721,7 +757,6 @@ class DesktopWindowSource
       if (_disposed) return nativeRes?.thumbnailFrame;
 
       if (nativeRes != null) {
-        _forceNextNativeOcr = false;
         selfWindowOverlapNotifier.value =
             nativeRes.selfWindowOverlaps && !_maskSelfWindow;
 
@@ -833,8 +868,11 @@ class DesktopWindowSource
           );
         }
 
-        await _pollZoneBFocus(window);
-        await _pollMultiInstanceSlots();
+        await _pollZoneBFocus(window, forceOcr: cycleForceOcr);
+        await _pollMultiInstanceSlots(forceOcr: cycleForceOcr);
+        if (_cacheGeneration == cycleGen) {
+          _forceNextNativeOcr = false;
+        }
         return nativeRes.thumbnailFrame;
       }
 
@@ -1041,7 +1079,10 @@ class DesktopWindowSource
     return merged;
   }
 
-  Future<void> _pollZoneBFocus(DesktopWindowInfo primaryWindow) async {
+  Future<void> _pollZoneBFocus(
+    DesktopWindowInfo primaryWindow, {
+    bool forceOcr = false,
+  }) async {
     if (_liveFocusPreset == LiveFocusPreset.disabled &&
         _extraFocusRegions.isEmpty) {
       return;
@@ -1049,7 +1090,9 @@ class DesktopWindowSource
 
     try {
       bool anyBoxChanged = false;
+      bool anyThumbUpdated = false;
       CapturedFrame? primaryLatestFrame;
+      final requestThumb = _shouldRequestFocusThumbnail();
 
       if (_liveFocusPreset != LiveFocusPreset.disabled) {
         final ScreenRegion? b1Region =
@@ -1074,9 +1117,9 @@ class DesktopWindowSource
                 cropRegion: b1Crop,
                 screenRegion: b1Region,
                 slotKey: 'zoneB_1',
-                forceOcr: _forceNextNativeOcr,
+                forceOcr: forceOcr,
                 computeColorHistogram: false,
-                includeThumbnail: _previewEnabled,
+                includeThumbnail: requestThumb,
                 multiBandFallback: true,
               )
             : null;
@@ -1089,6 +1132,7 @@ class DesktopWindowSource
             if (nativeB1Res.thumbnailFrame != null) {
               primaryLatestFrame = nativeB1Res.thumbnailFrame;
               _latestFocusFramesByBox['B1'] = nativeB1Res.thumbnailFrame!;
+              anyThumbUpdated = true;
             }
             if (!nativeB1Res.ocrSkipped) {
               anyBoxChanged = true;
@@ -1114,6 +1158,7 @@ class DesktopWindowSource
           if (focusFrame != null) {
             primaryLatestFrame = focusFrame;
             _latestFocusFramesByBox['B1'] = focusFrame;
+            anyThumbUpdated = true;
             final fp = computeFrameFingerprint(focusFrame);
             if (_lastZoneBFingerprint != fp) {
               _lastZoneBFingerprint = fp;
@@ -1134,9 +1179,9 @@ class DesktopWindowSource
                 cropRegion: null,
                 screenRegion: extraRegion,
                 slotKey: 'zoneB_${i + 2}',
-                forceOcr: _forceNextNativeOcr,
+                forceOcr: forceOcr,
                 computeColorHistogram: false,
-                includeThumbnail: _previewEnabled,
+                includeThumbnail: requestThumb,
                 multiBandFallback: true,
               )
             : null;
@@ -1148,6 +1193,7 @@ class DesktopWindowSource
           if (!nativeExtraRes.captured) continue;
           if (nativeExtraRes.thumbnailFrame != null) {
             _latestFocusFramesByBox[boxKey] = nativeExtraRes.thumbnailFrame!;
+            anyThumbUpdated = true;
           }
           if (!nativeExtraRes.ocrSkipped) {
             anyBoxChanged = true;
@@ -1161,6 +1207,7 @@ class DesktopWindowSource
           );
           if (extraFrame == null) continue;
           _latestFocusFramesByBox[boxKey] = extraFrame;
+          anyThumbUpdated = true;
           final fp = computeFrameFingerprint(extraFrame);
           if (_lastExtraZoneBFingerprints[i] != fp) {
             _lastExtraZoneBFingerprints[i] = fp;
@@ -1171,7 +1218,24 @@ class DesktopWindowSource
         }
       }
 
-      if (!anyBoxChanged || _disposed) return;
+      if (_disposed) return;
+
+      if (!anyBoxChanged) {
+        if (anyThumbUpdated) {
+          focusBoxFramesNotifier.value =
+              Map.unmodifiable(_latestFocusFramesByBox);
+          if (primaryLatestFrame != null) {
+            final prev = liveFocusStatusNotifier.value;
+            liveFocusStatusNotifier.value = LiveOcrScanStatus(
+              scanCount: prev.scanCount,
+              lastScanAt: prev.lastScanAt,
+              recognizedLines: prev.recognizedLines,
+              latestFrame: primaryLatestFrame,
+            );
+          }
+        }
+        return;
+      }
 
       final combinedLines = <String>[];
       final seenCombined = <String>{};
@@ -1280,7 +1344,7 @@ class DesktopWindowSource
     }
   }
 
-  Future<void> _pollMultiInstanceSlots() async {
+  Future<void> _pollMultiInstanceSlots({bool forceOcr = false}) async {
     if (_multiInstanceSlots.isEmpty) return;
     final detector = WindowDetector();
     final activeSlots = _multiInstanceSlots.where((s) => s.enabled).toList();
@@ -1374,7 +1438,7 @@ class DesktopWindowSource
           screenRegion: spec.screenRegion,
           slotKey:
               'multi_${spec.slot.id}_${spec.encounterOnly ? 'focus' : 'scan'}',
-          forceOcr: _forceNextNativeOcr,
+          forceOcr: forceOcr,
           computeColorHistogram: !spec.encounterOnly && wantHist,
           includeThumbnail: false,
         );

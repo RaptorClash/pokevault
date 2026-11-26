@@ -199,6 +199,7 @@ class NativeCaptureAnalyzeRequest {
   final bool includeThumbnail;
   final int thumbnailMaxWidth;
   final bool multiBandFallback;
+  final bool skipOcr;
 
   const NativeCaptureAnalyzeRequest({
     required this.mode,
@@ -214,6 +215,7 @@ class NativeCaptureAnalyzeRequest {
     this.includeThumbnail = false,
     this.thumbnailMaxWidth = 320,
     this.multiBandFallback = false,
+    this.skipOcr = false,
   });
 
   Map<String, dynamic> toMap() => {
@@ -243,6 +245,7 @@ class NativeCaptureAnalyzeRequest {
         'includeThumbnail': includeThumbnail,
         'thumbnailMaxWidth': thumbnailMaxWidth,
         'multiBandFallback': multiBandFallback,
+        'skipOcr': skipOcr,
       };
 }
 

@@ -97,6 +97,11 @@ class MobileCameraSource
   }
 
   @override
+  void updateSlotTransitionConfigs(Map<int, SlotTransitionConfig> configs) {
+    _transitionDetector.setSlotConfigs(configs);
+  }
+
+  @override
   bool get isRunning => _running;
 
   Duration get pollInterval => _pollInterval;
