@@ -2494,6 +2494,15 @@ class TranslationsRu extends Translations with BaseTranslations<AppLocale, Trans
 	@override String get shiny_auto_reason_color_dev => 'Обнаружено отклонение цвета ({details})';
 	@override String get tutorial_demo_shiny_auto_badge_title => 'Мульти-охота · Авто-счётчик · Скан-слоты';
 	@override String get tutorial_demo_shiny_auto_badge_subtitle => 'Параллельные охоты, правила на каждую охоту и защита Shiny';
+	@override String get scanner_enlarged_waiting_text => 'Жду текст...';
+	@override String get scanner_enlarged_close => 'Закрыть';
+	@override String get scanner_self_scan_overlap_title => 'PokéVault находится в активной области сканирования';
+	@override String get scanner_self_scan_overlap_body => 'Окно PokéVault перекрывает контролируемую область экрана. Из-за этого Live-OCR может сканировать собственные тексты и тратить ненужные ресурсы.';
+	@override String get scanner_self_scan_overlap_suppress => 'Больше не показывать это уведомление';
+	@override String get scanner_self_scan_overlap_ignore => 'Оставить без маски';
+	@override String get scanner_self_scan_overlap_mask => 'Скрыть PokéVault (Рекомендуется)';
+	@override String get shiny_auto_transition_none_warning => 'В режиме «Только смена изображения» в данный момент не активен ни сброс черного экрана, ни сброс белого экрана. Активируйте хотя бы один переход или выберите другой режим.';
+	@override String get multi_hunt_slot_default_suffix => '(Стандарт)';
 }
 
 /// The flat map containing all translations for locale <ru>.
@@ -4967,6 +4976,15 @@ extension on TranslationsRu {
 			'shiny_auto_reason_color_dev' => 'Обнаружено отклонение цвета ({details})',
 			'tutorial_demo_shiny_auto_badge_title' => 'Мульти-охота · Авто-счётчик · Скан-слоты',
 			'tutorial_demo_shiny_auto_badge_subtitle' => 'Параллельные охоты, правила на каждую охоту и защита Shiny',
+			'scanner_enlarged_waiting_text' => 'Жду текст...',
+			'scanner_enlarged_close' => 'Закрыть',
+			'scanner_self_scan_overlap_title' => 'PokéVault находится в активной области сканирования',
+			'scanner_self_scan_overlap_body' => 'Окно PokéVault перекрывает контролируемую область экрана. Из-за этого Live-OCR может сканировать собственные тексты и тратить ненужные ресурсы.',
+			'scanner_self_scan_overlap_suppress' => 'Больше не показывать это уведомление',
+			'scanner_self_scan_overlap_ignore' => 'Оставить без маски',
+			'scanner_self_scan_overlap_mask' => 'Скрыть PokéVault (Рекомендуется)',
+			'shiny_auto_transition_none_warning' => 'В режиме «Только смена изображения» в данный момент не активен ни сброс черного экрана, ни сброс белого экрана. Активируйте хотя бы один переход или выберите другой режим.',
+			'multi_hunt_slot_default_suffix' => '(Стандарт)',
 			_ => null,
 		};
 	}

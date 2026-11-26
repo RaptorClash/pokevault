@@ -1,7 +1,9 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pokevault/services/scanner_core/engine/ocr_detection_engine.dart';
+import 'package:pokevault/services/scanner_core/engine/pokemon_fuzzy_matcher.dart';
 import 'package:pokevault/services/scanner_core/models/scanner_event.dart';
 import 'package:pokevault/services/scanner_core/models/scanner_settings.dart';
+import 'package:pokevault/services/scanner_core/scanner_coordinator.dart';
 
 void main() {
   group('OcrDetectionEngine Egg Hatch & Soft Reset extensions', () {
@@ -103,6 +105,83 @@ void main() {
         expect(res.detectedLanguage, equals(expectedLang), reason: 'Lang mismatch for: $text');
         expect(engine.detectEggHatchCue(text), equals(EggHatchCue.hatched));
       }
+    });
+
+    test('does not mark encounter shiny when emulator chrome contains Shiny', () {
+      final res = engine.parse(
+        'melonDS - Pokemon Platinum Shiny Hunt\nEin wildes Pikachu erscheint!',
+      );
+      expect(res, isNotNull);
+      expect(res!.type, equals(ScannerEventType.encounter));
+      expect(res.extractedPokemonName, equals('Pikachu'));
+      expect(res.isShiny, isFalse);
+    });
+
+    test('matches German Nanu? without ! and ASCII ? in JP/KR/ZH egg prompt cues', () {
+      expect(engine.detectEggHatchCue('Nanu?'), equals(EggHatchCue.ohPrompt));
+      expect(engine.detectEggHatchCue('おや?'), equals(EggHatchCue.ohPrompt));
+      expect(engine.detectEggHatchCue('어라?'), equals(EggHatchCue.ohPrompt));
+      expect(engine.detectEggHatchCue('咦?'), equals(EggHatchCue.ohPrompt));
+    });
+
+    test('ScannerCoordinator emits frame-2 shiny upgrade and bypasses ignoredPokemonIds for customReset', () async {
+      var clock = Duration.zero;
+      final coord = ScannerCoordinator(
+        engine: OcrDetectionEngine(),
+        matcher: PokemonFuzzyMatcher.withEntries(const [
+          PokemonMatcherEntry(id: 25, name: 'Pikachu', language: 'de'),
+          PokemonMatcherEntry(id: 4, name: 'Glumanda', language: 'de'),
+        ]),
+        settings: const ScannerSettings(
+          ignoredPokemonIds: [4],
+          customPatterns: [
+            CustomOcrPattern(
+              id: 'reset_glumanda',
+              template: 'Glumanda Reset',
+              eventType: ScannerEventType.customReset,
+            ),
+          ],
+        ),
+        elapsedClock: () => clock,
+      );
+      addTearDown(coord.dispose);
+
+      // Frame 1: normal Pikachu -> recorded in _activeBattlesBySlot
+      final first = await coord.processFrameText('Ein wildes Pikachu erscheint!');
+      expect(first, hasLength(1));
+      expect(first.first.isShiny, isFalse);
+
+      // Frame 2: same species upgrades to isShiny == true -> must NOT be swallowed
+      clock += const Duration(milliseconds: 300);
+      final upgraded = await coord.processFrameText('Wildes ✨ Pikachu erscheint!');
+      expect(upgraded, hasLength(1));
+      expect(upgraded.first.isShiny, isTrue);
+
+      // Multi-encounter path also allows shiny upgrade on frame 2
+      clock += const Duration(seconds: 2);
+      final multiFirst = await coord.processFrameText(
+        'Pikachu Lv.5',
+        encounterOnly: true,
+        allowMultiEncounter: true,
+        instanceIndex: 2,
+      );
+      expect(multiFirst, hasLength(1));
+      expect(multiFirst.first.isShiny, isFalse);
+
+      clock += const Duration(milliseconds: 300);
+      final multiUpgrade = await coord.processFrameText(
+        '✨ Pikachu Lv.5',
+        encounterOnly: true,
+        allowMultiEncounter: true,
+        instanceIndex: 2,
+      );
+      expect(multiUpgrade, hasLength(1));
+      expect(multiUpgrade.first.isShiny, isTrue);
+
+      // Literal customReset whose text matches an ignored starter must NOT be blocked
+      final resetEvents = await coord.processFrameText('Glumanda Reset');
+      expect(resetEvents, hasLength(1));
+      expect(resetEvents.first.type, equals(ScannerEventType.customReset));
     });
   });
 }

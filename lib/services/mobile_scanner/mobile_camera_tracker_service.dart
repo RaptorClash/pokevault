@@ -81,6 +81,18 @@ class MobileCameraTrackerService {
     Future<void> Function()? onToggleTorch,
     bool ownsCameraSource = false,
   }) {
+    final prevSource = _cameraSource;
+    final prevCoord = _coordinator;
+    final prevOwned = _ownsCameraSourceOnStop;
+    if (prevCoord != null && !identical(prevCoord, coordinator)) {
+      ShinyAutoCounterService.instance.onSourceStopped(prevCoord);
+    }
+    if (prevSource != null &&
+        !identical(prevSource, cameraSource) &&
+        prevOwned) {
+      unawaited(prevSource.dispose());
+    }
+
     _coordinator = coordinator;
     _cameraSource = cameraSource;
     _ownsCameraSourceOnStop = ownsCameraSource;
@@ -100,11 +112,26 @@ class MobileCameraTrackerService {
     isTrackingNotifier.value = true;
     isPausedNotifier.value = false;
 
-    final multiRegions = cameraSource.regions
-        .where((r) => r.enabled && r.slotId != null)
-        .toList();
-    final hasPrimaryScan = cameraSource.scanMode == MobileCameraScanMode.autoFull ||
-        cameraSource.regions.any(
+    final (:slotIds, :slotColors) = _computeActiveSlotRouting(
+      cameraSource.scanMode,
+      cameraSource.regions,
+    );
+    ShinyAutoCounterService.instance.attachIfPending(
+      coordinator: coordinator,
+      source: cameraSource,
+      slotIds: slotIds,
+      slotColorOverrides: slotColors,
+    );
+  }
+
+  ({List<int> slotIds, Map<int, int> slotColors}) _computeActiveSlotRouting(
+    MobileCameraScanMode mode,
+    List<NormalizedScanRect> currentRegions,
+  ) {
+    final multiRegions =
+        currentRegions.where((r) => r.enabled && r.slotId != null).toList();
+    final hasPrimaryScan = mode == MobileCameraScanMode.autoFull ||
+        currentRegions.any(
           (r) => r.enabled && r.role == CameraZoneRole.scan && r.slotId == null,
         );
     final slotIdSet = <int>{
@@ -115,9 +142,19 @@ class MobileCameraTrackerService {
     final slotColors = {
       for (final r in multiRegions) r.slotId!: r.colorHex,
     };
-    ShinyAutoCounterService.instance.attachIfPending(
-      coordinator: coordinator,
-      source: cameraSource,
+    return (slotIds: slotIds, slotColors: slotColors);
+  }
+
+  void _syncSlotsToAutoCounter() {
+    if (_coordinator == null ||
+        !identical(ShinyAutoCounterService.instance.coordinator, _coordinator)) {
+      return;
+    }
+    final (:slotIds, :slotColors) = _computeActiveSlotRouting(
+      scanModeNotifier.value,
+      regionsNotifier.value,
+    );
+    ShinyAutoCounterService.instance.syncSlots(
       slotIds: slotIds,
       slotColorOverrides: slotColors,
     );
@@ -208,12 +245,14 @@ class MobileCameraTrackerService {
   void setScanMode(MobileCameraScanMode mode) {
     scanModeNotifier.value = mode;
     _cameraSource?.setScanMode(mode);
+    _syncSlotsToAutoCounter();
   }
 
   void setRegions(List<NormalizedScanRect> nextRegions) {
     final immutable = List<NormalizedScanRect>.unmodifiable(nextRegions);
     regionsNotifier.value = immutable;
     _cameraSource?.setRegions(immutable);
+    _syncSlotsToAutoCounter();
   }
 
   void addOrUpdateRegion(NormalizedScanRect region) {
@@ -252,6 +291,10 @@ class MobileCameraTrackerService {
     } else {
       _coordinator?.start();
       unawaited(activeFramePump?.resume());
+    }
+    if (_coordinator != null &&
+        identical(ShinyAutoCounterService.instance.coordinator, _coordinator)) {
+      ShinyAutoCounterService.instance.setGlobalPause(isPausedNotifier.value);
     }
   }
 

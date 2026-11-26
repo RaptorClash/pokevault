@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:material_ui/material_ui.dart';
 import 'package:provider/provider.dart';
 import '../../../i18n/strings.g.dart';
@@ -42,6 +44,7 @@ class _MultiHuntDashboardScreenState extends State<MultiHuntDashboardScreen> {
   @override
   void initState() {
     super.initState();
+    unawaited(_service.ensureSettingsLoaded());
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       final huntProvider = Provider.of<ShinyHuntProvider>(context, listen: false);
@@ -100,6 +103,18 @@ class _MultiHuntDashboardScreenState extends State<MultiHuntDashboardScreen> {
       return h.title.isNotEmpty ? h.title : h.pokemonName;
     }
 
+    final isCompactAppBar = MediaQuery.sizeOf(context).width < 600;
+    ShinyHunt resolveSetupTargetHunt() {
+      final defId = _service.defaultHuntId;
+      if (defId != null) {
+        final match = huntProvider.getHuntById(defId);
+        if (match != null && !match.isCompleted && !match.isPaused) {
+          return match;
+        }
+      }
+      return activeHunts.first;
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: Text(t.multi_hunt_dashboard_title),
@@ -107,21 +122,44 @@ class _MultiHuntDashboardScreenState extends State<MultiHuntDashboardScreen> {
           if (pausedHunts.isNotEmpty)
             KeyedSubtree(
               key: _tutorialController.pausedToggleBtnKey,
-              child: TextButton.icon(
-                key: const Key('multi_hunt_toggle_paused_btn'),
-                icon: Icon(
-                  _showPaused ? Icons.visibility_off : Icons.pause_circle_outline,
-                  size: 18,
-                ),
-                label: Text(
-                  _showPaused
-                      ? t.multi_hunt_hide_paused
-                      : t.multi_hunt_show_paused
-                          .replaceAll('{count}', pausedHunts.length.toString()),
-                  style: const TextStyle(fontSize: 12),
-                ),
-                onPressed: () => setState(() => _showPaused = !_showPaused),
-              ),
+              child: isCompactAppBar
+                  ? IconButton(
+                      key: const Key('multi_hunt_toggle_paused_btn'),
+                      tooltip: _showPaused
+                          ? t.multi_hunt_hide_paused
+                          : t.multi_hunt_show_paused.replaceAll(
+                              '{count}',
+                              pausedHunts.length.toString(),
+                            ),
+                      icon: Badge.count(
+                        count: pausedHunts.length,
+                        child: Icon(
+                          _showPaused
+                              ? Icons.visibility_off
+                              : Icons.pause_circle_outline,
+                        ),
+                      ),
+                      onPressed: () => setState(() => _showPaused = !_showPaused),
+                    )
+                  : TextButton.icon(
+                      key: const Key('multi_hunt_toggle_paused_btn'),
+                      icon: Icon(
+                        _showPaused
+                            ? Icons.visibility_off
+                            : Icons.pause_circle_outline,
+                        size: 18,
+                      ),
+                      label: Text(
+                        _showPaused
+                            ? t.multi_hunt_hide_paused
+                            : t.multi_hunt_show_paused.replaceAll(
+                                '{count}',
+                                pausedHunts.length.toString(),
+                              ),
+                        style: const TextStyle(fontSize: 12),
+                      ),
+                      onPressed: () => setState(() => _showPaused = !_showPaused),
+                    ),
             ),
           KeyedSubtree(
             key: _tutorialController.helpBtnKey,
@@ -150,8 +188,9 @@ class _MultiHuntDashboardScreenState extends State<MultiHuntDashboardScreen> {
                 tooltip: t.shiny_auto_btn_tooltip,
                 onPressed: () => ShinyAutoCounterSetupSheet.show(
                   context,
-                  hunt: activeHunts.first,
+                  hunt: resolveSetupTargetHunt(),
                   service: _service,
+                  preserveDefaultHuntId: true,
                 ),
               ),
             ),
@@ -167,8 +206,9 @@ class _MultiHuntDashboardScreenState extends State<MultiHuntDashboardScreen> {
               onOpenSetup: activeHunts.isNotEmpty
                   ? () => ShinyAutoCounterSetupSheet.show(
                         context,
-                        hunt: activeHunts.first,
+                        hunt: resolveSetupTargetHunt(),
                         service: _service,
+                        preserveDefaultHuntId: true,
                       )
                   : null,
               onMarkShinyCaught: (huntId, slotId) async {
@@ -620,34 +660,37 @@ class _MultiHuntCard extends StatelessWidget {
                               key: Key('multi_hunt_slot_assign_${hunt.id}'),
                               tooltip: t.multi_hunt_slot_assign_label,
                               onSelected: (slotId) {
-                                final already = service
-                                        .settings.slotToHuntOverrides[slotId] ==
-                                    hunt.id;
-                                service.assignSlotToHunt(
-                                  slotId,
-                                  already ? null : hunt.id,
-                                );
+                                final explicit =
+                                    service.settings.slotToHuntOverrides[slotId];
+                                if (explicit == hunt.id) {
+                                  service.assignSlotToHunt(slotId, null);
+                                } else {
+                                  service.assignSlotToHunt(slotId, hunt.id);
+                                }
                               },
                               itemBuilder: (_) => slots.map((s) {
-                                final isHere = s.assignedHuntId == hunt.id;
+                                final explicitHuntId =
+                                    service.settings.slotToHuntOverrides[s.slotId];
+                                final isExplicitHere = explicitHuntId == hunt.id;
+                                final isDefaultHere = explicitHuntId == null &&
+                                    s.assignedHuntId == hunt.id;
                                 return PopupMenuItem<int>(
                                   value: s.slotId,
                                   child: Row(
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
                                       Icon(
-                                        isHere
+                                        isExplicitHere
                                             ? Icons.check_box
-                                            : Icons.check_box_outline_blank,
+                                            : isDefaultHere
+                                                ? Icons.indeterminate_check_box_outlined
+                                                : Icons.check_box_outline_blank,
                                         size: 16,
                                         color: Color(s.colorHex),
                                       ),
                                       const SizedBox(width: 8),
                                       Text(
-                                        t.multi_hunt_slot_number.replaceAll(
-                                          '{slot}',
-                                          s.slotId.toString(),
-                                        ),
+                                        '${t.multi_hunt_slot_number.replaceAll('{slot}', s.slotId.toString())}${isDefaultHere ? t.multi_hunt_slot_default_suffix : ''}',
                                       ),
                                     ],
                                   ),

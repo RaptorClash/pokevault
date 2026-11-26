@@ -47,6 +47,9 @@ class _SlotTracker {
   _SlotLuminanceState state = _SlotLuminanceState.normal;
   bool hasSeenNormal = false;
   Duration? transitionStartedAt;
+  int solidSampleCount = 0;
+  FrameTransitionType? pendingOutgoingType;
+  int pendingOutgoingDurationMs = 0;
 }
 
 /// Cross-platform luminance edge detector for detecting soft-resets and loading screens.
@@ -195,9 +198,11 @@ class FrameTransitionDetector {
         if (avgLuma <= effBlack && stdDev <= maxSolidStdDev) {
           tracker.state = _SlotLuminanceState.inBlack;
           tracker.transitionStartedAt = now;
+          tracker.solidSampleCount = 1;
         } else if (avgLuma >= effWhite && stdDev <= maxSolidStdDev) {
           tracker.state = _SlotLuminanceState.inWhite;
           tracker.transitionStartedAt = now;
+          tracker.solidSampleCount = 1;
         } else {
           tracker.hasSeenNormal = true;
         }
@@ -206,21 +211,34 @@ class FrameTransitionDetector {
       case _SlotLuminanceState.inBlack:
         if (avgLuma <= effBlack + hysteresisMargin &&
             stdDev <= maxSolidStdDev + 6.0) {
+          tracker.solidSampleCount++;
           return null;
         }
         final started = tracker.transitionStartedAt;
         final duration = started != null ? now - started : Duration.zero;
-        final validNormalRecovery =
-            tracker.hasSeenNormal && duration >= effMinDuration;
+        final validNormalRecovery = tracker.hasSeenNormal &&
+            tracker.solidSampleCount >= 2 &&
+            duration >= effMinDuration;
 
         if (avgLuma >= effWhite && stdDev <= maxSolidStdDev) {
           tracker.state = _SlotLuminanceState.inWhite;
           tracker.transitionStartedAt = now;
+          tracker.solidSampleCount = 1;
+          if (validNormalRecovery) {
+            return FrameTransitionEvent(
+              slotId: slotId,
+              type: FrameTransitionType.blackScreenEnded,
+              durationMs: duration.inMilliseconds,
+              averageLuma: avgLuma,
+              timestamp: DateTime.now(),
+            );
+          }
           return null;
         }
         tracker.state = _SlotLuminanceState.normal;
         tracker.hasSeenNormal = true;
         tracker.transitionStartedAt = null;
+        tracker.solidSampleCount = 0;
 
         if (validNormalRecovery) {
           return FrameTransitionEvent(
@@ -236,21 +254,34 @@ class FrameTransitionDetector {
       case _SlotLuminanceState.inWhite:
         if (avgLuma >= effWhite - hysteresisMargin &&
             stdDev <= maxSolidStdDev + 6.0) {
+          tracker.solidSampleCount++;
           return null;
         }
         final started = tracker.transitionStartedAt;
         final duration = started != null ? now - started : Duration.zero;
-        final validNormalRecovery =
-            tracker.hasSeenNormal && duration >= effMinDuration;
+        final validNormalRecovery = tracker.hasSeenNormal &&
+            tracker.solidSampleCount >= 2 &&
+            duration >= effMinDuration;
 
         if (avgLuma <= effBlack && stdDev <= maxSolidStdDev) {
           tracker.state = _SlotLuminanceState.inBlack;
           tracker.transitionStartedAt = now;
+          tracker.solidSampleCount = 1;
+          if (validNormalRecovery) {
+            return FrameTransitionEvent(
+              slotId: slotId,
+              type: FrameTransitionType.whiteScreenEnded,
+              durationMs: duration.inMilliseconds,
+              averageLuma: avgLuma,
+              timestamp: DateTime.now(),
+            );
+          }
           return null;
         }
         tracker.state = _SlotLuminanceState.normal;
         tracker.hasSeenNormal = true;
         tracker.transitionStartedAt = null;
+        tracker.solidSampleCount = 0;
 
         if (validNormalRecovery) {
           return FrameTransitionEvent(

@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path_provider_platform_interface/path_provider_platform_interface.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
@@ -822,7 +823,7 @@ void main() {
 
       final legacy = ShinyAutoCounterSettings.fromMap(const {'detectionMode': 'softReset'});
       expect(legacy.enableSparkleDelayShinyCheck, isFalse);
-      expect(legacy.sparkleDelayThresholdMs, equals(1000));
+      expect(legacy.sparkleDelayThresholdMs, equals(1500));
       expect(legacy.enableColorDeviationShinyCheck, isFalse);
       expect(legacy.colorDeviationThreshold, closeTo(0.38, 0.001));
     });
@@ -920,10 +921,11 @@ void main() {
         ),
       );
 
-      // 3 normal blue frames on slot 1
+      // 3 normal blue frames on slot 1 (after 700ms battle-intro settle window)
       for (int i = 0; i < 3; i++) {
         await coordinator.processFrameText('Ein wildes Pikachu erscheint!', instanceIndex: 1);
         await service.waitForIdle();
+        clock += const Duration(milliseconds: 750);
         source.emitVisualFrame(1, 30, 110, 235);
         await service.waitForIdle();
         await coordinator.processFrameText('Du bist entkommen!', instanceIndex: 1);
@@ -934,6 +936,7 @@ void main() {
       // 4th encounter on slot 1 with green shiny sprite frame
       await coordinator.processFrameText('Ein wildes Pikachu erscheint!', instanceIndex: 1);
       await service.waitForIdle();
+      clock += const Duration(milliseconds: 750);
       source.emitVisualFrame(1, 30, 220, 65);
       await service.waitForIdle();
 
@@ -1035,5 +1038,309 @@ void main() {
       await source.dispose();
       await coordinator.dispose();
     });
+
+    test('Rearm cooldown race: OCR during rearmPending does not poison coordinator battle state after promotion', () async {
+      final coordinator = buildTestCoordinator(() => Duration.zero);
+      final provider = ShinyHuntProvider(
+        databaseService: DatabaseService.instance,
+        enableTimer: false,
+      );
+      await provider.initialized;
+      await provider.createHunt(_makeHunt(id: 'hunt-race', pokemonId: 4, pokemonName: 'Glumanda'));
+
+      // Real-clock service so _rearmTimers schedules and fires naturally
+      final service = ShinyAutoCounterService.forTesting();
+      service.startSession(
+        huntProvider: provider,
+        coordinator: coordinator,
+        defaultHuntId: 'hunt-race',
+        slotIds: const [1],
+        settings: const ShinyAutoCounterSettings(
+          detectionMode: ShinyHuntDetectionMode.softReset,
+          matchFilter: ShinyMatchFilter.targetPokemonOnly,
+          minResetCooldownMs: 220,
+        ),
+      );
+
+      // Encounter 1 counted -> enters counted phase
+      await coordinator.processFrameText('Ein wildes Glumanda erscheint!', instanceIndex: 1);
+      await service.waitForIdle();
+      expect(provider.getHuntById('hunt-race')!.currentEncounters, equals(1));
+
+      // Black screen triggers rearmPending (220ms)
+      await service.handleFrameTransition(
+        FrameTransitionEvent(
+          slotId: 1,
+          type: FrameTransitionType.blackScreenEnded,
+          durationMs: 400,
+          averageLuma: 2,
+          timestamp: DateTime.now(),
+        ),
+      );
+      expect(service.slotStatesNotifier.value.single.phase, equals(ShinySlotPhase.rearmPending));
+
+      // Early OCR arrives BEFORE 220ms cooldown expires -> rejected by state machine,
+      // which MUST NOT leave coordinator _activeBattlesBySlot poisoned for Glumanda!
+      await coordinator.processFrameText('Ein wildes Glumanda erscheint!', instanceIndex: 1);
+      await service.waitForIdle();
+      expect(provider.getHuntById('hunt-race')!.currentEncounters, equals(1));
+
+      // Wait for real _rearmTimers to promote rearmPending -> armed
+      await Future<void>.delayed(const Duration(milliseconds: 280));
+      expect(service.slotStatesNotifier.value.single.phase, equals(ShinySlotPhase.armed));
+
+      // Same-species encounter arriving after cooldown MUST be counted (not swallowed by coordinator)
+      await coordinator.processFrameText('Ein wildes Glumanda erscheint!', instanceIndex: 1);
+      await service.waitForIdle();
+      expect(provider.getHuntById('hunt-race')!.currentEncounters, equals(2));
+
+      await service.stopSession();
+      await coordinator.dispose();
+    });
+
+    test('loadHunts while loading does not prune overrides and completing hunt clears pausedByShiny', () async {
+      var clock = Duration.zero;
+      final provider = ShinyHuntProvider(
+        databaseService: DatabaseService.instance,
+        enableTimer: false,
+      );
+      await provider.initialized;
+      final hunt = _makeHunt(id: 'hunt-keep', pokemonId: 150, pokemonName: 'Mewtu');
+      await provider.createHunt(hunt);
+
+      final coordinator = buildTestCoordinator(() => clock);
+      final service = ShinyAutoCounterService.forTesting(elapsedClock: () => clock);
+
+      const savedSettings = ShinyAutoCounterSettings(
+        detectionMode: ShinyHuntDetectionMode.softReset,
+        slotToHuntOverrides: {2: 'hunt-keep'},
+        huntSettingsOverrides: {
+          'hunt-keep': ShinyAutoCounterSettings(minResetCooldownMs: 2500),
+        },
+      );
+      await ShinyAutoCounterSettings.saveToPrefs(savedSettings);
+
+      service.startSession(
+        huntProvider: provider,
+        coordinator: coordinator,
+        defaultHuntId: 'hunt-keep',
+        slotIds: const [1, 2],
+        settings: savedSettings,
+      );
+
+      // Start loadHunts() -> provider.isLoading becomes true briefly while _hunts could still be loading
+      final loadFut = provider.loadHunts();
+      await loadFut;
+      expect(service.settings.slotToHuntOverrides[2], equals('hunt-keep'));
+      expect(service.settings.huntSettingsOverrides.containsKey('hunt-keep'), isTrue);
+
+      // Trigger shiny on slot 1 -> pausedByShiny
+      await coordinator.processFrameText('Wildes ✨ Mewtu erscheint!', instanceIndex: 1);
+      await service.waitForIdle();
+      expect(service.activeShinyAlertsNotifier.value, isNotEmpty);
+
+      // Completing the hunt automatically clears pausedByShiny alerts for that hunt
+      await provider.completeHunt('hunt-keep');
+      await service.waitForIdle();
+      expect(service.activeShinyAlertsNotifier.value, isEmpty);
+      expect(
+        service.slotStatesNotifier.value.every((s) => s.phase != ShinySlotPhase.pausedByShiny),
+        isTrue,
+      );
+
+      await service.stopSession();
+      await coordinator.dispose();
+    });
+
+    test('Color deviation enforces 700ms settle delay, resets baseline on resumeShinyPausedSlot, and drops frames when idle', () async {
+      var clock = Duration.zero;
+      final provider = ShinyHuntProvider(
+        databaseService: DatabaseService.instance,
+        enableTimer: false,
+      );
+      await provider.initialized;
+      await provider.createHunt(_makeHunt(id: 'hunt-vis', pokemonId: 25, pokemonName: 'Pikachu', method: 'Wild'));
+
+      final coordinator = buildTestCoordinator(() => clock);
+      final source = _FakeVisualSource();
+      await source.start();
+      final service = ShinyAutoCounterService.forTesting(elapsedClock: () => clock);
+
+      service.startSession(
+        huntProvider: provider,
+        coordinator: coordinator,
+        source: source,
+        defaultHuntId: 'hunt-vis',
+        slotIds: const [1],
+        settings: const ShinyAutoCounterSettings(
+          detectionMode: ShinyHuntDetectionMode.wildEncounter,
+          minResetCooldownMs: 200,
+          enableColorDeviationShinyCheck: true,
+          colorDeviationThreshold: 0.35,
+        ),
+      );
+
+      // Build 3 blue baseline frames (with 700ms settle)
+      for (int i = 0; i < 3; i++) {
+        await coordinator.processFrameText('Ein wildes Pikachu erscheint!', instanceIndex: 1);
+        await service.waitForIdle();
+        // Frame at +100ms is BEFORE 700ms settle -> must be ignored (e.g. battle intro flash)
+        clock += const Duration(milliseconds: 100);
+        source.emitVisualFrame(1, 230, 40, 40);
+        await service.waitForIdle();
+        // Frame at +750ms IS sampled for baseline
+        clock += const Duration(milliseconds: 650);
+        source.emitVisualFrame(1, 30, 110, 235);
+        await service.waitForIdle();
+        await coordinator.processFrameText('Du bist entkommen!', instanceIndex: 1);
+        await service.waitForIdle();
+        clock += const Duration(milliseconds: 400);
+      }
+
+      // 4th encounter: red flash at +100ms ignored, green frame at +750ms triggers false/shiny alert
+      await coordinator.processFrameText('Ein wildes Pikachu erscheint!', instanceIndex: 1);
+      await service.waitForIdle();
+      clock += const Duration(milliseconds: 100);
+      source.emitVisualFrame(1, 230, 40, 40);
+      await service.waitForIdle();
+      expect(service.activeShinyAlertsNotifier.value, isEmpty);
+
+      clock += const Duration(milliseconds: 650);
+      source.emitVisualFrame(1, 30, 220, 65);
+      await service.waitForIdle();
+      expect(service.activeShinyAlertsNotifier.value.length, equals(1));
+
+      // Dismissing / resuming resets the color baseline so shifting lighting (green) does NOT lock future encounters
+      service.resumeShinyPausedSlot(1);
+      expect(service.activeShinyAlertsNotifier.value, isEmpty);
+
+      await coordinator.processFrameText('Ein wildes Pikachu erscheint!', instanceIndex: 1);
+      await service.waitForIdle();
+      clock += const Duration(milliseconds: 750);
+      source.emitVisualFrame(1, 30, 220, 65);
+      await service.waitForIdle();
+      expect(service.activeShinyAlertsNotifier.value, isEmpty);
+
+      await service.stopSession();
+      await source.dispose();
+      await coordinator.dispose();
+    });
+
+    test('undoEntry on older log preserves pausedByShiny, sessionGeneration discards stale queued tasks, and single slot 2 syncs slotConfigs[0]', () async {
+      var clock = Duration.zero;
+      final provider = ShinyHuntProvider(
+        databaseService: DatabaseService.instance,
+        enableTimer: false,
+      );
+      await provider.initialized;
+      await provider.createHunt(_makeHunt(id: 'hunt-u', pokemonId: 25, pokemonName: 'Pikachu', method: 'Wild'));
+
+      final coordinator = buildTestCoordinator(() => clock);
+      final source = _FakeTransitionSource();
+      await source.start();
+      final service = ShinyAutoCounterService.forTesting(elapsedClock: () => clock);
+
+      service.startSession(
+        huntProvider: provider,
+        coordinator: coordinator,
+        source: source,
+        defaultHuntId: 'hunt-u',
+        slotIds: const [2],
+        settings: const ShinyAutoCounterSettings(
+          detectionMode: ShinyHuntDetectionMode.wildEncounter,
+          blackLumaThreshold: 42,
+          minResetCooldownMs: 200,
+          autoPauseSlotOnShiny: true,
+        ),
+      );
+
+      // Single non-1 slot (Slot 2) must also configure slotConfigs[0]
+      expect(source.lastSlotConfigs[0]?.blackThreshold, equals(42));
+      expect(source.lastSlotConfigs[2]?.blackThreshold, equals(42));
+
+      // Encounter 1 (non-shiny)
+      await coordinator.processFrameText('Ein wildes Pikachu erscheint!', instanceIndex: 2);
+      await service.waitForIdle();
+      final firstEntryId = service.recentLogs.first.id;
+      await coordinator.processFrameText('Du bist entkommen!', instanceIndex: 2);
+      await service.waitForIdle();
+      clock += const Duration(milliseconds: 300);
+
+      // Encounter 2 (shiny -> pausedByShiny)
+      await coordinator.processFrameText('Wildes ✨ Pikachu erscheint!', instanceIndex: 2);
+      await service.waitForIdle();
+      expect(service.slotStatesNotifier.value.single.phase, equals(ShinySlotPhase.pausedByShiny));
+
+      // Undoing older entry 1 must NOT silently unpause active pausedByShiny slot
+      expect(service.undoEntry(firstEntryId), isTrue);
+      expect(service.slotStatesNotifier.value.single.phase, equals(ShinySlotPhase.pausedByShiny));
+
+      // Stop and restart immediately -> old session logs/tasks do not leak into new session
+      await service.stopSession();
+      service.startSession(
+        huntProvider: provider,
+        coordinator: coordinator,
+        source: source,
+        defaultHuntId: 'hunt-u',
+        slotIds: const [1],
+      );
+      expect(service.recentLogs, isEmpty);
+
+      await service.stopSession();
+      await source.dispose();
+      await coordinator.dispose();
+    });
+
+    test('ShinyHuntProvider: unfocused desktop ticks all active auto-hunted hunts and flushPendingWrites preserves dirty IDs on DB error', () async {
+      final failingDb = _FailingSaveDatabaseService();
+      final failProvider = ShinyHuntProvider(
+        databaseService: failingDb,
+        enableTimer: true,
+      );
+      await failProvider.initialized;
+      await failProvider.createHunt(_makeHunt(id: 'h-err', pokemonId: 4, pokemonName: 'Glumanda'));
+      failProvider.incrementAuto('h-err');
+
+      failingDb.failSave = true;
+      await expectLater(failProvider.flushPendingWrites(), throwsStateError);
+      // Dirty ID must NOT be lost on error — retrying when DB recovers must persist the updated count!
+      failingDb.failSave = false;
+      await failProvider.flushPendingWrites();
+      expect(failingDb.savedCounts['h-err'], equals(1));
+      failProvider.dispose();
+
+      // Multi-hunt stopwatch ticking while unfocused on Desktop (AppLifecycleState.inactive)
+      final provider = ShinyHuntProvider(
+        databaseService: DatabaseService.instance,
+        enableTimer: true,
+      );
+      await provider.initialized;
+      await provider.createHunt(_makeHunt(id: 'hunt-1', pokemonId: 150, pokemonName: 'Mewtu'));
+      await provider.createHunt(_makeHunt(id: 'hunt-2', pokemonId: 4, pokemonName: 'Glumanda'));
+
+      // Simulate user clicking into emulator on Windows (AppLifecycleState.inactive)
+      provider.didChangeAppLifecycleState(AppLifecycleState.inactive);
+      provider.setAutoCounterActiveHunts({'hunt-1', 'hunt-2'}, isRunningAndUnpaused: true);
+      provider.registerInteraction();
+
+      await Future<void>.delayed(const Duration(milliseconds: 1150));
+      expect(provider.getHuntById('hunt-1')!.totalTimeSeconds, greaterThanOrEqualTo(1));
+      expect(provider.getHuntById('hunt-2')!.totalTimeSeconds, greaterThanOrEqualTo(1));
+      provider.dispose();
+    });
   });
+}
+
+class _FailingSaveDatabaseService extends Fake implements DatabaseService {
+  bool failSave = false;
+  final Map<String, int> savedCounts = {};
+
+  @override
+  Future<List<ShinyHunt>> getAllShinyHunts({bool includeDeleted = false}) async => [];
+
+  @override
+  Future<void> saveShinyHunt(ShinyHunt hunt) async {
+    if (failSave) throw StateError('SQLITE_BUSY');
+    savedCounts[hunt.id] = hunt.currentEncounters;
+  }
 }

@@ -413,12 +413,7 @@ class _ShinyAutoCounterBarState extends State<ShinyAutoCounterBar> {
                       child: ValueListenableBuilder<bool>(
                         valueListenable: service.isPausedNotifier,
                         builder: (context, isPaused, _) {
-                          return ValueListenableBuilder<List<AutoCountLogEntry>>(
-                            valueListenable: service.recentLogsNotifier,
-                            builder: (context, logs, _) {
-                              final hasUndoable =
-                                  logs.any((e) => !e.undone && e.delta > 0);
-                              return Row(
+                          return Row(
                             children: [
                               Container(
                                 width: 8,
@@ -503,25 +498,32 @@ class _ShinyAutoCounterBarState extends State<ShinyAutoCounterBar> {
                                 ),
                                 onPressed: () => _showLogsSheet(context),
                               ),
-                              IconButton(
-                                key: const Key('shiny_auto_undo_btn'),
-                                visualDensity: VisualDensity.compact,
-                                padding: EdgeInsets.zero,
-                                constraints: const BoxConstraints(
-                                  minWidth: 28,
-                                  minHeight: 28,
-                                ),
-                                tooltip: t.shiny_auto_undo,
-                                icon: Icon(
-                                  Icons.undo_rounded,
-                                  size: 17,
-                                  color: hasUndoable
-                                      ? Colors.orangeAccent
-                                      : Colors.grey,
-                                ),
-                                onPressed: hasUndoable
-                                    ? () => service.undoLastCount()
-                                    : null,
+                              ValueListenableBuilder<List<AutoCountLogEntry>>(
+                                valueListenable: service.recentLogsNotifier,
+                                builder: (context, logs, _) {
+                                  final hasUndoable =
+                                      logs.any((e) => !e.undone && e.delta > 0);
+                                  return IconButton(
+                                    key: const Key('shiny_auto_undo_btn'),
+                                    visualDensity: VisualDensity.compact,
+                                    padding: EdgeInsets.zero,
+                                    constraints: const BoxConstraints(
+                                      minWidth: 28,
+                                      minHeight: 28,
+                                    ),
+                                    tooltip: t.shiny_auto_undo,
+                                    icon: Icon(
+                                      Icons.undo_rounded,
+                                      size: 17,
+                                      color: hasUndoable
+                                          ? Colors.orangeAccent
+                                          : Colors.grey,
+                                    ),
+                                    onPressed: hasUndoable
+                                        ? () => service.undoLastCount()
+                                        : null,
+                                  );
+                                },
                               ),
                               IconButton(
                                 key: const Key('shiny_auto_pause_btn'),
@@ -575,8 +577,6 @@ class _ShinyAutoCounterBarState extends State<ShinyAutoCounterBar> {
                             ],
                           );
                         },
-                      );
-                    },
                       ),
                   ),
 

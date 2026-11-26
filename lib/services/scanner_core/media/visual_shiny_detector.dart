@@ -45,6 +45,10 @@ class SparkleDelayDetector {
     state.encounterStartedAt = now;
   }
 
+  void clearPendingEncounter(int slotId) {
+    _slots[slotId]?.encounterStartedAt = null;
+  }
+
   VisualShinySignal? onBattleMenuSeen(
     int slotId,
     Duration now, {

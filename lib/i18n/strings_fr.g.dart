@@ -2157,7 +2157,7 @@ class TranslationsFr extends Translations with BaseTranslations<AppLocale, Trans
 	@override String get scanner_event_type_evolved => 'DÉVELOPPEMENT';
 	@override String get scanner_event_type_shiny => 'BRILLANT';
 	@override String get scanner_event_type_alpha => 'ALPHA';
-	@override String get scanner_event_type_info => 'INFO';
+	@override String get scanner_event_type_info => 'INFORMATION';
 	@override String get scanner_snack_team_ignored => '{name} est ignoré en tant qu\'équipe propre.';
 	@override String get scanner_snack_no_target => 'Aucune fenêtre cible ou bureau sélectionné.';
 	@override String get scanner_snack_scanning_target => 'Scanner "{title}"...';
@@ -2494,6 +2494,15 @@ class TranslationsFr extends Translations with BaseTranslations<AppLocale, Trans
 	@override String get shiny_auto_reason_color_dev => 'Déviation de couleur détectée ({details})';
 	@override String get tutorial_demo_shiny_auto_badge_title => 'Multi-Chasse · Contre-Auto · Emplacements-Scan';
 	@override String get tutorial_demo_shiny_auto_badge_subtitle => 'Chasses parallèles, règles par chasse et protection Shiny';
+	@override String get scanner_enlarged_waiting_text => 'En attente de texte...';
+	@override String get scanner_enlarged_close => 'Fermer';
+	@override String get scanner_self_scan_overlap_title => 'PokéVault se trouve dans la zone de scan active';
+	@override String get scanner_self_scan_overlap_body => 'La fenêtre PokéVault chevauche la zone d\'écran surveillée. Cela peut amener l\'OCR en direct à scanner ses propres textes et à consommer inutilement des ressources.';
+	@override String get scanner_self_scan_overlap_suppress => 'Ne plus afficher ce conseil';
+	@override String get scanner_self_scan_overlap_ignore => 'Laisser non masqué';
+	@override String get scanner_self_scan_overlap_mask => 'Masquer PokéVault (Recommandé)';
+	@override String get shiny_auto_transition_none_warning => 'En mode « Changement d\'image uniquement », ni la réinitialisation de l\'image noire ni celle de l\'image blanche n\'est actuellement active. Activez au moins une transition ou choisissez un autre mode.';
+	@override String get multi_hunt_slot_default_suffix => '(Standard)';
 }
 
 /// The flat map containing all translations for locale <fr>.
@@ -4630,7 +4639,7 @@ extension on TranslationsFr {
 			'scanner_event_type_evolved' => 'DÉVELOPPEMENT',
 			'scanner_event_type_shiny' => 'BRILLANT',
 			'scanner_event_type_alpha' => 'ALPHA',
-			'scanner_event_type_info' => 'INFO',
+			'scanner_event_type_info' => 'INFORMATION',
 			'scanner_snack_team_ignored' => '{name} est ignoré en tant qu\'équipe propre.',
 			'scanner_snack_no_target' => 'Aucune fenêtre cible ou bureau sélectionné.',
 			'scanner_snack_scanning_target' => 'Scanner "{title}"...',
@@ -4967,6 +4976,15 @@ extension on TranslationsFr {
 			'shiny_auto_reason_color_dev' => 'Déviation de couleur détectée ({details})',
 			'tutorial_demo_shiny_auto_badge_title' => 'Multi-Chasse · Contre-Auto · Emplacements-Scan',
 			'tutorial_demo_shiny_auto_badge_subtitle' => 'Chasses parallèles, règles par chasse et protection Shiny',
+			'scanner_enlarged_waiting_text' => 'En attente de texte...',
+			'scanner_enlarged_close' => 'Fermer',
+			'scanner_self_scan_overlap_title' => 'PokéVault se trouve dans la zone de scan active',
+			'scanner_self_scan_overlap_body' => 'La fenêtre PokéVault chevauche la zone d\'écran surveillée. Cela peut amener l\'OCR en direct à scanner ses propres textes et à consommer inutilement des ressources.',
+			'scanner_self_scan_overlap_suppress' => 'Ne plus afficher ce conseil',
+			'scanner_self_scan_overlap_ignore' => 'Laisser non masqué',
+			'scanner_self_scan_overlap_mask' => 'Masquer PokéVault (Recommandé)',
+			'shiny_auto_transition_none_warning' => 'En mode « Changement d\'image uniquement », ni la réinitialisation de l\'image noire ni celle de l\'image blanche n\'est actuellement active. Activez au moins une transition ou choisissez un autre mode.',
+			'multi_hunt_slot_default_suffix' => '(Standard)',
 			_ => null,
 		};
 	}

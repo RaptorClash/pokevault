@@ -81,7 +81,7 @@ class OcrDetectionEngine {
   );
 
   static final RegExp _eggPromptCuePattern = RegExp(
-    r'(?:^|[\s"„“])(?:oh\?|nanu\?!|huh\?|¿eh\?|eh\?|おや？|어라\?|咦？)(?:$|[\s.!?"„“])',
+    r'(?:^|[\s"„“])(?:oh\?|nanu\?!*|huh\?|¿eh\?|eh\?|おや[？?]|어라[？?]|咦[？?])(?:$|[\s.!?"„“])',
     caseSensitive: false,
   );
 
@@ -653,16 +653,6 @@ class OcrDetectionEngine {
     final trimmed = rawText.trim();
     if (trimmed.isEmpty) return null;
 
-    final isShiny = _shinyPattern.hasMatch(trimmed);
-    final isAlpha = _alphaPattern.hasMatch(trimmed);
-
-    String? gender;
-    if (_genderMalePattern.hasMatch(trimmed)) {
-      gender = 'male';
-    } else if (_genderFemalePattern.hasMatch(trimmed)) {
-      gender = 'female';
-    }
-
     // Split text into lines, strip PokeVault HUD/emulator chrome & noise lines,
     // and add a joined dialogue view so multi-line DS boxes match cleanly.
     final lines = trimmed
@@ -680,6 +670,19 @@ class OcrDetectionEngine {
         )
         .toList();
     if (filteredLines.isEmpty) return null;
+
+    // Evaluate shiny/alpha/gender markers only on filtered game text so emulator
+    // title bars or ROM filenames containing "Shiny" never trigger false positives.
+    final filteredJoined = filteredLines.join('\n');
+    final isShiny = _shinyPattern.hasMatch(filteredJoined);
+    final isAlpha = _alphaPattern.hasMatch(filteredJoined);
+
+    String? gender;
+    if (_genderMalePattern.hasMatch(filteredJoined)) {
+      gender = 'male';
+    } else if (_genderFemalePattern.hasMatch(filteredJoined)) {
+      gender = 'female';
+    }
 
     // Dedicated enemy HUD focus role (Zone B): never emit caught/evolved, allow multi-enemy names.
     if (role == OcrScanRole.enemyHudFocusOnly) {

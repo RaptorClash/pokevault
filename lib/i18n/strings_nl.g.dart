@@ -572,7 +572,7 @@ class TranslationsNl extends Translations with BaseTranslations<AppLocale, Trans
 	@override String get stat_atk => 'ANG';
 	@override String get stat_def => 'ZIE';
 	@override String get stat_spe => 'INIT';
-	@override String get stat_spc => 'SPEZ';
+	@override String get stat_spc => 'SPEC';
 	@override String get shiny_huntable_yes => 'Regulier Huntbaar: Ja';
 	@override String get shiny_huntable_no => 'Regulier te vangen: Nee';
 	@override String get notable_encounters => 'Bijzondere ontmoetingen:';
@@ -2157,7 +2157,7 @@ class TranslationsNl extends Translations with BaseTranslations<AppLocale, Trans
 	@override String get scanner_event_type_evolved => 'ONTWIKKELING';
 	@override String get scanner_event_type_shiny => 'GLANZEND';
 	@override String get scanner_event_type_alpha => 'ALFA';
-	@override String get scanner_event_type_info => 'INFO';
+	@override String get scanner_event_type_info => 'INFORMATIE';
 	@override String get scanner_snack_team_ignored => '{name} wordt als een eigen team genegeerd.';
 	@override String get scanner_snack_no_target => 'Geen doelvenster of bureaublad geselecteerd.';
 	@override String get scanner_snack_scanning_target => 'Scannen van "{title}"...';
@@ -2362,7 +2362,7 @@ class TranslationsNl extends Translations with BaseTranslations<AppLocale, Trans
 	@override String get shiny_auto_slot_shiny => 'Glanz!';
 	@override String get shiny_auto_slot_paused => 'Gepauzeerd';
 	@override String get shiny_auto_stop_tooltip => 'Auto-Teller stoppen';
-	@override String get multi_hunt_dashboard_title => 'Multi-Hunt Dashboard';
+	@override String get multi_hunt_dashboard_title => 'Multi-Jacht Dashboard';
 	@override String get multi_hunt_dashboard_tooltip => 'Multi-Hunt Dashboard openen';
 	@override String get multi_hunt_empty_title => 'Geen actieve of gepauzeerde Hunts';
 	@override String get multi_hunt_empty_desc => 'Maak minimaal één Glanz Hunt in de Hub om meerdere spellen tegelijk te volgen.';
@@ -2494,6 +2494,15 @@ class TranslationsNl extends Translations with BaseTranslations<AppLocale, Trans
 	@override String get shiny_auto_reason_color_dev => 'Kleurafwijking gedetecteerd ({details})';
 	@override String get tutorial_demo_shiny_auto_badge_title => 'Multi-Jacht · Auto-Teller · Scan-Sloten';
 	@override String get tutorial_demo_shiny_auto_badge_subtitle => 'Parallelle Hunts, Per-Hunt-regels & Shiny-bescherming';
+	@override String get scanner_enlarged_waiting_text => 'Wacht op tekst...';
+	@override String get scanner_enlarged_close => 'Sluiten';
+	@override String get scanner_self_scan_overlap_title => 'PokéVault ligt in het actieve scangebied';
+	@override String get scanner_self_scan_overlap_body => 'Het PokéVault-venster overlapt het bewaakte schermgebied. Hierdoor kan de live-OCR eigen teksten scannen en onnodig prestaties verbruiken.';
+	@override String get scanner_self_scan_overlap_suppress => 'Deze melding niet meer weergeven';
+	@override String get scanner_self_scan_overlap_ignore => 'Onverhuld laten';
+	@override String get scanner_self_scan_overlap_mask => 'PokéVault verbergen (Aanbevolen)';
+	@override String get shiny_auto_transition_none_warning => 'In de modus \'Alleen beeldwisseling\' zijn momenteel noch zwartbeeld- noch witbeeld-reset actief. Schakel minstens één overgang in of kies een andere modus.';
+	@override String get multi_hunt_slot_default_suffix => '(Standaard)';
 }
 
 /// The flat map containing all translations for locale <nl>.
@@ -3039,7 +3048,7 @@ extension on TranslationsNl {
 			'stat_atk' => 'ANG',
 			'stat_def' => 'ZIE',
 			'stat_spe' => 'INIT',
-			'stat_spc' => 'SPEZ',
+			'stat_spc' => 'SPEC',
 			'shiny_huntable_yes' => 'Regulier Huntbaar: Ja',
 			'shiny_huntable_no' => 'Regulier te vangen: Nee',
 			'notable_encounters' => 'Bijzondere ontmoetingen:',
@@ -4630,7 +4639,7 @@ extension on TranslationsNl {
 			'scanner_event_type_evolved' => 'ONTWIKKELING',
 			'scanner_event_type_shiny' => 'GLANZEND',
 			'scanner_event_type_alpha' => 'ALFA',
-			'scanner_event_type_info' => 'INFO',
+			'scanner_event_type_info' => 'INFORMATIE',
 			'scanner_snack_team_ignored' => '{name} wordt als een eigen team genegeerd.',
 			'scanner_snack_no_target' => 'Geen doelvenster of bureaublad geselecteerd.',
 			'scanner_snack_scanning_target' => 'Scannen van "{title}"...',
@@ -4835,7 +4844,7 @@ extension on TranslationsNl {
 			'shiny_auto_slot_shiny' => 'Glanz!',
 			'shiny_auto_slot_paused' => 'Gepauzeerd',
 			'shiny_auto_stop_tooltip' => 'Auto-Teller stoppen',
-			'multi_hunt_dashboard_title' => 'Multi-Hunt Dashboard',
+			'multi_hunt_dashboard_title' => 'Multi-Jacht Dashboard',
 			'multi_hunt_dashboard_tooltip' => 'Multi-Hunt Dashboard openen',
 			'multi_hunt_empty_title' => 'Geen actieve of gepauzeerde Hunts',
 			'multi_hunt_empty_desc' => 'Maak minimaal één Glanz Hunt in de Hub om meerdere spellen tegelijk te volgen.',
@@ -4967,6 +4976,15 @@ extension on TranslationsNl {
 			'shiny_auto_reason_color_dev' => 'Kleurafwijking gedetecteerd ({details})',
 			'tutorial_demo_shiny_auto_badge_title' => 'Multi-Jacht · Auto-Teller · Scan-Sloten',
 			'tutorial_demo_shiny_auto_badge_subtitle' => 'Parallelle Hunts, Per-Hunt-regels & Shiny-bescherming',
+			'scanner_enlarged_waiting_text' => 'Wacht op tekst...',
+			'scanner_enlarged_close' => 'Sluiten',
+			'scanner_self_scan_overlap_title' => 'PokéVault ligt in het actieve scangebied',
+			'scanner_self_scan_overlap_body' => 'Het PokéVault-venster overlapt het bewaakte schermgebied. Hierdoor kan de live-OCR eigen teksten scannen en onnodig prestaties verbruiken.',
+			'scanner_self_scan_overlap_suppress' => 'Deze melding niet meer weergeven',
+			'scanner_self_scan_overlap_ignore' => 'Onverhuld laten',
+			'scanner_self_scan_overlap_mask' => 'PokéVault verbergen (Aanbevolen)',
+			'shiny_auto_transition_none_warning' => 'In de modus \'Alleen beeldwisseling\' zijn momenteel noch zwartbeeld- noch witbeeld-reset actief. Schakel minstens één overgang in of kies een andere modus.',
+			'multi_hunt_slot_default_suffix' => '(Standaard)',
 			_ => null,
 		};
 	}

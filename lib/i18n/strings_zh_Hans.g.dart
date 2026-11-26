@@ -2494,6 +2494,15 @@ class TranslationsZhHans extends Translations with BaseTranslations<AppLocale, T
 	@override String get shiny_auto_reason_color_dev => '检测到颜色偏差 ({details})';
 	@override String get tutorial_demo_shiny_auto_badge_title => '多重狩猎 · 自动反击 · 扫描插槽';
 	@override String get tutorial_demo_shiny_auto_badge_subtitle => '平行狩猎、每次狩猎规则与闪光保护';
+	@override String get scanner_enlarged_waiting_text => '等待文本...';
+	@override String get scanner_enlarged_close => '关闭';
+	@override String get scanner_self_scan_overlap_title => 'PokéVault 位于主动扫描区域';
+	@override String get scanner_self_scan_overlap_body => 'PokéVault 窗口覆盖了被监控的屏幕区域。因此，实时 OCR 可能会扫描自身的文本并消耗不必要的性能。';
+	@override String get scanner_self_scan_overlap_suppress => '不再显示此提示';
+	@override String get scanner_self_scan_overlap_ignore => '保持未掩盖';
+	@override String get scanner_self_scan_overlap_mask => '隐藏 PokéVault（推荐）';
+	@override String get shiny_auto_transition_none_warning => '在“仅图片切换”模式下，目前未激活黑屏或白屏重置。请至少启用一个过渡效果或选择其他模式。';
+	@override String get multi_hunt_slot_default_suffix => '（默认）';
 }
 
 /// The flat map containing all translations for locale <zh-Hans>.
@@ -4967,6 +4976,15 @@ extension on TranslationsZhHans {
 			'shiny_auto_reason_color_dev' => '检测到颜色偏差 ({details})',
 			'tutorial_demo_shiny_auto_badge_title' => '多重狩猎 · 自动反击 · 扫描插槽',
 			'tutorial_demo_shiny_auto_badge_subtitle' => '平行狩猎、每次狩猎规则与闪光保护',
+			'scanner_enlarged_waiting_text' => '等待文本...',
+			'scanner_enlarged_close' => '关闭',
+			'scanner_self_scan_overlap_title' => 'PokéVault 位于主动扫描区域',
+			'scanner_self_scan_overlap_body' => 'PokéVault 窗口覆盖了被监控的屏幕区域。因此，实时 OCR 可能会扫描自身的文本并消耗不必要的性能。',
+			'scanner_self_scan_overlap_suppress' => '不再显示此提示',
+			'scanner_self_scan_overlap_ignore' => '保持未掩盖',
+			'scanner_self_scan_overlap_mask' => '隐藏 PokéVault（推荐）',
+			'shiny_auto_transition_none_warning' => '在“仅图片切换”模式下，目前未激活黑屏或白屏重置。请至少启用一个过渡效果或选择其他模式。',
+			'multi_hunt_slot_default_suffix' => '（默认）',
 			_ => null,
 		};
 	}

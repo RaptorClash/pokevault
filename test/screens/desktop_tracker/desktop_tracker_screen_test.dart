@@ -1,15 +1,19 @@
+import 'dart:async';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:pokevault/models/pokemon.dart';
 import 'package:pokevault/models/user_dex.dart';
 import 'package:pokevault/providers/dex_provider.dart';
 import 'package:pokevault/providers/settings_provider.dart';
 import 'package:pokevault/screens/desktop_tracker/desktop_tracker_screen.dart';
+import 'package:pokevault/screens/desktop_tracker/widgets/desktop_tracker_dialogs.dart';
 import 'package:pokevault/screens/desktop_tracker/widgets/dex_selection_modal.dart';
 import 'package:pokevault/screens/desktop_tracker/widgets/floating_overlay_hud.dart';
+import 'package:pokevault/screens/desktop_tracker/widgets/live_frame_thumbnail.dart';
 import 'package:pokevault/screens/desktop_tracker/widgets/screen_snipping_overlay.dart';
 import 'package:pokevault/services/desktop_tracker/desktop_capture_driver.dart';
 import 'package:pokevault/services/desktop_tracker/desktop_ocr_driver.dart';
@@ -17,6 +21,7 @@ import 'package:pokevault/services/desktop_tracker/desktop_system_snipping_servi
 import 'package:pokevault/services/desktop_tracker/desktop_tracker_service.dart';
 import 'package:pokevault/services/desktop_tracker/desktop_window_source.dart';
 import 'package:pokevault/services/desktop_tracker/screen_region.dart';
+import 'package:pokevault/services/desktop_tracker/tracker_alert_service.dart';
 import 'package:pokevault/services/desktop_tracker/window_detector.dart';
 import 'package:pokevault/services/desktop_tracker/windows_desktop_bridge.dart';
 import 'package:pokevault/services/scanner_core/engine/ocr_detection_engine.dart';
@@ -2342,6 +2347,139 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(coordinator.settings.maskSelfWindow, isTrue);
+    });
+
+    testWidgets('LiveFrameThumbnail clears stale decoded image when liveFrame becomes null without synchronous dispose crash', (tester) async {
+      final frame1 = CapturedFrame(
+        width: 16,
+        height: 16,
+        bytes: Uint8List.fromList(List<int>.filled(16 * 16 * 4, 200)),
+        pixelFormat: 'bgra8888',
+      );
+      final frame2 = CapturedFrame(
+        width: 16,
+        height: 16,
+        bytes: Uint8List.fromList(List<int>.filled(16 * 16 * 4, 90)),
+        pixelFormat: 'bgra8888',
+      );
+
+      final notifier = ValueNotifier<CapturedFrame?>(frame1);
+      addTearDown(notifier.dispose);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: SizedBox(
+              width: 120,
+              height: 90,
+              child: ValueListenableBuilder<CapturedFrame?>(
+                valueListenable: notifier,
+                builder: (_, f, _) => LiveFrameThumbnail(
+                  liveFrame: f,
+                  fallbackPngBytes: null,
+                  fallbackIcon: Icons.videocam_off,
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 50));
+
+      // Rapidly swap frame1 -> frame2 -> null
+      notifier.value = frame2;
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 50));
+
+      notifier.value = null;
+      await tester.pumpAndSettle();
+
+      expect(find.byType(RawImage), findsNothing);
+      expect(find.byIcon(Icons.videocam_off), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('Changing tracker settings with English SettingsProvider keeps OCR language en-US (does not revert to de-DE)', (tester) async {
+      SharedPreferences.setMockInitialValues({});
+      final settingsProvider = MockSettingsProvider()
+        ..currentLanguage = 'en'
+        ..pokemonLanguage = 'en';
+      final activeSource = DesktopWindowSource(
+        captureDriver: MockCaptureDriver(),
+        ocrDriver: MockOcrDriver()..textToReturn = '',
+      );
+      addTearDown(activeSource.dispose);
+
+      await tester.pumpWidget(
+        MultiProvider(
+          providers: [
+            ChangeNotifierProvider<DexProvider>.value(value: mockDexProvider),
+            ChangeNotifierProvider<SettingsProvider>.value(value: settingsProvider),
+          ],
+          child: MaterialApp(
+            home: DesktopTrackerScreen(
+              coordinator: coordinator,
+              windowSource: activeSource,
+              detectedWindows: WindowDetector().getFallbackWindows(),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(activeSource.ocrLanguageTag, equals('en-US'));
+
+      // Toggle a setting (mask_self_window) -> OCR language MUST stay en-US!
+      await tester.tap(find.byKey(const Key('btn_tracker_settings')));
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(find.byKey(const Key('switch_mask_self_window')));
+      await tester.tap(find.byKey(const Key('switch_mask_self_window')));
+      await tester.pumpAndSettle();
+
+      expect(activeSource.ocrLanguageTag, equals('en-US'));
+      expect(coordinator.effectiveOcrLanguage, equals('en'));
+    });
+
+    testWidgets('DesktopTrackerScreen syncs external DesktopTrackerService.isPausedNotifier changes and handles constrained dialog viewports', (tester) async {
+      await tester.binding.setSurfaceSize(const Size(640, 460));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await tester.pumpWidget(createWidgetUnderTest());
+      await tester.pumpAndSettle();
+
+      // External pause from dock/service updates screen badge
+      DesktopTrackerService.instance.togglePause();
+      await tester.pump();
+      expect(DesktopTrackerService.instance.isPaused, isTrue);
+
+      // Enlarged preview & alert settings dialogs do not overflow on 640x460
+      unawaited(
+        DesktopTrackerDialogs.showEnlargedPreview(
+          tester.element(find.byType(DesktopTrackerScreen)),
+          liveFrame: CapturedFrame(
+            width: 32,
+            height: 24,
+            bytes: Uint8List(32 * 24 * 4),
+            pixelFormat: 'bgra8888',
+          ),
+          fallbackPng: null,
+          title: 'Preview',
+          statusListenable: ValueNotifier(const LiveOcrScanStatus()),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
+      Navigator.of(
+        tester.element(find.byKey(const Key('enlarged_preview_dialog'))),
+      ).pop();
+      await tester.pumpAndSettle();
+
+      DesktopTrackerDialogs.showAlertSettings(
+        tester.element(find.byType(DesktopTrackerScreen)),
+        alertService: TrackerAlertService(),
+      );
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
     });
   });
 }

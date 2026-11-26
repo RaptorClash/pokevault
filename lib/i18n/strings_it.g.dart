@@ -558,7 +558,7 @@ class TranslationsIt extends Translations with BaseTranslations<AppLocale, Trans
 	@override String get ball_dusk_ball => 'Palla oscura';
 	@override String get ball_cherish_ball => 'Palla di gioia';
 	@override String get ball_dream_ball => 'Palla da sogno';
-	@override String get ball_beast_ball => 'Ultraball';
+	@override String get ball_beast_ball => 'Ultra Ball';
 	@override String get ball_strange_ball => 'Strange Ball';
 	@override String get shiny_guide_title => 'Guida Shiny';
 	@override String get shiny_guide_gen1 => 'Generazione 1';
@@ -1542,7 +1542,7 @@ class TranslationsIt extends Translations with BaseTranslations<AppLocale, Trans
 	@override String get cat_orre => 'Colosseo e XD';
 	@override String get advanced_sort_title => 'Ordinamento avanzato';
 	@override String get sort_mega_title => 'Megaevoluzioni';
-	@override String get sort_gmax_title => 'Giga-Dynamax';
+	@override String get sort_gmax_title => 'Giga-Dinamax';
 	@override String get sort_regional_title => 'Forme regionali';
 	@override String get sort_origin_kanto => 'Regione di origine (es. Kanto)';
 	@override String get sort_mechanic_mega => 'Regione della Meccanica (Kalos/Hoenn)';
@@ -2494,6 +2494,15 @@ class TranslationsIt extends Translations with BaseTranslations<AppLocale, Trans
 	@override String get shiny_auto_reason_color_dev => 'Rilevata deviazione di colore ({details})';
 	@override String get tutorial_demo_shiny_auto_badge_title => 'Multi-Caccia · Contatore Automatico · Slot di Scansione';
 	@override String get tutorial_demo_shiny_auto_badge_subtitle => 'Cacce parallele, regole per caccia singola e protezione Shiny';
+	@override String get scanner_enlarged_waiting_text => 'Aspettando il testo...';
+	@override String get scanner_enlarged_close => 'Chiudi';
+	@override String get scanner_self_scan_overlap_title => 'PokéVault si trova nell\'area di scansione attiva';
+	@override String get scanner_self_scan_overlap_body => 'La finestra PokéVault sovrappone l\'area dello schermo monitorata. In questo modo, l\'OCR in diretta può scansionare i propri testi e consumare inutilmente risorse.';
+	@override String get scanner_self_scan_overlap_suppress => 'Non mostrare più questo avviso';
+	@override String get scanner_self_scan_overlap_ignore => 'Lasciare senza maschera';
+	@override String get scanner_self_scan_overlap_mask => 'Nascondi PokéVault (Consigliato)';
+	@override String get shiny_auto_transition_none_warning => 'In modalità “Solo cambio immagine” attualmente non è attivo né il reset con schermo nero né quello con schermo bianco. Attiva almeno una transizione o scegli un\'altra modalità.';
+	@override String get multi_hunt_slot_default_suffix => '(Standard)';
 }
 
 /// The flat map containing all translations for locale <it>.
@@ -3025,7 +3034,7 @@ extension on TranslationsIt {
 			'ball_dusk_ball' => 'Palla oscura',
 			'ball_cherish_ball' => 'Palla di gioia',
 			'ball_dream_ball' => 'Palla da sogno',
-			'ball_beast_ball' => 'Ultraball',
+			'ball_beast_ball' => 'Ultra Ball',
 			'ball_strange_ball' => 'Strange Ball',
 			'shiny_guide_title' => 'Guida Shiny',
 			'shiny_guide_gen1' => 'Generazione 1',
@@ -4011,7 +4020,7 @@ extension on TranslationsIt {
 			'cat_orre' => 'Colosseo e XD',
 			'advanced_sort_title' => 'Ordinamento avanzato',
 			'sort_mega_title' => 'Megaevoluzioni',
-			'sort_gmax_title' => 'Giga-Dynamax',
+			'sort_gmax_title' => 'Giga-Dinamax',
 			'sort_regional_title' => 'Forme regionali',
 			'sort_origin_kanto' => 'Regione di origine (es. Kanto)',
 			'sort_mechanic_mega' => 'Regione della Meccanica (Kalos/Hoenn)',
@@ -4967,6 +4976,15 @@ extension on TranslationsIt {
 			'shiny_auto_reason_color_dev' => 'Rilevata deviazione di colore ({details})',
 			'tutorial_demo_shiny_auto_badge_title' => 'Multi-Caccia · Contatore Automatico · Slot di Scansione',
 			'tutorial_demo_shiny_auto_badge_subtitle' => 'Cacce parallele, regole per caccia singola e protezione Shiny',
+			'scanner_enlarged_waiting_text' => 'Aspettando il testo...',
+			'scanner_enlarged_close' => 'Chiudi',
+			'scanner_self_scan_overlap_title' => 'PokéVault si trova nell\'area di scansione attiva',
+			'scanner_self_scan_overlap_body' => 'La finestra PokéVault sovrappone l\'area dello schermo monitorata. In questo modo, l\'OCR in diretta può scansionare i propri testi e consumare inutilmente risorse.',
+			'scanner_self_scan_overlap_suppress' => 'Non mostrare più questo avviso',
+			'scanner_self_scan_overlap_ignore' => 'Lasciare senza maschera',
+			'scanner_self_scan_overlap_mask' => 'Nascondi PokéVault (Consigliato)',
+			'shiny_auto_transition_none_warning' => 'In modalità “Solo cambio immagine” attualmente non è attivo né il reset con schermo nero né quello con schermo bianco. Attiva almeno una transizione o scegli un\'altra modalità.',
+			'multi_hunt_slot_default_suffix' => '(Standard)',
 			_ => null,
 		};
 	}

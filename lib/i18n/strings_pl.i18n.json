@@ -123,7 +123,7 @@
   "group_hoenn": "Hoenn",
   "group_sinnoh": "Sinnoh",
   "group_unova": "Unova",
-  "group_kalos": "Kalos & Z-A",
+  "group_kalos": "Kalos i Z-A",
   "group_alola": "Alola",
   "group_galar": "Galara",
   "group_hisui": "Hisui",
@@ -2459,5 +2459,14 @@
   "shiny_auto_reason_sparkle_delay": "Wykryto opóźnienie Sparkle ({details})",
   "shiny_auto_reason_color_dev": "Wykryto odchylenie koloru ({details})",
   "tutorial_demo_shiny_auto_badge_title": "Multi-Polowanie · Auto-Licznik · Skany-Slots",
-  "tutorial_demo_shiny_auto_badge_subtitle": "Równoległe polowania, zasady na polowanie i ochrona Shiny"
+  "tutorial_demo_shiny_auto_badge_subtitle": "Równoległe polowania, zasady na polowanie i ochrona Shiny",
+  "scanner_enlarged_waiting_text": "Czekam na tekst...",
+  "scanner_enlarged_close": "Zamknij",
+  "scanner_self_scan_overlap_title": "PokéVault znajduje się w aktywnym obszarze skanowania",
+  "scanner_self_scan_overlap_body": "Okno PokéVault nachodzi na monitorowany obszar ekranu. W ten sposób Live-OCR może skanować własne teksty i niepotrzebnie zużywać zasoby.",
+  "scanner_self_scan_overlap_suppress": "Nie pokazuj już tej informacji",
+  "scanner_self_scan_overlap_ignore": "Pozostawić bez maski",
+  "scanner_self_scan_overlap_mask": "Ukryj PokéVault (Zalecane)",
+  "shiny_auto_transition_none_warning": "W trybie „Tylko zmiana obrazu“ aktualnie nie jest aktywny reset obrazu czarnego ani białego. Aktywuj przynajmniej jeden przejście lub wybierz inny tryb.",
+  "multi_hunt_slot_default_suffix": "(Standard)"
 }

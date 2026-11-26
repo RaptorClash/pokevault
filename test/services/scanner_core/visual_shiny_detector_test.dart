@@ -111,6 +111,18 @@ void main() {
       now += const Duration(milliseconds: 2500);
       expect(detector.onBattleMenuSeen(1, now, delayThresholdMs: 800), isNull);
 
+      // clearPendingEncounter prevents stale battle-start timestamp from firing false +deltaMs
+      for (final ms in [1000, 1020, 990]) {
+        detector.onEncounterCounted(1, now);
+        now += Duration(milliseconds: ms);
+        detector.onBattleMenuSeen(1, now, delayThresholdMs: 800);
+        now += const Duration(seconds: 1);
+      }
+      detector.onEncounterCounted(1, now);
+      detector.clearPendingEncounter(1);
+      now += const Duration(milliseconds: 2500);
+      expect(detector.onBattleMenuSeen(1, now, delayThresholdMs: 800), isNull);
+
       detector.reset();
     });
   });

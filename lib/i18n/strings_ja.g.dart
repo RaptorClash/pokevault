@@ -2494,6 +2494,15 @@ class TranslationsJa extends Translations with BaseTranslations<AppLocale, Trans
 	@override String get shiny_auto_reason_color_dev => '色のズレを検出 ({details})';
 	@override String get tutorial_demo_shiny_auto_badge_title => 'マルチハント · オートカウンター · スキャンスロット';
 	@override String get tutorial_demo_shiny_auto_badge_subtitle => 'パラレルハント、ハントごとのルール＆光るポケモン保護';
+	@override String get scanner_enlarged_waiting_text => 'テキストを待っています...';
+	@override String get scanner_enlarged_close => '閉じる';
+	@override String get scanner_self_scan_overlap_title => 'ポケヴォルトはアクティブスキャンエリアにあります';
+	@override String get scanner_self_scan_overlap_body => 'PokéVaultウィンドウが監視されている画面領域と重なっています。これにより、Live OCRが自分のテキストをスキャンし、不要にパフォーマンスを消費する可能性があります。';
+	@override String get scanner_self_scan_overlap_suppress => 'この注意を再表示しない';
+	@override String get scanner_self_scan_overlap_ignore => 'マスクを外したままにする';
+	@override String get scanner_self_scan_overlap_mask => 'PokéVaultを非表示にする（推奨）';
+	@override String get shiny_auto_transition_none_warning => '「画像切替のみ」モードでは、現在、ブラック画面リセットもホワイト画面リセットも有効になっていません。少なくとも1つのトランジションを有効にするか、別のモードを選択してください。';
+	@override String get multi_hunt_slot_default_suffix => '（標準）';
 }
 
 /// The flat map containing all translations for locale <ja>.
@@ -4967,6 +4976,15 @@ extension on TranslationsJa {
 			'shiny_auto_reason_color_dev' => '色のズレを検出 ({details})',
 			'tutorial_demo_shiny_auto_badge_title' => 'マルチハント · オートカウンター · スキャンスロット',
 			'tutorial_demo_shiny_auto_badge_subtitle' => 'パラレルハント、ハントごとのルール＆光るポケモン保護',
+			'scanner_enlarged_waiting_text' => 'テキストを待っています...',
+			'scanner_enlarged_close' => '閉じる',
+			'scanner_self_scan_overlap_title' => 'ポケヴォルトはアクティブスキャンエリアにあります',
+			'scanner_self_scan_overlap_body' => 'PokéVaultウィンドウが監視されている画面領域と重なっています。これにより、Live OCRが自分のテキストをスキャンし、不要にパフォーマンスを消費する可能性があります。',
+			'scanner_self_scan_overlap_suppress' => 'この注意を再表示しない',
+			'scanner_self_scan_overlap_ignore' => 'マスクを外したままにする',
+			'scanner_self_scan_overlap_mask' => 'PokéVaultを非表示にする（推奨）',
+			'shiny_auto_transition_none_warning' => '「画像切替のみ」モードでは、現在、ブラック画面リセットもホワイト画面リセットも有効になっていません。少なくとも1つのトランジションを有効にするか、別のモードを選択してください。',
+			'multi_hunt_slot_default_suffix' => '（標準）',
 			_ => null,
 		};
 	}

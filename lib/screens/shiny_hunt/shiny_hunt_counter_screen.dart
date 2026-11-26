@@ -866,18 +866,25 @@ class _ShinyHuntCounterScreenState extends State<ShinyHuntCounterScreen> {
       focusNode: _keyboardFocusNode,
       autofocus: true,
       onKeyEvent: _handleKeyEvent,
-      child: Scaffold(
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final isCompactAppBar = constraints.maxWidth < 600;
+          return Scaffold(
         appBar: AppBar(
           title: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
                 hunt.title.isNotEmpty ? hunt.title : hunt.pokemonName,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
                 style: const TextStyle(fontSize: 18),
               ),
               if (hunt.title.isNotEmpty && hunt.title != hunt.pokemonName)
                 Text(
                   hunt.pokemonName,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: const TextStyle(fontSize: 12),
                 ),
             ],
@@ -923,37 +930,46 @@ class _ShinyHuntCounterScreenState extends State<ShinyHuntCounterScreen> {
                   ),
                 ),
               ),
-              KeyedSubtree(
-                key: _dashboardBtnKey,
-                child: IconButton(
-                  icon: const Icon(Icons.grid_view_rounded),
-                  tooltip: t.multi_hunt_dashboard_tooltip,
-                  onPressed: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) => const MultiHuntDashboardScreen(),
-                      ),
-                    );
-                  },
+              if (!isCompactAppBar)
+                KeyedSubtree(
+                  key: _dashboardBtnKey,
+                  child: IconButton(
+                    icon: const Icon(Icons.grid_view_rounded),
+                    tooltip: t.multi_hunt_dashboard_tooltip,
+                    onPressed: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => const MultiHuntDashboardScreen(),
+                        ),
+                      );
+                    },
+                  ),
                 ),
-              ),
-              OutlinedButton.icon(
-                style: OutlinedButton.styleFrom(
-                  visualDensity: VisualDensity.compact,
-                  foregroundColor: Colors.redAccent,
-                  side: const BorderSide(color: Colors.redAccent, width: 1),
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+              if (isCompactAppBar)
+                IconButton(
+                  icon: const Icon(Icons.flag_rounded, color: Colors.redAccent),
+                  tooltip: t.shiny_hunt_finish_btn,
+                  onPressed: () => _showFinishDialog(hunt),
+                )
+              else ...[
+                OutlinedButton.icon(
+                  style: OutlinedButton.styleFrom(
+                    visualDensity: VisualDensity.compact,
+                    foregroundColor: Colors.redAccent,
+                    side: const BorderSide(color: Colors.redAccent, width: 1),
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  ),
+                  icon: const Icon(Icons.flag_rounded, size: 16),
+                  label: Text(
+                    t.shiny_hunt_finish_btn,
+                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                  ),
+                  onPressed: () => _showFinishDialog(hunt),
                 ),
-                icon: const Icon(Icons.flag_rounded, size: 16),
-                label: Text(
-                  t.shiny_hunt_finish_btn,
-                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
-                ),
-                onPressed: () => _showFinishDialog(hunt),
-              ),
-              const SizedBox(width: 4),
+                const SizedBox(width: 4),
+              ],
             ],
-            if (!_isLockMode) ...[
+            if (!_isLockMode && !isCompactAppBar) ...[
               IconButton(
                 icon: const Icon(Icons.info_outline),
                 tooltip: t.shiny_hunt_shortcuts_title,
@@ -974,7 +990,68 @@ class _ShinyHuntCounterScreenState extends State<ShinyHuntCounterScreen> {
                   );
                 },
               ),
-            ],
+            ] else if (!_isLockMode && isCompactAppBar)
+              PopupMenuButton<String>(
+                key: const Key('counter_appbar_more_menu'),
+                onSelected: (value) {
+                  switch (value) {
+                    case 'dashboard':
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => const MultiHuntDashboardScreen(),
+                        ),
+                      );
+                    case 'shortcuts':
+                      _showShortcutsDialog();
+                    case 'settings':
+                      _showSettingsSheet();
+                    case 'edit':
+                      showDialog(
+                        context: context,
+                        builder: (_) => CreateEditHuntDialog(existingHunt: hunt),
+                      );
+                  }
+                },
+                itemBuilder: (_) => [
+                  if (!hunt.isCompleted)
+                    PopupMenuItem(
+                      value: 'dashboard',
+                      child: ListTile(
+                        dense: true,
+                        contentPadding: EdgeInsets.zero,
+                        leading: const Icon(Icons.grid_view_rounded, size: 20),
+                        title: Text(t.multi_hunt_dashboard_tooltip),
+                      ),
+                    ),
+                  PopupMenuItem(
+                    value: 'shortcuts',
+                    child: ListTile(
+                      dense: true,
+                      contentPadding: EdgeInsets.zero,
+                      leading: const Icon(Icons.info_outline, size: 20),
+                      title: Text(t.shiny_hunt_shortcuts_title),
+                    ),
+                  ),
+                  PopupMenuItem(
+                    value: 'settings',
+                    child: ListTile(
+                      dense: true,
+                      contentPadding: EdgeInsets.zero,
+                      leading: const Icon(Icons.settings, size: 20),
+                      title: Text(t.shiny_hunt_settings_title),
+                    ),
+                  ),
+                  const PopupMenuItem(
+                    value: 'edit',
+                    child: ListTile(
+                      dense: true,
+                      contentPadding: EdgeInsets.zero,
+                      leading: Icon(Icons.edit, size: 20),
+                      title: Text('Hunt bearbeiten'),
+                    ),
+                  ),
+                ],
+              ),
           ],
         ),
         body: SafeArea(
@@ -1251,6 +1328,8 @@ class _ShinyHuntCounterScreenState extends State<ShinyHuntCounterScreen> {
             ],
           ),
         ),
+      );
+        },
       ),
     );
   }

@@ -29,9 +29,13 @@ class DesktopTrackerDexController {
   }
 
   /// Resolves a Pokémon's localized display name or `#id` fallback.
-  static String resolvePokemonName(DexProvider dexProvider, int pokemonId) {
+  static String resolvePokemonName(
+    DexProvider dexProvider,
+    int pokemonId, {
+    String languageCode = 'de',
+  }) {
     for (final p in dexProvider.allPokemon) {
-      if (p.id == pokemonId) return p.nameDe;
+      if (p.id == pokemonId) return p.getName(languageCode);
     }
     return '#$pokemonId';
   }
@@ -299,6 +303,7 @@ class DesktopTrackerDexController {
     required ScannerEvent event,
     required PokemonFuzzyMatcher matcher,
     required Map<int, Pokemon> pokemonMap,
+    String languageCode = 'de',
   }) {
     final rawRankedMap = <int, double>{};
     for (final alt in event.alternatives) {
@@ -320,7 +325,7 @@ class DesktopTrackerDexController {
     }
 
     String resolveName(int id, [String? fallback]) =>
-        pokemonMap[id]?.nameDe ?? fallback ?? '#$id';
+        pokemonMap[id]?.getName(languageCode) ?? fallback ?? '#$id';
 
     final list = rawRankedMap.entries
         .map(

@@ -29,8 +29,7 @@ extension ShinyHuntDetectionModeHelpers on ShinyHuntDetectionMode {
       return ShinyHuntDetectionMode.softReset;
     }
     if (lower.contains('masuda') ||
-        lower.contains('egg') ||
-        lower.contains('ei') ||
+        RegExp(r'\b(ei|eier|egg|eggs)\b').hasMatch(lower) ||
         lower.contains('breed') ||
         lower.contains('zucht')) {
       return ShinyHuntDetectionMode.eggHatch;
@@ -96,7 +95,7 @@ class ShinyAutoCounterSettings {
     this.playHapticOnShiny = true,
     this.autoPauseSlotOnShiny = true,
     this.enableSparkleDelayShinyCheck = false,
-    this.sparkleDelayThresholdMs = 1000,
+    this.sparkleDelayThresholdMs = 1500,
     this.enableColorDeviationShinyCheck = false,
     this.colorDeviationThreshold = 0.38,
     this.slotToHuntOverrides = const {},
@@ -258,8 +257,9 @@ class ShinyAutoCounterSettings {
 
     void addRuleSet(ShinyAutoCounterSettings s, String? huntIdScope) {
       for (final p in s.customTriggerPatterns) {
-        final scopedId =
-            huntIdScope != null ? 'shiny_hunt:$huntIdScope:${p.id}' : p.id;
+        final scopedId = huntIdScope != null
+            ? 'shiny_hunt:$huntIdScope:${p.id}'
+            : 'shiny_base:${p.id}';
         if (seenIds.add(scopedId)) {
           result.add(
             CustomOcrPattern(
@@ -276,7 +276,7 @@ class ShinyAutoCounterSettings {
         if (phrase.isEmpty) continue;
         final id = huntIdScope != null
             ? 'shiny_hunt:$huntIdScope:reset_$i'
-            : 'shiny_reset_$i';
+            : 'shiny_base:reset_$i';
         if (seenIds.add(id)) {
           result.add(
             CustomOcrPattern(
@@ -425,7 +425,7 @@ class ShinyAutoCounterSettings {
       enableSparkleDelayShinyCheck:
           map['enableSparkleDelayShinyCheck'] as bool? ?? false,
       sparkleDelayThresholdMs:
-          ((map['sparkleDelayThresholdMs'] as num?)?.toInt() ?? 1000)
+          ((map['sparkleDelayThresholdMs'] as num?)?.toInt() ?? 1500)
               .clamp(500, 4000),
       enableColorDeviationShinyCheck:
           map['enableColorDeviationShinyCheck'] as bool? ?? false,

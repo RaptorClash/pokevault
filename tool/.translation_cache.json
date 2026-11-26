@@ -2162,7 +2162,18 @@
     "97226dca932502d53e73c2cfd82f8425": "Text Tutorial (Mew Glitch)",
     "5ce430593ba266dfd6978c2b0efa96d8": "Compare the scan frame after 3 normal encounters. Ideal with a calm emulator or capture card image.",
     "a6e55ad4b72f2d3e5154c0eee78d0302": "Sparkle Delay Detection (Beta)",
-    "0935a8e3310952f5ea5375e60a2dc116": "Note: The standard OCR pause responds to texts/symbols (“Shiny”, “Schillernd”, ✨ – e.g., in ROM hacks, overlays, or Gen-9 HUDs). For official games, you can additionally enable the beta heuristics."
+    "0935a8e3310952f5ea5375e60a2dc116": "Note: The standard OCR pause responds to texts/symbols (“Shiny”, “Schillernd”, ✨ – e.g., in ROM hacks, overlays, or Gen-9 HUDs). For official games, you can additionally enable the beta heuristics.",
+    "0f213f3da30f718a71f37d72ff7ed53e": "Waiting for text...",
+    "d9b64826513342b5bd76d391e67f775b": "PokéVault overlaps the active scan area",
+    "25342fc58e9606203121e9d2597b354d": "The PokéVault window overlaps the monitored screen area. This can cause Live OCR to scan its own text and waste performance.",
+    "d1998bfa0152776ec30011ae8faacb9b": "Don't show this warning again",
+    "775191926085829defe6c2feb7088da0": "Leave unmasked",
+    "6b8cd693407af42ec3a443ed56d60f5b": "Hide PokéVault (Recommended)",
+    "67b13a0e609cfd885eeffe5de9cded00": "Neither black-screen nor white-screen reset is enabled in Screen Transition Only mode. Enable at least one transition or choose another mode.",
+    "312ccb5df19ad52f75bd2924b8577009": " (Default)",
+    "f56090fadce9b2aa25303740a7e75e9b": "Bulbasaur - PLA Outbreaks Guide (DE)",
+    "105b296a83f9c105355403f3332af50f": "Break",
+    "414ba3e7027922e5f102cf66c77e281c": "glänzend"
   },
   "fr": {
     "9c0ff701e7f3418e18dd19c800034de3": "# 🔴 PokéVault",
@@ -4530,7 +4541,16 @@
     "5ce430593ba266dfd6978c2b0efa96d8": "Comparez le cadre de scan après 3 rencontres normales. Idéal avec une image d'émulateur ou de carte de capture stable.",
     "a6e55ad4b72f2d3e5154c0eee78d0302": "Détection Sparkle-Delay (Bêta)",
     "0935a8e3310952f5ea5375e60a2dc116": "Remarque : la pause OCR standard réagit aux textes/symboles (« Shiny », « Scintillant », ✨ – par exemple dans les ROM hacks, overlays ou HUD de la génération 9). Pour les jeux officiels, tu peux également activer les heuristiques bêta.",
-    "3b2764c3eaf23e847bcf5a2d2e3cef42": "Chasses parallèles, règles par chasse et protection Shiny"
+    "3b2764c3eaf23e847bcf5a2d2e3cef42": "Chasses parallèles, règles par chasse et protection Shiny",
+    "6b8cd693407af42ec3a443ed56d60f5b": "Masquer PokéVault (Recommandé)",
+    "312ccb5df19ad52f75bd2924b8577009": "(Standard)",
+    "775191926085829defe6c2feb7088da0": "Laisser non masqué",
+    "25342fc58e9606203121e9d2597b354d": "La fenêtre PokéVault chevauche la zone d'écran surveillée. Cela peut amener l'OCR en direct à scanner ses propres textes et à consommer inutilement des ressources.",
+    "67b13a0e609cfd885eeffe5de9cded00": "En mode « Changement d'image uniquement », ni la réinitialisation de l'image noire ni celle de l'image blanche n'est actuellement active. Activez au moins une transition ou choisissez un autre mode.",
+    "d1998bfa0152776ec30011ae8faacb9b": "Ne plus afficher ce conseil",
+    "0f213f3da30f718a71f37d72ff7ed53e": "En attente de texte...",
+    "d9b64826513342b5bd76d391e67f775b": "PokéVault se trouve dans la zone de scan active",
+    "551b723eafd6a31d444fcb2f5920fbd3": "INFORMATION"
   },
   "es": {
     "9c0ff701e7f3418e18dd19c800034de3": "# 🔴 PokéVault",
@@ -6906,7 +6926,16 @@
     "a6e55ad4b72f2d3e5154c0eee78d0302": "Detección de retraso de chispa (Beta)",
     "0935a8e3310952f5ea5375e60a2dc116": "Nota: La pausa OCR estándar reacciona a textos/símbolos (\"Shiny\", \"Brillante\", ✨ – por ejemplo en ROM-Hacks, superposiciones o HUD de la Gen-9). Para juegos oficiales, también puedes activar las heurísticas beta.",
     "3b2764c3eaf23e847bcf5a2d2e3cef42": "Cazas paralelas, reglas por caza y protección brillante",
-    "f34b38afe53ac344b13d9b4ca9db6336": "Boya"
+    "f34b38afe53ac344b13d9b4ca9db6336": "Boya",
+    "6b8cd693407af42ec3a443ed56d60f5b": "Ocultar PokéVault (Recomendado)",
+    "551b723eafd6a31d444fcb2f5920fbd3": "INFORMACIÓN",
+    "775191926085829defe6c2feb7088da0": "Dejar sin máscara",
+    "25342fc58e9606203121e9d2597b354d": "La ventana de PokéVault se superpone a la zona de pantalla supervisada. Esto permite que el OCR en vivo escanee sus propios textos y consuma rendimiento innecesariamente.",
+    "67b13a0e609cfd885eeffe5de9cded00": "En el modo «Solo cambio de imagen», actualmente no está activo ni el reinicio de pantalla negra ni el de pantalla blanca. Activa al menos una transición o selecciona otro modo.",
+    "d1998bfa0152776ec30011ae8faacb9b": "No mostrar este aviso de nuevo",
+    "0f213f3da30f718a71f37d72ff7ed53e": "Esperando texto...",
+    "d9b64826513342b5bd76d391e67f775b": "PokéVault se encuentra en el área de escaneo activo",
+    "312ccb5df19ad52f75bd2924b8577009": "(Estándar)"
   },
   "it": {
     "9c0ff701e7f3418e18dd19c800034de3": "# 🔴 PokéVault",
@@ -9301,7 +9330,17 @@
     "cbd56df4fc30e5d341446130c97d595d": "Gen 3 e 4 (R/S/S/D/P/P)",
     "551b723eafd6a31d444fcb2f5920fbd3": "INFORMAZIONI",
     "3b2764c3eaf23e847bcf5a2d2e3cef42": "Cacce parallele, regole per caccia singola e protezione Shiny",
-    "f34b38afe53ac344b13d9b4ca9db6336": "Ciao"
+    "f34b38afe53ac344b13d9b4ca9db6336": "Ciao",
+    "6b8cd693407af42ec3a443ed56d60f5b": "Nascondi PokéVault (Consigliato)",
+    "775191926085829defe6c2feb7088da0": "Lasciare senza maschera",
+    "25342fc58e9606203121e9d2597b354d": "La finestra PokéVault sovrappone l'area dello schermo monitorata. In questo modo, l'OCR in diretta può scansionare i propri testi e consumare inutilmente risorse.",
+    "67b13a0e609cfd885eeffe5de9cded00": "In modalità “Solo cambio immagine” attualmente non è attivo né il reset con schermo nero né quello con schermo bianco. Attiva almeno una transizione o scegli un'altra modalità.",
+    "d1998bfa0152776ec30011ae8faacb9b": "Non mostrare più questo avviso",
+    "0f213f3da30f718a71f37d72ff7ed53e": "Aspettando il testo...",
+    "d9b64826513342b5bd76d391e67f775b": "PokéVault si trova nell'area di scansione attiva",
+    "80d8c05baa90d7cb7becce9576f24811": "Ultra Ball",
+    "312ccb5df19ad52f75bd2924b8577009": "(Standard)",
+    "ff6ac1071a0dc2e203b46f6568b9f4cd": "Giga-Dinamax"
   },
   "ja": {
     "9c0ff701e7f3418e18dd19c800034de3": "# 🔴 ポケヴォルト",
@@ -11753,7 +11792,15 @@
     "0935a8e3310952f5ea5375e60a2dc116": "注意: 標準OCRポーズはテキスト/シンボル（「Shiny」「Schillernd」、✨ – 例えばROMハック、オーバーレイ、または第9世代HUDで）に反応します。公式ゲームでは、追加でベータヒューリスティックを有効にすることができます。",
     "3b2764c3eaf23e847bcf5a2d2e3cef42": "パラレルハント、ハントごとのルール＆光るポケモン保護",
     "dff08d1e23b5630258dcc6cec9ba8c8f": "Tesseract.js（{lang} · IndexedDB）",
-    "f529c51ee65a122778f148485732aee5": "光学文字認識"
+    "f529c51ee65a122778f148485732aee5": "光学文字認識",
+    "25342fc58e9606203121e9d2597b354d": "PokéVaultウィンドウが監視されている画面領域と重なっています。これにより、Live OCRが自分のテキストをスキャンし、不要にパフォーマンスを消費する可能性があります。",
+    "6b8cd693407af42ec3a443ed56d60f5b": "PokéVaultを非表示にする（推奨）",
+    "67b13a0e609cfd885eeffe5de9cded00": "「画像切替のみ」モードでは、現在、ブラック画面リセットもホワイト画面リセットも有効になっていません。少なくとも1つのトランジションを有効にするか、別のモードを選択してください。",
+    "775191926085829defe6c2feb7088da0": "マスクを外したままにする",
+    "d1998bfa0152776ec30011ae8faacb9b": "この注意を再表示しない",
+    "d9b64826513342b5bd76d391e67f775b": "ポケヴォルトはアクティブスキャンエリアにあります",
+    "312ccb5df19ad52f75bd2924b8577009": "（標準）",
+    "0f213f3da30f718a71f37d72ff7ed53e": "テキストを待っています..."
   },
   "ko": {
     "9c0ff701e7f3418e18dd19c800034de3": "# 🔴 포켓볼트",
@@ -14205,7 +14252,15 @@
     "a6e55ad4b72f2d3e5154c0eee78d0302": "스파클-지연 감지 (베타)",
     "0935a8e3310952f5ea5375e60a2dc116": "참고: 기본 OCR 일시정지는 텍스트/기호(예: 'Shiny', 'Schillernd', ✨ – 예: ROM 해킹, 오버레이 또는 Gen-9 HUD)에서 반응합니다. 공식 게임의 경우, Beta 휴리스틱을 추가로 활성화할 수 있습니다.",
     "3b2764c3eaf23e847bcf5a2d2e3cef42": "병렬 헌트, 헌트별 규칙 및 샤이니 보호",
-    "f529c51ee65a122778f148485732aee5": "광학 문자 인식"
+    "f529c51ee65a122778f148485732aee5": "광학 문자 인식",
+    "d1998bfa0152776ec30011ae8faacb9b": "이 알림 더 이상 표시하지 않기",
+    "25342fc58e9606203121e9d2597b354d": "PokéVault 창이 모니터링되는 화면 영역을 가립니다. 이로 인해 라이브 OCR이 자체 텍스트를 스캔하고 불필요하게 성능을 소모할 수 있습니다.",
+    "6b8cd693407af42ec3a443ed56d60f5b": "PokéVault 숨기기 (권장)",
+    "67b13a0e609cfd885eeffe5de9cded00": "현재 '단일 이미지 전환' 모드에서는 블랙 이미지 리셋이나 화이트 이미지 리셋이 활성화되어 있지 않습니다. 최소한 하나의 전환을 활성화하거나 다른 모드를 선택하세요.",
+    "312ccb5df19ad52f75bd2924b8577009": "(표준)",
+    "775191926085829defe6c2feb7088da0": "마스크를 벗은 상태로 두다",
+    "d9b64826513342b5bd76d391e67f775b": "포케볼트는 활성 스캔 영역에 있습니다",
+    "0f213f3da30f718a71f37d72ff7ed53e": "텍스트를 기다리는 중..."
   },
   "zh-Hans": {
     "9c0ff701e7f3418e18dd19c800034de3": "# 🔴 宝可梦库",
@@ -16667,7 +16722,15 @@
     "5ce430593ba266dfd6978c2b0efa96d8": "在经历三次正常遭遇后比较扫描帧。理想情况下在静止的模拟器或采集卡画面下进行。",
     "a6e55ad4b72f2d3e5154c0eee78d0302": "闪光延迟检测（测试版）",
     "0935a8e3310952f5ea5375e60a2dc116": "注意：标准OCR暂停会对文本/符号（“Shiny”、“闪光”、✨——例如在ROM修改、覆盖或第9代HUD中）作出反应。对于官方游戏，你还可以额外启用Beta启发式算法。",
-    "3b2764c3eaf23e847bcf5a2d2e3cef42": "平行狩猎、每次狩猎规则与闪光保护"
+    "3b2764c3eaf23e847bcf5a2d2e3cef42": "平行狩猎、每次狩猎规则与闪光保护",
+    "d1998bfa0152776ec30011ae8faacb9b": "不再显示此提示",
+    "25342fc58e9606203121e9d2597b354d": "PokéVault 窗口覆盖了被监控的屏幕区域。因此，实时 OCR 可能会扫描自身的文本并消耗不必要的性能。",
+    "6b8cd693407af42ec3a443ed56d60f5b": "隐藏 PokéVault（推荐）",
+    "67b13a0e609cfd885eeffe5de9cded00": "在“仅图片切换”模式下，目前未激活黑屏或白屏重置。请至少启用一个过渡效果或选择其他模式。",
+    "312ccb5df19ad52f75bd2924b8577009": "（默认）",
+    "775191926085829defe6c2feb7088da0": "保持未掩盖",
+    "d9b64826513342b5bd76d391e67f775b": "PokéVault 位于主动扫描区域",
+    "0f213f3da30f718a71f37d72ff7ed53e": "等待文本..."
   },
   "zh-Hant": {
     "9c0ff701e7f3418e18dd19c800034de3": "# 🔴 神奇寶貝保險庫",
@@ -19104,7 +19167,15 @@
     "0935a8e3310952f5ea5375e60a2dc116": "注意：標準 OCR 暫停會對文字/符號（「Shiny」、「閃亮」、✨ – 例如在 ROM 改版、疊加或第 9 代 HUD）做出反應。對於官方遊戲，你還可以啟用測試版啟發式方法。",
     "3b2764c3eaf23e847bcf5a2d2e3cef42": "平行獵捕、每次獵捕規則與閃光保護",
     "82865ed7deceadccbeeee9f3367bd959": "看",
-    "f529c51ee65a122778f148485732aee5": "光學字符識別"
+    "f529c51ee65a122778f148485732aee5": "光學字符識別",
+    "d9b64826513342b5bd76d391e67f775b": "PokéVault 位於活躍掃描區域",
+    "d1998bfa0152776ec30011ae8faacb9b": "不再顯示此提示",
+    "25342fc58e9606203121e9d2597b354d": "PokéVault 視窗會重疊被監控的螢幕區域。因此，Live OCR 可能會掃描自己的文字，並消耗不必要的性能。",
+    "6b8cd693407af42ec3a443ed56d60f5b": "隱藏 PokéVault（建議）",
+    "67b13a0e609cfd885eeffe5de9cded00": "在“僅切換圖像”模式下，目前既沒有黑屏重置也沒有白屏重置。請至少啟用一個過渡或選擇其他模式。",
+    "312ccb5df19ad52f75bd2924b8577009": "(標準)",
+    "775191926085829defe6c2feb7088da0": "保持未遮掩",
+    "0f213f3da30f718a71f37d72ff7ed53e": "等待文本..."
   },
   "pt": {
     "9c0ff701e7f3418e18dd19c800034de3": "# 🔴 PokéVault",
@@ -21496,7 +21567,15 @@
     "a6e55ad4b72f2d3e5154c0eee78d0302": "Detecção de Atraso de Brilho (Beta)",
     "0935a8e3310952f5ea5375e60a2dc116": "Nota: A pausa padrão da OCR reage a textos/símbolos (\"Shiny\", \"Brilhante\", ✨ – por exemplo, em ROM-Hacks, sobreposições ou HUD da Geração 9). Para jogos oficiais, você também pode ativar as heurísticas Beta.",
     "5ac689dbd69d02834cdcd0d6284ba6ff": "Dex de Glitch",
-    "3b2764c3eaf23e847bcf5a2d2e3cef42": "Caças Paralelas, Regras por Caça e Proteção Shiny"
+    "3b2764c3eaf23e847bcf5a2d2e3cef42": "Caças Paralelas, Regras por Caça e Proteção Shiny",
+    "6b8cd693407af42ec3a443ed56d60f5b": "Ocultar PokéVault (Recomendado)",
+    "775191926085829defe6c2feb7088da0": "Deixar sem máscara",
+    "25342fc58e9606203121e9d2597b354d": "A janela do PokéVault sobrepõe a área de tela monitorada. Isso permite que o OCR ao vivo escaneie seus próprios textos e consuma desempenho desnecessariamente.",
+    "67b13a0e609cfd885eeffe5de9cded00": "No modo 'Apenas Troca de Imagem', atualmente não está ativo o reset de tela preta nem de tela branca. Ative pelo menos uma transição ou escolha outro modo.",
+    "d1998bfa0152776ec30011ae8faacb9b": "Não mostrar mais este aviso",
+    "0f213f3da30f718a71f37d72ff7ed53e": "Aguardando texto...",
+    "d9b64826513342b5bd76d391e67f775b": "PokéVault está na área de escaneamento ativo",
+    "312ccb5df19ad52f75bd2924b8577009": "(Padrão)"
   },
   "nl": {
     "9c0ff701e7f3418e18dd19c800034de3": "# 🔴 PokéVault",
@@ -23613,7 +23692,7 @@
     "a5163fe21f330316158294f4b906f597": "Foto",
     "7f4486544da6ac997e09c9bfe680da59": "VANG",
     "002101f8725e5c78d9f30d87f3fa4c87": "ALFA",
-    "551b723eafd6a31d444fcb2f5920fbd3": "INFO",
+    "551b723eafd6a31d444fcb2f5920fbd3": "INFORMATIE",
     "5071a792250b432d06cf84fb393f3096": "Foto scannen",
     "3a0418d8b29b14dddf315fdf8ff0ba8b": "LIVE-SANDBOX TESTEN",
     "abd356758cf38e975d64d8f843d24cd8": "Foto / Frame testen",
@@ -23862,7 +23941,17 @@
     "5ce430593ba266dfd6978c2b0efa96d8": "Vergelijk het scanframe na 3 normale ontmoetingen. Ideaal bij een rustig emulator- of capturecardbeeld.",
     "a6e55ad4b72f2d3e5154c0eee78d0302": "Sparkle-Delay-detectie (Bèta)",
     "0935a8e3310952f5ea5375e60a2dc116": "Opmerking: De standaard-OCR-pauze reageert op teksten/symbolen („Shiny“, „Schillernd“, ✨ – bijvoorbeeld bij ROM-hacks, overlays of Generatie-9-HUD). Voor officiële spellen kun je bovendien de beta-heuristieken inschakelen.",
-    "34e54cd945001f4f439ff3db4ef0e8f9": "Glinsterende sloten in SwSh & BDSP"
+    "34e54cd945001f4f439ff3db4ef0e8f9": "Glinsterende sloten in SwSh & BDSP",
+    "6b8cd693407af42ec3a443ed56d60f5b": "PokéVault verbergen (Aanbevolen)",
+    "312ccb5df19ad52f75bd2924b8577009": "(Standaard)",
+    "775191926085829defe6c2feb7088da0": "Onverhuld laten",
+    "0f213f3da30f718a71f37d72ff7ed53e": "Wacht op tekst...",
+    "dfe6aeda9d99d326990844ea748af7a1": "SPEC",
+    "d1998bfa0152776ec30011ae8faacb9b": "Deze melding niet meer weergeven",
+    "515b546f87eccb6fd4069b28512c5f05": "Multi-Jacht Dashboard",
+    "25342fc58e9606203121e9d2597b354d": "Het PokéVault-venster overlapt het bewaakte schermgebied. Hierdoor kan de live-OCR eigen teksten scannen en onnodig prestaties verbruiken.",
+    "67b13a0e609cfd885eeffe5de9cded00": "In de modus 'Alleen beeldwisseling' zijn momenteel noch zwartbeeld- noch witbeeld-reset actief. Schakel minstens één overgang in of kies een andere modus.",
+    "d9b64826513342b5bd76d391e67f775b": "PokéVault ligt in het actieve scangebied"
   },
   "pl": {
     "9c0ff701e7f3418e18dd19c800034de3": "# 🔴 PokéVault",
@@ -26259,7 +26348,16 @@
     "a6e55ad4b72f2d3e5154c0eee78d0302": "Wykrywanie opóźnienia Sparkle (Beta)",
     "0935a8e3310952f5ea5375e60a2dc116": "Uwaga: Standardowa pauza OCR reaguje na teksty/symbole („Shiny”, „Błyszczące”, ✨ – np. w przypadku ROM-hacków, nakładek lub HUD-ów Gen-9). W przypadku oficjalnych gier możesz dodatkowo włączyć heurystyki beta.",
     "5ac689dbd69d02834cdcd0d6284ba6ff": "Dex Glitch",
-    "f1ab6b4aea2cf9ea55c9d5750c5553ce": "Piłka poziomowa"
+    "f1ab6b4aea2cf9ea55c9d5750c5553ce": "Piłka poziomowa",
+    "6b8cd693407af42ec3a443ed56d60f5b": "Ukryj PokéVault (Zalecane)",
+    "5a901d41bafbe6f55a12f19cfa4d998f": "Kalos i Z-A",
+    "775191926085829defe6c2feb7088da0": "Pozostawić bez maski",
+    "25342fc58e9606203121e9d2597b354d": "Okno PokéVault nachodzi na monitorowany obszar ekranu. W ten sposób Live-OCR może skanować własne teksty i niepotrzebnie zużywać zasoby.",
+    "67b13a0e609cfd885eeffe5de9cded00": "W trybie „Tylko zmiana obrazu“ aktualnie nie jest aktywny reset obrazu czarnego ani białego. Aktywuj przynajmniej jeden przejście lub wybierz inny tryb.",
+    "d1998bfa0152776ec30011ae8faacb9b": "Nie pokazuj już tej informacji",
+    "0f213f3da30f718a71f37d72ff7ed53e": "Czekam na tekst...",
+    "d9b64826513342b5bd76d391e67f775b": "PokéVault znajduje się w aktywnym obszarze skanowania",
+    "312ccb5df19ad52f75bd2924b8577009": "(Standard)"
   },
   "ru": {
     "9c0ff701e7f3418e18dd19c800034de3": "# 🔴 ПокеВаульт",
@@ -28725,7 +28823,15 @@
     "5ce430593ba266dfd6978c2b0efa96d8": "Сравните скан-кадр после 3 обычных встреч. Идеально при спокойном изображении эмулятора или карты захвата.",
     "a6e55ad4b72f2d3e5154c0eee78d0302": "Обнаружение искр-задержки (бета)",
     "0935a8e3310952f5ea5375e60a2dc116": "Примечание: Стандартная пауза OCR реагирует на текст/символы («Shiny», «Блестящий», ✨ – например, в ROM-хаках, оверлеях или HUD 9-го поколения). Для официальных игр вы также можете включить бета-эвристики.",
-    "3b2764c3eaf23e847bcf5a2d2e3cef42": "Параллельные охоты, правила на каждую охоту и защита Shiny"
+    "3b2764c3eaf23e847bcf5a2d2e3cef42": "Параллельные охоты, правила на каждую охоту и защита Shiny",
+    "d1998bfa0152776ec30011ae8faacb9b": "Больше не показывать это уведомление",
+    "25342fc58e9606203121e9d2597b354d": "Окно PokéVault перекрывает контролируемую область экрана. Из-за этого Live-OCR может сканировать собственные тексты и тратить ненужные ресурсы.",
+    "6b8cd693407af42ec3a443ed56d60f5b": "Скрыть PokéVault (Рекомендуется)",
+    "67b13a0e609cfd885eeffe5de9cded00": "В режиме «Только смена изображения» в данный момент не активен ни сброс черного экрана, ни сброс белого экрана. Активируйте хотя бы один переход или выберите другой режим.",
+    "312ccb5df19ad52f75bd2924b8577009": "(Стандарт)",
+    "775191926085829defe6c2feb7088da0": "Оставить без маски",
+    "d9b64826513342b5bd76d391e67f775b": "PokéVault находится в активной области сканирования",
+    "0f213f3da30f718a71f37d72ff7ed53e": "Жду текст..."
   },
   "en->de": {
     "4e446c9c74f02a92f8ff8faeaa19787d": "**Neue Funktionen**",

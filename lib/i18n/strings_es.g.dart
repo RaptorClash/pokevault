@@ -220,7 +220,7 @@ class TranslationsEs extends Translations with BaseTranslations<AppLocale, Trans
 	@override String get form_name_super => 'Genial';
 	@override String get form_name_baile => 'Flamenco';
 	@override String get form_name_pom_pom => 'porristas';
-	@override String get form_name_pau => 'Hula';
+	@override String get form_name_pau => 'Hola';
 	@override String get form_name_sensu => 'Boya';
 	@override String get form_name_vanilla_cream => 'vainilla';
 	@override String get form_name_ruby_cream => 'Rubí';
@@ -2157,7 +2157,7 @@ class TranslationsEs extends Translations with BaseTranslations<AppLocale, Trans
 	@override String get scanner_event_type_evolved => 'DESARROLLO';
 	@override String get scanner_event_type_shiny => 'BRILLANTE';
 	@override String get scanner_event_type_alpha => 'ALFA';
-	@override String get scanner_event_type_info => 'INFO';
+	@override String get scanner_event_type_info => 'INFORMACIÓN';
 	@override String get scanner_snack_team_ignored => '{name} se ignorará como equipo propio.';
 	@override String get scanner_snack_no_target => 'No se ha seleccionado ventana de destino ni escritorio.';
 	@override String get scanner_snack_scanning_target => 'Escaneando "{title}"...';
@@ -2494,6 +2494,15 @@ class TranslationsEs extends Translations with BaseTranslations<AppLocale, Trans
 	@override String get shiny_auto_reason_color_dev => 'Desviación de color detectada ({details})';
 	@override String get tutorial_demo_shiny_auto_badge_title => 'Multi-Caza · Auto-Contador · Escanear-Ranuras';
 	@override String get tutorial_demo_shiny_auto_badge_subtitle => 'Cazas paralelas, reglas por caza y protección brillante';
+	@override String get scanner_enlarged_waiting_text => 'Esperando texto...';
+	@override String get scanner_enlarged_close => 'Cerrar';
+	@override String get scanner_self_scan_overlap_title => 'PokéVault se encuentra en el área de escaneo activo';
+	@override String get scanner_self_scan_overlap_body => 'La ventana de PokéVault se superpone a la zona de pantalla supervisada. Esto permite que el OCR en vivo escanee sus propios textos y consuma rendimiento innecesariamente.';
+	@override String get scanner_self_scan_overlap_suppress => 'No mostrar este aviso de nuevo';
+	@override String get scanner_self_scan_overlap_ignore => 'Dejar sin máscara';
+	@override String get scanner_self_scan_overlap_mask => 'Ocultar PokéVault (Recomendado)';
+	@override String get shiny_auto_transition_none_warning => 'En el modo «Solo cambio de imagen», actualmente no está activo ni el reinicio de pantalla negra ni el de pantalla blanca. Activa al menos una transición o selecciona otro modo.';
+	@override String get multi_hunt_slot_default_suffix => '(Estándar)';
 }
 
 /// The flat map containing all translations for locale <es>.
@@ -2685,7 +2694,7 @@ extension on TranslationsEs {
 			'form_name_super' => 'Genial',
 			'form_name_baile' => 'Flamenco',
 			'form_name_pom_pom' => 'porristas',
-			'form_name_pau' => 'Hula',
+			'form_name_pau' => 'Hola',
 			'form_name_sensu' => 'Boya',
 			'form_name_vanilla_cream' => 'vainilla',
 			'form_name_ruby_cream' => 'Rubí',
@@ -4630,7 +4639,7 @@ extension on TranslationsEs {
 			'scanner_event_type_evolved' => 'DESARROLLO',
 			'scanner_event_type_shiny' => 'BRILLANTE',
 			'scanner_event_type_alpha' => 'ALFA',
-			'scanner_event_type_info' => 'INFO',
+			'scanner_event_type_info' => 'INFORMACIÓN',
 			'scanner_snack_team_ignored' => '{name} se ignorará como equipo propio.',
 			'scanner_snack_no_target' => 'No se ha seleccionado ventana de destino ni escritorio.',
 			'scanner_snack_scanning_target' => 'Escaneando "{title}"...',
@@ -4967,6 +4976,15 @@ extension on TranslationsEs {
 			'shiny_auto_reason_color_dev' => 'Desviación de color detectada ({details})',
 			'tutorial_demo_shiny_auto_badge_title' => 'Multi-Caza · Auto-Contador · Escanear-Ranuras',
 			'tutorial_demo_shiny_auto_badge_subtitle' => 'Cazas paralelas, reglas por caza y protección brillante',
+			'scanner_enlarged_waiting_text' => 'Esperando texto...',
+			'scanner_enlarged_close' => 'Cerrar',
+			'scanner_self_scan_overlap_title' => 'PokéVault se encuentra en el área de escaneo activo',
+			'scanner_self_scan_overlap_body' => 'La ventana de PokéVault se superpone a la zona de pantalla supervisada. Esto permite que el OCR en vivo escanee sus propios textos y consuma rendimiento innecesariamente.',
+			'scanner_self_scan_overlap_suppress' => 'No mostrar este aviso de nuevo',
+			'scanner_self_scan_overlap_ignore' => 'Dejar sin máscara',
+			'scanner_self_scan_overlap_mask' => 'Ocultar PokéVault (Recomendado)',
+			'shiny_auto_transition_none_warning' => 'En el modo «Solo cambio de imagen», actualmente no está activo ni el reinicio de pantalla negra ni el de pantalla blanca. Activa al menos una transición o selecciona otro modo.',
+			'multi_hunt_slot_default_suffix' => '(Estándar)',
 			_ => null,
 		};
 	}

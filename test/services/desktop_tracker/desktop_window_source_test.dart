@@ -715,8 +715,12 @@ void main() {
       await src.triggerSingleScan();
       expect(nativeBridge.requests.last.includeThumbnail, isFalse);
 
+      // Tick 2b at +700ms: second consecutive black sample confirms transition duration
+      clock += const Duration(milliseconds: 300);
+      await src.triggerSingleScan();
+
       // Tick 3 at +1100ms: thumbnail allowed again (>=1000ms), transition back to normal -> blackScreenEnded!
-      clock += const Duration(milliseconds: 700);
+      clock += const Duration(milliseconds: 400);
       src.setMaskSelfWindow(true);
       nativeBridge.nextResult = const NativeCaptureAnalyzeResult(
         captured: true,
@@ -912,6 +916,119 @@ void main() {
       expect(src.liveFocusStatusNotifier.value.latestFrame, equals(updatedThumb));
       expect(src.liveFocusStatusNotifier.value.scanCount, 1);
     });
+
+    test('Multi-Instance-only without Zone A skips full-monitor Zone A scan; minimized slot does not disable native fast-path for healthy slots', () async {
+      final legacyCap = _CountingOnlyCaptureDriver();
+      final legacyOcr = _CountingOcrDriver(const []);
+      final nativeBridge = _FastPathBridge();
+
+      final src = DesktopWindowSource(
+        captureDriver: legacyCap,
+        ocrDriver: legacyOcr,
+        nativeBridge: nativeBridge,
+      );
+      addTearDown(src.dispose);
+
+      const healthyWin = DesktopWindowInfo(
+        id: 1,
+        hwnd: 101,
+        title: 'mGBA #1',
+        width: 800,
+        height: 600,
+      );
+      const minimizedWin = DesktopWindowInfo(
+        id: 2,
+        hwnd: 202,
+        title: 'mGBA #2',
+        width: 0,
+        height: 0,
+        isMinimized: true,
+      );
+      src.updateKnownWindows([healthyWin, minimizedWin]);
+      src.setMultiInstanceSlots([
+        const MultiInstanceSlot(
+          id: 1,
+          label: '#1',
+          colorHex: 0xFFA855F7,
+          windowHwnd: 101,
+          windowTitle: 'mGBA #1',
+          scanEnabled: true,
+        ),
+        const MultiInstanceSlot(
+          id: 2,
+          label: '#2',
+          colorHex: 0xFFEC4899,
+          windowHwnd: 202,
+          windowTitle: 'mGBA #2',
+          scanEnabled: true,
+        ),
+      ]);
+
+      nativeBridge.nextResult = const NativeCaptureAnalyzeResult(
+        captured: true,
+        ocrSkipped: false,
+        lines: ['Ein wildes Glumanda erscheint!'],
+        frameWidth: 800,
+        frameHeight: 600,
+        selfWindowOverlaps: true,
+      );
+
+      await src.triggerSingleScan();
+
+      // Zone A must NOT run on primary screen when no Zone A window/region is configured
+      expect(nativeBridge.requests.any((r) => r.slotKey == 'zoneA'), isFalse);
+      // Healthy slot #1 must still use native fast-path despite slot #2 being minimized
+      expect(nativeBridge.requests.any((r) => r.slotKey == 'multi_1_scan'), isTrue);
+      expect(legacyCap.captureCount, 0);
+      expect(src.selfWindowOverlapNotifier.value, isTrue);
+    });
+
+    test('capturePreviewOnly & processSnippet safely ignore post-dispose completions and failed capture preserves forceNextNativeOcr', () async {
+      final nativeBridge = _FastPathBridge();
+      final slowCap = _DelayedCaptureDriver();
+      final slowOcr = _DelayedOcrDriver();
+      final src = DesktopWindowSource(
+        captureDriver: slowCap,
+        ocrDriver: slowOcr,
+        nativeBridge: nativeBridge,
+      );
+
+      src.setSelectedWindow(
+        const DesktopWindowInfo(id: 1, hwnd: 101, title: 'mGBA', width: 800, height: 600),
+      );
+      src.setOcrLanguageTag('en-US'); // sets _forceNextNativeOcr = true
+
+      // First scan fails capture -> _forceNextNativeOcr must remain true for retry!
+      nativeBridge.nextResult = const NativeCaptureAnalyzeResult(captured: false);
+      await src.triggerSingleScan();
+      expect(nativeBridge.requests.last.forceOcr, isTrue);
+
+      nativeBridge.nextResult = const NativeCaptureAnalyzeResult(
+        captured: true,
+        ocrSkipped: false,
+        lines: ['Wild Pikachu appeared!'],
+        frameWidth: 800,
+        frameHeight: 600,
+      );
+      await src.triggerSingleScan();
+      expect(nativeBridge.requests.last.forceOcr, isTrue);
+
+      // Start snippet & preview without native bridge and dispose while awaiting -> no crash
+      final src2 = DesktopWindowSource(
+        captureDriver: slowCap,
+        ocrDriver: slowOcr,
+      );
+      src2.setSelectedWindow(
+        const DesktopWindowInfo(id: 1, title: 'mGBA', width: 800, height: 600),
+      );
+      final snippetFuture = src2.processSnippet(
+        const CapturedFrame(width: 20, height: 20, bytes: [1, 2, 3, 4]),
+      );
+      final previewFuture = src2.capturePreviewOnly();
+      await src2.dispose();
+      await snippetFuture;
+      await previewFuture;
+    });
   });
 }
 
@@ -925,6 +1042,26 @@ class _CountingOnlyCaptureDriver implements DesktopCaptureDriver {
   }) async {
     captureCount++;
     return null;
+  }
+}
+
+class _DelayedCaptureDriver implements DesktopCaptureDriver {
+  @override
+  Future<CapturedFrame?> captureWindow({
+    required DesktopWindowInfo window,
+    Rect? cropRegion,
+    ScreenRegion? screenRegion,
+  }) async {
+    await Future<void>.delayed(const Duration(milliseconds: 25));
+    return const CapturedFrame(width: 20, height: 20, bytes: [1, 2, 3, 4]);
+  }
+}
+
+class _DelayedOcrDriver implements DesktopOcrDriver {
+  @override
+  Future<List<String>> recognizeText(CapturedFrame frame) async {
+    await Future<void>.delayed(const Duration(milliseconds: 25));
+    return const ['Pikachu'];
   }
 }
 

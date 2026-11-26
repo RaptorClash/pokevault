@@ -452,6 +452,7 @@ class ScannerCoordinator {
         focusGroup.add(event);
 
         if (effectiveType == ScannerEventType.encounter &&
+            !isShiny &&
             alreadySeenInBattle.contains(match.pokemonId)) {
           continue;
         }
@@ -490,50 +491,57 @@ class ScannerCoordinator {
       return List.unmodifiable(newlyEmitted.isNotEmpty ? newlyEmitted : focusGroup);
     }
 
+    final isResetEventType = effectiveType == ScannerEventType.softReset ||
+        effectiveType == ScannerEventType.customReset;
+
     // Single Pokémon resolution path
-    List<FuzzyMatchResult> candidates;
-    if (parseResult.isSmartSearchFallback) {
-      candidates = matcher.matchTokensFromLine(
-        parseResult.extractedPokemonName,
-        limit: 3,
-        threshold: 0.72,
-      );
-      if (candidates.isEmpty) {
-        return const [];
-      }
-    } else {
-      candidates = matcher.matchTopK(
-        parseResult.extractedPokemonName,
-        limit: 3,
-        threshold: 0.72,
-      );
-      if (candidates.isEmpty &&
-          parseResult.extractedPokemonName.contains(' ')) {
+    List<FuzzyMatchResult> candidates = const [];
+    if (!isResetEventType) {
+      if (parseResult.isSmartSearchFallback) {
         candidates = matcher.matchTokensFromLine(
           parseResult.extractedPokemonName,
           limit: 3,
           threshold: 0.72,
         );
+        if (candidates.isEmpty) {
+          return const [];
+        }
+      } else {
+        candidates = matcher.matchTopK(
+          parseResult.extractedPokemonName,
+          limit: 3,
+          threshold: 0.72,
+        );
+        if (candidates.isEmpty &&
+            parseResult.extractedPokemonName.contains(' ')) {
+          candidates = matcher.matchTokensFromLine(
+            parseResult.extractedPokemonName,
+            limit: 3,
+            threshold: 0.72,
+          );
+        }
+      }
+
+      // Filter out any ignored starter/team candidate
+      candidates = candidates
+          .where((c) => !_settings.ignoredPokemonIds.contains(c.pokemonId))
+          .toList();
+
+      final matchCheck = candidates.isNotEmpty ? candidates.first : null;
+      if (matchCheck == null && candidates.isEmpty) {
+        // Check if an ignored exact name triggered this event cleanly -> block it
+        final directCheck = matcher.match(parseResult.extractedPokemonName);
+        if (directCheck != null &&
+            _settings.ignoredPokemonIds.contains(directCheck.pokemonId)) {
+          return const [];
+        }
       }
     }
-
-    // Filter out any ignored starter/team candidate
-    candidates = candidates
-        .where((c) => !_settings.ignoredPokemonIds.contains(c.pokemonId))
-        .toList();
 
     final match = candidates.isNotEmpty ? candidates.first : null;
-    if (match == null && candidates.isEmpty) {
-      // Check if an ignored exact name triggered this event cleanly -> block it
-      final directCheck = matcher.match(parseResult.extractedPokemonName);
-      if (directCheck != null &&
-          _settings.ignoredPokemonIds.contains(directCheck.pokemonId)) {
-        return const [];
-      }
-    }
-
     final pokemonId = match?.pokemonId;
-    if (pokemonId != null &&
+    if (!isResetEventType &&
+        pokemonId != null &&
         _settings.ignoredPokemonIds.contains(pokemonId)) {
       return const [];
     }
@@ -562,7 +570,8 @@ class ScannerCoordinator {
           activeSingleBattle.speciesIds.contains(pokemonId);
       final sameFallback = activeSingleBattle != null &&
           activeSingleBattle.fallbackKey == singleSpeciesKey;
-      if (activeSingleBattle != null &&
+      if (!isShiny &&
+          activeSingleBattle != null &&
           (sameId || sameFallback) &&
           elapsed - activeSingleBattle.lastSeenAt < _battleTimeout) {
         _activeBattlesBySlot[battleSlotKey] = (

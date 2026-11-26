@@ -834,5 +834,104 @@ void main() {
       await tester.pumpWidget(const SizedBox.shrink());
       await tester.pump();
     });
+
+    testWidgets('SetupSheet preserves huntSettingsOverrides & slotToHuntOverrides on fast save, auto-commits custom pattern text, and warns on empty transitionOnly', (tester) async {
+      final hunt = makeHunt();
+      await huntProvider.createHunt(hunt);
+
+      const saved = ShinyAutoCounterSettings(
+        detectionMode: ShinyHuntDetectionMode.wildEncounter,
+        slotToHuntOverrides: {2: 'hunt-mewtwo'},
+        huntSettingsOverrides: {
+          'hunt-mewtwo': ShinyAutoCounterSettings(
+            detectionMode: ShinyHuntDetectionMode.softReset,
+            minResetCooldownMs: 2200,
+          ),
+        },
+      );
+      await ShinyAutoCounterSettings.saveToPrefs(saved);
+
+      final service = ShinyAutoCounterService.forTesting();
+      await tester.pumpWidget(
+        MultiProvider(
+          providers: [
+            ChangeNotifierProvider<ShinyHuntProvider>.value(value: huntProvider),
+            ChangeNotifierProvider<DexProvider>.value(value: dexProvider),
+          ],
+          child: TranslationProvider(
+            child: MaterialApp(
+              home: Scaffold(
+                body: SingleChildScrollView(
+                  child: ShinyAutoCounterSetupSheet(
+                    hunt: hunt,
+                    service: service,
+                    showSourceLauncher: false,
+                    scrollable: false,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      // Do NOT wait for async load before user edits -> simulates fast edit before prefs resolve
+      await tester.pump();
+
+      // Switch to screenTransitionOnly and disable black screen reset while white is disabled -> warning appears
+      await tester.ensureVisible(find.byKey(const Key('setup_mode_screenTransitionOnly')));
+      await tester.tap(find.byKey(const Key('setup_mode_screenTransitionOnly')));
+      await tester.pump();
+
+      await tester.ensureVisible(find.text(t.shiny_auto_black_reset_toggle));
+      await tester.tap(find.text(t.shiny_auto_black_reset_toggle));
+      await tester.pump();
+      expect(find.byKey(const Key('setup_transition_none_warning')), findsOneWidget);
+
+      // Switch back to softReset, type unsubmitted custom reset pattern text without tapping Add
+      await tester.ensureVisible(find.byKey(const Key('setup_mode_softReset')));
+      await tester.tap(find.byKey(const Key('setup_mode_softReset')));
+      await tester.pump();
+
+      await tester.ensureVisible(find.byKey(const Key('setup_custom_reset_field')));
+      await tester.enterText(find.byKey(const Key('setup_custom_reset_field')), 'Press Start Now');
+      await tester.pump();
+
+      await tester.ensureVisible(find.byKey(const Key('setup_start_btn')));
+      await tester.tap(find.byKey(const Key('setup_start_btn')));
+      await tester.pumpAndSettle();
+
+      final reloaded = await ShinyAutoCounterSettings.loadFromPrefs();
+      expect(reloaded, isNotNull);
+      expect(reloaded!.slotToHuntOverrides[2], equals('hunt-mewtwo'));
+      expect(reloaded.huntSettingsOverrides.containsKey('hunt-mewtwo'), isTrue);
+      expect(reloaded.customResetPatterns, contains('Press Start Now'));
+    });
+
+    testWidgets('ShinyHuntCounterScreen AppBar renders cleanly on narrow 480x700 viewport without overflow', (tester) async {
+      await tester.binding.setSurfaceSize(const Size(480, 700));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      final hunt = makeHunt();
+      await huntProvider.createHunt(hunt);
+
+      await tester.pumpWidget(
+        MultiProvider(
+          providers: [
+            ChangeNotifierProvider<ShinyHuntProvider>.value(value: huntProvider),
+            ChangeNotifierProvider<DexProvider>.value(value: dexProvider),
+          ],
+          child: TranslationProvider(
+            child: MaterialApp(
+              home: ShinyHuntCounterScreen(huntId: hunt.id),
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+      expect(tester.takeException(), isNull);
+      expect(find.byKey(const Key('counter_auto_scanner_btn')), findsOneWidget);
+      expect(find.byKey(const Key('counter_appbar_more_menu')), findsOneWidget);
+    });
   });
 }

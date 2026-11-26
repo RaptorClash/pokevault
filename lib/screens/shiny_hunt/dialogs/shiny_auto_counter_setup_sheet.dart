@@ -25,6 +25,7 @@ class ShinyAutoCounterSetupSheet extends StatefulWidget {
   final VoidCallback? onStarted;
   final bool showSourceLauncher;
   final bool perHuntOverride;
+  final bool preserveDefaultHuntId;
   final bool scrollable;
   final BuildContext? parentContext;
 
@@ -35,6 +36,7 @@ class ShinyAutoCounterSetupSheet extends StatefulWidget {
     this.onStarted,
     this.showSourceLauncher = true,
     this.perHuntOverride = false,
+    this.preserveDefaultHuntId = false,
     this.scrollable = true,
     this.parentContext,
   });
@@ -45,6 +47,7 @@ class ShinyAutoCounterSetupSheet extends StatefulWidget {
     ShinyAutoCounterService? service,
     VoidCallback? onStarted,
     bool perHuntOverride = false,
+    bool preserveDefaultHuntId = false,
   }) {
     final parentContext = context;
     return showModalBottomSheet<void>(
@@ -63,6 +66,7 @@ class ShinyAutoCounterSetupSheet extends StatefulWidget {
             service: service,
             onStarted: onStarted,
             perHuntOverride: perHuntOverride,
+            preserveDefaultHuntId: preserveDefaultHuntId,
             scrollable: false,
             parentContext: parentContext,
           ),
@@ -162,10 +166,15 @@ class _ShinyAutoCounterSetupSheetState
   }) _resolveActiveSource() {
     final desktop = DesktopTrackerService.instance;
     if (desktop.coordinator != null && desktop.isTrackingActive) {
-      final slots = desktop.windowSource?.multiInstanceSlots
-              .where((s) => s.enabled)
-              .toList() ??
-          const [];
+      final isCam = desktop.activeWindow?.isCameraSource == true &&
+          desktop.activeSource != null &&
+          !identical(desktop.activeSource, desktop.windowSource);
+      final slots = isCam
+          ? const <MultiInstanceSlot>[]
+          : (desktop.windowSource?.multiInstanceSlots
+                  .where((s) => s.enabled)
+                  .toList() ??
+              const <MultiInstanceSlot>[]);
       final slotIds =
           slots.isNotEmpty ? slots.map((s) => s.id).toList() : <int>[1];
       final slotColors = {
@@ -173,7 +182,7 @@ class _ShinyAutoCounterSetupSheetState
       };
       return (
         coordinator: desktop.coordinator,
-        source: desktop.windowSource,
+        source: desktop.activeSource,
         slotIds: slotIds,
         slotColors: slotColors,
       );
@@ -229,7 +238,9 @@ class _ShinyAutoCounterSetupSheetState
     }
     if (!clampAndSync && parsed < 200) return;
     final clamped = parsed.clamp(200, 30000);
-    _updateSettings(_settings.copyWith(minResetCooldownMs: clamped));
+    if (clamped != _settings.minResetCooldownMs) {
+      _updateSettings(_settings.copyWith(minResetCooldownMs: clamped));
+    }
     if (clampAndSync) {
       _cooldownController.text = clamped.toString();
     }
@@ -246,7 +257,9 @@ class _ShinyAutoCounterSetupSheetState
     }
     if (!clampAndSync && parsed < 150) return;
     final clamped = parsed.clamp(150, 5000);
-    _updateSettings(_settings.copyWith(transitionMinDurationMs: clamped));
+    if (clamped != _settings.transitionMinDurationMs) {
+      _updateSettings(_settings.copyWith(transitionMinDurationMs: clamped));
+    }
     if (clampAndSync) {
       _transitionDurationController.text = clamped.toString();
     }
@@ -280,6 +293,12 @@ class _ShinyAutoCounterSetupSheetState
   Future<void> _applyOrStart() async {
     _commitCooldownText(_cooldownController.text);
     _commitTransitionText(_transitionDurationController.text);
+    if (_triggerController.text.trim().isNotEmpty) {
+      _addCustomTrigger();
+    }
+    if (_resetController.text.trim().isNotEmpty) {
+      _addCustomReset();
+    }
 
     if (widget.perHuntOverride) {
       await _service.ensureSettingsLoaded();
@@ -291,7 +310,22 @@ class _ShinyAutoCounterSetupSheetState
       return;
     }
 
-    await ShinyAutoCounterSettings.saveToPrefs(_settings);
+    await _service.ensureSettingsLoaded();
+    if (!mounted) return;
+
+    final effectiveSettings = _settings.copyWith(
+      slotToHuntOverrides: {
+        ..._service.settings.slotToHuntOverrides,
+        ..._settings.slotToHuntOverrides,
+      },
+      huntSettingsOverrides: {
+        ..._service.settings.huntSettingsOverrides,
+        ..._settings.huntSettingsOverrides,
+      },
+    );
+    _settings = effectiveSettings;
+
+    await ShinyAutoCounterSettings.saveToPrefs(effectiveSettings);
     if (!mounted) return;
 
     final active = _resolveActiveSource();
@@ -301,8 +335,9 @@ class _ShinyAutoCounterSetupSheetState
     if (_service.isRunning &&
         (active.coordinator == null ||
             identical(_service.coordinator, active.coordinator))) {
-      _service.updateSettings(_settings);
-      if (_service.defaultHuntId != widget.hunt.id) {
+      _service.updateSettings(effectiveSettings);
+      if (!widget.preserveDefaultHuntId &&
+          _service.defaultHuntId != widget.hunt.id) {
         _service.setDefaultHuntId(widget.hunt.id);
       }
       if (mounted && Navigator.of(context).canPop()) {
@@ -319,7 +354,7 @@ class _ShinyAutoCounterSetupSheetState
         defaultHuntId: widget.hunt.id,
         slotIds: active.slotIds,
         slotColorOverrides: active.slotColors,
-        settings: _settings,
+        settings: effectiveSettings,
       );
       widget.onStarted?.call();
       if (mounted && Navigator.of(context).canPop()) {
@@ -336,7 +371,7 @@ class _ShinyAutoCounterSetupSheetState
       _service.armPendingSession(
         huntProvider: huntProvider,
         defaultHuntId: widget.hunt.id,
-        settings: _settings,
+        settings: effectiveSettings,
       );
       if (mounted && navigator.canPop()) {
         navigator.pop();
@@ -381,6 +416,7 @@ class _ShinyAutoCounterSetupSheetState
 
     return ListenableBuilder(
       listenable: Listenable.merge([
+        _service.isRunningNotifier,
         DesktopTrackerService.instance.isTrackingNotifier,
         MobileCameraTrackerService.instance.isTrackingNotifier,
       ]),
@@ -686,6 +722,40 @@ class _ShinyAutoCounterSetupSheetState
                     _settings.copyWith(enableWhiteScreenReset: v),
                   ),
                 ),
+                if (isTransitionOnly &&
+                    !_settings.enableBlackScreenReset &&
+                    !_settings.enableWhiteScreenReset)
+                  Container(
+                    key: const Key('setup_transition_none_warning'),
+                    margin: const EdgeInsets.only(top: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 8,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.amber.withValues(alpha: 0.14),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: Colors.amber.withValues(alpha: 0.5),
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(
+                          Icons.warning_amber_rounded,
+                          size: 16,
+                          color: Colors.amber,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            t.shiny_auto_transition_none_warning,
+                            style: const TextStyle(fontSize: 11),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 const SizedBox(height: 10),
               ],
             ),
@@ -1221,7 +1291,10 @@ class _TimingSliderRow extends StatelessWidget {
                 onChanged: onTextChanged,
                 onSubmitted: onTextCommitted,
                 onEditingComplete: () => onTextCommitted(controller.text),
-                onTapOutside: (_) => onTextCommitted(controller.text),
+                onTapOutside: (_) {
+                  FocusScope.of(context).unfocus();
+                  onTextCommitted(controller.text);
+                },
               ),
             ),
           ],

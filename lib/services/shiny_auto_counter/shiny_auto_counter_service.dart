@@ -103,14 +103,21 @@ class ShinyAutoCounterService {
 
   final SparkleDelayDetector _sparkleDelayDetector = SparkleDelayDetector();
   final VisualShinyColorDetector _colorDetector = VisualShinyColorDetector();
-  final Map<int, ({String speciesKey, int? pokemonId, String? pokemonName})>
-      _pendingColorSampleBySlot = {};
+  final Map<
+      int,
+      ({
+        String speciesKey,
+        int? pokemonId,
+        String? pokemonName,
+        Duration sampleAfter,
+      })> _pendingColorSampleBySlot = {};
 
   final Map<int, ShinySlotStateMachine> _slots = {};
   final Map<int, Timer> _rearmTimers = {};
   final List<AutoCountLogEntry> _logs = [];
   final List<AutoCountLogEntry> _activeShinyAlerts = [];
   int _logSequence = 0;
+  int _sessionGeneration = 0;
 
   // Serialized FIFO queue for zero race conditions across N concurrent slots.
   final Queue<_SerializedAutoTask> _queue = Queue();
@@ -217,10 +224,15 @@ class ShinyAutoCounterService {
     Map<int, int>? slotColorOverrides,
     ShinyAutoCounterSettings? settings,
   }) {
+    _sessionGeneration++;
     _pendingSession = null;
     hasPendingSessionNotifier.value = false;
     _cancelAllRearmTimers();
     _cleanupSubscriptions();
+    _huntProvider?.setAutoCounterActiveHunts(
+      const {},
+      isRunningAndUnpaused: false,
+    );
     _huntProvider?.removeListener(_onHuntProviderChanged);
 
     _huntProvider = huntProvider;
@@ -230,9 +242,11 @@ class ShinyAutoCounterService {
 
     final hunt = huntProvider.getHuntById(defaultHuntId);
     final rawSettings = settings ??
-        (hunt != null
-            ? ShinyAutoCounterSettings.forHuntMethod(hunt.method)
-            : const ShinyAutoCounterSettings());
+        (_settingsLoaded
+            ? _settings
+            : (hunt != null
+                ? ShinyAutoCounterSettings.forHuntMethod(hunt.method)
+                : const ShinyAutoCounterSettings()));
     _settings = _pruneStaleOverrides(rawSettings, huntProvider);
     _settingsLoaded = true;
     settingsNotifier.value = _settings;
@@ -242,6 +256,8 @@ class ShinyAutoCounterService {
     huntProvider.addListener(_onHuntProviderChanged);
 
     _slots.clear();
+    _logs.clear();
+    recentLogsNotifier.value = const [];
     final effectiveSlotIds = slotIds.isEmpty ? const [1] : slotIds;
     for (int i = 0; i < effectiveSlotIds.length; i++) {
       final sid = effectiveSlotIds[i];
@@ -263,7 +279,9 @@ class ShinyAutoCounterService {
         assignedHuntId: targetHuntId,
         settings: effectiveSettings,
         elapsedClock: _elapsedClock,
-      );
+      )..setHasExplicitHuntOverride(
+          _settings.huntSettingsOverrides.containsKey(targetHuntId),
+        );
     }
     _syncSourceTransitionConfig();
 
@@ -293,26 +311,69 @@ class ShinyAutoCounterService {
     isPausedNotifier.value = false;
     latestShinyAlertNotifier.value = null;
     _syncVisualFrameSubscription();
+    _syncProviderActiveAutoHunts();
     _publishSlotSnapshots();
   }
 
+  void _syncProviderActiveAutoHunts() {
+    final provider = _huntProvider;
+    if (provider == null) return;
+    if (!_running) {
+      provider.setAutoCounterActiveHunts(
+        const {},
+        isRunningAndUnpaused: false,
+      );
+      return;
+    }
+    final activeIds = <String>{};
+    for (final slot in _slots.values) {
+      if (slot.phase == ShinySlotPhase.pausedManual ||
+          slot.phase == ShinySlotPhase.pausedByShiny) {
+        continue;
+      }
+      final hid = _settings.slotToHuntOverrides[slot.slotId] ??
+          slot.assignedHuntId ??
+          _defaultHuntId;
+      if (hid != null && hid.isNotEmpty) {
+        activeIds.add(hid);
+      }
+    }
+    provider.setAutoCounterActiveHunts(
+      activeIds,
+      isRunningAndUnpaused: _running && !_paused,
+    );
+  }
+
   void setDefaultHuntId(String huntId) {
+    final prevDefault = _defaultHuntId;
     _defaultHuntId = huntId;
     for (final slot in _slots.values) {
       if (!_settings.slotToHuntOverrides.containsKey(slot.slotId)) {
         final h = _huntProvider?.getHuntById(huntId);
+        final changedHunt = prevDefault != huntId ||
+            slot.assignedHuntId != huntId ||
+            slot.targetPokemonId != h?.pokemonId;
         slot.updateSettings(
           _settings.resolveForHunt(huntId: huntId, huntMethod: h?.method),
+        );
+        slot.setHasExplicitHuntOverride(
+          _settings.huntSettingsOverrides.containsKey(huntId),
         );
         slot.updateTarget(
           pokemonId: h?.pokemonId,
           pokemonName: h?.pokemonName,
           huntId: huntId,
         );
+        if (changedHunt) {
+          _sparkleDelayDetector.reset(slot.slotId);
+          _colorDetector.reset(slot.slotId);
+          _pendingColorSampleBySlot.remove(slot.slotId);
+        }
       }
     }
     _syncSourceTransitionConfig();
     _syncVisualFrameSubscription();
+    _syncProviderActiveAutoHunts();
     _publishSlotSnapshots();
   }
 
@@ -324,9 +385,22 @@ class ShinyAutoCounterService {
   /// Stores or updates a per-hunt auto-counter rule override and applies it
   /// immediately to all slots assigned to [huntId].
   void updateHuntSettings(String huntId, ShinyAutoCounterSettings huntRule) {
+    final cleanedRule = huntRule.copyWith(huntSettingsOverrides: const {});
+    if (!_settingsLoaded) {
+      unawaited(() async {
+        await ensureSettingsLoaded();
+        updateHuntSettings(huntId, cleanedRule);
+      }());
+      final nextOverrides = Map<String, ShinyAutoCounterSettings>.from(
+        _settings.huntSettingsOverrides,
+      );
+      nextOverrides[huntId] = cleanedRule;
+      updateSettings(_settings.copyWith(huntSettingsOverrides: nextOverrides));
+      return;
+    }
     final nextOverrides =
         Map<String, ShinyAutoCounterSettings>.from(_settings.huntSettingsOverrides);
-    nextOverrides[huntId] = huntRule.copyWith(huntSettingsOverrides: const {});
+    nextOverrides[huntId] = cleanedRule;
     final updated = _settings.copyWith(huntSettingsOverrides: nextOverrides);
     updateSettings(updated);
     unawaited(ShinyAutoCounterSettings.saveToPrefs(updated));
@@ -343,17 +417,29 @@ class ShinyAutoCounterService {
     for (final slot in _slots.values) {
       final assigned = pruned.slotToHuntOverrides[slot.slotId] ?? _defaultHuntId;
       final h = assigned != null ? _huntProvider?.getHuntById(assigned) : null;
+      final changedTarget = slot.assignedHuntId != assigned ||
+          slot.targetPokemonId != h?.pokemonId ||
+          slot.targetPokemonName != h?.pokemonName;
       slot.updateSettings(
         pruned.resolveForHunt(huntId: assigned, huntMethod: h?.method),
+      );
+      slot.setHasExplicitHuntOverride(
+        assigned != null && pruned.huntSettingsOverrides.containsKey(assigned),
       );
       slot.updateTarget(
         pokemonId: h?.pokemonId,
         pokemonName: h?.pokemonName,
         huntId: assigned,
       );
+      if (changedTarget) {
+        _sparkleDelayDetector.reset(slot.slotId);
+        _colorDetector.reset(slot.slotId);
+        _pendingColorSampleBySlot.remove(slot.slotId);
+      }
     }
     _syncSourceTransitionConfig();
     _syncVisualFrameSubscription();
+    _syncProviderActiveAutoHunts();
     _publishSlotSnapshots();
   }
 
@@ -394,16 +480,25 @@ class ShinyAutoCounterService {
             huntMethod: h?.method,
           ),
           elapsedClock: _elapsedClock,
-        );
+        )..setHasExplicitHuntOverride(
+            huntId != null && _settings.huntSettingsOverrides.containsKey(huntId),
+          );
       }
     }
 
     _syncSourceTransitionConfig();
     _syncVisualFrameSubscription();
+    _syncProviderActiveAutoHunts();
     _publishSlotSnapshots();
   }
 
   void assignSlotToHunt(int slotId, String? huntId) {
+    if (!_settingsLoaded) {
+      unawaited(() async {
+        await ensureSettingsLoaded();
+        assignSlotToHunt(slotId, huntId);
+      }());
+    }
     final nextOverrides = Map<int, String>.from(_settings.slotToHuntOverrides);
     if (huntId == null || huntId.isEmpty) {
       nextOverrides.remove(slotId);
@@ -412,17 +507,21 @@ class ShinyAutoCounterService {
     }
     final updated = _settings.copyWith(slotToHuntOverrides: nextOverrides);
     updateSettings(updated);
-    unawaited(ShinyAutoCounterSettings.saveToPrefs(updated));
+    if (_settingsLoaded) {
+      unawaited(ShinyAutoCounterSettings.saveToPrefs(updated));
+    }
   }
 
   void toggleGlobalPause() {
     _paused = !_paused;
     isPausedNotifier.value = _paused;
+    _syncProviderActiveAutoHunts();
   }
 
   void setGlobalPause(bool paused) {
     _paused = paused;
     isPausedNotifier.value = _paused;
+    _syncProviderActiveAutoHunts();
   }
 
   void togglePauseSlot(int slotId) {
@@ -438,6 +537,7 @@ class ShinyAutoCounterService {
       }
       slot.setManualPaused(nextPaused);
     }
+    _syncProviderActiveAutoHunts();
     _publishSlotSnapshots();
   }
 
@@ -462,6 +562,8 @@ class ShinyAutoCounterService {
     slot.resumeFromShinyPause();
     _clearCoordinatorBattleState(slotId);
     _pendingColorSampleBySlot.remove(slotId);
+    _sparkleDelayDetector.reset(slotId);
+    _colorDetector.reset(slotId);
     _removeShinyAlertForSlot(slotId);
 
     // Ensure any remaining pausedByShiny slot without a log entry still surfaces
@@ -498,6 +600,7 @@ class ShinyAutoCounterService {
         );
       }
     }
+    _syncProviderActiveAutoHunts();
     _publishSlotSnapshots();
   }
 
@@ -508,7 +611,9 @@ class ShinyAutoCounterService {
     slot.forceRearm();
     _clearCoordinatorBattleState(slotId);
     _pendingColorSampleBySlot.remove(slotId);
+    _sparkleDelayDetector.clearPendingEncounter(slotId);
     _removeShinyAlertForSlot(slotId);
+    _syncProviderActiveAutoHunts();
     _publishSlotSnapshots();
   }
 
@@ -520,6 +625,7 @@ class ShinyAutoCounterService {
       slot.forceRearm();
       _clearCoordinatorBattleState(slot.slotId);
       _pendingColorSampleBySlot.remove(slot.slotId);
+      _sparkleDelayDetector.clearPendingEncounter(slot.slotId);
     }
     _publishSlotSnapshots();
   }
@@ -556,7 +662,7 @@ class ShinyAutoCounterService {
   }
 
   /// Undoes a specific log entry by [entryId], subtracting its exact delta,
-  /// updating the slot session counter, and immediately re-arming the slot.
+  /// updating the slot session counter, and re-arming only when safe.
   bool undoEntry(String entryId) {
     final idx = _logs.indexWhere((e) => e.id == entryId && !e.undone);
     if (idx < 0) return false;
@@ -564,15 +670,29 @@ class ShinyAutoCounterService {
     if (entry.delta > 0) {
       _huntProvider?.decrementAuto(entry.huntId, delta: entry.delta);
     }
-    _cancelRearmTimer(entry.slotId);
-    _slots[entry.slotId]?.recordUndo(entry.delta);
-    _clearCoordinatorBattleState(entry.slotId);
-    _pendingColorSampleBySlot.remove(entry.slotId);
-    if (entry.isShiny) {
+
+    final slot = _slots[entry.slotId];
+    final latestSlotIdx =
+        _logs.indexWhere((e) => e.slotId == entry.slotId && !e.undone);
+    final isLatestForSlot = latestSlotIdx == idx;
+    final preservePause = slot != null &&
+        (slot.phase == ShinySlotPhase.pausedManual ||
+            (slot.phase == ShinySlotPhase.pausedByShiny &&
+                (!isLatestForSlot || !entry.isShiny)));
+
+    if (!preservePause) {
+      _cancelRearmTimer(entry.slotId);
+      _clearCoordinatorBattleState(entry.slotId);
+      _pendingColorSampleBySlot.remove(entry.slotId);
+      _sparkleDelayDetector.clearPendingEncounter(entry.slotId);
+    }
+    slot?.recordUndo(entry.delta, preservePause: preservePause);
+    if (entry.isShiny && !preservePause) {
       _removeShinyAlertForSlot(entry.slotId);
     }
     _logs[idx] = entry.copyWith(undone: true);
     recentLogsNotifier.value = List.unmodifiable(_logs);
+    _syncProviderActiveAutoHunts();
     _publishSlotSnapshots();
     return true;
   }
@@ -588,12 +708,17 @@ class ShinyAutoCounterService {
   }
 
   Future<void> stopSession({bool stopCoordinatorSource = false}) async {
+    _sessionGeneration++;
     _running = false;
     _paused = false;
     isRunningNotifier.value = false;
     isPausedNotifier.value = false;
     _cancelAllRearmTimers();
     _cleanupSubscriptions();
+    _huntProvider?.setAutoCounterActiveHunts(
+      const {},
+      isRunningAndUnpaused: false,
+    );
     _huntProvider?.removeListener(_onHuntProviderChanged);
 
     final coord = _coordinator;
@@ -631,6 +756,7 @@ class ShinyAutoCounterService {
     }
     if (_visualFrameSub != null) return;
     _visualFrameSub = src.visualFrameStream.listen((vf) {
+      if (_pendingColorSampleBySlot.isEmpty) return;
       _enqueue(() => _processVisualFrame(vf));
     });
   }
@@ -666,8 +792,20 @@ class ShinyAutoCounterService {
 
   void _scheduleRearmTimer(ShinySlotStateMachine slot) {
     _cancelRearmTimer(slot.slotId);
-    if (slot.phase != ShinySlotPhase.rearmPending) return;
     if (_elapsedClock != null) return;
+    if (slot.phase == ShinySlotPhase.counted &&
+        slot.settings.detectionMode == ShinyHuntDetectionMode.eggHatch) {
+      _rearmTimers[slot.slotId] = Timer(const Duration(seconds: 18), () {
+        _rearmTimers.remove(slot.slotId);
+        if (!_running) return;
+        if (slot.checkRearmReady()) {
+          _clearCoordinatorBattleState(slot.slotId);
+          _publishSlotSnapshots();
+        }
+      });
+      return;
+    }
+    if (slot.phase != ShinySlotPhase.rearmPending) return;
     final remaining = slot.remainingRearmDuration ??
         Duration(milliseconds: slot.settings.minResetCooldownMs);
     final delay = remaining <= Duration.zero
@@ -677,6 +815,7 @@ class ShinyAutoCounterService {
       _rearmTimers.remove(slot.slotId);
       if (!_running) return;
       if (slot.checkRearmReady()) {
+        _clearCoordinatorBattleState(slot.slotId);
         _publishSlotSnapshots();
       } else if (slot.phase == ShinySlotPhase.rearmPending) {
         _scheduleRearmTimer(slot);
@@ -703,7 +842,7 @@ class ShinyAutoCounterService {
               Duration(milliseconds: slot.settings.transitionMinDurationMs),
         );
         slotConfigs[slot.slotId] = cfg;
-        if (slot.slotId == 1) {
+        if (slot.slotId == 1 || _slots.length == 1) {
           slotConfigs[0] = cfg;
         }
       }
@@ -715,6 +854,7 @@ class ShinyAutoCounterService {
     ShinyAutoCounterSettings settings,
     ShinyHuntProvider provider,
   ) {
+    if (provider.isLoading) return settings;
     final validIds = provider.hunts.map((h) => h.id).toSet();
     final nextSlotOverrides = <int, String>{};
     bool changed = false;
@@ -742,7 +882,9 @@ class ShinyAutoCounterService {
 
   void _onHuntProviderChanged() {
     final provider = _huntProvider;
-    if (!_running || provider == null || _syncingProvider) return;
+    if (!_running || provider == null || _syncingProvider || provider.isLoading) {
+      return;
+    }
     _syncingProvider = true;
     try {
       final pruned = _pruneStaleOverrides(_settings, provider);
@@ -757,6 +899,18 @@ class ShinyAutoCounterService {
         final assigned =
             _settings.slotToHuntOverrides[slot.slotId] ?? _defaultHuntId;
         final h = assigned != null ? provider.getHuntById(assigned) : null;
+        if (h != null &&
+            h.isCompleted &&
+            slot.phase == ShinySlotPhase.pausedByShiny) {
+          _cancelRearmTimer(slot.slotId);
+          slot.resumeFromShinyPause();
+          _clearCoordinatorBattleState(slot.slotId);
+          _pendingColorSampleBySlot.remove(slot.slotId);
+          _sparkleDelayDetector.reset(slot.slotId);
+          _colorDetector.reset(slot.slotId);
+          _removeShinyAlertForSlot(slot.slotId);
+          slotsChanged = true;
+        }
         if (slot.targetPokemonId != h?.pokemonId ||
             slot.targetPokemonName != h?.pokemonName ||
             slot.assignedHuntId != assigned) {
@@ -765,6 +919,15 @@ class ShinyAutoCounterService {
             pokemonName: h?.pokemonName,
             huntId: assigned,
           );
+          _sparkleDelayDetector.reset(slot.slotId);
+          _colorDetector.reset(slot.slotId);
+          _pendingColorSampleBySlot.remove(slot.slotId);
+          slotsChanged = true;
+        }
+        final hasOverride =
+            assigned != null && _settings.huntSettingsOverrides.containsKey(assigned);
+        if (slot.hasExplicitHuntOverride != hasOverride) {
+          slot.setHasExplicitHuntOverride(hasOverride);
           slotsChanged = true;
         }
         final resolved =
@@ -778,6 +941,7 @@ class ShinyAutoCounterService {
       if (slotsChanged) {
         _syncSourceTransitionConfig();
         _syncVisualFrameSubscription();
+        _syncProviderActiveAutoHunts();
         _publishSlotSnapshots();
       }
     } finally {
@@ -792,7 +956,11 @@ class ShinyAutoCounterService {
   }
 
   Future<void> _enqueue(Future<void> Function() action) {
-    final task = _SerializedAutoTask(action);
+    final gen = _sessionGeneration;
+    final task = _SerializedAutoTask(() async {
+      if (gen != _sessionGeneration) return;
+      await action();
+    });
     _queue.add(task);
     if (!_drainingQueue) {
       _drainingQueue = true;
@@ -857,8 +1025,13 @@ class ShinyAutoCounterService {
           huntMethod: h?.method,
         ),
         elapsedClock: _elapsedClock,
-      );
+      )..setHasExplicitHuntOverride(
+          huntId != null && _settings.huntSettingsOverrides.containsKey(huntId),
+        );
       _slots[instanceIndex] = created;
+      _syncSourceTransitionConfig();
+      _syncVisualFrameSubscription();
+      _syncProviderActiveAutoHunts();
       return created;
     }
     return null;
@@ -871,12 +1044,24 @@ class ShinyAutoCounterService {
 
     final prevPhase = slot.phase;
     final decision = slot.onScannerEvent(event);
+    if (prevPhase == ShinySlotPhase.rearmPending &&
+        slot.phase == ShinySlotPhase.rearmPending &&
+        decision.reason == 'slot_not_armed') {
+      // Early OCR arrived before cooldown finished; clear coordinator battle state
+      // so this encounter is not swallowed once cooldown expires.
+      _clearCoordinatorBattleState(slot.slotId);
+    }
     if (slot.phase == ShinySlotPhase.rearmPending) {
       _pendingColorSampleBySlot.remove(slot.slotId);
+      _sparkleDelayDetector.clearPendingEncounter(slot.slotId);
       if (prevPhase == ShinySlotPhase.counted) {
         _clearCoordinatorBattleState(slot.slotId);
       }
       _scheduleRearmTimer(slot);
+    } else if (slot.phase == ShinySlotPhase.pausedByShiny) {
+      _cancelRearmTimer(slot.slotId);
+      _sparkleDelayDetector.clearPendingEncounter(slot.slotId);
+      _syncProviderActiveAutoHunts();
     } else if (slot.phase != ShinySlotPhase.rearmPending) {
       _cancelRearmTimer(slot.slotId);
     }
@@ -901,6 +1086,7 @@ class ShinyAutoCounterService {
     }
     if (rearmed) {
       _pendingColorSampleBySlot.remove(slot.slotId);
+      _sparkleDelayDetector.clearPendingEncounter(slot.slotId);
       _clearCoordinatorBattleState(slot.slotId);
       if (cue.slotId == 0) {
         _coordinator?.clearBattleState(0);
@@ -925,12 +1111,18 @@ class ShinyAutoCounterService {
           decision,
           detectionSource: signal.source,
         );
+        if (slot.phase == ShinySlotPhase.pausedByShiny) {
+          _syncProviderActiveAutoHunts();
+        }
       }
     }
 
     if (cue.eggHatchCue == EggHatchCue.ohPrompt) {
       final decision = slot.onEggHatchCue(cue.eggHatchCue);
       await _applyDecision(slot, decision);
+      if (slot.phase == ShinySlotPhase.counted) {
+        _scheduleRearmTimer(slot);
+      }
     }
     _publishSlotSnapshots();
   }
@@ -946,6 +1138,7 @@ class ShinyAutoCounterService {
     }
     final pending = _pendingColorSampleBySlot[slot.slotId];
     if (pending == null) return;
+    if (_nowElapsed < pending.sampleAfter) return;
 
     final precomputed = vf.precomputedHistogram;
     final VisualShinySignal? signal;
@@ -973,12 +1166,19 @@ class ShinyAutoCounterService {
       );
     }
     if (signal != null) {
-      final decision = slot.onVisualShinySignal(signal);
+      final decision = slot.onVisualShinySignal(
+        signal,
+        detectedPokemonId: pending.pokemonId,
+        detectedPokemonName: pending.pokemonName,
+      );
       await _applyDecision(
         slot,
         decision,
         detectionSource: signal.source,
       );
+      if (slot.phase == ShinySlotPhase.pausedByShiny) {
+        _syncProviderActiveAutoHunts();
+      }
       _publishSlotSnapshots();
     }
   }
@@ -993,6 +1193,7 @@ class ShinyAutoCounterService {
     final decision = slot.onFrameTransition(transition);
     if (slot.phase == ShinySlotPhase.rearmPending) {
       _pendingColorSampleBySlot.remove(slot.slotId);
+      _sparkleDelayDetector.clearPendingEncounter(slot.slotId);
       if (prevPhase == ShinySlotPhase.counted) {
         _clearCoordinatorBattleState(slot.slotId);
         if (transition.slotId == 0) {
@@ -1101,6 +1302,7 @@ class ShinyAutoCounterService {
               '${decision.pokemonId ?? decision.pokemonName ?? huntId}',
           pokemonId: decision.pokemonId,
           pokemonName: decision.pokemonName,
+          sampleAfter: _nowElapsed + const Duration(milliseconds: 700),
         );
       }
       await _triggerFeedback(

@@ -86,10 +86,14 @@ class ShinySlotStateMachine {
   ShinySlotPhase _phase = ShinySlotPhase.armed;
   Duration? _rearmStartedAt;
   Duration? _lastTransitionCountAt;
+  Duration? _eggOhPromptAt;
   String? _lastTriggerLabel;
   int _sessionCount = 0;
   DateTime? _lastEventAt;
   bool _eggOhPromptCounted = false;
+  bool _shinyAlertedForCurrentEncounter = false;
+  DateTime? _lastCountedEventTimestamp;
+  bool hasExplicitHuntOverride = false;
 
   ShinySlotStateMachine({
     required this.slotId,
@@ -129,6 +133,10 @@ class ShinySlotStateMachine {
     assignedHuntId = huntId;
   }
 
+  void setHasExplicitHuntOverride(bool value) {
+    hasExplicitHuntOverride = value;
+  }
+
   void updateSettings(ShinyAutoCounterSettings next) {
     settings = next;
   }
@@ -140,6 +148,8 @@ class ShinySlotStateMachine {
       _phase = ShinySlotPhase.armed;
       _rearmStartedAt = null;
       _eggOhPromptCounted = false;
+      _eggOhPromptAt = null;
+      _shinyAlertedForCurrentEncounter = false;
     }
   }
 
@@ -148,6 +158,9 @@ class ShinySlotStateMachine {
       _phase = ShinySlotPhase.armed;
       _rearmStartedAt = null;
       _eggOhPromptCounted = false;
+      _eggOhPromptAt = null;
+      _shinyAlertedForCurrentEncounter = false;
+      _lastCountedEventTimestamp = null;
     }
   }
 
@@ -155,12 +168,21 @@ class ShinySlotStateMachine {
     _phase = ShinySlotPhase.armed;
     _rearmStartedAt = null;
     _eggOhPromptCounted = false;
+    _eggOhPromptAt = null;
+    _shinyAlertedForCurrentEncounter = false;
+    _lastCountedEventTimestamp = null;
   }
 
-  /// Reverts a previously counted increment on this slot and immediately re-arms it.
-  void recordUndo(int delta) {
+  /// Reverts a previously counted increment on this slot and immediately re-arms it
+  /// (unless [preservePause] is true for active shiny/manual pause).
+  void recordUndo(int delta, {bool preservePause = false}) {
     if (delta > 0) {
       _sessionCount = (_sessionCount - delta).clamp(0, 9999999);
+    }
+    if (preservePause &&
+        (_phase == ShinySlotPhase.pausedByShiny ||
+            _phase == ShinySlotPhase.pausedManual)) {
+      return;
     }
     forceRearm();
   }
@@ -175,18 +197,35 @@ class ShinySlotStateMachine {
     return cooldown - elapsed;
   }
 
-  /// Promotes `rearmPending` -> `armed` when cooldown has elapsed; returns true if promoted.
+  /// Promotes `rearmPending` -> `armed` when cooldown has elapsed (or safety-rearms
+  /// a stuck egg "Oh?" prompt after 18s); returns true if promoted.
   bool checkRearmReady() {
+    if (_phase == ShinySlotPhase.counted &&
+        _eggOhPromptCounted &&
+        _eggOhPromptAt != null &&
+        (_now - _eggOhPromptAt!) >= const Duration(seconds: 18)) {
+      forceRearm();
+      return true;
+    }
     if (_phase != ShinySlotPhase.rearmPending) return false;
     _promoteRearmIfReady();
     return _phase == ShinySlotPhase.armed;
   }
 
   void _promoteRearmIfReady() {
+    if (_phase == ShinySlotPhase.counted &&
+        _eggOhPromptCounted &&
+        _eggOhPromptAt != null &&
+        (_now - _eggOhPromptAt!) >= const Duration(seconds: 18)) {
+      forceRearm();
+      return;
+    }
     if (_phase != ShinySlotPhase.rearmPending) return;
     final started = _rearmStartedAt;
     if (started == null) {
       _phase = ShinySlotPhase.armed;
+      _shinyAlertedForCurrentEncounter = false;
+      _lastCountedEventTimestamp = null;
       return;
     }
     final cooldown = Duration(milliseconds: settings.minResetCooldownMs);
@@ -194,6 +233,9 @@ class ShinySlotStateMachine {
       _phase = ShinySlotPhase.armed;
       _rearmStartedAt = null;
       _eggOhPromptCounted = false;
+      _eggOhPromptAt = null;
+      _shinyAlertedForCurrentEncounter = false;
+      _lastCountedEventTimestamp = null;
     }
   }
 
@@ -206,11 +248,16 @@ class ShinySlotStateMachine {
       _phase = ShinySlotPhase.rearmPending;
       _rearmStartedAt = _now;
       _lastTriggerLabel = reason;
+      _lastCountedEventTimestamp = null;
     }
   }
 
   bool _patternBelongsToSlot(String? patternId) {
-    if (patternId == null || !patternId.startsWith('shiny_hunt:')) {
+    if (patternId == null) return true;
+    if (patternId.startsWith('shiny_base:')) {
+      return !hasExplicitHuntOverride;
+    }
+    if (!patternId.startsWith('shiny_hunt:')) {
       return true;
     }
     final rest = patternId.substring('shiny_hunt:'.length);
@@ -222,6 +269,11 @@ class ShinySlotStateMachine {
 
   bool _matchesTarget(ScannerEvent event) {
     if (settings.matchFilter == ShinyMatchFilter.allPokemon) {
+      return true;
+    }
+    if (event.type == ScannerEventType.shinyDetected &&
+        event.pokemonId == null &&
+        event.matchedName.trim().isEmpty) {
       return true;
     }
     if (event.matchedCustomPatternId != null && event.pokemonId == null) {
@@ -278,11 +330,13 @@ class ShinySlotStateMachine {
         _eggOhPromptCounted &&
         _phase == ShinySlotPhase.counted) {
       _eggOhPromptCounted = false;
+      _eggOhPromptAt = null;
       _lastEventAt = DateTime.now();
       if (event.matchedName.isNotEmpty) {
         _lastTriggerLabel = event.matchedName;
       }
       if (event.isShiny && _matchesTarget(event)) {
+        _shinyAlertedForCurrentEncounter = true;
         if (settings.autoPauseSlotOnShiny) {
           _phase = ShinySlotPhase.pausedByShiny;
         } else {
@@ -296,6 +350,51 @@ class ShinySlotStateMachine {
       }
       _beginRearm('egg_hatched');
       return const ShinyCountDecision.none('egg_already_counted_on_oh');
+    }
+
+    // Handle mixed multi-encounter Shinies or delayed frame-2 Shiny OCR upgrades while counted
+    if (_phase == ShinySlotPhase.counted &&
+        event.isShiny &&
+        !_shinyAlertedForCurrentEncounter &&
+        _isTriggerEventForMode(event) &&
+        _matchesTarget(event)) {
+      _shinyAlertedForCurrentEncounter = true;
+      _lastEventAt = DateTime.now();
+      if (event.matchedName.isNotEmpty) {
+        _lastTriggerLabel = event.matchedName;
+      }
+      if (settings.autoPauseSlotOnShiny) {
+        _phase = ShinySlotPhase.pausedByShiny;
+      }
+      return ShinyCountDecision.shinyAlert(
+        reason: 'shiny:${event.matchedName}',
+        pokemonId: event.pokemonId,
+        pokemonName: event.matchedName,
+      );
+    }
+
+    // Same-frame non-shiny mixed double/horde species emitted together on one OCR frame
+    if (_phase == ShinySlotPhase.counted &&
+        !event.isShiny &&
+        settings.detectionMode == ShinyHuntDetectionMode.wildEncounter &&
+        settings.useEventEncounterCount &&
+        _lastCountedEventTimestamp != null &&
+        event.timestamp == _lastCountedEventTimestamp &&
+        _isTriggerEventForMode(event) &&
+        _matchesTarget(event)) {
+      final delta = event.encounterCount.clamp(1, 10);
+      _sessionCount += delta;
+      _lastEventAt = DateTime.now();
+      if (event.matchedName.isNotEmpty) {
+        _lastTriggerLabel = event.matchedName;
+      }
+      return ShinyCountDecision.increment(
+        delta: delta,
+        isShiny: false,
+        reason: 'ocr:${event.matchedName}',
+        pokemonId: event.pokemonId,
+        pokemonName: event.matchedName,
+      );
     }
 
     if (_phase != ShinySlotPhase.armed) {
@@ -318,9 +417,11 @@ class ShinySlotStateMachine {
 
     _sessionCount += delta;
     _lastEventAt = DateTime.now();
+    _lastCountedEventTimestamp = event.timestamp;
     _lastTriggerLabel = event.matchedName.isNotEmpty
         ? event.matchedName
         : event.type.name;
+    _shinyAlertedForCurrentEncounter = event.isShiny;
 
     if (event.isShiny && settings.autoPauseSlotOnShiny) {
       _phase = ShinySlotPhase.pausedByShiny;
@@ -357,6 +458,8 @@ class ShinySlotStateMachine {
         return const ShinyCountDecision.none('slot_not_armed');
       }
       _eggOhPromptCounted = true;
+      _eggOhPromptAt = _now;
+      _shinyAlertedForCurrentEncounter = false;
       _sessionCount += 1;
       _lastEventAt = DateTime.now();
       _lastTriggerLabel = 'egg_oh_prompt';
@@ -450,11 +553,19 @@ class ShinySlotStateMachine {
 
   /// Processes a visual Shiny heuristic signal ([SparkleDelayDetector] or [VisualShinyColorDetector]).
   /// Only fires when the slot has just counted an encounter (`ShinySlotPhase.counted`)
-  /// and is not already paused.
-  ShinyCountDecision onVisualShinySignal(VisualShinySignal signal) {
+  /// and is not already paused or alerted for the current encounter.
+  ShinyCountDecision onVisualShinySignal(
+    VisualShinySignal signal, {
+    int? detectedPokemonId,
+    String? detectedPokemonName,
+  }) {
     if (_phase != ShinySlotPhase.counted) {
       return const ShinyCountDecision.none('visual_shiny_slot_not_counted');
     }
+    if (_shinyAlertedForCurrentEncounter) {
+      return const ShinyCountDecision.none('already_shiny_alerted');
+    }
+    _shinyAlertedForCurrentEncounter = true;
     _lastEventAt = DateTime.now();
     _lastTriggerLabel = '${signal.source.name}:${signal.details}';
     if (settings.autoPauseSlotOnShiny) {
@@ -462,8 +573,8 @@ class ShinySlotStateMachine {
     }
     return ShinyCountDecision.shinyAlert(
       reason: '${signal.source.name}:${signal.details}',
-      pokemonId: targetPokemonId,
-      pokemonName: targetPokemonName,
+      pokemonId: detectedPokemonId ?? targetPokemonId,
+      pokemonName: detectedPokemonName ?? targetPokemonName,
     );
   }
 }

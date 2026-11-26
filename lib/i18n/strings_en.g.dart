@@ -1452,7 +1452,7 @@ class TranslationsEn extends Translations with BaseTranslations<AppLocale, Trans
 	@override String get shiny_gen85_locked_title => 'Shiny Locks in Hisui';
 	@override String get shiny_gen85_locked_desc => 'Warning: ALL Legendary and Mythical Pokémon (Arceus, Dialga, Palkia, Darkrai etc.) and one-time quest encounters are shiny locked in Hisui!';
 	@override String get shiny_gen8_pla_link_reddit => 'Reddit - PLA Outbreaks Guide (EN)';
-	@override String get shiny_gen8_pla_link_bisafans => 'Bisafans - PLA Outbreaks Guide (DE)';
+	@override String get shiny_gen8_pla_link_bisafans => 'Bulbasaur - PLA Outbreaks Guide (DE)';
 	@override String get shiny_guide_gen9 => 'Generation 9 (Scarlet & Violet)';
 	@override String get shiny_guide_gen9_5 => 'Generation 9.5 (Legends: Z-A)';
 	@override String get shiny_gen9_sv_title => 'Scarlet & Violet (Paldea)';
@@ -1883,7 +1883,7 @@ class TranslationsEn extends Translations with BaseTranslations<AppLocale, Trans
 	@override String get shiny_hunt_gross_duration => 'Total Duration';
 	@override String get shiny_hunt_net_time => 'Hunt Time (Net)';
 	@override String get shiny_hunt_no_pauses => 'No pauses recorded';
-	@override String get shiny_hunt_pause_label => 'Pause';
+	@override String get shiny_hunt_pause_label => 'Break';
 	@override String get shiny_hunt_pause_ongoing => 'actively paused';
 	@override String get shiny_hunt_pause_total => 'Pauses (Total)';
 	@override String get shiny_hunt_paused => 'Paused';
@@ -2042,7 +2042,7 @@ class TranslationsEn extends Translations with BaseTranslations<AppLocale, Trans
 	@override String get scanner_hud_missing => '⚠️ Missing in the target Dex';
 	@override String get scanner_hud_footer => 'Always-on-Top · Click + to register';
 	@override String get scanner_hud_live_label => 'LIVE SCAN';
-	@override String get scanner_hud_shiny_badge => 'SHINY';
+	@override String get scanner_hud_shiny_badge => 'glänzend';
 	@override String get scanner_hud_add_tooltip => 'Enter in target Dex';
 	@override String get scanner_hud_transparent_tooltip => 'Transparency';
 	@override String get scanner_hud_pin_off_tooltip => 'Do not fix anymore';
@@ -2050,7 +2050,7 @@ class TranslationsEn extends Translations with BaseTranslations<AppLocale, Trans
 	@override String get scanner_hud_expand_tooltip => 'Maximize';
 	@override String get scanner_hud_compact_tooltip => 'Compact view';
 	@override String get scanner_hud_close_tooltip => 'Close';
-	@override String get scanner_pause_suffix => 'Pause';
+	@override String get scanner_pause_suffix => 'Break';
 	@override String get scanner_native_snipping_hint => 'Drag an area over the game · Enter/Click confirms · Esc cancels';
 	@override String get scanner_native_snipping_confirm => 'Scan';
 	@override String get scanner_native_snipping_cancel => 'Cancel';
@@ -2155,7 +2155,7 @@ class TranslationsEn extends Translations with BaseTranslations<AppLocale, Trans
 	@override String get scanner_event_type_caught => 'CATCH';
 	@override String get scanner_event_type_encounter => 'ENCOUNTER';
 	@override String get scanner_event_type_evolved => 'DEVELOPMENT';
-	@override String get scanner_event_type_shiny => 'SHINY';
+	@override String get scanner_event_type_shiny => 'glänzend';
 	@override String get scanner_event_type_alpha => 'ALPHA';
 	@override String get scanner_event_type_info => 'INFO';
 	@override String get scanner_snack_team_ignored => '{name} is ignored as its own team.';
@@ -2299,7 +2299,7 @@ class TranslationsEn extends Translations with BaseTranslations<AppLocale, Trans
 	@override String get scanner_mob_no_events => 'No catches or encounters detected yet.';
 	@override String get scanner_mob_correct_tooltip => 'Correct';
 	@override String get scanner_mob_live_ocr_diagnose => 'Live OCR Diagnosis ({count})';
-	@override String get scanner_mob_pause => 'Pause';
+	@override String get scanner_mob_pause => 'Break';
 	@override String get scanner_mob_switch_camera => 'Change camera';
 	@override String get scanner_mob_permission_title => 'Camera access denied';
 	@override String get scanner_mob_permission_desc => 'Please allow camera access in the system settings or instead import a photo.';
@@ -2494,6 +2494,15 @@ class TranslationsEn extends Translations with BaseTranslations<AppLocale, Trans
 	@override String get shiny_auto_reason_color_dev => 'Color deviation detected ({details})';
 	@override String get tutorial_demo_shiny_auto_badge_title => 'Multi-Hunt · Auto-Counter · Scan Slots';
 	@override String get tutorial_demo_shiny_auto_badge_subtitle => 'Parallel hunts, per-hunt rules & shiny protection';
+	@override String get scanner_enlarged_waiting_text => 'Waiting for text...';
+	@override String get scanner_enlarged_close => 'Close';
+	@override String get scanner_self_scan_overlap_title => 'PokéVault overlaps the active scan area';
+	@override String get scanner_self_scan_overlap_body => 'The PokéVault window overlaps the monitored screen area. This can cause Live OCR to scan its own text and waste performance.';
+	@override String get scanner_self_scan_overlap_suppress => 'Don\'t show this warning again';
+	@override String get scanner_self_scan_overlap_ignore => 'Leave unmasked';
+	@override String get scanner_self_scan_overlap_mask => 'Hide PokéVault (Recommended)';
+	@override String get shiny_auto_transition_none_warning => 'Neither black-screen nor white-screen reset is enabled in Screen Transition Only mode. Enable at least one transition or choose another mode.';
+	@override String get multi_hunt_slot_default_suffix => ' (Default)';
 }
 
 /// The flat map containing all translations for locale <en>.
@@ -3921,7 +3930,7 @@ extension on TranslationsEn {
 			'shiny_gen85_locked_title' => 'Shiny Locks in Hisui',
 			'shiny_gen85_locked_desc' => 'Warning: ALL Legendary and Mythical Pokémon (Arceus, Dialga, Palkia, Darkrai etc.) and one-time quest encounters are shiny locked in Hisui!',
 			'shiny_gen8_pla_link_reddit' => 'Reddit - PLA Outbreaks Guide (EN)',
-			'shiny_gen8_pla_link_bisafans' => 'Bisafans - PLA Outbreaks Guide (DE)',
+			'shiny_gen8_pla_link_bisafans' => 'Bulbasaur - PLA Outbreaks Guide (DE)',
 			'shiny_guide_gen9' => 'Generation 9 (Scarlet & Violet)',
 			'shiny_guide_gen9_5' => 'Generation 9.5 (Legends: Z-A)',
 			'shiny_gen9_sv_title' => 'Scarlet & Violet (Paldea)',
@@ -4354,7 +4363,7 @@ extension on TranslationsEn {
 			'shiny_hunt_gross_duration' => 'Total Duration',
 			'shiny_hunt_net_time' => 'Hunt Time (Net)',
 			'shiny_hunt_no_pauses' => 'No pauses recorded',
-			'shiny_hunt_pause_label' => 'Pause',
+			'shiny_hunt_pause_label' => 'Break',
 			'shiny_hunt_pause_ongoing' => 'actively paused',
 			'shiny_hunt_pause_total' => 'Pauses (Total)',
 			'shiny_hunt_paused' => 'Paused',
@@ -4513,7 +4522,7 @@ extension on TranslationsEn {
 			'scanner_hud_missing' => '⚠️ Missing in the target Dex',
 			'scanner_hud_footer' => 'Always-on-Top · Click + to register',
 			'scanner_hud_live_label' => 'LIVE SCAN',
-			'scanner_hud_shiny_badge' => 'SHINY',
+			'scanner_hud_shiny_badge' => 'glänzend',
 			'scanner_hud_add_tooltip' => 'Enter in target Dex',
 			'scanner_hud_transparent_tooltip' => 'Transparency',
 			'scanner_hud_pin_off_tooltip' => 'Do not fix anymore',
@@ -4521,7 +4530,7 @@ extension on TranslationsEn {
 			'scanner_hud_expand_tooltip' => 'Maximize',
 			'scanner_hud_compact_tooltip' => 'Compact view',
 			'scanner_hud_close_tooltip' => 'Close',
-			'scanner_pause_suffix' => 'Pause',
+			'scanner_pause_suffix' => 'Break',
 			'scanner_native_snipping_hint' => 'Drag an area over the game · Enter/Click confirms · Esc cancels',
 			'scanner_native_snipping_confirm' => 'Scan',
 			'scanner_native_snipping_cancel' => 'Cancel',
@@ -4628,7 +4637,7 @@ extension on TranslationsEn {
 			'scanner_event_type_caught' => 'CATCH',
 			'scanner_event_type_encounter' => 'ENCOUNTER',
 			'scanner_event_type_evolved' => 'DEVELOPMENT',
-			'scanner_event_type_shiny' => 'SHINY',
+			'scanner_event_type_shiny' => 'glänzend',
 			'scanner_event_type_alpha' => 'ALPHA',
 			'scanner_event_type_info' => 'INFO',
 			'scanner_snack_team_ignored' => '{name} is ignored as its own team.',
@@ -4772,7 +4781,7 @@ extension on TranslationsEn {
 			'scanner_mob_no_events' => 'No catches or encounters detected yet.',
 			'scanner_mob_correct_tooltip' => 'Correct',
 			'scanner_mob_live_ocr_diagnose' => 'Live OCR Diagnosis ({count})',
-			'scanner_mob_pause' => 'Pause',
+			'scanner_mob_pause' => 'Break',
 			'scanner_mob_switch_camera' => 'Change camera',
 			'scanner_mob_permission_title' => 'Camera access denied',
 			'scanner_mob_permission_desc' => 'Please allow camera access in the system settings or instead import a photo.',
@@ -4967,6 +4976,15 @@ extension on TranslationsEn {
 			'shiny_auto_reason_color_dev' => 'Color deviation detected ({details})',
 			'tutorial_demo_shiny_auto_badge_title' => 'Multi-Hunt · Auto-Counter · Scan Slots',
 			'tutorial_demo_shiny_auto_badge_subtitle' => 'Parallel hunts, per-hunt rules & shiny protection',
+			'scanner_enlarged_waiting_text' => 'Waiting for text...',
+			'scanner_enlarged_close' => 'Close',
+			'scanner_self_scan_overlap_title' => 'PokéVault overlaps the active scan area',
+			'scanner_self_scan_overlap_body' => 'The PokéVault window overlaps the monitored screen area. This can cause Live OCR to scan its own text and waste performance.',
+			'scanner_self_scan_overlap_suppress' => 'Don\'t show this warning again',
+			'scanner_self_scan_overlap_ignore' => 'Leave unmasked',
+			'scanner_self_scan_overlap_mask' => 'Hide PokéVault (Recommended)',
+			'shiny_auto_transition_none_warning' => 'Neither black-screen nor white-screen reset is enabled in Screen Transition Only mode. Enable at least one transition or choose another mode.',
+			'multi_hunt_slot_default_suffix' => ' (Default)',
 			_ => null,
 		};
 	}

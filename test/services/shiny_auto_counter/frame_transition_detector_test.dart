@@ -71,8 +71,10 @@ void main() {
       expect(detector.analyzeFrame(normal, slotId: 2), isNull);
       clock += const Duration(milliseconds: 100);
       expect(detector.analyzeFrame(white, slotId: 2), isNull);
+      clock += const Duration(milliseconds: 200);
+      expect(detector.analyzeFrame(white, slotId: 2), isNull);
 
-      clock += const Duration(milliseconds: 400);
+      clock += const Duration(milliseconds: 200);
       final event = detector.analyzeFrame(normal, slotId: 2);
       expect(event, isNotNull);
       expect(event!.slotId, equals(2));
@@ -130,7 +132,10 @@ void main() {
       expect(detector.analyzeFrame(black, slotId: 1), isNull);
       expect(detector.analyzeFrame(normal, slotId: 2), isNull);
 
-      clock += const Duration(milliseconds: 400);
+      clock += const Duration(milliseconds: 200);
+      expect(detector.analyzeFrame(black, slotId: 1), isNull);
+
+      clock += const Duration(milliseconds: 200);
       expect(detector.analyzeFrame(normal, slotId: 2), isNull);
       final ev1 = detector.analyzeFrame(normal, slotId: 1);
       expect(ev1, isNotNull);
@@ -171,7 +176,9 @@ void main() {
       clock += const Duration(milliseconds: 400);
       // Direct jump black -> white must NOT emit blackScreenEnded
       expect(detector.analyzeFrame(white, slotId: 1), isNull);
-      clock += const Duration(milliseconds: 400);
+      clock += const Duration(milliseconds: 200);
+      expect(detector.analyzeFrame(white, slotId: 1), isNull);
+      clock += const Duration(milliseconds: 200);
       // Returning to normal emits only whiteScreenEnded
       final ev = detector.analyzeFrame(normal, slotId: 1);
       expect(ev, isNotNull);
@@ -192,7 +199,9 @@ void main() {
       expect(detector.analyzeFrame(normal, slotId: 1), isNull);
       clock += const Duration(milliseconds: 50);
       expect(detector.analyzeFrame(black, slotId: 1), isNull);
-      clock += const Duration(milliseconds: 180);
+      clock += const Duration(milliseconds: 100);
+      expect(detector.analyzeFrame(black, slotId: 1), isNull);
+      clock += const Duration(milliseconds: 80);
       final ev = detector.analyzeFrame(normal, slotId: 1);
       expect(ev, isNotNull);
       expect(ev!.type, equals(FrameTransitionType.blackScreenEnded));
@@ -231,14 +240,18 @@ void main() {
       expect(detector.analyzeFrame(normal, slotId: 1), isNull);
       clock += const Duration(milliseconds: 100);
       expect(detector.analyzeFrame(whiteDialogueBox, slotId: 1), isNull);
-      clock += const Duration(milliseconds: 400);
+      clock += const Duration(milliseconds: 200);
+      expect(detector.analyzeFrame(whiteDialogueBox, slotId: 1), isNull);
+      clock += const Duration(milliseconds: 200);
       // Returning to normal after a non-uniform white dialogue box must NOT emit whiteScreenEnded
       expect(detector.analyzeFrame(normal, slotId: 1), isNull);
 
       // Uniform white frame DOES emit whiteScreenEnded
       clock += const Duration(milliseconds: 100);
       expect(detector.analyzeFrame(uniformWhite, slotId: 1), isNull);
-      clock += const Duration(milliseconds: 400);
+      clock += const Duration(milliseconds: 200);
+      expect(detector.analyzeFrame(uniformWhite, slotId: 1), isNull);
+      clock += const Duration(milliseconds: 200);
       final ev = detector.analyzeFrame(normal, slotId: 1);
       expect(ev, isNotNull);
       expect(ev!.type, equals(FrameTransitionType.whiteScreenEnded));
@@ -258,7 +271,9 @@ void main() {
       expect(detector.analyzeFrame(normal, slotId: 1), isNull);
       clock += const Duration(milliseconds: 50);
       expect(detector.analyzeFrame(dimDark, slotId: 1), isNull);
-      clock += const Duration(milliseconds: 350);
+      clock += const Duration(milliseconds: 200);
+      expect(detector.analyzeFrame(dimDark, slotId: 1), isNull);
+      clock += const Duration(milliseconds: 150);
       final ev = detector.analyzeFrame(normal, slotId: 1);
       expect(ev, isNotNull);
       expect(ev!.type, equals(FrameTransitionType.blackScreenEnded));
@@ -295,8 +310,12 @@ void main() {
       expect(frameDet.analyzeFrame(black, slotId: 1), isNull);
       expect(lumaDet.analyzeLuminance(avgLuma: 2.0, stdDev: 0.0, slotId: 1), isNull);
 
-      // Brief recovery < 300ms does not emit
-      clock += const Duration(milliseconds: 400);
+      clock += const Duration(milliseconds: 200);
+      expect(frameDet.analyzeFrame(black, slotId: 1), isNull);
+      expect(lumaDet.analyzeLuminance(avgLuma: 2.0, stdDev: 0.0, slotId: 1), isNull);
+
+      // Recovery after >= 300ms
+      clock += const Duration(milliseconds: 200);
       final evFrame = frameDet.analyzeFrame(normal, slotId: 1);
       final evLuma = lumaDet.analyzeLuminance(avgLuma: 120.0, stdDev: 0.0, slotId: 1);
 
@@ -337,7 +356,11 @@ void main() {
       expect(detector.analyzeLuminance(avgLuma: 35, stdDev: 2, slotId: 1), isNull);
       expect(detector.analyzeLuminance(avgLuma: 35, stdDev: 2, slotId: 2), isNull);
 
-      clock += const Duration(milliseconds: 260);
+      clock += const Duration(milliseconds: 140);
+      expect(detector.analyzeLuminance(avgLuma: 35, stdDev: 2, slotId: 1), isNull);
+      expect(detector.analyzeLuminance(avgLuma: 35, stdDev: 2, slotId: 2), isNull);
+
+      clock += const Duration(milliseconds: 120);
       final ev1 = detector.analyzeLuminance(avgLuma: 120, stdDev: 5, slotId: 1);
       final ev2 = detector.analyzeLuminance(avgLuma: 120, stdDev: 5, slotId: 2);
       expect(ev1, isNotNull);
@@ -347,16 +370,64 @@ void main() {
       // Slot 2 requires >= 500ms even for true black (luma=4)
       clock += const Duration(milliseconds: 50);
       expect(detector.analyzeLuminance(avgLuma: 4, stdDev: 1, slotId: 2), isNull);
-      clock += const Duration(milliseconds: 350);
+      clock += const Duration(milliseconds: 200);
+      expect(detector.analyzeLuminance(avgLuma: 4, stdDev: 1, slotId: 2), isNull);
+      clock += const Duration(milliseconds: 150);
       // 350ms < 500ms -> ignored
       expect(detector.analyzeLuminance(avgLuma: 120, stdDev: 5, slotId: 2), isNull);
 
       clock += const Duration(milliseconds: 50);
       expect(detector.analyzeLuminance(avgLuma: 4, stdDev: 1, slotId: 2), isNull);
-      clock += const Duration(milliseconds: 520);
+      clock += const Duration(milliseconds: 260);
+      expect(detector.analyzeLuminance(avgLuma: 4, stdDev: 1, slotId: 2), isNull);
+      clock += const Duration(milliseconds: 260);
       final ev2Long = detector.analyzeLuminance(avgLuma: 120, stdDev: 5, slotId: 2);
       expect(ev2Long, isNotNull);
       expect(ev2Long!.type, equals(FrameTransitionType.blackScreenEnded));
+    });
+
+    test('single-frame flash does NOT false-trigger even when pollInterval >= minTransitionDuration', () {
+      var clock = Duration.zero;
+      final detector = FrameTransitionDetector(
+        minTransitionDuration: const Duration(milliseconds: 300),
+        elapsedClock: () => clock,
+      );
+
+      // Single 400ms poll gap after 1 isolated black/white sample must NOT emit
+      expect(detector.analyzeLuminance(avgLuma: 120, stdDev: 5, slotId: 1), isNull);
+      clock += const Duration(milliseconds: 400);
+      expect(detector.analyzeLuminance(avgLuma: 2, stdDev: 0, slotId: 1), isNull);
+      clock += const Duration(milliseconds: 400);
+      expect(detector.analyzeLuminance(avgLuma: 120, stdDev: 5, slotId: 1), isNull);
+
+      // Same for single white flash
+      clock += const Duration(milliseconds: 400);
+      expect(detector.analyzeLuminance(avgLuma: 250, stdDev: 0, slotId: 1), isNull);
+      clock += const Duration(milliseconds: 400);
+      expect(detector.analyzeLuminance(avgLuma: 120, stdDev: 5, slotId: 1), isNull);
+    });
+
+    test('normal -> black (>= minDuration) -> brief white flash (< minDuration) -> normal emits blackScreenEnded', () {
+      var clock = Duration.zero;
+      final detector = FrameTransitionDetector(
+        minTransitionDuration: const Duration(milliseconds: 300),
+        elapsedClock: () => clock,
+      );
+
+      expect(detector.analyzeLuminance(avgLuma: 120, stdDev: 5, slotId: 1), isNull);
+      clock += const Duration(milliseconds: 50);
+      expect(detector.analyzeLuminance(avgLuma: 2, stdDev: 0, slotId: 1), isNull);
+      clock += const Duration(milliseconds: 400);
+      expect(detector.analyzeLuminance(avgLuma: 2, stdDev: 0, slotId: 1), isNull);
+      clock += const Duration(milliseconds: 400);
+      // Brief white flash right after valid black -> emits blackScreenEnded on boundary instead of losing transition
+      final boundaryEv = detector.analyzeLuminance(avgLuma: 250, stdDev: 0, slotId: 1);
+      expect(boundaryEv, isNotNull);
+      expect(boundaryEv!.type, equals(FrameTransitionType.blackScreenEnded));
+
+      // Returning to normal after the brief (<300ms) white flash does NOT double-emit
+      clock += const Duration(milliseconds: 120);
+      expect(detector.analyzeLuminance(avgLuma: 120, stdDev: 5, slotId: 1), isNull);
     });
   });
 }

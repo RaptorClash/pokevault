@@ -163,7 +163,7 @@ class TranslationsPl extends Translations with BaseTranslations<AppLocale, Trans
 	@override String get group_hoenn => 'Hoenn';
 	@override String get group_sinnoh => 'Sinnoh';
 	@override String get group_unova => 'Unova';
-	@override String get group_kalos => 'Kalos & Z-A';
+	@override String get group_kalos => 'Kalos i Z-A';
 	@override String get group_alola => 'Alola';
 	@override String get group_galar => 'Galara';
 	@override String get group_hisui => 'Hisui';
@@ -2494,6 +2494,15 @@ class TranslationsPl extends Translations with BaseTranslations<AppLocale, Trans
 	@override String get shiny_auto_reason_color_dev => 'Wykryto odchylenie koloru ({details})';
 	@override String get tutorial_demo_shiny_auto_badge_title => 'Multi-Polowanie · Auto-Licznik · Skany-Slots';
 	@override String get tutorial_demo_shiny_auto_badge_subtitle => 'Równoległe polowania, zasady na polowanie i ochrona Shiny';
+	@override String get scanner_enlarged_waiting_text => 'Czekam na tekst...';
+	@override String get scanner_enlarged_close => 'Zamknij';
+	@override String get scanner_self_scan_overlap_title => 'PokéVault znajduje się w aktywnym obszarze skanowania';
+	@override String get scanner_self_scan_overlap_body => 'Okno PokéVault nachodzi na monitorowany obszar ekranu. W ten sposób Live-OCR może skanować własne teksty i niepotrzebnie zużywać zasoby.';
+	@override String get scanner_self_scan_overlap_suppress => 'Nie pokazuj już tej informacji';
+	@override String get scanner_self_scan_overlap_ignore => 'Pozostawić bez maski';
+	@override String get scanner_self_scan_overlap_mask => 'Ukryj PokéVault (Zalecane)';
+	@override String get shiny_auto_transition_none_warning => 'W trybie „Tylko zmiana obrazu“ aktualnie nie jest aktywny reset obrazu czarnego ani białego. Aktywuj przynajmniej jeden przejście lub wybierz inny tryb.';
+	@override String get multi_hunt_slot_default_suffix => '(Standard)';
 }
 
 /// The flat map containing all translations for locale <pl>.
@@ -2628,7 +2637,7 @@ extension on TranslationsPl {
 			'group_hoenn' => 'Hoenn',
 			'group_sinnoh' => 'Sinnoh',
 			'group_unova' => 'Unova',
-			'group_kalos' => 'Kalos & Z-A',
+			'group_kalos' => 'Kalos i Z-A',
 			'group_alola' => 'Alola',
 			'group_galar' => 'Galara',
 			'group_hisui' => 'Hisui',
@@ -4967,6 +4976,15 @@ extension on TranslationsPl {
 			'shiny_auto_reason_color_dev' => 'Wykryto odchylenie koloru ({details})',
 			'tutorial_demo_shiny_auto_badge_title' => 'Multi-Polowanie · Auto-Licznik · Skany-Slots',
 			'tutorial_demo_shiny_auto_badge_subtitle' => 'Równoległe polowania, zasady na polowanie i ochrona Shiny',
+			'scanner_enlarged_waiting_text' => 'Czekam na tekst...',
+			'scanner_enlarged_close' => 'Zamknij',
+			'scanner_self_scan_overlap_title' => 'PokéVault znajduje się w aktywnym obszarze skanowania',
+			'scanner_self_scan_overlap_body' => 'Okno PokéVault nachodzi na monitorowany obszar ekranu. W ten sposób Live-OCR może skanować własne teksty i niepotrzebnie zużywać zasoby.',
+			'scanner_self_scan_overlap_suppress' => 'Nie pokazuj już tej informacji',
+			'scanner_self_scan_overlap_ignore' => 'Pozostawić bez maski',
+			'scanner_self_scan_overlap_mask' => 'Ukryj PokéVault (Zalecane)',
+			'shiny_auto_transition_none_warning' => 'W trybie „Tylko zmiana obrazu“ aktualnie nie jest aktywny reset obrazu czarnego ani białego. Aktywuj przynajmniej jeden przejście lub wybierz inny tryb.',
+			'multi_hunt_slot_default_suffix' => '(Standard)',
 			_ => null,
 		};
 	}

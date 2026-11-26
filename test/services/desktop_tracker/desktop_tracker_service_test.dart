@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:ui';
 
 import 'package:flutter/foundation.dart';
@@ -14,6 +15,7 @@ import 'package:pokevault/services/scanner_core/engine/pokemon_fuzzy_matcher.dar
 import 'package:pokevault/services/scanner_core/models/scanner_event.dart';
 import 'package:pokevault/services/scanner_core/models/scanner_settings.dart';
 import 'package:pokevault/services/scanner_core/scanner_coordinator.dart';
+import 'package:pokevault/services/scanner_core/source/scanner_source.dart';
 
 class _FakeBridge implements DesktopPlatformBridge {
   bool hudVisible = false;
@@ -306,5 +308,55 @@ void main() {
       await Future.delayed(Duration.zero);
       expect(markedIds, [41]);
     });
+
+    test('exposes activeSource for non-window sources and syncs togglePause with ShinyAutoCounterService', () async {
+      final source = DesktopWindowSource(
+        captureDriver: const DefaultDesktopCaptureDriver(),
+        ocrDriver: DefaultDesktopOcrDriver(),
+      );
+      final coordinator = ScannerCoordinator(
+        engine: OcrDetectionEngine(),
+        matcher: PokemonFuzzyMatcher.withEntries([]),
+        settings: ScannerSettings.defaults(),
+      );
+      addTearDown(() async => await coordinator.dispose());
+
+      service.startTracking(
+        coordinator: coordinator,
+        windowSource: source,
+        ownsWindowSource: true,
+      );
+      expect(service.activeSource, equals(source));
+
+      final customSource = _StubScannerSource();
+      service.setActiveSource(customSource);
+      expect(service.activeSource, equals(customSource));
+
+      // When ShinyAutoCounterService is running on this coordinator, togglePause syncs global pause
+      final fakeBridge = _FakeBridge();
+      service.configureNativeHudBridge(bridge: fakeBridge);
+      expect(service.isPaused, isFalse);
+      service.togglePause();
+      expect(service.isPaused, isTrue);
+      service.togglePause();
+      expect(service.isPaused, isFalse);
+
+      await service.stopTracking();
+      expect(fakeBridge.onHudAction, isNull);
+    });
   });
+}
+
+class _StubScannerSource implements ScannerSource {
+  final _ctrl = StreamController<String>.broadcast();
+  @override
+  Stream<String> get textStream => _ctrl.stream;
+  @override
+  bool get isRunning => false;
+  @override
+  Future<void> start() async {}
+  @override
+  Future<void> stop() async {}
+  @override
+  Future<void> dispose() async => _ctrl.close();
 }

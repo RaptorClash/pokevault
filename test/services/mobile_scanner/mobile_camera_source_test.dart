@@ -242,5 +242,43 @@ void main() {
 
       await source.dispose();
     });
+
+    test('customRegions focus-only mode still tracks transitions and emits full upright frame for visual shiny color check', () async {
+      final ocr = _FakeRegionOcrDriver((_) => 'Wildes Pikachu');
+      final source = MobileCameraSource(
+        ocrDriver: ocr,
+        pollInterval: const Duration(milliseconds: 50),
+      );
+      source.setScanMode(MobileCameraScanMode.customRegions);
+      source.setRegions([
+        NormalizedScanRect(
+          id: 'focus_only',
+          role: CameraZoneRole.focus,
+          left: 0.0,
+          top: 0.5,
+          width: 1.0,
+          height: 0.5,
+          colorHex: 0xFF3B82F6,
+          label: 'Enemy HUD',
+          encounterOnly: true,
+        ),
+      ]);
+
+      final visualFrames = <SlotVisualFrame>[];
+      final visSub = source.visualFrameStream.listen(visualFrames.add);
+
+      await source.start();
+      // Full upright frame is 20x20, cropped focus region is 20x10
+      await source.submitCameraFrame(_makeTwoToneFrame(width: 20, height: 20), bypassThrottle: true);
+      await Future<void>.delayed(Duration.zero);
+
+      expect(visualFrames, isNotEmpty);
+      expect(visualFrames.first.frame?.height, equals(20));
+
+      // stop() resets transition detector and drops in-flight stopped OCR emissions
+      await source.stop();
+      await visSub.cancel();
+      await source.dispose();
+    });
   });
 }

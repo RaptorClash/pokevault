@@ -402,5 +402,63 @@ void main() {
       await service.stopSession();
       await coordinator.dispose();
     });
+
+    testWidgets('Cold start loads persisted overrides and global setup preserves defaultHuntId (not activeHunts.first)', (tester) async {
+      final h1 = await createHunt('h1', 150, 'Mewtu', method: 'Soft Reset');
+      final h2 = await createHunt('h2', 4, 'Glumanda', method: 'Masuda Method');
+
+      await ShinyAutoCounterSettings.saveToPrefs(
+        const ShinyAutoCounterSettings(
+          detectionMode: ShinyHuntDetectionMode.wildEncounter,
+          huntSettingsOverrides: {
+            'h2': ShinyAutoCounterSettings(
+              detectionMode: ShinyHuntDetectionMode.screenTransitionOnly,
+            ),
+          },
+        ),
+      );
+
+      final coordinator = ScannerCoordinator(
+        engine: OcrDetectionEngine(),
+        matcher: PokemonFuzzyMatcher.withEntries(const [
+          PokemonMatcherEntry(id: 150, name: 'Mewtu', language: 'de'),
+          PokemonMatcherEntry(id: 4, name: 'Glumanda', language: 'de'),
+        ]),
+      );
+      final service = ShinyAutoCounterService.forTesting();
+
+      await tester.pumpWidget(
+        wrap(MultiHuntDashboardScreen(autoCounterService: service)),
+      );
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+
+      // Cold start loaded persisted per-hunt override badge for h2
+      expect(service.settingsForHunt(h2).detectionMode, equals(ShinyHuntDetectionMode.screenTransitionOnly));
+
+      // Start session with defaultHuntId == h2 (second hunt)
+      service.startSession(
+        huntProvider: huntProvider,
+        coordinator: coordinator,
+        defaultHuntId: h2.id,
+        slotIds: const [1],
+      );
+      await tester.pump();
+
+      // Open global setup from AppBar and tap Save -> defaultHuntId MUST stay h2 (not hijacked to h1!)
+      await tester.tap(find.byKey(const Key('multi_hunt_setup_btn')));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+      await tester.ensureVisible(find.byKey(const Key('setup_start_btn')));
+      await tester.tap(find.byKey(const Key('setup_start_btn')));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+
+      expect(service.defaultHuntId, equals(h2.id));
+      expect(h1.id, isNot(equals(h2.id)));
+
+      await service.stopSession();
+      await coordinator.dispose();
+    });
   });
 }

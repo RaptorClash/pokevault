@@ -19,6 +19,7 @@
 #include <string>
 #include <thread>
 #include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
 /// Native Windows Win32/WinRT plugin handling:
@@ -300,6 +301,7 @@ class DesktopTrackerPlugin {
   HANDLE ocr_stop_event_ = nullptr;
   std::thread ocr_worker_thread_;
   std::vector<WindowCaptureCache> window_capture_cache_;
+  std::unordered_set<HWND> print_window_verified_hwnds_;
   std::unordered_map<std::string, int64_t> slot_fingerprints_;
 
   // HUD state

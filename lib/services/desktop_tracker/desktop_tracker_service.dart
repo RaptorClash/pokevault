@@ -6,6 +6,7 @@ import 'package:universal_io/io.dart' as io;
 import '../../i18n/strings.g.dart';
 import '../scanner_core/models/scanner_event.dart';
 import '../scanner_core/scanner_coordinator.dart';
+import '../scanner_core/source/scanner_source.dart';
 import '../shiny_auto_counter/shiny_auto_counter_service.dart';
 import 'desktop_window_source.dart';
 import 'evolution_chain_helper.dart';
@@ -26,6 +27,7 @@ class DesktopTrackerService {
 
   ScannerCoordinator? _coordinator;
   DesktopWindowSource? _windowSource;
+  ScannerSource? _activeSource;
   String? _activeDexId;
   StreamSubscription<ScannerEvent>? _eventSubscription;
   StreamSubscription<List<ScannerEvent>>? _focusSubscription;
@@ -43,6 +45,7 @@ class DesktopTrackerService {
   bool Function(int pokemonId)? _isCaughtChecker;
   Future<void> Function(ScannerEvent event)? _onHudMarkCaughtCallback;
   Future<void> Function(ScannerEvent event)? _onBackgroundAutoCatchCallback;
+  Future<void> Function()? _backgroundCleanupCallback;
   final List<ScannerEvent> _recentEvents = [];
 
   bool _isTracking = false;
@@ -61,7 +64,18 @@ class DesktopTrackerService {
 
   ScannerCoordinator? get coordinator => _coordinator;
   DesktopWindowSource? get windowSource => _windowSource;
+  ScannerSource? get activeSource => _activeSource ?? _windowSource;
   String? get activeDexId => _activeDexId;
+
+  void setActiveSource(ScannerSource? source) {
+    _activeSource = source;
+  }
+
+  /// Registers a cleanup callback (e.g., hardware webcam/capture-card release)
+  /// to run when [stopTracking] ends a background session.
+  void setBackgroundCleanup(Future<void> Function()? callback) {
+    _backgroundCleanupCallback = callback;
+  }
   ScannerEvent? get latestEvent => latestEventNotifier.value;
   bool get isTrackingActive => _isTracking;
   bool get showFloatingHud => showFloatingHudNotifier.value;
@@ -252,6 +266,7 @@ class DesktopTrackerService {
   void startTracking({
     required ScannerCoordinator coordinator,
     DesktopWindowSource? windowSource,
+    ScannerSource? activeSource,
     String? dexId,
     bool ownsWindowSource = false,
     bool initiallyPaused = false,
@@ -260,8 +275,12 @@ class DesktopTrackerService {
     final previouslyOwned = _ownsWindowSource;
     _coordinator = coordinator;
     _windowSource = windowSource;
+    _activeSource = activeSource ?? windowSource;
     _activeDexId = dexId;
     _ownsWindowSource = ownsWindowSource;
+    if (!identical(previousSource, windowSource)) {
+      _backgroundCleanupCallback = null;
+    }
 
     if (previousSource != null &&
         !identical(previousSource, windowSource) &&
@@ -298,7 +317,7 @@ class DesktopTrackerService {
     };
     ShinyAutoCounterService.instance.attachIfPending(
       coordinator: coordinator,
-      source: windowSource,
+      source: _activeSource,
       slotIds: slotIds,
       slotColorOverrides: slotColors,
     );
@@ -309,7 +328,10 @@ class DesktopTrackerService {
     latestEventNotifier.value = event;
     if (_onBackgroundAutoCatchCallback != null) {
       _onBackgroundAutoCatchCallback!(event)
-          .then((_) => _syncNativeHudIfVisible());
+          .then((_) => _syncNativeHudIfVisible())
+          .catchError((Object e) {
+        debugPrint('DesktopTrackerService background auto-catch error: $e');
+      });
     } else {
       _syncNativeHudIfVisible();
     }
@@ -371,7 +393,10 @@ class DesktopTrackerService {
         targetEv ??= latestEventNotifier.value;
         if (targetEv != null && _onHudMarkCaughtCallback != null) {
           _onHudMarkCaughtCallback!(targetEv)
-              .then((_) => _syncNativeHudIfVisible());
+              .then((_) => _syncNativeHudIfVisible())
+              .catchError((Object e) {
+            debugPrint('DesktopTrackerService HUD mark-caught error: $e');
+          });
         }
         break;
       case NativeHudActionType.moved:
@@ -393,6 +418,10 @@ class DesktopTrackerService {
       _coordinator?.stop();
     } else {
       _coordinator?.start();
+    }
+    if (_coordinator != null &&
+        identical(ShinyAutoCounterService.instance.coordinator, _coordinator)) {
+      ShinyAutoCounterService.instance.setGlobalPause(paused);
     }
     if (_activeOverlayBorders.isNotEmpty) {
       final syncedBorders = paused
@@ -427,7 +456,12 @@ class DesktopTrackerService {
     final coordinator = _coordinator;
     final windowSource = _windowSource;
     final shouldDisposeSource = _ownsWindowSource;
+    final backgroundCleanup = _backgroundCleanupCallback;
 
+    if (bridge != null && bridge.onHudAction == _handleNativeHudAction) {
+      bridge.onHudAction = null;
+    }
+    _backgroundCleanupCallback = null;
     _nativeBridge = null;
     _isCaughtChecker = null;
     _onHudMarkCaughtCallback = null;
@@ -436,6 +470,7 @@ class DesktopTrackerService {
     _focusSubscription = null;
     _coordinator = null;
     _windowSource = null;
+    _activeSource = null;
     _ownsWindowSource = false;
     _activeDexId = null;
     _activeOverlayBorders = const [];
@@ -467,6 +502,11 @@ class DesktopTrackerService {
     await coordinator?.stop();
     if (shouldDisposeSource) {
       await windowSource?.dispose();
+    }
+    if (backgroundCleanup != null) {
+      try {
+        await backgroundCleanup();
+      } catch (_) {}
     }
   }
 }

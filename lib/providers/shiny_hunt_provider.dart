@@ -21,13 +21,16 @@ class ShinyHuntProvider extends ChangeNotifier with WidgetsBindingObserver {
 
   // Debouncing & Flush
   final Set<String> _pendingDirtyHuntIds = {};
+  final Map<String, int> _loadingDeltaById = {};
   Timer? _sqliteDebounceTimer;
   Timer? _cloudDebounceTimer;
-  Completer<void>? _flushCompleter;
+  Future<void>? _flushInFlight;
 
   // Active Timer & AFK Protection
   Timer? _oneSecondTimer;
   String? _activeCounterHuntId;
+  final Set<String> _autoCounterActiveHuntIds = {};
+  bool _autoCounterRunningAndUnpaused = false;
   DateTime _lastUserInteraction = DateTime.now();
   bool _isAppInForeground = true;
 
@@ -101,6 +104,18 @@ class ShinyHuntProvider extends ChangeNotifier with WidgetsBindingObserver {
     registerInteraction();
   }
 
+  /// Registers the set of hunts actively tracked by the Shiny Auto-Counter so the
+  /// stopwatch keeps ticking across all active slots even when the desktop window is unfocused.
+  void setAutoCounterActiveHunts(
+    Set<String> huntIds, {
+    required bool isRunningAndUnpaused,
+  }) {
+    _autoCounterActiveHuntIds
+      ..clear()
+      ..addAll(huntIds);
+    _autoCounterRunningAndUnpaused = isRunningAndUnpaused;
+  }
+
   /// Resets the AFK timer to prevent stopping the encounter session time tracking prematurely.
   void registerInteraction() {
     _lastUserInteraction = DateTime.now();
@@ -111,13 +126,26 @@ class ShinyHuntProvider extends ChangeNotifier with WidgetsBindingObserver {
     if (_pendingDirtyHuntIds.isNotEmpty) {
       await flushPendingWrites();
     }
+    _loadingDeltaById.clear();
     _isLoading = true;
     notifyListeners();
     try {
       final loaded = await db.getAllShinyHunts();
       final loadedIds = loaded.map((h) => h.id).toSet();
       final inMemoryNew = _hunts.where((h) => !loadedIds.contains(h.id)).toList();
-      _hunts = [...inMemoryNew, ...loaded];
+      final merged = [...inMemoryNew, ...loaded];
+      if (_loadingDeltaById.isNotEmpty) {
+        for (final h in merged) {
+          final delta = _loadingDeltaById[h.id];
+          if (delta != null && delta != 0) {
+            h.currentEncounters =
+                (h.currentEncounters + delta).clamp(0, 9999999);
+            _pendingDirtyHuntIds.add(h.id);
+          }
+        }
+        _loadingDeltaById.clear();
+      }
+      _hunts = merged;
     } catch (e) {
       debugPrint('Fehler beim Laden der Shiny Hunts: $e');
     } finally {
@@ -198,6 +226,9 @@ class ShinyHuntProvider extends ChangeNotifier with WidgetsBindingObserver {
 
     hunt.currentEncounters = (hunt.currentEncounters + stepDelta).clamp(0, 9999999);
     hunt.updatedAt = DateTime.now();
+    if (_isLoading) {
+      _loadingDeltaById[huntId] = (_loadingDeltaById[huntId] ?? 0) + stepDelta;
+    }
     registerInteraction();
     notifyListeners();
     _markDirtyAndDebounce(huntId);
@@ -210,6 +241,9 @@ class ShinyHuntProvider extends ChangeNotifier with WidgetsBindingObserver {
 
     hunt.currentEncounters = (hunt.currentEncounters - delta).clamp(0, 9999999);
     hunt.updatedAt = DateTime.now();
+    if (_isLoading) {
+      _loadingDeltaById[huntId] = (_loadingDeltaById[huntId] ?? 0) - delta;
+    }
     registerInteraction();
     notifyListeners();
     _markDirtyAndDebounce(huntId);
@@ -423,29 +457,37 @@ class ShinyHuntProvider extends ChangeNotifier with WidgetsBindingObserver {
     _sqliteDebounceTimer?.cancel();
     _sqliteDebounceTimer = null;
 
-    if (_pendingDirtyHuntIds.isEmpty) {
-      if (_flushCompleter != null) {
-        await _flushCompleter!.future;
-      }
-      return;
+    if (_flushInFlight != null) {
+      await _flushInFlight;
+      if (_pendingDirtyHuntIds.isEmpty) return;
     }
 
-    final completer = Completer<void>();
-    _flushCompleter = completer;
-    try {
-      final idsToFlush = List<String>.from(_pendingDirtyHuntIds);
-      _pendingDirtyHuntIds.clear();
+    Future<void> runFlush() async {
+      while (_pendingDirtyHuntIds.isNotEmpty) {
+        final idsToFlush = List<String>.from(_pendingDirtyHuntIds);
+        _pendingDirtyHuntIds.clear();
 
-      for (final id in idsToFlush) {
-        final hunt = getHuntById(id);
-        if (hunt != null) {
-          await db.saveShinyHunt(hunt);
+        for (int i = 0; i < idsToFlush.length; i++) {
+          final id = idsToFlush[i];
+          final hunt = getHuntById(id);
+          if (hunt == null) continue;
+          try {
+            await db.saveShinyHunt(hunt);
+          } catch (_) {
+            _pendingDirtyHuntIds.addAll(idsToFlush.sublist(i));
+            rethrow;
+          }
         }
       }
+    }
+
+    final future = runFlush();
+    _flushInFlight = future;
+    try {
+      await future;
     } finally {
-      completer.complete();
-      if (_flushCompleter == completer) {
-        _flushCompleter = null;
+      if (identical(_flushInFlight, future)) {
+        _flushInFlight = null;
       }
     }
   }
@@ -489,22 +531,34 @@ class ShinyHuntProvider extends ChangeNotifier with WidgetsBindingObserver {
 
   void _startOneSecondTimer() {
     _oneSecondTimer = Timer.periodic(const Duration(seconds: 1), (_) {
-      if (!_isAppInForeground) return;
+      final hasActiveAuto =
+          _autoCounterRunningAndUnpaused && _autoCounterActiveHuntIds.isNotEmpty;
+      if (!_isAppInForeground && !hasActiveAuto) return;
 
-      // AFK-Schutz: Nach 3 Minuten ohne Tap stoppt die Zeiterfassung
-      final isAfk = DateTime.now().difference(_lastUserInteraction) > const Duration(minutes: 3);
+      // AFK-Schutz: Nach 3 Minuten ohne Tap/Auto-Encounter stoppt die Zeiterfassung
+      final isAfk = DateTime.now().difference(_lastUserInteraction) >
+          const Duration(minutes: 3);
       if (isAfk) return;
 
-      if (_activeCounterHuntId != null) {
-        final hunt = getHuntById(_activeCounterHuntId!);
+      final targetIds = <String>{
+        if (_isAppInForeground && _activeCounterHuntId != null)
+          _activeCounterHuntId!,
+        if (hasActiveAuto) ..._autoCounterActiveHuntIds,
+      };
+      bool changed = false;
+      for (final id in targetIds) {
+        final hunt = getHuntById(id);
         if (hunt != null && hunt.isActive) {
           hunt.totalTimeSeconds += 1;
-          notifyListeners();
+          changed = true;
           // Nicht jede einzelne Sekunde auf Flash schreiben: Alle 10s debouncen
           if (hunt.totalTimeSeconds % 10 == 0) {
             _markDirtyAndDebounce(hunt.id);
           }
         }
+      }
+      if (changed) {
+        notifyListeners();
       }
     });
   }

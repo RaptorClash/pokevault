@@ -2459,5 +2459,14 @@
   "shiny_auto_reason_sparkle_delay": "반짝임 지연 감지됨 ({details})",
   "shiny_auto_reason_color_dev": "색상 편차 감지됨 ({details})",
   "tutorial_demo_shiny_auto_badge_title": "멀티 헌트 · 자동 카운터 · 스캔 슬롯",
-  "tutorial_demo_shiny_auto_badge_subtitle": "병렬 헌트, 헌트별 규칙 및 샤이니 보호"
+  "tutorial_demo_shiny_auto_badge_subtitle": "병렬 헌트, 헌트별 규칙 및 샤이니 보호",
+  "scanner_enlarged_waiting_text": "텍스트를 기다리는 중...",
+  "scanner_enlarged_close": "닫기",
+  "scanner_self_scan_overlap_title": "포케볼트는 활성 스캔 영역에 있습니다",
+  "scanner_self_scan_overlap_body": "PokéVault 창이 모니터링되는 화면 영역을 가립니다. 이로 인해 라이브 OCR이 자체 텍스트를 스캔하고 불필요하게 성능을 소모할 수 있습니다.",
+  "scanner_self_scan_overlap_suppress": "이 알림 더 이상 표시하지 않기",
+  "scanner_self_scan_overlap_ignore": "마스크를 벗은 상태로 두다",
+  "scanner_self_scan_overlap_mask": "PokéVault 숨기기 (권장)",
+  "shiny_auto_transition_none_warning": "현재 '단일 이미지 전환' 모드에서는 블랙 이미지 리셋이나 화이트 이미지 리셋이 활성화되어 있지 않습니다. 최소한 하나의 전환을 활성화하거나 다른 모드를 선택하세요.",
+  "multi_hunt_slot_default_suffix": "(표준)"
 }

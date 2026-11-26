@@ -8,8 +8,15 @@ import 'package:pokevault/services/scanner_core/engine/ocr_detection_engine.dart
 import 'package:pokevault/services/scanner_core/engine/pokemon_fuzzy_matcher.dart';
 import 'package:pokevault/services/scanner_core/models/scanner_event.dart';
 import 'package:pokevault/services/scanner_core/scanner_coordinator.dart';
+import 'package:pokevault/services/shiny_auto_counter/shiny_auto_counter_service.dart';
+import 'package:pokevault/providers/shiny_hunt_provider.dart';
+import 'package:pokevault/models/shiny_hunt.dart';
+import 'package:pokevault/services/database_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
   group('MobileCameraTrackerService Tests (TDD)', () {
     late MobileCameraTrackerService service;
     late ScannerCoordinator coordinator;
@@ -133,6 +140,70 @@ void main() {
       // Stopping again must not invoke stale callback
       await service.stopSession();
       expect(wakelockDisableCount, 1);
+    });
+
+    test('setRegions & setScanMode sync slot additions/removals live to ShinyAutoCounterService', () async {
+      SharedPreferences.setMockInitialValues({});
+      sqfliteFfiInit();
+      databaseFactory = databaseFactoryFfi;
+      final provider = ShinyHuntProvider(
+        databaseService: DatabaseService.instance,
+        enableTimer: false,
+      );
+      await provider.initialized;
+      final now = DateTime.now();
+      await provider.createHunt(
+        ShinyHunt(
+          id: 'mob-hunt',
+          title: 'Glumanda',
+          pokemonId: 4,
+          pokemonName: 'Glumanda',
+          game: 'Violet',
+          generation: 9.0,
+          method: 'Wild',
+          baseOdds: 4096.0,
+          createdAt: now,
+          updatedAt: now,
+        ),
+      );
+
+      service.startSession(
+        coordinator: coordinator,
+        cameraSource: source,
+        dexId: 'dex_kanto',
+      );
+      final autoCounter = ShinyAutoCounterService.instance;
+      autoCounter.startSession(
+        huntProvider: provider,
+        coordinator: coordinator,
+        source: source,
+        defaultHuntId: 'mob-hunt',
+        slotIds: const [1],
+      );
+
+      service.setScanMode(MobileCameraScanMode.customRegions);
+      service.setRegions([
+        NormalizedScanRect(
+          id: 'multi_2_scan',
+          role: CameraZoneRole.multiInstance,
+          slotId: 2,
+          left: 0.0,
+          top: 0.5,
+          width: 0.5,
+          height: 0.5,
+          colorHex: 0xFFA855F7,
+          label: '#2',
+        ),
+      ]);
+      expect(autoCounter.slotStatesNotifier.value.map((s) => s.slotId), equals([2]));
+
+      service.togglePause();
+      expect(autoCounter.isPaused, isTrue);
+      service.togglePause();
+      expect(autoCounter.isPaused, isFalse);
+
+      await autoCounter.stopSession();
+      provider.dispose();
     });
   });
 }

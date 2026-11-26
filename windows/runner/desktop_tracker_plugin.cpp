@@ -823,10 +823,18 @@ bool RunWindowsMediaOcrCached(OcrRuntimeCache* cache,
     if (h_to_close) CloseHandle(h_to_close);
   }
   if (wait_res == WAIT_OBJECT_0 + 1) {
+    ComPtr<ABI::Windows::Foundation::IAsyncInfo> async_info;
+    if (SUCCEEDED(async_op.As(&async_info)) && async_info) {
+      async_info->Cancel();
+    }
     if (out_error_hint) *out_error_hint = "Windows OCR cancelled on shutdown";
     return false;
   }
   if (wait_res == WAIT_TIMEOUT) {
+    ComPtr<ABI::Windows::Foundation::IAsyncInfo> async_info;
+    if (SUCCEEDED(async_op.As(&async_info)) && async_info) {
+      async_info->Cancel();
+    }
     if (out_error_hint) *out_error_hint = "Windows OCR timeout (>4s)";
     return false;
   }
@@ -1076,8 +1084,10 @@ bool ApplySelfWindowMaskIfOverlapping(HWND main_hwnd,
   }
 
   const DWORD self_pid = GetCurrentProcessId();
-  for (HWND cur = GetWindow(main_hwnd, GW_HWNDPREV); cur != nullptr;
-       cur = GetWindow(cur, GW_HWNDPREV)) {
+  int z_steps = 0;
+  for (HWND cur = GetWindow(main_hwnd, GW_HWNDPREV);
+       cur != nullptr && z_steps < 512;
+       cur = GetWindow(cur, GW_HWNDPREV), ++z_steps) {
     if (!IsWindowVisible(cur) || IsIconic(cur)) continue;
     DWORD pid = 0;
     GetWindowThreadProcessId(cur, &pid);
@@ -1338,6 +1348,13 @@ bool RunZoneBMultiBandOcr(OcrRuntimeCache* cache,
     return c;
   };
 
+  auto is_stopping = [&]() {
+    return stop_event && WaitForSingleObject(stop_event, 0) == WAIT_OBJECT_0;
+  };
+  if (is_stopping()) {
+    return false;
+  }
+
   std::vector<std::string> base_lines;
   const bool base_ok = RunWindowsMediaOcrCached(
       cache, stop_event, bgra_bytes, width, height, language_tag,
@@ -1345,6 +1362,19 @@ bool RunZoneBMultiBandOcr(OcrRuntimeCache* cache,
       out_available_languages, out_error_hint);
   if (base_ok) {
     add_lines(base_lines);
+  }
+
+  // Skip multi-band & inversion sweeps on uniform/low-contrast blank frames.
+  double zone_luma = 0.0;
+  double zone_std = 0.0;
+  std::string zone_summary;
+  ComputeLuminanceAndSummary(bgra_bytes, width, height, &zone_luma, &zone_std,
+                             &zone_summary);
+  if (zone_std < 6.0 || is_stopping()) {
+    if (out_lines) {
+      *out_lines = std::move(merged);
+    }
+    return base_ok;
   }
 
   auto run_bands = [&](const std::vector<uint8_t>& frame_bytes) {
@@ -1361,6 +1391,7 @@ bool RunZoneBMultiBandOcr(OcrRuntimeCache* cache,
         {(std::max)(0, width - band_w), 0, band_w, height},
     };
     for (const auto& b : bands) {
+      if (is_stopping()) return;
       if (b.w <= 0 || b.h <= 0 || b.x + b.w > width || b.y + b.h > height) {
         continue;
       }
@@ -1375,10 +1406,10 @@ bool RunZoneBMultiBandOcr(OcrRuntimeCache* cache,
     }
   };
 
-  if (count_candidates() < 2) {
+  if (count_candidates() < 2 && !is_stopping()) {
     run_bands(bgra_bytes);
   }
-  if (count_candidates() == 0) {
+  if (count_candidates() == 0 && !is_stopping()) {
     auto inverted = InvertBgraLuminance(bgra_bytes);
     std::vector<std::string> inv_lines;
     if (RunWindowsMediaOcrCached(cache, stop_event, inverted, width, height,
@@ -1386,7 +1417,7 @@ bool RunZoneBMultiBandOcr(OcrRuntimeCache* cache,
                                  nullptr, nullptr, nullptr, nullptr)) {
       add_lines(inv_lines);
     }
-    if (count_candidates() < 2) {
+    if (!inv_lines.empty() && count_candidates() < 2 && !is_stopping()) {
       run_bands(inverted);
     }
   }
@@ -1427,6 +1458,9 @@ DesktopTrackerPlugin::DesktopTrackerPlugin(HWND main_window_hwnd,
 }
 
 DesktopTrackerPlugin::~DesktopTrackerPlugin() {
+  if (channel_) {
+    channel_->SetMethodCallHandler(nullptr);
+  }
   if (alive_flag_) {
     alive_flag_->store(false);
   }
@@ -1462,6 +1496,7 @@ DesktopTrackerPlugin::~DesktopTrackerPlugin() {
     ocr_stop_event_ = nullptr;
   }
   window_capture_cache_.clear();
+  print_window_verified_hwnds_.clear();
   slot_fingerprints_.clear();
 
   CleanupSnippingOverlay();
@@ -1912,6 +1947,10 @@ void DesktopTrackerPlugin::FinishSnipping(bool confirm) {
   }
 
   RECT sel = GetNormalizedSelection();
+  sel.left = std::clamp(static_cast<int>(sel.left), 0, virtual_w_);
+  sel.top = std::clamp(static_cast<int>(sel.top), 0, virtual_h_);
+  sel.right = std::clamp(static_cast<int>(sel.right), 0, virtual_w_);
+  sel.bottom = std::clamp(static_cast<int>(sel.bottom), 0, virtual_h_);
   const int w = sel.right - sel.left;
   const int h = sel.bottom - sel.top;
   if (w < 10 || h < 10) {
@@ -2156,14 +2195,22 @@ bool CaptureWindowRaw(CacheListT* cache_list,
                       std::vector<uint8_t>* out_bytes,
                       int* out_w,
                       int* out_h,
-                      std::string* out_method) {
+                      std::string* out_method,
+                      std::unordered_set<HWND>* verified_pw_hwnds = nullptr,
+                      RECT* out_win_rect = nullptr,
+                      int* out_crop_x = nullptr,
+                      int* out_crop_y = nullptr) {
   using CacheEntryT = typename CacheListT::value_type;
   auto erase_hwnd_cache = [&](HWND h) {
-    if (!cache_list) return;
-    cache_list->erase(
-        std::remove_if(cache_list->begin(), cache_list->end(),
-                       [h](const CacheEntryT& e) { return e.hwnd == h; }),
-        cache_list->end());
+    if (cache_list) {
+      cache_list->erase(
+          std::remove_if(cache_list->begin(), cache_list->end(),
+                         [h](const CacheEntryT& e) { return e.hwnd == h; }),
+          cache_list->end());
+    }
+    if (verified_pw_hwnds) {
+      verified_pw_hwnds->erase(h);
+    }
   };
 
   if (!cache_list || !out_bytes || hwnd_val == 0) {
@@ -2251,7 +2298,8 @@ bool CaptureWindowRaw(CacheListT* cache_list,
     BOOL printed = PrintWindow(target, full_dc, 2);
     if (printed) {
       // Hardware-accelerated OpenGL/Vulkan emulators can return TRUE with a
-      // completely black buffer under PrintWindow; probe ~256 pixels and fall back.
+      // completely black buffer under PrintWindow; probe ~256 pixels and fall back
+      // only if this HWND has not previously produced valid PrintWindow frames.
       bool all_black = true;
       const size_t total_px =
           static_cast<size_t>(full_w) * static_cast<size_t>(full_h);
@@ -2265,7 +2313,11 @@ bool CaptureWindowRaw(CacheListT* cache_list,
           break;
         }
       }
-      if (all_black) {
+      if (!all_black) {
+        if (verified_pw_hwnds) {
+          verified_pw_hwnds->insert(target);
+        }
+      } else if (!verified_pw_hwnds || verified_pw_hwnds->count(target) == 0) {
         if (BitBlt(full_dc, 0, 0, full_w, full_h, screen_dc, win_rect.left,
                    win_rect.top, SRCCOPY | CAPTUREBLT)) {
           capture_method = "bitblt_black_fallback";
@@ -2333,6 +2385,9 @@ bool CaptureWindowRaw(CacheListT* cache_list,
   if (out_w) *out_w = crop_w;
   if (out_h) *out_h = crop_h;
   if (out_method) *out_method = capture_method;
+  if (out_win_rect) *out_win_rect = win_rect;
+  if (out_crop_x) *out_crop_x = crop_x;
+  if (out_crop_y) *out_crop_y = crop_y;
   return true;
 }
 
@@ -2542,6 +2597,7 @@ void DesktopTrackerPlugin::OcrWorkerLoop() {
     if (task.type == WorkerTask::Type::kClearScanCache) {
       slot_fingerprints_.clear();
       window_capture_cache_.clear();
+      print_window_verified_hwnds_.clear();
       continue;
     }
 
@@ -2562,9 +2618,7 @@ void DesktopTrackerPlugin::OcrWorkerLoop() {
       if (!alive || !alive->load() ||
           !PostMessageW(notify_hwnd, kMsgOcrComplete, 0,
                         reinterpret_cast<LPARAM>(task.ocr_payload))) {
-        if (!alive || !alive->load()) {
-          task.ocr_payload->result.release();
-        }
+        task.ocr_payload->result.release();
         delete task.ocr_payload;
       }
       continue;
@@ -2587,15 +2641,14 @@ void DesktopTrackerPlugin::OcrWorkerLoop() {
             &window_capture_cache_, task.hwnd_val, task.has_crop, task.crop_x,
             task.crop_y, task.crop_w, task.crop_h, &task.capture_payload->bytes,
             &task.capture_payload->width, &task.capture_payload->height,
-            &task.capture_payload->capture_method);
+            &task.capture_payload->capture_method,
+            &print_window_verified_hwnds_);
       }
 
       if (!alive || !alive->load() ||
           !PostMessageW(notify_hwnd, kMsgCaptureComplete, 0,
                         reinterpret_cast<LPARAM>(task.capture_payload))) {
-        if (!alive || !alive->load()) {
-          task.capture_payload->result.release();
-        }
+        task.capture_payload->result.release();
         delete task.capture_payload;
       }
       continue;
@@ -2610,6 +2663,9 @@ void DesktopTrackerPlugin::OcrWorkerLoop() {
       int frame_w = 0;
       int frame_h = 0;
       std::string cap_method;
+      RECT win_rect{};
+      int actual_crop_x = 0;
+      int actual_crop_y = 0;
       bool cap_ok = false;
 
       if (task.is_region) {
@@ -2623,7 +2679,8 @@ void DesktopTrackerPlugin::OcrWorkerLoop() {
         cap_ok = CaptureWindowRaw(
             &window_capture_cache_, task.hwnd_val, task.has_crop, task.crop_x,
             task.crop_y, task.crop_w, task.crop_h, &frame_bytes, &frame_w,
-            &frame_h, &cap_method);
+            &frame_h, &cap_method, &print_window_verified_hwnds_, &win_rect,
+            &actual_crop_x, &actual_crop_y);
       }
       const auto cap_t1 = std::chrono::steady_clock::now();
       p->capture_duration_ms =
@@ -2640,15 +2697,29 @@ void DesktopTrackerPlugin::OcrWorkerLoop() {
           p->self_window_overlaps = ApplySelfWindowMaskIfOverlapping(
               main_hwnd, task.cap_x, task.cap_y, frame_w, frame_h, &frame_bytes,
               task.mask_self_window);
+        } else if (cap_method == "bitblt_fallback" ||
+                   cap_method == "bitblt_black_fallback") {
+          p->self_window_overlaps = ApplySelfWindowMaskIfOverlapping(
+              main_hwnd, static_cast<int>(win_rect.left) + actual_crop_x,
+              static_cast<int>(win_rect.top) + actual_crop_y, frame_w, frame_h,
+              &frame_bytes, task.mask_self_window);
         }
 
-        ComputeLuminanceAndSummary(frame_bytes, frame_w, frame_h, &p->avg_luma,
-                                   &p->std_dev, &p->brightness_summary);
-        p->has_luma = true;
+        if (p->self_window_overlaps && task.mask_self_window) {
+          // Artificially masked black pixels must not trigger black-screen
+          // resets or false visual shiny color deviation alerts.
+          p->has_luma = false;
+          p->has_color_histogram = false;
+          p->brightness_summary = "self_masked";
+        } else {
+          ComputeLuminanceAndSummary(frame_bytes, frame_w, frame_h, &p->avg_luma,
+                                     &p->std_dev, &p->brightness_summary);
+          p->has_luma = true;
 
-        if (task.compute_color_histogram) {
-          p->has_color_histogram = ComputeColorHistogram16(
-              frame_bytes, frame_w, frame_h, &p->color_histogram);
+          if (task.compute_color_histogram) {
+            p->has_color_histogram = ComputeColorHistogram16(
+                frame_bytes, frame_w, frame_h, &p->color_histogram);
+          }
         }
 
         if (task.skip_ocr) {
@@ -2661,7 +2732,6 @@ void DesktopTrackerPlugin::OcrWorkerLoop() {
           const bool changed = task.force_ocr ||
                                fp_it == slot_fingerprints_.end() ||
                                fp_it->second != fp;
-          slot_fingerprints_[task.slot_key] = fp;
 
           if (changed) {
             p->ocr_skipped = false;
@@ -2684,6 +2754,9 @@ void DesktopTrackerPlugin::OcrWorkerLoop() {
                 std::chrono::duration_cast<std::chrono::milliseconds>(ocr_t1 -
                                                                       ocr_t0)
                     .count();
+            if (p->ocr_succeeded) {
+              slot_fingerprints_[task.slot_key] = fp;
+            }
           } else {
             p->ocr_skipped = true;
             p->ocr_succeeded = true;
@@ -2705,9 +2778,7 @@ void DesktopTrackerPlugin::OcrWorkerLoop() {
       if (!alive || !alive->load() ||
           !PostMessageW(notify_hwnd, kMsgCaptureAnalyzeComplete, 0,
                         reinterpret_cast<LPARAM>(p))) {
-        if (!alive || !alive->load()) {
-          p->result.release();
-        }
+        p->result.release();
         delete p;
       }
     }
@@ -2920,6 +2991,7 @@ bool DesktopTrackerPlugin::ShowOrUpdateFloatingHud(
         hud_state_.pos_x, hud_state_.pos_y, hud_w, hud_h, nullptr, nullptr,
         GetModuleHandleW(nullptr), this);
     if (!hud_hwnd_) return false;
+    SetWindowDisplayAffinity(hud_hwnd_, 0x00000011 /* WDA_EXCLUDEFROMCAPTURE */);
     ShowWindow(hud_hwnd_, SW_SHOWNOACTIVATE);
   } else {
     PositionHudFromAnchor();
@@ -3640,6 +3712,8 @@ void DesktopTrackerPlugin::ShowScanRegionBorder(
         outer_y, outer_w, outer_h, nullptr, nullptr, GetModuleHandleW(nullptr),
         this);
     if (!scan_border_hwnd_) return;
+    SetWindowDisplayAffinity(scan_border_hwnd_,
+                             0x00000011 /* WDA_EXCLUDEFROMCAPTURE */);
     SetLayeredWindowAttributes(scan_border_hwnd_, 0, 225, LWA_ALPHA);
   } else {
     SetWindowPos(scan_border_hwnd_, HWND_TOPMOST, outer_x, outer_y, outer_w,
@@ -3724,7 +3798,16 @@ void DesktopTrackerPlugin::SetOverlayBorders(
     entry.label = label;
 
     constexpr int kThickness = 2;
-    const bool has_tab = !label.empty() && y >= 18;
+    int monitor_top = 0;
+    HMONITOR mon = MonitorFromPoint(POINT{x, y}, MONITOR_DEFAULTTONEAREST);
+    if (mon) {
+      MONITORINFO mi{};
+      mi.cbSize = sizeof(mi);
+      if (GetMonitorInfoW(mon, &mi)) {
+        monitor_top = static_cast<int>(mi.rcMonitor.top);
+      }
+    }
+    const bool has_tab = !label.empty() && (y - monitor_top) >= 18;
     const int tab_h = has_tab ? 16 : 0;
     const int outer_x = x - kThickness;
     const int outer_y = y - kThickness - tab_h;
@@ -3739,6 +3822,8 @@ void DesktopTrackerPlugin::SetOverlayBorders(
           outer_x, outer_y, outer_w, outer_h, nullptr, nullptr,
           GetModuleHandleW(nullptr), this);
       if (!entry.hwnd) continue;
+      SetWindowDisplayAffinity(entry.hwnd,
+                               0x00000011 /* WDA_EXCLUDEFROMCAPTURE */);
       SetLayeredWindowAttributes(entry.hwnd, 0, 230, LWA_ALPHA);
     } else {
       SetWindowPos(entry.hwnd, HWND_TOPMOST, outer_x, outer_y, outer_w,

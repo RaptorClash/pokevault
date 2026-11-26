@@ -2459,5 +2459,14 @@
   "shiny_auto_reason_sparkle_delay": "Sparkle-Delay erkannt ({details})",
   "shiny_auto_reason_color_dev": "Farb-Abweichung erkannt ({details})",
   "tutorial_demo_shiny_auto_badge_title": "Multi-Hunt · Auto-Counter · Scan-Slots",
-  "tutorial_demo_shiny_auto_badge_subtitle": "Parallele Hunts, Per-Hunt-Regeln & Shiny-Schutz"
+  "tutorial_demo_shiny_auto_badge_subtitle": "Parallele Hunts, Per-Hunt-Regeln & Shiny-Schutz",
+  "scanner_enlarged_waiting_text": "Warte auf Text...",
+  "scanner_enlarged_close": "Schließen",
+  "scanner_self_scan_overlap_title": "PokéVault liegt im aktiven Scan-Bereich",
+  "scanner_self_scan_overlap_body": "Das PokéVault-Fenster überlappt den überwachten Bildschirmbereich. Dadurch kann die Live-OCR eigene Texte scannen und unnötig Leistung verbrauchen.",
+  "scanner_self_scan_overlap_suppress": "Diesen Hinweis nicht mehr anzeigen",
+  "scanner_self_scan_overlap_ignore": "Unmaskiert lassen",
+  "scanner_self_scan_overlap_mask": "PokéVault ausblenden (Empfohlen)",
+  "shiny_auto_transition_none_warning": "Im Modus „Nur Bildwechsel“ ist aktuell weder Schwarzbild- noch Weißbild-Reset aktiv. Aktiviere mindestens einen Übergang oder wähle einen anderen Modus.",
+  "multi_hunt_slot_default_suffix": " (Standard)"
 }

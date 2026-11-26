@@ -1,7 +1,9 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pokevault/services/scanner_core/engine/ocr_detection_engine.dart';
 import 'package:pokevault/services/scanner_core/media/frame_transition_detector.dart';
+import 'package:pokevault/services/scanner_core/media/visual_shiny_detector.dart';
 import 'package:pokevault/services/scanner_core/models/scanner_event.dart';
+import 'package:pokevault/services/scanner_core/models/scanner_settings.dart';
 import 'package:pokevault/services/shiny_auto_counter/shiny_auto_counter_config.dart';
 import 'package:pokevault/services/shiny_auto_counter/shiny_slot_state_machine.dart';
 
@@ -529,6 +531,213 @@ void main() {
 
       machine.recordUndo(5);
       expect(machine.sessionCount, equals(0));
+    });
+
+    test('defaultForHuntMethod does not misclassify German methods containing "ei" as eggHatch', () {
+      expect(
+        ShinyHuntDetectionModeHelpers.defaultForHuntMethod('Zeitverzerrung'),
+        equals(ShinyHuntDetectionMode.wildEncounter),
+      );
+      expect(
+        ShinyHuntDetectionModeHelpers.defaultForHuntMethod('Freie Begegnung'),
+        equals(ShinyHuntDetectionMode.wildEncounter),
+      );
+      expect(
+        ShinyHuntDetectionModeHelpers.defaultForHuntMethod('Einzelbegegnung'),
+        equals(ShinyHuntDetectionMode.wildEncounter),
+      );
+      expect(
+        ShinyHuntDetectionModeHelpers.defaultForHuntMethod('Reihen-Angeln'),
+        equals(ShinyHuntDetectionMode.wildEncounter),
+      );
+      expect(
+        ShinyHuntDetectionModeHelpers.defaultForHuntMethod('Masuda / Ei'),
+        equals(ShinyHuntDetectionMode.eggHatch),
+      );
+      expect(
+        ShinyHuntDetectionModeHelpers.defaultForHuntMethod('Eier ausbrüten'),
+        equals(ShinyHuntDetectionMode.eggHatch),
+      );
+    });
+
+    test('Mixed double/horde or delayed shiny OCR in counted phase still emits shinyAlert and pauses slot', () {
+      final machine = ShinySlotStateMachine(
+        slotId: 1,
+        colorHex: 0xFFA855F7,
+        targetPokemonId: 74,
+        targetPokemonName: 'Kleinstein',
+        settings: const ShinyAutoCounterSettings(
+          detectionMode: ShinyHuntDetectionMode.wildEncounter,
+          matchFilter: ShinyMatchFilter.allPokemon,
+          autoPauseSlotOnShiny: true,
+        ),
+      );
+
+      // Event 1 from horde: 4x Zubat -> slot transitions armed -> counted
+      final first = machine.onScannerEvent(
+        _encounter(pokemonId: 41, name: 'Zubat', encounterCount: 4),
+      );
+      expect(first.shouldIncrement, isTrue);
+      expect(machine.phase, equals(ShinySlotPhase.counted));
+
+      // Event 2 milliseconds later: Shiny Kleinstein -> must emit shinyAlert & pause!
+      final second = machine.onScannerEvent(
+        _encounter(pokemonId: 74, name: 'Kleinstein', isShiny: true),
+      );
+      expect(second.isShinyAlertOnly, isTrue);
+      expect(second.isShiny, isTrue);
+      expect(second.pokemonId, equals(74));
+      expect(second.pokemonName, equals('Kleinstein'));
+      expect(machine.phase, equals(ShinySlotPhase.pausedByShiny));
+    });
+
+    test('Nameless shinyDetected event matches in targetPokemonOnly mode', () {
+      final machine = ShinySlotStateMachine(
+        slotId: 1,
+        colorHex: 0xFFA855F7,
+        targetPokemonId: 150,
+        targetPokemonName: 'Mewtu',
+        settings: const ShinyAutoCounterSettings(
+          detectionMode: ShinyHuntDetectionMode.softReset,
+          matchFilter: ShinyMatchFilter.targetPokemonOnly,
+          autoPauseSlotOnShiny: true,
+        ),
+      );
+
+      final dec = machine.onScannerEvent(
+        ScannerEvent(
+          type: ScannerEventType.shinyDetected,
+          pokemonId: null,
+          rawText: '✨',
+          matchedName: '',
+          isShiny: true,
+          timestamp: DateTime(2026, 1, 1),
+        ),
+      );
+      expect(dec.shouldIncrement, isTrue);
+      expect(dec.isShiny, isTrue);
+      expect(machine.phase, equals(ShinySlotPhase.pausedByShiny));
+    });
+
+    test('onVisualShinySignal uses detected phase species when provided and suppresses duplicate alerts per encounter', () {
+      final machine = ShinySlotStateMachine(
+        slotId: 1,
+        colorHex: 0xFFA855F7,
+        targetPokemonId: 25,
+        targetPokemonName: 'Pikachu',
+        settings: const ShinyAutoCounterSettings(
+          detectionMode: ShinyHuntDetectionMode.wildEncounter,
+          matchFilter: ShinyMatchFilter.allPokemon,
+          autoPauseSlotOnShiny: false,
+        ),
+      );
+
+      expect(
+        machine.onScannerEvent(_encounter(pokemonId: 41, name: 'Zubat')).shouldIncrement,
+        isTrue,
+      );
+
+      final sig1 = VisualShinySignal(
+        slotId: 1,
+        source: ShinyDetectionSource.colorDeviation,
+        score: 0.55,
+        details: '55%',
+        timestamp: DateTime(2026, 1, 1),
+      );
+      final alert1 = machine.onVisualShinySignal(
+        sig1,
+        detectedPokemonId: 41,
+        detectedPokemonName: 'Zubat',
+      );
+      expect(alert1.isShinyAlertOnly, isTrue);
+      expect(alert1.pokemonId, equals(41));
+      expect(alert1.pokemonName, equals('Zubat'));
+
+      // Second visual signal (e.g. sparkleDelay) for the exact same encounter is suppressed
+      final sig2 = VisualShinySignal(
+        slotId: 1,
+        source: ShinyDetectionSource.sparkleDelay,
+        score: 1800,
+        details: '+1800ms',
+        timestamp: DateTime(2026, 1, 1),
+      );
+      final alert2 = machine.onVisualShinySignal(
+        sig2,
+        detectedPokemonId: 41,
+        detectedPokemonName: 'Zubat',
+      );
+      expect(alert2.isShinyAlertOnly, isFalse);
+      expect(alert2.isShiny, isFalse);
+    });
+
+    test('Base custom patterns tagged shiny_base: do not fire when assigned hunt has explicit override removing them', () {
+      const baseAndOverride = ShinyAutoCounterSettings(
+        customTriggerPatterns: [
+          CustomOcrPattern(
+            id: 'trig_global',
+            template: 'Globaler Start',
+            eventType: ScannerEventType.encounter,
+          ),
+        ],
+        huntSettingsOverrides: {
+          'hunt-custom': ShinyAutoCounterSettings(
+            detectionMode: ShinyHuntDetectionMode.softReset,
+            customTriggerPatterns: [],
+          ),
+        },
+      );
+      final compiled = baseAndOverride.buildEngineCustomPatterns();
+      final basePattern = compiled.firstWhere((p) => p.template == 'Globaler Start');
+      expect(basePattern.id.startsWith('shiny_base:'), isTrue);
+
+      final machineWithOverride = ShinySlotStateMachine(
+        slotId: 1,
+        colorHex: 0xFFA855F7,
+        assignedHuntId: 'hunt-custom',
+        settings: baseAndOverride.resolveForHunt(huntId: 'hunt-custom'),
+      );
+      machineWithOverride.setHasExplicitHuntOverride(true);
+
+      final dec = machineWithOverride.onScannerEvent(
+        ScannerEvent(
+          type: ScannerEventType.encounter,
+          rawText: 'Globaler Start',
+          matchedName: 'Globaler Start',
+          matchedCustomPatternId: basePattern.id,
+          timestamp: DateTime(2026, 1, 1),
+        ),
+      );
+      expect(dec.shouldIncrement, isFalse);
+    });
+
+    test('Egg Hatch Oh? prompt auto-rearms safely after 18s fallback if hatched text was missed', () {
+      var clock = Duration.zero;
+      final machine = ShinySlotStateMachine(
+        slotId: 1,
+        colorHex: 0xFFA855F7,
+        targetPokemonId: 4,
+        targetPokemonName: 'Glumanda',
+        settings: const ShinyAutoCounterSettings(
+          detectionMode: ShinyHuntDetectionMode.eggHatch,
+          matchFilter: ShinyMatchFilter.allPokemon,
+          minResetCooldownMs: 1200,
+        ),
+        elapsedClock: () => clock,
+      );
+
+      expect(machine.onEggHatchCue(EggHatchCue.ohPrompt).shouldIncrement, isTrue);
+      expect(machine.phase, equals(ShinySlotPhase.counted));
+
+      // Before 18s -> still counted
+      clock += const Duration(seconds: 10);
+      expect(machine.checkRearmReady(), isFalse);
+      expect(machine.phase, equals(ShinySlotPhase.counted));
+
+      // After 18s -> safety auto-rearm promotes back to armed so next egg is never stuck
+      clock += const Duration(seconds: 9);
+      expect(machine.checkRearmReady(), isTrue);
+      expect(machine.phase, equals(ShinySlotPhase.armed));
+      expect(machine.onEggHatchCue(EggHatchCue.ohPrompt).shouldIncrement, isTrue);
     });
   });
 }

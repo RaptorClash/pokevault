@@ -2494,6 +2494,15 @@ class TranslationsPt extends Translations with BaseTranslations<AppLocale, Trans
 	@override String get shiny_auto_reason_color_dev => 'Desvio de cor detectado ({details})';
 	@override String get tutorial_demo_shiny_auto_badge_title => 'Caça Múltipla · Auto-Contador · Slots de Escaneamento';
 	@override String get tutorial_demo_shiny_auto_badge_subtitle => 'Caças Paralelas, Regras por Caça e Proteção Shiny';
+	@override String get scanner_enlarged_waiting_text => 'Aguardando texto...';
+	@override String get scanner_enlarged_close => 'Fechar';
+	@override String get scanner_self_scan_overlap_title => 'PokéVault está na área de escaneamento ativo';
+	@override String get scanner_self_scan_overlap_body => 'A janela do PokéVault sobrepõe a área de tela monitorada. Isso permite que o OCR ao vivo escaneie seus próprios textos e consuma desempenho desnecessariamente.';
+	@override String get scanner_self_scan_overlap_suppress => 'Não mostrar mais este aviso';
+	@override String get scanner_self_scan_overlap_ignore => 'Deixar sem máscara';
+	@override String get scanner_self_scan_overlap_mask => 'Ocultar PokéVault (Recomendado)';
+	@override String get shiny_auto_transition_none_warning => 'No modo \'Apenas Troca de Imagem\', atualmente não está ativo o reset de tela preta nem de tela branca. Ative pelo menos uma transição ou escolha outro modo.';
+	@override String get multi_hunt_slot_default_suffix => '(Padrão)';
 }
 
 /// The flat map containing all translations for locale <pt>.
@@ -4967,6 +4976,15 @@ extension on TranslationsPt {
 			'shiny_auto_reason_color_dev' => 'Desvio de cor detectado ({details})',
 			'tutorial_demo_shiny_auto_badge_title' => 'Caça Múltipla · Auto-Contador · Slots de Escaneamento',
 			'tutorial_demo_shiny_auto_badge_subtitle' => 'Caças Paralelas, Regras por Caça e Proteção Shiny',
+			'scanner_enlarged_waiting_text' => 'Aguardando texto...',
+			'scanner_enlarged_close' => 'Fechar',
+			'scanner_self_scan_overlap_title' => 'PokéVault está na área de escaneamento ativo',
+			'scanner_self_scan_overlap_body' => 'A janela do PokéVault sobrepõe a área de tela monitorada. Isso permite que o OCR ao vivo escaneie seus próprios textos e consuma desempenho desnecessariamente.',
+			'scanner_self_scan_overlap_suppress' => 'Não mostrar mais este aviso',
+			'scanner_self_scan_overlap_ignore' => 'Deixar sem máscara',
+			'scanner_self_scan_overlap_mask' => 'Ocultar PokéVault (Recomendado)',
+			'shiny_auto_transition_none_warning' => 'No modo \'Apenas Troca de Imagem\', atualmente não está ativo o reset de tela preta nem de tela branca. Ative pelo menos uma transição ou escolha outro modo.',
+			'multi_hunt_slot_default_suffix' => '(Padrão)',
 			_ => null,
 		};
 	}

@@ -157,6 +157,8 @@ class MobileCameraSource
   @override
   Future<void> stop() async {
     _running = false;
+    _latestUprightFrame = null;
+    _transitionDetector.reset();
   }
 
   /// Processes a single imported photo or screenshot immediately.
@@ -273,6 +275,9 @@ class MobileCameraSource
         break;
       }
     }
+    // Fallback: if user only configured focus / encounterOnly regions, still
+    // track transitions & visual color heuristics on the primary enabled region.
+    primaryScanZoneId ??= enabledRegions.first.id;
 
     for (final region in enabledRegions) {
       final cropped = CameraFrameProcessor.cropFrameToNormalizedRect(
@@ -285,6 +290,7 @@ class MobileCameraSource
         zoneKey: region.id,
         targetDescription: region.label,
         croppedFrame: cropped,
+        visualColorFrame: uprightFrame,
         role: region.role,
         slotId: region.slotId,
         colorHex: region.colorHex,
@@ -300,6 +306,7 @@ class MobileCameraSource
     required String zoneKey,
     required String targetDescription,
     required CapturedFrame croppedFrame,
+    CapturedFrame? visualColorFrame,
     required CameraZoneRole role,
     int? slotId,
     int? colorHex,
@@ -307,7 +314,7 @@ class MobileCameraSource
     required bool bypassHash,
     bool trackTransition = true,
   }) async {
-    if (trackTransition && role != CameraZoneRole.focus && !encounterOnly) {
+    if (trackTransition) {
       final resolvedSlotId =
           role == CameraZoneRole.multiInstance ? (slotId ?? 2) : 0;
       final transition = _transitionDetector.analyzeFrame(
@@ -320,7 +327,10 @@ class MobileCameraSource
       if (_visualFrameController.hasListener &&
           !_visualFrameController.isClosed) {
         _visualFrameController.add(
-          SlotVisualFrame(slotId: resolvedSlotId, frame: croppedFrame),
+          SlotVisualFrame(
+            slotId: resolvedSlotId,
+            frame: visualColorFrame ?? croppedFrame,
+          ),
         );
       }
     }
@@ -333,6 +343,7 @@ class MobileCameraSource
 
     final t0 = DateTime.now();
     final lines = await ocrDriver.recognizeText(croppedFrame);
+    if (!_running && bypassHash == false) return;
     final ocrMs = DateTime.now().difference(t0).inMilliseconds;
     final joined = lines.join('\n').trim();
     final diagnosticHint = ocrDriver is DiagnosticOcrDriver
@@ -418,6 +429,10 @@ class MobileCameraSource
   @override
   Future<void> dispose() async {
     _running = false;
+    _latestUprightFrame = null;
+    liveScanStatusNotifier.dispose();
+    liveFocusStatusNotifier.dispose();
+    scanLogsNotifier.dispose();
     await _textController.close();
     await _focusTextController.close();
     await _multiTextController.close();
