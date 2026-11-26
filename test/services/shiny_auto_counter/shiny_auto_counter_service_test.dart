@@ -662,7 +662,23 @@ void main() {
       expect(service.slotStatesNotifier.value.first.phase, equals(ShinySlotPhase.rearmPending));
 
       // Wait past minResetCooldownMs (200ms) with NO additional event
-      await Future<void>.delayed(const Duration(milliseconds: 280));
+      final armedCompleter = Completer<void>();
+      void onSlotUpdate() {
+        final slots = service.slotStatesNotifier.value;
+        if (slots.isNotEmpty &&
+            slots.first.phase == ShinySlotPhase.armed &&
+            !armedCompleter.isCompleted) {
+          armedCompleter.complete();
+        }
+      }
+
+      service.slotStatesNotifier.addListener(onSlotUpdate);
+      onSlotUpdate();
+      try {
+        await armedCompleter.future.timeout(const Duration(seconds: 2));
+      } finally {
+        service.slotStatesNotifier.removeListener(onSlotUpdate);
+      }
       expect(service.slotStatesNotifier.value.first.phase, equals(ShinySlotPhase.armed));
 
       await service.stopSession();

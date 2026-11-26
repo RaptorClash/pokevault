@@ -670,13 +670,16 @@ class ShinyAutoCounterService {
     if (_elapsedClock != null) return;
     final remaining = slot.remainingRearmDuration ??
         Duration(milliseconds: slot.settings.minResetCooldownMs);
-    final delay =
-        remaining <= Duration.zero ? const Duration(milliseconds: 1) : remaining;
+    final delay = remaining <= Duration.zero
+        ? const Duration(milliseconds: 5)
+        : remaining + const Duration(milliseconds: 5);
     _rearmTimers[slot.slotId] = Timer(delay, () {
       _rearmTimers.remove(slot.slotId);
       if (!_running) return;
       if (slot.checkRearmReady()) {
         _publishSlotSnapshots();
+      } else if (slot.phase == ShinySlotPhase.rearmPending) {
+        _scheduleRearmTimer(slot);
       }
     });
   }
