@@ -99,7 +99,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
           const SizedBox(height: 24),
           Container(key: _updatesKey, child: const UpdatesCard()),
           const SizedBox(height: 24),
-          Container(key: _generalKey, child: const GeneralCard()),
+          Container(
+            key: _generalKey,
+            child: GeneralCard(
+              onReturnFromTutorials: () {
+                if (mounted) _showTutorialIfNeeded();
+              },
+            ),
+          ),
           const SizedBox(height: 24),
           Container(key: _dataKey, child: const DataManagementCard()),
           const SizedBox(height: 24),

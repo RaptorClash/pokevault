@@ -1,14 +1,20 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:provider/provider.dart';
+import '../../models/dex_view_models.dart';
 import '../../models/pokemon.dart';
 import '../../models/tutorial_step.dart';
 import '../../providers/dex_provider.dart';
 import '../../providers/tutorial_provider.dart';
 import '../../i18n/strings.g.dart';
 import '../../widgets/tutorial/chapter_demo_dialog.dart';
+import '../../widgets/tutorial/tutorial_overlay.dart';
 import '../../services/scanner_core/scanner_launcher_helper.dart';
 import '../../utils/notification_helper.dart';
 import '../dex/dex_screen.dart';
+import '../dex/route_tracker_screen.dart';
+import '../home/create_dex_bottom_sheet.dart';
+import '../pokemon_info/pokemon_info_screen.dart';
+import '../shiny_hunt/multi_hunt_dashboard_screen.dart';
 import '../shiny_hunt/shiny_hunts_hub_screen.dart';
 import 'controls_guide_screen.dart';
 
@@ -55,22 +61,16 @@ class TutorialSettingsScreen extends StatelessWidget {
   ) {
     final theme = Theme.of(context);
 
-    Color accentColor;
-    if (chapter.isNewInV17) {
-      accentColor = Colors.cyan;
-    } else if (chapter.isNewInV16) {
-      accentColor = Colors.amber;
-    } else {
-      accentColor = theme.colorScheme.primary;
-    }
+    final Color accentColor =
+        chapter.isNewInV17 ? Colors.cyan : theme.colorScheme.primary;
 
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
         side: BorderSide(
-          color: (chapter.isNewInV17 || chapter.isNewInV16)
-              ? accentColor.withValues(alpha: 0.3)
+          color: chapter.isNewInV17
+              ? accentColor.withValues(alpha: 0.35)
               : theme.colorScheme.outlineVariant.withValues(alpha: 0.4),
           width: 1,
         ),
@@ -112,7 +112,7 @@ class TutorialSettingsScreen extends StatelessWidget {
                               ),
                             ),
                           ),
-                          if (chapter.isNewInV16 || chapter.isNewInV17) ...[
+                          if (chapter.isNewInV17) ...[
                             const SizedBox(width: 6),
                             Container(
                               padding: const EdgeInsets.symmetric(
@@ -128,7 +128,7 @@ class TutorialSettingsScreen extends StatelessWidget {
                                 ),
                               ),
                               child: Text(
-                                chapter.isNewInV17 ? t.tutorial_new_badge : 'NEU (v1.6)',
+                                t.tutorial_new_badge,
                                 style: TextStyle(
                                   fontSize: 9.5,
                                   fontWeight: FontWeight.w900,
@@ -165,31 +165,53 @@ class TutorialSettingsScreen extends StatelessWidget {
             Wrap(
               alignment: WrapAlignment.spaceBetween,
               crossAxisAlignment: WrapCrossAlignment.center,
+              spacing: 8,
+              runSpacing: 6,
               children: [
                 Text(
-                  '${chapter.stepCount} Schritte',
+                  t.tutorial_steps_count.replaceAll('{count}', '${chapter.stepCount}'),
                   style: TextStyle(
                     fontSize: 11.5,
                     color: theme.colorScheme.onSurfaceVariant,
                   ),
                 ),
-                TextButton.icon(
-                  style: TextButton.styleFrom(
-                    visualDensity: VisualDensity.compact,
-                    foregroundColor: theme.colorScheme.primary,
-                  ),
-                  onPressed: () {
-                    ChapterDemoDialog.show(
-                      context,
-                      chapter,
-                      onTryInScreen: _getTryInScreenAction(context, chapter.id),
-                    );
-                  },
-                  icon: const Icon(Icons.play_circle_outline, size: 16),
-                  label: Text(
-                    t.tutorial_replay,
-                    style: const TextStyle(fontWeight: FontWeight.bold),
-                  ),
+                Wrap(
+                  spacing: 6,
+                  runSpacing: 4,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  children: [
+                    TextButton.icon(
+                      style: TextButton.styleFrom(
+                        visualDensity: VisualDensity.compact,
+                        foregroundColor: theme.colorScheme.primary,
+                      ),
+                      onPressed: () {
+                        ChapterDemoDialog.show(
+                          context,
+                          chapter,
+                          onTryInScreen: _getTryInScreenAction(context, chapter.id),
+                        );
+                      },
+                      icon: const Icon(Icons.play_circle_outline, size: 16),
+                      label: Text(
+                        t.tutorial_replay,
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                    FilledButton.tonalIcon(
+                      key: Key('tutorial_live_tour_${chapter.id}'),
+                      style: FilledButton.styleFrom(
+                        visualDensity: VisualDensity.compact,
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                      ),
+                      onPressed: () => _startChapterLiveTour(context, chapter),
+                      icon: const Icon(Icons.rocket_launch_outlined, size: 15),
+                      label: Text(
+                        t.tutorial_start_live_tour,
+                        style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -199,11 +221,145 @@ class TutorialSettingsScreen extends StatelessWidget {
     );
   }
 
+  Future<void> _startChapterLiveTour(
+    BuildContext context,
+    TutorialChapter chapter,
+  ) async {
+    TutorialProvider? tutProvider;
+    try {
+      tutProvider = Provider.of<TutorialProvider>(context, listen: false);
+    } catch (_) {
+      tutProvider = null;
+    }
+
+    await tutProvider?.prepareChapterForLiveReplay(chapter.id);
+    TutorialOverlay.resetShowing();
+    if (!context.mounted) return;
+
+    DexProvider? dexProvider;
+    try {
+      dexProvider = Provider.of<DexProvider>(context, listen: false);
+    } catch (_) {
+      dexProvider = null;
+    }
+
+    switch (chapter.id) {
+      case 'module_home':
+        Navigator.of(context).popUntil((route) => route.isFirst);
+        break;
+      case 'module_create_dex':
+        if (dexProvider != null) {
+          await showModalBottomSheet<void>(
+            context: context,
+            isScrollControlled: true,
+            builder: (_) => CreateDexBottomSheet(
+              provider: dexProvider!,
+              currentFolderId: 'root',
+            ),
+          );
+        } else {
+          Navigator.of(context).popUntil((route) => route.isFirst);
+        }
+        break;
+      case 'module_dex_screen':
+      case 'module_box_management':
+      case 'module_stats_share':
+        _openDexOrHome(context);
+        break;
+      case 'module_pokemon_info':
+        if (dexProvider != null && dexProvider.allPokemon.isNotEmpty) {
+          final poke = dexProvider.allPokemon.first;
+          final entry = DexDisplayEntry(
+            pokemon: poke,
+            uniqueId: poke.id.toString(),
+            displaySuffix: '',
+            imageUrl:
+                'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${poke.id}.png',
+          );
+          final dexId = dexProvider.userDexes.isNotEmpty
+              ? dexProvider.userDexes.first.id
+              : 'national_overall';
+          await Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (_) => PokemonInfoScreen(
+                entries: [entry],
+                initialIndex: 0,
+                dexId: dexId,
+              ),
+            ),
+          );
+        } else {
+          _openDexOrHome(context);
+        }
+        break;
+      case 'module_route_tracker':
+        if (dexProvider != null &&
+            dexProvider.userDexes.isNotEmpty &&
+            dexProvider.allPokemon.isNotEmpty) {
+          final poke = dexProvider.allPokemon.first;
+          final entry = DexDisplayEntry(
+            pokemon: poke,
+            uniqueId: poke.id.toString(),
+            displaySuffix: '',
+            imageUrl:
+                'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${poke.id}.png',
+          );
+          await Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (_) => RouteTrackerScreen(
+                liveDex: dexProvider!.userDexes.first,
+                displayEntries: [entry],
+              ),
+            ),
+          );
+        } else {
+          _openDexOrHome(context);
+        }
+        break;
+      case 'module_shiny_hunt':
+        await Navigator.of(context).push(
+          MaterialPageRoute(builder: (_) => const ShinyHuntsHubScreen()),
+        );
+        break;
+      case 'module_controls':
+        try {
+          tutProvider?.markFeatureAsSeen('controls_guide');
+        } catch (_) {}
+        await Navigator.of(context).push(
+          MaterialPageRoute(builder: (_) => const ControlsGuideScreen()),
+        );
+        break;
+      case 'module_backup_sync':
+        if (Navigator.of(context).canPop()) {
+          Navigator.of(context).pop();
+        } else {
+          Navigator.of(context).popUntil((route) => route.isFirst);
+        }
+        break;
+      case 'module_scanner_mobile':
+      case 'module_scanner_desktop':
+        ScannerLauncherHelper.openPlatformTracker(
+          context,
+          allPokemon: dexProvider?.allPokemon ?? const [],
+        );
+        break;
+      case 'module_shiny_auto_counter':
+        await Navigator.of(context).push(
+          MaterialPageRoute(builder: (_) => const MultiHuntDashboardScreen()),
+        );
+        break;
+    }
+  }
+
   VoidCallback? _getTryInScreenAction(BuildContext context, String chapterId) {
     switch (chapterId) {
       case 'module_shiny_hunt':
         return () => Navigator.of(context).push(
               MaterialPageRoute(builder: (_) => const ShinyHuntsHubScreen()),
+            );
+      case 'module_shiny_auto_counter':
+        return () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const MultiHuntDashboardScreen()),
             );
       case 'module_controls':
         return () {
@@ -230,6 +386,8 @@ class TutorialSettingsScreen extends StatelessWidget {
       case 'module_stats_share':
       case 'module_pokemon_info':
         return () => _openDexOrHome(context);
+      case 'module_home':
+      case 'module_create_dex':
       case 'module_home_screen':
       case 'module_first_steps':
         return () => Navigator.of(context).popUntil((route) => route.isFirst);
@@ -359,26 +517,27 @@ class TutorialSettingsScreen extends StatelessWidget {
                     runSpacing: 8,
                     children: [
                       ElevatedButton.icon(
+                        key: const Key('tutorial_v17_tour_btn'),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.amber,
+                          backgroundColor: Colors.cyan,
                           foregroundColor: Colors.black,
                           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                         ),
                         onPressed: () async {
-                          await tutProvider.startV16DeltaTour();
+                          await tutProvider.startV17DeltaTour();
                           if (context.mounted) {
                             NotificationHelper.showSuccess(
                               t.tutorial_tour_started,
                             );
-                            Navigator.of(context).pop();
+                            Navigator.of(context).popUntil((route) => route.isFirst);
                           }
                         },
                         icon: const Icon(Icons.auto_awesome, size: 16),
                         label: ConstrainedBox(
-                          constraints: const BoxConstraints(maxWidth: 200),
+                          constraints: const BoxConstraints(maxWidth: 185),
                           child: Text(
-                            t.tutorial_v16_tour_btn,
+                            t.tutorial_v17_tour_btn,
                             style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
                             overflow: TextOverflow.ellipsis,
                           ),
@@ -393,7 +552,7 @@ class TutorialSettingsScreen extends StatelessWidget {
                         onPressed: () => _showResetAllConfirmDialog(context),
                         icon: const Icon(Icons.refresh, size: 16),
                         label: ConstrainedBox(
-                          constraints: const BoxConstraints(maxWidth: 200),
+                          constraints: const BoxConstraints(maxWidth: 185),
                           child: Text(
                             t.tutorial_replay_all,
                             style: const TextStyle(fontSize: 12),
@@ -428,7 +587,10 @@ class TutorialSettingsScreen extends StatelessWidget {
                   ),
                 ),
                 Text(
-                  '${TutorialChapters.visibleForPlatform().length} Kapitel',
+                  t.tutorial_chapters_count.replaceAll(
+                    '{count}',
+                    '${TutorialChapters.visibleForPlatform().length}',
+                  ),
                   style: TextStyle(
                     fontSize: 12,
                     color: theme.colorScheme.onSurfaceVariant,

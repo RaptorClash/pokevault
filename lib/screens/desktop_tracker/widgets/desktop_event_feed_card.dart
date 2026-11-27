@@ -1,5 +1,6 @@
 import 'package:material_ui/material_ui.dart';
 
+import '../../../i18n/strings.g.dart';
 import '../../../models/user_dex.dart';
 import '../../../services/scanner_core/models/scanner_event.dart';
 
@@ -337,6 +338,17 @@ class DesktopEventFeedCard extends StatelessWidget {
         bg = Colors.red.withValues(alpha: 0.15);
         fg = Colors.red;
         label = 'ALPHA';
+        break;
+      case ScannerEventType.eggHatched:
+        bg = Colors.teal.withValues(alpha: 0.15);
+        fg = Colors.teal;
+        label = t.scanner_event_egg_hatched_badge;
+        break;
+      case ScannerEventType.softReset:
+      case ScannerEventType.customReset:
+        bg = Colors.orange.withValues(alpha: 0.15);
+        fg = Colors.orange;
+        label = 'RESET';
         break;
       case ScannerEventType.unknown:
         bg = Colors.grey.withValues(alpha: 0.15);

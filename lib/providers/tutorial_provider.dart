@@ -139,12 +139,98 @@ class TutorialProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Starts the Scanner Delta Walkthrough by resetting scanner tour keys.
-  Future<void> startScannerDeltaTour() async {
+  /// Starts the v1.7 Delta Walkthrough (Scanner + Multi-Hunt Dashboard & Auto-Counter)
+  /// by resetting all v1.7 tour and delta spotlight keys.
+  Future<void> startV17DeltaTour() async {
     await dismissScannerUpdatePrompt();
-    await _prefs.remove('mobile_scanner_tour');
-    await _prefs.remove('desktop_scanner_tour');
+    await _prefs.remove('skip_all_tutorials');
+    const v17Keys = [
+      'mobile_scanner_tour',
+      'desktop_scanner_tour',
+      'shiny_hunt_hub_v17_delta',
+      'shiny_hunt_counter_v17_delta',
+      'multi_hunt_dashboard',
+      'shiny_auto_counter_setup',
+      'shiny_auto_counter_bar',
+    ];
+    for (final key in v17Keys) {
+      await _prefs.remove(key);
+    }
     _isScannerDeltaTourActive = true;
+    notifyListeners();
+  }
+
+  /// Starts the Scanner / v1.7 Delta Walkthrough (delegates to [startV17DeltaTour]).
+  Future<void> startScannerDeltaTour() => startV17DeltaTour();
+
+  /// Resets all live tutorial flags for [chapterId] (including companion keys
+  /// and global skip flag) so the user can replay the real interactive Rotom tour.
+  Future<void> prepareChapterForLiveReplay(String chapterId) async {
+    await _prefs.remove('skip_all_tutorials');
+
+    final chapter = TutorialChapters.all.firstWhere(
+      (c) => c.id == chapterId,
+      orElse: () => TutorialChapter(
+        id: chapterId,
+        titleKey: '',
+        descKey: '',
+        icon: Icons.help_outline,
+        requiredFeatureKeys: [chapterId],
+        stepCount: 1,
+      ),
+    );
+
+    const companionKeys = <String, List<String>>{
+      'module_home': [
+        'home_screen',
+        'open_dex',
+        'home_organize_part1',
+        'home_organize_part2',
+        'home_settings_intro',
+        'home_bottom_sheet',
+      ],
+      'module_create_dex': ['create_dex_sheet'],
+      'module_dex_screen': ['dex_screen', 'ignored_pokemon', 'dex_appbar_tools'],
+      'module_box_management': [
+        'box_management',
+        'box_drag_shift',
+        'box_edit_screen',
+        'box_content_edit',
+        'dex_appbar_tools',
+      ],
+      'module_shiny_hunt': [
+        'shiny_hunt_hub',
+        'shiny_hunt_counter',
+        'create_hunt_dialog',
+        'shiny_hunt_hub_v17_delta',
+        'shiny_hunt_counter_v17_delta',
+      ],
+      'module_stats_share': ['dex_statistics', 'completion_card', 'dex_appbar_tools'],
+      'module_pokemon_info': [
+        'pokemon_details',
+        'gender_differences',
+        'special_obtainable',
+      ],
+      'module_route_tracker': ['route_tracker', 'dex_appbar_tools'],
+      'module_controls': ['controls_guide'],
+      'module_backup_sync': ['settings_screen', 'cloud_sync', 'data_backup'],
+      'module_scanner_mobile': ['mobile_scanner_tour'],
+      'module_scanner_desktop': ['desktop_scanner_tour'],
+      'module_shiny_auto_counter': [
+        'multi_hunt_dashboard',
+        'shiny_auto_counter_setup',
+        'shiny_auto_counter_bar',
+      ],
+    };
+
+    final keysToClear = <String>{
+      ...chapter.requiredFeatureKeys,
+      ...?companionKeys[chapterId],
+    };
+
+    for (final key in keysToClear) {
+      await _prefs.remove(key);
+    }
     notifyListeners();
   }
 

@@ -235,7 +235,7 @@ class TutorialChapters {
       ],
     ),
 
-    // 5. Shiny Hunt Tracker (v1.6)
+    // 5. Shiny Hunt Tracker
     TutorialChapter(
       id: 'module_shiny_hunt',
       titleKey: 'tutorial_chapter_shiny_hunt_title',
@@ -243,7 +243,7 @@ class TutorialChapters {
       icon: Icons.auto_awesome,
       version: 2,
       requiredFeatureKeys: const ['shiny_hunt_hub', 'shiny_hunt_counter'],
-      stepCount: 5,
+      stepCount: 6,
       demoSteps: [
         TutorialStep(
           titleKey: 'tutorial_shiny_hub_title',
@@ -268,6 +268,11 @@ class TutorialChapters {
         TutorialStep(
           titleKey: 'tutorial_shiny_stats_title',
           textKey: 'tutorial_shiny_stats_text',
+          rotomMood: RotomMood.happy,
+        ),
+        TutorialStep(
+          titleKey: 'tutorial_shiny_dashboard_auto_title',
+          textKey: 'tutorial_shiny_dashboard_auto_text',
           rotomMood: RotomMood.happy,
         ),
       ],
@@ -520,6 +525,49 @@ class TutorialChapters {
         TutorialStep(
           titleKey: 'tutorial_scanner_desk_ocr_title',
           textKey: 'tutorial_scanner_desk_ocr_text',
+          rotomMood: RotomMood.happy,
+        ),
+      ],
+    ),
+
+    // 12. Multi-Hunt Dashboard & Visueller Auto-Counter (v1.7)
+    TutorialChapter(
+      id: 'module_shiny_auto_counter',
+      titleKey: 'tutorial_chapter_shiny_auto_title',
+      descKey: 'tutorial_chapter_shiny_auto_desc',
+      icon: Icons.center_focus_strong,
+      version: 3,
+      mobileOnly: null,
+      requiredFeatureKeys: const [
+        'multi_hunt_dashboard',
+        'shiny_auto_counter_setup',
+        'shiny_auto_counter_bar',
+      ],
+      stepCount: 5,
+      demoSteps: [
+        TutorialStep(
+          titleKey: 'tutorial_auto_demo_dashboard_title',
+          textKey: 'tutorial_auto_demo_dashboard_text',
+          rotomMood: RotomMood.happy,
+        ),
+        TutorialStep(
+          titleKey: 'tutorial_auto_demo_cards_title',
+          textKey: 'tutorial_auto_demo_cards_text',
+          rotomMood: RotomMood.explaining,
+        ),
+        TutorialStep(
+          titleKey: 'tutorial_auto_demo_rules_title',
+          textKey: 'tutorial_auto_demo_rules_text',
+          rotomMood: RotomMood.explaining,
+        ),
+        TutorialStep(
+          titleKey: 'tutorial_auto_demo_slots_title',
+          textKey: 'tutorial_auto_demo_slots_text',
+          rotomMood: RotomMood.thinking,
+        ),
+        TutorialStep(
+          titleKey: 'tutorial_auto_demo_livebar_title',
+          textKey: 'tutorial_auto_demo_livebar_text',
           rotomMood: RotomMood.happy,
         ),
       ],

@@ -142,6 +142,112 @@ void main() {
       expect(captures, greaterThan(beforePause));
       await pump.dispose();
     });
+
+    test('serializes rapid pause/resume and does not permanently fall back to polling on transient exception', () async {
+      int startCalls = 0;
+      int stopCalls = 0;
+      bool streamActive = false;
+
+      final pump = CameraFramePump(
+        startImageStream: () async {
+          startCalls++;
+          await Future<void>.delayed(const Duration(milliseconds: 15));
+          if (startCalls == 1) {
+            throw StateError('transient camera busy');
+          }
+          streamActive = true;
+        },
+        stopImageStream: () async {
+          stopCalls++;
+          await Future<void>.delayed(const Duration(milliseconds: 15));
+          streamActive = false;
+        },
+        captureStillBytes: () async => null,
+        decodeStillFrame: (_) async => null,
+        onDecodedFrame: (_) async {},
+        pollInterval: const Duration(milliseconds: 25),
+      );
+
+      // Transient error on first start must NOT lock _isUsingPollingFallback = true
+      await pump.start();
+      expect(pump.isUsingPollingFallback, isFalse);
+
+      // Rapid start/pause/resume should serialize cleanly and end with stream active
+      await Future.wait([
+        pump.start(),
+        pump.pause(),
+        pump.resume(),
+      ]);
+      expect(streamActive, isTrue);
+      expect(stopCalls, greaterThanOrEqualTo(0));
+      await pump.dispose();
+    });
+
+    test('double start() does not call startImageStream twice or leak active stream on dispose', () async {
+      int startCalls = 0;
+      int stopCalls = 0;
+
+      final pump = CameraFramePump(
+        startImageStream: () async {
+          startCalls++;
+          if (startCalls > 1) {
+            throw StateError('CameraException: stream already active');
+          }
+        },
+        stopImageStream: () async {
+          stopCalls++;
+        },
+        captureStillBytes: () async => null,
+        decodeStillFrame: (_) async => null,
+        onDecodedFrame: (_) async {},
+      );
+
+      await pump.start();
+      await pump.start();
+      expect(startCalls, 1);
+      expect(pump.isRunning, isTrue);
+
+      await pump.dispose();
+      expect(stopCalls, 1);
+    });
+
+    test('dispose() awaits in-flight polling captureStillBytes() before completing', () async {
+      final captureStarted = Completer<void>();
+      final captureCompleter = Completer<Uint8List?>();
+      bool captureFinished = false;
+
+      final pump = CameraFramePump(
+        startImageStream: () async => throw UnimplementedError(),
+        stopImageStream: () async {},
+        captureStillBytes: () async {
+          if (!captureStarted.isCompleted) {
+            captureStarted.complete();
+          }
+          final res = await captureCompleter.future;
+          captureFinished = true;
+          return res;
+        },
+        decodeStillFrame: (_) async => null,
+        onDecodedFrame: (_) async {},
+        pollInterval: const Duration(milliseconds: 50),
+        forcePollingFallback: true,
+      );
+
+      await pump.start();
+      await captureStarted.future;
+
+      bool disposeDone = false;
+      final disposeFuture = pump.dispose().then((_) {
+        disposeDone = true;
+      });
+      await Future<void>.delayed(const Duration(milliseconds: 20));
+      expect(disposeDone, isFalse);
+
+      captureCompleter.complete(null);
+      await disposeFuture;
+      expect(captureFinished, isTrue);
+      expect(disposeDone, isTrue);
+    });
   });
 
   group('CameraFrameProcessor.extractPackedBgraBytes (TDD)', () {

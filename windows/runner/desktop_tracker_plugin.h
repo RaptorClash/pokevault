@@ -7,6 +7,7 @@
 #include <flutter/standard_method_codec.h>
 #include <windows.h>
 
+#include <array>
 #include <atomic>
 #include <chrono>
 #include <condition_variable>
@@ -17,6 +18,8 @@
 #include <queue>
 #include <string>
 #include <thread>
+#include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
 /// Native Windows Win32/WinRT plugin handling:
@@ -102,6 +105,85 @@ class DesktopTrackerPlugin {
     OcrAsyncPayload* payload = nullptr;
   };
 
+  struct CaptureAsyncPayload {
+    std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result;
+    bool success = false;
+    int width = 0;
+    int height = 0;
+    std::string capture_method;
+    std::vector<uint8_t> bytes;
+  };
+
+  struct CaptureAnalyzePayload {
+    std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result;
+    bool captured = false;
+    bool ocr_skipped = true;
+    std::vector<std::string> lines;
+    bool used_fallback_language = false;
+    std::string resolved_language_tag;
+    std::string requested_language_tag;
+    std::vector<std::string> available_languages;
+    bool ocr_succeeded = true;
+    std::string error_hint;
+    int64_t capture_duration_ms = 0;
+    int64_t ocr_duration_ms = 0;
+    int frame_width = 0;
+    int frame_height = 0;
+    std::string capture_method = "unknown";
+    std::string brightness_summary;
+    bool has_luma = false;
+    double avg_luma = 0.0;
+    double std_dev = 0.0;
+    bool has_color_histogram = false;
+    std::array<double, 16> color_histogram{};
+    bool self_window_overlaps = false;
+    std::vector<uint8_t> thumbnail_png;
+    int thumbnail_width = 0;
+    int thumbnail_height = 0;
+  };
+
+  struct WorkerTask {
+    enum class Type {
+      kOcr,
+      kCaptureRegion,
+      kCaptureWindow,
+      kCaptureAnalyze,
+      kClearScanCache,
+    };
+
+    Type type = Type::kOcr;
+    // Ocr task fields
+    std::vector<uint8_t> bytes;
+    int width = 0;
+    int height = 0;
+    std::string language_tag;
+    std::string preprocess_profile;
+    OcrAsyncPayload* ocr_payload = nullptr;
+
+    // Capture / CaptureAnalyze fields
+    bool is_region = false;
+    int cap_x = 0;
+    int cap_y = 0;
+    int cap_w = 0;
+    int cap_h = 0;
+    int64_t hwnd_val = 0;
+    bool has_crop = false;
+    int crop_x = 0;
+    int crop_y = 0;
+    int crop_w = 0;
+    int crop_h = 0;
+    std::string slot_key;
+    bool force_ocr = false;
+    bool mask_self_window = false;
+    bool compute_color_histogram = false;
+    bool include_thumbnail = false;
+    int thumbnail_max_width = 320;
+    bool multi_band_fallback = false;
+    bool skip_ocr = false;
+    CaptureAsyncPayload* capture_payload = nullptr;
+    CaptureAnalyzePayload* analyze_payload = nullptr;
+  };
+
   struct WindowCaptureCache {
     HWND hwnd = nullptr;
     int width = 0;
@@ -122,8 +204,16 @@ class DesktopTrackerPlugin {
   void StartDesktopSnipping(
       const flutter::EncodableMap* args,
       std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result);
-  flutter::EncodableValue CaptureRegion(const flutter::EncodableMap& args);
-  flutter::EncodableValue CaptureWindow(const flutter::EncodableMap& args);
+  void CaptureRegionAsync(
+      const flutter::EncodableMap& args,
+      std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result);
+  void CaptureWindowAsync(
+      const flutter::EncodableMap& args,
+      std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result);
+  void CaptureAndAnalyzeAsync(
+      const flutter::EncodableMap& args,
+      std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result);
+  void ClearScanCacheAsync();
   void RecognizeTextAsync(
       const flutter::EncodableMap& args,
       std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result);
@@ -203,14 +293,16 @@ class DesktopTrackerPlugin {
   std::shared_ptr<std::atomic<bool>> alive_flag_ =
       std::make_shared<std::atomic<bool>>(true);
 
-  // Dedicated OCR worker thread + short-lived full-window capture cache
+  // Dedicated OCR + Capture background worker thread
   std::mutex ocr_queue_mutex_;
   std::condition_variable ocr_queue_cv_;
-  std::queue<OcrWorkItem> ocr_queue_;
+  std::queue<WorkerTask> ocr_queue_;
   bool ocr_worker_stopping_ = false;
   HANDLE ocr_stop_event_ = nullptr;
   std::thread ocr_worker_thread_;
-  WindowCaptureCache window_capture_cache_{};
+  std::vector<WindowCaptureCache> window_capture_cache_;
+  std::unordered_set<HWND> print_window_verified_hwnds_;
+  std::unordered_map<std::string, int64_t> slot_fingerprints_;
 
   // HUD state
   HWND hud_hwnd_ = nullptr;
@@ -225,6 +317,8 @@ class DesktopTrackerPlugin {
   bool hud_user_moved_ = false;
 
   static constexpr UINT kMsgOcrComplete = WM_APP + 101;
+  static constexpr UINT kMsgCaptureComplete = WM_APP + 102;
+  static constexpr UINT kMsgCaptureAnalyzeComplete = WM_APP + 103;
 };
 
 #endif  // RUNNER_DESKTOP_TRACKER_PLUGIN_H_

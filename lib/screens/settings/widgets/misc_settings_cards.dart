@@ -91,7 +91,9 @@ class UpdatesCard extends StatelessWidget {
 }
 
 class GeneralCard extends StatelessWidget {
-  const GeneralCard({super.key});
+  final VoidCallback? onReturnFromTutorials;
+
+  const GeneralCard({super.key, this.onReturnFromTutorials});
 
   @override
   Widget build(BuildContext context) {
@@ -159,7 +161,7 @@ class GeneralCard extends StatelessWidget {
                   MaterialPageRoute(
                     builder: (context) => const TutorialSettingsScreen(),
                   ),
-                ),
+                ).then((_) => onReturnFromTutorials?.call()),
               ),
             ],
           ),

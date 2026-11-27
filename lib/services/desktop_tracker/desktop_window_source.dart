@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:ui';
 import 'package:flutter/foundation.dart';
 import '../scanner_core/media/frame_band_cropper.dart';
+import '../scanner_core/media/frame_transition_detector.dart';
 import '../scanner_core/models/scanner_settings.dart';
 import '../scanner_core/source/scanner_source.dart';
 import 'desktop_capture_driver.dart';
@@ -182,9 +183,15 @@ int computeFrameFingerprint(CapturedFrame frame) {
 /// crops the dialogue/textbox area (Zone A) plus an optional opponent HUD (Zone B)
 /// and Multi-Instance slots, runs local OCR only on changed frames, and feeds streams.
 class DesktopWindowSource
-    implements DualZoneScannerSource, MultiInstanceScannerSource {
+    implements
+        DualZoneScannerSource,
+        MultiInstanceScannerSource,
+        FrameTransitionScannerSource,
+        VisualFrameScannerSource {
   final DesktopCaptureDriver captureDriver;
   final DesktopOcrDriver ocrDriver;
+  final DesktopPlatformBridge? nativeBridge;
+  final Duration Function()? elapsedClock;
   Duration _pollInterval;
 
   DesktopWindowInfo? _selectedWindow;
@@ -201,7 +208,20 @@ class DesktopWindowSource
   bool _scanInFlight = false;
   bool _disposed = false;
 
+  // Native fast-path preview throttling & self-window masking state
+  final Stopwatch _previewClock = Stopwatch()..start();
+  bool _previewEnabled = true;
+  int _previewMaxWidth = 320;
+  Duration? _lastThumbnailRequestedAt;
+  Duration? _lastFocusThumbnailRequestedAt;
+  bool _maskSelfWindow = false;
+  bool _forceNextNativeOcr = false;
+  int _cacheGeneration = 0;
+
   bool get isDisposed => _disposed;
+  bool get maskSelfWindow => _maskSelfWindow;
+  bool get previewEnabled => _previewEnabled;
+  int get previewMaxWidth => _previewMaxWidth;
 
   final StreamController<String> _textController =
       StreamController<String>.broadcast();
@@ -209,6 +229,11 @@ class DesktopWindowSource
       StreamController<String>.broadcast();
   final StreamController<MultiInstanceTextEmission> _multiTextController =
       StreamController<MultiInstanceTextEmission>.broadcast();
+  final StreamController<FrameTransitionEvent> _transitionController =
+      StreamController<FrameTransitionEvent>.broadcast();
+  final StreamController<SlotVisualFrame> _visualFrameController =
+      StreamController<SlotVisualFrame>.broadcast();
+  final FrameTransitionDetector _transitionDetector;
   final ValueNotifier<LiveOcrScanStatus> liveScanStatusNotifier =
       ValueNotifier(const LiveOcrScanStatus());
   final ValueNotifier<LiveOcrScanStatus> liveFocusStatusNotifier =
@@ -219,6 +244,7 @@ class DesktopWindowSource
       ValueNotifier(const {});
   final ValueNotifier<List<OcrScanLogEntry>> scanLogsNotifier =
       ValueNotifier(const []);
+  final ValueNotifier<bool> selfWindowOverlapNotifier = ValueNotifier(false);
   static const int _maxScanLogs = 40;
   static final RegExp _focusCandidateWordRegex = RegExp(
     r'(?:^|[\s♂♀✨])[A-Za-zÀ-ÿ]{5,}(?=$|[\s♂♀✨])',
@@ -243,8 +269,138 @@ class DesktopWindowSource
   DesktopWindowSource({
     required this.captureDriver,
     required this.ocrDriver,
+    this.nativeBridge,
+    this.elapsedClock,
     Duration? pollInterval,
-  }) : _pollInterval = pollInterval ?? const Duration(milliseconds: 400);
+  })  : _pollInterval = pollInterval ?? const Duration(milliseconds: 400),
+        _transitionDetector = FrameTransitionDetector(elapsedClock: elapsedClock);
+
+  Duration get _nowElapsed => elapsedClock?.call() ?? _previewClock.elapsed;
+
+  /// Controls whether native fast-path transfers downscaled thumbnail PNGs
+  /// (disabled = 0-byte image transfer in background / Shiny-Tracker mode).
+  void setPreviewPolicy({required bool enabled, int maxWidth = 320}) {
+    final clampedWidth = maxWidth.clamp(64, 1920);
+    final changed =
+        _previewEnabled != enabled || _previewMaxWidth != clampedWidth;
+    final upgraded = enabled && (!_previewEnabled || clampedWidth > _previewMaxWidth);
+    _previewEnabled = enabled;
+    _previewMaxWidth = clampedWidth;
+    if (changed && upgraded) {
+      _lastThumbnailRequestedAt = null;
+      _lastFocusThumbnailRequestedAt = null;
+    }
+  }
+
+  void _invalidateNativeScanCache() {
+    _forceNextNativeOcr = true;
+    _cacheGeneration++;
+    if (nativeBridge != null) {
+      unawaited(nativeBridge!.clearNativeScanCache());
+    }
+  }
+
+  /// Controls whether PokéVault's own window rectangle is masked black during desktop region OCR.
+  void setMaskSelfWindow(bool enabled) {
+    if (_maskSelfWindow == enabled) return;
+    _maskSelfWindow = enabled;
+    _lastZoneAFingerprint = null;
+    _lastZoneBFingerprint = null;
+    _lastExtraZoneBFingerprints.clear();
+    _lastSlotScanFingerprints.clear();
+    _lastSlotFocusFingerprints.clear();
+    _invalidateNativeScanCache();
+    if (enabled) {
+      selfWindowOverlapNotifier.value = false;
+    }
+  }
+
+  bool _shouldRequestThumbnail({bool force = false}) {
+    if (!_previewEnabled) return false;
+    final now = _nowElapsed;
+    if (force || _lastThumbnailRequestedAt == null) {
+      _lastThumbnailRequestedAt = now;
+      return true;
+    }
+    if (now - _lastThumbnailRequestedAt! >= const Duration(milliseconds: 1000)) {
+      _lastThumbnailRequestedAt = now;
+      return true;
+    }
+    return false;
+  }
+
+  bool _shouldRequestFocusThumbnail({bool force = false}) {
+    if (!_previewEnabled) return false;
+    final now = _nowElapsed;
+    if (force || _lastFocusThumbnailRequestedAt == null) {
+      _lastFocusThumbnailRequestedAt = now;
+      return true;
+    }
+    if (now - _lastFocusThumbnailRequestedAt! >=
+        const Duration(milliseconds: 1000)) {
+      _lastFocusThumbnailRequestedAt = now;
+      return true;
+    }
+    return false;
+  }
+
+  NativeCaptureAnalyzeRequest? _buildNativeRequest({
+    required DesktopWindowInfo window,
+    required Rect? cropRegion,
+    required ScreenRegion? screenRegion,
+    required String slotKey,
+    required bool forceOcr,
+    required bool computeColorHistogram,
+    required bool includeThumbnail,
+    bool multiBandFallback = false,
+    bool skipOcr = false,
+  }) {
+    final String mode;
+    int hwnd = 0;
+    Rect? effectiveCrop;
+    ScreenRegion? effectiveScreen;
+
+    if (screenRegion != null && screenRegion.isAbsoluteScreen) {
+      mode = 'region';
+      effectiveScreen = screenRegion;
+    } else if (window.isDesktopScreen) {
+      final targetRect =
+          window.bounds ?? Rect.fromLTWH(0, 0, window.width, window.height);
+      final absRect = cropRegion != null
+          ? Rect.fromLTWH(
+              targetRect.left + cropRegion.left,
+              targetRect.top + cropRegion.top,
+              cropRegion.width,
+              cropRegion.height,
+            )
+          : targetRect;
+      mode = 'region';
+      effectiveScreen = ScreenRegion.fromRect(absRect, isAbsoluteScreen: true);
+    } else if (window.hwnd > 0) {
+      mode = 'window';
+      hwnd = window.hwnd;
+      effectiveCrop = cropRegion;
+    } else {
+      return null;
+    }
+
+    return NativeCaptureAnalyzeRequest(
+      mode: mode,
+      hwnd: hwnd,
+      cropRegion: effectiveCrop,
+      screenRegion: effectiveScreen,
+      slotKey: slotKey,
+      forceOcr: forceOcr,
+      languageTag: _ocrLanguageTag,
+      preprocessProfile: _preprocessProfile.name,
+      maskSelfWindow: _maskSelfWindow,
+      computeColorHistogram: computeColorHistogram,
+      includeThumbnail: includeThumbnail,
+      thumbnailMaxWidth: _previewMaxWidth,
+      multiBandFallback: multiBandFallback,
+      skipOcr: skipOcr,
+    );
+  }
 
   Duration get pollInterval => _pollInterval;
 
@@ -268,6 +424,35 @@ class DesktopWindowSource
   @override
   Stream<MultiInstanceTextEmission> get multiInstanceTextStream =>
       _multiTextController.stream;
+
+  @override
+  Stream<FrameTransitionEvent> get transitionStream =>
+      _transitionController.stream;
+
+  @override
+  Stream<SlotVisualFrame> get visualFrameStream =>
+      _visualFrameController.stream;
+
+  @override
+  void updateTransitionMinDuration(Duration duration) {
+    _transitionDetector.setMinTransitionDuration(duration);
+  }
+
+  @override
+  void updateTransitionThresholds({
+    required int blackThreshold,
+    required int whiteThreshold,
+  }) {
+    _transitionDetector.updateThresholds(
+      blackThreshold: blackThreshold,
+      whiteThreshold: whiteThreshold,
+    );
+  }
+
+  @override
+  void updateSlotTransitionConfigs(Map<int, SlotTransitionConfig> configs) {
+    _transitionDetector.setSlotConfigs(configs);
+  }
 
   List<MultiInstanceSlot> get multiInstanceSlots => _multiInstanceSlots;
 
@@ -302,6 +487,7 @@ class DesktopWindowSource
     _lastExtraZoneBFingerprints.clear();
     _lastSlotScanFingerprints.clear();
     _lastSlotFocusFingerprints.clear();
+    _invalidateNativeScanCache();
     if (ocrDriver is LanguageAwareOcrDriver) {
       (ocrDriver as LanguageAwareOcrDriver).setLanguageTag(languageTag);
     }
@@ -314,6 +500,7 @@ class DesktopWindowSource
     _lastExtraZoneBFingerprints.clear();
     _lastSlotScanFingerprints.clear();
     _lastSlotFocusFingerprints.clear();
+    _invalidateNativeScanCache();
     if (ocrDriver is PreprocessAwareOcrDriver) {
       (ocrDriver as PreprocessAwareOcrDriver).setPreprocessProfile(profile);
     }
@@ -325,6 +512,7 @@ class DesktopWindowSource
     _selectedWindow = window;
     _lastZoneAFingerprint = null;
     _lastZoneBFingerprint = null;
+    _invalidateNativeScanCache();
     if (window != null && _cropRegion == null) {
       _cropRegion = WindowDetector().calculateDefaultDialogueRegion(
         windowWidth: window.width,
@@ -336,11 +524,16 @@ class DesktopWindowSource
   void setCropRegion(Rect? region) {
     _cropRegion = region;
     _lastZoneAFingerprint = null;
+    _invalidateNativeScanCache();
   }
 
   void setScreenRegion(ScreenRegion? region) {
     _screenRegion = region;
     _lastZoneAFingerprint = null;
+    _invalidateNativeScanCache();
+    if (region == null) {
+      selfWindowOverlapNotifier.value = false;
+    }
   }
 
   /// Configures Zone B (Live-Focus / Opponent HUD) preset mode.
@@ -349,6 +542,7 @@ class DesktopWindowSource
     _lastZoneBFingerprint = null;
     _lastExtraZoneBFingerprints.clear();
     _cachedFocusLinesByBox.clear();
+    _invalidateNativeScanCache();
     if (preset != LiveFocusPreset.customRegion) {
       _liveFocusScreenRegion = null;
     }
@@ -365,6 +559,7 @@ class DesktopWindowSource
     _liveFocusScreenRegion = region;
     _lastZoneBFingerprint = null;
     _cachedFocusLinesByBox.remove('B1');
+    _invalidateNativeScanCache();
     if (region != null) {
       _liveFocusPreset = LiveFocusPreset.customRegion;
     } else {
@@ -386,6 +581,7 @@ class DesktopWindowSource
     _cachedFocusLinesByBox.removeWhere((k, _) => k != 'B1');
     _latestFocusFramesByBox.removeWhere((k, _) => k != 'B1');
     focusBoxFramesNotifier.value = Map.unmodifiable(_latestFocusFramesByBox);
+    _invalidateNativeScanCache();
   }
 
   /// Updates known desktop windows so window-bound multi-instance slots can resolve targets.
@@ -398,6 +594,7 @@ class DesktopWindowSource
     _multiInstanceSlots = List.unmodifiable(slots);
     _lastSlotScanFingerprints.clear();
     _lastSlotFocusFingerprints.clear();
+    _invalidateNativeScanCache();
   }
 
   @override
@@ -422,16 +619,19 @@ class DesktopWindowSource
     _latestSnippetFrame = frame;
     try {
       final recognizedLines = await ocrDriver.recognizeText(frame);
+      if (_disposed) return const [];
       final validLines = recognizedLines
           .map((l) => l.trim())
           .where((l) => l.isNotEmpty)
           .toList();
 
-      for (final line in validLines) {
-        _textController.add(line);
-      }
-      if (validLines.length > 1) {
-        _textController.add(validLines.join('\n'));
+      if (!_textController.isClosed) {
+        for (final line in validLines) {
+          _textController.add(line);
+        }
+        if (validLines.length > 1) {
+          _textController.add(validLines.join('\n'));
+        }
       }
       return validLines;
     } catch (_) {
@@ -441,15 +641,49 @@ class DesktopWindowSource
 
   /// Captures a visual preview frame without running OCR or incrementing scan counters.
   Future<CapturedFrame?> capturePreviewOnly() async {
+    if (_disposed) return null;
     final window = _selectedWindow ??
         (_screenRegion != null ? DesktopWindowInfo.primaryScreen() : null);
     if (window == null) return null;
     try {
+      if (nativeBridge != null) {
+        final req = _buildNativeRequest(
+          window: window,
+          cropRegion: _cropRegion,
+          screenRegion: _screenRegion,
+          slotKey: 'zoneA_preview',
+          forceOcr: false,
+          computeColorHistogram: false,
+          includeThumbnail: true,
+          skipOcr: true,
+        );
+        if (req != null) {
+          final res = await nativeBridge!.captureAndAnalyze(req);
+          if (_disposed) return null;
+          if (res != null) {
+            selfWindowOverlapNotifier.value =
+                res.selfWindowOverlaps && !_maskSelfWindow;
+            final thumb = res.thumbnailFrame;
+            if (thumb != null) {
+              final prev = liveScanStatusNotifier.value;
+              liveScanStatusNotifier.value = LiveOcrScanStatus(
+                scanCount: prev.scanCount,
+                lastScanAt: prev.lastScanAt,
+                recognizedLines: prev.recognizedLines,
+                latestFrame: thumb,
+              );
+            }
+            return thumb;
+          }
+        }
+      }
+
       final frame = await captureDriver.captureWindow(
         window: window,
         cropRegion: _cropRegion,
         screenRegion: _screenRegion,
       );
+      if (_disposed) return null;
       if (frame != null) {
         final prev = liveScanStatusNotifier.value;
         liveScanStatusNotifier.value = LiveOcrScanStatus(
@@ -491,129 +725,328 @@ class DesktopWindowSource
     scanLogsNotifier.value = next;
   }
 
+  bool _shouldAbortScan(bool requireRunning) =>
+      _disposed || (requireRunning && !_running);
+
   /// Triggers an immediate capture and recognition cycle on demand,
   /// even if periodic polling is paused.
-  Future<CapturedFrame?> triggerSingleScan() async {
-    if (_disposed || _scanInFlight) return null;
-    final window = _selectedWindow ??
-        ((_screenRegion != null ||
-                _liveFocusScreenRegion != null ||
-                _extraFocusRegions.isNotEmpty ||
-                _multiInstanceSlots.any((s) => s.enabled))
-            ? DesktopWindowInfo.primaryScreen()
-            : null);
-    if (window == null) return null;
+  Future<CapturedFrame?> triggerSingleScan() =>
+      _runSingleScan(requireRunning: false);
 
+  Future<CapturedFrame?> _runSingleScan({required bool requireRunning}) async {
+    if (_shouldAbortScan(requireRunning) || _scanInFlight) return null;
+    final hasZoneA = _selectedWindow != null || _screenRegion != null;
+    final hasZoneB =
+        _liveFocusPreset != LiveFocusPreset.disabled ||
+        _liveFocusScreenRegion != null ||
+        _extraFocusRegions.isNotEmpty;
+    final hasMultiSlots = _multiInstanceSlots.any((s) => s.enabled);
+    if (!hasZoneA && !hasZoneB && !hasMultiSlots) return null;
+
+    final window = _selectedWindow ?? DesktopWindowInfo.primaryScreen();
     _scanInFlight = true;
     final sourceMode = _screenRegion != null ? 'desktop-region' : 'window';
     final targetDesc = _describeTarget(window);
     final capWatch = Stopwatch()..start();
+    final cycleForceOcr = _forceNextNativeOcr;
+    final cycleGen = _cacheGeneration;
+    bool cycleSelfWindowOverlaps = false;
 
     try {
-      final frame = await captureDriver.captureWindow(
-        window: window,
-        cropRegion: _cropRegion,
-        screenRegion: _screenRegion,
-      );
-      capWatch.stop();
-      if (_disposed) return frame;
+      if (hasZoneA && nativeBridge != null) {
+        final nativeReq = _buildNativeRequest(
+          window: window,
+          cropRegion: _cropRegion,
+          screenRegion: _screenRegion,
+          slotKey: 'zoneA',
+          forceOcr: cycleForceOcr,
+          computeColorHistogram: _visualFrameController.hasListener,
+          includeThumbnail: _shouldRequestThumbnail(),
+        );
+        final nativeRes = nativeReq != null
+            ? await nativeBridge!.captureAndAnalyze(nativeReq)
+            : null;
+        if (_shouldAbortScan(requireRunning)) return nativeRes?.thumbnailFrame;
 
-      if (frame != null) {
-        final fp = computeFrameFingerprint(frame);
-        final changed = _lastZoneAFingerprint != fp;
-        _lastZoneAFingerprint = fp;
-
-        if (changed) {
-          final ocrWatch = Stopwatch()..start();
-          OcrRecognitionResult? detailedRes;
-          List<String> recognizedLines;
-          if (ocrDriver is WindowsDesktopOcrDriver) {
-            detailedRes =
-                await (ocrDriver as WindowsDesktopOcrDriver).recognizeTextDetailed(
-              frame,
-            );
-            recognizedLines = detailedRes.lines;
-          } else {
-            recognizedLines = await ocrDriver.recognizeText(frame);
+        if (nativeRes != null) {
+          if (nativeRes.selfWindowOverlaps) {
+            cycleSelfWindowOverlaps = true;
           }
-          ocrWatch.stop();
-          if (_disposed) return frame;
+          bool anyNativeCaptureSucceeded = nativeRes.captured;
 
-          final validLines = recognizedLines
-              .map((l) => l.trim())
-              .where((l) => l.isNotEmpty)
-              .toList();
-          _scanCounter++;
-          liveScanStatusNotifier.value = LiveOcrScanStatus(
-            scanCount: _scanCounter,
-            lastScanAt: DateTime.now(),
-            recognizedLines: validLines,
-            latestFrame: frame,
+          if (nativeRes.captured) {
+            if (nativeRes.avgLuma != null && nativeRes.stdDev != null) {
+              final transition = _transitionDetector.analyzeLuminance(
+                avgLuma: nativeRes.avgLuma!,
+                stdDev: nativeRes.stdDev!,
+                slotId: 0,
+              );
+              if (transition != null && !_transitionController.isClosed) {
+                _transitionController.add(transition);
+              }
+            }
+            if (nativeRes.colorHistogram != null &&
+                _visualFrameController.hasListener &&
+                !_visualFrameController.isClosed) {
+              _visualFrameController.add(
+                SlotVisualFrame(
+                  slotId: 0,
+                  precomputedHistogram: nativeRes.colorHistogram,
+                ),
+              );
+            }
+
+            if (!nativeRes.ocrSkipped) {
+              if (ocrDriver is WindowsDesktopOcrDriver) {
+                (ocrDriver as WindowsDesktopOcrDriver)
+                    .onRecognitionResult
+                    ?.call(nativeRes.toOcrRecognitionResult());
+              }
+              final validLines = nativeRes.lines
+                  .map((l) => l.trim())
+                  .where((l) => l.isNotEmpty)
+                  .toList();
+              _scanCounter++;
+              final prev = liveScanStatusNotifier.value;
+              liveScanStatusNotifier.value = LiveOcrScanStatus(
+                scanCount: _scanCounter,
+                lastScanAt: DateTime.now(),
+                recognizedLines: validLines,
+                latestFrame: nativeRes.thumbnailFrame ?? prev.latestFrame,
+              );
+
+              _appendLogEntry(
+                OcrScanLogEntry(
+                  scanNumber: _scanCounter,
+                  timestamp: DateTime.now(),
+                  sourceMode: sourceMode,
+                  targetDescription: targetDesc,
+                  frameWidth: nativeRes.frameWidth,
+                  frameHeight: nativeRes.frameHeight,
+                  pixelFormat: 'bgra8888',
+                  captureMethod: nativeRes.captureMethod,
+                  frameBrightnessSummary: nativeRes.brightnessSummary,
+                  captureDurationMs: nativeRes.captureDurationMs,
+                  ocrDurationMs: nativeRes.ocrDurationMs,
+                  requestedLanguage:
+                      nativeRes.requestedLanguageTag ?? _ocrLanguageTag ?? '',
+                  resolvedLanguage:
+                      nativeRes.resolvedLanguageTag ?? _ocrLanguageTag ?? '',
+                  usedFallbackLanguage: nativeRes.usedFallbackLanguage,
+                  availableLanguages: nativeRes.availableLanguageTags,
+                  rawLines: validLines,
+                  ocrSucceeded: nativeRes.ocrSucceeded,
+                  errorHint: nativeRes.errorHint,
+                  preprocessProfile: _preprocessProfile.name,
+                ),
+              );
+
+              if (!_textController.isClosed) {
+                for (final line in validLines) {
+                  _textController.add(line);
+                }
+                if (validLines.length > 1) {
+                  _textController.add(validLines.join('\n'));
+                }
+              }
+            } else if (nativeRes.thumbnailFrame != null) {
+              final prev = liveScanStatusNotifier.value;
+              liveScanStatusNotifier.value = LiveOcrScanStatus(
+                scanCount: prev.scanCount,
+                lastScanAt: prev.lastScanAt,
+                recognizedLines: prev.recognizedLines,
+                latestFrame: nativeRes.thumbnailFrame,
+              );
+            }
+          } else {
+            _scanCounter++;
+            _appendLogEntry(
+              OcrScanLogEntry(
+                scanNumber: _scanCounter,
+                timestamp: DateTime.now(),
+                sourceMode: sourceMode,
+                targetDescription: targetDesc,
+                frameWidth: 0,
+                frameHeight: 0,
+                pixelFormat: '-',
+                captureMethod: 'capture-null',
+                frameBrightnessSummary: 'no-frame',
+                captureDurationMs: nativeRes.captureDurationMs,
+                ocrDurationMs: 0,
+                requestedLanguage: _ocrLanguageTag ?? '',
+                resolvedLanguage: '',
+                usedFallbackLanguage: false,
+                availableLanguages: const [],
+                rawLines: const [],
+                ocrSucceeded: false,
+                errorHint:
+                    nativeRes.errorHint ?? 'captureAndAnalyze returned not captured',
+              ),
+            );
+          }
+
+          final zoneBRes = await _pollZoneBFocus(
+            window,
+            forceOcr: cycleForceOcr,
+            requireRunning: requireRunning,
           );
+          final multiRes = await _pollMultiInstanceSlots(
+            forceOcr: cycleForceOcr,
+            requireRunning: requireRunning,
+          );
+          if (_shouldAbortScan(requireRunning)) return nativeRes.thumbnailFrame;
+          cycleSelfWindowOverlaps = cycleSelfWindowOverlaps ||
+              zoneBRes.selfWindowOverlaps ||
+              multiRes.selfWindowOverlaps;
+          anyNativeCaptureSucceeded = anyNativeCaptureSucceeded ||
+              zoneBRes.anyCaptured ||
+              multiRes.anyCaptured;
+          selfWindowOverlapNotifier.value =
+              cycleSelfWindowOverlaps && !_maskSelfWindow;
+          if (_cacheGeneration == cycleGen && anyNativeCaptureSucceeded) {
+            _forceNextNativeOcr = false;
+          }
+          return nativeRes.thumbnailFrame;
+        }
+      }
 
+      CapturedFrame? frame;
+      if (hasZoneA) {
+        frame = await captureDriver.captureWindow(
+          window: window,
+          cropRegion: _cropRegion,
+          screenRegion: _screenRegion,
+        );
+        capWatch.stop();
+        if (_shouldAbortScan(requireRunning)) return frame;
+
+        if (frame != null) {
+          final transition = _transitionDetector.analyzeFrame(frame, slotId: 0);
+          if (transition != null && !_transitionController.isClosed) {
+            _transitionController.add(transition);
+          }
+          if (_visualFrameController.hasListener &&
+              !_visualFrameController.isClosed) {
+            _visualFrameController.add(SlotVisualFrame(slotId: 0, frame: frame));
+          }
+          final fp = computeFrameFingerprint(frame);
+          final changed = _lastZoneAFingerprint != fp;
+          _lastZoneAFingerprint = fp;
+
+          if (changed) {
+            final ocrWatch = Stopwatch()..start();
+            OcrRecognitionResult? detailedRes;
+            List<String> recognizedLines;
+            if (ocrDriver is WindowsDesktopOcrDriver) {
+              detailedRes =
+                  await (ocrDriver as WindowsDesktopOcrDriver)
+                      .recognizeTextDetailed(frame);
+              recognizedLines = detailedRes.lines;
+            } else {
+              recognizedLines = await ocrDriver.recognizeText(frame);
+            }
+            ocrWatch.stop();
+            if (_shouldAbortScan(requireRunning)) return frame;
+
+            final validLines = recognizedLines
+                .map((l) => l.trim())
+                .where((l) => l.isNotEmpty)
+                .toList();
+            _scanCounter++;
+            liveScanStatusNotifier.value = LiveOcrScanStatus(
+              scanCount: _scanCounter,
+              lastScanAt: DateTime.now(),
+              recognizedLines: validLines,
+              latestFrame: frame,
+            );
+
+            _appendLogEntry(
+              OcrScanLogEntry(
+                scanNumber: _scanCounter,
+                timestamp: DateTime.now(),
+                sourceMode: sourceMode,
+                targetDescription: targetDesc,
+                frameWidth: frame.width,
+                frameHeight: frame.height,
+                pixelFormat: frame.pixelFormat,
+                captureMethod: frame.captureMethod ?? 'unknown',
+                frameBrightnessSummary: computeFrameBrightnessSummary(frame),
+                captureDurationMs: capWatch.elapsedMilliseconds,
+                ocrDurationMs:
+                    detailedRes?.ocrDurationMs ?? ocrWatch.elapsedMilliseconds,
+                requestedLanguage:
+                    detailedRes?.requestedLanguageTag ?? _ocrLanguageTag ?? '',
+                resolvedLanguage:
+                    detailedRes?.resolvedLanguageTag ?? _ocrLanguageTag ?? '',
+                usedFallbackLanguage: detailedRes?.usedFallbackLanguage ?? false,
+                availableLanguages:
+                    detailedRes?.availableLanguageTags ?? const [],
+                rawLines: validLines,
+                ocrSucceeded: detailedRes?.ocrSucceeded ?? true,
+                errorHint: detailedRes?.errorHint,
+                preprocessProfile: _preprocessProfile.name,
+              ),
+            );
+
+            if (!_textController.isClosed) {
+              for (final line in validLines) {
+                _textController.add(line);
+              }
+              if (validLines.length > 1) {
+                _textController.add(validLines.join('\n'));
+              }
+            }
+          }
+        } else {
+          _scanCounter++;
           _appendLogEntry(
             OcrScanLogEntry(
               scanNumber: _scanCounter,
               timestamp: DateTime.now(),
               sourceMode: sourceMode,
               targetDescription: targetDesc,
-              frameWidth: frame.width,
-              frameHeight: frame.height,
-              pixelFormat: frame.pixelFormat,
-              captureMethod: frame.captureMethod ?? 'unknown',
-              frameBrightnessSummary: computeFrameBrightnessSummary(frame),
+              frameWidth: 0,
+              frameHeight: 0,
+              pixelFormat: '-',
+              captureMethod: 'capture-null',
+              frameBrightnessSummary: 'no-frame',
               captureDurationMs: capWatch.elapsedMilliseconds,
-              ocrDurationMs: detailedRes?.ocrDurationMs ?? ocrWatch.elapsedMilliseconds,
-              requestedLanguage:
-                  detailedRes?.requestedLanguageTag ?? _ocrLanguageTag ?? '',
-              resolvedLanguage:
-                  detailedRes?.resolvedLanguageTag ?? _ocrLanguageTag ?? '',
-              usedFallbackLanguage: detailedRes?.usedFallbackLanguage ?? false,
-              availableLanguages: detailedRes?.availableLanguageTags ?? const [],
-              rawLines: validLines,
-              ocrSucceeded: detailedRes?.ocrSucceeded ?? true,
-              errorHint: detailedRes?.errorHint,
-              preprocessProfile: _preprocessProfile.name,
+              ocrDurationMs: 0,
+              requestedLanguage: _ocrLanguageTag ?? '',
+              resolvedLanguage: '',
+              usedFallbackLanguage: false,
+              availableLanguages: const [],
+              rawLines: const [],
+              ocrSucceeded: false,
+              errorHint: 'captureWindow returned null',
             ),
           );
-
-          for (final line in validLines) {
-            _textController.add(line);
-          }
-          if (validLines.length > 1) {
-            _textController.add(validLines.join('\n'));
-          }
         }
-      } else {
-        _scanCounter++;
-        _appendLogEntry(
-          OcrScanLogEntry(
-            scanNumber: _scanCounter,
-            timestamp: DateTime.now(),
-            sourceMode: sourceMode,
-            targetDescription: targetDesc,
-            frameWidth: 0,
-            frameHeight: 0,
-            pixelFormat: '-',
-            captureMethod: 'capture-null',
-            frameBrightnessSummary: 'no-frame',
-            captureDurationMs: capWatch.elapsedMilliseconds,
-            ocrDurationMs: 0,
-            requestedLanguage: _ocrLanguageTag ?? '',
-            resolvedLanguage: '',
-            usedFallbackLanguage: false,
-            availableLanguages: const [],
-            rawLines: const [],
-            ocrSucceeded: false,
-            errorHint: 'captureWindow returned null',
-          ),
-        );
       }
 
       // Zone B: Optional opponent HUD capture strictly for Live-Fokus encounters
-      await _pollZoneBFocus(window);
+      final zoneBRes = await _pollZoneBFocus(
+        window,
+        forceOcr: cycleForceOcr,
+        requireRunning: requireRunning,
+      );
       // Multi-Instance Shiny-Hunting slots (with per-slot pixel-diff OCR skipping)
-      await _pollMultiInstanceSlots();
+      final multiRes = await _pollMultiInstanceSlots(
+        forceOcr: cycleForceOcr,
+        requireRunning: requireRunning,
+      );
+      if (_shouldAbortScan(requireRunning)) return frame;
+      if (nativeBridge != null) {
+        cycleSelfWindowOverlaps = cycleSelfWindowOverlaps ||
+            zoneBRes.selfWindowOverlaps ||
+            multiRes.selfWindowOverlaps;
+        selfWindowOverlapNotifier.value =
+            cycleSelfWindowOverlaps && !_maskSelfWindow;
+        if (_cacheGeneration == cycleGen &&
+            (zoneBRes.anyCaptured || multiRes.anyCaptured)) {
+          _forceNextNativeOcr = false;
+        }
+      }
 
       return frame;
     } catch (e) {
@@ -705,51 +1138,111 @@ class DesktopWindowSource
     return merged;
   }
 
-  Future<void> _pollZoneBFocus(DesktopWindowInfo primaryWindow) async {
-    if (_liveFocusPreset == LiveFocusPreset.disabled &&
-        _extraFocusRegions.isEmpty) {
-      return;
+  Future<({bool anyCaptured, bool selfWindowOverlaps})> _pollZoneBFocus(
+    DesktopWindowInfo primaryWindow, {
+    bool forceOcr = false,
+    bool requireRunning = false,
+  }) async {
+    if (_shouldAbortScan(requireRunning) ||
+        (_liveFocusPreset == LiveFocusPreset.disabled &&
+            _extraFocusRegions.isEmpty)) {
+      return (anyCaptured: false, selfWindowOverlaps: false);
     }
 
+    bool anyCaptured = false;
+    bool selfOverlaps = false;
     try {
       bool anyBoxChanged = false;
+      bool anyThumbUpdated = false;
       CapturedFrame? primaryLatestFrame;
+      final requestThumb = _shouldRequestFocusThumbnail();
 
       if (_liveFocusPreset != LiveFocusPreset.disabled) {
-        CapturedFrame? focusFrame;
-        if (_liveFocusPreset == LiveFocusPreset.customRegion) {
-          final focusRegion = _liveFocusScreenRegion;
-          if (focusRegion != null) {
+        final ScreenRegion? b1Region =
+            _liveFocusPreset == LiveFocusPreset.customRegion
+                ? _liveFocusScreenRegion
+                : null;
+        final Rect? b1Crop = _liveFocusPreset == LiveFocusPreset.customRegion
+            ? null
+            : WindowDetector().calculateEnemyHudCropRegion(
+                _liveFocusPreset,
+                windowWidth: primaryWindow.width,
+                windowHeight: primaryWindow.height,
+              );
+        final b1Window = _liveFocusPreset == LiveFocusPreset.customRegion
+            ? DesktopWindowInfo.primaryScreen()
+            : primaryWindow;
+
+        final nativeB1Req = (nativeBridge != null &&
+                (b1Region != null || b1Crop != null))
+            ? _buildNativeRequest(
+                window: b1Window,
+                cropRegion: b1Crop,
+                screenRegion: b1Region,
+                slotKey: 'zoneB_1',
+                forceOcr: forceOcr,
+                computeColorHistogram: false,
+                includeThumbnail: requestThumb,
+                multiBandFallback: true,
+              )
+            : null;
+        final nativeB1Res = nativeB1Req != null
+            ? await nativeBridge!.captureAndAnalyze(nativeB1Req)
+            : null;
+        if (_shouldAbortScan(requireRunning)) {
+          return (anyCaptured: anyCaptured, selfWindowOverlaps: selfOverlaps);
+        }
+
+        if (nativeB1Res != null) {
+          if (nativeB1Res.selfWindowOverlaps) selfOverlaps = true;
+          if (nativeB1Res.captured) {
+            anyCaptured = true;
+            if (nativeB1Res.thumbnailFrame != null) {
+              primaryLatestFrame = nativeB1Res.thumbnailFrame;
+              _latestFocusFramesByBox['B1'] = nativeB1Res.thumbnailFrame!;
+              anyThumbUpdated = true;
+            }
+            if (!nativeB1Res.ocrSkipped) {
+              anyBoxChanged = true;
+              _cachedFocusLinesByBox['B1'] = nativeB1Res.lines;
+            }
+          }
+        } else {
+          CapturedFrame? focusFrame;
+          if (b1Region != null) {
             focusFrame = await captureDriver.captureWindow(
               window: DesktopWindowInfo.primaryScreen(),
               cropRegion: null,
-              screenRegion: focusRegion,
+              screenRegion: b1Region,
             );
-          }
-        } else {
-          final focusCrop = WindowDetector().calculateEnemyHudCropRegion(
-            _liveFocusPreset,
-            windowWidth: primaryWindow.width,
-            windowHeight: primaryWindow.height,
-          );
-          if (focusCrop != null) {
+          } else if (b1Crop != null) {
             focusFrame = await captureDriver.captureWindow(
               window: primaryWindow,
-              cropRegion: focusCrop,
+              cropRegion: b1Crop,
               screenRegion: null,
             );
           }
-        }
+          if (_shouldAbortScan(requireRunning)) {
+            return (anyCaptured: anyCaptured, selfWindowOverlaps: selfOverlaps);
+          }
 
-        if (focusFrame != null) {
-          primaryLatestFrame = focusFrame;
-          _latestFocusFramesByBox['B1'] = focusFrame;
-          final fp = computeFrameFingerprint(focusFrame);
-          if (_lastZoneBFingerprint != fp) {
-            _lastZoneBFingerprint = fp;
-            anyBoxChanged = true;
-            final valid = await _recognizeFocusFrameWithMultiBand(focusFrame);
-            _cachedFocusLinesByBox['B1'] = valid;
+          if (focusFrame != null) {
+            primaryLatestFrame = focusFrame;
+            _latestFocusFramesByBox['B1'] = focusFrame;
+            anyThumbUpdated = true;
+            final fp = computeFrameFingerprint(focusFrame);
+            if (_lastZoneBFingerprint != fp) {
+              _lastZoneBFingerprint = fp;
+              anyBoxChanged = true;
+              final valid = await _recognizeFocusFrameWithMultiBand(focusFrame);
+              if (_shouldAbortScan(requireRunning)) {
+                return (
+                  anyCaptured: anyCaptured,
+                  selfWindowOverlaps: selfOverlaps,
+                );
+              }
+              _cachedFocusLinesByBox['B1'] = valid;
+            }
           }
         }
       }
@@ -757,23 +1250,85 @@ class DesktopWindowSource
       for (int i = 0; i < _extraFocusRegions.length; i++) {
         final extraRegion = _extraFocusRegions[i];
         final boxKey = 'B${i + 2}';
-        final extraFrame = await captureDriver.captureWindow(
-          window: DesktopWindowInfo.primaryScreen(),
-          cropRegion: null,
-          screenRegion: extraRegion,
-        );
-        if (extraFrame == null) continue;
-        _latestFocusFramesByBox[boxKey] = extraFrame;
-        final fp = computeFrameFingerprint(extraFrame);
-        if (_lastExtraZoneBFingerprints[i] != fp) {
-          _lastExtraZoneBFingerprints[i] = fp;
-          anyBoxChanged = true;
-          final valid = await _recognizeFocusFrameWithMultiBand(extraFrame);
-          _cachedFocusLinesByBox[boxKey] = valid;
+        final nativeExtraReq = nativeBridge != null
+            ? _buildNativeRequest(
+                window: DesktopWindowInfo.primaryScreen(),
+                cropRegion: null,
+                screenRegion: extraRegion,
+                slotKey: 'zoneB_${i + 2}',
+                forceOcr: forceOcr,
+                computeColorHistogram: false,
+                includeThumbnail: requestThumb,
+                multiBandFallback: true,
+              )
+            : null;
+        final nativeExtraRes = nativeExtraReq != null
+            ? await nativeBridge!.captureAndAnalyze(nativeExtraReq)
+            : null;
+        if (_shouldAbortScan(requireRunning)) {
+          return (anyCaptured: anyCaptured, selfWindowOverlaps: selfOverlaps);
+        }
+
+        if (nativeExtraRes != null) {
+          if (nativeExtraRes.selfWindowOverlaps) selfOverlaps = true;
+          if (!nativeExtraRes.captured) continue;
+          anyCaptured = true;
+          if (nativeExtraRes.thumbnailFrame != null) {
+            _latestFocusFramesByBox[boxKey] = nativeExtraRes.thumbnailFrame!;
+            anyThumbUpdated = true;
+          }
+          if (!nativeExtraRes.ocrSkipped) {
+            anyBoxChanged = true;
+            _cachedFocusLinesByBox[boxKey] = nativeExtraRes.lines;
+          }
+        } else {
+          final extraFrame = await captureDriver.captureWindow(
+            window: DesktopWindowInfo.primaryScreen(),
+            cropRegion: null,
+            screenRegion: extraRegion,
+          );
+          if (_shouldAbortScan(requireRunning)) {
+            return (anyCaptured: anyCaptured, selfWindowOverlaps: selfOverlaps);
+          }
+          if (extraFrame == null) continue;
+          _latestFocusFramesByBox[boxKey] = extraFrame;
+          anyThumbUpdated = true;
+          final fp = computeFrameFingerprint(extraFrame);
+          if (_lastExtraZoneBFingerprints[i] != fp) {
+            _lastExtraZoneBFingerprints[i] = fp;
+            anyBoxChanged = true;
+            final valid = await _recognizeFocusFrameWithMultiBand(extraFrame);
+            if (_shouldAbortScan(requireRunning)) {
+              return (
+                anyCaptured: anyCaptured,
+                selfWindowOverlaps: selfOverlaps,
+              );
+            }
+            _cachedFocusLinesByBox[boxKey] = valid;
+          }
         }
       }
 
-      if (!anyBoxChanged || _disposed) return;
+      if (_disposed) {
+        return (anyCaptured: anyCaptured, selfWindowOverlaps: selfOverlaps);
+      }
+
+      if (!anyBoxChanged) {
+        if (anyThumbUpdated) {
+          focusBoxFramesNotifier.value =
+              Map.unmodifiable(_latestFocusFramesByBox);
+          if (primaryLatestFrame != null) {
+            final prev = liveFocusStatusNotifier.value;
+            liveFocusStatusNotifier.value = LiveOcrScanStatus(
+              scanCount: prev.scanCount,
+              lastScanAt: prev.lastScanAt,
+              recognizedLines: prev.recognizedLines,
+              latestFrame: primaryLatestFrame,
+            );
+          }
+        }
+        return (anyCaptured: anyCaptured, selfWindowOverlaps: selfOverlaps);
+      }
 
       final combinedLines = <String>[];
       final seenCombined = <String>{};
@@ -804,12 +1359,13 @@ class DesktopWindowSource
             liveFocusStatusNotifier.value.latestFrame,
       );
 
-      if (combinedLines.isNotEmpty) {
+      if (combinedLines.isNotEmpty && !_focusTextController.isClosed) {
         _focusTextController.add(combinedLines.join('\n'));
       }
     } catch (_) {
       // Non-fatal: Zone B HUD polling must not interrupt Zone A catch detection
     }
+    return (anyCaptured: anyCaptured, selfWindowOverlaps: selfOverlaps);
   }
 
   DesktopWindowInfo? _resolveBoundWindow(MultiInstanceSlot slot) {
@@ -842,7 +1398,21 @@ class DesktopWindowSource
     required Map<int, int> fingerprintCache,
     required bool encounterOnly,
   }) async {
-    if (frame == null) return;
+    if (frame == null || _disposed) return;
+
+    if (!encounterOnly) {
+      final transition =
+          _transitionDetector.analyzeFrame(frame, slotId: slot.id);
+      if (transition != null && !_transitionController.isClosed) {
+        _transitionController.add(transition);
+      }
+      if (_visualFrameController.hasListener &&
+          !_visualFrameController.isClosed) {
+        _visualFrameController.add(
+          SlotVisualFrame(slotId: slot.id, frame: frame),
+        );
+      }
+    }
 
     final fp = computeFrameFingerprint(frame);
     if (fingerprintCache[slot.id] == fp) return;
@@ -853,6 +1423,7 @@ class DesktopWindowSource
                 .recognizeTextDetailed(frame))
             .lines
         : await ocrDriver.recognizeText(frame);
+    if (_disposed) return;
 
     final valid =
         lines.map((l) => l.trim()).where((l) => l.isNotEmpty).toList();
@@ -868,11 +1439,18 @@ class DesktopWindowSource
     }
   }
 
-  Future<void> _pollMultiInstanceSlots() async {
-    if (_multiInstanceSlots.isEmpty) return;
+  Future<({bool anyCaptured, bool selfWindowOverlaps})> _pollMultiInstanceSlots({
+    bool forceOcr = false,
+    bool requireRunning = false,
+  }) async {
+    if (_shouldAbortScan(requireRunning) || _multiInstanceSlots.isEmpty) {
+      return (anyCaptured: false, selfWindowOverlaps: false);
+    }
     final detector = WindowDetector();
     final activeSlots = _multiInstanceSlots.where((s) => s.enabled).toList();
-    if (activeSlots.isEmpty) return;
+    if (activeSlots.isEmpty) {
+      return (anyCaptured: false, selfWindowOverlaps: false);
+    }
 
     final zoneSpecs = <({
       MultiInstanceSlot slot,
@@ -945,7 +1523,156 @@ class DesktopWindowSource
       }
     }
 
-    if (zoneSpecs.isEmpty) return;
+    if (zoneSpecs.isEmpty) {
+      return (anyCaptured: false, selfWindowOverlaps: false);
+    }
+
+    bool anyCaptured = false;
+    bool selfOverlaps = false;
+
+    if (nativeBridge != null) {
+      final wantHist = _visualFrameController.hasListener;
+      final nativeSpecs = <({
+        MultiInstanceSlot slot,
+        bool encounterOnly,
+        NativeCaptureAnalyzeRequest req,
+      })>[];
+      final fallbackSpecs = <({
+        MultiInstanceSlot slot,
+        DesktopWindowInfo targetWindow,
+        Rect? cropRegion,
+        ScreenRegion? screenRegion,
+        Map<int, int> fingerprintCache,
+        bool encounterOnly,
+      })>[];
+
+      for (final spec in zoneSpecs) {
+        final req = _buildNativeRequest(
+          window: spec.targetWindow,
+          cropRegion: spec.cropRegion,
+          screenRegion: spec.screenRegion,
+          slotKey:
+              'multi_${spec.slot.id}_${spec.encounterOnly ? 'focus' : 'scan'}',
+          forceOcr: forceOcr,
+          computeColorHistogram: !spec.encounterOnly && wantHist,
+          includeThumbnail: false,
+        );
+        if (req == null) {
+          if (!spec.targetWindow.isMinimized) {
+            fallbackSpecs.add(spec);
+          }
+          continue;
+        }
+        nativeSpecs.add((
+          slot: spec.slot,
+          encounterOnly: spec.encounterOnly,
+          req: req,
+        ));
+      }
+
+      bool handledAny = false;
+      if (nativeSpecs.isNotEmpty) {
+        final results = await Future.wait([
+          for (final item in nativeSpecs)
+            nativeBridge!
+                .captureAndAnalyze(item.req)
+                .catchError((_) => null),
+        ]);
+        if (_shouldAbortScan(requireRunning)) {
+          return (anyCaptured: anyCaptured, selfWindowOverlaps: selfOverlaps);
+        }
+
+        for (int i = 0; i < nativeSpecs.length; i++) {
+          final res = results[i];
+          if (res == null) continue;
+          handledAny = true;
+          if (res.selfWindowOverlaps) selfOverlaps = true;
+          final item = nativeSpecs[i];
+          if (!res.captured) continue;
+          anyCaptured = true;
+
+          if (!item.encounterOnly) {
+            if (res.avgLuma != null && res.stdDev != null) {
+              final transition = _transitionDetector.analyzeLuminance(
+                avgLuma: res.avgLuma!,
+                stdDev: res.stdDev!,
+                slotId: item.slot.id,
+              );
+              if (transition != null && !_transitionController.isClosed) {
+                _transitionController.add(transition);
+              }
+            }
+            if (res.colorHistogram != null &&
+                _visualFrameController.hasListener &&
+                !_visualFrameController.isClosed) {
+              _visualFrameController.add(
+                SlotVisualFrame(
+                  slotId: item.slot.id,
+                  precomputedHistogram: res.colorHistogram,
+                ),
+              );
+            }
+          }
+
+          if (!res.ocrSkipped) {
+            final valid = res.lines
+                .map((l) => l.trim())
+                .where((l) => l.isNotEmpty)
+                .toList();
+            if (valid.isNotEmpty && !_multiTextController.isClosed) {
+              _multiTextController.add(
+                MultiInstanceTextEmission(
+                  slotId: item.slot.id,
+                  colorHex: item.slot.colorHex,
+                  rawText: valid.join('\n'),
+                  encounterOnly: item.encounterOnly,
+                ),
+              );
+            }
+          }
+        }
+        if (handledAny && fallbackSpecs.isEmpty) {
+          return (anyCaptured: anyCaptured, selfWindowOverlaps: selfOverlaps);
+        }
+      }
+      if (fallbackSpecs.isEmpty && nativeSpecs.isEmpty) {
+        return (anyCaptured: false, selfWindowOverlaps: false);
+      }
+
+      final remainingSpecs = handledAny ? fallbackSpecs : zoneSpecs;
+      final capturedFrames = await Future.wait([
+        for (final spec in remainingSpecs)
+          captureDriver
+              .captureWindow(
+                window: spec.targetWindow,
+                cropRegion: spec.cropRegion,
+                screenRegion: spec.screenRegion,
+              )
+              .catchError((_) => null),
+      ]);
+      if (_shouldAbortScan(requireRunning)) {
+        return (anyCaptured: anyCaptured, selfWindowOverlaps: selfOverlaps);
+      }
+
+      for (int i = 0; i < remainingSpecs.length; i++) {
+        if (_shouldAbortScan(requireRunning)) break;
+        final spec = remainingSpecs[i];
+        try {
+          await _emitSlotZoneOcr(
+            slot: spec.slot,
+            frame: capturedFrames[i],
+            fingerprintCache: spec.fingerprintCache,
+            encounterOnly: spec.encounterOnly,
+          );
+          if (capturedFrames[i] != null) {
+            anyCaptured = true;
+          }
+        } catch (_) {
+          // Isolate per-slot errors so other Shiny-Hunting instances keep scanning
+        }
+      }
+      return (anyCaptured: anyCaptured, selfWindowOverlaps: selfOverlaps);
+    }
 
     final capturedFrames = await Future.wait([
       for (final spec in zoneSpecs)
@@ -957,8 +1684,12 @@ class DesktopWindowSource
             )
             .catchError((_) => null),
     ]);
+    if (_shouldAbortScan(requireRunning)) {
+      return (anyCaptured: anyCaptured, selfWindowOverlaps: selfOverlaps);
+    }
 
     for (int i = 0; i < zoneSpecs.length; i++) {
+      if (_shouldAbortScan(requireRunning)) break;
       final spec = zoneSpecs[i];
       try {
         await _emitSlotZoneOcr(
@@ -971,11 +1702,12 @@ class DesktopWindowSource
         // Isolate per-slot errors so other Shiny-Hunting instances keep scanning
       }
     }
+    return (anyCaptured: anyCaptured, selfWindowOverlaps: selfOverlaps);
   }
 
   Future<void> _pollOnce() async {
     if (!_running) return;
-    await triggerSingleScan();
+    await _runSingleScan(requireRunning: true);
   }
 
   @override
@@ -988,8 +1720,11 @@ class DesktopWindowSource
     focusBoxPreviewsNotifier.dispose();
     focusBoxFramesNotifier.dispose();
     scanLogsNotifier.dispose();
+    selfWindowOverlapNotifier.dispose();
     await _textController.close();
     await _focusTextController.close();
     await _multiTextController.close();
+    await _transitionController.close();
+    await _visualFrameController.close();
   }
 }

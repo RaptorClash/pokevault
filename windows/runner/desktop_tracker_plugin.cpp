@@ -16,11 +16,14 @@
 #include <wrl/wrappers/corewrappers.h>
 
 #include <algorithm>
+#include <array>
+#include <cctype>
 #include <chrono>
 #include <cmath>
 #include <cstring>
 #include <thread>
 #include <unordered_map>
+#include <unordered_set>
 
 // gdiplus.h expects min/max in global scope when NOMINMAX is defined.
 using std::max;
@@ -458,6 +461,7 @@ struct OcrRuntimeCache {
       ocr_statics;
   Microsoft::WRL::ComPtr<ABI::Windows::Graphics::Imaging::ISoftwareBitmapStatics>
       bmp_statics;
+  UINT32 max_image_dimension = 2600;
   bool available_languages_loaded = false;
   std::vector<std::string> available_languages;
   std::unordered_map<std::string, CachedOcrEngineEntry> engines_by_tag;
@@ -466,6 +470,7 @@ struct OcrRuntimeCache {
     engines_by_tag.clear();
     available_languages.clear();
     available_languages_loaded = false;
+    max_image_dimension = 2600;
     bmp_statics.Reset();
     ocr_statics.Reset();
   }
@@ -504,6 +509,11 @@ bool RunWindowsMediaOcrCached(OcrRuntimeCache* cache,
     if (FAILED(hr) || !cache->ocr_statics) {
       if (out_error_hint) *out_error_hint = "OcrEngine factory init failed";
       return false;
+    }
+    UINT32 queried_max_dim = 0;
+    if (SUCCEEDED(cache->ocr_statics->get_MaxImageDimension(&queried_max_dim)) &&
+        queried_max_dim >= 128) {
+      cache->max_image_dimension = queried_max_dim;
     }
   }
 
@@ -613,51 +623,115 @@ bool RunWindowsMediaOcrCached(OcrRuntimeCache* cache,
     }
   }
 
-  const std::vector<uint8_t> preprocessed_bytes =
-      PreprocessFrameBytes(bgra_bytes, width, height, preprocess_profile);
+  const std::vector<uint8_t>* active_bytes_ptr = &bgra_bytes;
+  std::vector<uint8_t> preprocessed_storage;
+  if (preprocess_profile == "pixelArtDs" ||
+      preprocess_profile == "cameraDisplay") {
+    preprocessed_storage =
+        PreprocessFrameBytes(bgra_bytes, width, height, preprocess_profile);
+    active_bytes_ptr = &preprocessed_storage;
+  }
+  const std::vector<uint8_t>& active_bytes = *active_bytes_ptr;
 
   ComPtr<BgraWinRtBuffer> winrt_buf;
   int ocr_width = width;
   int ocr_height = height;
   const int max_dim = (std::max)(width, height);
-  int scale_factor = 1;
+  int scaled_w = width;
+  int scaled_h = height;
   bool use_nearest_neighbor = false;
+  bool skip_gdi_resample = false;
+
   if (preprocess_profile == "pixelArtDs") {
     use_nearest_neighbor = true;
+    int scale_factor = 1;
     if (max_dim <= 1000) {
       scale_factor = 3;
     } else if (max_dim <= 1800) {
       scale_factor = 2;
     }
-  } else if (width > 0 && height > 0 && max_dim <= 1600) {
-    scale_factor = 2;
+    scaled_w = width * scale_factor;
+    scaled_h = height * scale_factor;
+  } else if (preprocess_profile == "cameraDisplay") {
+    const int scale_factor = (max_dim <= 1600) ? 2 : 1;
+    scaled_w = width * scale_factor;
+    scaled_h = height * scale_factor;
+    if (scale_factor == 1) skip_gdi_resample = true;
+  } else {
+    // "standard": upscale small dialogue boxes (<= 960px), direct 1:1 zero-GDI+
+    // copy for medium sizes (961..1600px), and moderate downscale > 1600px.
+    if (max_dim <= 960) {
+      scaled_w = width * 2;
+      scaled_h = height * 2;
+    } else if (max_dim <= 1600) {
+      skip_gdi_resample = true;
+    } else {
+      const double ratio = 1600.0 / static_cast<double>(max_dim);
+      scaled_w = (std::max)(1, static_cast<int>(std::lround(width * ratio)));
+      scaled_h = (std::max)(1, static_cast<int>(std::lround(height * ratio)));
+    }
   }
 
   constexpr int kOcrPad = 16;
-  const int scaled_w = width * scale_factor;
-  const int scaled_h = height * scale_factor;
+  const int max_allowed =
+      (std::max)(64, static_cast<int>(cache->max_image_dimension) - kOcrPad * 2);
+  const int max_scaled = (std::max)(scaled_w, scaled_h);
+  if (max_scaled > max_allowed) {
+    const double clamp_ratio =
+        static_cast<double>(max_allowed) / static_cast<double>(max_scaled);
+    scaled_w =
+        (std::max)(1, static_cast<int>(std::floor(scaled_w * clamp_ratio)));
+    scaled_h =
+        (std::max)(1, static_cast<int>(std::floor(scaled_h * clamp_ratio)));
+    skip_gdi_resample = false;
+  }
   const int padded_w = scaled_w + kOcrPad * 2;
   const int padded_h = scaled_h + kOcrPad * 2;
-  if (scaled_w > 0 && scaled_h > 0) {
+
+  if (skip_gdi_resample) {
+    // Fast single-pass padding + opaque alpha without allocating GDI+ bitmaps
+    std::vector<uint8_t> padded_bytes(
+        static_cast<size_t>(padded_w) * padded_h * 4, 255);
+    const size_t src_row_bytes = static_cast<size_t>(width) * 4;
+    const size_t dst_row_bytes = static_cast<size_t>(padded_w) * 4;
+    for (int row = 0; row < height; ++row) {
+      const uint8_t* src_row =
+          active_bytes.data() + static_cast<size_t>(row) * src_row_bytes;
+      uint8_t* dst_row =
+          padded_bytes.data() +
+          static_cast<size_t>(row + kOcrPad) * dst_row_bytes +
+          static_cast<size_t>(kOcrPad) * 4;
+      std::memcpy(dst_row, src_row, src_row_bytes);
+      for (int col = 0; col < width; ++col) {
+        dst_row[col * 4 + 3] = 255;
+      }
+    }
+    winrt_buf = Make<BgraWinRtBuffer>(std::move(padded_bytes));
+    ocr_width = padded_w;
+    ocr_height = padded_h;
+  } else if (scaled_w > 0 && scaled_h > 0) {
     Gdiplus::Bitmap src_bmp(
         width, height, width * 4, PixelFormat32bppRGB,
         const_cast<BYTE*>(
-            reinterpret_cast<const BYTE*>(preprocessed_bytes.data())));
+            reinterpret_cast<const BYTE*>(active_bytes.data())));
     if (src_bmp.GetLastStatus() == Gdiplus::Ok) {
       Gdiplus::Bitmap dst_bmp(padded_w, padded_h, PixelFormat32bppRGB);
       if (dst_bmp.GetLastStatus() == Gdiplus::Ok) {
         Gdiplus::Graphics graphics(&dst_bmp);
         graphics.Clear(Gdiplus::Color(255, 255, 255));
+        const bool is_downscale = scaled_w < width || scaled_h < height;
         graphics.SetInterpolationMode(
             use_nearest_neighbor
                 ? Gdiplus::InterpolationModeNearestNeighbor
-                : Gdiplus::InterpolationModeHighQualityBicubic);
+                : (is_downscale ? Gdiplus::InterpolationModeBilinear
+                                : Gdiplus::InterpolationModeHighQualityBicubic));
         graphics.SetPixelOffsetMode(
             use_nearest_neighbor
                 ? Gdiplus::PixelOffsetModeHalf
                 : Gdiplus::PixelOffsetModeHighQuality);
         graphics.SetCompositingQuality(
-            Gdiplus::CompositingQualityHighQuality);
+            is_downscale ? Gdiplus::CompositingQualityHighSpeed
+                         : Gdiplus::CompositingQualityHighQuality);
         if (graphics.DrawImage(&src_bmp,
                                Gdiplus::Rect(kOcrPad, kOcrPad, scaled_w, scaled_h),
                                0, 0, width, height, Gdiplus::UnitPixel) ==
@@ -690,7 +764,7 @@ bool RunWindowsMediaOcrCached(OcrRuntimeCache* cache,
     }
   }
   if (!winrt_buf) {
-    winrt_buf = Make<BgraWinRtBuffer>(preprocessed_bytes);
+    winrt_buf = Make<BgraWinRtBuffer>(active_bytes);
   }
   if (!winrt_buf) {
     if (out_error_hint) *out_error_hint = "BgraWinRtBuffer allocation failed";
@@ -768,10 +842,18 @@ bool RunWindowsMediaOcrCached(OcrRuntimeCache* cache,
     if (h_to_close) CloseHandle(h_to_close);
   }
   if (wait_res == WAIT_OBJECT_0 + 1) {
+    ComPtr<ABI::Windows::Foundation::IAsyncInfo> async_info;
+    if (SUCCEEDED(async_op.As(&async_info)) && async_info) {
+      async_info->Cancel();
+    }
     if (out_error_hint) *out_error_hint = "Windows OCR cancelled on shutdown";
     return false;
   }
   if (wait_res == WAIT_TIMEOUT) {
+    ComPtr<ABI::Windows::Foundation::IAsyncInfo> async_info;
+    if (SUCCEEDED(async_op.As(&async_info)) && async_info) {
+      async_info->Cancel();
+    }
     if (out_error_hint) *out_error_hint = "Windows OCR timeout (>4s)";
     return false;
   }
@@ -821,6 +903,596 @@ bool RunWindowsMediaOcrCached(OcrRuntimeCache* cache,
   return true;
 }
 
+int64_t ComputeFrameFingerprintNative(const std::vector<uint8_t>& bytes,
+                                      int width,
+                                      int height) {
+  uint32_t hash = 2166136261u;
+  auto mix = [&hash](uint32_t v) {
+    hash = ((hash ^ v) * 16777619u) & 0x7FFFFFFFu;
+  };
+  mix(static_cast<uint32_t>(width));
+  mix(static_cast<uint32_t>(height));
+  mix(static_cast<uint32_t>(bytes.size()));
+  if (bytes.empty()) return static_cast<int64_t>(hash);
+
+  const size_t total_pixels = bytes.size() / 4;
+  if (total_pixels == 0) {
+    for (uint8_t b : bytes) mix(b);
+    return static_cast<int64_t>(hash);
+  }
+  const size_t pixel_step =
+      total_pixels <= 2048 ? 1 : ((total_pixels / 2048) | 1);
+  for (size_t px = 0; px < total_pixels; px += pixel_step) {
+    const size_t off = px * 4;
+    const uint32_t rgb = static_cast<uint32_t>(bytes[off]) |
+                         (static_cast<uint32_t>(bytes[off + 1]) << 8) |
+                         (static_cast<uint32_t>(bytes[off + 2]) << 16);
+    mix(rgb);
+  }
+  for (size_t i = total_pixels * 4; i < bytes.size(); ++i) {
+    mix(bytes[i]);
+  }
+  mix(bytes.front());
+  mix(bytes.back());
+  return static_cast<int64_t>(hash);
+}
+
+void ComputeLuminanceAndSummary(const std::vector<uint8_t>& bytes,
+                                int width,
+                                int height,
+                                double* out_avg_luma,
+                                double* out_std_dev,
+                                std::string* out_summary) {
+  if (width <= 0 || height <= 0) return;
+  const size_t total_pixels =
+      static_cast<size_t>(width) * static_cast<size_t>(height);
+  if (bytes.size() < total_pixels * 4 || total_pixels == 0) return;
+
+  const size_t step = total_pixels > 2400 ? (total_pixels / 1200) : 1;
+  int min_luma = 255;
+  int max_luma = 0;
+  int64_t sum = 0;
+  int64_t sum_sq = 0;
+  int64_t non_black = 0;
+  int64_t count = 0;
+
+  for (size_t px = 0; px < total_pixels; px += step) {
+    const size_t off = px * 4;
+    const int b = bytes[off];
+    const int g = bytes[off + 1];
+    const int r = bytes[off + 2];
+    const int luma = (r * 299 + g * 587 + b * 114) / 1000;
+    if (luma < min_luma) min_luma = luma;
+    if (luma > max_luma) max_luma = luma;
+    if (luma > 5) non_black++;
+    sum += luma;
+    sum_sq += static_cast<int64_t>(luma) * luma;
+    count++;
+  }
+  if (count <= 0) return;
+
+  const double mean = static_cast<double>(sum) / static_cast<double>(count);
+  const double variance = (std::max)(
+      0.0, (static_cast<double>(sum_sq) / static_cast<double>(count)) -
+               (mean * mean));
+  if (out_avg_luma) *out_avg_luma = mean;
+  if (out_std_dev) *out_std_dev = std::sqrt(variance);
+
+  if (out_summary) {
+    char buf[96]{};
+    if (max_luma <= 2) {
+      snprintf(buf, sizeof(buf), "luma=0..%d ALL_BLACK (nonBlack=0%%)",
+               max_luma);
+    } else {
+      const int avg_i = static_cast<int>(sum / count);
+      const int pct = static_cast<int>(
+          std::lround((static_cast<double>(non_black) * 100.0) /
+                      static_cast<double>(count)));
+      snprintf(buf, sizeof(buf), "luma=%d..%d avg=%d nonBlack=%d%%", min_luma,
+               max_luma, avg_i, pct);
+    }
+    *out_summary = buf;
+  }
+}
+
+bool ComputeColorHistogram16(const std::vector<uint8_t>& bytes,
+                             int width,
+                             int height,
+                             std::array<double, 16>* out_bins) {
+  if (!out_bins || width <= 0 || height <= 0) return false;
+  const size_t total_pixels =
+      static_cast<size_t>(width) * static_cast<size_t>(height);
+  if (bytes.size() < total_pixels * 4 || total_pixels == 0) return false;
+
+  const int x0 = static_cast<int>(std::floor(width * 0.2));
+  const int x1 = (std::max)(x0 + 1, static_cast<int>(std::ceil(width * 0.8)));
+  const int y0 = static_cast<int>(std::floor(height * 0.2));
+  const int y1 = (std::max)(y0 + 1, static_cast<int>(std::ceil(height * 0.8)));
+  const int region_pixels = (x1 - x0) * (y1 - y0);
+  const int stride = (std::max)(
+      1, static_cast<int>(std::floor(std::sqrt(region_pixels / 1200.0))));
+
+  out_bins->fill(0.0);
+  int total_sampled = 0;
+  int chroma_count = 0;
+
+  for (int y = y0; y < y1; y += stride) {
+    const size_t row_off = static_cast<size_t>(y) * static_cast<size_t>(width);
+    for (int x = x0; x < x1; x += stride) {
+      const size_t idx = (row_off + static_cast<size_t>(x)) * 4;
+      const double b = bytes[idx] / 255.0;
+      const double g = bytes[idx + 1] / 255.0;
+      const double r = bytes[idx + 2] / 255.0;
+
+      const double max_c = (std::max)(r, (std::max)(g, b));
+      const double min_c = (std::min)(r, (std::min)(g, b));
+      const double delta = max_c - min_c;
+      const double val = max_c;
+      const double sat = max_c > 0.0 ? (delta / max_c) : 0.0;
+
+      total_sampled++;
+      if (sat >= 0.22 && val >= 0.18 && val <= 0.96 && delta > 0.001) {
+        chroma_count++;
+        double hue = 0.0;
+        if (max_c == r) {
+          hue = 60.0 * std::fmod(((g - b) / delta), 6.0);
+        } else if (max_c == g) {
+          hue = 60.0 * (((b - r) / delta) + 2.0);
+        } else {
+          hue = 60.0 * (((r - g) / delta) + 4.0);
+        }
+        if (hue < 0.0) hue += 360.0;
+        const int hue_bin =
+            std::clamp(static_cast<int>(std::floor(hue / 30.0)), 0, 11);
+        (*out_bins)[static_cast<size_t>(hue_bin)] += 1.0;
+      } else {
+        const int v_bin =
+            std::clamp(static_cast<int>(std::floor(val * 4.0)), 0, 3);
+        (*out_bins)[static_cast<size_t>(12 + v_bin)] += 1.0;
+      }
+    }
+  }
+
+  if (total_sampled == 0) return false;
+  if (static_cast<double>(chroma_count) / static_cast<double>(total_sampled) <
+      0.08) {
+    return false;
+  }
+  for (int i = 0; i < 16; ++i) {
+    (*out_bins)[static_cast<size_t>(i)] /= static_cast<double>(total_sampled);
+  }
+  return true;
+}
+
+bool ApplySelfWindowMaskIfOverlapping(HWND main_hwnd,
+                                      int cap_x,
+                                      int cap_y,
+                                      int cap_w,
+                                      int cap_h,
+                                      std::vector<uint8_t>* bgra,
+                                      bool mask_self) {
+  if (!main_hwnd || !IsWindow(main_hwnd) || !IsWindowVisible(main_hwnd) ||
+      IsIconic(main_hwnd) || cap_w <= 0 || cap_h <= 0) {
+    return false;
+  }
+  DWORD main_cloaked = 0;
+  if (SUCCEEDED(DwmGetWindowAttribute(main_hwnd, DWMWA_CLOAKED, &main_cloaked,
+                                      sizeof(main_cloaked))) &&
+      main_cloaked != 0) {
+    return false;
+  }
+  RECT main_rect{};
+  if (!GetAccurateWindowRect(main_hwnd, &main_rect)) {
+    return false;
+  }
+  const int ix0 = (std::max)(cap_x, static_cast<int>(main_rect.left));
+  const int iy0 = (std::max)(cap_y, static_cast<int>(main_rect.top));
+  const int ix1 =
+      (std::min)(cap_x + cap_w, static_cast<int>(main_rect.right));
+  const int iy1 =
+      (std::min)(cap_y + cap_h, static_cast<int>(main_rect.bottom));
+
+  if (ix1 <= ix0 || iy1 <= iy0) {
+    return false;
+  }
+
+  // Only treat as meaningful overlap if at least 24x24 px intersects
+  if ((ix1 - ix0) < 24 || (iy1 - iy0) < 24) {
+    return false;
+  }
+
+  // Subtract windows positioned above main_hwnd in Z-order so an emulator/game
+  // in the foreground is never falsely flagged or masked as self-overlap.
+  HRGN visible_rgn = CreateRectRgn(ix0, iy0, ix1, iy1);
+  if (!visible_rgn) {
+    return false;
+  }
+
+  const DWORD self_pid = GetCurrentProcessId();
+  int z_steps = 0;
+  for (HWND cur = GetWindow(main_hwnd, GW_HWNDPREV);
+       cur != nullptr && z_steps < 512;
+       cur = GetWindow(cur, GW_HWNDPREV), ++z_steps) {
+    if (!IsWindowVisible(cur) || IsIconic(cur)) continue;
+    DWORD pid = 0;
+    GetWindowThreadProcessId(cur, &pid);
+    if (pid == self_pid) continue;
+
+    DWORD cloaked = 0;
+    if (SUCCEEDED(DwmGetWindowAttribute(cur, DWMWA_CLOAKED, &cloaked,
+                                        sizeof(cloaked))) &&
+        cloaked != 0) {
+      continue;
+    }
+
+    LONG_PTR ex_style = GetWindowLongPtrW(cur, GWL_EXSTYLE);
+    if ((ex_style & WS_EX_NOREDIRECTIONBITMAP) != 0) {
+      continue;
+    }
+    if ((ex_style & WS_EX_TOOLWINDOW) != 0 &&
+        (ex_style & WS_EX_APPWINDOW) == 0) {
+      continue;
+    }
+    if ((ex_style & WS_EX_LAYERED) != 0) {
+      if ((ex_style & WS_EX_TRANSPARENT) != 0) {
+        continue;
+      }
+      BYTE alpha = 255;
+      DWORD flags = 0;
+      if (GetLayeredWindowAttributes(cur, nullptr, &alpha, &flags) &&
+          (flags & LWA_ALPHA) != 0 && alpha == 0) {
+        continue;
+      }
+    }
+
+    RECT occ{};
+    if (!GetAccurateWindowRect(cur, &occ)) continue;
+    if (occ.right <= ix0 || occ.left >= ix1 || occ.bottom <= iy0 ||
+        occ.top >= iy1) {
+      continue;
+    }
+
+    HRGN occ_rgn = CreateRectRgn(occ.left, occ.top, occ.right, occ.bottom);
+    if (occ_rgn) {
+      const int combine_res =
+          CombineRgn(visible_rgn, visible_rgn, occ_rgn, RGN_DIFF);
+      DeleteObject(occ_rgn);
+      if (combine_res == NULLREGION) {
+        DeleteObject(visible_rgn);
+        return false;
+      }
+    }
+  }
+
+  const DWORD rgn_bytes = GetRegionData(visible_rgn, 0, nullptr);
+  if (rgn_bytes < sizeof(RGNDATAHEADER)) {
+    DeleteObject(visible_rgn);
+    return false;
+  }
+  std::vector<uint8_t> rgn_buf(rgn_bytes);
+  auto* rgn_data = reinterpret_cast<RGNDATA*>(rgn_buf.data());
+  if (GetRegionData(visible_rgn, rgn_bytes, rgn_data) == 0 ||
+      rgn_data->rdh.nCount == 0) {
+    DeleteObject(visible_rgn);
+    return false;
+  }
+
+  const RECT& bound = rgn_data->rdh.rcBound;
+  if ((bound.right - bound.left) < 24 || (bound.bottom - bound.top) < 24) {
+    DeleteObject(visible_rgn);
+    return false;
+  }
+
+  const auto* rects = reinterpret_cast<const RECT*>(rgn_data->Buffer);
+  int64_t visible_area = 0;
+  for (DWORD i = 0; i < rgn_data->rdh.nCount; ++i) {
+    const int rw =
+        (std::max)(0, static_cast<int>(rects[i].right - rects[i].left));
+    const int rh =
+        (std::max)(0, static_cast<int>(rects[i].bottom - rects[i].top));
+    visible_area += static_cast<int64_t>(rw) * static_cast<int64_t>(rh);
+  }
+  if (visible_area < 24 * 24) {
+    DeleteObject(visible_rgn);
+    return false;
+  }
+
+  if (mask_self && bgra &&
+      bgra->size() >=
+          static_cast<size_t>(cap_w) * static_cast<size_t>(cap_h) * 4) {
+    for (DWORD i = 0; i < rgn_data->rdh.nCount; ++i) {
+      const int rx0 = (std::max)(cap_x, static_cast<int>(rects[i].left));
+      const int ry0 = (std::max)(cap_y, static_cast<int>(rects[i].top));
+      const int rx1 =
+          (std::min)(cap_x + cap_w, static_cast<int>(rects[i].right));
+      const int ry1 =
+          (std::min)(cap_y + cap_h, static_cast<int>(rects[i].bottom));
+      if (rx1 <= rx0 || ry1 <= ry0) continue;
+
+      const int local_x0 = rx0 - cap_x;
+      const int local_y0 = ry0 - cap_y;
+      const int local_x1 = rx1 - cap_x;
+      const int local_y1 = ry1 - cap_y;
+      for (int row = local_y0; row < local_y1; ++row) {
+        uint8_t* row_ptr =
+            bgra->data() +
+            (static_cast<size_t>(row) * static_cast<size_t>(cap_w) +
+             static_cast<size_t>(local_x0)) *
+                4;
+        const int span_px = local_x1 - local_x0;
+        for (int c = 0; c < span_px; ++c) {
+          row_ptr[c * 4 + 0] = 0;
+          row_ptr[c * 4 + 1] = 0;
+          row_ptr[c * 4 + 2] = 0;
+          row_ptr[c * 4 + 3] = 255;
+        }
+      }
+    }
+  }
+  DeleteObject(visible_rgn);
+  return true;
+}
+
+bool EncodeDownscaledThumbnailPng(const std::vector<uint8_t>& bgra,
+                                  int width,
+                                  int height,
+                                  int max_width,
+                                  std::vector<uint8_t>* out_png,
+                                  int* out_w,
+                                  int* out_h) {
+  if (!out_png || width <= 0 || height <= 0 ||
+      bgra.size() < static_cast<size_t>(width) * static_cast<size_t>(height) * 4) {
+    return false;
+  }
+  CLSID png_clsid{};
+  if (!GetEncoderClsid(L"image/png", &png_clsid)) return false;
+
+  const int clamped_max = (std::max)(64, max_width);
+  const int dst_w = (std::min)(width, clamped_max);
+  const int dst_h = (std::max)(
+      1, static_cast<int>(std::lround(static_cast<double>(height) *
+                                      static_cast<double>(dst_w) /
+                                      static_cast<double>(width))));
+
+  Gdiplus::Bitmap src_bmp(
+      width, height, width * 4, PixelFormat32bppRGB,
+      const_cast<BYTE*>(reinterpret_cast<const BYTE*>(bgra.data())));
+  if (src_bmp.GetLastStatus() != Gdiplus::Ok) return false;
+
+  IStream* stream = nullptr;
+  if (FAILED(CreateStreamOnHGlobal(nullptr, TRUE, &stream)) || !stream) {
+    return false;
+  }
+
+  bool ok = false;
+  if (dst_w == width && dst_h == height) {
+    ok = (src_bmp.Save(stream, &png_clsid, nullptr) == Gdiplus::Ok);
+  } else {
+    Gdiplus::Bitmap dst_bmp(dst_w, dst_h, PixelFormat32bppRGB);
+    if (dst_bmp.GetLastStatus() == Gdiplus::Ok) {
+      Gdiplus::Graphics g(&dst_bmp);
+      g.SetInterpolationMode(Gdiplus::InterpolationModeBilinear);
+      g.SetCompositingQuality(Gdiplus::CompositingQualityHighSpeed);
+      if (g.DrawImage(&src_bmp, 0, 0, dst_w, dst_h) == Gdiplus::Ok) {
+        ok = (dst_bmp.Save(stream, &png_clsid, nullptr) == Gdiplus::Ok);
+      }
+    }
+  }
+
+  if (ok) {
+    STATSTG stat{};
+    if (SUCCEEDED(stream->Stat(&stat, STATFLAG_NONAME)) &&
+        stat.cbSize.QuadPart > 0) {
+      LARGE_INTEGER zero{};
+      stream->Seek(zero, STREAM_SEEK_SET, nullptr);
+      out_png->resize(static_cast<size_t>(stat.cbSize.QuadPart));
+      ULONG bytes_read = 0;
+      if (SUCCEEDED(stream->Read(out_png->data(),
+                                 static_cast<ULONG>(out_png->size()),
+                                 &bytes_read))) {
+        out_png->resize(bytes_read);
+        ok = !out_png->empty();
+      } else {
+        ok = false;
+      }
+    } else {
+      ok = false;
+    }
+  }
+
+  stream->Release();
+  if (ok) {
+    if (out_w) *out_w = dst_w;
+    if (out_h) *out_h = dst_h;
+  }
+  return ok;
+}
+
+bool IsFocusCandidateLine(const std::string& line) {
+  int ascii_run = 0;
+  int non_ascii_count = 0;
+  for (size_t i = 0; i < line.size(); ++i) {
+    const unsigned char c = static_cast<unsigned char>(line[i]);
+    if (c >= 0x80) {
+      non_ascii_count++;
+      ascii_run = 0;
+    } else if (std::isalpha(c)) {
+      ascii_run++;
+      if (ascii_run >= 5) return true;
+    } else {
+      ascii_run = 0;
+    }
+  }
+  return non_ascii_count >= 4;
+}
+
+std::vector<uint8_t> CropBgraRect(const std::vector<uint8_t>& src,
+                                  int src_w,
+                                  int x,
+                                  int y,
+                                  int w,
+                                  int h) {
+  std::vector<uint8_t> out(static_cast<size_t>(w) * static_cast<size_t>(h) * 4);
+  const size_t src_stride = static_cast<size_t>(src_w) * 4;
+  const size_t dst_stride = static_cast<size_t>(w) * 4;
+  for (int row = 0; row < h; ++row) {
+    const size_t off =
+        static_cast<size_t>(y + row) * src_stride + static_cast<size_t>(x) * 4;
+    std::memcpy(out.data() + static_cast<size_t>(row) * dst_stride,
+                src.data() + off, dst_stride);
+  }
+  return out;
+}
+
+std::vector<uint8_t> InvertBgraLuminance(const std::vector<uint8_t>& src) {
+  std::vector<uint8_t> out(src.size());
+  for (size_t i = 0; i + 3 < src.size(); i += 4) {
+    out[i + 0] = static_cast<uint8_t>(255 - src[i + 0]);
+    out[i + 1] = static_cast<uint8_t>(255 - src[i + 1]);
+    out[i + 2] = static_cast<uint8_t>(255 - src[i + 2]);
+    out[i + 3] = 255;
+  }
+  return out;
+}
+
+bool RunZoneBMultiBandOcr(OcrRuntimeCache* cache,
+                          HANDLE stop_event,
+                          const std::vector<uint8_t>& bgra_bytes,
+                          int width,
+                          int height,
+                          const std::string& language_tag,
+                          const std::string& preprocess_profile,
+                          std::vector<std::string>* out_lines,
+                          bool* out_used_fallback,
+                          std::string* out_resolved_tag,
+                          std::vector<std::string>* out_available_languages,
+                          std::string* out_error_hint) {
+  std::vector<std::string> merged;
+  std::unordered_set<std::string> seen_lower;
+  auto add_lines = [&](const std::vector<std::string>& lines) {
+    for (const auto& l : lines) {
+      std::string key = l;
+      std::transform(key.begin(), key.end(), key.begin(),
+                     [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
+      if (seen_lower.insert(key).second) {
+        merged.push_back(l);
+      }
+    }
+  };
+  auto count_candidates = [&]() {
+    int c = 0;
+    for (const auto& l : merged) {
+      if (IsFocusCandidateLine(l)) c++;
+    }
+    return c;
+  };
+
+  auto is_stopping = [&]() {
+    return stop_event && WaitForSingleObject(stop_event, 0) == WAIT_OBJECT_0;
+  };
+  if (is_stopping()) {
+    return false;
+  }
+
+  const auto sweep_start = std::chrono::steady_clock::now();
+  auto over_budget = [&]() {
+    return std::chrono::duration_cast<std::chrono::milliseconds>(
+               std::chrono::steady_clock::now() - sweep_start)
+               .count() >= 220;
+  };
+  auto has_candidate_token = [](const std::vector<std::string>& lines) {
+    for (const auto& l : lines) {
+      int run = 0;
+      int non_ascii = 0;
+      for (unsigned char c : l) {
+        if (c >= 0x80) {
+          non_ascii++;
+          if (non_ascii >= 2) return true;
+        } else if (std::isalpha(c)) {
+          run++;
+          if (run >= 3) return true;
+        } else {
+          run = 0;
+        }
+      }
+    }
+    return false;
+  };
+
+  std::vector<std::string> base_lines;
+  const bool base_ok = RunWindowsMediaOcrCached(
+      cache, stop_event, bgra_bytes, width, height, language_tag,
+      preprocess_profile, &base_lines, out_used_fallback, out_resolved_tag,
+      out_available_languages, out_error_hint);
+  if (base_ok) {
+    add_lines(base_lines);
+  }
+
+  // Skip multi-band & inversion sweeps on uniform/low-contrast blank frames.
+  double zone_luma = 0.0;
+  double zone_std = 0.0;
+  std::string zone_summary;
+  ComputeLuminanceAndSummary(bgra_bytes, width, height, &zone_luma, &zone_std,
+                             &zone_summary);
+  if (zone_std < 6.0 || is_stopping() || over_budget()) {
+    if (out_lines) {
+      *out_lines = std::move(merged);
+    }
+    return base_ok;
+  }
+
+  auto run_bands = [&](const std::vector<uint8_t>& frame_bytes) {
+    if (width < 20 || height < 16) return;
+    const int band_h = (std::max)(8, (height * 58) / 100);
+    const int band_w = (std::max)(12, (width * 58) / 100);
+    struct BandRect {
+      int x, y, w, h;
+    };
+    const BandRect bands[4] = {
+        {0, 0, width, band_h},
+        {0, (std::max)(0, height - band_h), width, band_h},
+        {0, 0, band_w, height},
+        {(std::max)(0, width - band_w), 0, band_w, height},
+    };
+    for (const auto& b : bands) {
+      if (is_stopping() || over_budget()) return;
+      if (b.w <= 0 || b.h <= 0 || b.x + b.w > width || b.y + b.h > height) {
+        continue;
+      }
+      auto cropped = CropBgraRect(frame_bytes, width, b.x, b.y, b.w, b.h);
+      std::vector<std::string> band_lines;
+      if (RunWindowsMediaOcrCached(cache, stop_event, cropped, b.w, b.h,
+                                   language_tag, preprocess_profile,
+                                   &band_lines, nullptr, nullptr, nullptr,
+                                   nullptr)) {
+        add_lines(band_lines);
+      }
+    }
+  };
+
+  if (count_candidates() < 2 && !is_stopping() && !over_budget()) {
+    run_bands(bgra_bytes);
+  }
+  if (count_candidates() == 0 && !is_stopping() && !over_budget()) {
+    auto inverted = InvertBgraLuminance(bgra_bytes);
+    std::vector<std::string> inv_lines;
+    if (RunWindowsMediaOcrCached(cache, stop_event, inverted, width, height,
+                                 language_tag, preprocess_profile, &inv_lines,
+                                 nullptr, nullptr, nullptr, nullptr)) {
+      add_lines(inv_lines);
+    }
+    if (has_candidate_token(inv_lines) && count_candidates() < 2 &&
+        !is_stopping() && !over_budget()) {
+      run_bands(inverted);
+    }
+  }
+
+  if (out_lines) {
+    *out_lines = std::move(merged);
+  }
+  return base_ok;
+}
+
 }  // namespace
 
 DesktopTrackerPlugin::DesktopTrackerPlugin(HWND main_window_hwnd,
@@ -851,6 +1523,9 @@ DesktopTrackerPlugin::DesktopTrackerPlugin(HWND main_window_hwnd,
 }
 
 DesktopTrackerPlugin::~DesktopTrackerPlugin() {
+  if (channel_) {
+    channel_->SetMethodCallHandler(nullptr);
+  }
   if (alive_flag_) {
     alive_flag_->store(false);
   }
@@ -863,9 +1538,17 @@ DesktopTrackerPlugin::~DesktopTrackerPlugin() {
     while (!ocr_queue_.empty()) {
       auto item = std::move(ocr_queue_.front());
       ocr_queue_.pop();
-      if (item.payload) {
-        item.payload->result.release();
-        delete item.payload;
+      if (item.ocr_payload) {
+        item.ocr_payload->result.release();
+        delete item.ocr_payload;
+      }
+      if (item.capture_payload) {
+        item.capture_payload->result.release();
+        delete item.capture_payload;
+      }
+      if (item.analyze_payload) {
+        item.analyze_payload->result.release();
+        delete item.analyze_payload;
       }
     }
   }
@@ -877,8 +1560,9 @@ DesktopTrackerPlugin::~DesktopTrackerPlugin() {
     CloseHandle(ocr_stop_event_);
     ocr_stop_event_ = nullptr;
   }
-  window_capture_cache_.bgra_bytes.clear();
-  window_capture_cache_.hwnd = nullptr;
+  window_capture_cache_.clear();
+  print_window_verified_hwnds_.clear();
+  slot_fingerprints_.clear();
 
   CleanupSnippingOverlay();
   HideScanRegionBorder();
@@ -893,6 +1577,29 @@ DesktopTrackerPlugin::~DesktopTrackerPlugin() {
     pending_snip_result_.reset();
   }
   if (dispatcher_hwnd_) {
+    MSG msg{};
+    while (PeekMessageW(&msg, dispatcher_hwnd_, kMsgOcrComplete,
+                        kMsgCaptureAnalyzeComplete, PM_REMOVE)) {
+      if (msg.message == kMsgOcrComplete) {
+        auto* payload = reinterpret_cast<OcrAsyncPayload*>(msg.lParam);
+        if (payload) {
+          payload->result.release();
+          delete payload;
+        }
+      } else if (msg.message == kMsgCaptureComplete) {
+        auto* payload = reinterpret_cast<CaptureAsyncPayload*>(msg.lParam);
+        if (payload) {
+          payload->result.release();
+          delete payload;
+        }
+      } else if (msg.message == kMsgCaptureAnalyzeComplete) {
+        auto* payload = reinterpret_cast<CaptureAnalyzePayload*>(msg.lParam);
+        if (payload) {
+          payload->result.release();
+          delete payload;
+        }
+      }
+    }
     DestroyWindow(dispatcher_hwnd_);
     dispatcher_hwnd_ = nullptr;
   }
@@ -973,7 +1680,7 @@ void DesktopTrackerPlugin::HandleMethodCall(
       result->Success(flutter::EncodableValue());
       return;
     }
-    result->Success(CaptureRegion(*args));
+    CaptureRegionAsync(*args, std::move(result));
     return;
   }
 
@@ -984,7 +1691,24 @@ void DesktopTrackerPlugin::HandleMethodCall(
       result->Success(flutter::EncodableValue());
       return;
     }
-    result->Success(CaptureWindow(*args));
+    CaptureWindowAsync(*args, std::move(result));
+    return;
+  }
+
+  if (method == "captureAndAnalyze") {
+    const auto* args =
+        std::get_if<flutter::EncodableMap>(call.arguments());
+    if (!args) {
+      result->Success(flutter::EncodableValue());
+      return;
+    }
+    CaptureAndAnalyzeAsync(*args, std::move(result));
+    return;
+  }
+
+  if (method == "clearScanCache") {
+    ClearScanCacheAsync();
+    result->Success(flutter::EncodableValue(true));
     return;
   }
 
@@ -1311,6 +2035,10 @@ void DesktopTrackerPlugin::FinishSnipping(bool confirm) {
   }
 
   RECT sel = GetNormalizedSelection();
+  sel.left = std::clamp(static_cast<int>(sel.left), 0, virtual_w_);
+  sel.top = std::clamp(static_cast<int>(sel.top), 0, virtual_h_);
+  sel.right = std::clamp(static_cast<int>(sel.right), 0, virtual_w_);
+  sel.bottom = std::clamp(static_cast<int>(sel.bottom), 0, virtual_h_);
   const int w = sel.right - sel.left;
   const int h = sel.bottom - sel.top;
   if (w < 10 || h < 10) {
@@ -1402,8 +2130,6 @@ void DesktopTrackerPlugin::PaintSnippingOverlay(HWND hwnd) {
     const int banner_x = mon_left + (mon_w - banner_w) / 2;
     const int banner_y = mon_top + 16;
 
-    Gdiplus::GraphicsPath banner_path;
-    banner_path.AddRectangle(Gdiplus::Rect(banner_x, banner_y, banner_w, banner_h));
     g.FillRectangle(&pill_bg, banner_x, banner_y, banner_w, banner_h);
     g.DrawRectangle(&pill_border, banner_x, banner_y, banner_w, banner_h);
 
@@ -1492,21 +2218,18 @@ void DesktopTrackerPlugin::PaintSnippingOverlay(HWND hwnd) {
   EndPaint(hwnd, &ps);
 }
 
-flutter::EncodableValue DesktopTrackerPlugin::CaptureRegion(
-    const flutter::EncodableMap& args) {
-  const int x = static_cast<int>(std::lround(GetDoubleArg(args, "x", 0.0)));
-  const int y = static_cast<int>(std::lround(GetDoubleArg(args, "y", 0.0)));
-  const int width =
-      static_cast<int>(std::lround(GetDoubleArg(args, "width", 0.0)));
-  const int height =
-      static_cast<int>(std::lround(GetDoubleArg(args, "height", 0.0)));
+namespace {
 
-  if (width <= 0 || height <= 0) {
-    return flutter::EncodableValue();
-  }
+bool CaptureRegionRaw(int x,
+                      int y,
+                      int width,
+                      int height,
+                      std::vector<uint8_t>* out_bytes,
+                      std::string* out_method) {
+  if (!out_bytes || width <= 0 || height <= 0) return false;
 
   HDC screen_dc = GetDC(nullptr);
-  if (!screen_dc) return flutter::EncodableValue();
+  if (!screen_dc) return false;
 
   BITMAPINFO bmi{};
   bmi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
@@ -1522,7 +2245,7 @@ flutter::EncodableValue DesktopTrackerPlugin::CaptureRegion(
   if (!dib || !bits) {
     if (dib) DeleteObject(dib);
     ReleaseDC(nullptr, screen_dc);
-    return flutter::EncodableValue();
+    return false;
   }
 
   HDC mem_dc = CreateCompatibleDC(screen_dc);
@@ -1535,100 +2258,109 @@ flutter::EncodableValue DesktopTrackerPlugin::CaptureRegion(
 
   if (!copied) {
     DeleteObject(dib);
-    return flutter::EncodableValue();
+    return false;
   }
 
   const size_t byte_count =
       static_cast<size_t>(width) * static_cast<size_t>(height) * 4;
-  std::vector<uint8_t> bytes(byte_count);
-  std::memcpy(bytes.data(), bits, byte_count);
+  out_bytes->resize(byte_count);
+  std::memcpy(out_bytes->data(), bits, byte_count);
   DeleteObject(dib);
-
-  flutter::EncodableMap out;
-  out[flutter::EncodableValue("width")] = flutter::EncodableValue(width);
-  out[flutter::EncodableValue("height")] = flutter::EncodableValue(height);
-  out[flutter::EncodableValue("pixelFormat")] =
-      flutter::EncodableValue("bgra8888");
-  out[flutter::EncodableValue("captureMethod")] =
-      flutter::EncodableValue("bitblt_screen");
-  out[flutter::EncodableValue("bytes")] =
-      flutter::EncodableValue(std::move(bytes));
-  return flutter::EncodableValue(std::move(out));
+  if (out_method) *out_method = "bitblt_screen";
+  return true;
 }
 
-flutter::EncodableValue DesktopTrackerPlugin::CaptureWindow(
-    const flutter::EncodableMap& args) {
-  const int64_t hwnd_val = GetInt64Arg(args, "hwnd", 0);
-  if (hwnd_val == 0) {
-    window_capture_cache_.bgra_bytes.clear();
-    window_capture_cache_.hwnd = nullptr;
-    return flutter::EncodableValue();
+template <typename CacheListT>
+bool CaptureWindowRaw(CacheListT* cache_list,
+                      int64_t hwnd_val,
+                      bool has_crop,
+                      int crop_x_in,
+                      int crop_y_in,
+                      int crop_w_in,
+                      int crop_h_in,
+                      std::vector<uint8_t>* out_bytes,
+                      int* out_w,
+                      int* out_h,
+                      std::string* out_method,
+                      std::unordered_set<HWND>* verified_pw_hwnds = nullptr,
+                      RECT* out_win_rect = nullptr,
+                      int* out_crop_x = nullptr,
+                      int* out_crop_y = nullptr) {
+  using CacheEntryT = typename CacheListT::value_type;
+  auto erase_frame_cache = [&](HWND h) {
+    if (cache_list) {
+      cache_list->erase(
+          std::remove_if(cache_list->begin(), cache_list->end(),
+                         [h](const CacheEntryT& e) { return e.hwnd == h; }),
+          cache_list->end());
+    }
+  };
+  auto invalidate_hwnd = [&](HWND h) {
+    erase_frame_cache(h);
+    if (verified_pw_hwnds) {
+      verified_pw_hwnds->erase(h);
+    }
+  };
+
+  if (!cache_list || !out_bytes || hwnd_val == 0) {
+    return false;
   }
   HWND target = reinterpret_cast<HWND>(hwnd_val);
   if (!IsWindow(target) || IsIconic(target)) {
-    window_capture_cache_.bgra_bytes.clear();
-    window_capture_cache_.hwnd = nullptr;
-    return flutter::EncodableValue();
+    invalidate_hwnd(target);
+    return false;
   }
 
   RECT win_rect{};
   if (!GetWindowRect(target, &win_rect)) {
-    window_capture_cache_.bgra_bytes.clear();
-    window_capture_cache_.hwnd = nullptr;
-    return flutter::EncodableValue();
+    invalidate_hwnd(target);
+    return false;
   }
 
   const int full_w = win_rect.right - win_rect.left;
   const int full_h = win_rect.bottom - win_rect.top;
   if (full_w <= 0 || full_h <= 0) {
-    window_capture_cache_.bgra_bytes.clear();
-    window_capture_cache_.hwnd = nullptr;
-    return flutter::EncodableValue();
+    invalidate_hwnd(target);
+    return false;
   }
 
   int crop_x = 0;
   int crop_y = 0;
   int crop_w = full_w;
   int crop_h = full_h;
-
-  auto crop_it = args.find(flutter::EncodableValue("cropRegion"));
-  if (crop_it != args.end() &&
-      std::holds_alternative<flutter::EncodableMap>(crop_it->second)) {
-    const auto& cmap = std::get<flutter::EncodableMap>(crop_it->second);
-    crop_x = max(0, static_cast<int>(std::lround(GetDoubleArg(cmap, "x", 0.0))));
-    crop_y = max(0, static_cast<int>(std::lround(GetDoubleArg(cmap, "y", 0.0))));
-    crop_w = static_cast<int>(
-        std::lround(GetDoubleArg(cmap, "width", static_cast<double>(full_w))));
-    crop_h = static_cast<int>(
-        std::lround(GetDoubleArg(cmap, "height", static_cast<double>(full_h))));
-    crop_w = min(crop_w, full_w - crop_x);
-    crop_h = min(crop_h, full_h - crop_y);
+  if (has_crop) {
+    crop_x = (std::max)(0, crop_x_in);
+    crop_y = (std::max)(0, crop_y_in);
+    crop_w = (std::min)(crop_w_in, full_w - crop_x);
+    crop_h = (std::min)(crop_h_in, full_h - crop_y);
   }
-
   if (crop_w <= 0 || crop_h <= 0) {
-    return flutter::EncodableValue();
+    return false;
   }
 
   const size_t full_bytes_len =
       static_cast<size_t>(full_w) * static_cast<size_t>(full_h) * 4;
   const auto now = std::chrono::steady_clock::now();
-  const bool cache_hit =
-      window_capture_cache_.hwnd == target &&
-      window_capture_cache_.width == full_w &&
-      window_capture_cache_.height == full_h &&
-      window_capture_cache_.bgra_bytes.size() == full_bytes_len &&
-      (now - window_capture_cache_.captured_at) <=
-          std::chrono::milliseconds(60);
+
+  CacheEntryT* matched_cache = nullptr;
+  for (auto& entry : *cache_list) {
+    if (entry.hwnd == target && entry.width == full_w &&
+        entry.height == full_h && entry.bgra_bytes.size() == full_bytes_len &&
+        (now - entry.captured_at) <= std::chrono::milliseconds(120)) {
+      matched_cache = &entry;
+      break;
+    }
+  }
 
   std::string capture_method;
   const uint8_t* src_bytes = nullptr;
 
-  if (cache_hit) {
-    capture_method = window_capture_cache_.capture_method;
-    src_bytes = window_capture_cache_.bgra_bytes.data();
+  if (matched_cache) {
+    capture_method = matched_cache->capture_method;
+    src_bytes = matched_cache->bgra_bytes.data();
   } else {
     HDC screen_dc = GetDC(nullptr);
-    if (!screen_dc) return flutter::EncodableValue();
+    if (!screen_dc) return false;
 
     BITMAPINFO full_bmi{};
     full_bmi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
@@ -1644,18 +2376,43 @@ flutter::EncodableValue DesktopTrackerPlugin::CaptureWindow(
     if (!full_dib || !full_bits) {
       if (full_dib) DeleteObject(full_dib);
       ReleaseDC(nullptr, screen_dc);
-      window_capture_cache_.bgra_bytes.clear();
-      window_capture_cache_.hwnd = nullptr;
-      return flutter::EncodableValue();
+      invalidate_hwnd(target);
+      return false;
     }
 
     HDC full_dc = CreateCompatibleDC(screen_dc);
     HGDIOBJ old_full = SelectObject(full_dc, full_dib);
 
-    // PW_RENDERFULLCONTENT = 2 (Windows 8.1+) captures DWM/hardware surfaces cleanly
     capture_method = "printwindow_pw2";
     BOOL printed = PrintWindow(target, full_dc, 2);
-    if (!printed) {
+    if (printed) {
+      // Hardware-accelerated OpenGL/Vulkan emulators can return TRUE with a
+      // completely black buffer under PrintWindow; probe ~256 pixels and fall back
+      // only if this HWND has not previously produced valid PrintWindow frames.
+      bool all_black = true;
+      const size_t total_px =
+          static_cast<size_t>(full_w) * static_cast<size_t>(full_h);
+      const size_t step = (std::max)(static_cast<size_t>(1), total_px / 256);
+      const auto* px_bytes = static_cast<const uint8_t*>(full_bits);
+      for (size_t i = 0; i < total_px; i += step) {
+        const size_t off = i * 4;
+        if (px_bytes[off] != 0 || px_bytes[off + 1] != 0 ||
+            px_bytes[off + 2] != 0) {
+          all_black = false;
+          break;
+        }
+      }
+      if (!all_black) {
+        if (verified_pw_hwnds) {
+          verified_pw_hwnds->insert(target);
+        }
+      } else if (!verified_pw_hwnds || verified_pw_hwnds->count(target) == 0) {
+        if (BitBlt(full_dc, 0, 0, full_w, full_h, screen_dc, win_rect.left,
+                   win_rect.top, SRCCOPY | CAPTUREBLT)) {
+          capture_method = "bitblt_black_fallback";
+        }
+      }
+    } else {
       capture_method = "bitblt_fallback";
       printed = BitBlt(full_dc, 0, 0, full_w, full_h, screen_dc, win_rect.left,
                        win_rect.top, SRCCOPY | CAPTUREBLT);
@@ -1666,31 +2423,43 @@ flutter::EncodableValue DesktopTrackerPlugin::CaptureWindow(
       DeleteDC(full_dc);
       DeleteObject(full_dib);
       ReleaseDC(nullptr, screen_dc);
-      window_capture_cache_.bgra_bytes.clear();
-      window_capture_cache_.hwnd = nullptr;
-      return flutter::EncodableValue();
+      invalidate_hwnd(target);
+      return false;
     }
 
-    window_capture_cache_.hwnd = target;
-    window_capture_cache_.width = full_w;
-    window_capture_cache_.height = full_h;
-    window_capture_cache_.capture_method = capture_method;
-    window_capture_cache_.captured_at = now;
-    window_capture_cache_.bgra_bytes.resize(full_bytes_len);
-    std::memcpy(window_capture_cache_.bgra_bytes.data(), full_bits,
-                full_bytes_len);
+    erase_frame_cache(target);
+    if (cache_list->size() >= 4) {
+      auto oldest_it = std::min_element(
+          cache_list->begin(), cache_list->end(),
+          [](const CacheEntryT& a, const CacheEntryT& b) {
+            return a.captured_at < b.captured_at;
+          });
+      if (oldest_it != cache_list->end()) {
+        cache_list->erase(oldest_it);
+      }
+    }
+
+    CacheEntryT new_entry;
+    new_entry.hwnd = target;
+    new_entry.width = full_w;
+    new_entry.height = full_h;
+    new_entry.capture_method = capture_method;
+    new_entry.captured_at = now;
+    new_entry.bgra_bytes.resize(full_bytes_len);
+    std::memcpy(new_entry.bgra_bytes.data(), full_bits, full_bytes_len);
 
     SelectObject(full_dc, old_full);
     DeleteDC(full_dc);
     DeleteObject(full_dib);
     ReleaseDC(nullptr, screen_dc);
 
-    src_bytes = window_capture_cache_.bgra_bytes.data();
+    cache_list->push_back(std::move(new_entry));
+    src_bytes = cache_list->back().bgra_bytes.data();
   }
 
   const size_t out_bytes_len =
       static_cast<size_t>(crop_w) * static_cast<size_t>(crop_h) * 4;
-  std::vector<uint8_t> out_bytes(out_bytes_len);
+  out_bytes->resize(out_bytes_len);
 
   const size_t src_stride = static_cast<size_t>(full_w) * 4;
   const size_t dst_stride = static_cast<size_t>(crop_w) * 4;
@@ -1698,65 +2467,420 @@ flutter::EncodableValue DesktopTrackerPlugin::CaptureWindow(
     const size_t src_off =
         static_cast<size_t>(crop_y + row) * src_stride +
         static_cast<size_t>(crop_x) * 4;
-    std::memcpy(out_bytes.data() + static_cast<size_t>(row) * dst_stride,
+    std::memcpy(out_bytes->data() + static_cast<size_t>(row) * dst_stride,
                 src_bytes + src_off, dst_stride);
   }
 
-  flutter::EncodableMap out;
-  out[flutter::EncodableValue("width")] = flutter::EncodableValue(crop_w);
-  out[flutter::EncodableValue("height")] = flutter::EncodableValue(crop_h);
-  out[flutter::EncodableValue("pixelFormat")] =
-      flutter::EncodableValue("bgra8888");
-  out[flutter::EncodableValue("captureMethod")] =
-      flutter::EncodableValue(capture_method);
-  out[flutter::EncodableValue("bytes")] =
-      flutter::EncodableValue(std::move(out_bytes));
-  return flutter::EncodableValue(std::move(out));
+  if (out_w) *out_w = crop_w;
+  if (out_h) *out_h = crop_h;
+  if (out_method) *out_method = capture_method;
+  if (out_win_rect) *out_win_rect = win_rect;
+  if (out_crop_x) *out_crop_x = crop_x;
+  if (out_crop_y) *out_crop_y = crop_y;
+  return true;
+}
+
+}  // namespace
+
+void DesktopTrackerPlugin::CaptureRegionAsync(
+    const flutter::EncodableMap& args,
+    std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
+  const int x = static_cast<int>(std::lround(GetDoubleArg(args, "x", 0.0)));
+  const int y = static_cast<int>(std::lround(GetDoubleArg(args, "y", 0.0)));
+  const int width =
+      static_cast<int>(std::lround(GetDoubleArg(args, "width", 0.0)));
+  const int height =
+      static_cast<int>(std::lround(GetDoubleArg(args, "height", 0.0)));
+
+  if (width <= 0 || height <= 0 || !dispatcher_hwnd_) {
+    result->Success(flutter::EncodableValue());
+    return;
+  }
+
+  auto* payload = new CaptureAsyncPayload();
+  payload->result = std::move(result);
+  {
+    std::lock_guard<std::mutex> lock(ocr_queue_mutex_);
+    if (ocr_worker_stopping_) {
+      if (payload->result) {
+        payload->result->Success(flutter::EncodableValue());
+      }
+      delete payload;
+      return;
+    }
+    WorkerTask task;
+    task.type = WorkerTask::Type::kCaptureRegion;
+    task.cap_x = x;
+    task.cap_y = y;
+    task.cap_w = width;
+    task.cap_h = height;
+    task.capture_payload = payload;
+    ocr_queue_.push(std::move(task));
+  }
+  ocr_queue_cv_.notify_one();
+}
+
+void DesktopTrackerPlugin::CaptureWindowAsync(
+    const flutter::EncodableMap& args,
+    std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
+  const int64_t hwnd_val = GetInt64Arg(args, "hwnd", 0);
+  if (hwnd_val == 0 || !dispatcher_hwnd_) {
+    result->Success(flutter::EncodableValue());
+    return;
+  }
+
+  bool has_crop = false;
+  int crop_x = 0, crop_y = 0, crop_w = 0, crop_h = 0;
+  auto crop_it = args.find(flutter::EncodableValue("cropRegion"));
+  if (crop_it != args.end() &&
+      std::holds_alternative<flutter::EncodableMap>(crop_it->second)) {
+    const auto& cmap = std::get<flutter::EncodableMap>(crop_it->second);
+    has_crop = true;
+    crop_x = static_cast<int>(std::lround(GetDoubleArg(cmap, "x", 0.0)));
+    crop_y = static_cast<int>(std::lround(GetDoubleArg(cmap, "y", 0.0)));
+    crop_w = static_cast<int>(std::lround(GetDoubleArg(cmap, "width", 0.0)));
+    crop_h = static_cast<int>(std::lround(GetDoubleArg(cmap, "height", 0.0)));
+  }
+
+  auto* payload = new CaptureAsyncPayload();
+  payload->result = std::move(result);
+  {
+    std::lock_guard<std::mutex> lock(ocr_queue_mutex_);
+    if (ocr_worker_stopping_) {
+      if (payload->result) {
+        payload->result->Success(flutter::EncodableValue());
+      }
+      delete payload;
+      return;
+    }
+    WorkerTask task;
+    task.type = WorkerTask::Type::kCaptureWindow;
+    task.hwnd_val = hwnd_val;
+    task.has_crop = has_crop;
+    task.crop_x = crop_x;
+    task.crop_y = crop_y;
+    task.crop_w = crop_w;
+    task.crop_h = crop_h;
+    task.capture_payload = payload;
+    ocr_queue_.push(std::move(task));
+  }
+  ocr_queue_cv_.notify_one();
+}
+
+void DesktopTrackerPlugin::CaptureAndAnalyzeAsync(
+    const flutter::EncodableMap& args,
+    std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
+  const std::string mode = GetStringArg(args, "mode", "window");
+  const std::string slot_key = GetStringArg(args, "slotKey", "zoneA");
+  const std::string language_tag = GetStringArg(args, "languageTag", "");
+  const std::string preprocess_profile =
+      GetStringArg(args, "preprocessProfile", "standard");
+  const bool force_ocr = GetBoolArg(args, "forceOcr", false);
+  const bool mask_self_window = GetBoolArg(args, "maskSelfWindow", false);
+  const bool compute_color_histogram =
+      GetBoolArg(args, "computeColorHistogram", false);
+  const bool include_thumbnail = GetBoolArg(args, "includeThumbnail", false);
+  const int thumbnail_max_width =
+      static_cast<int>(GetInt64Arg(args, "thumbnailMaxWidth", 320));
+  const bool multi_band_fallback = GetBoolArg(args, "multiBandFallback", false);
+  const bool skip_ocr = GetBoolArg(args, "skipOcr", false);
+
+  bool is_region = (mode == "region");
+  int cap_x = 0, cap_y = 0, cap_w = 0, cap_h = 0;
+  if (is_region) {
+    auto reg_it = args.find(flutter::EncodableValue("screenRegion"));
+    if (reg_it != args.end() &&
+        std::holds_alternative<flutter::EncodableMap>(reg_it->second)) {
+      const auto& rmap = std::get<flutter::EncodableMap>(reg_it->second);
+      cap_x = static_cast<int>(std::lround(GetDoubleArg(rmap, "x", 0.0)));
+      cap_y = static_cast<int>(std::lround(GetDoubleArg(rmap, "y", 0.0)));
+      cap_w = static_cast<int>(std::lround(GetDoubleArg(rmap, "width", 0.0)));
+      cap_h = static_cast<int>(std::lround(GetDoubleArg(rmap, "height", 0.0)));
+    }
+  }
+
+  const int64_t hwnd_val = GetInt64Arg(args, "hwnd", 0);
+  bool has_crop = false;
+  int crop_x = 0, crop_y = 0, crop_w = 0, crop_h = 0;
+  auto crop_it = args.find(flutter::EncodableValue("cropRegion"));
+  if (crop_it != args.end() &&
+      std::holds_alternative<flutter::EncodableMap>(crop_it->second)) {
+    const auto& cmap = std::get<flutter::EncodableMap>(crop_it->second);
+    has_crop = true;
+    crop_x = static_cast<int>(std::lround(GetDoubleArg(cmap, "x", 0.0)));
+    crop_y = static_cast<int>(std::lround(GetDoubleArg(cmap, "y", 0.0)));
+    crop_w = static_cast<int>(std::lround(GetDoubleArg(cmap, "width", 0.0)));
+    crop_h = static_cast<int>(std::lround(GetDoubleArg(cmap, "height", 0.0)));
+  }
+
+  if (!dispatcher_hwnd_) {
+    result->Success(flutter::EncodableValue());
+    return;
+  }
+
+  auto* payload = new CaptureAnalyzePayload();
+  payload->result = std::move(result);
+  payload->requested_language_tag = language_tag;
+  payload->resolved_language_tag = language_tag;
+
+  {
+    std::lock_guard<std::mutex> lock(ocr_queue_mutex_);
+    if (ocr_worker_stopping_) {
+      if (payload->result) {
+        payload->result->Success(flutter::EncodableValue());
+      }
+      delete payload;
+      return;
+    }
+    WorkerTask task;
+    task.type = WorkerTask::Type::kCaptureAnalyze;
+    task.is_region = is_region;
+    task.cap_x = cap_x;
+    task.cap_y = cap_y;
+    task.cap_w = cap_w;
+    task.cap_h = cap_h;
+    task.hwnd_val = hwnd_val;
+    task.has_crop = has_crop;
+    task.crop_x = crop_x;
+    task.crop_y = crop_y;
+    task.crop_w = crop_w;
+    task.crop_h = crop_h;
+    task.slot_key = slot_key;
+    task.force_ocr = force_ocr;
+    task.language_tag = language_tag;
+    task.preprocess_profile = preprocess_profile;
+    task.mask_self_window = mask_self_window;
+    task.compute_color_histogram = compute_color_histogram;
+    task.include_thumbnail = include_thumbnail;
+    task.thumbnail_max_width = thumbnail_max_width;
+    task.multi_band_fallback = multi_band_fallback;
+    task.skip_ocr = skip_ocr;
+    task.analyze_payload = payload;
+    ocr_queue_.push(std::move(task));
+  }
+  ocr_queue_cv_.notify_one();
+}
+
+void DesktopTrackerPlugin::ClearScanCacheAsync() {
+  {
+    std::lock_guard<std::mutex> lock(ocr_queue_mutex_);
+    if (ocr_worker_stopping_) return;
+    WorkerTask task;
+    task.type = WorkerTask::Type::kClearScanCache;
+    ocr_queue_.push(std::move(task));
+  }
+  ocr_queue_cv_.notify_one();
 }
 
 void DesktopTrackerPlugin::OcrWorkerLoop() {
+  SetThreadDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
   HRESULT ro_hr = RoInitialize(RO_INIT_MULTITHREADED);
   OcrRuntimeCache runtime_cache;
   HWND notify_hwnd = dispatcher_hwnd_;
+  HWND main_hwnd = main_window_hwnd_;
   auto alive = alive_flag_;
 
   while (true) {
-    OcrWorkItem item;
+    WorkerTask task;
     {
       std::unique_lock<std::mutex> lock(ocr_queue_mutex_);
       ocr_queue_cv_.wait(lock, [this]() {
         return ocr_worker_stopping_ || !ocr_queue_.empty();
       });
-      if (ocr_worker_stopping_ && ocr_queue_.empty()) {
-        break;
-      }
       if (ocr_worker_stopping_) {
         break;
       }
-      item = std::move(ocr_queue_.front());
+      task = std::move(ocr_queue_.front());
       ocr_queue_.pop();
     }
 
-    if (!item.payload) continue;
+    if (task.type == WorkerTask::Type::kClearScanCache) {
+      slot_fingerprints_.clear();
+      window_capture_cache_.clear();
+      print_window_verified_hwnds_.clear();
+      continue;
+    }
 
-    const auto t0 = std::chrono::steady_clock::now();
-    item.payload->success = RunWindowsMediaOcrCached(
-        &runtime_cache, ocr_stop_event_, item.bytes, item.width, item.height,
-        item.language_tag, item.preprocess_profile, &item.payload->lines,
-        &item.payload->used_fallback_language,
-        &item.payload->resolved_language_tag,
-        &item.payload->available_languages, &item.payload->error_hint);
-    const auto t1 = std::chrono::steady_clock::now();
-    item.payload->ocr_duration_ms =
-        std::chrono::duration_cast<std::chrono::milliseconds>(t1 - t0).count();
+    if (task.type == WorkerTask::Type::kOcr) {
+      if (!task.ocr_payload) continue;
+      const auto t0 = std::chrono::steady_clock::now();
+      task.ocr_payload->success = RunWindowsMediaOcrCached(
+          &runtime_cache, ocr_stop_event_, task.bytes, task.width, task.height,
+          task.language_tag, task.preprocess_profile, &task.ocr_payload->lines,
+          &task.ocr_payload->used_fallback_language,
+          &task.ocr_payload->resolved_language_tag,
+          &task.ocr_payload->available_languages,
+          &task.ocr_payload->error_hint);
+      const auto t1 = std::chrono::steady_clock::now();
+      task.ocr_payload->ocr_duration_ms =
+          std::chrono::duration_cast<std::chrono::milliseconds>(t1 - t0).count();
 
-    if (!alive || !alive->load() ||
-        !PostMessageW(notify_hwnd, kMsgOcrComplete, 0,
-                      reinterpret_cast<LPARAM>(item.payload))) {
-      if (!alive || !alive->load()) {
-        item.payload->result.release();
+      if (!notify_hwnd || !alive || !alive->load() ||
+          !PostMessageW(notify_hwnd, kMsgOcrComplete, 0,
+                        reinterpret_cast<LPARAM>(task.ocr_payload))) {
+        task.ocr_payload->result.release();
+        delete task.ocr_payload;
       }
-      delete item.payload;
+      continue;
+    }
+
+    if (task.type == WorkerTask::Type::kCaptureRegion ||
+        task.type == WorkerTask::Type::kCaptureWindow) {
+      if (!task.capture_payload) continue;
+      if (task.type == WorkerTask::Type::kCaptureRegion) {
+        task.capture_payload->success = CaptureRegionRaw(
+            task.cap_x, task.cap_y, task.cap_w, task.cap_h,
+            &task.capture_payload->bytes,
+            &task.capture_payload->capture_method);
+        if (task.capture_payload->success) {
+          task.capture_payload->width = task.cap_w;
+          task.capture_payload->height = task.cap_h;
+        }
+      } else {
+        task.capture_payload->success = CaptureWindowRaw(
+            &window_capture_cache_, task.hwnd_val, task.has_crop, task.crop_x,
+            task.crop_y, task.crop_w, task.crop_h, &task.capture_payload->bytes,
+            &task.capture_payload->width, &task.capture_payload->height,
+            &task.capture_payload->capture_method,
+            &print_window_verified_hwnds_);
+      }
+
+      if (!notify_hwnd || !alive || !alive->load() ||
+          !PostMessageW(notify_hwnd, kMsgCaptureComplete, 0,
+                        reinterpret_cast<LPARAM>(task.capture_payload))) {
+        task.capture_payload->result.release();
+        delete task.capture_payload;
+      }
+      continue;
+    }
+
+    if (task.type == WorkerTask::Type::kCaptureAnalyze) {
+      if (!task.analyze_payload) continue;
+      auto* p = task.analyze_payload;
+
+      const auto cap_t0 = std::chrono::steady_clock::now();
+      std::vector<uint8_t> frame_bytes;
+      int frame_w = 0;
+      int frame_h = 0;
+      std::string cap_method;
+      RECT win_rect{};
+      int actual_crop_x = 0;
+      int actual_crop_y = 0;
+      bool cap_ok = false;
+
+      if (task.is_region) {
+        cap_ok = CaptureRegionRaw(task.cap_x, task.cap_y, task.cap_w, task.cap_h,
+                                  &frame_bytes, &cap_method);
+        if (cap_ok) {
+          frame_w = task.cap_w;
+          frame_h = task.cap_h;
+        }
+      } else {
+        cap_ok = CaptureWindowRaw(
+            &window_capture_cache_, task.hwnd_val, task.has_crop, task.crop_x,
+            task.crop_y, task.crop_w, task.crop_h, &frame_bytes, &frame_w,
+            &frame_h, &cap_method, &print_window_verified_hwnds_, &win_rect,
+            &actual_crop_x, &actual_crop_y);
+      }
+      const auto cap_t1 = std::chrono::steady_clock::now();
+      p->capture_duration_ms =
+          std::chrono::duration_cast<std::chrono::milliseconds>(cap_t1 - cap_t0)
+              .count();
+
+      if (cap_ok && frame_w > 0 && frame_h > 0) {
+        p->captured = true;
+        p->frame_width = frame_w;
+        p->frame_height = frame_h;
+        p->capture_method = cap_method;
+
+        if (task.is_region) {
+          p->self_window_overlaps = ApplySelfWindowMaskIfOverlapping(
+              main_hwnd, task.cap_x, task.cap_y, frame_w, frame_h, &frame_bytes,
+              task.mask_self_window);
+        } else if (cap_method == "bitblt_fallback" ||
+                   cap_method == "bitblt_black_fallback") {
+          p->self_window_overlaps = ApplySelfWindowMaskIfOverlapping(
+              main_hwnd, static_cast<int>(win_rect.left) + actual_crop_x,
+              static_cast<int>(win_rect.top) + actual_crop_y, frame_w, frame_h,
+              &frame_bytes, task.mask_self_window);
+        }
+
+        if (p->self_window_overlaps && task.mask_self_window) {
+          // Artificially masked black pixels must not trigger black-screen
+          // resets or false visual shiny color deviation alerts.
+          p->has_luma = false;
+          p->has_color_histogram = false;
+          p->brightness_summary = "self_masked";
+        } else {
+          ComputeLuminanceAndSummary(frame_bytes, frame_w, frame_h, &p->avg_luma,
+                                     &p->std_dev, &p->brightness_summary);
+          p->has_luma = true;
+
+          if (task.compute_color_histogram) {
+            p->has_color_histogram = ComputeColorHistogram16(
+                frame_bytes, frame_w, frame_h, &p->color_histogram);
+          }
+        }
+
+        if (task.skip_ocr) {
+          p->ocr_skipped = true;
+          p->ocr_succeeded = true;
+        } else {
+          const int64_t fp =
+              ComputeFrameFingerprintNative(frame_bytes, frame_w, frame_h);
+          auto fp_it = slot_fingerprints_.find(task.slot_key);
+          const bool changed = task.force_ocr ||
+                               fp_it == slot_fingerprints_.end() ||
+                               fp_it->second != fp;
+
+          if (changed) {
+            p->ocr_skipped = false;
+            const auto ocr_t0 = std::chrono::steady_clock::now();
+            if (task.multi_band_fallback) {
+              p->ocr_succeeded = RunZoneBMultiBandOcr(
+                  &runtime_cache, ocr_stop_event_, frame_bytes, frame_w, frame_h,
+                  task.language_tag, task.preprocess_profile, &p->lines,
+                  &p->used_fallback_language, &p->resolved_language_tag,
+                  &p->available_languages, &p->error_hint);
+            } else {
+              p->ocr_succeeded = RunWindowsMediaOcrCached(
+                  &runtime_cache, ocr_stop_event_, frame_bytes, frame_w, frame_h,
+                  task.language_tag, task.preprocess_profile, &p->lines,
+                  &p->used_fallback_language, &p->resolved_language_tag,
+                  &p->available_languages, &p->error_hint);
+            }
+            const auto ocr_t1 = std::chrono::steady_clock::now();
+            p->ocr_duration_ms =
+                std::chrono::duration_cast<std::chrono::milliseconds>(ocr_t1 -
+                                                                      ocr_t0)
+                    .count();
+            if (p->ocr_succeeded) {
+              slot_fingerprints_[task.slot_key] = fp;
+            }
+          } else {
+            p->ocr_skipped = true;
+            p->ocr_succeeded = true;
+          }
+        }
+
+        if (task.include_thumbnail) {
+          EncodeDownscaledThumbnailPng(
+              frame_bytes, frame_w, frame_h, task.thumbnail_max_width,
+              &p->thumbnail_png, &p->thumbnail_width, &p->thumbnail_height);
+        }
+      } else {
+        p->captured = false;
+        p->ocr_skipped = true;
+        p->ocr_succeeded = false;
+        p->error_hint = "Capture failed or window unavailable";
+      }
+
+      if (!notify_hwnd || !alive || !alive->load() ||
+          !PostMessageW(notify_hwnd, kMsgCaptureAnalyzeComplete, 0,
+                        reinterpret_cast<LPARAM>(p))) {
+        p->result.release();
+        delete p;
+      }
     }
   }
 
@@ -1780,7 +2904,7 @@ void DesktopTrackerPlugin::RecognizeTextAsync(
   auto bytes_it = args.find(flutter::EncodableValue("bytes"));
   if (bytes_it == args.end() ||
       !std::holds_alternative<std::vector<uint8_t>>(bytes_it->second) ||
-      width <= 0 || height <= 0) {
+      width <= 0 || height <= 0 || !dispatcher_hwnd_) {
     flutter::EncodableMap empty;
     empty[flutter::EncodableValue("lines")] =
         flutter::EncodableValue(flutter::EncodableList{});
@@ -1796,8 +2920,9 @@ void DesktopTrackerPlugin::RecognizeTextAsync(
         flutter::EncodableValue(false);
     empty[flutter::EncodableValue("ocrDurationMs")] =
         flutter::EncodableValue(0);
-    empty[flutter::EncodableValue("errorHint")] =
-        flutter::EncodableValue("Invalid frame bytes or dimensions");
+    empty[flutter::EncodableValue("errorHint")] = flutter::EncodableValue(
+        !dispatcher_hwnd_ ? "Dispatcher window unavailable"
+                          : "Invalid frame bytes or dimensions");
     result->Success(flutter::EncodableValue(std::move(empty)));
     return;
   }
@@ -1812,17 +2937,20 @@ void DesktopTrackerPlugin::RecognizeTextAsync(
   {
     std::lock_guard<std::mutex> lock(ocr_queue_mutex_);
     if (ocr_worker_stopping_) {
-      payload->result.release();
+      if (payload->result) {
+        payload->result->Success(flutter::EncodableValue());
+      }
       delete payload;
       return;
     }
-    OcrWorkItem item;
+    WorkerTask item;
+    item.type = WorkerTask::Type::kOcr;
     item.bytes = std::move(bytes);
     item.width = width;
     item.height = height;
     item.language_tag = language_tag;
     item.preprocess_profile = preprocess_profile;
-    item.payload = payload;
+    item.ocr_payload = payload;
     ocr_queue_.push(std::move(item));
   }
   ocr_queue_cv_.notify_one();
@@ -1935,12 +3063,14 @@ void DesktopTrackerPlugin::PositionHudFromAnchor() {
   MONITORINFO mi{};
   mi.cbSize = sizeof(mi);
   if (GetMonitorInfoW(mon, &mi)) {
-    target_x =
-        std::clamp(target_x, static_cast<int>(mi.rcWork.left),
-                   static_cast<int>(mi.rcWork.right) - hud_w);
-    target_y =
-        std::clamp(target_y, static_cast<int>(mi.rcWork.top),
-                   static_cast<int>(mi.rcWork.bottom) - hud_h);
+    const int min_x = static_cast<int>(mi.rcWork.left);
+    const int max_x =
+        (std::max)(min_x, static_cast<int>(mi.rcWork.right) - hud_w);
+    const int min_y = static_cast<int>(mi.rcWork.top);
+    const int max_y =
+        (std::max)(min_y, static_cast<int>(mi.rcWork.bottom) - hud_h);
+    target_x = std::clamp(target_x, min_x, max_x);
+    target_y = std::clamp(target_y, min_y, max_y);
   }
 
   hud_state_.pos_x = target_x;
@@ -1966,6 +3096,7 @@ bool DesktopTrackerPlugin::ShowOrUpdateFloatingHud(
         hud_state_.pos_x, hud_state_.pos_y, hud_w, hud_h, nullptr, nullptr,
         GetModuleHandleW(nullptr), this);
     if (!hud_hwnd_) return false;
+    SetWindowDisplayAffinity(hud_hwnd_, 0x00000011 /* WDA_EXCLUDEFROMCAPTURE */);
     ShowWindow(hud_hwnd_, SW_SHOWNOACTIVATE);
   } else {
     PositionHudFromAnchor();
@@ -2333,6 +3464,109 @@ LRESULT CALLBACK DesktopTrackerPlugin::DispatcherWndProc(HWND hwnd,
     return 0;
   }
 
+  if (msg == kMsgCaptureComplete) {
+    auto* payload = reinterpret_cast<CaptureAsyncPayload*>(lparam);
+    if (payload) {
+      if (payload->result) {
+        if (payload->success) {
+          flutter::EncodableMap out;
+          out[flutter::EncodableValue("width")] =
+              flutter::EncodableValue(payload->width);
+          out[flutter::EncodableValue("height")] =
+              flutter::EncodableValue(payload->height);
+          out[flutter::EncodableValue("pixelFormat")] =
+              flutter::EncodableValue("bgra8888");
+          out[flutter::EncodableValue("captureMethod")] =
+              flutter::EncodableValue(payload->capture_method);
+          out[flutter::EncodableValue("bytes")] =
+              flutter::EncodableValue(std::move(payload->bytes));
+          payload->result->Success(flutter::EncodableValue(std::move(out)));
+        } else {
+          payload->result->Success(flutter::EncodableValue());
+        }
+      }
+      delete payload;
+    }
+    return 0;
+  }
+
+  if (msg == kMsgCaptureAnalyzeComplete) {
+    auto* payload = reinterpret_cast<CaptureAnalyzePayload*>(lparam);
+    if (payload) {
+      flutter::EncodableMap resp;
+      resp[flutter::EncodableValue("captured")] =
+          flutter::EncodableValue(payload->captured);
+      resp[flutter::EncodableValue("ocrSkipped")] =
+          flutter::EncodableValue(payload->ocr_skipped);
+      flutter::EncodableList lines_list;
+      for (const auto& l : payload->lines) {
+        lines_list.push_back(flutter::EncodableValue(l));
+      }
+      resp[flutter::EncodableValue("lines")] =
+          flutter::EncodableValue(std::move(lines_list));
+      resp[flutter::EncodableValue("usedFallbackLanguage")] =
+          flutter::EncodableValue(payload->used_fallback_language);
+      resp[flutter::EncodableValue("resolvedLanguageTag")] =
+          flutter::EncodableValue(payload->resolved_language_tag);
+      resp[flutter::EncodableValue("requestedLanguageTag")] =
+          flutter::EncodableValue(payload->requested_language_tag);
+      flutter::EncodableList avail_list;
+      for (const auto& lang : payload->available_languages) {
+        avail_list.push_back(flutter::EncodableValue(lang));
+      }
+      resp[flutter::EncodableValue("availableLanguages")] =
+          flutter::EncodableValue(std::move(avail_list));
+      resp[flutter::EncodableValue("ocrSucceeded")] =
+          flutter::EncodableValue(payload->ocr_succeeded);
+      if (!payload->error_hint.empty()) {
+        resp[flutter::EncodableValue("errorHint")] =
+            flutter::EncodableValue(payload->error_hint);
+      }
+      resp[flutter::EncodableValue("captureDurationMs")] =
+          flutter::EncodableValue(payload->capture_duration_ms);
+      resp[flutter::EncodableValue("ocrDurationMs")] =
+          flutter::EncodableValue(payload->ocr_duration_ms);
+      resp[flutter::EncodableValue("frameWidth")] =
+          flutter::EncodableValue(payload->frame_width);
+      resp[flutter::EncodableValue("frameHeight")] =
+          flutter::EncodableValue(payload->frame_height);
+      resp[flutter::EncodableValue("captureMethod")] =
+          flutter::EncodableValue(payload->capture_method);
+      resp[flutter::EncodableValue("brightnessSummary")] =
+          flutter::EncodableValue(payload->brightness_summary);
+      if (payload->has_luma) {
+        resp[flutter::EncodableValue("avgLuma")] =
+            flutter::EncodableValue(payload->avg_luma);
+        resp[flutter::EncodableValue("stdDev")] =
+            flutter::EncodableValue(payload->std_dev);
+      }
+      if (payload->has_color_histogram) {
+        flutter::EncodableList hist_list;
+        for (double v : payload->color_histogram) {
+          hist_list.push_back(flutter::EncodableValue(v));
+        }
+        resp[flutter::EncodableValue("colorHistogram")] =
+            flutter::EncodableValue(std::move(hist_list));
+      }
+      resp[flutter::EncodableValue("selfWindowOverlaps")] =
+          flutter::EncodableValue(payload->self_window_overlaps);
+      if (!payload->thumbnail_png.empty() && payload->thumbnail_width > 0 &&
+          payload->thumbnail_height > 0) {
+        resp[flutter::EncodableValue("thumbnailPng")] =
+            flutter::EncodableValue(std::move(payload->thumbnail_png));
+        resp[flutter::EncodableValue("thumbnailWidth")] =
+            flutter::EncodableValue(payload->thumbnail_width);
+        resp[flutter::EncodableValue("thumbnailHeight")] =
+            flutter::EncodableValue(payload->thumbnail_height);
+      }
+      if (payload->result) {
+        payload->result->Success(flutter::EncodableValue(std::move(resp)));
+      }
+      delete payload;
+    }
+    return 0;
+  }
+
   return DefWindowProcW(hwnd, msg, wparam, lparam);
 }
 
@@ -2432,6 +3666,34 @@ LRESULT CALLBACK DesktopTrackerPlugin::SnippingWndProc(HWND hwnd,
         return 0;
       }
       break;
+
+    case WM_CAPTURECHANGED:
+      self->snip_is_dragging_ = false;
+      return 0;
+
+    case WM_CLOSE:
+      self->FinishSnipping(false);
+      return 0;
+
+    case WM_DESTROY:
+      if (self->snip_hwnd_ == hwnd) {
+        self->snip_hwnd_ = nullptr;
+      }
+      if (self->snip_bright_bmp_) {
+        DeleteObject(self->snip_bright_bmp_);
+        self->snip_bright_bmp_ = nullptr;
+      }
+      if (self->snip_dimmed_bmp_) {
+        DeleteObject(self->snip_dimmed_bmp_);
+        self->snip_dimmed_bmp_ = nullptr;
+      }
+      self->snip_is_dragging_ = false;
+      self->snip_has_selection_ = false;
+      if (self->pending_snip_result_) {
+        auto pending = std::move(self->pending_snip_result_);
+        pending->Success(flutter::EncodableValue());
+      }
+      return 0;
   }
 
   return DefWindowProcW(hwnd, msg, wparam, lparam);
@@ -2468,7 +3730,6 @@ LRESULT CALLBACK DesktopTrackerPlugin::HudWndProc(HWND hwnd,
 
       if (PtInRect(&self->hud_buttons_.compact_btn, pt)) {
         self->hud_state_.is_compact = !self->hud_state_.is_compact;
-        self->RenderFloatingHud();
         const int hud_w = self->hud_state_.is_compact ? kHudWidthCompact
                                                       : kHudWidthNormal;
         const int hud_h = self->ComputeHudHeight();
@@ -2549,6 +3810,22 @@ LRESULT CALLBACK DesktopTrackerPlugin::HudWndProc(HWND hwnd,
         return 0;
       }
       break;
+
+    case WM_CAPTURECHANGED:
+      self->hud_is_dragging_ = false;
+      return 0;
+
+    case WM_CLOSE:
+      self->HideFloatingHud();
+      self->InvokeDartHudEvent("onHudClose");
+      return 0;
+
+    case WM_DESTROY:
+      if (self->hud_hwnd_ == hwnd) {
+        self->hud_hwnd_ = nullptr;
+        self->hud_is_dragging_ = false;
+      }
+      return 0;
   }
 
   return DefWindowProcW(hwnd, msg, wparam, lparam);
@@ -2583,6 +3860,8 @@ void DesktopTrackerPlugin::ShowScanRegionBorder(
         outer_y, outer_w, outer_h, nullptr, nullptr, GetModuleHandleW(nullptr),
         this);
     if (!scan_border_hwnd_) return;
+    SetWindowDisplayAffinity(scan_border_hwnd_,
+                             0x00000011 /* WDA_EXCLUDEFROMCAPTURE */);
     SetLayeredWindowAttributes(scan_border_hwnd_, 0, 225, LWA_ALPHA);
   } else {
     SetWindowPos(scan_border_hwnd_, HWND_TOPMOST, outer_x, outer_y, outer_w,
@@ -2596,7 +3875,9 @@ void DesktopTrackerPlugin::ShowScanRegionBorder(
                     outer_h - kThickness);
   if (outer_rgn && inner_rgn) {
     CombineRgn(outer_rgn, outer_rgn, inner_rgn, RGN_DIFF);
-    SetWindowRgn(scan_border_hwnd_, outer_rgn, TRUE);
+    if (SetWindowRgn(scan_border_hwnd_, outer_rgn, TRUE) == 0) {
+      DeleteObject(outer_rgn);
+    }
     DeleteObject(inner_rgn);
   } else {
     if (outer_rgn) DeleteObject(outer_rgn);
@@ -2667,7 +3948,16 @@ void DesktopTrackerPlugin::SetOverlayBorders(
     entry.label = label;
 
     constexpr int kThickness = 2;
-    const bool has_tab = !label.empty() && y >= 18;
+    int monitor_top = 0;
+    HMONITOR mon = MonitorFromPoint(POINT{x, y}, MONITOR_DEFAULTTONEAREST);
+    if (mon) {
+      MONITORINFO mi{};
+      mi.cbSize = sizeof(mi);
+      if (GetMonitorInfoW(mon, &mi)) {
+        monitor_top = static_cast<int>(mi.rcMonitor.top);
+      }
+    }
+    const bool has_tab = !label.empty() && (y - monitor_top) >= 18;
     const int tab_h = has_tab ? 16 : 0;
     const int outer_x = x - kThickness;
     const int outer_y = y - kThickness - tab_h;
@@ -2682,6 +3972,8 @@ void DesktopTrackerPlugin::SetOverlayBorders(
           outer_x, outer_y, outer_w, outer_h, nullptr, nullptr,
           GetModuleHandleW(nullptr), this);
       if (!entry.hwnd) continue;
+      SetWindowDisplayAffinity(entry.hwnd,
+                               0x00000011 /* WDA_EXCLUDEFROMCAPTURE */);
       SetLayeredWindowAttributes(entry.hwnd, 0, 230, LWA_ALPHA);
     } else {
       SetWindowPos(entry.hwnd, HWND_TOPMOST, outer_x, outer_y, outer_w,
@@ -2720,7 +4012,9 @@ void DesktopTrackerPlugin::SetOverlayBorders(
           DeleteObject(tab_rgn);
         }
       }
-      SetWindowRgn(entry.hwnd, frame_rgn, TRUE);
+      if (SetWindowRgn(entry.hwnd, frame_rgn, TRUE) == 0) {
+        DeleteObject(frame_rgn);
+      }
     } else {
       if (frame_rgn) DeleteObject(frame_rgn);
       if (inner_rgn) DeleteObject(inner_rgn);

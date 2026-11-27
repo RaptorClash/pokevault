@@ -4,6 +4,7 @@ import '../desktop_tracker/desktop_capture_driver.dart';
 import '../desktop_tracker/desktop_ocr_driver.dart';
 import '../desktop_tracker/desktop_window_source.dart';
 import '../desktop_tracker/window_detector.dart';
+import '../scanner_core/media/frame_transition_detector.dart';
 import '../scanner_core/models/scanner_settings.dart';
 import '../scanner_core/source/scanner_source.dart';
 import 'camera_frame_processor.dart';
@@ -12,7 +13,11 @@ import 'camera_scan_region.dart';
 /// Camera-backed [ScannerSource] supporting Auto full-frame mode as well as
 /// strict per-rectangle ROI cropping for Zone A, Zone B (Live-Fokus), and Multi-Instance slots.
 class MobileCameraSource
-    implements DualZoneScannerSource, MultiInstanceScannerSource {
+    implements
+        DualZoneScannerSource,
+        MultiInstanceScannerSource,
+        FrameTransitionScannerSource,
+        VisualFrameScannerSource {
   final DesktopOcrDriver ocrDriver;
   Duration _pollInterval;
   MobileCameraScanMode _scanMode;
@@ -22,6 +27,7 @@ class MobileCameraSource
   OcrPreprocessProfile _preprocessProfile;
 
   bool _running = false;
+  bool _disposed = false;
   bool _scanInFlight = false;
   DateTime? _lastProcessedAt;
   CapturedFrame? _latestUprightFrame;
@@ -35,6 +41,11 @@ class MobileCameraSource
       StreamController<String>.broadcast();
   final StreamController<MultiInstanceTextEmission> _multiTextController =
       StreamController<MultiInstanceTextEmission>.broadcast();
+  final StreamController<FrameTransitionEvent> _transitionController =
+      StreamController<FrameTransitionEvent>.broadcast();
+  final StreamController<SlotVisualFrame> _visualFrameController =
+      StreamController<SlotVisualFrame>.broadcast();
+  final FrameTransitionDetector _transitionDetector = FrameTransitionDetector();
 
   final ValueNotifier<LiveOcrScanStatus> liveScanStatusNotifier =
       ValueNotifier(const LiveOcrScanStatus());
@@ -61,6 +72,35 @@ class MobileCameraSource
   @override
   Stream<MultiInstanceTextEmission> get multiInstanceTextStream =>
       _multiTextController.stream;
+
+  @override
+  Stream<FrameTransitionEvent> get transitionStream =>
+      _transitionController.stream;
+
+  @override
+  Stream<SlotVisualFrame> get visualFrameStream =>
+      _visualFrameController.stream;
+
+  @override
+  void updateTransitionMinDuration(Duration duration) {
+    _transitionDetector.setMinTransitionDuration(duration);
+  }
+
+  @override
+  void updateTransitionThresholds({
+    required int blackThreshold,
+    required int whiteThreshold,
+  }) {
+    _transitionDetector.updateThresholds(
+      blackThreshold: blackThreshold,
+      whiteThreshold: whiteThreshold,
+    );
+  }
+
+  @override
+  void updateSlotTransitionConfigs(Map<int, SlotTransitionConfig> configs) {
+    _transitionDetector.setSlotConfigs(configs);
+  }
 
   @override
   bool get isRunning => _running;
@@ -112,21 +152,26 @@ class MobileCameraSource
 
   @override
   Future<void> start() async {
+    if (_disposed) return;
     _running = true;
   }
 
   @override
   Future<void> stop() async {
     _running = false;
+    _latestUprightFrame = null;
+    _transitionDetector.reset();
   }
 
   /// Processes a single imported photo or screenshot immediately.
   Future<void> processPhotoFrame(CapturedFrame frame) async {
+    if (_disposed) return;
     await _processFrameInternal(frame, bypassThrottle: true, bypassHash: true);
   }
 
   /// Triggers an immediate re-scan of the most recent camera frame.
   Future<void> triggerSingleScan() async {
+    if (_disposed) return;
     final frame = _latestUprightFrame;
     if (frame == null) return;
     await _processFrameInternal(frame, bypassThrottle: true, bypassHash: true);
@@ -135,7 +180,7 @@ class MobileCameraSource
   /// Checks whether a live camera frame should be converted and processed now,
   /// allowing the camera stream callback to drop frames cheaply before YUV->BGRA work.
   bool shouldProcessFrameNow() {
-    if (!_running || _scanInFlight) return false;
+    if (_disposed || !_running || _scanInFlight) return false;
     if (_lastProcessedAt != null &&
         DateTime.now().difference(_lastProcessedAt!) < _pollInterval) {
       return false;
@@ -148,6 +193,7 @@ class MobileCameraSource
     CapturedFrame uprightFrame, {
     bool bypassThrottle = false,
   }) async {
+    if (_disposed) return;
     _latestUprightFrame = uprightFrame;
     if (!_running) return;
     await _processFrameInternal(
@@ -162,7 +208,7 @@ class MobileCameraSource
     required bool bypassThrottle,
     required bool bypassHash,
   }) async {
-    if (_scanInFlight) return;
+    if (_disposed || _scanInFlight) return;
     final now = DateTime.now();
     if (!bypassThrottle &&
         _lastProcessedAt != null &&
@@ -227,22 +273,52 @@ class MobileCameraSource
     final enabledRegions = _regions.where((r) => r.enabled).toList();
     if (enabledRegions.isEmpty) return;
 
+    String? primaryScanZoneId;
+    for (final r in enabledRegions) {
+      if (r.role == CameraZoneRole.scan && !r.encounterOnly) {
+        primaryScanZoneId = r.id;
+        break;
+      }
+    }
+    // Fallback: if user only configured focus / encounterOnly regions, still
+    // track transitions & visual color heuristics on the primary enabled region.
+    primaryScanZoneId ??= enabledRegions.first.id;
+
+    // Track transition & visual color on at most one region per slotId (preferring !encounterOnly).
+    final trackedSlotRegionIds = <int, String>{};
+    for (final r in enabledRegions) {
+      if (r.role == CameraZoneRole.multiInstance) {
+        final sid = r.slotId ?? 2;
+        if (!trackedSlotRegionIds.containsKey(sid) || !r.encounterOnly) {
+          trackedSlotRegionIds[sid] = r.id;
+        }
+      }
+    }
+
     for (final region in enabledRegions) {
+      if (_disposed || (!_running && !bypassHash)) break;
       final cropped = CameraFrameProcessor.cropFrameToNormalizedRect(
         uprightFrame,
         region,
       );
       if (cropped == null) continue;
 
+      final isMulti = region.role == CameraZoneRole.multiInstance;
+      final trackTransition = isMulti
+          ? trackedSlotRegionIds[region.slotId ?? 2] == region.id
+          : region.id == primaryScanZoneId;
+
       await _runOcrOnRegion(
         zoneKey: region.id,
         targetDescription: region.label,
         croppedFrame: cropped,
+        visualColorFrame: isMulti ? cropped : uprightFrame,
         role: region.role,
         slotId: region.slotId,
         colorHex: region.colorHex,
         encounterOnly: region.encounterOnly,
         bypassHash: bypassHash,
+        trackTransition: trackTransition,
       );
     }
   }
@@ -251,20 +327,50 @@ class MobileCameraSource
     required String zoneKey,
     required String targetDescription,
     required CapturedFrame croppedFrame,
+    CapturedFrame? visualColorFrame,
     required CameraZoneRole role,
     int? slotId,
     int? colorHex,
     bool encounterOnly = false,
     required bool bypassHash,
+    bool trackTransition = true,
   }) async {
+    if (_disposed || (!_running && !bypassHash)) return;
+    if (trackTransition) {
+      final resolvedSlotId =
+          role == CameraZoneRole.multiInstance ? (slotId ?? 2) : 0;
+      final transition = _transitionDetector.analyzeFrame(
+        croppedFrame,
+        slotId: resolvedSlotId,
+      );
+      if (transition != null && !_transitionController.isClosed) {
+        _transitionController.add(transition);
+      }
+      if (_visualFrameController.hasListener &&
+          !_visualFrameController.isClosed) {
+        _visualFrameController.add(
+          SlotVisualFrame(
+            slotId: resolvedSlotId,
+            frame: visualColorFrame ?? croppedFrame,
+          ),
+        );
+      }
+    }
+
     final fingerprint = computeFrameFingerprint(croppedFrame);
     if (!bypassHash && _lastFingerprintByZone[zoneKey] == fingerprint) {
       return;
     }
-    _lastFingerprintByZone[zoneKey] = fingerprint;
 
     final t0 = DateTime.now();
-    final lines = await ocrDriver.recognizeText(croppedFrame);
+    final List<String> lines;
+    try {
+      lines = await ocrDriver.recognizeText(croppedFrame);
+    } catch (_) {
+      return;
+    }
+    if (_disposed || (!_running && !bypassHash)) return;
+    _lastFingerprintByZone[zoneKey] = fingerprint;
     final ocrMs = DateTime.now().difference(t0).inMilliseconds;
     final joined = lines.join('\n').trim();
     final diagnosticHint = ocrDriver is DiagnosticOcrDriver
@@ -339,6 +445,7 @@ class MobileCameraSource
   }
 
   void _appendLog(OcrScanLogEntry entry) {
+    if (_disposed) return;
     final current = List<OcrScanLogEntry>.from(scanLogsNotifier.value);
     current.insert(0, entry);
     if (current.length > _maxScanLogs) {
@@ -349,9 +456,22 @@ class MobileCameraSource
 
   @override
   Future<void> dispose() async {
+    if (_disposed) return;
+    _disposed = true;
     _running = false;
+    _latestUprightFrame = null;
+    if (ocrDriver is DisposableOcrDriver) {
+      try {
+        await (ocrDriver as DisposableOcrDriver).dispose();
+      } catch (_) {}
+    }
+    liveScanStatusNotifier.dispose();
+    liveFocusStatusNotifier.dispose();
+    scanLogsNotifier.dispose();
     await _textController.close();
     await _focusTextController.close();
     await _multiTextController.close();
+    await _transitionController.close();
+    await _visualFrameController.close();
   }
 }

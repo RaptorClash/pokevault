@@ -2,8 +2,10 @@ import 'package:flutter/foundation.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:provider/provider.dart';
 
+import '../../../i18n/strings.g.dart';
 import '../../../models/pokemon.dart';
 import '../../../providers/dex_provider.dart';
+import '../../../providers/settings_provider.dart';
 import '../../../services/desktop_tracker/desktop_capture_driver.dart';
 import '../../../services/desktop_tracker/desktop_window_source.dart';
 import '../../../services/desktop_tracker/tracker_alert_service.dart';
@@ -39,17 +41,20 @@ class DesktopTrackerDialogs {
                     size: 22,
                   ),
                   SizedBox(width: 10),
-                  Text(
-                    'Alarm- & Signal-Einstellungen',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  Expanded(
+                    child: Text(
+                      'Alarm- & Signal-Einstellungen',
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    ),
                   ),
                 ],
               ),
               content: SizedBox(
                 width: 440,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
                     SwitchListTile(
                       key: const Key('switch_sound_enabled'),
                       title: const Text(
@@ -143,10 +148,11 @@ class DesktopTrackerDialogs {
                   ],
                 ),
               ),
+              ),
               actions: [
                 TextButton(
                   onPressed: () => Navigator.of(ctx).pop(),
-                  child: const Text('Schließen'),
+                  child: Text(t.scanner_enlarged_close),
                 ),
               ],
             );
@@ -166,6 +172,7 @@ class DesktopTrackerDialogs {
         liveFrame: liveFrame,
         fallbackPngBytes: fallbackPng,
         fallbackIcon: Icons.crop_free,
+        maxDecodeWidth: 960,
       ),
     );
   }
@@ -202,7 +209,7 @@ class DesktopTrackerDialogs {
           Expanded(
             child: Text(
               key: const Key('enlarged_preview_ocr_text'),
-              hasText ? 'OCR: $ocrText' : 'Warte auf Text...',
+              hasText ? 'OCR: $ocrText' : t.scanner_enlarged_waiting_text,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
@@ -217,7 +224,7 @@ class DesktopTrackerDialogs {
     );
   }
 
-  static void showEnlargedPreview(
+  static Future<void> showEnlargedPreview(
     BuildContext context, {
     required CapturedFrame? liveFrame,
     required Uint8List? fallbackPng,
@@ -227,7 +234,7 @@ class DesktopTrackerDialogs {
     ValueListenable<Map<String, CapturedFrame>>? boxFramesListenable,
     ValueListenable<Map<String, String>>? boxPreviewsListenable,
     String? boxKey,
-  }) {
+  }) async {
     if (liveFrame == null &&
         fallbackPng == null &&
         statusListenable == null &&
@@ -237,7 +244,12 @@ class DesktopTrackerDialogs {
     }
     final hasStatusBar = statusListenable != null ||
         (boxPreviewsListenable != null && boxKey != null);
-    showDialog<void>(
+    final viewportSize = MediaQuery.sizeOf(context);
+    final dialogWidth = (viewportSize.width * 0.85).clamp(240.0, 640.0);
+    final maxCanvasHeight = (viewportSize.height * 0.62).clamp(160.0, 420.0);
+    final dialogHeight =
+        (hasStatusBar ? 404.0 : 360.0).clamp(160.0, maxCanvasHeight);
+    await showDialog<void>(
       context: context,
       builder: (ctx) => AlertDialog(
         key: const Key('enlarged_preview_dialog'),
@@ -246,8 +258,8 @@ class DesktopTrackerDialogs {
           style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
         ),
         content: SizedBox(
-          width: 640,
-          height: hasStatusBar ? 404 : 360,
+          width: dialogWidth,
+          height: dialogHeight,
           child: statusListenable != null
               ? ValueListenableBuilder<LiveOcrScanStatus>(
                   valueListenable: statusListenable,
@@ -309,7 +321,7 @@ class DesktopTrackerDialogs {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('Schließen'),
+            child: Text(t.scanner_enlarged_close),
           ),
         ],
       ),
@@ -330,6 +342,12 @@ class DesktopTrackerDialogs {
     required void Function(int pokemonId, String displayName) onIgnoreTeam,
   }) async {
     final dexProvider = Provider.of<DexProvider>(context, listen: false);
+    var pokemonLang = 'de';
+    try {
+      pokemonLang =
+          Provider.of<SettingsProvider>(context, listen: false)
+              .effectivePokemonLanguage;
+    } catch (_) {}
     final allPokemon = dexProvider.allPokemon;
     final pokemonMap = <int, Pokemon>{for (final p in allPokemon) p.id: p};
     String query = '';
@@ -356,13 +374,14 @@ class DesktopTrackerDialogs {
     }
 
     String resolveCandidateName(int id, [String? fallback]) {
-      return pokemonMap[id]?.nameDe ?? fallback ?? '#$id';
+      return pokemonMap[id]?.getName(pokemonLang) ?? fallback ?? '#$id';
     }
 
     final top10List = DesktopTrackerDexController.buildCorrectionTop10(
       event: event,
       matcher: matcher,
       pokemonMap: pokemonMap,
+      languageCode: pokemonLang,
     );
 
     await showDialog<void>(
@@ -404,13 +423,14 @@ class DesktopTrackerDialogs {
                 if (seenIds.contains(p.id)) continue;
                 final matchesQuery = p.nameDe.toLowerCase().contains(q) ||
                     p.nameEn.toLowerCase().contains(q) ||
+                    p.getName(pokemonLang).toLowerCase().contains(q) ||
                     p.id.toString().contains(q);
                 if (matchesQuery) {
                   seenIds.add(p.id);
                   final rawPct = rawRankedMap[p.id];
                   candidates.add((
                     id: p.id,
-                    name: p.nameDe,
+                    name: p.getName(pokemonLang),
                     pct: rawPct != null
                         ? (rawPct * 100).round().clamp(1, 100)
                         : null,
@@ -727,6 +747,112 @@ class DesktopTrackerDialogs {
           },
         );
       },
+    );
+  }
+
+  /// Warns the user when the active desktop scan region overlaps PokéVault's own
+  /// window and offers black-masking to stop self-scans and reduce CPU load.
+  static Future<({bool maskSelfWindow, bool suppressWarning})?>
+      showSelfScanOverlapDialog(BuildContext context) {
+    bool suppressWarning = false;
+    return showDialog<({bool maskSelfWindow, bool suppressWarning})>(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setDialogState) {
+          final isDark = Theme.of(context).brightness == Brightness.dark;
+          return AlertDialog(
+            key: const Key('dialog_self_scan_overlap'),
+            backgroundColor: isDark ? const Color(0xFF1E1E2C) : Colors.white,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(18),
+            ),
+            title: Row(
+              children: [
+                const Icon(
+                  Icons.warning_amber_rounded,
+                  color: Colors.amber,
+                  size: 22,
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    t.scanner_self_scan_overlap_title,
+                    style: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            content: SizedBox(
+              width: 420,
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      t.scanner_self_scan_overlap_body,
+                      style: const TextStyle(fontSize: 12),
+                    ),
+                    const SizedBox(height: 12),
+                    InkWell(
+                      borderRadius: BorderRadius.circular(8),
+                      onTap: () => setDialogState(
+                        () => suppressWarning = !suppressWarning,
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 4),
+                        child: Row(
+                          children: [
+                            Checkbox(
+                              key: const Key('chk_suppress_self_scan_warning'),
+                              value: suppressWarning,
+                              onChanged: (v) => setDialogState(
+                                () => suppressWarning = v ?? false,
+                              ),
+                              visualDensity: VisualDensity.compact,
+                            ),
+                            Expanded(
+                              child: Text(
+                                t.scanner_self_scan_overlap_suppress,
+                                style: const TextStyle(fontSize: 12),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            actions: [
+              TextButton(
+                key: const Key('btn_mask_self_window_ignore'),
+                onPressed: () => Navigator.of(ctx).pop((
+                  maskSelfWindow: false,
+                  suppressWarning: suppressWarning,
+                )),
+                child: Text(t.scanner_self_scan_overlap_ignore),
+              ),
+              ElevatedButton(
+                key: const Key('btn_mask_self_window_confirm'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF10B981),
+                  foregroundColor: Colors.white,
+                ),
+                onPressed: () => Navigator.of(ctx).pop((
+                  maskSelfWindow: true,
+                  suppressWarning: suppressWarning,
+                )),
+                child: Text(t.scanner_self_scan_overlap_mask),
+              ),
+            ],
+          );
+        },
+      ),
     );
   }
 }

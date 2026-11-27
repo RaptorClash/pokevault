@@ -69,6 +69,15 @@ class _FakeDesktopBridge implements DesktopPlatformBridge {
   }) async {}
 
   @override
+  Future<NativeCaptureAnalyzeResult?> captureAndAnalyze(
+    NativeCaptureAnalyzeRequest request,
+  ) async =>
+      null;
+
+  @override
+  Future<void> clearNativeScanCache() async {}
+
+  @override
   Future<bool> showFloatingHud(NativeHudState state) async {
     showHudCount++;
     return true;

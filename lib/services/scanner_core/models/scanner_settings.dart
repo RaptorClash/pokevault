@@ -359,6 +359,8 @@ class ScannerSettings {
   final bool showScreenBorders;
   final List<MultiInstanceSlot> multiInstanceSlots;
   final List<ScreenRegion> extraFocusRegions;
+  final bool maskSelfWindow;
+  final bool suppressSelfScanWarning;
 
   static const int minScanIntervalMs = 150;
   static const int maxScanIntervalMs = 5000;
@@ -382,6 +384,8 @@ class ScannerSettings {
     this.showScreenBorders = true,
     this.multiInstanceSlots = const [],
     this.extraFocusRegions = const [],
+    this.maskSelfWindow = false,
+    this.suppressSelfScanWarning = false,
   });
 
   factory ScannerSettings.defaults() => const ScannerSettings();
@@ -410,6 +414,8 @@ class ScannerSettings {
     bool? showScreenBorders,
     List<MultiInstanceSlot>? multiInstanceSlots,
     List<ScreenRegion>? extraFocusRegions,
+    bool? maskSelfWindow,
+    bool? suppressSelfScanWarning,
   }) {
     return ScannerSettings(
       autoMarkCaught: autoMarkCaught ?? this.autoMarkCaught,
@@ -432,6 +438,9 @@ class ScannerSettings {
       showScreenBorders: showScreenBorders ?? this.showScreenBorders,
       multiInstanceSlots: multiInstanceSlots ?? this.multiInstanceSlots,
       extraFocusRegions: extraFocusRegions ?? this.extraFocusRegions,
+      maskSelfWindow: maskSelfWindow ?? this.maskSelfWindow,
+      suppressSelfScanWarning:
+          suppressSelfScanWarning ?? this.suppressSelfScanWarning,
     );
   }
 
@@ -454,6 +463,8 @@ class ScannerSettings {
       'showScreenBorders': showScreenBorders,
       'multiInstanceSlots': multiInstanceSlots.map((s) => s.toMap()).toList(),
       'extraFocusRegions': extraFocusRegions.map((r) => r.toMap()).toList(),
+      'maskSelfWindow': maskSelfWindow,
+      'suppressSelfScanWarning': suppressSelfScanWarning,
     };
   }
 
@@ -569,6 +580,8 @@ class ScannerSettings {
       showScreenBorders: map['showScreenBorders'] as bool? ?? true,
       multiInstanceSlots: List.unmodifiable(slots),
       extraFocusRegions: List.unmodifiable(extraFocus),
+      maskSelfWindow: map['maskSelfWindow'] as bool? ?? false,
+      suppressSelfScanWarning: map['suppressSelfScanWarning'] as bool? ?? false,
     );
   }
 }

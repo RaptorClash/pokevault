@@ -1,10 +1,29 @@
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'engine/ocr_detection_engine.dart';
 import 'engine/pokemon_fuzzy_matcher.dart';
 import 'feedback/scanner_feedback.dart';
 import 'models/scanner_event.dart';
 import 'models/scanner_settings.dart';
 import 'source/scanner_source.dart';
+
+/// Semantic cue telemetry emitted on every processed OCR frame for downstream listeners
+/// such as the Shiny-Hunt auto-counter state machine.
+class ScannerCueSignal {
+  final int slotId;
+  final String rawText;
+  final BattleCue battleCue;
+  final EggHatchCue eggHatchCue;
+  final ResetCue resetCue;
+
+  const ScannerCueSignal({
+    required this.slotId,
+    required this.rawText,
+    required this.battleCue,
+    required this.eggHatchCue,
+    required this.resetCue,
+  });
+}
 
 /// Central coordinator connecting OCR engine, fuzzy dictionary, feedback, and active sources.
 class ScannerCoordinator {
@@ -22,6 +41,8 @@ class ScannerCoordinator {
       StreamController<ScannerEvent>.broadcast();
   final StreamController<List<ScannerEvent>> _activeFocusController =
       StreamController<List<ScannerEvent>>.broadcast();
+  final StreamController<ScannerCueSignal> _cueController =
+      StreamController<ScannerCueSignal>.broadcast();
 
   // Debouncing / Duplicate suppression cache per (role/type/pokemonId/shiny) key
   final Map<String, Duration> _recentEmittedAt = {};
@@ -42,6 +63,9 @@ class ScannerCoordinator {
   bool _isProcessingQueue = false;
   int _droppedFramesCount = 0;
   String? _effectiveOcrLanguage;
+  List<CustomOcrPattern> _overlayCustomPatterns = const [];
+  bool Function(int slotId, String patternId)? _slotCustomPatternFilter;
+  bool _suppressEncounterFeedback = false;
 
   /// Resolved effective game/OCR language code (e.g. `'de'`, `'en'`), or `null` for all.
   String? get effectiveOcrLanguage => _effectiveOcrLanguage;
@@ -61,7 +85,7 @@ class ScannerCoordinator {
   })  : _settings = settings ?? ScannerSettings.defaults(),
         _feedback = feedback ?? const SilentScannerFeedback(),
         _duplicateCooldown = encounterCooldown {
-    engine.updateCustomPatterns(_settings.customPatterns);
+    _syncEngineCustomPatterns();
     setEffectiveOcrLanguage(_effectiveOcrLanguage);
   }
 
@@ -74,6 +98,55 @@ class ScannerCoordinator {
   /// Broadcast stream of grouped active opponent(s) detected in a frame (1..5 Pokémon).
   Stream<List<ScannerEvent>> get activeFocusStream =>
       _activeFocusController.stream;
+
+  /// Broadcast stream of semantic cues (battle end, egg hatch prompt, reset cue, raw text).
+  Stream<ScannerCueSignal> get cueStream => _cueController.stream;
+
+  void _syncEngineCustomPatterns() {
+    engine.updateCustomPatterns([
+      ..._settings.customPatterns,
+      ..._overlayCustomPatterns,
+    ]);
+  }
+
+  /// Attaches or clears an external custom-pattern overlay (e.g. from ShinyAutoCounterService)
+  /// so `updateSettings()` never erases active auto-counter rules.
+  void setOverlayCustomPatterns(List<CustomOcrPattern> patterns) {
+    _overlayCustomPatterns = List.unmodifiable(patterns);
+    _syncEngineCustomPatterns();
+  }
+
+  /// Registers an optional per-slot filter so custom patterns scoped to one hunt
+  /// never shadow another slot's rules or built-in patterns.
+  void setSlotCustomPatternFilter(
+    bool Function(int slotId, String patternId)? filter,
+  ) {
+    _slotCustomPatternFilter = filter;
+  }
+
+  /// Suppresses coordinator encounter/shiny audio feedback while an external auto-counter
+  /// owns encounter notifications.
+  void setSuppressEncounterFeedback(bool suppress) {
+    _suppressEncounterFeedback = suppress;
+  }
+
+  /// Clears active single-screen battle deduplication and cooldown caches for [slotId] (or all slots).
+  void clearBattleState([int? slotId]) {
+    if (slotId == null) {
+      _activeBattlesBySlot.clear();
+      _recentEmittedAt.clear();
+      return;
+    }
+    _activeBattlesBySlot.remove(slotId);
+    final instPrefix = 'inst_${slotId}_';
+    final rawPrefix = '${slotId}_';
+    _recentEmittedAt.removeWhere(
+      (k, _) =>
+          k.startsWith(instPrefix) ||
+          k.startsWith(rawPrefix) ||
+          (slotId == 0 && (k.startsWith('dlg_') || k.startsWith('hud_'))),
+    );
+  }
 
   /// Sets the app/Dex fallback game language and updates [matcher]'s active language filter.
   /// If `settings.ocrLanguage` is an explicit override (not `'auto'`), that override wins.
@@ -88,7 +161,7 @@ class ScannerCoordinator {
   /// Updates current settings dynamically.
   void updateSettings(ScannerSettings newSettings) {
     _settings = newSettings;
-    engine.updateCustomPatterns(newSettings.customPatterns);
+    _syncEngineCustomPatterns();
     setEffectiveOcrLanguage(_effectiveOcrLanguage);
   }
 
@@ -99,11 +172,19 @@ class ScannerCoordinator {
     _multiSourceSub?.cancel();
     _source = source;
     _sourceSub = _source!.textStream.listen((text) {
-      processFrameText(text, encounterOnly: false, allowMultiEncounter: true);
+      processFrameText(text, encounterOnly: false, allowMultiEncounter: true)
+          .catchError((Object e, StackTrace st) {
+        debugPrint('ScannerCoordinator bindSource error: $e');
+        return const <ScannerEvent>[];
+      });
     });
     if (source is DualZoneScannerSource) {
       _focusSourceSub = source.focusTextStream.listen((text) {
-        processFrameText(text, encounterOnly: true, allowMultiEncounter: true);
+        processFrameText(text, encounterOnly: true, allowMultiEncounter: true)
+            .catchError((Object e, StackTrace st) {
+          debugPrint('ScannerCoordinator bindSource focus error: $e');
+          return const <ScannerEvent>[];
+        });
       });
     }
     if (source is MultiInstanceScannerSource) {
@@ -114,7 +195,10 @@ class ScannerCoordinator {
           allowMultiEncounter: true,
           instanceIndex: emission.slotId,
           instanceColorHex: emission.colorHex,
-        );
+        ).catchError((Object e, StackTrace st) {
+          debugPrint('ScannerCoordinator bindSource multi error: $e');
+          return const <ScannerEvent>[];
+        });
       });
     }
   }
@@ -123,7 +207,11 @@ class ScannerCoordinator {
   void bindFocusStream(Stream<String> focusStream) {
     _focusSourceSub?.cancel();
     _focusSourceSub = focusStream.listen((text) {
-      processFrameText(text, encounterOnly: true, allowMultiEncounter: true);
+      processFrameText(text, encounterOnly: true, allowMultiEncounter: true)
+          .catchError((Object e, StackTrace st) {
+        debugPrint('ScannerCoordinator bindFocusStream error: $e');
+        return const <ScannerEvent>[];
+      });
     });
   }
 
@@ -238,6 +326,25 @@ class ScannerCoordinator {
     final elapsed = _currentElapsed;
     final battleSlotKey = instanceIndex ?? 0;
     final battleCue = engine.detectBattleCue(rawText);
+    final eggHatchCue = engine.detectEggHatchCue(rawText);
+    final resetCue = engine.detectResetCue(rawText);
+
+    if (rawText.trim().isNotEmpty && !_cueController.isClosed) {
+      _cueController.add(
+        ScannerCueSignal(
+          slotId: battleSlotKey,
+          rawText: rawText,
+          battleCue: battleCue,
+          eggHatchCue: eggHatchCue,
+          resetCue: resetCue,
+        ),
+      );
+    }
+
+    if (resetCue != ResetCue.none) {
+      clearBattleState(battleSlotKey);
+    }
+
     if (battleCue == BattleCue.battleEnded) {
       _activeBattlesBySlot.remove(battleSlotKey);
       return const [];
@@ -253,11 +360,15 @@ class ScannerCoordinator {
       return const [];
     }
 
+    final slotFilter = _slotCustomPatternFilter;
     final parseResult = engine.parse(
       rawText,
       role: encounterOnly
           ? OcrScanRole.enemyHudFocusOnly
           : OcrScanRole.dialogueAndCatch,
+      customPatternFilter: slotFilter == null
+          ? null
+          : (patternId) => slotFilter(battleSlotKey, patternId),
     );
     if (parseResult == null) return const [];
 
@@ -365,10 +476,12 @@ class ScannerCoordinator {
           instanceIndex: instanceIndex,
           instanceColorHex: instanceColorHex,
           encounterCount: count,
+          matchedCustomPatternId: parseResult.matchedCustomPatternId,
         );
         focusGroup.add(event);
 
         if (effectiveType == ScannerEventType.encounter &&
+            !isShiny &&
             alreadySeenInBattle.contains(match.pokemonId)) {
           continue;
         }
@@ -379,6 +492,11 @@ class ScannerCoordinator {
         if (prevTime == null ||
             elapsed - prevTime >= _duplicateCooldown) {
           _recentEmittedAt[duplicateKey] = elapsed;
+          if (_recentEmittedAt.length > 256) {
+            _recentEmittedAt.removeWhere(
+              (_, ts) => elapsed - ts >= _duplicateCooldown,
+            );
+          }
           newlyEmitted.add(event);
         }
       }
@@ -407,50 +525,63 @@ class ScannerCoordinator {
       return List.unmodifiable(newlyEmitted.isNotEmpty ? newlyEmitted : focusGroup);
     }
 
+    final isResetEventType = effectiveType == ScannerEventType.softReset ||
+        effectiveType == ScannerEventType.customReset;
+
     // Single Pokémon resolution path
-    List<FuzzyMatchResult> candidates;
-    if (parseResult.isSmartSearchFallback) {
-      candidates = matcher.matchTokensFromLine(
-        parseResult.extractedPokemonName,
-        limit: 3,
-        threshold: 0.72,
-      );
-      if (candidates.isEmpty) {
-        return const [];
-      }
-    } else {
-      candidates = matcher.matchTopK(
-        parseResult.extractedPokemonName,
-        limit: 3,
-        threshold: 0.72,
-      );
-      if (candidates.isEmpty &&
-          parseResult.extractedPokemonName.contains(' ')) {
+    List<FuzzyMatchResult> candidates = const [];
+    if (!isResetEventType) {
+      if (parseResult.isSmartSearchFallback) {
         candidates = matcher.matchTokensFromLine(
           parseResult.extractedPokemonName,
           limit: 3,
           threshold: 0.72,
         );
+        if (candidates.isEmpty) {
+          return const [];
+        }
+      } else {
+        candidates = matcher.matchTopK(
+          parseResult.extractedPokemonName,
+          limit: 3,
+          threshold: 0.72,
+        );
+        if (candidates.isEmpty &&
+            parseResult.extractedPokemonName.contains(' ')) {
+          candidates = matcher.matchTokensFromLine(
+            parseResult.extractedPokemonName,
+            limit: 3,
+            threshold: 0.72,
+          );
+        }
       }
-    }
 
-    // Filter out any ignored starter/team candidate
-    candidates = candidates
-        .where((c) => !_settings.ignoredPokemonIds.contains(c.pokemonId))
-        .toList();
-
-    final match = candidates.isNotEmpty ? candidates.first : null;
-    if (match == null && candidates.isEmpty) {
-      // Check if an ignored exact name triggered this event cleanly -> block it
-      final directCheck = matcher.match(parseResult.extractedPokemonName);
-      if (directCheck != null &&
-          _settings.ignoredPokemonIds.contains(directCheck.pokemonId)) {
+      // Filter out any ignored starter/team candidate. In single-encounter mode,
+      // if the top match itself is ignored, suppress instead of falling back to #2.
+      if (!parseResult.isSmartSearchFallback &&
+          candidates.isNotEmpty &&
+          _settings.ignoredPokemonIds.contains(candidates.first.pokemonId)) {
         return const [];
       }
+      candidates = candidates
+          .where((c) => !_settings.ignoredPokemonIds.contains(c.pokemonId))
+          .toList();
+
+      final matchCheck = candidates.isNotEmpty ? candidates.first : null;
+      if (matchCheck == null && candidates.isEmpty) {
+        // Check if an ignored exact name triggered this event cleanly -> block it
+        final directCheck = matcher.match(parseResult.extractedPokemonName);
+        if (directCheck != null &&
+            _settings.ignoredPokemonIds.contains(directCheck.pokemonId)) {
+          return const [];
+        }
+      }
     }
 
+    final match = candidates.isNotEmpty ? candidates.first : null;
     final pokemonId = match?.pokemonId;
-    if (pokemonId != null &&
+    if (!isResetEventType &&
+        pokemonId != null &&
         _settings.ignoredPokemonIds.contains(pokemonId)) {
       return const [];
     }
@@ -479,7 +610,8 @@ class ScannerCoordinator {
           activeSingleBattle.speciesIds.contains(pokemonId);
       final sameFallback = activeSingleBattle != null &&
           activeSingleBattle.fallbackKey == singleSpeciesKey;
-      if (activeSingleBattle != null &&
+      if (!isShiny &&
+          activeSingleBattle != null &&
           (sameId || sameFallback) &&
           elapsed - activeSingleBattle.lastSeenAt < _battleTimeout) {
         _activeBattlesBySlot[battleSlotKey] = (
@@ -505,6 +637,11 @@ class ScannerCoordinator {
       return const [];
     }
     _recentEmittedAt[duplicateKey] = elapsed;
+    if (_recentEmittedAt.length > 256) {
+      _recentEmittedAt.removeWhere(
+        (_, ts) => elapsed - ts >= _duplicateCooldown,
+      );
+    }
 
     final event = ScannerEvent(
       type: effectiveType,
@@ -523,13 +660,19 @@ class ScannerCoordinator {
       isSmartMatch: isSmartMatch,
       instanceIndex: instanceIndex,
       instanceColorHex: instanceColorHex,
+      matchedCustomPatternId: parseResult.matchedCustomPatternId,
     );
 
-    if (!_activeFocusController.isClosed) {
-      _activeFocusController.add([event]);
-    }
+    final isResetEvent = effectiveType == ScannerEventType.softReset ||
+        effectiveType == ScannerEventType.customReset;
 
-    await _dispatchFeedback(event, isShiny);
+    if (!isResetEvent) {
+      if (!_activeFocusController.isClosed) {
+        _activeFocusController.add([event]);
+      }
+
+      await _dispatchFeedback(event, isShiny);
+    }
 
     if (!_eventsController.isClosed) {
       _eventsController.add(event);
@@ -540,6 +683,12 @@ class ScannerCoordinator {
 
   Future<void> _dispatchFeedback(ScannerEvent event, bool isShiny) async {
     if (!(_settings.playAudioFeedback || _settings.playHapticFeedback)) {
+      return;
+    }
+    if (_suppressEncounterFeedback &&
+        (event.type == ScannerEventType.encounter ||
+            event.type == ScannerEventType.shinyDetected ||
+            (isShiny && event.type != ScannerEventType.caught))) {
       return;
     }
     if (isShiny) {
@@ -576,6 +725,7 @@ class ScannerCoordinator {
     _multiSourceSub = null;
     await _eventsController.close();
     await _activeFocusController.close();
+    await _cueController.close();
   }
 }
 

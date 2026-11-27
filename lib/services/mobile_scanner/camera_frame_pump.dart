@@ -18,7 +18,15 @@ class CameraFramePump {
   bool _isUsingPollingFallback = false;
   bool _streamActive = false;
   bool _pollInFlight = false;
+  Future<void>? _activePollFuture;
   Timer? _pollTimer;
+  Future<void> _opChain = Future<void>.value();
+
+  Future<void> _enqueue(Future<void> Function() op) {
+    final next = _opChain.then((_) => op());
+    _opChain = next.catchError((_) {});
+    return next;
+  }
 
   CameraFramePump({
     required this.startImageStream,
@@ -33,8 +41,10 @@ class CameraFramePump {
   bool get isRunning => _isRunning;
   bool get isUsingPollingFallback => _isUsingPollingFallback;
 
-  Future<void> start() async {
-    if (_isDisposed) return;
+  Future<void> start() => _enqueue(_startInternal);
+
+  Future<void> _startInternal() async {
+    if (_isDisposed || _isRunning) return;
     _isRunning = true;
 
     if (!forcePollingFallback && !_isUsingPollingFallback) {
@@ -49,7 +59,9 @@ class CameraFramePump {
       } on UnimplementedError {
         _isUsingPollingFallback = true;
       } catch (_) {
-        _isUsingPollingFallback = true;
+        _isRunning = false;
+        _streamActive = false;
+        return;
       }
     } else {
       _isUsingPollingFallback = true;
@@ -58,29 +70,39 @@ class CameraFramePump {
     _startPollTimer();
   }
 
-  Future<void> pause() async {
+  Future<void> pause() => _enqueue(_pauseInternal);
+
+  Future<void> _pauseInternal() async {
     _isRunning = false;
     _pollTimer?.cancel();
     _pollTimer = null;
     if (_streamActive) {
       await _safeStopStream();
     }
-  }
-
-  Future<void> resume() async {
-    if (_isDisposed || _isRunning) return;
-    await start();
-  }
-
-  Future<void> dispose() async {
-    _isDisposed = true;
-    _isRunning = false;
-    _pollTimer?.cancel();
-    _pollTimer = null;
-    if (_streamActive) {
-      await _safeStopStream();
+    final activePoll = _activePollFuture;
+    if (activePoll != null) {
+      await activePoll;
     }
   }
+
+  Future<void> resume() => _enqueue(() async {
+        if (_isDisposed || _isRunning) return;
+        await _startInternal();
+      });
+
+  Future<void> dispose() => _enqueue(() async {
+        _isDisposed = true;
+        _isRunning = false;
+        _pollTimer?.cancel();
+        _pollTimer = null;
+        if (_streamActive) {
+          await _safeStopStream();
+        }
+        final activePoll = _activePollFuture;
+        if (activePoll != null) {
+          await activePoll;
+        }
+      });
 
   Future<void> _safeStopStream() async {
     _streamActive = false;
@@ -93,9 +115,22 @@ class CameraFramePump {
     _pollTimer?.cancel();
     if (_isDisposed || !_isRunning) return;
     // Trigger an immediate first tick plus periodic ticks
-    unawaited(_tickPoll());
+    unawaited(_launchTickPoll());
     _pollTimer = Timer.periodic(pollInterval, (_) {
-      unawaited(_tickPoll());
+      unawaited(_launchTickPoll());
+    });
+  }
+
+  Future<void> _launchTickPoll() {
+    if (_isDisposed || !_isRunning || _pollInFlight) {
+      return Future<void>.value();
+    }
+    final future = _tickPoll();
+    _activePollFuture = future;
+    return future.whenComplete(() {
+      if (identical(_activePollFuture, future)) {
+        _activePollFuture = null;
+      }
     });
   }
 

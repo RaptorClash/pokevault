@@ -18,16 +18,20 @@ class ShinyHuntProvider extends ChangeNotifier with WidgetsBindingObserver {
   final DatabaseService db;
   List<ShinyHunt> _hunts = [];
   bool _isLoading = true;
+  bool _disposed = false;
 
   // Debouncing & Flush
   final Set<String> _pendingDirtyHuntIds = {};
+  final Map<String, int> _loadingDeltaById = {};
   Timer? _sqliteDebounceTimer;
   Timer? _cloudDebounceTimer;
-  Completer<void>? _flushCompleter;
+  Future<void>? _flushInFlight;
 
   // Active Timer & AFK Protection
   Timer? _oneSecondTimer;
   String? _activeCounterHuntId;
+  final Set<String> _autoCounterActiveHuntIds = {};
+  bool _autoCounterRunningAndUnpaused = false;
   DateTime _lastUserInteraction = DateTime.now();
   bool _isAppInForeground = true;
 
@@ -101,6 +105,18 @@ class ShinyHuntProvider extends ChangeNotifier with WidgetsBindingObserver {
     registerInteraction();
   }
 
+  /// Registers the set of hunts actively tracked by the Shiny Auto-Counter so the
+  /// stopwatch keeps ticking across all active slots even when the desktop window is unfocused.
+  void setAutoCounterActiveHunts(
+    Set<String> huntIds, {
+    required bool isRunningAndUnpaused,
+  }) {
+    _autoCounterActiveHuntIds
+      ..clear()
+      ..addAll(huntIds);
+    _autoCounterRunningAndUnpaused = isRunningAndUnpaused;
+  }
+
   /// Resets the AFK timer to prevent stopping the encounter session time tracking prematurely.
   void registerInteraction() {
     _lastUserInteraction = DateTime.now();
@@ -108,21 +124,50 @@ class ShinyHuntProvider extends ChangeNotifier with WidgetsBindingObserver {
 
   /// Loads all shiny hunts from SQLite, merging with any unsaved in-memory hunts.
   Future<void> loadHunts() async {
-    if (_pendingDirtyHuntIds.isNotEmpty) {
+    if (_pendingDirtyHuntIds.isNotEmpty || _flushInFlight != null) {
       await flushPendingWrites();
     }
+    _loadingDeltaById.clear();
     _isLoading = true;
-    notifyListeners();
+    _notifySafely();
     try {
       final loaded = await db.getAllShinyHunts();
       final loadedIds = loaded.map((h) => h.id).toSet();
       final inMemoryNew = _hunts.where((h) => !loadedIds.contains(h.id)).toList();
-      _hunts = [...inMemoryNew, ...loaded];
+      final merged = [...inMemoryNew, ...loaded];
+      if (_loadingDeltaById.isNotEmpty) {
+        for (final h in merged) {
+          final delta = _loadingDeltaById[h.id];
+          if (delta != null && delta != 0) {
+            h.currentEncounters =
+                (h.currentEncounters + delta).clamp(0, 9999999);
+            _pendingDirtyHuntIds.add(h.id);
+          }
+        }
+        _loadingDeltaById.clear();
+      }
+      _hunts = merged;
     } catch (e) {
       debugPrint('Fehler beim Laden der Shiny Hunts: $e');
     } finally {
       _isLoading = false;
-      notifyListeners();
+      _notifySafely();
+      if (!_disposed && _pendingDirtyHuntIds.isNotEmpty) {
+        if (!_enableTimer) {
+          try {
+            await flushPendingWrites();
+          } catch (e) {
+            debugPrint('ShinyHuntProvider post-load flush error: $e');
+          }
+        } else {
+          _sqliteDebounceTimer?.cancel();
+          _sqliteDebounceTimer = Timer(const Duration(milliseconds: 250), () {
+            unawaited(flushPendingWrites().catchError((Object e) {
+              debugPrint('ShinyHuntProvider post-load debounced flush error: $e');
+            }));
+          });
+        }
+      }
     }
   }
 
@@ -159,8 +204,12 @@ class ShinyHuntProvider extends ChangeNotifier with WidgetsBindingObserver {
     }
     hunt.currentEncounters += hunt.incrementStep;
     hunt.updatedAt = DateTime.now();
+    if (_isLoading) {
+      _loadingDeltaById[huntId] =
+          (_loadingDeltaById[huntId] ?? 0) + hunt.incrementStep;
+    }
     registerInteraction();
-    notifyListeners();
+    _notifySafely();
     _markDirtyAndDebounce(huntId);
   }
 
@@ -169,10 +218,65 @@ class ShinyHuntProvider extends ChangeNotifier with WidgetsBindingObserver {
     final hunt = getHuntById(huntId);
     if (hunt == null || hunt.isCompleted) return;
 
+    final prevEncounters = hunt.currentEncounters;
     hunt.currentEncounters = (hunt.currentEncounters - hunt.incrementStep).clamp(0, 9999999);
+    final appliedDelta = hunt.currentEncounters - prevEncounters;
     hunt.updatedAt = DateTime.now();
+    if (_isLoading && appliedDelta != 0) {
+      _loadingDeltaById[huntId] =
+          (_loadingDeltaById[huntId] ?? 0) + appliedDelta;
+    }
     registerInteraction();
-    notifyListeners();
+    _notifySafely();
+    _markDirtyAndDebounce(huntId);
+  }
+
+  /// Automatically increments the encounter count by an explicit [delta] (e.g. from OCR/camera).
+  ///
+  /// Resets the AFK interaction timer so hunt duration tracking stays active while auto-hunting.
+  void incrementAuto(
+    String huntId, {
+    int? delta,
+    bool resumeIfPaused = false,
+  }) {
+    if (_disposed) return;
+    final hunt = getHuntById(huntId);
+    if (hunt == null || hunt.isCompleted) return;
+    final stepDelta = (delta ?? hunt.incrementStep).clamp(1, 9999999);
+
+    if (hunt.isPaused) {
+      if (!resumeIfPaused) return;
+      hunt.status = 'active';
+      if (hunt.pauseHistory.isNotEmpty && hunt.pauseHistory.last.resumedAt == null) {
+        hunt.pauseHistory.last.resumedAt = DateTime.now();
+      }
+    }
+
+    hunt.currentEncounters = (hunt.currentEncounters + stepDelta).clamp(0, 9999999);
+    hunt.updatedAt = DateTime.now();
+    if (_isLoading) {
+      _loadingDeltaById[huntId] = (_loadingDeltaById[huntId] ?? 0) + stepDelta;
+    }
+    registerInteraction();
+    _notifySafely();
+    _markDirtyAndDebounce(huntId);
+  }
+
+  /// Automatically decrements the encounter count by [delta] (e.g. for Auto-Counter Undo), clamping at zero.
+  void decrementAuto(String huntId, {int delta = 1}) {
+    if (_disposed) return;
+    final hunt = getHuntById(huntId);
+    if (hunt == null || hunt.isCompleted || delta <= 0) return;
+
+    final prevEncounters = hunt.currentEncounters;
+    hunt.currentEncounters = (hunt.currentEncounters - delta).clamp(0, 9999999);
+    final appliedDelta = hunt.currentEncounters - prevEncounters;
+    hunt.updatedAt = DateTime.now();
+    if (_isLoading && appliedDelta != 0) {
+      _loadingDeltaById[huntId] = (_loadingDeltaById[huntId] ?? 0) + appliedDelta;
+    }
+    registerInteraction();
+    _notifySafely();
     _markDirtyAndDebounce(huntId);
   }
 
@@ -358,7 +462,10 @@ class ShinyHuntProvider extends ChangeNotifier with WidgetsBindingObserver {
       } else {
         _hunts.removeAt(index);
       }
-      notifyListeners();
+      _notifySafely();
+      while (_flushInFlight != null) {
+        await _flushInFlight;
+      }
       await db.deleteShinyHunt(huntId, softDelete: softDelete);
       _triggerCloudSyncLater(immediate: true);
     }
@@ -366,15 +473,29 @@ class ShinyHuntProvider extends ChangeNotifier with WidgetsBindingObserver {
 
   // --- SQLite Debounce & Flush ---
 
+  void _notifySafely() {
+    if (!_disposed) {
+      notifyListeners();
+    }
+  }
+
   void _markDirtyAndDebounce(String huntId) {
     _pendingDirtyHuntIds.add(huntId);
+    if (_isLoading) {
+      // Defer SQLite writes until loadHunts() completes and merges _loadingDeltaById.
+      return;
+    }
     if (!_enableTimer) {
-      flushPendingWrites();
+      unawaited(flushPendingWrites().catchError((Object e) {
+        debugPrint('ShinyHuntProvider immediate flush error: $e');
+      }));
       return;
     }
     _sqliteDebounceTimer?.cancel();
     _sqliteDebounceTimer = Timer(const Duration(milliseconds: 250), () {
-      flushPendingWrites();
+      unawaited(flushPendingWrites().catchError((Object e) {
+        debugPrint('ShinyHuntProvider debounced flush error: $e');
+      }));
     });
     _triggerCloudSyncLater();
   }
@@ -384,29 +505,37 @@ class ShinyHuntProvider extends ChangeNotifier with WidgetsBindingObserver {
     _sqliteDebounceTimer?.cancel();
     _sqliteDebounceTimer = null;
 
-    if (_pendingDirtyHuntIds.isEmpty) {
-      if (_flushCompleter != null) {
-        await _flushCompleter!.future;
-      }
-      return;
+    while (_flushInFlight != null) {
+      await _flushInFlight;
     }
+    if (_pendingDirtyHuntIds.isEmpty) return;
 
-    final completer = Completer<void>();
-    _flushCompleter = completer;
-    try {
-      final idsToFlush = List<String>.from(_pendingDirtyHuntIds);
-      _pendingDirtyHuntIds.clear();
+    Future<void> runFlush() async {
+      while (_pendingDirtyHuntIds.isNotEmpty) {
+        final idsToFlush = List<String>.from(_pendingDirtyHuntIds);
+        _pendingDirtyHuntIds.clear();
 
-      for (final id in idsToFlush) {
-        final hunt = getHuntById(id);
-        if (hunt != null) {
-          await db.saveShinyHunt(hunt);
+        for (int i = 0; i < idsToFlush.length; i++) {
+          final id = idsToFlush[i];
+          final hunt = getHuntById(id);
+          if (hunt == null) continue;
+          try {
+            await db.saveShinyHunt(hunt);
+          } catch (_) {
+            _pendingDirtyHuntIds.addAll(idsToFlush.sublist(i));
+            rethrow;
+          }
         }
       }
+    }
+
+    final future = runFlush();
+    _flushInFlight = future;
+    try {
+      await future;
     } finally {
-      completer.complete();
-      if (_flushCompleter == completer) {
-        _flushCompleter = null;
+      if (identical(_flushInFlight, future)) {
+        _flushInFlight = null;
       }
     }
   }
@@ -427,9 +556,11 @@ class ShinyHuntProvider extends ChangeNotifier with WidgetsBindingObserver {
     if (!_enableTimer) return;
     if (_attachedDexProvider != null) {
       if (immediate) {
-        flushPendingWrites().then((_) {
+        unawaited(flushPendingWrites().then((_) {
           _attachedDexProvider?.triggerAutoUpload();
-        });
+        }).catchError((Object e) {
+          debugPrint('ShinyHuntProvider immediate cloud sync flush error: $e');
+        }));
       } else {
         _attachedDexProvider!.triggerAutoUpload();
       }
@@ -450,22 +581,34 @@ class ShinyHuntProvider extends ChangeNotifier with WidgetsBindingObserver {
 
   void _startOneSecondTimer() {
     _oneSecondTimer = Timer.periodic(const Duration(seconds: 1), (_) {
-      if (!_isAppInForeground) return;
+      final hasActiveAuto =
+          _autoCounterRunningAndUnpaused && _autoCounterActiveHuntIds.isNotEmpty;
+      if (!_isAppInForeground && !hasActiveAuto) return;
 
-      // AFK-Schutz: Nach 3 Minuten ohne Tap stoppt die Zeiterfassung
-      final isAfk = DateTime.now().difference(_lastUserInteraction) > const Duration(minutes: 3);
+      // AFK-Schutz: Nach 3 Minuten ohne Tap/Auto-Encounter stoppt die Zeiterfassung
+      final isAfk = DateTime.now().difference(_lastUserInteraction) >
+          const Duration(minutes: 3);
       if (isAfk) return;
 
-      if (_activeCounterHuntId != null) {
-        final hunt = getHuntById(_activeCounterHuntId!);
+      final targetIds = <String>{
+        if (_isAppInForeground && _activeCounterHuntId != null)
+          _activeCounterHuntId!,
+        if (hasActiveAuto) ..._autoCounterActiveHuntIds,
+      };
+      bool changed = false;
+      for (final id in targetIds) {
+        final hunt = getHuntById(id);
         if (hunt != null && hunt.isActive) {
           hunt.totalTimeSeconds += 1;
-          notifyListeners();
+          changed = true;
           // Nicht jede einzelne Sekunde auf Flash schreiben: Alle 10s debouncen
           if (hunt.totalTimeSeconds % 10 == 0) {
             _markDirtyAndDebounce(hunt.id);
           }
         }
+      }
+      if (changed) {
+        _notifySafely();
       }
     });
   }
@@ -480,18 +623,23 @@ class ShinyHuntProvider extends ChangeNotifier with WidgetsBindingObserver {
         state == AppLifecycleState.hidden) {
       _isAppInForeground = false;
       // Pflicht-Flush bei App-Hintergrundwechsel!
-      flushPendingWrites();
+      unawaited(flushPendingWrites().catchError((Object e) {
+        debugPrint('ShinyHuntProvider lifecycle flush error: $e');
+      }));
     }
   }
 
   @override
   void dispose() {
+    _disposed = true;
     detachDexProvider();
     WidgetsBinding.instance.removeObserver(this);
     _sqliteDebounceTimer?.cancel();
     _cloudDebounceTimer?.cancel();
     _oneSecondTimer?.cancel();
-    flushPendingWrites();
+    unawaited(flushPendingWrites().catchError((Object e) {
+      debugPrint('ShinyHuntProvider dispose flush error: $e');
+    }));
     super.dispose();
   }
 }

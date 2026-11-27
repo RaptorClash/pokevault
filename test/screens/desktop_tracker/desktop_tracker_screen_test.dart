@@ -1,15 +1,19 @@
+import 'dart:async';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:pokevault/models/pokemon.dart';
 import 'package:pokevault/models/user_dex.dart';
 import 'package:pokevault/providers/dex_provider.dart';
 import 'package:pokevault/providers/settings_provider.dart';
 import 'package:pokevault/screens/desktop_tracker/desktop_tracker_screen.dart';
+import 'package:pokevault/screens/desktop_tracker/widgets/desktop_tracker_dialogs.dart';
 import 'package:pokevault/screens/desktop_tracker/widgets/dex_selection_modal.dart';
 import 'package:pokevault/screens/desktop_tracker/widgets/floating_overlay_hud.dart';
+import 'package:pokevault/screens/desktop_tracker/widgets/live_frame_thumbnail.dart';
 import 'package:pokevault/screens/desktop_tracker/widgets/screen_snipping_overlay.dart';
 import 'package:pokevault/services/desktop_tracker/desktop_capture_driver.dart';
 import 'package:pokevault/services/desktop_tracker/desktop_ocr_driver.dart';
@@ -17,6 +21,7 @@ import 'package:pokevault/services/desktop_tracker/desktop_system_snipping_servi
 import 'package:pokevault/services/desktop_tracker/desktop_tracker_service.dart';
 import 'package:pokevault/services/desktop_tracker/desktop_window_source.dart';
 import 'package:pokevault/services/desktop_tracker/screen_region.dart';
+import 'package:pokevault/services/desktop_tracker/tracker_alert_service.dart';
 import 'package:pokevault/services/desktop_tracker/window_detector.dart';
 import 'package:pokevault/services/desktop_tracker/windows_desktop_bridge.dart';
 import 'package:pokevault/services/scanner_core/engine/ocr_detection_engine.dart';
@@ -25,6 +30,10 @@ import 'package:pokevault/services/scanner_core/models/scanner_event.dart';
 import 'package:pokevault/services/scanner_core/models/scanner_settings.dart';
 import 'package:pokevault/services/scanner_core/scanner_coordinator.dart';
 import 'package:pokevault/services/scanner_core/source/scanner_source.dart';
+import 'package:pokevault/services/shiny_auto_counter/shiny_auto_counter_service.dart';
+import 'package:pokevault/models/shiny_hunt.dart';
+import 'package:pokevault/providers/shiny_hunt_provider.dart';
+import 'package:pokevault/services/database_service.dart';
 import 'package:pokevault/utils/tracker_platform_helper.dart';
 
 class MockCaptureDriver implements DesktopCaptureDriver {
@@ -150,6 +159,15 @@ class FakeWindowsDesktopBridge implements DesktopPlatformBridge {
     String? preprocessProfile,
   }) async =>
       const OcrRecognitionResult();
+
+  @override
+  Future<NativeCaptureAnalyzeResult?> captureAndAnalyze(
+    NativeCaptureAnalyzeRequest request,
+  ) async =>
+      null;
+
+  @override
+  Future<void> clearNativeScanCache() async {}
 
   @override
   Future<bool> showFloatingHud(NativeHudState state) async {
@@ -2269,5 +2287,350 @@ void main() {
       );
       expect(find.textContaining('#6'), findsWidgets);
     });
+
+    testWidgets('Self-scan overlap triggers warning dialog once and updates maskSelfWindow + suppressSelfScanWarning', (tester) async {
+      tester.view.physicalSize = const Size(1280, 900);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      final activeSource = DesktopWindowSource(
+        captureDriver: MockCaptureDriver(),
+        ocrDriver: MockOcrDriver()..textToReturn = '',
+      );
+      addTearDown(activeSource.dispose);
+
+      await tester.pumpWidget(
+        ChangeNotifierProvider<DexProvider>.value(
+          value: mockDexProvider,
+          child: MaterialApp(
+            home: DesktopTrackerScreen(
+              coordinator: coordinator,
+              windowSource: activeSource,
+              detectedWindows: [DesktopWindowInfo.primaryScreen()],
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      activeSource.selfWindowOverlapNotifier.value = true;
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(const Key('dialog_self_scan_overlap')), findsOneWidget);
+      await tester.tap(find.byKey(const Key('chk_suppress_self_scan_warning')));
+      await tester.pump();
+      await tester.tap(find.byKey(const Key('btn_mask_self_window_confirm')));
+      await tester.pumpAndSettle();
+
+      expect(coordinator.settings.maskSelfWindow, isTrue);
+      expect(coordinator.settings.suppressSelfScanWarning, isTrue);
+      expect(activeSource.maskSelfWindow, isTrue);
+    });
+
+    testWidgets('TrackerSettingsDialog exposes switch_mask_self_window toggle', (tester) async {
+      tester.view.physicalSize = const Size(1280, 900);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      await tester.pumpWidget(createWidgetUnderTest());
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byKey(const Key('btn_tracker_settings')));
+      await tester.pumpAndSettle();
+
+      final sw = find.byKey(const Key('switch_mask_self_window'));
+      expect(sw, findsOneWidget);
+      await tester.ensureVisible(sw);
+      await tester.tap(sw);
+      await tester.pumpAndSettle();
+
+      expect(coordinator.settings.maskSelfWindow, isTrue);
+    });
+
+    testWidgets('LiveFrameThumbnail clears stale decoded image when liveFrame becomes null without synchronous dispose crash', (tester) async {
+      final frame1 = CapturedFrame(
+        width: 16,
+        height: 16,
+        bytes: Uint8List.fromList(List<int>.filled(16 * 16 * 4, 200)),
+        pixelFormat: 'bgra8888',
+      );
+      final frame2 = CapturedFrame(
+        width: 16,
+        height: 16,
+        bytes: Uint8List.fromList(List<int>.filled(16 * 16 * 4, 90)),
+        pixelFormat: 'bgra8888',
+      );
+
+      final notifier = ValueNotifier<CapturedFrame?>(frame1);
+      addTearDown(notifier.dispose);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: SizedBox(
+              width: 120,
+              height: 90,
+              child: ValueListenableBuilder<CapturedFrame?>(
+                valueListenable: notifier,
+                builder: (_, f, _) => LiveFrameThumbnail(
+                  liveFrame: f,
+                  fallbackPngBytes: null,
+                  fallbackIcon: Icons.videocam_off,
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 50));
+
+      // Rapidly swap frame1 -> frame2 -> null
+      notifier.value = frame2;
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 50));
+
+      notifier.value = null;
+      await tester.pumpAndSettle();
+
+      expect(find.byType(RawImage), findsNothing);
+      expect(find.byIcon(Icons.videocam_off), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('Changing tracker settings with English SettingsProvider keeps OCR language en-US (does not revert to de-DE)', (tester) async {
+      SharedPreferences.setMockInitialValues({});
+      final settingsProvider = MockSettingsProvider()
+        ..currentLanguage = 'en'
+        ..pokemonLanguage = 'en';
+      final activeSource = DesktopWindowSource(
+        captureDriver: MockCaptureDriver(),
+        ocrDriver: MockOcrDriver()..textToReturn = '',
+      );
+      addTearDown(activeSource.dispose);
+
+      await tester.pumpWidget(
+        MultiProvider(
+          providers: [
+            ChangeNotifierProvider<DexProvider>.value(value: mockDexProvider),
+            ChangeNotifierProvider<SettingsProvider>.value(value: settingsProvider),
+          ],
+          child: MaterialApp(
+            home: DesktopTrackerScreen(
+              coordinator: coordinator,
+              windowSource: activeSource,
+              detectedWindows: WindowDetector().getFallbackWindows(),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(activeSource.ocrLanguageTag, equals('en-US'));
+
+      // Toggle a setting (mask_self_window) -> OCR language MUST stay en-US!
+      await tester.tap(find.byKey(const Key('btn_tracker_settings')));
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(find.byKey(const Key('switch_mask_self_window')));
+      await tester.tap(find.byKey(const Key('switch_mask_self_window')));
+      await tester.pumpAndSettle();
+
+      expect(activeSource.ocrLanguageTag, equals('en-US'));
+      expect(coordinator.effectiveOcrLanguage, equals('en'));
+    });
+
+    testWidgets('DesktopTrackerScreen syncs external DesktopTrackerService.isPausedNotifier changes and handles constrained dialog viewports', (tester) async {
+      await tester.binding.setSurfaceSize(const Size(640, 460));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await tester.pumpWidget(createWidgetUnderTest());
+      await tester.pumpAndSettle();
+
+      // External pause from dock/service updates screen badge
+      DesktopTrackerService.instance.togglePause();
+      await tester.pump();
+      expect(DesktopTrackerService.instance.isPaused, isTrue);
+
+      // Enlarged preview & alert settings dialogs do not overflow on 640x460
+      unawaited(
+        DesktopTrackerDialogs.showEnlargedPreview(
+          tester.element(find.byType(DesktopTrackerScreen)),
+          liveFrame: CapturedFrame(
+            width: 32,
+            height: 24,
+            bytes: Uint8List(32 * 24 * 4),
+            pixelFormat: 'bgra8888',
+          ),
+          fallbackPng: null,
+          title: 'Preview',
+          statusListenable: ValueNotifier(const LiveOcrScanStatus()),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
+      Navigator.of(
+        tester.element(find.byKey(const Key('enlarged_preview_dialog'))),
+      ).pop();
+      await tester.pumpAndSettle();
+
+      DesktopTrackerDialogs.showAlertSettings(
+        tester.element(find.byType(DesktopTrackerScreen)),
+        alertService: TrackerAlertService(),
+      );
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('LiveFrameThumbnail still renders decoded BGRA image when newer frame arrives mid-decode', (tester) async {
+      final frame1 = CapturedFrame(
+        width: 16,
+        height: 16,
+        bytes: Uint8List.fromList(List<int>.filled(16 * 16 * 4, 200)),
+        pixelFormat: 'bgra8888',
+      );
+      final frame2 = CapturedFrame(
+        width: 16,
+        height: 16,
+        bytes: Uint8List.fromList(List<int>.filled(16 * 16 * 4, 150)),
+        pixelFormat: 'bgra8888',
+      );
+      final notifier = ValueNotifier<CapturedFrame?>(frame1);
+      addTearDown(notifier.dispose);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: SizedBox(
+              width: 120,
+              height: 90,
+              child: ValueListenableBuilder<CapturedFrame?>(
+                valueListenable: notifier,
+                builder: (_, f, _) => LiveFrameThumbnail(
+                  liveFrame: f,
+                  fallbackPngBytes: null,
+                  fallbackIcon: Icons.videocam_off,
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      // Immediately swap to frame2 on first pump before frame1's decode completes
+      await tester.pump();
+      notifier.value = frame2;
+      await tester.pump();
+      await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 100)));
+      await tester.pump();
+
+      expect(find.byType(RawImage), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('DesktopTrackerScreen syncs pause to ShinyAutoCounterService, clears isPaused on zone start, and rebinds source on Window <-> Webcam switch', (tester) async {
+      SharedPreferences.setMockInitialValues({});
+      final huntProvider = ShinyHuntProvider(
+        databaseService: _FakeTrackerHuntDb(),
+        enableTimer: false,
+      );
+      await huntProvider.initialized;
+      final now = DateTime.now();
+      await huntProvider.createHunt(
+        ShinyHunt(
+          id: 'ui-rebind-hunt',
+          title: 'Pikachu',
+          pokemonId: 25,
+          pokemonName: 'Pikachu',
+          game: 'Violet',
+          generation: 9.0,
+          method: 'Wild',
+          baseOdds: 4096.0,
+          createdAt: now,
+          updatedAt: now,
+        ),
+      );
+
+      final activeSource = DesktopWindowSource(
+        captureDriver: MockCaptureDriver(),
+        ocrDriver: MockOcrDriver()..textToReturn = '',
+      );
+      addTearDown(() async {
+        await ShinyAutoCounterService.instance.stopSession();
+        await activeSource.dispose();
+        huntProvider.dispose();
+      });
+
+      final wins = [
+        const DesktopWindowInfo(id: 1, hwnd: 10, title: 'mGBA', width: 800, height: 600),
+        DesktopWindowInfo.webcam(index: 0, name: 'Test Webcam'),
+      ];
+
+      await tester.pumpWidget(
+        MultiProvider(
+          providers: [
+            ChangeNotifierProvider<DexProvider>.value(value: mockDexProvider),
+          ],
+          child: MaterialApp(
+            home: DesktopTrackerScreen(
+              coordinator: coordinator,
+              windowSource: activeSource,
+              detectedWindows: wins,
+              disableHardwareCamera: true,
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Bind ShinyAutoCounterService.instance (used by DesktopTrackerScreen)
+      ShinyAutoCounterService.instance.startSession(
+        huntProvider: huntProvider,
+        coordinator: coordinator,
+        source: activeSource,
+        defaultHuntId: 'ui-rebind-hunt',
+        slotIds: const [1],
+      );
+
+      // Pausing via screen button must sync ShinyAutoCounterService.setGlobalPause(true)
+      final pauseBtn = find.byIcon(Icons.pause);
+      expect(pauseBtn, findsOneWidget);
+      await tester.ensureVisible(pauseBtn);
+      await tester.tap(pauseBtn);
+      await tester.pump();
+      expect(ShinyAutoCounterService.instance.isPaused, isTrue);
+
+      final resumeBtn = find.byIcon(Icons.play_arrow);
+      expect(resumeBtn, findsOneWidget);
+      await tester.tap(resumeBtn);
+      await tester.pump();
+      expect(ShinyAutoCounterService.instance.isPaused, isFalse);
+
+      // Switching dropdown from mGBA -> Test Webcam must rebind ShinyAutoCounterService.source
+      final dropdown = find.byType(DropdownButton<DesktopWindowInfo>);
+      expect(dropdown, findsOneWidget);
+      await tester.ensureVisible(dropdown);
+      await tester.tap(dropdown);
+      await tester.pumpAndSettle();
+      await tester.tap(find.textContaining('Test Webcam').last);
+      await tester.pumpAndSettle();
+      expect(
+        identical(ShinyAutoCounterService.instance.source, activeSource),
+        isFalse,
+      );
+    });
   });
+}
+
+class _FakeTrackerHuntDb extends Fake implements DatabaseService {
+  @override
+  Future<List<ShinyHunt>> getAllShinyHunts({bool includeDeleted = false}) async =>
+      const [];
+
+  @override
+  Future<void> saveShinyHunt(ShinyHunt hunt) async {}
 }

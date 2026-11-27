@@ -7,6 +7,9 @@ enum ScannerEventType {
   evolved,
   shinyDetected,
   alphaDetected,
+  eggHatched,
+  softReset,
+  customReset,
   unknown,
 }
 
@@ -32,6 +35,7 @@ class ScannerEvent {
   final int? instanceIndex;
   final int? instanceColorHex;
   final int encounterCount;
+  final String? matchedCustomPatternId;
 
   const ScannerEvent({
     required this.type,
@@ -54,6 +58,7 @@ class ScannerEvent {
     this.instanceIndex,
     this.instanceColorHex,
     this.encounterCount = 1,
+    this.matchedCustomPatternId,
   });
 
   ScannerEvent copyWith({
@@ -77,6 +82,7 @@ class ScannerEvent {
     int? instanceIndex,
     int? instanceColorHex,
     int? encounterCount,
+    String? matchedCustomPatternId,
   }) {
     return ScannerEvent(
       type: type ?? this.type,
@@ -99,6 +105,8 @@ class ScannerEvent {
       instanceIndex: instanceIndex ?? this.instanceIndex,
       instanceColorHex: instanceColorHex ?? this.instanceColorHex,
       encounterCount: encounterCount ?? this.encounterCount,
+      matchedCustomPatternId:
+          matchedCustomPatternId ?? this.matchedCustomPatternId,
     );
   }
 

@@ -38,6 +38,8 @@ class ScannerPersistenceService {
         showScreenBorders: persisted.showScreenBorders,
         multiInstanceSlots: persisted.multiInstanceSlots,
         extraFocusRegions: persisted.extraFocusRegions,
+        maskSelfWindow: persisted.maskSelfWindow,
+        suppressSelfScanWarning: persisted.suppressSelfScanWarning,
       );
     } catch (_) {
       return fallback;

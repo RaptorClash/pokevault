@@ -772,6 +772,7 @@ void main() {
   testWidgets('Does not trigger live TutorialOverlay when shiny_hunt_counter has already been seen', (tester) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('shiny_hunt_counter', true);
+    await prefs.setBool('shiny_hunt_counter_v17_delta', true);
     final tutProvider = TutorialProvider(prefs);
     expect(tutProvider.hasSeenFeature('shiny_hunt_counter'), isTrue);
 

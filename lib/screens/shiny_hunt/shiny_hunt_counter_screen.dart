@@ -10,14 +10,18 @@ import '../../providers/tutorial_provider.dart';
 import '../../utils/shiny_hunt_odds_helper.dart';
 import '../../utils/dex_logic_helper.dart';
 import '../../i18n/strings.g.dart';
+import '../../services/shiny_auto_counter/shiny_auto_counter_service.dart';
 import '../../widgets/universal_poke_image.dart';
 import '../../widgets/tutorial/tutorial_overlay.dart';
 import 'dialogs/create_edit_hunt_dialog.dart';
 import 'dialogs/record_phase_dialog.dart';
+import 'dialogs/shiny_auto_counter_setup_sheet.dart';
 import 'dialogs/shiny_catch_dialog.dart';
 import 'dialogs/shiny_hunt_timeline_dialog.dart';
+import 'multi_hunt_dashboard_screen.dart';
 import 'widgets/hunt_odds_card.dart';
 import 'widgets/hunt_counter_controls.dart';
+import 'widgets/shiny_auto_counter_bar.dart';
 
 class ShinyHuntCounterScreen extends StatefulWidget {
   final String huntId;
@@ -41,6 +45,8 @@ class _ShinyHuntCounterScreenState extends State<ShinyHuntCounterScreen> {
   final GlobalKey _counterAreaKey = GlobalKey();
   final GlobalKey _buttonsKey = GlobalKey();
   final GlobalKey _phasesActionsKey = GlobalKey();
+  final GlobalKey _autoCounterBtnKey = GlobalKey();
+  final GlobalKey _dashboardBtnKey = GlobalKey();
 
   @override
   void didChangeDependencies() {
@@ -76,7 +82,7 @@ class _ShinyHuntCounterScreenState extends State<ShinyHuntCounterScreen> {
       huntProvider = null;
     }
     final hunt = huntProvider?.getHuntById(widget.huntId);
-    if (hunt == null || hunt.isCompleted) return;
+    if (hunt == null || hunt.isCompleted || _isLockMode) return;
 
     if (!tutProvider.hasSeenFeature('shiny_hunt_counter')) {
       TutorialOverlay.show(
@@ -103,9 +109,47 @@ class _ShinyHuntCounterScreenState extends State<ShinyHuntCounterScreen> {
               textKey: 'tutorial_shiny_phases_actions_text',
               rotomMood: RotomMood.happy,
             ),
+            TutorialStep(
+              targetKey: _autoCounterBtnKey,
+              titleKey: 'tutorial_shiny_counter_auto_title',
+              textKey: 'tutorial_shiny_counter_auto_text',
+              rotomMood: RotomMood.explaining,
+            ),
+            TutorialStep(
+              targetKey: _dashboardBtnKey,
+              titleKey: 'tutorial_shiny_counter_dashboard_title',
+              textKey: 'tutorial_shiny_counter_dashboard_text',
+              rotomMood: RotomMood.happy,
+            ),
           ],
         ),
-        () => tutProvider.markFeatureAsSeen('shiny_hunt_counter'),
+        () {
+          tutProvider.markFeatureAsSeen('shiny_hunt_counter');
+          tutProvider.markFeatureAsSeen('shiny_hunt_counter_v17_delta');
+        },
+      );
+    } else if (!tutProvider.hasSeenFeature('shiny_hunt_counter_v17_delta')) {
+      TutorialOverlay.show(
+        context,
+        TutorialFeature(
+          id: 'shiny_hunt_counter_v17_delta',
+          nameKey: 'tutorial_chapter_shiny_hunt_title',
+          steps: [
+            TutorialStep(
+              targetKey: _autoCounterBtnKey,
+              titleKey: 'tutorial_shiny_counter_auto_title',
+              textKey: 'tutorial_shiny_counter_auto_text',
+              rotomMood: RotomMood.explaining,
+            ),
+            TutorialStep(
+              targetKey: _dashboardBtnKey,
+              titleKey: 'tutorial_shiny_counter_dashboard_title',
+              textKey: 'tutorial_shiny_counter_dashboard_text',
+              rotomMood: RotomMood.happy,
+            ),
+          ],
+        ),
+        () => tutProvider.markFeatureAsSeen('shiny_hunt_counter_v17_delta'),
       );
     }
   }
@@ -143,6 +187,10 @@ class _ShinyHuntCounterScreenState extends State<ShinyHuntCounterScreen> {
 
   void _handleKeyEvent(KeyEvent event) {
     if (event is! KeyDownEvent) return;
+    final route = ModalRoute.of(context);
+    if (route != null && !route.isCurrent) return;
+    final focusedWidget = FocusManager.instance.primaryFocus?.context?.widget;
+    if (focusedWidget is EditableText) return;
 
     final huntProvider = Provider.of<ShinyHuntProvider>(context, listen: false);
     final key = event.logicalKey;
@@ -173,89 +221,24 @@ class _ShinyHuntCounterScreenState extends State<ShinyHuntCounterScreen> {
   }
 
   void _showManualCountDialog(ShinyHunt hunt) {
-    final controller = TextEditingController(text: hunt.currentEncounters.toString());
     showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(t.shiny_hunt_manual_count_title),
-        content: TextField(
-          controller: controller,
-          keyboardType: TextInputType.number,
-          autofocus: true,
-          decoration: InputDecoration(
-            labelText: t.shiny_hunt_manual_count_hint,
-            border: const OutlineInputBorder(),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(),
-            child: Text(t.cancel),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              final parsed = int.tryParse(controller.text.trim());
-              if (parsed != null) {
-                Provider.of<ShinyHuntProvider>(context, listen: false)
-                    .setManualCount(hunt.id, parsed);
-              }
-              Navigator.of(ctx).pop();
-            },
-            child: Text(t.save),
-          ),
-        ],
+      builder: (_) => _ManualCountDialog(
+        huntId: hunt.id,
+        initialCount: hunt.currentEncounters,
       ),
     );
   }
 
   void _showCustomStepDialog(ShinyHunt hunt) {
-    final controller = TextEditingController(text: hunt.incrementStep.toString());
     showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: Row(
-          children: [
-            const Icon(Icons.tune_rounded, color: Colors.amber),
-            const SizedBox(width: 8),
-            Text(t.shiny_hunt_step_custom_title),
-          ],
-        ),
-        content: TextField(
-          controller: controller,
-          keyboardType: TextInputType.number,
-          autofocus: true,
-          decoration: InputDecoration(
-            labelText: t.shiny_hunt_step_custom_hint,
-            border: const OutlineInputBorder(),
-          ),
-          onSubmitted: (val) {
-            final parsed = int.tryParse(val.trim());
-            if (parsed != null && parsed > 0 && parsed <= 99999) {
-              setState(() => _customStep = parsed);
-              Provider.of<ShinyHuntProvider>(context, listen: false)
-                  .setStep(hunt.id, parsed);
-            }
-            Navigator.of(ctx).pop();
-          },
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(),
-            child: Text(t.cancel),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              final parsed = int.tryParse(controller.text.trim());
-              if (parsed != null && parsed > 0 && parsed <= 99999) {
-                setState(() => _customStep = parsed);
-                Provider.of<ShinyHuntProvider>(context, listen: false)
-                    .setStep(hunt.id, parsed);
-              }
-              Navigator.of(ctx).pop();
-            },
-            child: Text(t.save),
-          ),
-        ],
+      builder: (_) => _CustomStepDialog(
+        huntId: hunt.id,
+        initialStep: hunt.incrementStep,
+        onStepSaved: (parsed) {
+          if (mounted) setState(() => _customStep = parsed);
+        },
       ),
     );
   }
@@ -818,18 +801,25 @@ class _ShinyHuntCounterScreenState extends State<ShinyHuntCounterScreen> {
       focusNode: _keyboardFocusNode,
       autofocus: true,
       onKeyEvent: _handleKeyEvent,
-      child: Scaffold(
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final isCompactAppBar = constraints.maxWidth < 600;
+          return Scaffold(
         appBar: AppBar(
           title: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
                 hunt.title.isNotEmpty ? hunt.title : hunt.pokemonName,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
                 style: const TextStyle(fontSize: 18),
               ),
               if (hunt.title.isNotEmpty && hunt.title != hunt.pokemonName)
                 Text(
                   hunt.pokemonName,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: const TextStyle(fontSize: 12),
                 ),
             ],
@@ -857,23 +847,64 @@ class _ShinyHuntCounterScreenState extends State<ShinyHuntCounterScreen> {
               },
             ),
             if (!_isLockMode && !hunt.isCompleted) ...[
-              OutlinedButton.icon(
-                style: OutlinedButton.styleFrom(
-                  visualDensity: VisualDensity.compact,
-                  foregroundColor: Colors.redAccent,
-                  side: const BorderSide(color: Colors.redAccent, width: 1),
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+              KeyedSubtree(
+                key: _autoCounterBtnKey,
+                child: ValueListenableBuilder<bool>(
+                  valueListenable: ShinyAutoCounterService.instance.isRunningNotifier,
+                  builder: (context, isAutoRunning, _) => IconButton(
+                    key: const Key('counter_auto_scanner_btn'),
+                    icon: Icon(
+                      Icons.center_focus_strong,
+                      color: isAutoRunning ? Colors.greenAccent : null,
+                    ),
+                    tooltip: t.shiny_auto_btn_tooltip,
+                    onPressed: () => ShinyAutoCounterSetupSheet.show(
+                      context,
+                      hunt: hunt,
+                    ),
+                  ),
                 ),
-                icon: const Icon(Icons.flag_rounded, size: 16),
-                label: Text(
-                  t.shiny_hunt_finish_btn,
-                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
-                ),
-                onPressed: () => _showFinishDialog(hunt),
               ),
-              const SizedBox(width: 4),
+              if (!isCompactAppBar)
+                KeyedSubtree(
+                  key: _dashboardBtnKey,
+                  child: IconButton(
+                    icon: const Icon(Icons.grid_view_rounded),
+                    tooltip: t.multi_hunt_dashboard_tooltip,
+                    onPressed: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => const MultiHuntDashboardScreen(),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              if (isCompactAppBar)
+                IconButton(
+                  icon: const Icon(Icons.flag_rounded, color: Colors.redAccent),
+                  tooltip: t.shiny_hunt_finish_btn,
+                  onPressed: () => _showFinishDialog(hunt),
+                )
+              else ...[
+                OutlinedButton.icon(
+                  style: OutlinedButton.styleFrom(
+                    visualDensity: VisualDensity.compact,
+                    foregroundColor: Colors.redAccent,
+                    side: const BorderSide(color: Colors.redAccent, width: 1),
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  ),
+                  icon: const Icon(Icons.flag_rounded, size: 16),
+                  label: Text(
+                    t.shiny_hunt_finish_btn,
+                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                  ),
+                  onPressed: () => _showFinishDialog(hunt),
+                ),
+                const SizedBox(width: 4),
+              ],
             ],
-            if (!_isLockMode) ...[
+            if (!_isLockMode && !isCompactAppBar) ...[
               IconButton(
                 icon: const Icon(Icons.info_outline),
                 tooltip: t.shiny_hunt_shortcuts_title,
@@ -886,7 +917,7 @@ class _ShinyHuntCounterScreenState extends State<ShinyHuntCounterScreen> {
               ),
               IconButton(
                 icon: const Icon(Icons.edit),
-                tooltip: 'Hunt bearbeiten',
+                tooltip: t.multi_hunt_edit_hunt_tooltip,
                 onPressed: () {
                   showDialog(
                     context: context,
@@ -894,7 +925,71 @@ class _ShinyHuntCounterScreenState extends State<ShinyHuntCounterScreen> {
                   );
                 },
               ),
-            ],
+            ] else if (!_isLockMode && isCompactAppBar)
+              KeyedSubtree(
+                key: _dashboardBtnKey,
+                child: PopupMenuButton<String>(
+                  key: const Key('counter_appbar_more_menu'),
+                onSelected: (value) {
+                  switch (value) {
+                    case 'dashboard':
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => const MultiHuntDashboardScreen(),
+                        ),
+                      );
+                    case 'shortcuts':
+                      _showShortcutsDialog();
+                    case 'settings':
+                      _showSettingsSheet();
+                    case 'edit':
+                      showDialog(
+                        context: context,
+                        builder: (_) => CreateEditHuntDialog(existingHunt: hunt),
+                      );
+                  }
+                },
+                itemBuilder: (_) => [
+                  if (!hunt.isCompleted)
+                    PopupMenuItem(
+                      value: 'dashboard',
+                      child: ListTile(
+                        dense: true,
+                        contentPadding: EdgeInsets.zero,
+                        leading: const Icon(Icons.grid_view_rounded, size: 20),
+                        title: Text(t.multi_hunt_dashboard_tooltip),
+                      ),
+                    ),
+                  PopupMenuItem(
+                    value: 'shortcuts',
+                    child: ListTile(
+                      dense: true,
+                      contentPadding: EdgeInsets.zero,
+                      leading: const Icon(Icons.info_outline, size: 20),
+                      title: Text(t.shiny_hunt_shortcuts_title),
+                    ),
+                  ),
+                  PopupMenuItem(
+                    value: 'settings',
+                    child: ListTile(
+                      dense: true,
+                      contentPadding: EdgeInsets.zero,
+                      leading: const Icon(Icons.settings, size: 20),
+                      title: Text(t.shiny_hunt_settings_title),
+                    ),
+                  ),
+                  PopupMenuItem(
+                    value: 'edit',
+                    child: ListTile(
+                      dense: true,
+                      contentPadding: EdgeInsets.zero,
+                      leading: const Icon(Icons.edit, size: 20),
+                      title: Text(t.multi_hunt_edit_hunt_tooltip),
+                    ),
+                  ),
+                ],
+                ),
+              ),
           ],
         ),
         body: SafeArea(
@@ -922,6 +1017,34 @@ class _ShinyHuntCounterScreenState extends State<ShinyHuntCounterScreen> {
 
               // Phasen-Historie
               _buildPhaseHistory(hunt, isDark),
+
+              // Live Auto-Counter Status Bar (when active or pending)
+              if (!hunt.isCompleted)
+                ShinyAutoCounterBar(
+                  service: ShinyAutoCounterService.instance,
+                  currentHuntId: hunt.id,
+                  resolveHuntName: (id) {
+                    final h = huntProvider.getHuntById(id);
+                    if (h == null) return null;
+                    return h.title.isNotEmpty ? h.title : h.pokemonName;
+                  },
+                  onOpenSetup: () => ShinyAutoCounterSetupSheet.show(
+                    context,
+                    hunt: hunt,
+                  ),
+                  onMarkShinyCaught: (huntId, slotId) async {
+                    final target = huntProvider.getHuntById(huntId);
+                    if (target == null) return;
+                    final caught = await showDialog<bool>(
+                      context: context,
+                      builder: (_) => ShinyCatchDialog(hunt: target),
+                    );
+                    if (caught == true) {
+                      ShinyAutoCounterService.instance
+                          .resumeShinyPausedSlot(slotId);
+                    }
+                  },
+                ),
 
               // 2. Große Tap-Zone & Sprite-Bereich
               Expanded(
@@ -1143,7 +1266,148 @@ class _ShinyHuntCounterScreenState extends State<ShinyHuntCounterScreen> {
             ],
           ),
         ),
+      );
+        },
       ),
+    );
+  }
+}
+
+class _ManualCountDialog extends StatefulWidget {
+  final String huntId;
+  final int initialCount;
+
+  const _ManualCountDialog({
+    required this.huntId,
+    required this.initialCount,
+  });
+
+  @override
+  State<_ManualCountDialog> createState() => _ManualCountDialogState();
+}
+
+class _ManualCountDialogState extends State<_ManualCountDialog> {
+  late final TextEditingController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController(text: widget.initialCount.toString());
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _submit() {
+    final parsed = int.tryParse(_controller.text.trim());
+    if (parsed != null) {
+      Provider.of<ShinyHuntProvider>(context, listen: false)
+          .setManualCount(widget.huntId, parsed);
+    }
+    Navigator.of(context).pop();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: Text(t.shiny_hunt_manual_count_title),
+      content: TextField(
+        controller: _controller,
+        keyboardType: TextInputType.number,
+        autofocus: true,
+        decoration: InputDecoration(
+          labelText: t.shiny_hunt_manual_count_hint,
+          border: const OutlineInputBorder(),
+        ),
+        onSubmitted: (_) => _submit(),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: Text(t.cancel),
+        ),
+        ElevatedButton(
+          onPressed: _submit,
+          child: Text(t.save),
+        ),
+      ],
+    );
+  }
+}
+
+class _CustomStepDialog extends StatefulWidget {
+  final String huntId;
+  final int initialStep;
+  final ValueChanged<int> onStepSaved;
+
+  const _CustomStepDialog({
+    required this.huntId,
+    required this.initialStep,
+    required this.onStepSaved,
+  });
+
+  @override
+  State<_CustomStepDialog> createState() => _CustomStepDialogState();
+}
+
+class _CustomStepDialogState extends State<_CustomStepDialog> {
+  late final TextEditingController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController(text: widget.initialStep.toString());
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _submit() {
+    final parsed = int.tryParse(_controller.text.trim());
+    if (parsed != null && parsed > 0 && parsed <= 99999) {
+      widget.onStepSaved(parsed);
+      Provider.of<ShinyHuntProvider>(context, listen: false)
+          .setStep(widget.huntId, parsed);
+    }
+    Navigator.of(context).pop();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: Row(
+        children: [
+          const Icon(Icons.tune_rounded, color: Colors.amber),
+          const SizedBox(width: 8),
+          Expanded(child: Text(t.shiny_hunt_step_custom_title)),
+        ],
+      ),
+      content: TextField(
+        controller: _controller,
+        keyboardType: TextInputType.number,
+        autofocus: true,
+        decoration: InputDecoration(
+          labelText: t.shiny_hunt_step_custom_hint,
+          border: const OutlineInputBorder(),
+        ),
+        onSubmitted: (_) => _submit(),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: Text(t.cancel),
+        ),
+        ElevatedButton(
+          onPressed: _submit,
+          child: Text(t.save),
+        ),
+      ],
     );
   }
 }

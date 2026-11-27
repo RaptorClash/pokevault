@@ -595,7 +595,107 @@ void main() {
       expect(emitted.single.pokemonId, 541);
       expect(emitted.single.matchedName, 'Folikon');
     });
+
+    test('bindSource catches processFrameText errors and applies slot customPatternFilter', () async {
+      final throwingFeedback = _ThrowingFeedback();
+      final source = _FakeCoupledMultiSource();
+      final coord = ScannerCoordinator(
+        engine: OcrDetectionEngine(),
+        matcher: PokemonFuzzyMatcher.withEntries(const [
+          PokemonMatcherEntry(id: 25, name: 'Pikachu', language: 'de'),
+        ]),
+        settings: const ScannerSettings(
+          playAudioFeedback: true,
+          customPatterns: [
+            CustomOcrPattern(
+              id: 'shiny_hunt:h1:trig_0',
+              template: 'Custom Phrase {pokemon}',
+              eventType: ScannerEventType.encounter,
+            ),
+            CustomOcrPattern(
+              id: 'shiny_hunt:h2:trig_0',
+              template: 'Custom Phrase {pokemon}',
+              eventType: ScannerEventType.encounter,
+            ),
+          ],
+        ),
+        feedback: throwingFeedback,
+        encounterCooldown: Duration.zero,
+      );
+      addTearDown(() async {
+        await coord.dispose();
+        await source.dispose();
+      });
+
+      coord.setSlotCustomPatternFilter(
+        (slotId, patternId) =>
+            slotId == 2 ? patternId.startsWith('shiny_hunt:h2:') : true,
+      );
+
+      final emitted = <ScannerEvent>[];
+      coord.events.listen(emitted.add);
+
+      // Slot 2 must match shiny_hunt:h2:trig_0, NOT be shadowed by shiny_hunt:h1:trig_0
+      final evs = await coord.processFrameText(
+        'Custom Phrase Pikachu',
+        instanceIndex: 2,
+      );
+      expect(evs, hasLength(1));
+      expect(evs.single.matchedCustomPatternId, 'shiny_hunt:h2:trig_0');
+
+      // Error inside feedback via bindSource must not throw an unhandled zone error
+      throwingFeedback.shouldThrow = true;
+      final uncaught = <Object>[];
+      await runZonedGuarded(() async {
+        coord.bindSource(source);
+        source.emitMulti(
+          const MultiInstanceTextEmission(
+            slotId: 2,
+            colorHex: 0xFFA855F7,
+            rawText: 'Custom Phrase Pikachu',
+            encounterOnly: false,
+          ),
+        );
+        await Future<void>.delayed(const Duration(milliseconds: 20));
+      }, (err, _) {
+        uncaught.add(err);
+      });
+      expect(uncaught, isEmpty);
+    });
+
+    test('single-encounter mode suppresses ignoredPokemonIds without falling back to 2nd-best fuzzy match', () async {
+      final ignoredCoord = ScannerCoordinator(
+        engine: OcrDetectionEngine(),
+        matcher: PokemonFuzzyMatcher.withEntries(const [
+          PokemonMatcherEntry(id: 4, name: 'Glumanda', language: 'de'),
+          PokemonMatcherEntry(id: 5, name: 'Glumando', language: 'de'),
+        ]),
+        settings: ScannerSettings.defaults().copyWith(
+          ignoredPokemonIds: const [4],
+        ),
+      );
+      addTearDown(() async => await ignoredCoord.dispose());
+
+      final events = await ignoredCoord.processFrameText(
+        'Ein wildes Glumanda erscheint!',
+      );
+      expect(events, isEmpty);
+    });
   });
+}
+
+class _ThrowingFeedback implements ScannerFeedback {
+  bool shouldThrow = false;
+  @override
+  Future<void> onCaught(ScannerEvent event) async {}
+  @override
+  Future<void> onEncounter(ScannerEvent event) async {
+    if (shouldThrow) throw StateError('audio boom');
+  }
+  @override
+  Future<void> onEvolved(ScannerEvent event) async {}
+  @override
+  Future<void> onShiny(ScannerEvent event) async {}
 }
 
 class _SlowTestFeedback implements ScannerFeedback {

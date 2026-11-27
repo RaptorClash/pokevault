@@ -9,6 +9,7 @@ import '../../utils/shiny_hunt_odds_helper.dart';
 import '../../i18n/strings.g.dart';
 import '../../widgets/universal_poke_image.dart';
 import '../../widgets/tutorial/tutorial_overlay.dart';
+import 'multi_hunt_dashboard_screen.dart';
 import 'shiny_hunt_counter_screen.dart';
 import 'dialogs/create_edit_hunt_dialog.dart';
 import 'dialogs/shiny_hunt_timeline_dialog.dart';
@@ -30,6 +31,7 @@ class _ShinyHuntsHubScreenState extends State<ShinyHuntsHubScreen>
 
   final GlobalKey _addHuntKey = GlobalKey();
   final GlobalKey _tabBarKey = GlobalKey();
+  final GlobalKey _dashboardBtnKey = GlobalKey();
 
   @override
   void initState() {
@@ -71,9 +73,35 @@ class _ShinyHuntsHubScreenState extends State<ShinyHuntsHubScreen>
               textKey: 'tutorial_shiny_hub_text',
               rotomMood: RotomMood.happy,
             ),
+            TutorialStep(
+              targetKey: _dashboardBtnKey,
+              titleKey: 'tutorial_shiny_hub_dashboard_title',
+              textKey: 'tutorial_shiny_hub_dashboard_text',
+              rotomMood: RotomMood.happy,
+            ),
           ],
         ),
-        () => tutProvider.markFeatureAsSeen('shiny_hunt_hub'),
+        () {
+          tutProvider.markFeatureAsSeen('shiny_hunt_hub');
+          tutProvider.markFeatureAsSeen('shiny_hunt_hub_v17_delta');
+        },
+      );
+    } else if (!tutProvider.hasSeenFeature('shiny_hunt_hub_v17_delta')) {
+      TutorialOverlay.show(
+        context,
+        TutorialFeature(
+          id: 'shiny_hunt_hub_v17_delta',
+          nameKey: 'tutorial_chapter_shiny_hunt_title',
+          steps: [
+            TutorialStep(
+              targetKey: _dashboardBtnKey,
+              titleKey: 'tutorial_shiny_hub_dashboard_title',
+              textKey: 'tutorial_shiny_hub_dashboard_text',
+              rotomMood: RotomMood.happy,
+            ),
+          ],
+        ),
+        () => tutProvider.markFeatureAsSeen('shiny_hunt_hub_v17_delta'),
       );
     }
   }
@@ -247,6 +275,23 @@ class _ShinyHuntsHubScreenState extends State<ShinyHuntsHubScreen>
             Text(t.shiny_hunt_hub_title),
           ],
         ),
+        actions: [
+          KeyedSubtree(
+            key: _dashboardBtnKey,
+            child: IconButton(
+              key: const Key('hub_multi_hunt_dashboard_btn'),
+              icon: const Icon(Icons.grid_view_rounded),
+              tooltip: t.multi_hunt_dashboard_tooltip,
+              onPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => const MultiHuntDashboardScreen(),
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
         bottom: TabBar(
           key: _tabBarKey,
           controller: _tabController,

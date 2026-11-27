@@ -26,6 +26,7 @@ class TrackerSettingsDialog extends StatefulWidget {
 class _TrackerSettingsDialogState extends State<TrackerSettingsDialog> {
   late ScanRegionPreset _preset;
   late bool _autoMark;
+  late bool _maskSelfWindow;
   late String _ocrLanguage;
 
   @override
@@ -33,6 +34,7 @@ class _TrackerSettingsDialogState extends State<TrackerSettingsDialog> {
     super.initState();
     _preset = widget.currentPreset;
     _autoMark = widget.settings.autoMarkCaught;
+    _maskSelfWindow = widget.settings.maskSelfWindow;
     _ocrLanguage = widget.settings.ocrLanguage;
   }
 
@@ -133,6 +135,25 @@ class _TrackerSettingsDialogState extends State<TrackerSettingsDialog> {
                   );
                 },
               ),
+              SwitchListTile(
+                key: const Key('switch_mask_self_window'),
+                contentPadding: EdgeInsets.zero,
+                title: const Text(
+                  'PokéVault-Fenster beim Desktop-Scan ausblenden',
+                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+                ),
+                subtitle: const Text(
+                  'Maskiert das eigene Fenster vor der OCR schwarz, um Self-Scans und unnötige CPU-Last zu verhindern.',
+                  style: TextStyle(fontSize: 11, color: Colors.grey),
+                ),
+                value: _maskSelfWindow,
+                onChanged: (val) {
+                  setState(() => _maskSelfWindow = val);
+                  widget.onSettingsChanged(
+                    widget.settings.copyWith(maskSelfWindow: val),
+                  );
+                },
+              ),
               const Divider(height: 24),
               Text(
                 t.scanner_settings_ocr_lang_title,
@@ -141,6 +162,7 @@ class _TrackerSettingsDialogState extends State<TrackerSettingsDialog> {
               const SizedBox(height: 6),
               DropdownButtonFormField<String>(
                 key: const Key('dropdown_desktop_ocr_language'),
+                isExpanded: true,
                 initialValue: kSupportedScannerOcrLanguages
                         .any((o) => o.code == _ocrLanguage)
                     ? _ocrLanguage

@@ -578,4 +578,119 @@ void main() {
       expect(zoneB.bytes[1], 0); // y == 0
     });
   });
+
+  group('WindowsDesktopBridge captureAndAnalyze & clearScanCache (TDD)', () {
+    late MethodChannel channel;
+    late WindowsDesktopBridge bridge;
+    final List<MethodCall> recordedCalls = [];
+
+    setUp(() {
+      recordedCalls.clear();
+      channel = const MethodChannel('pokevault/desktop_tracker_test_bridge');
+      bridge = WindowsDesktopBridge(channel: channel);
+    });
+
+    tearDown(() {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, null);
+    });
+
+    test('captureAndAnalyze serializes request and deserializes metrics, histogram, OCR & thumbnail', () async {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, (call) async {
+        recordedCalls.add(call);
+        return <String, dynamic>{
+          'captured': true,
+          'ocrSkipped': false,
+          'lines': ['Pikachu Lv.5'],
+          'usedFallbackLanguage': false,
+          'resolvedLanguageTag': 'de-DE',
+          'requestedLanguageTag': 'de-DE',
+          'availableLanguages': ['de-DE', 'en-US'],
+          'ocrSucceeded': true,
+          'captureDurationMs': 4,
+          'ocrDurationMs': 11,
+          'frameWidth': 640,
+          'frameHeight': 480,
+          'captureMethod': 'printwindow_pw2',
+          'brightnessSummary': 'normal',
+          'avgLuma': 123.5,
+          'stdDev': 42.25,
+          'colorHistogram': List<double>.generate(16, (i) => i / 16.0),
+          'selfWindowOverlaps': true,
+          'thumbnailPng': Uint8List.fromList([137, 80, 78, 71]),
+          'thumbnailWidth': 160,
+          'thumbnailHeight': 120,
+        };
+      });
+
+      final req = NativeCaptureAnalyzeRequest(
+        mode: 'window',
+        hwnd: 98765,
+        cropRegion: const Rect.fromLTWH(10, 20, 300, 200),
+        screenRegion: ScreenRegion(x: 0, y: 0, width: 300, height: 200),
+        slotKey: 'multi_1_scan',
+        forceOcr: true,
+        languageTag: 'de-DE',
+        preprocessProfile: 'pixelArtDs',
+        maskSelfWindow: true,
+        computeColorHistogram: true,
+        includeThumbnail: true,
+        thumbnailMaxWidth: 320,
+        multiBandFallback: false,
+        skipOcr: false,
+      );
+
+      final res = await bridge.captureAndAnalyze(req);
+
+      expect(recordedCalls, hasLength(1));
+      expect(recordedCalls.single.method, 'captureAndAnalyze');
+      final args = Map<String, dynamic>.from(recordedCalls.single.arguments as Map);
+      expect(args['mode'], 'window');
+      expect(args['hwnd'], 98765);
+      expect(args['slotKey'], 'multi_1_scan');
+      expect(args['forceOcr'], isTrue);
+      expect(args['preprocessProfile'], 'pixelArtDs');
+      expect(args['maskSelfWindow'], isTrue);
+      expect(args['computeColorHistogram'], isTrue);
+
+      expect(res, isNotNull);
+      expect(res!.captured, isTrue);
+      expect(res.ocrSkipped, isFalse);
+      expect(res.lines, ['Pikachu Lv.5']);
+      expect(res.avgLuma, 123.5);
+      expect(res.stdDev, 42.25);
+      expect(res.colorHistogram, hasLength(16));
+      expect(res.selfWindowOverlaps, isTrue);
+      expect(res.thumbnailFrame, isNotNull);
+      expect(res.thumbnailFrame!.pixelFormat, 'png');
+      expect(res.thumbnailFrame!.width, 160);
+      expect(res.thumbnailFrame!.height, 120);
+    });
+
+    test('captureAndAnalyze returns null on channel exception or null payload', () async {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, (call) async {
+        throw PlatformException(code: 'NATIVE_ERR', message: 'boom');
+      });
+
+      final res = await bridge.captureAndAnalyze(
+        const NativeCaptureAnalyzeRequest(mode: 'window', hwnd: 1, slotKey: 's1'),
+      );
+      expect(res, isNull);
+    });
+
+    test('clearNativeScanCache invokes clearScanCache on channel', () async {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, (call) async {
+        recordedCalls.add(call);
+        return true;
+      });
+
+      await bridge.clearNativeScanCache();
+
+      expect(recordedCalls, hasLength(1));
+      expect(recordedCalls.single.method, 'clearScanCache');
+    });
+  });
 }

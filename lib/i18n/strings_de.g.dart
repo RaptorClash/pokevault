@@ -3021,11 +3021,11 @@ class Translations with BaseTranslations<AppLocale, Translations> {
 	/// de: 'Lege feste Boxgrößen fest und lasse Überläufe automatisch in die nächste Folgebox fließen.'
 	String get tutorial_box_limits_text => 'Lege feste Boxgrößen fest und lasse Überläufe automatisch in die nächste Folgebox fließen.';
 
-	/// de: '5. Shiny Hunt Tracker (v1.6)'
-	String get tutorial_chapter_shiny_hunt_title => '5. Shiny Hunt Tracker (v1.6)';
+	/// de: '5. Shiny Hunt Tracker'
+	String get tutorial_chapter_shiny_hunt_title => '5. Shiny Hunt Tracker';
 
-	/// de: 'Neue Jagd anlegen, Counter bedienen, Phasen erfassen, Schillerpin & Fangquoten einsehen.'
-	String get tutorial_chapter_shiny_hunt_desc => 'Neue Jagd anlegen, Counter bedienen, Phasen erfassen, Schillerpin & Fangquoten einsehen.';
+	/// de: 'Neue Jagd anlegen, Counter bedienen, Phasen erfassen sowie Multi-Hunt Dashboard & Auto-Counter nutzen.'
+	String get tutorial_chapter_shiny_hunt_desc => 'Neue Jagd anlegen, Counter bedienen, Phasen erfassen sowie Multi-Hunt Dashboard & Auto-Counter nutzen.';
 
 	/// de: 'Shiny Hunt Hub'
 	String get tutorial_shiny_hub_title => 'Shiny Hunt Hub';
@@ -5817,14 +5817,14 @@ class Translations with BaseTranslations<AppLocale, Translations> {
 	/// de: 'Stelle die passende Spielsprache (DE/EN/FR/ES/IT/JA/KO/ZH) ein und ergänze bei Bedarf eigene Textmuster.'
 	String get tutorial_scanner_desk_ocr_text => 'Stelle die passende Spielsprache (DE/EN/FR/ES/IT/JA/KO/ZH) ein und ergänze bei Bedarf eigene Textmuster.';
 
-	/// de: 'SCANNER UPDATE'
-	String get tutorial_scanner_update_badge => 'SCANNER UPDATE';
+	/// de: 'UPDATE v1.7'
+	String get tutorial_scanner_update_badge => 'UPDATE v1.7';
 
 	/// de: 'Bzzzt! Kamera-Scanner & Guide sind da!'
 	String get tutorial_scanner_update_mob_title => 'Bzzzt! Kamera-Scanner & Guide sind da!';
 
-	/// de: 'Hallo Trainer! Ich habe den mobilen Kamera-OCR-Scanner für alle 9 Pokémon-Spielsprachen optimiert und eine eigene Tour vorbereitet.'
-	String get tutorial_scanner_update_mob_desc => 'Hallo Trainer! Ich habe den mobilen Kamera-OCR-Scanner für alle 9 Pokémon-Spielsprachen optimiert und eine eigene Tour vorbereitet.';
+	/// de: 'Hallo Trainer! Entdecke die neuen v1.7-Features: Kamera- & Foto-Scanner, Mini-PiP sowie das neue Multi-Hunt Dashboard mit Visuellem Auto-Counter!'
+	String get tutorial_scanner_update_mob_desc => 'Hallo Trainer! Entdecke die neuen v1.7-Features: Kamera- & Foto-Scanner, Mini-PiP sowie das neue Multi-Hunt Dashboard mit Visuellem Auto-Counter!';
 
 	/// de: 'Flüssige Live-Kamera-OCR'
 	String get tutorial_scanner_mob_f1_title => 'Flüssige Live-Kamera-OCR';
@@ -5847,8 +5847,8 @@ class Translations with BaseTranslations<AppLocale, Translations> {
 	/// de: 'Bzzzt! Dein Overlay- & Kamera-Guide!'
 	String get tutorial_scanner_update_desk_title => 'Bzzzt! Dein Overlay- & Kamera-Guide!';
 
-	/// de: 'Hallo Trainer! Entdecke die neue Tour für Desktop-Overlay, Snipping-Zonen, Floating HUD und Webcam-/Foto-Scanner.'
-	String get tutorial_scanner_update_desk_desc => 'Hallo Trainer! Entdecke die neue Tour für Desktop-Overlay, Snipping-Zonen, Floating HUD und Webcam-/Foto-Scanner.';
+	/// de: 'Hallo Trainer! Entdecke die neuen v1.7-Features: Desktop-Overlay, Snipping-Zonen, Floating HUD sowie das neue Multi-Hunt Dashboard mit Visuellem Auto-Counter!'
+	String get tutorial_scanner_update_desk_desc => 'Hallo Trainer! Entdecke die neuen v1.7-Features: Desktop-Overlay, Snipping-Zonen, Floating HUD sowie das neue Multi-Hunt Dashboard mit Visuellem Auto-Counter!';
 
 	/// de: 'Fenster-, Monitor- & Webcam-Scan'
 	String get tutorial_scanner_desk_f1_title => 'Fenster-, Monitor- & Webcam-Scan';
@@ -6881,6 +6881,564 @@ class Translations with BaseTranslations<AppLocale, Translations> {
 
 	/// de: 'AUTO-MODUS · {preset}'
 	String get scanner_mob_auto_mode => 'AUTO-MODUS · {preset}';
+
+	/// de: 'Auto-Scanner konfigurieren'
+	String get shiny_auto_btn_tooltip => 'Auto-Scanner konfigurieren';
+
+	/// de: 'Auto-Counter aktiv'
+	String get shiny_auto_bar_active => 'Auto-Counter aktiv';
+
+	/// de: 'Auto-Counter pausiert'
+	String get shiny_auto_bar_paused => 'Auto-Counter pausiert';
+
+	/// de: 'Undo'
+	String get shiny_auto_undo => 'Undo';
+
+	/// de: 'Auto-Counter Setup'
+	String get shiny_auto_setup_title => 'Auto-Counter Setup';
+
+	/// de: 'Scan-Quelle'
+	String get shiny_auto_source_section => 'Scan-Quelle';
+
+	/// de: 'Scanner-Quelle aktiv'
+	String get shiny_auto_source_connected => 'Scanner-Quelle aktiv';
+
+	/// de: 'Noch keine aktive Scan-Quelle verbunden.'
+	String get shiny_auto_source_none => 'Noch keine aktive Scan-Quelle verbunden.';
+
+	/// de: 'Fenster / Bildschirm / Webcam einrichten'
+	String get shiny_auto_open_desktop_scanner => 'Fenster / Bildschirm / Webcam einrichten';
+
+	/// de: 'Kamera / PiP / Multi-Zonen einrichten'
+	String get shiny_auto_open_mobile_scanner => 'Kamera / PiP / Multi-Zonen einrichten';
+
+	/// de: 'Mit aktiver Quelle starten'
+	String get shiny_auto_connect_active_source => 'Mit aktiver Quelle starten';
+
+	/// de: 'Erkennungsmethode & Reset-Logik'
+	String get shiny_auto_mode_section => 'Erkennungsmethode & Reset-Logik';
+
+	/// de: 'Wild Encounter'
+	String get shiny_auto_mode_wild => 'Wild Encounter';
+
+	/// de: 'Soft Reset'
+	String get shiny_auto_mode_soft_reset => 'Soft Reset';
+
+	/// de: 'Ei-Schlupf (Masuda)'
+	String get shiny_auto_mode_egg => 'Ei-Schlupf (Masuda)';
+
+	/// de: 'Overworld / Ladebildschirm'
+	String get shiny_auto_mode_transition => 'Overworld / Ladebildschirm';
+
+	/// de: 'Welche Pokémon zählen?'
+	String get shiny_auto_filter_section => 'Welche Pokémon zählen?';
+
+	/// de: 'Alle Pokémon'
+	String get shiny_auto_filter_all => 'Alle Pokémon';
+
+	/// de: 'Nur Ziel-Pokémon'
+	String get shiny_auto_filter_target => 'Nur Ziel-Pokémon';
+
+	/// de: 'Doppel-/Horden-Anzahl (+N) übernehmen'
+	String get shiny_auto_horde_toggle => 'Doppel-/Horden-Anzahl (+N) übernehmen';
+
+	/// de: 'Schwarzbild-Übergang als Reset werten'
+	String get shiny_auto_black_reset_toggle => 'Schwarzbild-Übergang als Reset werten';
+
+	/// de: 'Weißbild-Übergang als Reset werten'
+	String get shiny_auto_white_reset_toggle => 'Weißbild-Übergang als Reset werten';
+
+	/// de: 'Eigene Trigger-Muster'
+	String get shiny_auto_custom_triggers => 'Eigene Trigger-Muster';
+
+	/// de: 'Eigene Reset-Muster'
+	String get shiny_auto_custom_resets => 'Eigene Reset-Muster';
+
+	/// de: 'z. B. {pokemon} erscheint'
+	String get shiny_auto_custom_trigger_hint => 'z. B. {pokemon} erscheint';
+
+	/// de: 'z. B. Weiter oder Press Start'
+	String get shiny_auto_custom_reset_hint => 'z. B. Weiter oder Press Start';
+
+	/// de: 'Hinzufügen'
+	String get shiny_auto_add_btn => 'Hinzufügen';
+
+	/// de: 'Safety & Benachrichtigungen'
+	String get shiny_auto_safety_section => 'Safety & Benachrichtigungen';
+
+	/// de: 'Ton bei Auto-Zählung'
+	String get shiny_auto_sound_count => 'Ton bei Auto-Zählung';
+
+	/// de: 'Vibration bei Auto-Zählung'
+	String get shiny_auto_haptic_count => 'Vibration bei Auto-Zählung';
+
+	/// de: 'Alarm-Ton bei Shiny-Signal'
+	String get shiny_auto_sound_shiny => 'Alarm-Ton bei Shiny-Signal';
+
+	/// de: 'Vibration bei Shiny-Signal'
+	String get shiny_auto_haptic_shiny => 'Vibration bei Shiny-Signal';
+
+	/// de: 'Slot bei Shiny automatisch pausieren'
+	String get shiny_auto_pause_on_shiny => 'Slot bei Shiny automatisch pausieren';
+
+	/// de: 'Auto-Counter starten'
+	String get shiny_auto_start_btn => 'Auto-Counter starten';
+
+	/// de: 'Einstellungen übernehmen'
+	String get shiny_auto_save_btn => 'Einstellungen übernehmen';
+
+	/// de: 'SHINY-SIGNAL auf Slot #{slot}!'
+	String get shiny_auto_shiny_alert_title => 'SHINY-SIGNAL auf Slot #{slot}!';
+
+	/// de: 'Slot fortsetzen'
+	String get shiny_auto_shiny_alert_resume => 'Slot fortsetzen';
+
+	/// de: 'Bereit'
+	String get shiny_auto_slot_armed => 'Bereit';
+
+	/// de: 'Gezählt'
+	String get shiny_auto_slot_counted => 'Gezählt';
+
+	/// de: 'Reset...'
+	String get shiny_auto_slot_rearm => 'Reset...';
+
+	/// de: 'Shiny!'
+	String get shiny_auto_slot_shiny => 'Shiny!';
+
+	/// de: 'Pausiert'
+	String get shiny_auto_slot_paused => 'Pausiert';
+
+	/// de: 'Auto-Counter stoppen'
+	String get shiny_auto_stop_tooltip => 'Auto-Counter stoppen';
+
+	/// de: 'Multi-Hunt Dashboard'
+	String get multi_hunt_dashboard_title => 'Multi-Hunt Dashboard';
+
+	/// de: 'Multi-Hunt Dashboard öffnen'
+	String get multi_hunt_dashboard_tooltip => 'Multi-Hunt Dashboard öffnen';
+
+	/// de: 'Keine aktiven oder pausierten Hunts'
+	String get multi_hunt_empty_title => 'Keine aktiven oder pausierten Hunts';
+
+	/// de: 'Erstelle mindestens einen Shiny Hunt im Hub, um mehrere Spiele gleichzeitig zu tracken.'
+	String get multi_hunt_empty_desc => 'Erstelle mindestens einen Shiny Hunt im Hub, um mehrere Spiele gleichzeitig zu tracken.';
+
+	/// de: 'Scan-Slots'
+	String get multi_hunt_slot_assign_label => 'Scan-Slots';
+
+	/// de: 'Kein Slot zugewiesen'
+	String get multi_hunt_assign_slot_none => 'Kein Slot zugewiesen';
+
+	/// de: 'Einzelansicht'
+	String get multi_hunt_open_counter => 'Einzelansicht';
+
+	/// de: 'Live Auto-Log ({count})'
+	String get multi_hunt_logs_title => 'Live Auto-Log ({count})';
+
+	/// de: 'Neuer Hunt'
+	String get multi_hunt_add_hunt => 'Neuer Hunt';
+
+	/// de: 'Pausierte ({count})'
+	String get multi_hunt_show_paused => 'Pausierte ({count})';
+
+	/// de: 'Pausierte ausblenden'
+	String get multi_hunt_hide_paused => 'Pausierte ausblenden';
+
+	/// de: 'Pausierte Hunts ({count})'
+	String get multi_hunt_paused_section => 'Pausierte Hunts ({count})';
+
+	/// de: 'Auto-Regeln für diesen Hunt'
+	String get multi_hunt_edit_rules_tooltip => 'Auto-Regeln für diesen Hunt';
+
+	/// de: 'Hunt bearbeiten'
+	String get multi_hunt_edit_hunt_tooltip => 'Hunt bearbeiten';
+
+	/// de: 'Regeln für {name}'
+	String get shiny_auto_setup_for_hunt => 'Regeln für {name}';
+
+	/// de: 'Erweitert / Timing-Feintuning'
+	String get shiny_auto_timing_section => 'Erweitert / Timing-Feintuning';
+
+	/// de: 'Reset-Cooldown (ms)'
+	String get shiny_auto_cooldown_label => 'Reset-Cooldown (ms)';
+
+	/// de: 'Min. Schwarz-/Weißbild-Dauer (ms)'
+	String get shiny_auto_transition_duration_label => 'Min. Schwarz-/Weißbild-Dauer (ms)';
+
+	/// de: 'Tippen: Pause · Gedrückt halten: Manuell bereit (Re-Arm)'
+	String get shiny_auto_slot_chip_tooltip => 'Tippen: Pause · Gedrückt halten: Manuell bereit (Re-Arm)';
+
+	/// de: 'Live Auto-Log anzeigen'
+	String get shiny_auto_logs_tooltip => 'Live Auto-Log anzeigen';
+
+	/// de: 'Noch keine automatischen Zählungen in dieser Sitzung.'
+	String get shiny_auto_logs_empty => 'Noch keine automatischen Zählungen in dieser Sitzung.';
+
+	/// de: 'Rückgängig gemacht'
+	String get shiny_auto_logs_undone => 'Rückgängig gemacht';
+
+	/// de: 'Alle Slots bereit'
+	String get shiny_auto_rearm_all_btn => 'Alle Slots bereit';
+
+	/// de: 'Schwarzbild-Reset'
+	String get shiny_auto_reason_black_reset => 'Schwarzbild-Reset';
+
+	/// de: 'Weißbild-Reset'
+	String get shiny_auto_reason_white_reset => 'Weißbild-Reset';
+
+	/// de: 'Ei-Schlupf gestartet (Oh?)'
+	String get shiny_auto_reason_egg_oh => 'Ei-Schlupf gestartet (Oh?)';
+
+	/// de: 'Shiny erkannt: {name}'
+	String get shiny_auto_reason_shiny => 'Shiny erkannt: {name}';
+
+	/// de: 'Phase {phase} · {status}'
+	String get multi_hunt_phase_status => 'Phase {phase} · {status}';
+
+	/// de: 'Slot #{slot}'
+	String get multi_hunt_slot_number => 'Slot #{slot}';
+
+	/// de: 'EI-SCHLUPF'
+	String get scanner_event_egg_hatched_badge => 'EI-SCHLUPF';
+
+	/// de: 'Zählt bei erkannten wilden Begegnungen (+1 oder Horden-Anzahl). Macht sich nach Kampfende (Flucht/Sieg), Fang oder Schwarzbild-Übergang automatisch wieder scharf.'
+	String get shiny_auto_mode_desc_wild => 'Zählt bei erkannten wilden Begegnungen (+1 oder Horden-Anzahl). Macht sich nach Kampfende (Flucht/Sieg), Fang oder Schwarzbild-Übergang automatisch wieder scharf.';
+
+	/// de: 'Ideal für Starter, Legendäre & Geschenke. Zählt bei Erkennung des Pokémon und macht sich nach Titelbildschirm („Weiter“/„Continue“), Schwarzbild oder eigenem Reset-Text wieder scharf.'
+	String get shiny_auto_mode_desc_soft_reset => 'Ideal für Starter, Legendäre & Geschenke. Zählt bei Erkennung des Pokémon und macht sich nach Titelbildschirm („Weiter“/„Continue“), Schwarzbild oder eigenem Reset-Text wieder scharf.';
+
+	/// de: 'Zählt Masuda-/Zucht-Eier über den Schlupftext („… ist aus dem Ei geschlüpft!“) — bei „Alle Pokémon“ auch schon direkt bei „Oh?“. Macht sich pro Ei automatisch wieder scharf.'
+	String get shiny_auto_mode_desc_egg => 'Zählt Masuda-/Zucht-Eier über den Schlupftext („… ist aus dem Ei geschlüpft!“) — bei „Alle Pokémon“ auch schon direkt bei „Oh?“. Macht sich pro Ei automatisch wieder scharf.';
+
+	/// de: 'Zählt ohne Texterkennung anhand gleichmäßiger Schwarz-/Weißbild-Ladeübergänge (z. B. Overworld-Resets in Legenden: Arceus). Respektiert den Reset-Cooldown.'
+	String get shiny_auto_mode_desc_transition => 'Zählt ohne Texterkennung anhand gleichmäßiger Schwarz-/Weißbild-Ladeübergänge (z. B. Overworld-Resets in Legenden: Arceus). Respektiert den Reset-Cooldown.';
+
+	/// de: 'Jedes erkannte Pokémon löst +1 aus — ideal für Random Encounters und Shiny-Phasen.'
+	String get shiny_auto_filter_desc_all => 'Jedes erkannte Pokémon löst +1 aus — ideal für Random Encounters und Shiny-Phasen.';
+
+	/// de: 'Zählt nur, wenn das Ziel-Pokémon dieses Hunts erkannt wird — verhindert Fehlzählungen bei Starter-Intros oder fremden Pokémon.'
+	String get shiny_auto_filter_desc_target => 'Zählt nur, wenn das Ziel-Pokémon dieses Hunts erkannt wird — verhindert Fehlzählungen bei Starter-Intros oder fremden Pokémon.';
+
+	/// de: 'Erhöht bei Massen- oder Doppelbegegnungen um die gesamte erkannte Gegneranzahl statt +1.'
+	String get shiny_auto_horde_desc => 'Erhöht bei Massen- oder Doppelbegegnungen um die gesamte erkannte Gegneranzahl statt +1.';
+
+	/// de: 'Empfohlen für Soft-Resets & Ladebildschirme: Ein gleichmäßig schwarzer Übergang macht den Slot nach Ablauf des Cooldowns wieder scharf.'
+	String get shiny_auto_black_reset_desc => 'Empfohlen für Soft-Resets & Ladebildschirme: Ein gleichmäßig schwarzer Übergang macht den Slot nach Ablauf des Cooldowns wieder scharf.';
+
+	/// de: 'Nur aktivieren, wenn dein Spiel komplett weiß überblendet. Bei Spielen mit weißen Dialogboxen ausgeschaltet lassen.'
+	String get shiny_auto_white_reset_desc => 'Nur aktivieren, wenn dein Spiel komplett weiß überblendet. Bei Spielen mit weißen Dialogboxen ausgeschaltet lassen.';
+
+	/// de: 'Hält den betroffenen Scan-Slot sofort an, sobald ein Shiny-Signal erkannt wird, damit du den Treffer nicht versehentlich übergehst.'
+	String get shiny_auto_pause_on_shiny_desc => 'Hält den betroffenen Scan-Slot sofort an, sobald ein Shiny-Signal erkannt wird, damit du den Treffer nicht versehentlich übergehst.';
+
+	/// de: 'Optional für ROM-Hacks oder Fangames: Eigene Texte, die zählen sollen. Nutze {pokemon} als Platzhalter für den Pokémon-Namen.'
+	String get shiny_auto_custom_triggers_desc => 'Optional für ROM-Hacks oder Fangames: Eigene Texte, die zählen sollen. Nutze {pokemon} als Platzhalter für den Pokémon-Namen.';
+
+	/// de: 'Optional: Eigene Menü- oder Titelbildschirm-Wörter, die einen bereits gezählten Slot wieder scharf machen.'
+	String get shiny_auto_custom_resets_desc => 'Optional: Eigene Menü- oder Titelbildschirm-Wörter, die einen bereits gezählten Slot wieder scharf machen.';
+
+	/// de: 'Mindestwartezeit nach einem Reset/Übergang, bevor derselbe Slot wieder zählen darf (verhindert Doppelzählungen).'
+	String get shiny_auto_cooldown_desc => 'Mindestwartezeit nach einem Reset/Übergang, bevor derselbe Slot wieder zählen darf (verhindert Doppelzählungen).';
+
+	/// de: 'Wie lange der Bildschirm mindestens schwarz/weiß bleiben muss, um als echter Übergang statt Flackern zu gelten.'
+	String get shiny_auto_transition_duration_desc => 'Wie lange der Bildschirm mindestens schwarz/weiß bleiben muss, um als echter Übergang statt Flackern zu gelten.';
+
+	/// de: 'Schwarzbild-Schwelle (Luma {value})'
+	String get shiny_auto_black_threshold_label => 'Schwarzbild-Schwelle (Luma {value})';
+
+	/// de: 'Weißbild-Schwelle (Luma {value})'
+	String get shiny_auto_white_threshold_label => 'Weißbild-Schwelle (Luma {value})';
+
+	/// de: 'Tipp für Handykameras: Bei Restlicht im Raum die Schwarzbild-Schwelle höher (z. B. 35–50) und die Weißbild-Schwelle etwas niedriger stellen.'
+	String get shiny_auto_thresholds_desc => 'Tipp für Handykameras: Bei Restlicht im Raum die Schwarzbild-Schwelle höher (z. B. 35–50) und die Weißbild-Schwelle etwas niedriger stellen.';
+
+	/// de: 'Zählt für: {name}'
+	String get shiny_auto_counting_for => 'Zählt für: {name}';
+
+	/// de: 'Hierher wechseln'
+	String get shiny_auto_switch_hunt_btn => 'Hierher wechseln';
+
+	/// de: 'Auto-Counter vorgemerkt – startet automatisch, sobald der Scanner läuft.'
+	String get shiny_auto_pending_banner => 'Auto-Counter vorgemerkt – startet automatisch, sobald der Scanner läuft.';
+
+	/// de: 'Abbrechen'
+	String get shiny_auto_pending_cancel => 'Abbrechen';
+
+	/// de: 'Erklärung & Gesten anzeigen'
+	String get shiny_auto_help_tooltip => 'Erklärung & Gesten anzeigen';
+
+	/// de: 'Auto-Counter Legende & Gesten'
+	String get shiny_auto_help_title => 'Auto-Counter Legende & Gesten';
+
+	/// de: '• Bereit: Slot wartet auf die nächste Begegnung. • Gezählt: Treffer gezählt, wartet auf Kampfende/Reset. • Reset…: Cooldown läuft vor dem erneuten Scharfschalten. • Shiny!: Shiny erkannt – Slot pausiert bis zur Freigabe. • Pausiert: Slot manuell angehalten.'
+	String get shiny_auto_help_phases_desc => '• Bereit: Slot wartet auf die nächste Begegnung.\n• Gezählt: Treffer gezählt, wartet auf Kampfende/Reset.\n• Reset…: Cooldown läuft vor dem erneuten Scharfschalten.\n• Shiny!: Shiny erkannt – Slot pausiert bis zur Freigabe.\n• Pausiert: Slot manuell angehalten.';
+
+	/// de: 'Slot-Chips unten antippen = Slot pausieren/fortsetzen. Slot-Chip gedrückt halten = Slot sofort manuell wieder scharf machen (Re-Arm).'
+	String get shiny_auto_help_gestures_desc => 'Slot-Chips unten antippen = Slot pausieren/fortsetzen.\nSlot-Chip gedrückt halten = Slot sofort manuell wieder scharf machen (Re-Arm).';
+
+	/// de: 'Multi-Hunt-Anleitung'
+	String get multi_hunt_help_tooltip => 'Multi-Hunt-Anleitung';
+
+	/// de: 'Multi-Hunt Dashboard – So funktioniert's'
+	String get multi_hunt_help_title => 'Multi-Hunt Dashboard – So funktioniert\'s';
+
+	/// de: '• Parallele Hunts: Verwalte mehrere Spiele gleichzeitig nebeneinander (+1 / -1 / Pause / Phase). • Eigene Auto-Regeln (🎛️): Jede Karte kann eigene Erkennungsregeln (z. B. Wild, Soft Reset, Ei-Schlupf) erhalten. • Scan-Slots (+ Scan-Slots): Weise erkannte Multi-Instance-Slots (#1, #2, …) gezielt bestimmten Hunts zu. • Pausierte Hunts: Über den Button oben bei Bedarf ein- und wieder ausblenden.'
+	String get multi_hunt_help_body => '• Parallele Hunts: Verwalte mehrere Spiele gleichzeitig nebeneinander (+1 / -1 / Pause / Phase).\n• Eigene Auto-Regeln (🎛️): Jede Karte kann eigene Erkennungsregeln (z. B. Wild, Soft Reset, Ei-Schlupf) erhalten.\n• Scan-Slots (+ Scan-Slots): Weise erkannte Multi-Instance-Slots (#1, #2, …) gezielt bestimmten Hunts zu.\n• Pausierte Hunts: Über den Button oben bei Bedarf ein- und wieder ausblenden.';
+
+	/// de: 'v1.7 Neuheiten-Tour starten'
+	String get tutorial_v17_tour_btn => 'v1.7 Neuheiten-Tour starten';
+
+	/// de: 'Live-Tour'
+	String get tutorial_start_live_tour => 'Live-Tour';
+
+	/// de: 'Multi-Hunt Dashboard & Auto-Counter'
+	String get tutorial_v17_shiny_f4_title => 'Multi-Hunt Dashboard & Auto-Counter';
+
+	/// de: 'Parallele Hunts verwalten, eigene Erkennungsregeln setzen & automatisch per Scanner zählen!'
+	String get tutorial_v17_shiny_f4_desc => 'Parallele Hunts verwalten, eigene Erkennungsregeln setzen & automatisch per Scanner zählen!';
+
+	/// de: 'Neu in v1.7: Multi-Hunt & Auto-Counter'
+	String get tutorial_v17_home_shiny_title => 'Neu in v1.7: Multi-Hunt & Auto-Counter';
+
+	/// de: 'Im Shiny Hunt Tracker warten jetzt das Multi-Hunt Dashboard und der visuelle Auto-Counter auf dich! Sobald du ihn öffnest, erkläre ich dir dort alles Schritt für Schritt.'
+	String get tutorial_v17_home_shiny_text => 'Im Shiny Hunt Tracker warten jetzt das Multi-Hunt Dashboard und der visuelle Auto-Counter auf dich! Sobald du ihn öffnest, erkläre ich dir dort alles Schritt für Schritt.';
+
+	/// de: 'Multi-Hunt Dashboard & Auto-Counter'
+	String get tutorial_shiny_dashboard_auto_title => 'Multi-Hunt Dashboard & Auto-Counter';
+
+	/// de: 'Verwalte mehrere Hunts parallel im Multi-Hunt Dashboard und lass Begegnungen per visuellem Auto-Counter automatisch zählen!'
+	String get tutorial_shiny_dashboard_auto_text => 'Verwalte mehrere Hunts parallel im Multi-Hunt Dashboard und lass Begegnungen per visuellem Auto-Counter automatisch zählen!';
+
+	/// de: 'Neu: Multi-Hunt Dashboard'
+	String get tutorial_shiny_hub_dashboard_title => 'Neu: Multi-Hunt Dashboard';
+
+	/// de: 'Tippe hier auf das Raster-Icon, um das Multi-Hunt Dashboard zu öffnen – dort verwaltest du mehrere Hunts nebeneinander inklusive Auto-Counter!'
+	String get tutorial_shiny_hub_dashboard_text => 'Tippe hier auf das Raster-Icon, um das Multi-Hunt Dashboard zu öffnen – dort verwaltest du mehrere Hunts nebeneinander inklusive Auto-Counter!';
+
+	/// de: 'Neu: Visueller Auto-Counter'
+	String get tutorial_shiny_counter_auto_title => 'Neu: Visueller Auto-Counter';
+
+	/// de: 'Über dieses Fokus-Icon richtest du den visuellen Auto-Counter ein: Er erkennt Begegnungen, Resets und Ei-Schlüpfe automatisch über deinen Scanner und pausiert bei Shinys!'
+	String get tutorial_shiny_counter_auto_text => 'Über dieses Fokus-Icon richtest du den visuellen Auto-Counter ein: Er erkennt Begegnungen, Resets und Ei-Schlüpfe automatisch über deinen Scanner und pausiert bei Shinys!';
+
+	/// de: 'Wechsel ins Multi-Hunt Dashboard'
+	String get tutorial_shiny_counter_dashboard_title => 'Wechsel ins Multi-Hunt Dashboard';
+
+	/// de: 'Jagst du auf mehreren Spielen gleichzeitig? Tippe hier, um alle aktiven Hunts nebeneinander im Multi-Hunt Dashboard zu steuern.'
+	String get tutorial_shiny_counter_dashboard_text => 'Jagst du auf mehreren Spielen gleichzeitig? Tippe hier, um alle aktiven Hunts nebeneinander im Multi-Hunt Dashboard zu steuern.';
+
+	/// de: '12. Multi-Hunt & Auto-Counter'
+	String get tutorial_chapter_shiny_auto_title => '12. Multi-Hunt & Auto-Counter';
+
+	/// de: 'Parallele Hunts im Dashboard, Per-Hunt Auto-Regeln, Scan-Slots & Live-Steuerung.'
+	String get tutorial_chapter_shiny_auto_desc => 'Parallele Hunts im Dashboard, Per-Hunt Auto-Regeln, Scan-Slots & Live-Steuerung.';
+
+	/// de: 'Parallele Hunts im Dashboard'
+	String get tutorial_auto_demo_dashboard_title => 'Parallele Hunts im Dashboard';
+
+	/// de: 'Steuere beliebig viele Shiny Hunts gleichzeitig auf einer responsiven Übersichtskarte pro Jagd.'
+	String get tutorial_auto_demo_dashboard_text => 'Steuere beliebig viele Shiny Hunts gleichzeitig auf einer responsiven Übersichtskarte pro Jagd.';
+
+	/// de: 'Karten-Aktionen & Pausierte'
+	String get tutorial_auto_demo_cards_title => 'Karten-Aktionen & Pausierte';
+
+	/// de: 'Zähle direkt (+1 / -1), pausiere, trage Phasen ein, schließe Shinys ab oder blende pausierte Hunts ein.'
+	String get tutorial_auto_demo_cards_text => 'Zähle direkt (+1 / -1), pausiere, trage Phasen ein, schließe Shinys ab oder blende pausierte Hunts ein.';
+
+	/// de: 'Eigene Auto-Regeln pro Hunt'
+	String get tutorial_auto_demo_rules_title => 'Eigene Auto-Regeln pro Hunt';
+
+	/// de: 'Lege pro Karte fest, ob Wild-Begegnungen, Soft Resets, Ei-Schlüpfe oder Bildwechsel gezählt werden.'
+	String get tutorial_auto_demo_rules_text => 'Lege pro Karte fest, ob Wild-Begegnungen, Soft Resets, Ei-Schlüpfe oder Bildwechsel gezählt werden.';
+
+	/// de: 'Scan-Slots gezielt zuweisen'
+	String get tutorial_auto_demo_slots_title => 'Scan-Slots gezielt zuweisen';
+
+	/// de: 'Verbinde Multi-Instance-Slots (#1, #2, …) aus dem Scanner flexibel mit einzelnen Hunt-Karten.'
+	String get tutorial_auto_demo_slots_text => 'Verbinde Multi-Instance-Slots (#1, #2, …) aus dem Scanner flexibel mit einzelnen Hunt-Karten.';
+
+	/// de: 'Live-Leiste & Shiny-Schutz'
+	String get tutorial_auto_demo_livebar_title => 'Live-Leiste & Shiny-Schutz';
+
+	/// de: 'Mach Zähler per 1-Tipp rückgängig, sieh ins Live-Log und nutze die Shiny-Pause per OCR-Text/Symbol oder optionalen Beta-Heuristiken.'
+	String get tutorial_auto_demo_livebar_text => 'Mach Zähler per 1-Tipp rückgängig, sieh ins Live-Log und nutze die Shiny-Pause per OCR-Text/Symbol oder optionalen Beta-Heuristiken.';
+
+	/// de: 'Willkommen im Multi-Hunt Dashboard!'
+	String get tutorial_multi_hunt_intro_title => 'Willkommen im Multi-Hunt Dashboard!';
+
+	/// de: 'Bzzzt! Hier steuerst du beliebig viele Shiny Hunts gleichzeitig nebeneinander – manuell oder vollautomatisch über deinen Scanner.'
+	String get tutorial_multi_hunt_intro_text => 'Bzzzt! Hier steuerst du beliebig viele Shiny Hunts gleichzeitig nebeneinander – manuell oder vollautomatisch über deinen Scanner.';
+
+	/// de: 'Neue Hunts & Pausierte filtern'
+	String get tutorial_multi_hunt_appbar_title => 'Neue Hunts & Pausierte filtern';
+
+	/// de: 'Erstelle direkt neue Hunts über (+) oder blende pausierte Hunts oben bei Bedarf ein und wieder aus.'
+	String get tutorial_multi_hunt_appbar_text => 'Erstelle direkt neue Hunts über (+) oder blende pausierte Hunts oben bei Bedarf ein und wieder aus.';
+
+	/// de: 'Auto-Counter & Schnellhilfe'
+	String get tutorial_multi_hunt_setup_title => 'Auto-Counter & Schnellhilfe';
+
+	/// de: 'Über das Fokus-Icon öffnest du das Auto-Counter-Setup. Das (?)-Symbol liefert dir jederzeit eine kompakte Übersicht.'
+	String get tutorial_multi_hunt_setup_text => 'Über das Fokus-Icon öffnest du das Auto-Counter-Setup. Das (?)-Symbol liefert dir jederzeit eine kompakte Übersicht.';
+
+	/// de: 'Direkt-Steuerung pro Hunt-Karte'
+	String get tutorial_multi_hunt_card_counter_title => 'Direkt-Steuerung pro Hunt-Karte';
+
+	/// de: 'Jede Karte hat eigene + / - Tasten, Pause, Phase, Gefangen sowie einen Pfeil für die große Einzelansicht.'
+	String get tutorial_multi_hunt_card_counter_text => 'Jede Karte hat eigene + / - Tasten, Pause, Phase, Gefangen sowie einen Pfeil für die große Einzelansicht.';
+
+	/// de: 'Individuelle Auto-Regeln pro Hunt'
+	String get tutorial_multi_hunt_card_rules_title => 'Individuelle Auto-Regeln pro Hunt';
+
+	/// de: 'Über das Regler-Icon oder das Regel-Badge stellst du pro Hunt eigene Modi (Wild, Soft Reset, Ei-Schlupf) und Filter ein.'
+	String get tutorial_multi_hunt_card_rules_text => 'Über das Regler-Icon oder das Regel-Badge stellst du pro Hunt eigene Modi (Wild, Soft Reset, Ei-Schlupf) und Filter ein.';
+
+	/// de: 'Scan-Slots (#1, #2, …) zuweisen'
+	String get tutorial_multi_hunt_card_slots_title => 'Scan-Slots (#1, #2, …) zuweisen';
+
+	/// de: 'Ordne erkannte Multi-Instance-Slots aus deinem Desktop- oder Kamera-Scanner gezielt einzelnen Hunt-Karten zu!'
+	String get tutorial_multi_hunt_card_slots_text => 'Ordne erkannte Multi-Instance-Slots aus deinem Desktop- oder Kamera-Scanner gezielt einzelnen Hunt-Karten zu!';
+
+	/// de: '1. Scan-Quelle verbinden'
+	String get tutorial_auto_setup_source_title => '1. Scan-Quelle verbinden';
+
+	/// de: 'Sieh sofort, ob bereits ein Desktop- oder Kamera-Scanner läuft. Falls nicht, merkt sich PokéVault dein Setup und startet beim Scanner-Start automatisch.'
+	String get tutorial_auto_setup_source_text => 'Sieh sofort, ob bereits ein Desktop- oder Kamera-Scanner läuft. Falls nicht, merkt sich PokéVault dein Setup und startet beim Scanner-Start automatisch.';
+
+	/// de: '2. Erkennungsmodus wählen'
+	String get tutorial_auto_setup_mode_title => '2. Erkennungsmodus wählen';
+
+	/// de: 'Wähle ein Preset passend zur Methode: Wilde Begegnung, Soft Reset, Ei-Schlupf oder Nur Bildwechsel.'
+	String get tutorial_auto_setup_mode_text => 'Wähle ein Preset passend zur Methode: Wilde Begegnung, Soft Reset, Ei-Schlupf oder Nur Bildwechsel.';
+
+	/// de: '3. Trefferfilter & Bild-Resets'
+	String get tutorial_auto_setup_filter_title => '3. Trefferfilter & Bild-Resets';
+
+	/// de: 'Zähle alle Pokémon oder nur dein Ziel, aktiviere Horden-Zählung und nutze Schwarz-/Weißbild-Übergänge zum erneuten Scharfschalten.'
+	String get tutorial_auto_setup_filter_text => 'Zähle alle Pokémon oder nur dein Ziel, aktiviere Horden-Zählung und nutze Schwarz-/Weißbild-Übergänge zum erneuten Scharfschalten.';
+
+	/// de: '4. Eigene Trigger- & Reset-Wörter'
+	String get tutorial_auto_setup_custom_title => '4. Eigene Trigger- & Reset-Wörter';
+
+	/// de: 'Für ROM-Hacks oder Fangames kannst du eigene OCR-Texte für Treffer und Titelbildschirm-Resets ergänzen.'
+	String get tutorial_auto_setup_custom_text => 'Für ROM-Hacks oder Fangames kannst du eigene OCR-Texte für Treffer und Titelbildschirm-Resets ergänzen.';
+
+	/// de: '5. Timing & Helligkeitsschwellen'
+	String get tutorial_auto_setup_timing_title => '5. Timing & Helligkeitsschwellen';
+
+	/// de: 'Passe Cooldown, Übergangsdauer und Schwarz-/Weiß-Luma-Schwellen fein an deine Kamera oder dein Spiel an.'
+	String get tutorial_auto_setup_timing_text => 'Passe Cooldown, Übergangsdauer und Schwarz-/Weiß-Luma-Schwellen fein an deine Kamera oder dein Spiel an.';
+
+	/// de: '6. Shiny-Schutz & Starten'
+	String get tutorial_auto_setup_safety_title => '6. Shiny-Schutz & Starten';
+
+	/// de: 'Aktiviere Sound/Haptik, den automatischen Shiny-Pause-Schutz und bei Bedarf die Beta-Shiny-Heuristiken – tippe dann unten auf Starten bzw. Speichern!'
+	String get tutorial_auto_setup_safety_text => 'Aktiviere Sound/Haptik, den automatischen Shiny-Pause-Schutz und bei Bedarf die Beta-Shiny-Heuristiken – tippe dann unten auf Starten bzw. Speichern!';
+
+	/// de: 'Live-Leiste: Steuerung & Rückgängig'
+	String get tutorial_auto_bar_controls_title => 'Live-Leiste: Steuerung & Rückgängig';
+
+	/// de: 'Hier siehst du den Live-Status, machst Fehlzählungen mit einem Tipp rückgängig (↶), schaltest Slots per (↻) wieder scharf, prüfst das Log oder pausierst.'
+	String get tutorial_auto_bar_controls_text => 'Hier siehst du den Live-Status, machst Fehlzählungen mit einem Tipp rückgängig (↶), schaltest Slots per (↻) wieder scharf, prüfst das Log oder pausierst.';
+
+	/// de: 'Slot-Chips & Gesten'
+	String get tutorial_auto_bar_slots_title => 'Slot-Chips & Gesten';
+
+	/// de: 'Tippe einen farbigen Slot-Chip an zum Pausieren/Fortsetzen – oder halte ihn gedrückt (bzw. nutze das Re-Arm-Symbol), um den Slot sofort wieder scharf zu machen!'
+	String get tutorial_auto_bar_slots_text => 'Tippe einen farbigen Slot-Chip an zum Pausieren/Fortsetzen – oder halte ihn gedrückt (bzw. nutze das Re-Arm-Symbol), um den Slot sofort wieder scharf zu machen!';
+
+	/// de: 'Automatischer Shiny-Schutz'
+	String get tutorial_auto_bar_shiny_title => 'Automatischer Shiny-Schutz';
+
+	/// de: 'Bzzzt! Sobald ein Shiny-Text/Symbol (oder eine aktivierte Beta-Heuristik) auslöst, pausiert der Slot sofort mit einem goldenen Alarm-Banner!'
+	String get tutorial_auto_bar_shiny_text => 'Bzzzt! Sobald ein Shiny-Text/Symbol (oder eine aktivierte Beta-Heuristik) auslöst, pausiert der Slot sofort mit einem goldenen Alarm-Banner!';
+
+	/// de: 'Hinweis: Die Standard-OCR-Pause reagiert auf Texte/Symbole („Shiny“, „Schillernd“, ✨ – z. B. bei ROM-Hacks, Overlays oder Gen-9-HUD). Für offizielle Spiele kannst du zusätzlich die Beta-Heuristiken aktivieren.'
+	String get shiny_auto_shiny_ocr_info => 'Hinweis: Die Standard-OCR-Pause reagiert auf Texte/Symbole („Shiny“, „Schillernd“, ✨ – z. B. bei ROM-Hacks, Overlays oder Gen-9-HUD). Für offizielle Spiele kannst du zusätzlich die Beta-Heuristiken aktivieren.';
+
+	/// de: 'Sparkle-Delay-Erkennung (Beta)'
+	String get shiny_auto_sparkle_delay_toggle => 'Sparkle-Delay-Erkennung (Beta)';
+
+	/// de: 'Lernt die normale Zeit bis zum Kampfmenü (3 Begegnungen) und pausiert bei längerer Glitzer-Animation.'
+	String get shiny_auto_sparkle_delay_desc => 'Lernt die normale Zeit bis zum Kampfmenü (3 Begegnungen) und pausiert bei längerer Glitzer-Animation.';
+
+	/// de: 'Sparkle-Delay-Schwelle: +{ms} ms'
+	String get shiny_auto_sparkle_delay_threshold_label => 'Sparkle-Delay-Schwelle: +{ms} ms';
+
+	/// de: 'Farb-Abweichung / HSV-Baseline (Beta)'
+	String get shiny_auto_color_dev_toggle => 'Farb-Abweichung / HSV-Baseline (Beta)';
+
+	/// de: 'Vergleicht den Scan-Frame nach 3 normalen Encountern. Ideal bei ruhigem Emulator- oder Capture-Card-Bild.'
+	String get shiny_auto_color_dev_desc => 'Vergleicht den Scan-Frame nach 3 normalen Encountern. Ideal bei ruhigem Emulator- oder Capture-Card-Bild.';
+
+	/// de: 'Farb-Abweichungsschwelle: {pct}%'
+	String get shiny_auto_color_dev_threshold_label => 'Farb-Abweichungsschwelle: {pct}%';
+
+	/// de: 'Tipp für Starter/Geschenke: Wenn kein „Wildes Pokémon erscheint“-Text kommt, ergänze unten ein eigenes Trigger-Muster oder nutze den Bildwechsel-Modus.'
+	String get shiny_auto_soft_reset_starter_hint => 'Tipp für Starter/Geschenke: Wenn kein „Wildes Pokémon erscheint“-Text kommt, ergänze unten ein eigenes Trigger-Muster oder nutze den Bildwechsel-Modus.';
+
+	/// de: 'Gezählte Slots neu scharfschalten (Re-Arm)'
+	String get shiny_auto_rearm_all_tooltip => 'Gezählte Slots neu scharfschalten (Re-Arm)';
+
+	/// de: 'Slot #{slot} wieder scharf schalten'
+	String get shiny_auto_rearm_single_tooltip => 'Slot #{slot} wieder scharf schalten';
+
+	/// de: 'Gefangen'
+	String get shiny_auto_shiny_mark_caught => 'Gefangen';
+
+	/// de: 'OCR'
+	String get shiny_auto_source_ocr => 'OCR';
+
+	/// de: 'Sparkle-Delay'
+	String get shiny_auto_source_sparkle_delay => 'Sparkle-Delay';
+
+	/// de: 'Farb-Abweichung'
+	String get shiny_auto_source_color_dev => 'Farb-Abweichung';
+
+	/// de: 'Sparkle-Delay erkannt ({details})'
+	String get shiny_auto_reason_sparkle_delay => 'Sparkle-Delay erkannt ({details})';
+
+	/// de: 'Farb-Abweichung erkannt ({details})'
+	String get shiny_auto_reason_color_dev => 'Farb-Abweichung erkannt ({details})';
+
+	/// de: 'Multi-Hunt · Auto-Counter · Scan-Slots'
+	String get tutorial_demo_shiny_auto_badge_title => 'Multi-Hunt · Auto-Counter · Scan-Slots';
+
+	/// de: 'Parallele Hunts, Per-Hunt-Regeln & Shiny-Schutz'
+	String get tutorial_demo_shiny_auto_badge_subtitle => 'Parallele Hunts, Per-Hunt-Regeln & Shiny-Schutz';
+
+	/// de: 'Warte auf Text...'
+	String get scanner_enlarged_waiting_text => 'Warte auf Text...';
+
+	/// de: 'Schließen'
+	String get scanner_enlarged_close => 'Schließen';
+
+	/// de: 'PokéVault liegt im aktiven Scan-Bereich'
+	String get scanner_self_scan_overlap_title => 'PokéVault liegt im aktiven Scan-Bereich';
+
+	/// de: 'Das PokéVault-Fenster überlappt den überwachten Bildschirmbereich. Dadurch kann die Live-OCR eigene Texte scannen und unnötig Leistung verbrauchen.'
+	String get scanner_self_scan_overlap_body => 'Das PokéVault-Fenster überlappt den überwachten Bildschirmbereich. Dadurch kann die Live-OCR eigene Texte scannen und unnötig Leistung verbrauchen.';
+
+	/// de: 'Diesen Hinweis nicht mehr anzeigen'
+	String get scanner_self_scan_overlap_suppress => 'Diesen Hinweis nicht mehr anzeigen';
+
+	/// de: 'Unmaskiert lassen'
+	String get scanner_self_scan_overlap_ignore => 'Unmaskiert lassen';
+
+	/// de: 'PokéVault ausblenden (Empfohlen)'
+	String get scanner_self_scan_overlap_mask => 'PokéVault ausblenden (Empfohlen)';
+
+	/// de: 'Im Modus „Nur Bildwechsel“ ist aktuell weder Schwarzbild- noch Weißbild-Reset aktiv. Aktiviere mindestens einen Übergang oder wähle einen anderen Modus.'
+	String get shiny_auto_transition_none_warning => 'Im Modus „Nur Bildwechsel“ ist aktuell weder Schwarzbild- noch Weißbild-Reset aktiv. Aktiviere mindestens einen Übergang oder wähle einen anderen Modus.';
+
+	/// de: ' (Standard)'
+	String get multi_hunt_slot_default_suffix => ' (Standard)';
+
+	/// de: '{count} Schritte'
+	String get tutorial_steps_count => '{count} Schritte';
+
+	/// de: '{count} Kapitel'
+	String get tutorial_chapters_count => '{count} Kapitel';
 }
 
 /// The flat map containing all translations for locale <de>.
@@ -7886,8 +8444,8 @@ extension on Translations {
 			'tutorial_box_shift_text' => 'Aktiviere Auto-Shift, um Lücken automatisch zu schließen, oder setze feste Platzhalter.',
 			'tutorial_box_limits_title' => 'Kapazitätsgrenzen & Folgeboxen',
 			'tutorial_box_limits_text' => 'Lege feste Boxgrößen fest und lasse Überläufe automatisch in die nächste Folgebox fließen.',
-			'tutorial_chapter_shiny_hunt_title' => '5. Shiny Hunt Tracker (v1.6)',
-			'tutorial_chapter_shiny_hunt_desc' => 'Neue Jagd anlegen, Counter bedienen, Phasen erfassen, Schillerpin & Fangquoten einsehen.',
+			'tutorial_chapter_shiny_hunt_title' => '5. Shiny Hunt Tracker',
+			'tutorial_chapter_shiny_hunt_desc' => 'Neue Jagd anlegen, Counter bedienen, Phasen erfassen sowie Multi-Hunt Dashboard & Auto-Counter nutzen.',
 			'tutorial_shiny_hub_title' => 'Shiny Hunt Hub',
 			'tutorial_shiny_hub_text' => 'Hier findest du all deine aktiven und abgeschlossenen Jagden auf einen Blick.',
 			'tutorial_shiny_new_title' => 'Neue Jagd starten',
@@ -8822,9 +9380,9 @@ extension on Translations {
 			'tutorial_scanner_desk_focus_text' => 'Prüfe sofort, ob das erkannte Pokémon in deinem Ziel-Dex fehlt oder noch Entwicklungen offen sind.',
 			'tutorial_scanner_desk_ocr_title' => '9 Spielsprachen & Eigene Muster',
 			'tutorial_scanner_desk_ocr_text' => 'Stelle die passende Spielsprache (DE/EN/FR/ES/IT/JA/KO/ZH) ein und ergänze bei Bedarf eigene Textmuster.',
-			'tutorial_scanner_update_badge' => 'SCANNER UPDATE',
+			'tutorial_scanner_update_badge' => 'UPDATE v1.7',
 			'tutorial_scanner_update_mob_title' => 'Bzzzt! Kamera-Scanner & Guide sind da!',
-			'tutorial_scanner_update_mob_desc' => 'Hallo Trainer! Ich habe den mobilen Kamera-OCR-Scanner für alle 9 Pokémon-Spielsprachen optimiert und eine eigene Tour vorbereitet.',
+			'tutorial_scanner_update_mob_desc' => 'Hallo Trainer! Entdecke die neuen v1.7-Features: Kamera- & Foto-Scanner, Mini-PiP sowie das neue Multi-Hunt Dashboard mit Visuellem Auto-Counter!',
 			'tutorial_scanner_mob_f1_title' => 'Flüssige Live-Kamera-OCR',
 			'tutorial_scanner_mob_f1_desc' => 'Hoch- & Querformat, Tap-to-Focus und Offline-OCR in allen 9 Spielsprachen.',
 			'tutorial_scanner_mob_f2_title' => 'Präzise Scan-Zonen & Foto-Import',
@@ -8832,7 +9390,7 @@ extension on Translations {
 			'tutorial_scanner_mob_f3_title' => 'Bewegliches In-App Mini-PiP',
 			'tutorial_scanner_mob_f3_desc' => 'Scanne im schwebenden Mini-Fenster weiter, während du in PokéVault navigierst.',
 			'tutorial_scanner_update_desk_title' => 'Bzzzt! Dein Overlay- & Kamera-Guide!',
-			'tutorial_scanner_update_desk_desc' => 'Hallo Trainer! Entdecke die neue Tour für Desktop-Overlay, Snipping-Zonen, Floating HUD und Webcam-/Foto-Scanner.',
+			'tutorial_scanner_update_desk_desc' => 'Hallo Trainer! Entdecke die neuen v1.7-Features: Desktop-Overlay, Snipping-Zonen, Floating HUD sowie das neue Multi-Hunt Dashboard mit Visuellem Auto-Counter!',
 			'tutorial_scanner_desk_f1_title' => 'Fenster-, Monitor- & Webcam-Scan',
 			'tutorial_scanner_desk_f1_desc' => 'Erfasst Emulatoren, Capture-Cards, USB-Webcams und Foto-Dateien in Echtzeit.',
 			'tutorial_scanner_desk_f2_title' => 'Snipping-Zonen & Multi-Instanz',
@@ -9179,6 +9737,192 @@ extension on Translations {
 			'scanner_mob_pip_enlarge' => 'Kamera vergrößern',
 			'scanner_mob_pip_scanning' => 'Scanne...',
 			'scanner_mob_auto_mode' => 'AUTO-MODUS · {preset}',
+			'shiny_auto_btn_tooltip' => 'Auto-Scanner konfigurieren',
+			'shiny_auto_bar_active' => 'Auto-Counter aktiv',
+			'shiny_auto_bar_paused' => 'Auto-Counter pausiert',
+			'shiny_auto_undo' => 'Undo',
+			'shiny_auto_setup_title' => 'Auto-Counter Setup',
+			'shiny_auto_source_section' => 'Scan-Quelle',
+			'shiny_auto_source_connected' => 'Scanner-Quelle aktiv',
+			'shiny_auto_source_none' => 'Noch keine aktive Scan-Quelle verbunden.',
+			'shiny_auto_open_desktop_scanner' => 'Fenster / Bildschirm / Webcam einrichten',
+			'shiny_auto_open_mobile_scanner' => 'Kamera / PiP / Multi-Zonen einrichten',
+			'shiny_auto_connect_active_source' => 'Mit aktiver Quelle starten',
+			'shiny_auto_mode_section' => 'Erkennungsmethode & Reset-Logik',
+			'shiny_auto_mode_wild' => 'Wild Encounter',
+			'shiny_auto_mode_soft_reset' => 'Soft Reset',
+			'shiny_auto_mode_egg' => 'Ei-Schlupf (Masuda)',
+			'shiny_auto_mode_transition' => 'Overworld / Ladebildschirm',
+			'shiny_auto_filter_section' => 'Welche Pokémon zählen?',
+			'shiny_auto_filter_all' => 'Alle Pokémon',
+			'shiny_auto_filter_target' => 'Nur Ziel-Pokémon',
+			'shiny_auto_horde_toggle' => 'Doppel-/Horden-Anzahl (+N) übernehmen',
+			'shiny_auto_black_reset_toggle' => 'Schwarzbild-Übergang als Reset werten',
+			'shiny_auto_white_reset_toggle' => 'Weißbild-Übergang als Reset werten',
+			'shiny_auto_custom_triggers' => 'Eigene Trigger-Muster',
+			'shiny_auto_custom_resets' => 'Eigene Reset-Muster',
+			'shiny_auto_custom_trigger_hint' => 'z. B. {pokemon} erscheint',
+			'shiny_auto_custom_reset_hint' => 'z. B. Weiter oder Press Start',
+			'shiny_auto_add_btn' => 'Hinzufügen',
+			'shiny_auto_safety_section' => 'Safety & Benachrichtigungen',
+			'shiny_auto_sound_count' => 'Ton bei Auto-Zählung',
+			'shiny_auto_haptic_count' => 'Vibration bei Auto-Zählung',
+			'shiny_auto_sound_shiny' => 'Alarm-Ton bei Shiny-Signal',
+			'shiny_auto_haptic_shiny' => 'Vibration bei Shiny-Signal',
+			'shiny_auto_pause_on_shiny' => 'Slot bei Shiny automatisch pausieren',
+			'shiny_auto_start_btn' => 'Auto-Counter starten',
+			'shiny_auto_save_btn' => 'Einstellungen übernehmen',
+			'shiny_auto_shiny_alert_title' => 'SHINY-SIGNAL auf Slot #{slot}!',
+			'shiny_auto_shiny_alert_resume' => 'Slot fortsetzen',
+			'shiny_auto_slot_armed' => 'Bereit',
+			'shiny_auto_slot_counted' => 'Gezählt',
+			'shiny_auto_slot_rearm' => 'Reset...',
+			'shiny_auto_slot_shiny' => 'Shiny!',
+			'shiny_auto_slot_paused' => 'Pausiert',
+			'shiny_auto_stop_tooltip' => 'Auto-Counter stoppen',
+			'multi_hunt_dashboard_title' => 'Multi-Hunt Dashboard',
+			'multi_hunt_dashboard_tooltip' => 'Multi-Hunt Dashboard öffnen',
+			'multi_hunt_empty_title' => 'Keine aktiven oder pausierten Hunts',
+			'multi_hunt_empty_desc' => 'Erstelle mindestens einen Shiny Hunt im Hub, um mehrere Spiele gleichzeitig zu tracken.',
+			'multi_hunt_slot_assign_label' => 'Scan-Slots',
+			'multi_hunt_assign_slot_none' => 'Kein Slot zugewiesen',
+			'multi_hunt_open_counter' => 'Einzelansicht',
+			'multi_hunt_logs_title' => 'Live Auto-Log ({count})',
+			'multi_hunt_add_hunt' => 'Neuer Hunt',
+			'multi_hunt_show_paused' => 'Pausierte ({count})',
+			'multi_hunt_hide_paused' => 'Pausierte ausblenden',
+			'multi_hunt_paused_section' => 'Pausierte Hunts ({count})',
+			'multi_hunt_edit_rules_tooltip' => 'Auto-Regeln für diesen Hunt',
+			'multi_hunt_edit_hunt_tooltip' => 'Hunt bearbeiten',
+			'shiny_auto_setup_for_hunt' => 'Regeln für {name}',
+			'shiny_auto_timing_section' => 'Erweitert / Timing-Feintuning',
+			'shiny_auto_cooldown_label' => 'Reset-Cooldown (ms)',
+			'shiny_auto_transition_duration_label' => 'Min. Schwarz-/Weißbild-Dauer (ms)',
+			'shiny_auto_slot_chip_tooltip' => 'Tippen: Pause · Gedrückt halten: Manuell bereit (Re-Arm)',
+			'shiny_auto_logs_tooltip' => 'Live Auto-Log anzeigen',
+			'shiny_auto_logs_empty' => 'Noch keine automatischen Zählungen in dieser Sitzung.',
+			'shiny_auto_logs_undone' => 'Rückgängig gemacht',
+			'shiny_auto_rearm_all_btn' => 'Alle Slots bereit',
+			'shiny_auto_reason_black_reset' => 'Schwarzbild-Reset',
+			'shiny_auto_reason_white_reset' => 'Weißbild-Reset',
+			'shiny_auto_reason_egg_oh' => 'Ei-Schlupf gestartet (Oh?)',
+			'shiny_auto_reason_shiny' => 'Shiny erkannt: {name}',
+			'multi_hunt_phase_status' => 'Phase {phase} · {status}',
+			'multi_hunt_slot_number' => 'Slot #{slot}',
+			'scanner_event_egg_hatched_badge' => 'EI-SCHLUPF',
+			'shiny_auto_mode_desc_wild' => 'Zählt bei erkannten wilden Begegnungen (+1 oder Horden-Anzahl). Macht sich nach Kampfende (Flucht/Sieg), Fang oder Schwarzbild-Übergang automatisch wieder scharf.',
+			'shiny_auto_mode_desc_soft_reset' => 'Ideal für Starter, Legendäre & Geschenke. Zählt bei Erkennung des Pokémon und macht sich nach Titelbildschirm („Weiter“/„Continue“), Schwarzbild oder eigenem Reset-Text wieder scharf.',
+			'shiny_auto_mode_desc_egg' => 'Zählt Masuda-/Zucht-Eier über den Schlupftext („… ist aus dem Ei geschlüpft!“) — bei „Alle Pokémon“ auch schon direkt bei „Oh?“. Macht sich pro Ei automatisch wieder scharf.',
+			'shiny_auto_mode_desc_transition' => 'Zählt ohne Texterkennung anhand gleichmäßiger Schwarz-/Weißbild-Ladeübergänge (z. B. Overworld-Resets in Legenden: Arceus). Respektiert den Reset-Cooldown.',
+			'shiny_auto_filter_desc_all' => 'Jedes erkannte Pokémon löst +1 aus — ideal für Random Encounters und Shiny-Phasen.',
+			'shiny_auto_filter_desc_target' => 'Zählt nur, wenn das Ziel-Pokémon dieses Hunts erkannt wird — verhindert Fehlzählungen bei Starter-Intros oder fremden Pokémon.',
+			'shiny_auto_horde_desc' => 'Erhöht bei Massen- oder Doppelbegegnungen um die gesamte erkannte Gegneranzahl statt +1.',
+			'shiny_auto_black_reset_desc' => 'Empfohlen für Soft-Resets & Ladebildschirme: Ein gleichmäßig schwarzer Übergang macht den Slot nach Ablauf des Cooldowns wieder scharf.',
+			'shiny_auto_white_reset_desc' => 'Nur aktivieren, wenn dein Spiel komplett weiß überblendet. Bei Spielen mit weißen Dialogboxen ausgeschaltet lassen.',
+			'shiny_auto_pause_on_shiny_desc' => 'Hält den betroffenen Scan-Slot sofort an, sobald ein Shiny-Signal erkannt wird, damit du den Treffer nicht versehentlich übergehst.',
+			'shiny_auto_custom_triggers_desc' => 'Optional für ROM-Hacks oder Fangames: Eigene Texte, die zählen sollen. Nutze {pokemon} als Platzhalter für den Pokémon-Namen.',
+			'shiny_auto_custom_resets_desc' => 'Optional: Eigene Menü- oder Titelbildschirm-Wörter, die einen bereits gezählten Slot wieder scharf machen.',
+			'shiny_auto_cooldown_desc' => 'Mindestwartezeit nach einem Reset/Übergang, bevor derselbe Slot wieder zählen darf (verhindert Doppelzählungen).',
+			'shiny_auto_transition_duration_desc' => 'Wie lange der Bildschirm mindestens schwarz/weiß bleiben muss, um als echter Übergang statt Flackern zu gelten.',
+			'shiny_auto_black_threshold_label' => 'Schwarzbild-Schwelle (Luma {value})',
+			'shiny_auto_white_threshold_label' => 'Weißbild-Schwelle (Luma {value})',
+			'shiny_auto_thresholds_desc' => 'Tipp für Handykameras: Bei Restlicht im Raum die Schwarzbild-Schwelle höher (z. B. 35–50) und die Weißbild-Schwelle etwas niedriger stellen.',
+			'shiny_auto_counting_for' => 'Zählt für: {name}',
+			'shiny_auto_switch_hunt_btn' => 'Hierher wechseln',
+			'shiny_auto_pending_banner' => 'Auto-Counter vorgemerkt – startet automatisch, sobald der Scanner läuft.',
+			'shiny_auto_pending_cancel' => 'Abbrechen',
+			'shiny_auto_help_tooltip' => 'Erklärung & Gesten anzeigen',
+			'shiny_auto_help_title' => 'Auto-Counter Legende & Gesten',
+			'shiny_auto_help_phases_desc' => '• Bereit: Slot wartet auf die nächste Begegnung.\n• Gezählt: Treffer gezählt, wartet auf Kampfende/Reset.\n• Reset…: Cooldown läuft vor dem erneuten Scharfschalten.\n• Shiny!: Shiny erkannt – Slot pausiert bis zur Freigabe.\n• Pausiert: Slot manuell angehalten.',
+			'shiny_auto_help_gestures_desc' => 'Slot-Chips unten antippen = Slot pausieren/fortsetzen.\nSlot-Chip gedrückt halten = Slot sofort manuell wieder scharf machen (Re-Arm).',
+			'multi_hunt_help_tooltip' => 'Multi-Hunt-Anleitung',
+			'multi_hunt_help_title' => 'Multi-Hunt Dashboard – So funktioniert\'s',
+			'multi_hunt_help_body' => '• Parallele Hunts: Verwalte mehrere Spiele gleichzeitig nebeneinander (+1 / -1 / Pause / Phase).\n• Eigene Auto-Regeln (🎛️): Jede Karte kann eigene Erkennungsregeln (z. B. Wild, Soft Reset, Ei-Schlupf) erhalten.\n• Scan-Slots (+ Scan-Slots): Weise erkannte Multi-Instance-Slots (#1, #2, …) gezielt bestimmten Hunts zu.\n• Pausierte Hunts: Über den Button oben bei Bedarf ein- und wieder ausblenden.',
+			'tutorial_v17_tour_btn' => 'v1.7 Neuheiten-Tour starten',
+			'tutorial_start_live_tour' => 'Live-Tour',
+			'tutorial_v17_shiny_f4_title' => 'Multi-Hunt Dashboard & Auto-Counter',
+			'tutorial_v17_shiny_f4_desc' => 'Parallele Hunts verwalten, eigene Erkennungsregeln setzen & automatisch per Scanner zählen!',
+			'tutorial_v17_home_shiny_title' => 'Neu in v1.7: Multi-Hunt & Auto-Counter',
+			'tutorial_v17_home_shiny_text' => 'Im Shiny Hunt Tracker warten jetzt das Multi-Hunt Dashboard und der visuelle Auto-Counter auf dich! Sobald du ihn öffnest, erkläre ich dir dort alles Schritt für Schritt.',
+			'tutorial_shiny_dashboard_auto_title' => 'Multi-Hunt Dashboard & Auto-Counter',
+			'tutorial_shiny_dashboard_auto_text' => 'Verwalte mehrere Hunts parallel im Multi-Hunt Dashboard und lass Begegnungen per visuellem Auto-Counter automatisch zählen!',
+			'tutorial_shiny_hub_dashboard_title' => 'Neu: Multi-Hunt Dashboard',
+			'tutorial_shiny_hub_dashboard_text' => 'Tippe hier auf das Raster-Icon, um das Multi-Hunt Dashboard zu öffnen – dort verwaltest du mehrere Hunts nebeneinander inklusive Auto-Counter!',
+			'tutorial_shiny_counter_auto_title' => 'Neu: Visueller Auto-Counter',
+			'tutorial_shiny_counter_auto_text' => 'Über dieses Fokus-Icon richtest du den visuellen Auto-Counter ein: Er erkennt Begegnungen, Resets und Ei-Schlüpfe automatisch über deinen Scanner und pausiert bei Shinys!',
+			'tutorial_shiny_counter_dashboard_title' => 'Wechsel ins Multi-Hunt Dashboard',
+			'tutorial_shiny_counter_dashboard_text' => 'Jagst du auf mehreren Spielen gleichzeitig? Tippe hier, um alle aktiven Hunts nebeneinander im Multi-Hunt Dashboard zu steuern.',
+			'tutorial_chapter_shiny_auto_title' => '12. Multi-Hunt & Auto-Counter',
+			'tutorial_chapter_shiny_auto_desc' => 'Parallele Hunts im Dashboard, Per-Hunt Auto-Regeln, Scan-Slots & Live-Steuerung.',
+			'tutorial_auto_demo_dashboard_title' => 'Parallele Hunts im Dashboard',
+			'tutorial_auto_demo_dashboard_text' => 'Steuere beliebig viele Shiny Hunts gleichzeitig auf einer responsiven Übersichtskarte pro Jagd.',
+			'tutorial_auto_demo_cards_title' => 'Karten-Aktionen & Pausierte',
+			'tutorial_auto_demo_cards_text' => 'Zähle direkt (+1 / -1), pausiere, trage Phasen ein, schließe Shinys ab oder blende pausierte Hunts ein.',
+			'tutorial_auto_demo_rules_title' => 'Eigene Auto-Regeln pro Hunt',
+			'tutorial_auto_demo_rules_text' => 'Lege pro Karte fest, ob Wild-Begegnungen, Soft Resets, Ei-Schlüpfe oder Bildwechsel gezählt werden.',
+			'tutorial_auto_demo_slots_title' => 'Scan-Slots gezielt zuweisen',
+			'tutorial_auto_demo_slots_text' => 'Verbinde Multi-Instance-Slots (#1, #2, …) aus dem Scanner flexibel mit einzelnen Hunt-Karten.',
+			'tutorial_auto_demo_livebar_title' => 'Live-Leiste & Shiny-Schutz',
+			'tutorial_auto_demo_livebar_text' => 'Mach Zähler per 1-Tipp rückgängig, sieh ins Live-Log und nutze die Shiny-Pause per OCR-Text/Symbol oder optionalen Beta-Heuristiken.',
+			'tutorial_multi_hunt_intro_title' => 'Willkommen im Multi-Hunt Dashboard!',
+			'tutorial_multi_hunt_intro_text' => 'Bzzzt! Hier steuerst du beliebig viele Shiny Hunts gleichzeitig nebeneinander – manuell oder vollautomatisch über deinen Scanner.',
+			'tutorial_multi_hunt_appbar_title' => 'Neue Hunts & Pausierte filtern',
+			'tutorial_multi_hunt_appbar_text' => 'Erstelle direkt neue Hunts über (+) oder blende pausierte Hunts oben bei Bedarf ein und wieder aus.',
+			'tutorial_multi_hunt_setup_title' => 'Auto-Counter & Schnellhilfe',
+			'tutorial_multi_hunt_setup_text' => 'Über das Fokus-Icon öffnest du das Auto-Counter-Setup. Das (?)-Symbol liefert dir jederzeit eine kompakte Übersicht.',
+			'tutorial_multi_hunt_card_counter_title' => 'Direkt-Steuerung pro Hunt-Karte',
+			'tutorial_multi_hunt_card_counter_text' => 'Jede Karte hat eigene + / - Tasten, Pause, Phase, Gefangen sowie einen Pfeil für die große Einzelansicht.',
+			'tutorial_multi_hunt_card_rules_title' => 'Individuelle Auto-Regeln pro Hunt',
+			'tutorial_multi_hunt_card_rules_text' => 'Über das Regler-Icon oder das Regel-Badge stellst du pro Hunt eigene Modi (Wild, Soft Reset, Ei-Schlupf) und Filter ein.',
+			'tutorial_multi_hunt_card_slots_title' => 'Scan-Slots (#1, #2, …) zuweisen',
+			'tutorial_multi_hunt_card_slots_text' => 'Ordne erkannte Multi-Instance-Slots aus deinem Desktop- oder Kamera-Scanner gezielt einzelnen Hunt-Karten zu!',
+			'tutorial_auto_setup_source_title' => '1. Scan-Quelle verbinden',
+			'tutorial_auto_setup_source_text' => 'Sieh sofort, ob bereits ein Desktop- oder Kamera-Scanner läuft. Falls nicht, merkt sich PokéVault dein Setup und startet beim Scanner-Start automatisch.',
+			'tutorial_auto_setup_mode_title' => '2. Erkennungsmodus wählen',
+			'tutorial_auto_setup_mode_text' => 'Wähle ein Preset passend zur Methode: Wilde Begegnung, Soft Reset, Ei-Schlupf oder Nur Bildwechsel.',
+			'tutorial_auto_setup_filter_title' => '3. Trefferfilter & Bild-Resets',
+			'tutorial_auto_setup_filter_text' => 'Zähle alle Pokémon oder nur dein Ziel, aktiviere Horden-Zählung und nutze Schwarz-/Weißbild-Übergänge zum erneuten Scharfschalten.',
+			'tutorial_auto_setup_custom_title' => '4. Eigene Trigger- & Reset-Wörter',
+			'tutorial_auto_setup_custom_text' => 'Für ROM-Hacks oder Fangames kannst du eigene OCR-Texte für Treffer und Titelbildschirm-Resets ergänzen.',
+			'tutorial_auto_setup_timing_title' => '5. Timing & Helligkeitsschwellen',
+			'tutorial_auto_setup_timing_text' => 'Passe Cooldown, Übergangsdauer und Schwarz-/Weiß-Luma-Schwellen fein an deine Kamera oder dein Spiel an.',
+			'tutorial_auto_setup_safety_title' => '6. Shiny-Schutz & Starten',
+			'tutorial_auto_setup_safety_text' => 'Aktiviere Sound/Haptik, den automatischen Shiny-Pause-Schutz und bei Bedarf die Beta-Shiny-Heuristiken – tippe dann unten auf Starten bzw. Speichern!',
+			'tutorial_auto_bar_controls_title' => 'Live-Leiste: Steuerung & Rückgängig',
+			'tutorial_auto_bar_controls_text' => 'Hier siehst du den Live-Status, machst Fehlzählungen mit einem Tipp rückgängig (↶), schaltest Slots per (↻) wieder scharf, prüfst das Log oder pausierst.',
+			'tutorial_auto_bar_slots_title' => 'Slot-Chips & Gesten',
+			'tutorial_auto_bar_slots_text' => 'Tippe einen farbigen Slot-Chip an zum Pausieren/Fortsetzen – oder halte ihn gedrückt (bzw. nutze das Re-Arm-Symbol), um den Slot sofort wieder scharf zu machen!',
+			'tutorial_auto_bar_shiny_title' => 'Automatischer Shiny-Schutz',
+			'tutorial_auto_bar_shiny_text' => 'Bzzzt! Sobald ein Shiny-Text/Symbol (oder eine aktivierte Beta-Heuristik) auslöst, pausiert der Slot sofort mit einem goldenen Alarm-Banner!',
+			'shiny_auto_shiny_ocr_info' => 'Hinweis: Die Standard-OCR-Pause reagiert auf Texte/Symbole („Shiny“, „Schillernd“, ✨ – z. B. bei ROM-Hacks, Overlays oder Gen-9-HUD). Für offizielle Spiele kannst du zusätzlich die Beta-Heuristiken aktivieren.',
+			'shiny_auto_sparkle_delay_toggle' => 'Sparkle-Delay-Erkennung (Beta)',
+			'shiny_auto_sparkle_delay_desc' => 'Lernt die normale Zeit bis zum Kampfmenü (3 Begegnungen) und pausiert bei längerer Glitzer-Animation.',
+			'shiny_auto_sparkle_delay_threshold_label' => 'Sparkle-Delay-Schwelle: +{ms} ms',
+			'shiny_auto_color_dev_toggle' => 'Farb-Abweichung / HSV-Baseline (Beta)',
+			'shiny_auto_color_dev_desc' => 'Vergleicht den Scan-Frame nach 3 normalen Encountern. Ideal bei ruhigem Emulator- oder Capture-Card-Bild.',
+			'shiny_auto_color_dev_threshold_label' => 'Farb-Abweichungsschwelle: {pct}%',
+			'shiny_auto_soft_reset_starter_hint' => 'Tipp für Starter/Geschenke: Wenn kein „Wildes Pokémon erscheint“-Text kommt, ergänze unten ein eigenes Trigger-Muster oder nutze den Bildwechsel-Modus.',
+			'shiny_auto_rearm_all_tooltip' => 'Gezählte Slots neu scharfschalten (Re-Arm)',
+			'shiny_auto_rearm_single_tooltip' => 'Slot #{slot} wieder scharf schalten',
+			'shiny_auto_shiny_mark_caught' => 'Gefangen',
+			'shiny_auto_source_ocr' => 'OCR',
+			'shiny_auto_source_sparkle_delay' => 'Sparkle-Delay',
+			'shiny_auto_source_color_dev' => 'Farb-Abweichung',
+			'shiny_auto_reason_sparkle_delay' => 'Sparkle-Delay erkannt ({details})',
+			'shiny_auto_reason_color_dev' => 'Farb-Abweichung erkannt ({details})',
+			'tutorial_demo_shiny_auto_badge_title' => 'Multi-Hunt · Auto-Counter · Scan-Slots',
+			'tutorial_demo_shiny_auto_badge_subtitle' => 'Parallele Hunts, Per-Hunt-Regeln & Shiny-Schutz',
+			'scanner_enlarged_waiting_text' => 'Warte auf Text...',
+			'scanner_enlarged_close' => 'Schließen',
+			'scanner_self_scan_overlap_title' => 'PokéVault liegt im aktiven Scan-Bereich',
+			'scanner_self_scan_overlap_body' => 'Das PokéVault-Fenster überlappt den überwachten Bildschirmbereich. Dadurch kann die Live-OCR eigene Texte scannen und unnötig Leistung verbrauchen.',
+			'scanner_self_scan_overlap_suppress' => 'Diesen Hinweis nicht mehr anzeigen',
+			'scanner_self_scan_overlap_ignore' => 'Unmaskiert lassen',
+			'scanner_self_scan_overlap_mask' => 'PokéVault ausblenden (Empfohlen)',
+			'shiny_auto_transition_none_warning' => 'Im Modus „Nur Bildwechsel“ ist aktuell weder Schwarzbild- noch Weißbild-Reset aktiv. Aktiviere mindestens einen Übergang oder wähle einen anderen Modus.',
+			'multi_hunt_slot_default_suffix' => ' (Standard)',
+			'tutorial_steps_count' => '{count} Schritte',
+			'tutorial_chapters_count' => '{count} Kapitel',
 			_ => null,
 		};
 	}

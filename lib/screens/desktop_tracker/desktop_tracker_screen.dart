@@ -25,6 +25,8 @@ import '../../services/scanner_core/models/scanner_event.dart';
 import '../../services/scanner_core/models/scanner_settings.dart';
 import '../../services/scanner_core/scanner_coordinator.dart';
 import '../../services/scanner_core/scanner_persistence_service.dart';
+import '../../services/scanner_core/source/scanner_source.dart';
+import '../../services/shiny_auto_counter/shiny_auto_counter_service.dart';
 import '../../utils/dex_logic_helper.dart';
 import '../../utils/tracker_platform_helper.dart';
 import '../../widgets/tutorial/tutorial_overlay.dart';
@@ -125,6 +127,7 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
   bool _showZoneBInfo = false;
   bool _showScanProfileInfo = false;
   bool _isEditingCameraRegions = false;
+  bool _hasShownSelfScanDialogThisSession = false;
   DexProvider? _dexProvider;
 
   bool get _isLiveWindows =>
@@ -179,6 +182,7 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
                       widget.coordinator.settings.preprocessProfile,
                   onRecognitionResult: _handleOcrMetaResult,
                 ),
+                nativeBridge: bridge,
               )
             : DesktopWindowSource(
                 captureDriver: const DefaultDesktopCaptureDriver(),
@@ -200,6 +204,12 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
     _activeWindowSource.setMultiInstanceSlots(
       widget.coordinator.settings.multiInstanceSlots,
     );
+    _activeWindowSource.setMaskSelfWindow(
+      widget.coordinator.settings.maskSelfWindow,
+    );
+    _activeWindowSource.setPreviewPolicy(enabled: true, maxWidth: 320);
+    _activeWindowSource.selfWindowOverlapNotifier
+        .addListener(_onSelfWindowOverlapChanged);
     unawaited(_loadPersistedSettings());
     final service = DesktopTrackerService.instance;
     final reusedExistingSession = widget.windowSource != null &&
@@ -241,6 +251,7 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
 
     service.showFloatingHudNotifier
         .addListener(_onServiceHudVisibilityChanged);
+    service.isPausedNotifier.addListener(_onServicePausedChanged);
     service.configureBackgroundHandlers(onBackgroundAutoCatch: null);
 
     service.configureNativeHudBridge(
@@ -266,6 +277,9 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
         service.startTracking(
           coordinator: widget.coordinator,
           windowSource: _activeWindowSource,
+          activeSource: _isCameraSourceSelected
+              ? _ensureCameraSource()
+              : _activeWindowSource,
           dexId: _selectedDexId,
           ownsWindowSource:
               widget.keepTrackingInBackground && widget.windowSource == null,
@@ -375,9 +389,11 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
 
     _activeFocusSub = widget.coordinator.activeFocusStream.listen((focusGroup) {
       if (!mounted) return;
-      setState(() {
-        _activeFocusEvents = focusGroup;
-      });
+      if (!listEquals(_activeFocusEvents, focusGroup)) {
+        setState(() {
+          _activeFocusEvents = focusGroup;
+        });
+      }
       if (focusGroup.isNotEmpty) {
         final dexProv = Provider.of<DexProvider>(context, listen: false);
         _refreshEvolutionStatusFor(
@@ -387,6 +403,57 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
         );
       }
     });
+  }
+
+  void _syncAutoCounterSlots(List<MultiInstanceSlot> slots) {
+    final autoCounter = ShinyAutoCounterService.instance;
+    if (!autoCounter.isRunning ||
+        !identical(autoCounter.coordinator, widget.coordinator)) {
+      return;
+    }
+    final enabledSlots = slots.where((s) => s.enabled).toList();
+    autoCounter.syncSlots(
+      slotIds: enabledSlots.isNotEmpty
+          ? enabledSlots.map((s) => s.id).toList()
+          : const [1],
+      slotColorOverrides: {for (final s in enabledSlots) s.id: s.colorHex},
+    );
+  }
+
+  void _syncOcrLanguage({required bool listen}) {
+    final appPokemonLang = _resolveAppPokemonLanguage(listen: listen);
+    widget.coordinator.setEffectiveOcrLanguage(appPokemonLang);
+
+    final configured = widget.coordinator.settings.ocrLanguage;
+    final effectiveLang =
+        (configured != 'auto' && configured.isNotEmpty)
+            ? configured
+            : appPokemonLang;
+
+    final mappedTag =
+        WindowsDesktopBridge.mapPokemonLanguageToBcp47(effectiveLang);
+    if (mappedTag != _ocrLanguageTag ||
+        _activeWindowSource.ocrLanguageTag != mappedTag) {
+      _ocrLanguageTag = mappedTag;
+      _ocrUsedFallbackLanguage = false;
+      _ocrFallbackResolvedTag = null;
+      _activeWindowSource.setOcrLanguageTag(mappedTag);
+      _webcamController.setOcrLanguageTag(mappedTag);
+    }
+  }
+
+  void _onServicePausedChanged() {
+    if (!mounted) return;
+    final scanning = !DesktopTrackerService.instance.isPaused;
+    if (scanning != _isScanningActive) {
+      setState(() => _isScanningActive = scanning);
+      if (scanning) {
+        unawaited(_webcamController.cameraFramePump?.resume());
+      } else {
+        unawaited(_webcamController.cameraFramePump?.pause());
+      }
+      _syncOverlayBorders();
+    }
   }
 
   Future<void> _loadPersistedSettings() async {
@@ -401,7 +468,9 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
           current.liveFocusPreset == LiveFocusPreset.disabled &&
           current.ignoredPokemonIds.isEmpty &&
           current.showScreenBorders &&
-          current.multiInstanceSlots.isEmpty;
+          current.multiInstanceSlots.isEmpty &&
+          !current.maskSelfWindow &&
+          !current.suppressSelfScanWarning;
       if (!isPristine) return;
 
       final merged = current.copyWith(
@@ -416,6 +485,8 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
         showScreenBorders: saved.showScreenBorders,
         multiInstanceSlots: saved.multiInstanceSlots,
         extraFocusRegions: saved.extraFocusRegions,
+        maskSelfWindow: saved.maskSelfWindow,
+        suppressSelfScanWarning: saved.suppressSelfScanWarning,
       );
       if (merged.scanIntervalMs == current.scanIntervalMs &&
           merged.preprocessProfile == current.preprocessProfile &&
@@ -425,7 +496,9 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
           merged.ignoredPokemonIds.isEmpty &&
           merged.showScreenBorders == current.showScreenBorders &&
           merged.multiInstanceSlots.isEmpty &&
-          merged.extraFocusRegions.isEmpty) {
+          merged.extraFocusRegions.isEmpty &&
+          !merged.maskSelfWindow &&
+          !merged.suppressSelfScanWarning) {
         return;
       }
       widget.coordinator.updateSettings(merged);
@@ -436,7 +509,9 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
       _activeWindowSource.setLiveFocusPreset(merged.liveFocusPreset);
       _activeWindowSource.setExtraFocusRegions(merged.extraFocusRegions);
       _activeWindowSource.setMultiInstanceSlots(merged.multiInstanceSlots);
-      didChangeDependencies();
+      _activeWindowSource.setMaskSelfWindow(merged.maskSelfWindow);
+      _syncOcrLanguage(listen: false);
+      _syncAutoCounterSlots(merged.multiInstanceSlots);
       _syncOverlayBorders();
       if (mounted) setState(() {});
     } catch (_) {
@@ -455,7 +530,6 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
 
   void _updateSettingsAndPersist(ScannerSettings next) {
     widget.coordinator.updateSettings(next);
-    widget.coordinator.setEffectiveOcrLanguage(_resolveAppPokemonLanguage());
     _activeWindowSource.setPollInterval(
       Duration(milliseconds: next.scanIntervalMs),
     );
@@ -463,9 +537,10 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
     _activeWindowSource.setLiveFocusPreset(next.liveFocusPreset);
     _activeWindowSource.setExtraFocusRegions(next.extraFocusRegions);
     _activeWindowSource.setMultiInstanceSlots(next.multiInstanceSlots);
-    _webcamController.setOcrLanguageTag(_ocrLanguageTag);
-    didChangeDependencies();
+    _activeWindowSource.setMaskSelfWindow(next.maskSelfWindow);
+    _syncOcrLanguage(listen: false);
     _syncOverlayBorders();
+    _syncAutoCounterSlots(next.multiInstanceSlots);
     unawaited(_persistenceService.saveScannerSettings(next));
   }
 
@@ -515,25 +590,7 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
     try {
       _dexProvider = Provider.of<DexProvider>(context, listen: false);
     } catch (_) {}
-    final appPokemonLang = _resolveAppPokemonLanguage(listen: true);
-    widget.coordinator.setEffectiveOcrLanguage(appPokemonLang);
-
-    final configured = widget.coordinator.settings.ocrLanguage;
-    final effectiveLang =
-        (configured != 'auto' && configured.isNotEmpty)
-            ? configured
-            : appPokemonLang;
-
-    final mappedTag =
-        WindowsDesktopBridge.mapPokemonLanguageToBcp47(effectiveLang);
-    if (mappedTag != _ocrLanguageTag ||
-        _activeWindowSource.ocrLanguageTag != mappedTag) {
-      _ocrLanguageTag = mappedTag;
-      _ocrUsedFallbackLanguage = false;
-      _ocrFallbackResolvedTag = null;
-      _activeWindowSource.setOcrLanguageTag(mappedTag);
-      _webcamController.setOcrLanguageTag(mappedTag);
-    }
+    _syncOcrLanguage(listen: true);
   }
 
   void _handleOcrMetaResult(OcrRecognitionResult res) {
@@ -630,11 +687,18 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
         _selectDefaultWindow();
         _isRefreshingWindows = false;
       });
-    } catch (_) {
+    } catch (e) {
       if (!mounted) return;
       setState(() {
         _isRefreshingWindows = false;
       });
+      ScaffoldMessenger.maybeOf(context)?.showSnackBar(
+        SnackBar(
+          content: Text('Fenster-/Kamera-Liste konnte nicht geladen werden: $e'),
+          duration: const Duration(seconds: 3),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
     }
   }
 
@@ -648,17 +712,45 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
   }
 
   void _bindSourceForSelection(DesktopWindowInfo? window) {
-    if (window != null && window.isCameraSource) {
+    final bool isCamera = window != null && window.isCameraSource;
+    final ScannerSource nextSource;
+    if (isCamera) {
       if (_activeWindowSource.isRunning) {
         unawaited(_activeWindowSource.stop());
       }
-      widget.coordinator.bindSource(_ensureCameraSource());
+      nextSource = _ensureCameraSource();
     } else {
       final camSource = _webcamController.cameraSource;
       if (camSource != null && camSource.isRunning) {
         unawaited(camSource.stop());
       }
-      widget.coordinator.bindSource(_activeWindowSource);
+      nextSource = _activeWindowSource;
+    }
+    widget.coordinator.bindSource(nextSource);
+    DesktopTrackerService.instance.setActiveSource(nextSource);
+    if (ShinyAutoCounterService.instance.isRunning &&
+        identical(
+          ShinyAutoCounterService.instance.coordinator,
+          widget.coordinator,
+        )) {
+      final enabledSlots = isCamera
+          ? const <MultiInstanceSlot>[]
+          : widget.coordinator.settings.multiInstanceSlots
+              .where((s) => s.enabled)
+              .toList();
+      final slotIds = enabledSlots.isNotEmpty
+          ? enabledSlots.map((s) => s.id).toList()
+          : const [1];
+      final slotColors = {
+        for (final s in enabledSlots) s.id: s.colorHex,
+      };
+      unawaited(
+        ShinyAutoCounterService.instance.rebindSource(
+          nextSource,
+          slotIds: slotIds,
+          slotColorOverrides: slotColors,
+        ),
+      );
     }
   }
 
@@ -676,7 +768,16 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
     }
   }
 
-  Future<void> _syncCameraHardwareForSelection(DesktopWindowInfo? window) {
+  Future<void> _syncCameraHardwareForSelection(DesktopWindowInfo? window) async {
+    if (window != null &&
+        window.isCameraSource &&
+        !identical(
+          _webcamController.cameraSource,
+          DesktopTrackerService.instance.activeSource,
+        )) {
+      await DesktopTrackerService.instance.runAndClearBackgroundCleanup();
+      if (!mounted) return;
+    }
     return _webcamController.syncHardwareForSelection(
       window: window,
       ocrLanguageTag: _ocrLanguageTag,
@@ -750,23 +851,45 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
   @override
   void dispose() {
     TutorialOverlay.resetShowing();
+    _activeWindowSource.selfWindowOverlapNotifier
+        .removeListener(_onSelfWindowOverlapChanged);
     final service = DesktopTrackerService.instance;
     service.showFloatingHudNotifier
         .removeListener(_onServiceHudVisibilityChanged);
+    service.isPausedNotifier.removeListener(_onServicePausedChanged);
     _webcamController.removeListener(_onWebcamControllerChanged);
-    unawaited(_webcamController.stopAndDisposeSource());
-    _webcamController.dispose();
     _hudPositionNotifier.dispose();
 
+    final autoCounterUsingThisCoordinator =
+        ShinyAutoCounterService.instance.isRunning &&
+            identical(
+              ShinyAutoCounterService.instance.coordinator,
+              widget.coordinator,
+            );
+    final keepCameraAliveForAutoCounter =
+        _isCameraSourceSelected && autoCounterUsingThisCoordinator;
+
     final keepAlive = widget.keepTrackingInBackground &&
-        !_isCameraSourceSelected &&
+        (!_isCameraSourceSelected || autoCounterUsingThisCoordinator) &&
         (service.isTrackingActive ||
             _isScanningActive ||
             _hasUserToggledScan ||
             _customScreenRegion != null ||
-            _showFloatingHud);
+            _showFloatingHud ||
+            autoCounterUsingThisCoordinator);
+
+    if (keepCameraAliveForAutoCounter && keepAlive) {
+      service.setBackgroundCleanup(() async {
+        await _webcamController.stopAndDisposeSource();
+        _webcamController.dispose();
+      });
+    } else {
+      unawaited(_webcamController.stopAndDisposeSource());
+      _webcamController.dispose();
+    }
 
     if (keepAlive) {
+      _activeWindowSource.setPreviewPolicy(enabled: false);
       service.isPaused = !_isScanningActive;
       final dexProv = _dexProvider;
       final fallbackDexId = _selectedDexId;
@@ -926,6 +1049,7 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
     _updateSettingsAndPersist(
       widget.coordinator.settings.copyWith(multiInstanceSlots: nextSlots),
     );
+    DesktopTrackerService.instance.isPaused = false;
     widget.coordinator.start();
     unawaited(_activeWindowSource.triggerSingleScan());
   }
@@ -970,6 +1094,7 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
           _isScanningActive = true;
           _hasUserToggledScan = false;
         });
+        DesktopTrackerService.instance.isPaused = false;
         widget.coordinator.start();
       }
       unawaited(_activeWindowSource.triggerSingleScan());
@@ -1026,6 +1151,7 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
     _updateSettingsAndPersist(
       widget.coordinator.settings.copyWith(extraFocusRegions: nextRegions),
     );
+    DesktopTrackerService.instance.isPaused = false;
     widget.coordinator.start();
     unawaited(_activeWindowSource.triggerSingleScan());
   }
@@ -1076,6 +1202,7 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
             liveFocusPreset: LiveFocusPreset.customRegion,
           ),
         );
+        DesktopTrackerService.instance.isPaused = false;
         widget.coordinator.start();
         unawaited(_activeWindowSource.triggerSingleScan());
       }
@@ -1223,15 +1350,22 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
         required newPokemonName,
         required isShiny,
         required isAlpha,
-      }) =>
-          _correctEventAt(
-        index,
-        newPokemonId: newPokemonId,
-        newPokemonName: newPokemonName,
-        isShiny: isShiny,
-        isAlpha: isAlpha,
-      ),
-      onDelete: () => _deleteEventAt(index),
+      }) async {
+        final liveIndex = _events.indexOf(ev);
+        if (liveIndex < 0) return;
+        await _correctEventAt(
+          liveIndex,
+          newPokemonId: newPokemonId,
+          newPokemonName: newPokemonName,
+          isShiny: isShiny,
+          isAlpha: isAlpha,
+        );
+      },
+      onDelete: () async {
+        final liveIndex = _events.indexOf(ev);
+        if (liveIndex < 0) return;
+        await _deleteEventAt(liveIndex);
+      },
       onIgnoreTeam: (id, name) => _ignoreTeamPokemon(id, displayName: name),
     );
   }
@@ -1315,6 +1449,12 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
       _hasUserToggledScan = true;
       _isScanningActive = !_isScanningActive;
       DesktopTrackerService.instance.isPaused = !_isScanningActive;
+      if (identical(
+        ShinyAutoCounterService.instance.coordinator,
+        widget.coordinator,
+      )) {
+        ShinyAutoCounterService.instance.setGlobalPause(!_isScanningActive);
+      }
       if (_isScanningActive) {
         widget.coordinator.start();
         unawaited(_webcamController.cameraFramePump?.resume());
@@ -1372,6 +1512,7 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
 
     await Future.delayed(const Duration(milliseconds: 100));
     final frame = await _snippingService.captureDesktopSnippet();
+    if (!mounted) return;
     if (frame != null) {
       await _activeWindowSource.processSnippet(frame);
       if (mounted) {
@@ -1427,6 +1568,7 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
     bool isAlpha = false,
     bool silent = false,
   }) async {
+    if (!mounted) return;
     final dexProvider = Provider.of<DexProvider>(context, listen: false);
     final targetDex = _getActiveDex(dexProvider);
     if (targetDex == null) return;
@@ -1588,7 +1730,32 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
     );
   }
 
-  void _openEnlargedPreview({
+  void _onSelfWindowOverlapChanged() {
+    if (!mounted) return;
+    if (!_activeWindowSource.selfWindowOverlapNotifier.value) return;
+    final current = widget.coordinator.settings;
+    if (current.maskSelfWindow ||
+        current.suppressSelfScanWarning ||
+        _hasShownSelfScanDialogThisSession) {
+      return;
+    }
+    _hasShownSelfScanDialogThisSession = true;
+    Future<void>.microtask(() async {
+      if (!mounted) return;
+      final res = await DesktopTrackerDialogs.showSelfScanOverlapDialog(context);
+      if (!mounted || res == null) return;
+      final next = widget.coordinator.settings.copyWith(
+        maskSelfWindow: res.maskSelfWindow,
+        suppressSelfScanWarning:
+            res.suppressWarning ||
+            widget.coordinator.settings.suppressSelfScanWarning,
+      );
+      _updateSettingsAndPersist(next);
+      if (mounted) setState(() {});
+    });
+  }
+
+  Future<void> _openEnlargedPreview({
     required CapturedFrame? liveFrame,
     required Uint8List? fallbackPng,
     required String title,
@@ -1597,18 +1764,25 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
     ValueListenable<Map<String, CapturedFrame>>? boxFramesListenable,
     ValueListenable<Map<String, String>>? boxPreviewsListenable,
     String? boxKey,
-  }) {
-    DesktopTrackerDialogs.showEnlargedPreview(
-      context,
-      liveFrame: liveFrame,
-      fallbackPng: fallbackPng,
-      title: title,
-      statusListenable: statusListenable,
-      frameListenable: frameListenable,
-      boxFramesListenable: boxFramesListenable,
-      boxPreviewsListenable: boxPreviewsListenable,
-      boxKey: boxKey,
-    );
+  }) async {
+    _activeWindowSource.setPreviewPolicy(enabled: true, maxWidth: 960);
+    try {
+      await DesktopTrackerDialogs.showEnlargedPreview(
+        context,
+        liveFrame: liveFrame,
+        fallbackPng: fallbackPng,
+        title: title,
+        statusListenable: statusListenable,
+        frameListenable: frameListenable,
+        boxFramesListenable: boxFramesListenable,
+        boxPreviewsListenable: boxPreviewsListenable,
+        boxKey: boxKey,
+      );
+    } finally {
+      if (mounted) {
+        _activeWindowSource.setPreviewPolicy(enabled: true, maxWidth: 320);
+      }
+    }
   }
 
   Widget _buildScanRegionSection(bool isDark) {
@@ -1977,14 +2151,17 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
                         children: [
                           SizedBox(
                             width: 380,
-                            child: SingleChildScrollView(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.stretch,
-                                children: [
-                                  windowControlCard,
-                                  const SizedBox(height: 14),
-                                  targetFocusCard,
-                                ],
+                            child: RepaintBoundary(
+                              child: SingleChildScrollView(
+                                child: Column(
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.stretch,
+                                  children: [
+                                    windowControlCard,
+                                    const SizedBox(height: 14),
+                                    targetFocusCard,
+                                  ],
+                                ),
                               ),
                             ),
                           ),
@@ -2042,7 +2219,12 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
                   hasMissingEvolutions: _dexController
                           .activeEvolutionStatus?.hasMissingEvolutions ??
                       false,
-                  onClose: () => setState(() => _showFloatingHud = false),
+                  onClose: () {
+                    setState(() => _showFloatingHud = false);
+                    unawaited(
+                      DesktopTrackerService.instance.setFloatingHudVisible(false),
+                    );
+                  },
                   onCompactChanged: (c) => setState(() => _hudCompact = c),
                   onPinnedChanged: (p) => setState(() => _hudPinned = p),
                   onOpacityChanged: (o) => setState(() => _hudOpacity = o),
