@@ -1,4 +1,4 @@
-# PokéVault v1.7.0 Release Notes — "Live Scanner, Shiny Auto-Counter & Global Languages"
+# PokéVault v1.7.0 Release Notes — "The Language Expansion"
 
 **New Features**
 * **Live Pokémon Scanner & Overlay Tracker (Desktop & Mobile):** Real-time OCR scanning for emulator windows, custom screen-snipped regions, and webcams/capture cards (offloaded to a native Windows C++ / WinRT worker with Z-order self-window masking). Includes dual-zone and multi-encounter recognition, an always-on-top floating HUD, a persistent dock with 1-click Pokédex catch sync, plus a Mobile Camera Scanner with custom scan zones, split-screen, and draggable Picture-in-Picture (PiP).
