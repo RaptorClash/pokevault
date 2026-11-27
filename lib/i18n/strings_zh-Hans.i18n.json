@@ -2468,5 +2468,7 @@
   "scanner_self_scan_overlap_ignore": "保持未掩盖",
   "scanner_self_scan_overlap_mask": "隐藏 PokéVault（推荐）",
   "shiny_auto_transition_none_warning": "在“仅图片切换”模式下，目前未激活黑屏或白屏重置。请至少启用一个过渡效果或选择其他模式。",
-  "multi_hunt_slot_default_suffix": "（默认）"
+  "multi_hunt_slot_default_suffix": "（默认）",
+  "tutorial_steps_count": "{count} 步",
+  "tutorial_chapters_count": "{count} 章节"
 }

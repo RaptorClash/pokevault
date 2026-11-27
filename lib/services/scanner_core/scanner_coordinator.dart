@@ -492,6 +492,11 @@ class ScannerCoordinator {
         if (prevTime == null ||
             elapsed - prevTime >= _duplicateCooldown) {
           _recentEmittedAt[duplicateKey] = elapsed;
+          if (_recentEmittedAt.length > 256) {
+            _recentEmittedAt.removeWhere(
+              (_, ts) => elapsed - ts >= _duplicateCooldown,
+            );
+          }
           newlyEmitted.add(event);
         }
       }
@@ -551,7 +556,13 @@ class ScannerCoordinator {
         }
       }
 
-      // Filter out any ignored starter/team candidate
+      // Filter out any ignored starter/team candidate. In single-encounter mode,
+      // if the top match itself is ignored, suppress instead of falling back to #2.
+      if (!parseResult.isSmartSearchFallback &&
+          candidates.isNotEmpty &&
+          _settings.ignoredPokemonIds.contains(candidates.first.pokemonId)) {
+        return const [];
+      }
       candidates = candidates
           .where((c) => !_settings.ignoredPokemonIds.contains(c.pokemonId))
           .toList();
@@ -626,6 +637,11 @@ class ScannerCoordinator {
       return const [];
     }
     _recentEmittedAt[duplicateKey] = elapsed;
+    if (_recentEmittedAt.length > 256) {
+      _recentEmittedAt.removeWhere(
+        (_, ts) => elapsed - ts >= _duplicateCooldown,
+      );
+    }
 
     final event = ScannerEvent(
       type: effectiveType,

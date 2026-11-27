@@ -290,7 +290,8 @@ class _MultiHuntDashboardScreenState extends State<MultiHuntDashboardScreen> {
                         final cols = w >= 1100 ? 3 : (w >= 650 ? 2 : 1);
                         const spacing = 12.0;
                         final cardWidth =
-                            (w - 24 - (cols - 1) * spacing) / cols;
+                            ((w - 24 - (cols - 1) * spacing) / cols)
+                                .clamp(0.0, double.infinity);
 
                         return SingleChildScrollView(
                           padding: const EdgeInsets.all(12),

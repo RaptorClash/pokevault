@@ -241,5 +241,30 @@ void main() {
       expect(it.extractedPokemonName, equals('Charmander'));
       expect(it.detectedLanguage, equals('it'));
     });
+
+    test('detectBattleCue does not classify nickname prompts as battleMenu and matches 2x2 multiline battle menus', () {
+      // Nickname prompts must NOT emit BattleCue.battleMenu (avoids false SparkleDelay Shiny alerts)
+      expect(
+        engine.detectBattleCue('Gib Pikachu einen Spitznamen?'),
+        equals(BattleCue.none),
+      );
+      expect(
+        engine.detectBattleCue('Give a nickname to Pikachu?'),
+        equals(BattleCue.none),
+      );
+      // parse() still filters out nickname prompts
+      expect(engine.parse('Gib Pikachu einen Spitznamen?'), isNull);
+      expect(engine.parse('Give a nickname to Pikachu?'), isNull);
+
+      // Standard 2x2 multi-line battle menus MUST emit BattleCue.battleMenu
+      expect(
+        engine.detectBattleCue('Kampf  Beutel\nPokémon  Flucht'),
+        equals(BattleCue.battleMenu),
+      );
+      expect(
+        engine.detectBattleCue('Fight  Bag\nPokémon  Run'),
+        equals(BattleCue.battleMenu),
+      );
+    });
   });
 }

@@ -982,5 +982,106 @@ void main() {
       expect(find.byKey(const Key('shiny_auto_bar_rearm_all_btn')), findsOneWidget);
       expect(find.byKey(const Key('shiny_auto_stop_btn')), findsOneWidget);
     });
+
+    testWidgets('SetupSheet perHuntOverride shows check icon when stopped and handles immediate dismiss without context crash', (tester) async {
+      final hunt = makeHunt();
+      await huntProvider.createHunt(hunt);
+      final service = ShinyAutoCounterService.forTesting();
+
+      await tester.pumpWidget(
+        MultiProvider(
+          providers: [
+            ChangeNotifierProvider<ShinyHuntProvider>.value(value: huntProvider),
+            ChangeNotifierProvider<DexProvider>.value(value: dexProvider),
+          ],
+          child: TranslationProvider(
+            child: MaterialApp(
+              home: Scaffold(
+                body: SingleChildScrollView(
+                  child: ShinyAutoCounterSetupSheet(
+                    hunt: hunt,
+                    service: service,
+                    perHuntOverride: true,
+                    showSourceLauncher: false,
+                    scrollable: false,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      // Immediately unmount before post-frame callback runs -> must NOT throw deactivated context error
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pump();
+      expect(tester.takeException(), isNull);
+
+      // Re-mount and check icon in perHuntOverride mode when service is not running
+      await tester.pumpWidget(
+        MultiProvider(
+          providers: [
+            ChangeNotifierProvider<ShinyHuntProvider>.value(value: huntProvider),
+            ChangeNotifierProvider<DexProvider>.value(value: dexProvider),
+          ],
+          child: TranslationProvider(
+            child: MaterialApp(
+              home: Scaffold(
+                body: SingleChildScrollView(
+                  child: ShinyAutoCounterSetupSheet(
+                    hunt: hunt,
+                    service: service,
+                    perHuntOverride: true,
+                    showSourceLauncher: false,
+                    scrollable: false,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      final btnFinder = find.byKey(const Key('setup_start_btn'));
+      expect(btnFinder, findsOneWidget);
+      expect(
+        find.descendant(
+          of: btnFinder,
+          matching: find.byIcon(Icons.check_rounded),
+        ),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('ShinyHuntCounterScreen compact menu uses localized edit hunt tooltip (not hardcoded German)', (tester) async {
+      await tester.binding.setSurfaceSize(const Size(480, 700));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+      LocaleSettings.setLocaleSync(AppLocale.en);
+
+      final hunt = makeHunt();
+      await huntProvider.createHunt(hunt);
+
+      await tester.pumpWidget(
+        MultiProvider(
+          providers: [
+            ChangeNotifierProvider<ShinyHuntProvider>.value(value: huntProvider),
+            ChangeNotifierProvider<DexProvider>.value(value: dexProvider),
+          ],
+          child: TranslationProvider(
+            child: MaterialApp(
+              home: ShinyHuntCounterScreen(huntId: hunt.id),
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+
+      await tester.tap(find.byKey(const Key('counter_appbar_more_menu')));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+
+      expect(find.text('Hunt bearbeiten'), findsNothing);
+      expect(find.text(t.multi_hunt_edit_hunt_tooltip), findsOneWidget);
+    });
   });
 }

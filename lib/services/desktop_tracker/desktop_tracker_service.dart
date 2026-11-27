@@ -50,6 +50,7 @@ class DesktopTrackerService {
 
   bool _isTracking = false;
   bool _isPaused = false;
+  int _sessionGeneration = 0;
 
   List<ScannerEvent> get recentEvents => List.unmodifiable(_recentEvents);
 
@@ -283,6 +284,7 @@ class DesktopTrackerService {
     bool ownsWindowSource = false,
     bool initiallyPaused = false,
   }) {
+    _sessionGeneration++;
     final previousCoordinator = _coordinator;
     final previousSource = _windowSource;
     final previouslyOwned = _ownsWindowSource;
@@ -467,6 +469,7 @@ class DesktopTrackerService {
   }
 
   Future<void> stopTracking() async {
+    final gen = _sessionGeneration;
     final bridge = _nativeBridge;
     final eventSub = _eventSubscription;
     final focusSub = _focusSubscription;
@@ -499,6 +502,7 @@ class DesktopTrackerService {
     _isTracking = false;
     _isPaused = false;
     _notifySafely(() {
+      if (gen != _sessionGeneration) return;
       isTrackingNotifier.value = _isTracking;
       isPausedNotifier.value = _isPaused;
       showFloatingHudNotifier.value = false;
@@ -509,18 +513,27 @@ class DesktopTrackerService {
 
     try {
       await bridge?.hideFloatingHud();
-      await bridge?.setScanRegionBorder(null);
-      await bridge?.setOverlayBorders(const []);
+      if (gen == _sessionGeneration) {
+        await bridge?.setScanRegionBorder(null);
+      }
+      if (gen == _sessionGeneration) {
+        await bridge?.setOverlayBorders(const []);
+      }
     } catch (_) {}
 
     await eventSub?.cancel();
     await focusSub?.cancel();
-    ShinyAutoCounterService.instance.onSourceStopped(coordinator);
-    await coordinator?.stop();
-    if (shouldDisposeSource) {
-      await windowSource?.dispose();
+    if (coordinator != null && !identical(_coordinator, coordinator)) {
+      ShinyAutoCounterService.instance.onSourceStopped(coordinator);
+      await coordinator.stop();
     }
-    if (backgroundCleanup != null) {
+    if (shouldDisposeSource &&
+        windowSource != null &&
+        !identical(_windowSource, windowSource)) {
+      await windowSource.dispose();
+    }
+    if (backgroundCleanup != null &&
+        !identical(_backgroundCleanupCallback, backgroundCleanup)) {
       try {
         await backgroundCleanup();
       } catch (_) {}

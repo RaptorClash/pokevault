@@ -2503,6 +2503,8 @@ class TranslationsNl extends Translations with BaseTranslations<AppLocale, Trans
 	@override String get scanner_self_scan_overlap_mask => 'PokéVault verbergen (Aanbevolen)';
 	@override String get shiny_auto_transition_none_warning => 'In de modus \'Alleen beeldwisseling\' zijn momenteel noch zwartbeeld- noch witbeeld-reset actief. Schakel minstens één overgang in of kies een andere modus.';
 	@override String get multi_hunt_slot_default_suffix => '(Standaard)';
+	@override String get tutorial_steps_count => '{count} stappen';
+	@override String get tutorial_chapters_count => '{count} hoofdstukken';
 }
 
 /// The flat map containing all translations for locale <nl>.
@@ -4985,6 +4987,8 @@ extension on TranslationsNl {
 			'scanner_self_scan_overlap_mask' => 'PokéVault verbergen (Aanbevolen)',
 			'shiny_auto_transition_none_warning' => 'In de modus \'Alleen beeldwisseling\' zijn momenteel noch zwartbeeld- noch witbeeld-reset actief. Schakel minstens één overgang in of kies een andere modus.',
 			'multi_hunt_slot_default_suffix' => '(Standaard)',
+			'tutorial_steps_count' => '{count} stappen',
+			'tutorial_chapters_count' => '{count} hoofdstukken',
 			_ => null,
 		};
 	}

@@ -297,6 +297,48 @@ void main() {
       expect(sigHist, isNotNull);
       expect(sigHist!.score, closeTo(sigFrame!.score, 0.0001));
       expect(sigHist.source, equals(ShinyDetectionSource.colorDeviation));
+
+      // NaN / Infinity histograms must be rejected without poisoning baseline
+      final nanHist = List<double>.filled(16, 0.0)..[0] = double.nan;
+      final infHist = List<double>.filled(16, 0.0)..[0] = double.infinity;
+      expect(
+        detHist.analyzeHistogram(
+          nanHist,
+          slotId: 9,
+          speciesKey: 'nan_test',
+          deviationThreshold: 0.35,
+        ),
+        isNull,
+      );
+      expect(
+        detHist.analyzeHistogram(
+          infHist,
+          slotId: 9,
+          speciesKey: 'nan_test',
+          deviationThreshold: 0.35,
+        ),
+        isNull,
+      );
+      for (int i = 0; i < 3; i++) {
+        expect(
+          detHist.analyzeHistogram(
+            blueHist,
+            slotId: 9,
+            speciesKey: 'nan_test',
+            deviationThreshold: 0.35,
+          ),
+          isNull,
+        );
+      }
+      expect(
+        detHist.analyzeHistogram(
+          greenHist,
+          slotId: 9,
+          speciesKey: 'nan_test',
+          deviationThreshold: 0.35,
+        ),
+        isNotNull,
+      );
     });
   });
 }

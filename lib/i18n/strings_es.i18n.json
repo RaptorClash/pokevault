@@ -2468,5 +2468,7 @@
   "scanner_self_scan_overlap_ignore": "Dejar sin máscara",
   "scanner_self_scan_overlap_mask": "Ocultar PokéVault (Recomendado)",
   "shiny_auto_transition_none_warning": "En el modo «Solo cambio de imagen», actualmente no está activo ni el reinicio de pantalla negra ni el de pantalla blanca. Activa al menos una transición o selecciona otro modo.",
-  "multi_hunt_slot_default_suffix": "(Estándar)"
+  "multi_hunt_slot_default_suffix": "(Estándar)",
+  "tutorial_steps_count": "{count} pasos",
+  "tutorial_chapters_count": "{count} capítulos"
 }

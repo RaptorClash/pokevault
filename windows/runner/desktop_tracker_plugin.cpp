@@ -2130,8 +2130,6 @@ void DesktopTrackerPlugin::PaintSnippingOverlay(HWND hwnd) {
     const int banner_x = mon_left + (mon_w - banner_w) / 2;
     const int banner_y = mon_top + 16;
 
-    Gdiplus::GraphicsPath banner_path;
-    banner_path.AddRectangle(Gdiplus::Rect(banner_x, banner_y, banner_w, banner_h));
     g.FillRectangle(&pill_bg, banner_x, banner_y, banner_w, banner_h);
     g.DrawRectangle(&pill_border, banner_x, banner_y, banner_w, banner_h);
 
@@ -2494,7 +2492,7 @@ void DesktopTrackerPlugin::CaptureRegionAsync(
   const int height =
       static_cast<int>(std::lround(GetDoubleArg(args, "height", 0.0)));
 
-  if (width <= 0 || height <= 0) {
+  if (width <= 0 || height <= 0 || !dispatcher_hwnd_) {
     result->Success(flutter::EncodableValue());
     return;
   }
@@ -2504,7 +2502,9 @@ void DesktopTrackerPlugin::CaptureRegionAsync(
   {
     std::lock_guard<std::mutex> lock(ocr_queue_mutex_);
     if (ocr_worker_stopping_) {
-      payload->result.release();
+      if (payload->result) {
+        payload->result->Success(flutter::EncodableValue());
+      }
       delete payload;
       return;
     }
@@ -2524,7 +2524,7 @@ void DesktopTrackerPlugin::CaptureWindowAsync(
     const flutter::EncodableMap& args,
     std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
   const int64_t hwnd_val = GetInt64Arg(args, "hwnd", 0);
-  if (hwnd_val == 0) {
+  if (hwnd_val == 0 || !dispatcher_hwnd_) {
     result->Success(flutter::EncodableValue());
     return;
   }
@@ -2547,7 +2547,9 @@ void DesktopTrackerPlugin::CaptureWindowAsync(
   {
     std::lock_guard<std::mutex> lock(ocr_queue_mutex_);
     if (ocr_worker_stopping_) {
-      payload->result.release();
+      if (payload->result) {
+        payload->result->Success(flutter::EncodableValue());
+      }
       delete payload;
       return;
     }
@@ -2611,6 +2613,11 @@ void DesktopTrackerPlugin::CaptureAndAnalyzeAsync(
     crop_h = static_cast<int>(std::lround(GetDoubleArg(cmap, "height", 0.0)));
   }
 
+  if (!dispatcher_hwnd_) {
+    result->Success(flutter::EncodableValue());
+    return;
+  }
+
   auto* payload = new CaptureAnalyzePayload();
   payload->result = std::move(result);
   payload->requested_language_tag = language_tag;
@@ -2619,7 +2626,9 @@ void DesktopTrackerPlugin::CaptureAndAnalyzeAsync(
   {
     std::lock_guard<std::mutex> lock(ocr_queue_mutex_);
     if (ocr_worker_stopping_) {
-      payload->result.release();
+      if (payload->result) {
+        payload->result->Success(flutter::EncodableValue());
+      }
       delete payload;
       return;
     }
@@ -2895,7 +2904,7 @@ void DesktopTrackerPlugin::RecognizeTextAsync(
   auto bytes_it = args.find(flutter::EncodableValue("bytes"));
   if (bytes_it == args.end() ||
       !std::holds_alternative<std::vector<uint8_t>>(bytes_it->second) ||
-      width <= 0 || height <= 0) {
+      width <= 0 || height <= 0 || !dispatcher_hwnd_) {
     flutter::EncodableMap empty;
     empty[flutter::EncodableValue("lines")] =
         flutter::EncodableValue(flutter::EncodableList{});
@@ -2911,8 +2920,9 @@ void DesktopTrackerPlugin::RecognizeTextAsync(
         flutter::EncodableValue(false);
     empty[flutter::EncodableValue("ocrDurationMs")] =
         flutter::EncodableValue(0);
-    empty[flutter::EncodableValue("errorHint")] =
-        flutter::EncodableValue("Invalid frame bytes or dimensions");
+    empty[flutter::EncodableValue("errorHint")] = flutter::EncodableValue(
+        !dispatcher_hwnd_ ? "Dispatcher window unavailable"
+                          : "Invalid frame bytes or dimensions");
     result->Success(flutter::EncodableValue(std::move(empty)));
     return;
   }
@@ -2927,7 +2937,9 @@ void DesktopTrackerPlugin::RecognizeTextAsync(
   {
     std::lock_guard<std::mutex> lock(ocr_queue_mutex_);
     if (ocr_worker_stopping_) {
-      payload->result.release();
+      if (payload->result) {
+        payload->result->Success(flutter::EncodableValue());
+      }
       delete payload;
       return;
     }
@@ -3051,12 +3063,14 @@ void DesktopTrackerPlugin::PositionHudFromAnchor() {
   MONITORINFO mi{};
   mi.cbSize = sizeof(mi);
   if (GetMonitorInfoW(mon, &mi)) {
-    target_x =
-        std::clamp(target_x, static_cast<int>(mi.rcWork.left),
-                   static_cast<int>(mi.rcWork.right) - hud_w);
-    target_y =
-        std::clamp(target_y, static_cast<int>(mi.rcWork.top),
-                   static_cast<int>(mi.rcWork.bottom) - hud_h);
+    const int min_x = static_cast<int>(mi.rcWork.left);
+    const int max_x =
+        (std::max)(min_x, static_cast<int>(mi.rcWork.right) - hud_w);
+    const int min_y = static_cast<int>(mi.rcWork.top);
+    const int max_y =
+        (std::max)(min_y, static_cast<int>(mi.rcWork.bottom) - hud_h);
+    target_x = std::clamp(target_x, min_x, max_x);
+    target_y = std::clamp(target_y, min_y, max_y);
   }
 
   hud_state_.pos_x = target_x;
@@ -3656,6 +3670,30 @@ LRESULT CALLBACK DesktopTrackerPlugin::SnippingWndProc(HWND hwnd,
     case WM_CAPTURECHANGED:
       self->snip_is_dragging_ = false;
       return 0;
+
+    case WM_CLOSE:
+      self->FinishSnipping(false);
+      return 0;
+
+    case WM_DESTROY:
+      if (self->snip_hwnd_ == hwnd) {
+        self->snip_hwnd_ = nullptr;
+      }
+      if (self->snip_bright_bmp_) {
+        DeleteObject(self->snip_bright_bmp_);
+        self->snip_bright_bmp_ = nullptr;
+      }
+      if (self->snip_dimmed_bmp_) {
+        DeleteObject(self->snip_dimmed_bmp_);
+        self->snip_dimmed_bmp_ = nullptr;
+      }
+      self->snip_is_dragging_ = false;
+      self->snip_has_selection_ = false;
+      if (self->pending_snip_result_) {
+        auto pending = std::move(self->pending_snip_result_);
+        pending->Success(flutter::EncodableValue());
+      }
+      return 0;
   }
 
   return DefWindowProcW(hwnd, msg, wparam, lparam);
@@ -3692,7 +3730,6 @@ LRESULT CALLBACK DesktopTrackerPlugin::HudWndProc(HWND hwnd,
 
       if (PtInRect(&self->hud_buttons_.compact_btn, pt)) {
         self->hud_state_.is_compact = !self->hud_state_.is_compact;
-        self->RenderFloatingHud();
         const int hud_w = self->hud_state_.is_compact ? kHudWidthCompact
                                                       : kHudWidthNormal;
         const int hud_h = self->ComputeHudHeight();
@@ -3777,6 +3814,18 @@ LRESULT CALLBACK DesktopTrackerPlugin::HudWndProc(HWND hwnd,
     case WM_CAPTURECHANGED:
       self->hud_is_dragging_ = false;
       return 0;
+
+    case WM_CLOSE:
+      self->HideFloatingHud();
+      self->InvokeDartHudEvent("onHudClose");
+      return 0;
+
+    case WM_DESTROY:
+      if (self->hud_hwnd_ == hwnd) {
+        self->hud_hwnd_ = nullptr;
+        self->hud_is_dragging_ = false;
+      }
+      return 0;
   }
 
   return DefWindowProcW(hwnd, msg, wparam, lparam);
@@ -3826,7 +3875,9 @@ void DesktopTrackerPlugin::ShowScanRegionBorder(
                     outer_h - kThickness);
   if (outer_rgn && inner_rgn) {
     CombineRgn(outer_rgn, outer_rgn, inner_rgn, RGN_DIFF);
-    SetWindowRgn(scan_border_hwnd_, outer_rgn, TRUE);
+    if (SetWindowRgn(scan_border_hwnd_, outer_rgn, TRUE) == 0) {
+      DeleteObject(outer_rgn);
+    }
     DeleteObject(inner_rgn);
   } else {
     if (outer_rgn) DeleteObject(outer_rgn);
@@ -3961,7 +4012,9 @@ void DesktopTrackerPlugin::SetOverlayBorders(
           DeleteObject(tab_rgn);
         }
       }
-      SetWindowRgn(entry.hwnd, frame_rgn, TRUE);
+      if (SetWindowRgn(entry.hwnd, frame_rgn, TRUE) == 0) {
+        DeleteObject(frame_rgn);
+      }
     } else {
       if (frame_rgn) DeleteObject(frame_rgn);
       if (inner_rgn) DeleteObject(inner_rgn);

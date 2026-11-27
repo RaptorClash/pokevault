@@ -355,6 +355,145 @@ void main() {
       await visSub.cancel();
       await source.dispose();
     });
+
+    test('dispose mid-multi-region scan prevents OCR calls on subsequent regions and after dispose', () async {
+      final firstCallStarted = Completer<void>();
+      final firstCallRelease = Completer<List<String>>();
+      int ocrCalls = 0;
+      bool disposedWhenCalled = false;
+
+      final gatedOcr = _GatedOcrDriver(
+        onRecognize: (_) async {
+          ocrCalls++;
+          if (ocrCalls == 1) {
+            firstCallStarted.complete();
+            return firstCallRelease.future;
+          }
+          disposedWhenCalled = true;
+          return const ['Pikachu'];
+        },
+      );
+
+      final source = MobileCameraSource(ocrDriver: gatedOcr);
+      source.setScanMode(MobileCameraScanMode.customRegions);
+      source.setRegions([
+        NormalizedScanRect(
+          id: 'reg_1',
+          role: CameraZoneRole.scan,
+          left: 0.0,
+          top: 0.0,
+          width: 0.5,
+          height: 1.0,
+          colorHex: 0xFF10B981,
+          label: 'R1',
+        ),
+        NormalizedScanRect(
+          id: 'reg_2',
+          role: CameraZoneRole.focus,
+          left: 0.5,
+          top: 0.0,
+          width: 0.5,
+          height: 1.0,
+          colorHex: 0xFF3B82F6,
+          label: 'R2',
+          encounterOnly: true,
+        ),
+      ]);
+
+      await source.start();
+      final submitFuture = source.submitCameraFrame(
+        _makeTwoToneFrame(width: 20, height: 20),
+        bypassThrottle: true,
+      );
+      await firstCallStarted.future;
+
+      await source.dispose();
+      firstCallRelease.complete(const ['Glumanda']);
+      await submitFuture;
+
+      expect(ocrCalls, 1);
+      expect(disposedWhenCalled, isFalse);
+
+      // Post-dispose calls must be safe no-ops
+      await source.submitCameraFrame(
+        _makeTwoToneFrame(width: 20, height: 20, bottomVal: 180),
+        bypassThrottle: true,
+      );
+      await source.triggerSingleScan();
+      expect(ocrCalls, 1);
+    });
+
+    test('OCR exception in one custom region does not abort remaining regions or poison fingerprint', () async {
+      bool failRegion1 = true;
+      int region1Calls = 0;
+      int region2Calls = 0;
+
+      final flakyOcr = _GatedOcrDriver(
+        onRecognize: (frame) async {
+          // Left half vs right half: use pixel difference or call order
+          final isRegion1 = frame.bytes[0] < 100;
+          if (isRegion1) {
+            region1Calls++;
+            if (failRegion1) throw StateError('MLKit transient error');
+            return const ['Glumanda wurde gefangen!'];
+          }
+          region2Calls++;
+          return const ['Wildes Pikachu'];
+        },
+      );
+
+      final source = MobileCameraSource(ocrDriver: flakyOcr);
+      source.setScanMode(MobileCameraScanMode.customRegions);
+      source.setRegions([
+        NormalizedScanRect(
+          id: 'r1',
+          role: CameraZoneRole.scan,
+          left: 0.0,
+          top: 0.0,
+          width: 1.0,
+          height: 0.5,
+          colorHex: 0xFF10B981,
+          label: 'Top',
+        ),
+        NormalizedScanRect(
+          id: 'r2',
+          role: CameraZoneRole.focus,
+          left: 0.0,
+          top: 0.5,
+          width: 1.0,
+          height: 0.5,
+          colorHex: 0xFF3B82F6,
+          label: 'Bottom',
+          encounterOnly: true,
+        ),
+      ]);
+
+      final focusTexts = <String>[];
+      final scanTexts = <String>[];
+      final s1 = source.focusTextStream.listen(focusTexts.add);
+      final s2 = source.textStream.listen(scanTexts.add);
+
+      await source.start();
+      final frame = _makeTwoToneFrame(width: 20, height: 20);
+      await source.submitCameraFrame(frame, bypassThrottle: true);
+      await Future<void>.delayed(Duration.zero);
+
+      expect(region1Calls, 1);
+      expect(region2Calls, 1);
+      expect(focusTexts, ['Wildes Pikachu']);
+
+      // Retry exact same frame once region1 recovers -> must NOT be skipped by poisoned fingerprint
+      failRegion1 = false;
+      await source.submitCameraFrame(frame, bypassThrottle: true);
+      await Future<void>.delayed(Duration.zero);
+
+      expect(region1Calls, 2);
+      expect(scanTexts, ['Glumanda wurde gefangen!']);
+
+      await s1.cancel();
+      await s2.cancel();
+      await source.dispose();
+    });
   });
 }
 
@@ -365,6 +504,20 @@ class _CompleterOcrDriver implements DisposableOcrDriver {
 
   @override
   Future<List<String>> recognizeText(CapturedFrame frame) => future;
+
+  @override
+  Future<void> dispose() async {
+    disposed = true;
+  }
+}
+
+class _GatedOcrDriver implements DisposableOcrDriver {
+  final Future<List<String>> Function(CapturedFrame frame) onRecognize;
+  bool disposed = false;
+  _GatedOcrDriver({required this.onRecognize});
+
+  @override
+  Future<List<String>> recognizeText(CapturedFrame frame) => onRecognize(frame);
 
   @override
   Future<void> dispose() async {

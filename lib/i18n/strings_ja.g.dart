@@ -2503,6 +2503,8 @@ class TranslationsJa extends Translations with BaseTranslations<AppLocale, Trans
 	@override String get scanner_self_scan_overlap_mask => 'PokéVaultを非表示にする（推奨）';
 	@override String get shiny_auto_transition_none_warning => '「画像切替のみ」モードでは、現在、ブラック画面リセットもホワイト画面リセットも有効になっていません。少なくとも1つのトランジションを有効にするか、別のモードを選択してください。';
 	@override String get multi_hunt_slot_default_suffix => '（標準）';
+	@override String get tutorial_steps_count => '{count} ステップ';
+	@override String get tutorial_chapters_count => '{count} チャプター';
 }
 
 /// The flat map containing all translations for locale <ja>.
@@ -4985,6 +4987,8 @@ extension on TranslationsJa {
 			'scanner_self_scan_overlap_mask' => 'PokéVaultを非表示にする（推奨）',
 			'shiny_auto_transition_none_warning' => '「画像切替のみ」モードでは、現在、ブラック画面リセットもホワイト画面リセットも有効になっていません。少なくとも1つのトランジションを有効にするか、別のモードを選択してください。',
 			'multi_hunt_slot_default_suffix' => '（標準）',
+			'tutorial_steps_count' => '{count} ステップ',
+			'tutorial_chapters_count' => '{count} チャプター',
 			_ => null,
 		};
 	}

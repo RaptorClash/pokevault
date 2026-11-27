@@ -416,6 +416,12 @@ class _ShinyAutoCounterBarState extends State<ShinyAutoCounterBar> {
                       child: ValueListenableBuilder<bool>(
                         valueListenable: service.isPausedNotifier,
                         builder: (context, isPaused, _) {
+                          final compactBtnStyle = IconButton.styleFrom(
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                            minimumSize: const Size(28, 28),
+                            fixedSize: const Size(28, 28),
+                            padding: EdgeInsets.zero,
+                          );
                           return Row(
                             children: [
                               Container(
@@ -444,9 +450,7 @@ class _ShinyAutoCounterBarState extends State<ShinyAutoCounterBar> {
                               ),
                               IconButton(
                                 key: const Key('shiny_auto_help_btn'),
-                                style: IconButton.styleFrom(
-                                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                                ),
+                                style: compactBtnStyle,
                                 visualDensity: VisualDensity.compact,
                                 padding: EdgeInsets.zero,
                                 constraints: const BoxConstraints(
@@ -473,10 +477,7 @@ class _ShinyAutoCounterBarState extends State<ShinyAutoCounterBar> {
                                   }
                                   return IconButton(
                                     key: const Key('shiny_auto_bar_rearm_all_btn'),
-                                    style: IconButton.styleFrom(
-                                      tapTargetSize:
-                                          MaterialTapTargetSize.shrinkWrap,
-                                    ),
+                                    style: compactBtnStyle,
                                     visualDensity: VisualDensity.compact,
                                     padding: EdgeInsets.zero,
                                     constraints: const BoxConstraints(
@@ -495,9 +496,7 @@ class _ShinyAutoCounterBarState extends State<ShinyAutoCounterBar> {
                               ),
                               IconButton(
                                 key: const Key('shiny_auto_logs_btn'),
-                                style: IconButton.styleFrom(
-                                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                                ),
+                                style: compactBtnStyle,
                                 visualDensity: VisualDensity.compact,
                                 padding: EdgeInsets.zero,
                                 constraints: const BoxConstraints(
@@ -518,10 +517,7 @@ class _ShinyAutoCounterBarState extends State<ShinyAutoCounterBar> {
                                       logs.any((e) => !e.undone && e.delta > 0);
                                   return IconButton(
                                     key: const Key('shiny_auto_undo_btn'),
-                                    style: IconButton.styleFrom(
-                                      tapTargetSize:
-                                          MaterialTapTargetSize.shrinkWrap,
-                                    ),
+                                    style: compactBtnStyle,
                                     visualDensity: VisualDensity.compact,
                                     padding: EdgeInsets.zero,
                                     constraints: const BoxConstraints(
@@ -544,9 +540,7 @@ class _ShinyAutoCounterBarState extends State<ShinyAutoCounterBar> {
                               ),
                               IconButton(
                                 key: const Key('shiny_auto_pause_btn'),
-                                style: IconButton.styleFrom(
-                                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                                ),
+                                style: compactBtnStyle,
                                 visualDensity: VisualDensity.compact,
                                 padding: EdgeInsets.zero,
                                 constraints: const BoxConstraints(
@@ -567,10 +561,7 @@ class _ShinyAutoCounterBarState extends State<ShinyAutoCounterBar> {
                               if (onOpenSetup != null)
                                 IconButton(
                                   key: const Key('shiny_auto_setup_btn'),
-                                  style: IconButton.styleFrom(
-                                    tapTargetSize:
-                                        MaterialTapTargetSize.shrinkWrap,
-                                  ),
+                                  style: compactBtnStyle,
                                   visualDensity: VisualDensity.compact,
                                   padding: EdgeInsets.zero,
                                   constraints: const BoxConstraints(
@@ -584,9 +575,7 @@ class _ShinyAutoCounterBarState extends State<ShinyAutoCounterBar> {
                                 ),
                               IconButton(
                                 key: const Key('shiny_auto_stop_btn'),
-                                style: IconButton.styleFrom(
-                                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                                ),
+                                style: compactBtnStyle,
                                 visualDensity: VisualDensity.compact,
                                 padding: EdgeInsets.zero,
                                 constraints: const BoxConstraints(

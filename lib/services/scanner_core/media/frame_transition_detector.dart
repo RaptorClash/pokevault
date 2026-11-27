@@ -48,8 +48,6 @@ class _SlotTracker {
   bool hasSeenNormal = false;
   Duration? transitionStartedAt;
   int solidSampleCount = 0;
-  FrameTransitionType? pendingOutgoingType;
-  int pendingOutgoingDurationMs = 0;
 }
 
 /// Cross-platform luminance edge detector for detecting soft-resets and loading screens.

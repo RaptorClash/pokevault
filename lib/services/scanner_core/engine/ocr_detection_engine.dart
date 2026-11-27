@@ -71,7 +71,12 @@ class OcrDetectionEngine {
   );
 
   static final RegExp _battlePromptPattern = RegExp(
-    r'(?:\b(?:was|wlas|klas|kas)\s+soll\b|\bsoll\s+\S+(?:\s+\S+)?\s+(?:tun|t[l1i][.rn]{1,3}\S*|tt\.rn\S*)\??|\bwhat\s+will\b|\bwill\s+[^\n\r?]+\s+do\??|\bgib\b[^\n\r?]*\bspitzname|\bnickname\b|\b(?:kampf|fight)\b.*\b(?:beutel|bag)\b.*\b(?:flucht|run)\b)',
+    r'(?:\b(?:was|wlas|klas|kas)\s+soll\b|\bsoll\s+\S+(?:\s+\S+)?\s+(?:tun|t[l1i][.rn]{1,3}\S*|tt\.rn\S*)\??|\bwhat\s+will\b|\bwill\s+[^\n\r?]+\s+do\??|\b(?:kampf|fight)\b[\s\S]*\b(?:beutel|bag)\b[\s\S]*\b(?:flucht|run)\b)',
+    caseSensitive: false,
+  );
+
+  static final RegExp _nicknamePromptPattern = RegExp(
+    r'(?:\bgib\b[^\n\r?]*\bspitzname|\bnickname\b)',
     caseSensitive: false,
   );
 
@@ -670,7 +675,8 @@ class OcrDetectionEngine {
         .toList();
     final filteredLines = lines.where((l) {
       if (_emulatorChromePattern.hasMatch(l) ||
-          _battlePromptPattern.hasMatch(l)) {
+          _battlePromptPattern.hasMatch(l) ||
+          _nicknamePromptPattern.hasMatch(l)) {
         return false;
       }
       if (role == OcrScanRole.enemyHudFocusOnly) {
@@ -744,7 +750,8 @@ class OcrDetectionEngine {
 
     for (final lineTrimmed in candidates) {
       // Reject player battle-command / nickname prompts even when split across lines
-      if (_battlePromptPattern.hasMatch(lineTrimmed)) {
+      if (_battlePromptPattern.hasMatch(lineTrimmed) ||
+          _nicknamePromptPattern.hasMatch(lineTrimmed)) {
         continue;
       }
 
@@ -902,7 +909,9 @@ class OcrDetectionEngine {
     // so PokemonFuzzyMatcher.matchTokensFromLine can resolve the Pokémon.
     final dialogueText = filteredLines.join(' ');
     if (_battlePromptPattern.hasMatch(dialogueText) ||
-        _battlePromptPattern.hasMatch(trimmed)) {
+        _battlePromptPattern.hasMatch(trimmed) ||
+        _nicknamePromptPattern.hasMatch(dialogueText) ||
+        _nicknamePromptPattern.hasMatch(trimmed)) {
       return null;
     }
     final isCatchContext = _smartCatchContextPattern.hasMatch(dialogueText);

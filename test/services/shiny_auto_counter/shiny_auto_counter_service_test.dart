@@ -1545,7 +1545,154 @@ void main() {
       await coordinator.dispose();
       provider.dispose();
     });
+
+    test('stopSession(stopCoordinatorSource: true) awaiting slow stop does not wipe a newly started session', () async {
+      final provider = ShinyHuntProvider(
+        databaseService: DatabaseService.instance,
+        enableTimer: false,
+      );
+      await provider.initialized;
+      await provider.createHunt(_makeHunt(id: 'hunt-stop-race', pokemonId: 150, pokemonName: 'Mewtu'));
+
+      final stopCompleter = Completer<void>();
+      final slowSource = _DelayedStopSource(stopCompleter.future);
+      final coord1 = buildTestCoordinator(() => Duration.zero)..bindSource(slowSource);
+      await coord1.start();
+
+      final coord2 = buildTestCoordinator(() => Duration.zero);
+      final source2 = _FakeTransitionSource();
+      await source2.start();
+
+      final service = ShinyAutoCounterService.forTesting();
+      service.startSession(
+        huntProvider: provider,
+        coordinator: coord1,
+        source: slowSource,
+        defaultHuntId: 'hunt-stop-race',
+        slotIds: const [1],
+      );
+
+      // Start async stopSession while coord1.stop() stalls
+      final stopFuture = service.stopSession(stopCoordinatorSource: true);
+      await Future<void>.delayed(Duration.zero);
+
+      // Start new session immediately before coord1.stop() completes
+      service.startSession(
+        huntProvider: provider,
+        coordinator: coord2,
+        source: source2,
+        defaultHuntId: 'hunt-stop-race',
+        slotIds: const [1, 2],
+      );
+
+      stopCompleter.complete();
+      await stopFuture;
+
+      expect(service.isRunning, isTrue);
+      expect(service.coordinator, same(coord2));
+      expect(service.source, same(source2));
+      expect(service.slotStatesNotifier.value.map((s) => s.slotId).toList(), equals([1, 2]));
+
+      await service.stopSession();
+      await slowSource.dispose();
+      await source2.dispose();
+      await coord1.dispose();
+      await coord2.dispose();
+      provider.dispose();
+    });
+
+    test('startSession switching coordinators resets previous coordinator feedback suppression and overlay patterns', () async {
+      final provider = ShinyHuntProvider(
+        databaseService: DatabaseService.instance,
+        enableTimer: false,
+      );
+      await provider.initialized;
+      await provider.createHunt(_makeHunt(id: 'hunt-coord-switch', pokemonId: 25, pokemonName: 'Pikachu'));
+
+      final feedback1 = _CountingFeedback();
+      final coord1 = ScannerCoordinator(
+        engine: OcrDetectionEngine(),
+        matcher: PokemonFuzzyMatcher.withEntries(const [
+          PokemonMatcherEntry(id: 25, name: 'Pikachu', language: 'de'),
+        ]),
+        feedback: feedback1,
+      );
+      final coord2 = buildTestCoordinator(() => Duration.zero);
+      final service = ShinyAutoCounterService.forTesting();
+
+      service.startSession(
+        huntProvider: provider,
+        coordinator: coord1,
+        defaultHuntId: 'hunt-coord-switch',
+        settings: const ShinyAutoCounterSettings(
+          customResetPatterns: ['Reset Now'],
+        ),
+      );
+      expect(coord1.engine.parse('Reset Now')?.type, equals(ScannerEventType.customReset));
+
+      // Switch directly to coord2 without calling stopSession() first
+      service.startSession(
+        huntProvider: provider,
+        coordinator: coord2,
+        defaultHuntId: 'hunt-coord-switch',
+      );
+
+      // coord1 must have its overlay patterns cleared and encounter feedback re-enabled
+      expect(coord1.engine.parse('Reset Now'), isNull);
+      await coord1.processFrameText('Ein wildes Pikachu erscheint!');
+      expect(feedback1.encounters, equals(1));
+
+      await service.stopSession();
+      await coord1.dispose();
+      await coord2.dispose();
+      provider.dispose();
+    });
+
+    test('ShinyAutoCounterSettings.fromMap survives malformed field types and null pattern entries', () {
+      final parsed = ShinyAutoCounterSettings.fromMap({
+        'detectionMode': 'softReset',
+        'playSoundOnShiny': 'not_a_bool',
+        'minResetCooldownMs': 'not_a_number',
+        'colorDeviationThreshold': 'bad_double',
+        'autoPauseSlotOnShiny': false,
+        'customResetPatterns': [null, '  Title Screen  ', 42],
+      });
+
+      expect(parsed.detectionMode, equals(ShinyHuntDetectionMode.softReset));
+      expect(parsed.autoPauseSlotOnShiny, isFalse);
+      expect(parsed.playSoundOnShiny, isTrue);
+      expect(parsed.minResetCooldownMs, equals(1200));
+      expect(parsed.colorDeviationThreshold, equals(0.38));
+      expect(parsed.customResetPatterns, equals(['Title Screen', '42']));
+    });
   });
+}
+
+class _DelayedStopSource implements ScannerSource {
+  final StreamController<String> _text = StreamController<String>.broadcast();
+  final Future<void> _stopFuture;
+  bool _running = false;
+  _DelayedStopSource(this._stopFuture);
+
+  @override
+  Stream<String> get textStream => _text.stream;
+
+  @override
+  bool get isRunning => _running;
+
+  @override
+  Future<void> start() async => _running = true;
+
+  @override
+  Future<void> stop() async {
+    await _stopFuture;
+    _running = false;
+  }
+
+  @override
+  Future<void> dispose() async {
+    await _text.close();
+  }
 }
 
 class _FailingSaveDatabaseService extends Fake implements DatabaseService {

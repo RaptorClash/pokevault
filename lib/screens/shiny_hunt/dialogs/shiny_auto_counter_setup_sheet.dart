@@ -113,6 +113,7 @@ class _ShinyAutoCounterSetupSheetState
 
     unawaited(_loadPersistedSettings());
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
       _tutorialController.showIfNeeded(
         context: context,
         isMounted: mounted,
@@ -1185,7 +1186,7 @@ class _ShinyAutoCounterSetupSheetState
                 FilledButton.icon(
                   key: const Key('setup_start_btn'),
                   icon: Icon(
-                    _service.isRunning
+                    (widget.perHuntOverride || _service.isRunning)
                         ? Icons.check_rounded
                         : (hasActiveSource
                             ? Icons.play_arrow_rounded

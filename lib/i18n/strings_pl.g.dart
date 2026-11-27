@@ -2503,6 +2503,8 @@ class TranslationsPl extends Translations with BaseTranslations<AppLocale, Trans
 	@override String get scanner_self_scan_overlap_mask => 'Ukryj PokéVault (Zalecane)';
 	@override String get shiny_auto_transition_none_warning => 'W trybie „Tylko zmiana obrazu“ aktualnie nie jest aktywny reset obrazu czarnego ani białego. Aktywuj przynajmniej jeden przejście lub wybierz inny tryb.';
 	@override String get multi_hunt_slot_default_suffix => '(Standard)';
+	@override String get tutorial_steps_count => '{count} kroków';
+	@override String get tutorial_chapters_count => '{count} rozdziałów';
 }
 
 /// The flat map containing all translations for locale <pl>.
@@ -4985,6 +4987,8 @@ extension on TranslationsPl {
 			'scanner_self_scan_overlap_mask' => 'Ukryj PokéVault (Zalecane)',
 			'shiny_auto_transition_none_warning' => 'W trybie „Tylko zmiana obrazu“ aktualnie nie jest aktywny reset obrazu czarnego ani białego. Aktywuj przynajmniej jeden przejście lub wybierz inny tryb.',
 			'multi_hunt_slot_default_suffix' => '(Standard)',
+			'tutorial_steps_count' => '{count} kroków',
+			'tutorial_chapters_count' => '{count} rozdziałów',
 			_ => null,
 		};
 	}

@@ -152,6 +152,7 @@ class MobileCameraSource
 
   @override
   Future<void> start() async {
+    if (_disposed) return;
     _running = true;
   }
 
@@ -164,11 +165,13 @@ class MobileCameraSource
 
   /// Processes a single imported photo or screenshot immediately.
   Future<void> processPhotoFrame(CapturedFrame frame) async {
+    if (_disposed) return;
     await _processFrameInternal(frame, bypassThrottle: true, bypassHash: true);
   }
 
   /// Triggers an immediate re-scan of the most recent camera frame.
   Future<void> triggerSingleScan() async {
+    if (_disposed) return;
     final frame = _latestUprightFrame;
     if (frame == null) return;
     await _processFrameInternal(frame, bypassThrottle: true, bypassHash: true);
@@ -177,7 +180,7 @@ class MobileCameraSource
   /// Checks whether a live camera frame should be converted and processed now,
   /// allowing the camera stream callback to drop frames cheaply before YUV->BGRA work.
   bool shouldProcessFrameNow() {
-    if (!_running || _scanInFlight) return false;
+    if (_disposed || !_running || _scanInFlight) return false;
     if (_lastProcessedAt != null &&
         DateTime.now().difference(_lastProcessedAt!) < _pollInterval) {
       return false;
@@ -190,6 +193,7 @@ class MobileCameraSource
     CapturedFrame uprightFrame, {
     bool bypassThrottle = false,
   }) async {
+    if (_disposed) return;
     _latestUprightFrame = uprightFrame;
     if (!_running) return;
     await _processFrameInternal(
@@ -204,7 +208,7 @@ class MobileCameraSource
     required bool bypassThrottle,
     required bool bypassHash,
   }) async {
-    if (_scanInFlight) return;
+    if (_disposed || _scanInFlight) return;
     final now = DateTime.now();
     if (!bypassThrottle &&
         _lastProcessedAt != null &&
@@ -292,6 +296,7 @@ class MobileCameraSource
     }
 
     for (final region in enabledRegions) {
+      if (_disposed || (!_running && !bypassHash)) break;
       final cropped = CameraFrameProcessor.cropFrameToNormalizedRect(
         uprightFrame,
         region,
@@ -330,6 +335,7 @@ class MobileCameraSource
     required bool bypassHash,
     bool trackTransition = true,
   }) async {
+    if (_disposed || (!_running && !bypassHash)) return;
     if (trackTransition) {
       final resolvedSlotId =
           role == CameraZoneRole.multiInstance ? (slotId ?? 2) : 0;
@@ -355,11 +361,16 @@ class MobileCameraSource
     if (!bypassHash && _lastFingerprintByZone[zoneKey] == fingerprint) {
       return;
     }
-    _lastFingerprintByZone[zoneKey] = fingerprint;
 
     final t0 = DateTime.now();
-    final lines = await ocrDriver.recognizeText(croppedFrame);
+    final List<String> lines;
+    try {
+      lines = await ocrDriver.recognizeText(croppedFrame);
+    } catch (_) {
+      return;
+    }
     if (_disposed || (!_running && !bypassHash)) return;
+    _lastFingerprintByZone[zoneKey] = fingerprint;
     final ocrMs = DateTime.now().difference(t0).inMilliseconds;
     final joined = lines.join('\n').trim();
     final diagnosticHint = ocrDriver is DiagnosticOcrDriver

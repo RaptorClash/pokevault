@@ -7433,6 +7433,12 @@ class Translations with BaseTranslations<AppLocale, Translations> {
 
 	/// de: ' (Standard)'
 	String get multi_hunt_slot_default_suffix => ' (Standard)';
+
+	/// de: '{count} Schritte'
+	String get tutorial_steps_count => '{count} Schritte';
+
+	/// de: '{count} Kapitel'
+	String get tutorial_chapters_count => '{count} Kapitel';
 }
 
 /// The flat map containing all translations for locale <de>.
@@ -9915,6 +9921,8 @@ extension on Translations {
 			'scanner_self_scan_overlap_mask' => 'PokéVault ausblenden (Empfohlen)',
 			'shiny_auto_transition_none_warning' => 'Im Modus „Nur Bildwechsel“ ist aktuell weder Schwarzbild- noch Weißbild-Reset aktiv. Aktiviere mindestens einen Übergang oder wähle einen anderen Modus.',
 			'multi_hunt_slot_default_suffix' => ' (Standard)',
+			'tutorial_steps_count' => '{count} Schritte',
+			'tutorial_chapters_count' => '{count} Kapitel',
 			_ => null,
 		};
 	}

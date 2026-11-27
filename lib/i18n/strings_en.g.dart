@@ -2503,6 +2503,8 @@ class TranslationsEn extends Translations with BaseTranslations<AppLocale, Trans
 	@override String get scanner_self_scan_overlap_mask => 'Hide PokéVault (Recommended)';
 	@override String get shiny_auto_transition_none_warning => 'Neither black-screen nor white-screen reset is enabled in Screen Transition Only mode. Enable at least one transition or choose another mode.';
 	@override String get multi_hunt_slot_default_suffix => ' (Default)';
+	@override String get tutorial_steps_count => '{count} steps';
+	@override String get tutorial_chapters_count => '{count} chapters';
 }
 
 /// The flat map containing all translations for locale <en>.
@@ -4985,6 +4987,8 @@ extension on TranslationsEn {
 			'scanner_self_scan_overlap_mask' => 'Hide PokéVault (Recommended)',
 			'shiny_auto_transition_none_warning' => 'Neither black-screen nor white-screen reset is enabled in Screen Transition Only mode. Enable at least one transition or choose another mode.',
 			'multi_hunt_slot_default_suffix' => ' (Default)',
+			'tutorial_steps_count' => '{count} steps',
+			'tutorial_chapters_count' => '{count} chapters',
 			_ => null,
 		};
 	}

@@ -2503,6 +2503,8 @@ class TranslationsIt extends Translations with BaseTranslations<AppLocale, Trans
 	@override String get scanner_self_scan_overlap_mask => 'Nascondi PokéVault (Consigliato)';
 	@override String get shiny_auto_transition_none_warning => 'In modalità “Solo cambio immagine” attualmente non è attivo né il reset con schermo nero né quello con schermo bianco. Attiva almeno una transizione o scegli un\'altra modalità.';
 	@override String get multi_hunt_slot_default_suffix => '(Standard)';
+	@override String get tutorial_steps_count => '{count} passaggi';
+	@override String get tutorial_chapters_count => '{count} capitoli';
 }
 
 /// The flat map containing all translations for locale <it>.
@@ -4985,6 +4987,8 @@ extension on TranslationsIt {
 			'scanner_self_scan_overlap_mask' => 'Nascondi PokéVault (Consigliato)',
 			'shiny_auto_transition_none_warning' => 'In modalità “Solo cambio immagine” attualmente non è attivo né il reset con schermo nero né quello con schermo bianco. Attiva almeno una transizione o scegli un\'altra modalità.',
 			'multi_hunt_slot_default_suffix' => '(Standard)',
+			'tutorial_steps_count' => '{count} passaggi',
+			'tutorial_chapters_count' => '{count} capitoli',
 			_ => null,
 		};
 	}

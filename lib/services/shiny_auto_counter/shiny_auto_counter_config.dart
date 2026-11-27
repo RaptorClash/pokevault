@@ -365,10 +365,16 @@ class ShinyAutoCounterSettings {
       }
     }
 
+    bool readBool(Object? v, bool fallback) => v is bool ? v : fallback;
+    int readInt(Object? v, int fallback) => v is num ? v.toInt() : fallback;
+    double readDouble(Object? v, double fallback) =>
+        v is num ? v.toDouble() : fallback;
+
     final resets = <String>[];
     final rawResets = map['customResetPatterns'];
     if (rawResets is List) {
       for (final item in rawResets) {
+        if (item == null) continue;
         final s = item.toString().trim();
         if (s.isNotEmpty) resets.add(s);
       }
@@ -402,40 +408,36 @@ class ShinyAutoCounterSettings {
     return ShinyAutoCounterSettings(
       detectionMode: mode,
       matchFilter: filter,
-      useEventEncounterCount: map['useEventEncounterCount'] as bool? ?? true,
-      enableBlackScreenReset: map['enableBlackScreenReset'] as bool? ?? true,
-      enableWhiteScreenReset: map['enableWhiteScreenReset'] as bool? ?? false,
+      useEventEncounterCount: readBool(map['useEventEncounterCount'], true),
+      enableBlackScreenReset: readBool(map['enableBlackScreenReset'], true),
+      enableWhiteScreenReset: readBool(map['enableWhiteScreenReset'], false),
       minResetCooldownMs:
-          ((map['minResetCooldownMs'] as num?)?.toInt() ?? 1200)
-              .clamp(200, 30000),
+          readInt(map['minResetCooldownMs'], 1200).clamp(200, 30000),
       transitionMinDurationMs:
-          ((map['transitionMinDurationMs'] as num?)?.toInt() ?? 350)
-              .clamp(150, 5000),
+          readInt(map['transitionMinDurationMs'], 350).clamp(150, 5000),
       blackLumaThreshold:
-          ((map['blackLumaThreshold'] as num?)?.toInt() ?? 18).clamp(5, 80),
+          readInt(map['blackLumaThreshold'], 18).clamp(5, 80),
       whiteLumaThreshold:
-          ((map['whiteLumaThreshold'] as num?)?.toInt() ?? 240).clamp(175, 252),
+          readInt(map['whiteLumaThreshold'], 240).clamp(175, 252),
       customTriggerPatterns: List.unmodifiable(triggers),
       customResetPatterns: List.unmodifiable(resets),
-      playSoundOnCount: map['playSoundOnCount'] as bool? ?? false,
-      playHapticOnCount: map['playHapticOnCount'] as bool? ?? true,
-      playSoundOnShiny: map['playSoundOnShiny'] as bool? ?? true,
-      playHapticOnShiny: map['playHapticOnShiny'] as bool? ?? true,
-      autoPauseSlotOnShiny: map['autoPauseSlotOnShiny'] as bool? ?? true,
+      playSoundOnCount: readBool(map['playSoundOnCount'], false),
+      playHapticOnCount: readBool(map['playHapticOnCount'], true),
+      playSoundOnShiny: readBool(map['playSoundOnShiny'], true),
+      playHapticOnShiny: readBool(map['playHapticOnShiny'], true),
+      autoPauseSlotOnShiny: readBool(map['autoPauseSlotOnShiny'], true),
       enableSparkleDelayShinyCheck:
-          map['enableSparkleDelayShinyCheck'] as bool? ?? false,
+          readBool(map['enableSparkleDelayShinyCheck'], false),
       sparkleDelayThresholdMs:
-          ((map['sparkleDelayThresholdMs'] as num?)?.toInt() ?? 1500)
-              .clamp(500, 4000),
+          readInt(map['sparkleDelayThresholdMs'], 1500).clamp(500, 4000),
       enableColorDeviationShinyCheck:
-          map['enableColorDeviationShinyCheck'] as bool? ?? false,
-      colorDeviationThreshold:
-          ((map['colorDeviationThreshold'] as num?)?.toDouble() ?? 0.38)
-              .clamp(0.15, 0.75)
-              .toDouble(),
+          readBool(map['enableColorDeviationShinyCheck'], false),
+      colorDeviationThreshold: readDouble(map['colorDeviationThreshold'], 0.38)
+          .clamp(0.15, 0.75)
+          .toDouble(),
       slotToHuntOverrides: Map.unmodifiable(overrides),
       usePerHuntMethodDefaults:
-          map['usePerHuntMethodDefaults'] as bool? ?? false,
+          readBool(map['usePerHuntMethodDefaults'], false),
       huntSettingsOverrides: Map.unmodifiable(huntOverrides),
     );
   }

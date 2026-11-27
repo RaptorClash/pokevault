@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 import 'package:camera/camera.dart';
 import 'package:flutter/widgets.dart';
 import '../desktop_tracker/evolution_chain_helper.dart';
@@ -273,12 +274,14 @@ class MobileCameraTrackerService {
     const double margin = 8.0;
     final minX = safePadding.left + margin;
     final minY = safePadding.top + margin;
-    final maxX =
-        (screenSize.width - safePadding.right - pipSize.width - margin)
-            .clamp(minX, screenSize.width);
-    final maxY =
-        (screenSize.height - safePadding.bottom - pipSize.height - margin)
-            .clamp(minY, screenSize.height);
+    final maxX = math.max(
+      minX,
+      screenSize.width - safePadding.right - pipSize.width - margin,
+    );
+    final maxY = math.max(
+      minY,
+      screenSize.height - safePadding.bottom - pipSize.height - margin,
+    );
 
     pipPositionNotifier.value = Offset(
       nextPosition.dx.clamp(minX, maxX).toDouble(),

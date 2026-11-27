@@ -250,6 +250,13 @@ class ShinyAutoCounterService {
     );
     _huntProvider?.removeListener(_onHuntProviderChanged);
 
+    final prevCoord = _coordinator;
+    if (prevCoord != null && !identical(prevCoord, coordinator)) {
+      prevCoord.setOverlayCustomPatterns(const []);
+      prevCoord.setSlotCustomPatternFilter(null);
+      prevCoord.setSuppressEncounterFeedback(false);
+    }
+
     _huntProvider = huntProvider;
     _coordinator = coordinator;
     _source = source;
@@ -772,7 +779,7 @@ class ShinyAutoCounterService {
   }
 
   Future<void> stopSession({bool stopCoordinatorSource = false}) async {
-    _sessionGeneration++;
+    final gen = ++_sessionGeneration;
     _running = false;
     _paused = false;
     isRunningNotifier.value = false;
@@ -790,9 +797,6 @@ class ShinyAutoCounterService {
       coord.setOverlayCustomPatterns(const []);
       coord.setSlotCustomPatternFilter(null);
       coord.setSuppressEncounterFeedback(false);
-      if (stopCoordinatorSource) {
-        await coord.stop();
-      }
     }
     _coordinator = null;
     _source = null;
@@ -805,6 +809,11 @@ class ShinyAutoCounterService {
     activeShinyAlertsNotifier.value = const [];
     latestShinyAlertNotifier.value = null;
     slotStatesNotifier.value = const [];
+
+    if (coord != null && stopCoordinatorSource) {
+      await coord.stop();
+      if (gen != _sessionGeneration) return;
+    }
   }
 
   void _syncVisualFrameSubscription() {
@@ -884,7 +893,7 @@ class ShinyAutoCounterService {
         : remaining + const Duration(milliseconds: 5);
     _rearmTimers[slot.slotId] = Timer(delay, () {
       _rearmTimers.remove(slot.slotId);
-      if (!_running) return;
+      if (!_running || !identical(_slots[slot.slotId], slot)) return;
       if (slot.checkRearmReady()) {
         _clearCoordinatorBattleState(slot.slotId);
         _publishSlotSnapshots();
@@ -1178,7 +1187,8 @@ class ShinyAutoCounterService {
         _coordinator?.clearBattleState(0);
       }
     }
-    if (slot.phase == ShinySlotPhase.rearmPending) {
+    if (slot.phase == ShinySlotPhase.rearmPending &&
+        (rearmed || !hasPendingRearmTimer(slot.slotId))) {
       _scheduleRearmTimer(slot);
     }
 

@@ -2468,5 +2468,7 @@
   "scanner_self_scan_overlap_ignore": "マスクを外したままにする",
   "scanner_self_scan_overlap_mask": "PokéVaultを非表示にする（推奨）",
   "shiny_auto_transition_none_warning": "「画像切替のみ」モードでは、現在、ブラック画面リセットもホワイト画面リセットも有効になっていません。少なくとも1つのトランジションを有効にするか、別のモードを選択してください。",
-  "multi_hunt_slot_default_suffix": "（標準）"
+  "multi_hunt_slot_default_suffix": "（標準）",
+  "tutorial_steps_count": "{count} ステップ",
+  "tutorial_chapters_count": "{count} チャプター"
 }

@@ -322,6 +322,58 @@ void main() {
     provider.dispose();
     loadCompleter2.complete([]);
     await loadFuture2;
+
+    // incrementAuto / decrementAuto after dispose must NOT throw FlutterError
+    provider.incrementAuto('hunt-race-1');
+    provider.decrementAuto('hunt-race-1');
+  });
+
+  test('loadHunts awaits in-flight flushPendingWrites even after _pendingDirtyHuntIds is cleared', () async {
+    final saveCompleter = Completer<void>();
+    final now = DateTime.now();
+    var dbCount = 10;
+    final gatedDb = _FlushRaceHuntDatabase(
+      onSave: (hunt) async {
+        await saveCompleter.future;
+        dbCount = hunt.currentEncounters;
+      },
+      onLoad: () async => [
+        ShinyHunt(
+          id: 'hunt-flush-race',
+          title: 'Evoli',
+          pokemonId: 133,
+          pokemonName: 'Evoli',
+          game: 'Violet',
+          generation: 9.0,
+          method: 'Wild',
+          baseOdds: 4096.0,
+          currentEncounters: dbCount,
+          createdAt: now,
+          updatedAt: now,
+        ),
+      ],
+    );
+
+    final provider = ShinyHuntProvider(
+      databaseService: gatedDb,
+      enableTimer: false,
+    );
+    await provider.initialized;
+    expect(provider.getHuntById('hunt-flush-race')!.currentEncounters, 10);
+
+    // Trigger an auto increment (which starts flushPendingWrites immediately when enableTimer == false)
+    provider.incrementAuto('hunt-flush-race');
+    await Future<void>.delayed(Duration.zero);
+    // At this point _pendingDirtyHuntIds is cleared, while saveCompleter is still pending (_flushInFlight != null)
+    final reloadFuture = provider.loadHunts();
+    await Future<void>.delayed(const Duration(milliseconds: 10));
+
+    // Complete DB save with 11 BEFORE loadHunts reads DB
+    saveCompleter.complete();
+    await reloadFuture;
+
+    expect(provider.getHuntById('hunt-flush-race')!.currentEncounters, 11);
+    provider.dispose();
   });
 }
 
@@ -344,4 +396,18 @@ class _DelayedHuntDatabase extends Fake implements DatabaseService {
 
   @override
   Future<void> saveShinyHunt(ShinyHunt hunt) => base.saveShinyHunt(hunt);
+}
+
+class _FlushRaceHuntDatabase extends Fake implements DatabaseService {
+  final Future<void> Function(ShinyHunt hunt) onSave;
+  final Future<List<ShinyHunt>> Function() onLoad;
+
+  _FlushRaceHuntDatabase({required this.onSave, required this.onLoad});
+
+  @override
+  Future<List<ShinyHunt>> getAllShinyHunts({bool includeDeleted = false}) =>
+      onLoad();
+
+  @override
+  Future<void> saveShinyHunt(ShinyHunt hunt) => onSave(hunt);
 }

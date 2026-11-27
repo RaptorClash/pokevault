@@ -447,6 +447,11 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
     final scanning = !DesktopTrackerService.instance.isPaused;
     if (scanning != _isScanningActive) {
       setState(() => _isScanningActive = scanning);
+      if (scanning) {
+        unawaited(_webcamController.cameraFramePump?.resume());
+      } else {
+        unawaited(_webcamController.cameraFramePump?.pause());
+      }
       _syncOverlayBorders();
     }
   }
@@ -707,8 +712,9 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
   }
 
   void _bindSourceForSelection(DesktopWindowInfo? window) {
+    final bool isCamera = window != null && window.isCameraSource;
     final ScannerSource nextSource;
-    if (window != null && window.isCameraSource) {
+    if (isCamera) {
       if (_activeWindowSource.isRunning) {
         unawaited(_activeWindowSource.stop());
       }
@@ -727,7 +733,24 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
           ShinyAutoCounterService.instance.coordinator,
           widget.coordinator,
         )) {
-      unawaited(ShinyAutoCounterService.instance.rebindSource(nextSource));
+      final enabledSlots = isCamera
+          ? const <MultiInstanceSlot>[]
+          : widget.coordinator.settings.multiInstanceSlots
+              .where((s) => s.enabled)
+              .toList();
+      final slotIds = enabledSlots.isNotEmpty
+          ? enabledSlots.map((s) => s.id).toList()
+          : const [1];
+      final slotColors = {
+        for (final s in enabledSlots) s.id: s.colorHex,
+      };
+      unawaited(
+        ShinyAutoCounterService.instance.rebindSource(
+          nextSource,
+          slotIds: slotIds,
+          slotColorOverrides: slotColors,
+        ),
+      );
     }
   }
 
@@ -1545,6 +1568,7 @@ class _DesktopTrackerScreenState extends State<DesktopTrackerScreen> {
     bool isAlpha = false,
     bool silent = false,
   }) async {
+    if (!mounted) return;
     final dexProvider = Provider.of<DexProvider>(context, listen: false);
     final targetDex = _getActiveDex(dexProvider);
     if (targetDex == null) return;

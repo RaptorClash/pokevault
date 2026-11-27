@@ -2468,5 +2468,7 @@
   "scanner_self_scan_overlap_ignore": "Pozostawić bez maski",
   "scanner_self_scan_overlap_mask": "Ukryj PokéVault (Zalecane)",
   "shiny_auto_transition_none_warning": "W trybie „Tylko zmiana obrazu“ aktualnie nie jest aktywny reset obrazu czarnego ani białego. Aktywuj przynajmniej jeden przejście lub wybierz inny tryb.",
-  "multi_hunt_slot_default_suffix": "(Standard)"
+  "multi_hunt_slot_default_suffix": "(Standard)",
+  "tutorial_steps_count": "{count} kroków",
+  "tutorial_chapters_count": "{count} rozdziałów"
 }

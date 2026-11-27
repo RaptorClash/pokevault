@@ -244,6 +244,7 @@ class ShinySlotStateMachine {
     if (started == null) {
       _phase = ShinySlotPhase.armed;
       _shinyAlertedForCurrentEncounter = false;
+      _visualObservationPending = false;
       _lastCountedEventTimestamp = null;
       return;
     }
@@ -254,6 +255,7 @@ class ShinySlotStateMachine {
       _eggOhPromptCounted = false;
       _eggOhPromptAt = null;
       _shinyAlertedForCurrentEncounter = false;
+      _visualObservationPending = false;
       _lastCountedEventTimestamp = null;
     }
   }
@@ -432,7 +434,7 @@ class ShinySlotStateMachine {
     final delta = (settings.detectionMode == ShinyHuntDetectionMode.wildEncounter &&
             settings.useEventEncounterCount &&
             event.encounterCount > 1)
-        ? event.encounterCount
+        ? event.encounterCount.clamp(1, 10)
         : 1;
 
     _sessionCount += delta;

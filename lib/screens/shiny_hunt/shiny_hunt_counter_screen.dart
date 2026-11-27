@@ -917,7 +917,7 @@ class _ShinyHuntCounterScreenState extends State<ShinyHuntCounterScreen> {
               ),
               IconButton(
                 icon: const Icon(Icons.edit),
-                tooltip: 'Hunt bearbeiten',
+                tooltip: t.multi_hunt_edit_hunt_tooltip,
                 onPressed: () {
                   showDialog(
                     context: context,
@@ -978,13 +978,13 @@ class _ShinyHuntCounterScreenState extends State<ShinyHuntCounterScreen> {
                       title: Text(t.shiny_hunt_settings_title),
                     ),
                   ),
-                  const PopupMenuItem(
+                  PopupMenuItem(
                     value: 'edit',
                     child: ListTile(
                       dense: true,
                       contentPadding: EdgeInsets.zero,
-                      leading: Icon(Icons.edit, size: 20),
-                      title: Text('Hunt bearbeiten'),
+                      leading: const Icon(Icons.edit, size: 20),
+                      title: Text(t.multi_hunt_edit_hunt_tooltip),
                     ),
                   ),
                 ],
@@ -1385,7 +1385,7 @@ class _CustomStepDialogState extends State<_CustomStepDialog> {
         children: [
           const Icon(Icons.tune_rounded, color: Colors.amber),
           const SizedBox(width: 8),
-          Text(t.shiny_hunt_step_custom_title),
+          Expanded(child: Text(t.shiny_hunt_step_custom_title)),
         ],
       ),
       content: TextField(

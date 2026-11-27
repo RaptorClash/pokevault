@@ -205,7 +205,9 @@ class VisualShinyColorDetector {
     required String speciesKey,
     required double deviationThreshold,
   }) {
-    if (hist.length != 16) return null;
+    if (hist.length != 16 || hist.any((v) => v.isNaN || v.isInfinite)) {
+      return null;
+    }
 
     final k = _key(slotId, speciesKey);
     final baseline = _baselines.putIfAbsent(k, _ColorBaseline.new);

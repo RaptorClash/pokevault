@@ -2503,6 +2503,8 @@ class TranslationsRu extends Translations with BaseTranslations<AppLocale, Trans
 	@override String get scanner_self_scan_overlap_mask => 'Скрыть PokéVault (Рекомендуется)';
 	@override String get shiny_auto_transition_none_warning => 'В режиме «Только смена изображения» в данный момент не активен ни сброс черного экрана, ни сброс белого экрана. Активируйте хотя бы один переход или выберите другой режим.';
 	@override String get multi_hunt_slot_default_suffix => '(Стандарт)';
+	@override String get tutorial_steps_count => '{count} шагов';
+	@override String get tutorial_chapters_count => '{count} глав';
 }
 
 /// The flat map containing all translations for locale <ru>.
@@ -4985,6 +4987,8 @@ extension on TranslationsRu {
 			'scanner_self_scan_overlap_mask' => 'Скрыть PokéVault (Рекомендуется)',
 			'shiny_auto_transition_none_warning' => 'В режиме «Только смена изображения» в данный момент не активен ни сброс черного экрана, ни сброс белого экрана. Активируйте хотя бы один переход или выберите другой режим.',
 			'multi_hunt_slot_default_suffix' => '(Стандарт)',
+			'tutorial_steps_count' => '{count} шагов',
+			'tutorial_chapters_count' => '{count} глав',
 			_ => null,
 		};
 	}

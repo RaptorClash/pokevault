@@ -725,10 +725,16 @@ class DesktopWindowSource
     scanLogsNotifier.value = next;
   }
 
+  bool _shouldAbortScan(bool requireRunning) =>
+      _disposed || (requireRunning && !_running);
+
   /// Triggers an immediate capture and recognition cycle on demand,
   /// even if periodic polling is paused.
-  Future<CapturedFrame?> triggerSingleScan() async {
-    if (_disposed || _scanInFlight) return null;
+  Future<CapturedFrame?> triggerSingleScan() =>
+      _runSingleScan(requireRunning: false);
+
+  Future<CapturedFrame?> _runSingleScan({required bool requireRunning}) async {
+    if (_shouldAbortScan(requireRunning) || _scanInFlight) return null;
     final hasZoneA = _selectedWindow != null || _screenRegion != null;
     final hasZoneB =
         _liveFocusPreset != LiveFocusPreset.disabled ||
@@ -760,7 +766,7 @@ class DesktopWindowSource
         final nativeRes = nativeReq != null
             ? await nativeBridge!.captureAndAnalyze(nativeReq)
             : null;
-        if (_disposed) return nativeRes?.thumbnailFrame;
+        if (_shouldAbortScan(requireRunning)) return nativeRes?.thumbnailFrame;
 
         if (nativeRes != null) {
           if (nativeRes.selfWindowOverlaps) {
@@ -879,9 +885,16 @@ class DesktopWindowSource
             );
           }
 
-          final zoneBRes = await _pollZoneBFocus(window, forceOcr: cycleForceOcr);
-          final multiRes = await _pollMultiInstanceSlots(forceOcr: cycleForceOcr);
-          if (_disposed) return nativeRes.thumbnailFrame;
+          final zoneBRes = await _pollZoneBFocus(
+            window,
+            forceOcr: cycleForceOcr,
+            requireRunning: requireRunning,
+          );
+          final multiRes = await _pollMultiInstanceSlots(
+            forceOcr: cycleForceOcr,
+            requireRunning: requireRunning,
+          );
+          if (_shouldAbortScan(requireRunning)) return nativeRes.thumbnailFrame;
           cycleSelfWindowOverlaps = cycleSelfWindowOverlaps ||
               zoneBRes.selfWindowOverlaps ||
               multiRes.selfWindowOverlaps;
@@ -905,7 +918,7 @@ class DesktopWindowSource
           screenRegion: _screenRegion,
         );
         capWatch.stop();
-        if (_disposed) return frame;
+        if (_shouldAbortScan(requireRunning)) return frame;
 
         if (frame != null) {
           final transition = _transitionDetector.analyzeFrame(frame, slotId: 0);
@@ -933,7 +946,7 @@ class DesktopWindowSource
               recognizedLines = await ocrDriver.recognizeText(frame);
             }
             ocrWatch.stop();
-            if (_disposed) return frame;
+            if (_shouldAbortScan(requireRunning)) return frame;
 
             final validLines = recognizedLines
                 .map((l) => l.trim())
@@ -1012,10 +1025,17 @@ class DesktopWindowSource
       }
 
       // Zone B: Optional opponent HUD capture strictly for Live-Fokus encounters
-      final zoneBRes = await _pollZoneBFocus(window, forceOcr: cycleForceOcr);
+      final zoneBRes = await _pollZoneBFocus(
+        window,
+        forceOcr: cycleForceOcr,
+        requireRunning: requireRunning,
+      );
       // Multi-Instance Shiny-Hunting slots (with per-slot pixel-diff OCR skipping)
-      final multiRes = await _pollMultiInstanceSlots(forceOcr: cycleForceOcr);
-      if (_disposed) return frame;
+      final multiRes = await _pollMultiInstanceSlots(
+        forceOcr: cycleForceOcr,
+        requireRunning: requireRunning,
+      );
+      if (_shouldAbortScan(requireRunning)) return frame;
       if (nativeBridge != null) {
         cycleSelfWindowOverlaps = cycleSelfWindowOverlaps ||
             zoneBRes.selfWindowOverlaps ||
@@ -1121,9 +1141,11 @@ class DesktopWindowSource
   Future<({bool anyCaptured, bool selfWindowOverlaps})> _pollZoneBFocus(
     DesktopWindowInfo primaryWindow, {
     bool forceOcr = false,
+    bool requireRunning = false,
   }) async {
-    if (_liveFocusPreset == LiveFocusPreset.disabled &&
-        _extraFocusRegions.isEmpty) {
+    if (_shouldAbortScan(requireRunning) ||
+        (_liveFocusPreset == LiveFocusPreset.disabled &&
+            _extraFocusRegions.isEmpty)) {
       return (anyCaptured: false, selfWindowOverlaps: false);
     }
 
@@ -1167,7 +1189,7 @@ class DesktopWindowSource
         final nativeB1Res = nativeB1Req != null
             ? await nativeBridge!.captureAndAnalyze(nativeB1Req)
             : null;
-        if (_disposed) {
+        if (_shouldAbortScan(requireRunning)) {
           return (anyCaptured: anyCaptured, selfWindowOverlaps: selfOverlaps);
         }
 
@@ -1200,7 +1222,7 @@ class DesktopWindowSource
               screenRegion: null,
             );
           }
-          if (_disposed) {
+          if (_shouldAbortScan(requireRunning)) {
             return (anyCaptured: anyCaptured, selfWindowOverlaps: selfOverlaps);
           }
 
@@ -1213,7 +1235,7 @@ class DesktopWindowSource
               _lastZoneBFingerprint = fp;
               anyBoxChanged = true;
               final valid = await _recognizeFocusFrameWithMultiBand(focusFrame);
-              if (_disposed) {
+              if (_shouldAbortScan(requireRunning)) {
                 return (
                   anyCaptured: anyCaptured,
                   selfWindowOverlaps: selfOverlaps,
@@ -1243,7 +1265,7 @@ class DesktopWindowSource
         final nativeExtraRes = nativeExtraReq != null
             ? await nativeBridge!.captureAndAnalyze(nativeExtraReq)
             : null;
-        if (_disposed) {
+        if (_shouldAbortScan(requireRunning)) {
           return (anyCaptured: anyCaptured, selfWindowOverlaps: selfOverlaps);
         }
 
@@ -1265,7 +1287,7 @@ class DesktopWindowSource
             cropRegion: null,
             screenRegion: extraRegion,
           );
-          if (_disposed) {
+          if (_shouldAbortScan(requireRunning)) {
             return (anyCaptured: anyCaptured, selfWindowOverlaps: selfOverlaps);
           }
           if (extraFrame == null) continue;
@@ -1276,7 +1298,7 @@ class DesktopWindowSource
             _lastExtraZoneBFingerprints[i] = fp;
             anyBoxChanged = true;
             final valid = await _recognizeFocusFrameWithMultiBand(extraFrame);
-            if (_disposed) {
+            if (_shouldAbortScan(requireRunning)) {
               return (
                 anyCaptured: anyCaptured,
                 selfWindowOverlaps: selfOverlaps,
@@ -1419,8 +1441,9 @@ class DesktopWindowSource
 
   Future<({bool anyCaptured, bool selfWindowOverlaps})> _pollMultiInstanceSlots({
     bool forceOcr = false,
+    bool requireRunning = false,
   }) async {
-    if (_multiInstanceSlots.isEmpty) {
+    if (_shouldAbortScan(requireRunning) || _multiInstanceSlots.isEmpty) {
       return (anyCaptured: false, selfWindowOverlaps: false);
     }
     final detector = WindowDetector();
@@ -1555,7 +1578,7 @@ class DesktopWindowSource
                 .captureAndAnalyze(item.req)
                 .catchError((_) => null),
         ]);
-        if (_disposed) {
+        if (_shouldAbortScan(requireRunning)) {
           return (anyCaptured: anyCaptured, selfWindowOverlaps: selfOverlaps);
         }
 
@@ -1627,11 +1650,12 @@ class DesktopWindowSource
               )
               .catchError((_) => null),
       ]);
-      if (_disposed) {
+      if (_shouldAbortScan(requireRunning)) {
         return (anyCaptured: anyCaptured, selfWindowOverlaps: selfOverlaps);
       }
 
       for (int i = 0; i < remainingSpecs.length; i++) {
+        if (_shouldAbortScan(requireRunning)) break;
         final spec = remainingSpecs[i];
         try {
           await _emitSlotZoneOcr(
@@ -1660,11 +1684,12 @@ class DesktopWindowSource
             )
             .catchError((_) => null),
     ]);
-    if (_disposed) {
+    if (_shouldAbortScan(requireRunning)) {
       return (anyCaptured: anyCaptured, selfWindowOverlaps: selfOverlaps);
     }
 
     for (int i = 0; i < zoneSpecs.length; i++) {
+      if (_shouldAbortScan(requireRunning)) break;
       final spec = zoneSpecs[i];
       try {
         await _emitSlotZoneOcr(
@@ -1682,7 +1707,7 @@ class DesktopWindowSource
 
   Future<void> _pollOnce() async {
     if (!_running) return;
-    await triggerSingleScan();
+    await _runSingleScan(requireRunning: true);
   }
 
   @override

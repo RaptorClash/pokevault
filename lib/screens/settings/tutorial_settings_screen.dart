@@ -169,7 +169,7 @@ class TutorialSettingsScreen extends StatelessWidget {
               runSpacing: 6,
               children: [
                 Text(
-                  '${chapter.stepCount} Schritte',
+                  t.tutorial_steps_count.replaceAll('{count}', '${chapter.stepCount}'),
                   style: TextStyle(
                     fontSize: 11.5,
                     color: theme.colorScheme.onSurfaceVariant,
@@ -535,7 +535,7 @@ class TutorialSettingsScreen extends StatelessWidget {
                         },
                         icon: const Icon(Icons.auto_awesome, size: 16),
                         label: ConstrainedBox(
-                          constraints: const BoxConstraints(maxWidth: 220),
+                          constraints: const BoxConstraints(maxWidth: 185),
                           child: Text(
                             t.tutorial_v17_tour_btn,
                             style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
@@ -552,7 +552,7 @@ class TutorialSettingsScreen extends StatelessWidget {
                         onPressed: () => _showResetAllConfirmDialog(context),
                         icon: const Icon(Icons.refresh, size: 16),
                         label: ConstrainedBox(
-                          constraints: const BoxConstraints(maxWidth: 200),
+                          constraints: const BoxConstraints(maxWidth: 185),
                           child: Text(
                             t.tutorial_replay_all,
                             style: const TextStyle(fontSize: 12),
@@ -587,7 +587,10 @@ class TutorialSettingsScreen extends StatelessWidget {
                   ),
                 ),
                 Text(
-                  '${TutorialChapters.visibleForPlatform().length} Kapitel',
+                  t.tutorial_chapters_count.replaceAll(
+                    '{count}',
+                    '${TutorialChapters.visibleForPlatform().length}',
+                  ),
                   style: TextStyle(
                     fontSize: 12,
                     color: theme.colorScheme.onSurfaceVariant,

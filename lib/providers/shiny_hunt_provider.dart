@@ -124,12 +124,12 @@ class ShinyHuntProvider extends ChangeNotifier with WidgetsBindingObserver {
 
   /// Loads all shiny hunts from SQLite, merging with any unsaved in-memory hunts.
   Future<void> loadHunts() async {
-    if (_pendingDirtyHuntIds.isNotEmpty) {
+    if (_pendingDirtyHuntIds.isNotEmpty || _flushInFlight != null) {
       await flushPendingWrites();
     }
     _loadingDeltaById.clear();
     _isLoading = true;
-    notifyListeners();
+    _notifySafely();
     try {
       final loaded = await db.getAllShinyHunts();
       final loadedIds = loaded.map((h) => h.id).toSet();
@@ -239,6 +239,7 @@ class ShinyHuntProvider extends ChangeNotifier with WidgetsBindingObserver {
     int? delta,
     bool resumeIfPaused = false,
   }) {
+    if (_disposed) return;
     final hunt = getHuntById(huntId);
     if (hunt == null || hunt.isCompleted) return;
     final stepDelta = (delta ?? hunt.incrementStep).clamp(1, 9999999);
@@ -257,22 +258,25 @@ class ShinyHuntProvider extends ChangeNotifier with WidgetsBindingObserver {
       _loadingDeltaById[huntId] = (_loadingDeltaById[huntId] ?? 0) + stepDelta;
     }
     registerInteraction();
-    notifyListeners();
+    _notifySafely();
     _markDirtyAndDebounce(huntId);
   }
 
   /// Automatically decrements the encounter count by [delta] (e.g. for Auto-Counter Undo), clamping at zero.
   void decrementAuto(String huntId, {int delta = 1}) {
+    if (_disposed) return;
     final hunt = getHuntById(huntId);
     if (hunt == null || hunt.isCompleted || delta <= 0) return;
 
+    final prevEncounters = hunt.currentEncounters;
     hunt.currentEncounters = (hunt.currentEncounters - delta).clamp(0, 9999999);
+    final appliedDelta = hunt.currentEncounters - prevEncounters;
     hunt.updatedAt = DateTime.now();
-    if (_isLoading) {
-      _loadingDeltaById[huntId] = (_loadingDeltaById[huntId] ?? 0) - delta;
+    if (_isLoading && appliedDelta != 0) {
+      _loadingDeltaById[huntId] = (_loadingDeltaById[huntId] ?? 0) + appliedDelta;
     }
     registerInteraction();
-    notifyListeners();
+    _notifySafely();
     _markDirtyAndDebounce(huntId);
   }
 
@@ -458,7 +462,10 @@ class ShinyHuntProvider extends ChangeNotifier with WidgetsBindingObserver {
       } else {
         _hunts.removeAt(index);
       }
-      notifyListeners();
+      _notifySafely();
+      while (_flushInFlight != null) {
+        await _flushInFlight;
+      }
       await db.deleteShinyHunt(huntId, softDelete: softDelete);
       _triggerCloudSyncLater(immediate: true);
     }
@@ -601,7 +608,7 @@ class ShinyHuntProvider extends ChangeNotifier with WidgetsBindingObserver {
         }
       }
       if (changed) {
-        notifyListeners();
+        _notifySafely();
       }
     });
   }

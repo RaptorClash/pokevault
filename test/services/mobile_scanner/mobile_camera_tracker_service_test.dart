@@ -325,5 +325,23 @@ void main() {
       await autoCounter.stopSession();
       provider.dispose();
     });
+
+    test('updatePipPosition handles Size.zero and tight split-screen sizes without ArgumentError', () {
+      service.updatePipPosition(
+        const Offset(50, 50),
+        screenSize: Size.zero,
+        safePadding: const EdgeInsets.all(16),
+        pipSize: const Size(168, 144),
+      );
+      expect(service.pipPosition, equals(const Offset(24, 24)));
+
+      service.updatePipPosition(
+        const Offset(100, 100),
+        screenSize: const Size(120, 100),
+        safePadding: const EdgeInsets.all(8),
+        pipSize: const Size(168, 144),
+      );
+      expect(service.pipPosition, equals(const Offset(16, 16)));
+    });
   });
 }

@@ -2503,6 +2503,8 @@ class TranslationsZhHant extends Translations with BaseTranslations<AppLocale, T
 	@override String get scanner_self_scan_overlap_mask => '隱藏 PokéVault（建議）';
 	@override String get shiny_auto_transition_none_warning => '在“僅切換圖像”模式下，目前既沒有黑屏重置也沒有白屏重置。請至少啟用一個過渡或選擇其他模式。';
 	@override String get multi_hunt_slot_default_suffix => '(標準)';
+	@override String get tutorial_steps_count => '{count} 步';
+	@override String get tutorial_chapters_count => '{count} 章節';
 }
 
 /// The flat map containing all translations for locale <zh-Hant>.
@@ -4985,6 +4987,8 @@ extension on TranslationsZhHant {
 			'scanner_self_scan_overlap_mask' => '隱藏 PokéVault（建議）',
 			'shiny_auto_transition_none_warning' => '在“僅切換圖像”模式下，目前既沒有黑屏重置也沒有白屏重置。請至少啟用一個過渡或選擇其他模式。',
 			'multi_hunt_slot_default_suffix' => '(標準)',
+			'tutorial_steps_count' => '{count} 步',
+			'tutorial_chapters_count' => '{count} 章節',
 			_ => null,
 		};
 	}

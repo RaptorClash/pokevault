@@ -662,6 +662,25 @@ void main() {
       });
       expect(uncaught, isEmpty);
     });
+
+    test('single-encounter mode suppresses ignoredPokemonIds without falling back to 2nd-best fuzzy match', () async {
+      final ignoredCoord = ScannerCoordinator(
+        engine: OcrDetectionEngine(),
+        matcher: PokemonFuzzyMatcher.withEntries(const [
+          PokemonMatcherEntry(id: 4, name: 'Glumanda', language: 'de'),
+          PokemonMatcherEntry(id: 5, name: 'Glumando', language: 'de'),
+        ]),
+        settings: ScannerSettings.defaults().copyWith(
+          ignoredPokemonIds: const [4],
+        ),
+      );
+      addTearDown(() async => await ignoredCoord.dispose());
+
+      final events = await ignoredCoord.processFrameText(
+        'Ein wildes Glumanda erscheint!',
+      );
+      expect(events, isEmpty);
+    });
   });
 }
 

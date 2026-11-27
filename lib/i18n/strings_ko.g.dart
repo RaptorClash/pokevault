@@ -2503,6 +2503,8 @@ class TranslationsKo extends Translations with BaseTranslations<AppLocale, Trans
 	@override String get scanner_self_scan_overlap_mask => 'PokéVault 숨기기 (권장)';
 	@override String get shiny_auto_transition_none_warning => '현재 \'단일 이미지 전환\' 모드에서는 블랙 이미지 리셋이나 화이트 이미지 리셋이 활성화되어 있지 않습니다. 최소한 하나의 전환을 활성화하거나 다른 모드를 선택하세요.';
 	@override String get multi_hunt_slot_default_suffix => '(표준)';
+	@override String get tutorial_steps_count => '{count}단계';
+	@override String get tutorial_chapters_count => '{count}개 챕터';
 }
 
 /// The flat map containing all translations for locale <ko>.
@@ -4985,6 +4987,8 @@ extension on TranslationsKo {
 			'scanner_self_scan_overlap_mask' => 'PokéVault 숨기기 (권장)',
 			'shiny_auto_transition_none_warning' => '현재 \'단일 이미지 전환\' 모드에서는 블랙 이미지 리셋이나 화이트 이미지 리셋이 활성화되어 있지 않습니다. 최소한 하나의 전환을 활성화하거나 다른 모드를 선택하세요.',
 			'multi_hunt_slot_default_suffix' => '(표준)',
+			'tutorial_steps_count' => '{count}단계',
+			'tutorial_chapters_count' => '{count}개 챕터',
 			_ => null,
 		};
 	}
